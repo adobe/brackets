@@ -1,0 +1,403 @@
+{
+    "accumulate": {
+        "attribOptions": ["none", "sum"]
+    },
+    "additive": {
+        "attribOptions": ["replace", "sum"]
+    },
+    "alignment-baseline": {
+        "attribOptions": ["after-edge", "alphabetic", "auto", "baseline", "before-edge", "central", "hanging", "ideographic", "inherit", "mathematical", "middle", "text-after-edge", "text-before-edge"]
+    },
+    "animate/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
+    "animateColor/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
+    "animateMotion/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
+    "animateMotion/rotate": {
+        "attribOptions": ["auto", "auto-reverse"]
+    },
+    "animateTransform/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
+    "animateTransform/type": {
+        "attribOptions": ["rotate", "scale", "skewX", "skewY", "translate"]
+    },
+    "arabic-form": {
+        "attribOptions": ["initial", "isolated", "medial", "terminal"]
+    },
+    "attributeType": {
+        "attribOptions": ["auto", "CSS", "XML"]
+    },
+    "baseline-shift": {
+        "attribOptions": ["baseline", "inherit", "sub", "super"]
+    },
+    "calcMode": {
+        "attribOptions": ["discrete", "linear", "paced", "spline"]
+    },
+    "clip": {
+        "attribOptions": ["auto", "inherit"]
+    },
+    "clip-path": {
+        "attribOptions": ["auto", "inherit"]
+    },
+    "clip-rule": {
+        "attribOptions": ["evenodd", "inherit", "nonzero"]
+    },
+    "clipPathUnits": {
+        "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "color": {
+        "type": "color"
+    },
+    "color-interpolation": {
+        "attribOptions": ["auto", "inherit", "linearRGB", "sRGB"]
+    },
+    "color-interpolation-filters": {
+        "attribOptions": ["auto", "inherit", "linearRGB", "sRGB"]
+    },
+    "color-profile": {
+        "attribOptions": ["auto", "inherit", "sRGB"]
+    },
+    "color-rendering": {
+        "attribOptions": ["auto", "inherit", "optimizeQuality", "optimizeSpeed"]
+    },
+    "contentScriptType": {
+        "attribOptions": ["application/ecmascript", "application/javascript", "application/x-ecmascript", "application/x-javascript", "text/ecmascript", "text/javascript", "text/jscript", "text/livescript", "text/tcl", "text/x-ecmascript", "text/x-javascript", "text/babel", "text/jsx"]
+    },
+    "contentStyleType": {
+        "attribOptions": ["text/css"]
+    },
+    "cursor": {
+        "attribOptions": ["auto", "crosshair", "default", "e-resize", "help", "inherit", "move", "n-resize", "ne-resize", "nw-resize", "pointer", "s-resize", "se-resize", "sw-resize", "text", "w-resize", "wait"]
+    },
+    "direction": {
+        "attribOptions": ["inherit", "ltr", "rtl"]
+    },
+    "display": {
+        "attribOptions": ["block", "compact", "inherit", "inline", "inline-table", "list-item", "marker", "none", "run-in", "table", "table-caption", "table-cell", "table-column", "table-column-group", "table-footer-group", "table-header-group", "table-row", "table-row-group"]
+    },
+    "dominant-baseline": {
+        "attribOptions": ["alphabetic", "auto", "central", "hanging", "ideographic", "inherit", "mathematical", "middle", "no-change", "reset-size", "text-after-edge", "text-before-edge", "use-script"]
+    },
+    "dur": {
+        "attribOptions": ["indefinite", "media"]
+    },
+    "edgeMode": {
+        "attribOptions": ["duplicate", "none", "wrap"]
+    },
+    "enable-background": {
+        "attribOptions": ["accumulate", "inherit", "new"]
+    },
+    "externalResourcesRequired": {
+        "attribOptions": ["false", "true"]
+    },
+    "feColorMatrix/type": {
+        "attribOptions": ["hueRotate", "luminanceToAlpha", "matrix", "saturate"]
+    },
+    "feComposite/operator": {
+        "attribOptions": ["arithmetic", "atop", "in", "out", "over", "xor"]
+    },
+    "feFuncA/type": {
+        "attribOptions": ["discrete", "gamma", "identity", "linear", "table"]
+    },
+    "feFuncB/type": {
+        "attribOptions": ["discrete", "gamma", "identity", "linear", "table"]
+    },
+    "feFuncG/type": {
+        "attribOptions": ["discrete", "gamma", "identity", "linear", "table"]
+    },
+    "feFuncR/type": {
+        "attribOptions": ["discrete", "gamma", "identity", "linear", "table"]
+    },
+    "feMorphology/operator": {
+        "attribOptions": ["dilate", "erode"]
+    },
+    "feTurbulence/type": {
+        "attribOptions": ["fractalNoise", "turbulence"]
+    },
+    "fill": {
+        "type": "color"
+    },
+    "fill-opacity": {
+        "attribOptions": ["inherit"]
+    },
+    "fill-rule": {
+        "attribOptions": ["evenodd", "inherit", "nonzero"]
+    },
+    "filter": {
+        "attribOptions": ["inherit", "none"]
+    },
+    "filterUnits": {
+        "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "flood-color": {
+        "type": "color"
+    },
+    "flood-opacity": {
+        "attribOptions": ["inherit"]
+    },
+    "font-family": {
+        "attribOptions": ["inherit"]
+    },
+    "font-size": {
+        "attribOptions": ["inherit"]
+    },
+    "font-size-adjust": {
+        "attribOptions": ["inherit", "none"]
+    },
+    "font-stretch": {
+        "attribOptions": ["all", "condensed", "expanded", "extra-condensed", "extra-expanded", "inherit", "narrower", "normal", "semi-condensed", "semi-expanded", "ultra-condensed", "ultra-expanded", "wider"]
+    },
+    "font-style": {
+        "attribOptions": ["all", "inherit", "italic", "normal", "oblique"]
+    },
+    "font-variant": {
+        "attribOptions": ["inherit", "normal", "small-caps"]
+    },
+    "font-weight": {
+        "attribOptions": ["100", "200", "300", "400", "500", "600", "700", "800", "900", "all", "bold", "bolder", "inherit", "lighter", "normal"]
+    },
+    "glyph-orientation-horizontal": {
+        "attribOptions": ["inherit"]
+    },
+    "glyph-orientation-vertical": {
+        "attribOptions": ["auto", "inherit"]
+    },
+    "gradientTransform": {
+        "attribOptions": ["matrix()", "rotate()", "scale()", "skewX()", "skewY()", "translate()"],
+        "multiple": true
+    },
+    "gradientUnits": {
+        "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "image-rendering": {
+        "attribOptions": ["auto", "inherit", "optimizeQuality", "optimizeSpeed"]
+    },
+    "in": {
+        "attribOptions": ["BackgroundAlpha", "BackgroundImage", "FillPaint", "SourceAlpha", "SourceGraphic", "StrokePaint"]
+    },
+    "in2": {
+        "attribOptions": ["BackgroundAlpha", "BackgroundImage", "FillPaint", "SourceAlpha", "SourceGraphic", "StrokePaint"]
+    },
+    "kerning": {
+        "attribOptions": ["auto", "inherit"]
+    },
+    "lang": {
+        "attribOptions": ["aa", "ab", "af", "am", "ar", "as", "ay", "az", "ba", "be", "bg", "bh", "bi", "bn", "bo", "br", "ca", "co", "cs", "cy", "da", "de", "dz", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "ha", "hi", "hr", "hu", "hy", "ia", "ie", "ik", "in", "is", "it", "iw", "ja", "ji", "jw", "ka", "kk", "kl", "km", "kn", "ko", "ks", "ku", "ky", "la", "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "ne", "nl", "no", "oc", "om", "or", "pa", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sd", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "uk", "ur", "uz", "vi", "vo", "wo", "xh", "yo", "zh", "zu"]
+    },
+    "lengthAdjust": {
+        "attribOptions": ["spacing", "spacingAndGlyphs"]
+    },
+    "letter-spacing": {
+        "attribOptions": ["inherit", "normal"]
+    },
+    "lighting-color": {
+        "type": "color"
+    },
+    "marker-end": {
+        "attribOptions": ["inherit", "none"]
+    },
+    "marker-mid": {
+        "attribOptions": ["inherit", "none"]
+    },
+    "marker-start": {
+        "attribOptions": ["inherit", "none"]
+    },
+    "markerUnits": {
+        "attribOptions": ["strokeWidth", "userSpaceOnUse"]
+    },
+    "mask": {
+        "attribOptions": ["inherit", "none"]
+    },
+    "maskContentUnits": {
+        "attribOptions": ["userSpaceOnUse", "objectBoundingBox"]
+    },
+    "maskUnits": {
+        "attribOptions": ["userSpaceOnUse", "objectBoundingBox"]
+    },
+    "max": {
+        "attribOptions": ["media"]
+    },
+    "method": {
+        "attribOptions": ["align", "stretch"]
+    },
+    "min": {
+        "attribOptions": ["media"]
+    },
+    "mode": {
+        "attribOptions": ["darken", "lighten", "multiply", "normal", "screen"]
+    },
+    "opacity": {
+        "attribOptions": ["inherit"]
+    },
+    "orient": {
+        "attribOptions": ["auto"]
+    },
+    "orientation": {
+        "attribOptions": ["h", "v"]
+    },
+    "origin": {
+        "attribOptions": ["default"]
+    },
+    "overflow": {
+        "attribOptions": ["auto", "hidden", "inherit", "scroll", "visible"]
+    },
+    "patternContentUnits": {
+        "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "patternTransform": {
+        "attribOptions": ["matrix()", "rotate()", "scale()", "skewX()", "skewY()", "translate()"],
+        "multiple": true
+    },
+    "patternUnits": {
+        "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "pointer-events": {
+        "attribOptions": ["all", "fill", "inherit", "none", "painted", "stroke", "visible", "visibleFill", "visiblePainted", "visibleStroke"]
+    },
+    "preserveAlpha": {
+        "attribOptions": ["false", "true"]
+    },
+    "preserveAspectRatio": {
+        "attribOptions": ["meet", "none", "slice", "xMaxYMax", "xMaxYMid", "xMaxYMin", "xMidYMax", "xMidYMid", "xMidYMin", "xMinYMax", "xMinYMid", "xMinYMin"],
+        "multiple": true
+    },
+    "primitiveUnits": {
+        "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "rendering-intent": {
+        "attribOptions": ["absolute-colorimetric", "auto", "perceptual", "relative-colorimetric", "saturation"]
+    },
+    "repeatCount": {
+        "attribOptions": ["indefinite"]
+    },
+    "repeatDur": {
+        "attribOptions": ["indefinite"]
+    },
+    "requiredFeatures": {
+        "attribOptions": ["http://www.w3.org/TR/SVG11/feature#AnimationEventsAttribute", "http://www.w3.org/TR/SVG11/feature#BasicClip", "http://www.w3.org/TR/SVG11/feature#BasicFilter", "http://www.w3.org/TR/SVG11/feature#BasicFont", "http://www.w3.org/TR/SVG11/feature#BasicGraphicsAttribute", "http://www.w3.org/TR/SVG11/feature#BasicPaintAttribute", "http://www.w3.org/TR/SVG11/feature#BasicStructure", "http://www.w3.org/TR/SVG11/feature#BasicText", "http://www.w3.org/TR/SVG11/feature#Clip", "http://www.w3.org/TR/SVG11/feature#ColorProfile", "http://www.w3.org/TR/SVG11/feature#ConditionalProcessing", "http://www.w3.org/TR/SVG11/feature#ContainerAttribute", "http://www.w3.org/TR/SVG11/feature#CoreAttribute", "http://www.w3.org/TR/SVG11/feature#Cursor", "http://www.w3.org/TR/SVG11/feature#DocumentEventsAttribute", "http://www.w3.org/TR/SVG11/feature#Extensibility", "http://www.w3.org/TR/SVG11/feature#ExternalResourcesRequired", "http://www.w3.org/TR/SVG11/feature#Filter", "http://www.w3.org/TR/SVG11/feature#Font", "http://www.w3.org/TR/SVG11/feature#Gradient", "http://www.w3.org/TR/SVG11/feature#GraphicalEventsAttribute", "http://www.w3.org/TR/SVG11/feature#GraphicsAttribute", "http://www.w3.org/TR/SVG11/feature#Hyperlinking", "http://www.w3.org/TR/SVG11/feature#Image", "http://www.w3.org/TR/SVG11/feature#Marker", "http://www.w3.org/TR/SVG11/feature#Mask", "http://www.w3.org/TR/SVG11/feature#OpacityAttribute", "http://www.w3.org/TR/SVG11/feature#PaintAttribute", "http://www.w3.org/TR/SVG11/feature#Pattern", "http://www.w3.org/TR/SVG11/feature#SVG-animation", "http://www.w3.org/TR/SVG11/feature#SVG-dynamic", "http://www.w3.org/TR/SVG11/feature#SVG-static", "http://www.w3.org/TR/SVG11/feature#SVGDOM-animation", "http://www.w3.org/TR/SVG11/feature#SVGDOM-dynamic", "http://www.w3.org/TR/SVG11/feature#SVGDOM-static", "http://www.w3.org/TR/SVG11/feature#Scripting", "http://www.w3.org/TR/SVG11/feature#Shape", "http://www.w3.org/TR/SVG11/feature#Structure", "http://www.w3.org/TR/SVG11/feature#Style", "http://www.w3.org/TR/SVG11/feature#Text", "http://www.w3.org/TR/SVG11/feature#ViewportAttribute", "http://www.w3.org/TR/SVG11/feature#XlinkAttribute"]
+    },
+    "restart": {
+        "attribOptions": ["always", "never", "whenNotActive"]
+    },
+    "script/type": {
+        "attribOptions": ["application/ecmascript", "application/javascript", "application/x-ecmascript", "application/x-javascript", "text/ecmascript", "text/javascript", "text/jscript", "text/livescript", "text/tcl", "text/x-ecmascript", "text/x-javascript", "text/babel", "text/jsx"]
+    },
+    "set/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
+    "shape-rendering": {
+        "attribOptions": ["auto", "crispEdges", "geometricPrecision", "inherit", "optimizeSpeed"]
+    },
+    "spacing": {
+        "attribOptions": ["auto", "exact"]
+    },
+    "spreadMethod": {
+        "attribOptions": ["pad", "reflect", "repeat"]
+    },
+    "stitchTiles": {
+        "attribOptions": ["noStitch", "stitch"]
+    },
+    "stop-color": {
+        "type": "color"
+    },
+    "stop-opacity": {
+        "attribOptions": ["inherit"]
+    },
+    "stroke": {
+        "type": "color"
+    },
+    "stroke-dasharray": {
+        "attribOptions": ["inherit", "none"]
+    },
+    "stroke-dashoffset": {
+        "attribOptions": ["inherit"]
+    },
+    "stroke-linecap": {
+        "attribOptions": ["butt", "inherit", "round", "square"]
+    },
+    "stroke-linejoin": {
+        "attribOptions": ["bevel", "inherit", "miter", "round"]
+    },
+    "stroke-miterlimit": {
+        "attribOptions": ["inherit"]
+    },
+    "stroke-opacity": {
+        "attribOptions": ["inherit"]
+    },
+    "stroke-width": {
+        "attribOptions": ["inherit"]
+    },
+    "style/type": {
+        "attribOptions": ["text/css"]
+    },
+    "svg/xmlns": {
+        "attribOptions": ["http://www.w3.org/2000/svg"]
+    },
+    "svg/xmlns:xlink": {
+        "attribOptions": ["http://www.w3.org/1999/xlink"]
+    },
+    "systemLanguage": {
+        "attribOptions": ["aa", "ab", "af", "am", "ar", "as", "ay", "az", "ba", "be", "bg", "bh", "bi", "bn", "bo", "br", "ca", "co", "cs", "cy", "da", "de", "dz", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "ha", "hi", "hr", "hu", "hy", "ia", "ie", "ik", "in", "is", "it", "iw", "ja", "ji", "jw", "ka", "kk", "kl", "km", "kn", "ko", "ks", "ku", "ky", "la", "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "ne", "nl", "no", "oc", "om", "or", "pa", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sd", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "uk", "ur", "uz", "vi", "vo", "wo", "xh", "yo", "zh", "zu"],
+        "multiple": true
+    },
+    "target": {
+        "attribOptions": ["_blank", "_parent", "_replace", "_self", "_top"]
+    },
+    "text-anchor": {
+        "attribOptions": ["end", "inherit", "middle", "start"]
+    },
+    "text-decoration": {
+        "attribOptions": ["blink", "inherit", "line-through", "none", "overline", "underline"]
+    },
+    "text-rendering": {
+        "attribOptions": ["auto", "geometricPrecision", "inherit", "optimizeLegibility", "optimizeSpeed"]
+    },
+    "transform": {
+        "attribOptions": ["matrix()", "rotate()", "scale()", "skewX()", "skewY()", "translate()"],
+        "multiple": true
+    },
+    "unicode-bidi": {
+        "attribOptions": ["bidi-override", "embed", "inherit", "normal"]
+    },
+    "version": {
+        "attribOptions": ["1.0", "1.1"]
+    },
+    "visibility": {
+        "attribOptions": ["collapse", "hidden", "inherit", "visible"]
+    },
+    "word-spacing": {
+        "attribOptions": ["inherit", "normal"]
+    },
+    "writing-mode": {
+        "attribOptions": ["inherit", "lr", "lr-tb", "rl", "rl-tb", "tb", "tb-rl"]
+    },
+    "xChannelSelector": {
+        "attribOptions": ["R", "G", "B", "A"]
+    },
+    "xlink:actuate": {
+        "attribOptions": ["onLoad", "onRequest"]
+    },
+    "xlink:show": {
+        "attribOptions": ["embed", "new", "none", "other", "replace"]
+    },
+    "xlink:type": {
+        "attribOptions": ["simple"]
+    },
+    "xml:lang": {
+        "attribOptions": ["aa", "ab", "af", "am", "ar", "as", "ay", "az", "ba", "be", "bg", "bh", "bi", "bn", "bo", "br", "ca", "co", "cs", "cy", "da", "de", "dz", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "ha", "hi", "hr", "hu", "hy", "ia", "ie", "ik", "in", "is", "it", "iw", "ja", "ji", "jw", "ka", "kk", "kl", "km", "kn", "ko", "ks", "ku", "ky", "la", "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "ne", "nl", "no", "oc", "om", "or", "pa", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sd", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "uk", "ur", "uz", "vi", "vo", "wo", "xh", "yo", "zh", "zu"]
+    },
+    "xml:space": {
+        "attribOptions": ["default", "preserve"]
+    },
+    "yChannelSelector": {
+        "attribOptions": ["R", "G", "B", "A"]
+    },
+    "zoomAndPan": {
+        "attribOptions": ["disable", "magnify"]
+    }
+}

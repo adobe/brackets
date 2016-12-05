@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, PathUtils */
+/*jslint forin: true */
 
 /**
  * CSSAgent keeps track of loaded style sheets and allows reloading them
@@ -35,11 +33,11 @@
 define(function CSSAgent(require, exports, module) {
     "use strict";
 
-    require("thirdparty/path-utils/path-utils.min");
-
     var _ = require("thirdparty/lodash");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        EventDispatcher = require("utils/EventDispatcher"),
+        PathUtils       = require("thirdparty/path-utils/path-utils");
 
     /**
      * Stylesheet details
@@ -53,7 +51,7 @@ define(function CSSAgent(require, exports, module) {
      */
     var _getAllStyleSheetsNotFound;
 
-    /** 
+    /**
      * Create a canonicalized version of the given URL, stripping off query strings and hashes.
      * @param {string} url the URL to canonicalize
      * @return the canonicalized URL
@@ -92,19 +90,6 @@ define(function CSSAgent(require, exports, module) {
     }
 
     /**
-     * Use styleSheetAdded and styleSheetRemoved events.
-     * Get a list of all loaded stylesheet files by URL.
-     * @deprecated
-     */
-    function getStylesheetURLs() {
-        var styleSheetId, urls = [];
-        for (styleSheetId in _styleSheetDetails) {
-            urls[_styleSheetDetails[styleSheetId].canonicalizedURL] = true;
-        }
-        return _.keys(urls);
-    }
-
-    /**
      * Reload a CSS style sheet from a document
      * @param {Document} document
      * @param {string=} newContent new content of every stylesheet. Defaults to doc.getText() if omitted
@@ -137,7 +122,7 @@ define(function CSSAgent(require, exports, module) {
     function clearCSSForDocument(doc) {
         return reloadCSSForDocument(doc, "");
     }
-    
+
     /**
      * @private
      * @param {jQuery.Event} event
@@ -148,7 +133,7 @@ define(function CSSAgent(require, exports, module) {
             existing        = styleForURL(res.header.sourceURL),
             styleSheetId    = res.header.styleSheetId,
             duplicate;
-        
+
         // detect duplicates
         duplicate = _.some(existing, function (styleSheet) {
             return styleSheet && styleSheet.styleSheetId === styleSheetId;
@@ -156,13 +141,13 @@ define(function CSSAgent(require, exports, module) {
         if (duplicate) {
             return;
         }
-        
+
         _styleSheetDetails[styleSheetId] = res.header;
         _styleSheetDetails[styleSheetId].canonicalizedURL = url; // canonicalized URL
-        
-        $(exports).triggerHandler("styleSheetAdded", [url, res.header]);
+
+        exports.trigger("styleSheetAdded", url, res.header);
     }
-    
+
     /**
      * @private
      * @param {jQuery.Event} event
@@ -170,12 +155,12 @@ define(function CSSAgent(require, exports, module) {
      */
     function _styleSheetRemoved(event, res) {
         var header = _styleSheetDetails[res.styleSheetId];
-        
+
         delete _styleSheetDetails[res.styleSheetId];
-        
-        $(exports).triggerHandler("styleSheetRemoved", [header.canonicalizedURL, header]);
+
+        exports.trigger("styleSheetRemoved", header.canonicalizedURL, header);
     }
-    
+
     /**
      * @private
      * Attempt to use deleted API CSS.getAllStyleSheets
@@ -196,7 +181,7 @@ define(function CSSAgent(require, exports, module) {
             // If we have user agent string, and Chrome is >= 34, then don't use getAllStyleSheets
             if (uaMatch && parseInt(uaMatch[1], 10) >= 34) {
                 _getAllStyleSheetsNotFound = true;
-                $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+                Inspector.Page.off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
                 return;
             }
         }
@@ -212,7 +197,7 @@ define(function CSSAgent(require, exports, module) {
         }).fail(function (err) {
             // Disable getAllStyleSheets if the first call fails
             _getAllStyleSheetsNotFound = (err.code === -32601);
-            $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+            Inspector.Page.off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         });
     }
 
@@ -223,26 +208,28 @@ define(function CSSAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Page).on("frameNavigated.CSSAgent", _onFrameNavigated);
-        $(Inspector.CSS).on("styleSheetAdded.CSSAgent", _styleSheetAdded);
-        $(Inspector.CSS).on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
+        Inspector.Page.on("frameNavigated.CSSAgent", _onFrameNavigated);
+        Inspector.CSS.on("styleSheetAdded.CSSAgent", _styleSheetAdded);
+        Inspector.CSS.on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
 
         // getAllStyleSheets was deleted beginning with Chrome 34
         if (!_getAllStyleSheetsNotFound) {
-            $(Inspector.Page).on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+            Inspector.Page.on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         }
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".CSSAgent");
-        $(Inspector.CSS).off(".CSSAgent");
+        Inspector.Page.off(".CSSAgent");
+        Inspector.CSS.off(".CSSAgent");
     }
+
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.enable = enable;
     exports.styleForURL = styleForURL;
-    exports.getStylesheetURLs = getStylesheetURLs;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;

@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*jslint forin: true */
 
 /**
  * JSDocument manages a single JavaScript source document
@@ -45,9 +43,10 @@
 define(function JSDocumentModule(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
-    var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var EventDispatcher = require("utils/EventDispatcher"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        ScriptAgent     = require("LiveDevelopment/Agents/ScriptAgent"),
+        HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent");
 
     /**
      * @constructor
@@ -63,20 +62,23 @@ define(function JSDocumentModule(require, exports, module) {
         this.onHighlight = this.onHighlight.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(HighlightAgent).on("highlight", this.onHighlight);
-        $(this.editor).on("change", this.onChange);
-        $(this.editor).on("cursorActivity", this.onCursorActivity);
+        HighlightAgent.on("highlight", this.onHighlight);
+        this.editor.on("change", this.onChange);
+        this.editor.on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
     };
+
+    // JSDocument doesn't dispatch events, but the "live document" interface requires having an on() API
+    EventDispatcher.makeEventDispatcher(JSDocument.prototype);
 
     /** Close the document */
     JSDocument.prototype.close = function close() {
         if (!this.editor) {
             return;
         }
-        $(HighlightAgent).off("highlight", this.onHighlight);
-        $(this.editor).off("change", this.onChange);
-        $(this.editor).off("cursorActivity", this.onCursorActivity);
+        HighlightAgent.off("highlight", this.onHighlight);
+        this.editor.off("change", this.onChange);
+        this.editor.off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
     };
 

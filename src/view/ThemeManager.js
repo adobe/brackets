@@ -21,13 +21,14 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, less */
+/*jslint regexp: true */
+/*global less */
 
 define(function (require, exports, module) {
     "use strict";
 
     var _                  = require("thirdparty/lodash"),
+        EventDispatcher    = require("utils/EventDispatcher"),
         FileSystem         = require("filesystem/FileSystem"),
         FileUtils          = require("file/FileUtils"),
         EditorManager      = require("editor/EditorManager"),
@@ -95,10 +96,11 @@ define(function (require, exports, module) {
             options.name = options.name.toLocaleLowerCase().replace(/[\W]/g, '-');
         }
 
-        this.file        = file;
-        this.name        = options.name;
-        this.displayName = options.title || toDisplayName(fileName);
-        this.dark        = options.theme !== undefined && options.theme.dark === true;
+        this.file           = file;
+        this.name           = options.name;
+        this.displayName    = options.title || toDisplayName(fileName);
+        this.dark           = options.theme !== undefined && options.theme.dark === true;
+        this.addModeClass   = options.theme !== undefined && options.theme.addModeClass === true;
     }
 
 
@@ -160,16 +162,15 @@ define(function (require, exports, module) {
      */
     function lessifyTheme(content, theme) {
         var deferred = new $.Deferred();
-        var parser   = new less.Parser({
+
+        less.render("#editor-holder {" + content + "\n}", {
             rootpath: fixPath(stylesPath),
             filename: fixPath(theme.file._path)
-        });
-
-        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
+        }, function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
-                deferred.resolve(tree.toCSS());
+                deferred.resolve(tree.css);
             }
         });
 
@@ -248,7 +249,7 @@ define(function (require, exports, module) {
     /**
      * Refresh current theme in the editor
      *
-     * @param {boolean} force Forces a reload the current theme.  It reload the theme file.
+     * @param {boolean} force Forces a reload of the current theme.  It reloads the theme file.
      */
     function refresh(force) {
         if (force) {
@@ -263,6 +264,9 @@ define(function (require, exports, module) {
 
             var cm = editor._codeMirror;
             ThemeView.updateThemes(cm);
+
+            // currentTheme can be undefined, so watch out
+            cm.setOption("addModeClass", !!(currentTheme && currentTheme.addModeClass));
         });
     }
 
@@ -330,7 +334,7 @@ define(function (require, exports, module) {
         ThemeView.updateScrollbars(getCurrentTheme());
 
         // Expose event for theme changes
-        $(exports).trigger("themeChange", getCurrentTheme());
+        exports.trigger("themeChange", getCurrentTheme());
     });
 
     prefs.on("change", "themeScrollbars", function () {
@@ -350,10 +354,12 @@ define(function (require, exports, module) {
         }
     });
 
-    $(EditorManager).on("activeEditorChange", function () {
+    EditorManager.on("activeEditorChange", function () {
         refresh();
     });
 
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;

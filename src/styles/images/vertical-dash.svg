@@ -1,4 +1,4 @@
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1" height="8">
-    <line x1="0" y1="0" x2="0" y2="4" stroke="#000" stroke-linecap="square"/>
-    <line x1="0" y1="5" x2="0" y2="7" stroke="#FFF" stroke-linecap="square" opacity=".5"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1" height="8" stroke-linecap="square">
+    <line x1="0" y1="0" x2="0" y2="4" stroke="#000"/>
+    <line x1="0" y1="5" x2="0" y2="7" stroke="#fff" opacity=".5"/>
 </svg>

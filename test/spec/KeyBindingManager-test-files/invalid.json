@@ -1,0 +1,6 @@
+{
+    "documentation": "https://github.com/adobe/brackets/wiki/Key-Bindings",
+    "overrides": {
+        "cmd-o": "file.open",
+    } 
+}

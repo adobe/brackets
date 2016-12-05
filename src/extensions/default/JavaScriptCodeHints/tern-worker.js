@@ -1,27 +1,26 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global self, importScripts, require */
 
 importScripts("thirdparty/requirejs/require.js");
@@ -30,23 +29,23 @@ var config = {};
 
 (function () {
     "use strict";
-    
+
     var MessageIds, HintUtils2;
     var Tern, Infer;
     require(["./MessageIds", "./HintUtils2"], function (messageIds, hintUtils2) {
         MessageIds = messageIds;
         HintUtils2 = hintUtils2;
-        var ternRequire = require.config({baseUrl: "./thirdparty"});
+        var ternRequire = require.config({baseUrl: "./node_modules"});
         ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment", "tern/plugin/angular"], function (tern, infer, requirejs, docComment) {
             Tern = tern;
             Infer = infer;
 
             var ternServer  = null,
                 inferenceTimeout;
-        
+
             // Save the tern callbacks for when we get the contents of the file
             var fileCallBacks = {};
-            
+
             /**
              * Provide the contents of the requested file to tern
              * @param {string} name - the name of the file
@@ -56,14 +55,14 @@ var config = {};
             function getFile(name, next) {
                 // save the callback
                 fileCallBacks[name] = next;
-                
-                // post a message back to the main thread to get the file contents 
+
+                // post a message back to the main thread to get the file contents
                 self.postMessage({
                     type: MessageIds.TERN_GET_FILE_MSG,
                     file: name
                 });
             }
-        
+
             /**
              * Send a log message back from the worker to the main thread
              * @private
@@ -72,7 +71,7 @@ var config = {};
             function _log(msg) {
                 self.postMessage({log: msg });
             }
-            
+
             /**
              * Report exception
              * @private
@@ -89,7 +88,7 @@ var config = {};
                     _log("Error thrown in tern_worker:" + e.message + "\n" + e.stack);
                 }
             }
-            
+
             /**
              * Handle a response from the main thread providing the contents of a file
              * @param {string} file - the name of the file
@@ -106,12 +105,12 @@ var config = {};
                 }
                 delete fileCallBacks[file];
             }
-            
+
             /**
              * Create a new tern server.
              *
              * @param {Object} env - an Object with the environment, as read in from
-             *  the json files in thirdparty/tern/defs
+             *  the json files in node_modules/tern/defs
              * @param {Array.<string>} files - a list of filenames tern should be aware of
              */
             function initTernServer(env, files) {
@@ -122,11 +121,19 @@ var config = {};
                     plugins: {requirejs: {}, doc_comment: true, angular: true}
                 };
                 ternServer = new Tern.Server(ternOptions);
-                
+
+                // Since we don't specify projectDir, Tern will "normalize" file names by
+                // removing any leading "/" (the default projectDir, which cannot be changed to "").
+                // This is not a problem on Windows, but on Mac and Linux, it will break
+                // absolute paths ("/home/" to "home/", for example)
+                ternServer.normalizeFilename = function (name) {
+                    return name;
+                };
+
                 files.forEach(function (file) {
                     ternServer.addFile(file);
                 });
-                
+
             }
 
             /**
@@ -168,6 +175,8 @@ var config = {};
                 query.types = true;
                 query.expandWordForward = false;
                 query.lineCharPositions = true;
+                query.docs = true;
+                query.urls = true;
 
                 var request = {query: query, files: [], offset: offset, timeout: inferenceTimeout};
                 if (fileInfo.type !== MessageIds.TERN_FILE_INFO_TYPE_EMPTY) {
@@ -190,7 +199,7 @@ var config = {};
             function getJumptoDef(fileInfo, offset) {
                 var request = buildRequest(fileInfo, "definition", offset);
                 // request.query.typeOnly = true;       // FIXME: tern doesn't work exactly right yet.
-                
+
                 try {
                     ternServer.request(request, function (error, data) {
                         if (error) {
@@ -222,7 +231,7 @@ var config = {};
                     _reportError(e, fileInfo.name);
                 }
             }
-            
+
             /**
              * Get all the known properties for guessing.
              *
@@ -236,7 +245,7 @@ var config = {};
              * @param {string} type     - the type of the message to reply with.
              */
             function getTernProperties(fileInfo, offset, type) {
-        
+
                 var request = buildRequest(fileInfo, "properties", offset),
                     i;
                 //_log("tern properties: request " + request.type + dir + " " + file);
@@ -264,7 +273,7 @@ var config = {};
                     _reportError(e, fileInfo.name);
                 }
             }
-                
+
             /**
              * Get the completions for the given offset
              *
@@ -279,10 +288,10 @@ var config = {};
              * otherwise getting an identifier hint.
              */
             function getTernHints(fileInfo, offset, isProperty) {
-                
+
                 var request = buildRequest(fileInfo, "completions", offset),
                     i;
-        
+
                 //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
                 try {
                     ternServer.request(request, function (error, data) {
@@ -294,7 +303,7 @@ var config = {};
                             for (i = 0; i < data.completions.length; ++i) {
                                 var completion = data.completions[i];
                                 completions.push({value: completion.name, type: completion.type, depth: completion.depth,
-                                    guess: completion.guess, origin: completion.origin});
+                                    guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url});
                             }
                         }
 
@@ -495,32 +504,32 @@ var config = {};
             function handleFunctionType(fileInfo, offset) {
                 var request = buildRequest(fileInfo, "type", offset),
                     error;
-                    
+
                 request.query.preferFunction = true;
 
                 var fnType = "";
                 try {
                     ternServer.request(request, function (ternError, data) {
-                        
+
                         if (ternError) {
                             _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + ternError);
                             error = ternError.toString();
                         } else {
                             var file = ternServer.findFile(fileInfo.name);
-    
+
                             // convert query from partial to full offsets
                             var newOffset = offset;
                             if (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) {
                                 newOffset = {line: offset.line + fileInfo.offsetLines, ch: offset.ch};
                             }
-    
+
                             request = buildRequest(createEmptyUpdate(fileInfo.name), "type", newOffset);
-    
+
                             var expr = Tern.findQueryExpr(file, request.query);
                             Infer.resetGuessing();
                             var type = Infer.expressionType(expr);
                             type = type.getFunctionType() || type.getType();
-                            
+
                             if (type) {
                                 fnType = getParameters(type);
                             } else {
@@ -541,7 +550,7 @@ var config = {};
                     error: error
                     });
             }
-        
+
             /**
              *  Add an array of files to tern.
              *
@@ -553,7 +562,7 @@ var config = {};
                     ternServer.addFile(file);
                 });
             }
-        
+
             /**
              *  Update the context of a file in tern.
              *
@@ -561,17 +570,17 @@ var config = {};
              * @param {string} text - content of the file.
              */
             function handleUpdateFile(path, text) {
-        
+
                 ternServer.addFile(path, text);
-        
+
                 self.postMessage({type: MessageIds.TERN_UPDATE_FILE_MSG,
                     path: path
                     });
-        
+
                 // reset to get the best hints with the updated file.
                 ternServer.reset();
             }
-        
+
             /**
              *  Make a completions request to tern to force tern to resolve files
              *  and create a fast first lookup for the user.
@@ -580,7 +589,7 @@ var config = {};
             function handlePrimePump(path) {
                 var fileInfo = createEmptyUpdate(path),
                     request = buildRequest(fileInfo, "completions", {line: 0, ch: 0});
-                
+
                 try {
                     ternServer.request(request, function (error, data) {
                         // Post a message back to the main thread
@@ -592,7 +601,7 @@ var config = {};
                     _reportError(e, path);
                 }
             }
-            
+
             /**
              * Updates the configuration, typically for debugging purposes.
              *
@@ -601,22 +610,22 @@ var config = {};
             function setConfig(configUpdate) {
                 config = configUpdate;
             }
-            
+
             self.addEventListener("message", function (e) {
                 var file, text, offset,
                     request = e.data,
                     type = request.type;
-                
+
                 if (config.debug) {
                     _log("Message received " + type);
                 }
-                
+
                 if (type === MessageIds.TERN_INIT_MSG) {
-                    
+
                     var env     = request.env,
                         files   = request.files;
                     inferenceTimeout = request.timeout;
-                    
+
                     initTernServer(env, files);
                 } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
                     offset  = request.offset;

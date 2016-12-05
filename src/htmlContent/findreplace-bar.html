@@ -13,7 +13,7 @@
 
     {{#replace}}
     <div id="replace-group" {{#scope}}class="has-scope"{{/scope}}><!--
-        --><input type="text" id="replace-with" placeholder="{{Strings.REPLACE_PLACEHOLDER}}"/><!--
+        --><input type="text" id="replace-with" placeholder="{{Strings.REPLACE_PLACEHOLDER}}" value="{{initialReplaceText}}" /><!--
         {{^multifile}}
         --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{Strings.BUTTON_REPLACE}}</button><!--
         {{/multifile}}
@@ -28,5 +28,9 @@
         <span id="searchlabel">{{{scopeLabel}}}</span>
     </div>
     <!-- For Find in Files, the filter picker will be added here programmatically. -->
+</div>
+<div id="indexing-spinner" class="indexing-group forced-hidden">
+    <div class="spinner inline spin"></div>
+    <div class="indexing-message">{{Strings.FIND_IN_FILES_INDEXING}}</div>
 </div>
 {{/multifile}}

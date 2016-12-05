@@ -1,51 +1,69 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, unescape, window */
+/*jslint regexp: true */
+/*global unescape */
 
 /**
- * Set of utilites for working with files and text content.
+ * Set of utilities for working with files and text content.
  */
 define(function (require, exports, module) {
     "use strict";
 
     require("utils/Global");
-    
+
     var FileSystemError     = require("filesystem/FileSystemError"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils");
 
-    
+    // These will be loaded asynchronously
+    var DocumentCommandHandlers, LiveDevelopmentUtils;
+
+    /**
+     * @const {Number} Maximium file size (in megabytes)
+     *   (for display strings)
+     *   This must be a hard-coded value since this value
+     *   tells how low-level APIs should behave which cannot
+     *   have a load order dependency on preferences manager
+     */
+    var MAX_FILE_SIZE_MB = 16;
+
+    /**
+     * @const {Number} Maximium file size (in bytes)
+     *   This must be a hard-coded value since this value
+     *   tells how low-level APIs should behave which cannot
+     *   have a load order dependency on preferences manager
+     */
+    var MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @param {!File} file File to read
-     * @return {$.Promise} a jQuery promise that will be resolved with the 
+     * @return {$.Promise} a jQuery promise that will be resolved with the
      *  file's text content plus its timestamp, or rejected with a FileSystemError string
      *  constant if the file can not be read.
      */
@@ -66,16 +84,16 @@ define(function (require, exports, module) {
                 result.reject(err);
             }
         });
-        
+
         return result.promise();
     }
-    
+
     /**
      * Asynchronously writes a file as UTF-8 encoded text.
      * @param {!File} file File to write
      * @param {!string} text
      * @param {boolean=} allowBlindWrite Indicates whether or not CONTENTS_MODIFIED
-     *      errors---which can be triggered if the actual file contents differ from 
+     *      errors---which can be triggered if the actual file contents differ from
      *      the FileSystem's last-known contents---should be ignored.
      * @return {$.Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a FileSystemError string constant.
@@ -83,11 +101,11 @@ define(function (require, exports, module) {
     function writeText(file, text, allowBlindWrite) {
         var result = new $.Deferred(),
             options = {};
-        
+
         if (allowBlindWrite) {
             options.blind = true;
         }
-        
+
         file.write(text, options, function (err) {
             if (!err) {
                 result.resolve();
@@ -95,7 +113,7 @@ define(function (require, exports, module) {
                 result.reject(err);
             }
         });
-        
+
         return result.promise();
     }
 
@@ -105,7 +123,7 @@ define(function (require, exports, module) {
      */
     var LINE_ENDINGS_CRLF = "CRLF",
         LINE_ENDINGS_LF   = "LF";
-    
+
     /**
      * Returns the standard line endings for the current platform
      * @return {LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
@@ -113,7 +131,7 @@ define(function (require, exports, module) {
     function getPlatformLineEndings() {
         return brackets.platform === "win" ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
     }
-    
+
     /**
      * Scans the first 1000 chars of the text to determine how it encodes line endings. Returns
      * null if usage is mixed or if no line endings found.
@@ -124,7 +142,7 @@ define(function (require, exports, module) {
         var subset = text.substr(0, 1000);  // (length is clipped to text.length)
         var hasCRLF = /\r\n/.test(subset);
         var hasLF = /[^\r]\n/.test(subset);
-        
+
         if ((hasCRLF && hasLF) || (!hasCRLF && !hasLF)) {
             return null;
         } else {
@@ -142,10 +160,10 @@ define(function (require, exports, module) {
         if (lineEndings !== LINE_ENDINGS_CRLF && lineEndings !== LINE_ENDINGS_LF) {
             lineEndings = getPlatformLineEndings();
         }
-        
+
         var eolStr = (lineEndings === LINE_ENDINGS_CRLF ? "\r\n" : "\n");
         var findAnyEol = /\r\n|\r|\n/g;
-        
+
         return text.replace(findAnyEol, eolStr);
     }
 
@@ -168,28 +186,26 @@ define(function (require, exports, module) {
             result = Strings.CONTENTS_MODIFIED_ERR;
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
+        } else if (name === FileSystemError.EXCEEDS_MAX_FILE_SIZE) {
+            result = StringUtils.format(Strings.EXCEEDS_MAX_FILE_SIZE, MAX_FILE_SIZE_MB);
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
 
         return result;
     }
-    
+
     /**
      * Shows an error dialog indicating that the given file could not be opened due to the given error
+     * @deprecated Use DocumentCommandHandlers.showFileOpenError() instead
+     *
      * @param {!FileSystemError} name
      * @return {!Dialog}
      */
     function showFileOpenError(name, path) {
-        return Dialogs.showModalDialog(
-            DefaultDialogs.DIALOG_ID_ERROR,
-            Strings.ERROR_OPENING_FILE_TITLE,
-            StringUtils.format(
-                Strings.ERROR_OPENING_FILE,
-                StringUtils.breakableUrl(path),
-                getFileErrorString(name)
-            )
-        );
+        DeprecationWarning.deprecationWarning("FileUtils.showFileOpenError() has been deprecated. " +
+                                              "Please use DocumentCommandHandlers.showFileOpenError() instead.");
+        return DocumentCommandHandlers.showFileOpenError(name, path);
     }
 
     /**
@@ -220,10 +236,10 @@ define(function (require, exports, module) {
         if (path.indexOf(":") !== -1 && path[0] === "/") {
             return path.substr(1);
         }
-        
+
         return path;
     }
-    
+
     /**
      * Convert a Windows-native path to use Unix style slashes.
      * On Windows, this converts "C:\foo\bar\baz.txt" to "C:/foo/bar/baz.txt".
@@ -239,12 +255,12 @@ define(function (require, exports, module) {
         }
         return path;
     }
-    
+
     /**
      * Removes the trailing slash from a path, if it has one.
      * Warning: this differs from the format of most paths used in Brackets! Use paths ending in "/"
      * normally, as this is the format used by Directory.fullPath.
-     * 
+     *
      * @param {string} path
      * @return {string}
      */
@@ -255,20 +271,7 @@ define(function (require, exports, module) {
             return path;
         }
     }
-    
-    /**
-     * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
-     * used by Directory.fullPath actually DOES include the trailing "/"
-     * @deprecated
-     * 
-     * @param {string} path
-     * @return {string}
-     */
-    function canonicalizeFolderPath(path) {
-        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like Directory.fullPath");
-        return stripTrailingSlash(path);
-    }
-    
+
     /**
      * Get the name of a file or a directory, removing any preceding path.
      * @param {string} fullPath full path to a file or directory
@@ -283,12 +286,12 @@ define(function (require, exports, module) {
             return fullPath.slice(lastSlash + 1);
         }
     }
-    
+
     /**
      * Returns a native absolute path to the 'brackets' source directory.
      * Note that this only works when run in brackets/src/index.html, so it does
      * not work for unit tests (which is run from brackets/test/SpecRunner.html)
-     * 
+     *
      * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
      */
@@ -297,27 +300,27 @@ define(function (require, exports, module) {
         var directory = pathname.substr(0, pathname.lastIndexOf("/"));
         return convertToNativePath(directory);
     }
-    
+
     /**
      * Given the module object passed to JS module define function,
      * convert the path to a native absolute path.
      * Returns a native absolute path to the module folder.
-     * 
+     *
      * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
      */
     function getNativeModuleDirectoryPath(module) {
         var path;
-        
+
         if (module && module.uri) {
             path = decodeURI(module.uri);
-            
+
             // Remove module name and trailing slash from path.
             path = path.substr(0, path.lastIndexOf("/"));
         }
         return path;
     }
-    
+
     /**
      * Get the file extension (excluding ".") given a path OR a bare filename.
      * Returns "" for names with no extension. If the name starts with ".", the
@@ -337,49 +340,33 @@ define(function (require, exports, module) {
 
         return baseName.substr(idx + 1);
     }
-    
+
     /**
      * Get the file extension (excluding ".") given a path OR a bare filename.
      * Returns "" for names with no extension.
      * If the only `.` in the file is the first character,
      * returns "" as this is not considered an extension.
      * This method considers known extensions which include `.` in them.
+     * @deprecated Use LanguageManager.getCompoundFileExtension() instead
      *
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the extension of a filename or empty string if
      * the argument is a directory or a filename with no extension
      */
     function getSmartFileExtension(fullPath) {
-        var baseName = getBaseName(fullPath),
-            parts = baseName.split(".");
-
-        // get rid of file name
-        parts.shift();
-        if (baseName[0] === ".") {
-            // if starts with a `.`, then still consider it as file name
-            parts.shift();
-        }
-
-        var extension = [parts.pop()], // last part is always an extension
-            i = parts.length;
-        while (i--) {
-            if (LanguageManager.getLanguageForExtension(parts[i])) {
-                extension.unshift(parts[i]);
-            } else {
-                break;
-            }
-        }
-        return extension.join(".");
+        DeprecationWarning.deprecationWarning("FileUtils.getSmartFileExtension() has been deprecated. " +
+                                              "Please use LanguageManager.getCompoundFileExtension() instead.");
+        return LanguageManager.getCompoundFileExtension(fullPath);
     }
 
     /**
      * Computes filename as relative to the basePath. For example:
      * basePath: /foo/bar/, filename: /foo/bar/baz.txt
      * returns: baz.txt
-     * 
+     *
      * The net effect is that the common prefix is stripped away. If basePath is not
      * a prefix of filename, then undefined is returned.
-     * 
+     *
      * @param {string} basePath Path against which we're computing the relative path
      * @param {string} filename Full path to the file for which we are computing a relative path
      * @return {string} relative path
@@ -388,16 +375,9 @@ define(function (require, exports, module) {
         if (!filename || filename.substr(0, basePath.length) !== basePath) {
             return;
         }
-        
+
         return filename.substr(basePath.length);
     }
-
-    /**
-     * File extensions - hard-coded for now, but may want to make these preferences
-     * @const {Array.<string>}
-     */
-    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
-        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
      * Determine if file extension is a static html file extension.
@@ -405,38 +385,13 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_staticHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
+        DeprecationWarning.deprecationWarning("FileUtils.isStaticHtmlFileExt() has been deprecated. " +
+                                              "Please use LiveDevelopmentUtils.isStaticHtmlFileExt() instead.");
+        return LiveDevelopmentUtils.isStaticHtmlFileExt(filePath);
     }
 
     /**
-     * Determine if file extension is a server html file extension.
-     * @param {string} filePath could be a path, a file name or just a file extension
-     * @return {boolean} Returns true if fileExt is in the list
-     */
-    function isServerHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_serverHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
-    }
-    
-    /**
-     * Determines if file extension is a CSS preprocessor file extension that Brackets supports.
-     * @param {string} filePath could be a path, a file name
-     * @return {boolean} true if LanguageManager identifies filePath as less or scss language.
-     */
-    function isCSSPreprocessorFile(filePath) {
-        var languageId = LanguageManager.getLanguageForPath(filePath).getId();
-        return (languageId === "less" || languageId === "scss");
-    }
-    
-    /**
-     * Get the parent directory of a file. If a directory is passed in the directory is returned.
+     * Get the parent directory of a file. If a directory is passed, the SAME directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
      *                  including trailing "/"
@@ -446,42 +401,81 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get the file name without the extension.
-     * @param {string} filename File name of a file or directory
+     * Get the parent folder of the given file/folder path. Differs from getDirectoryPath() when 'fullPath'
+     * is a directory itself: returns its parent instead of the original path. (Note: if you already have a
+     * FileSystemEntry, it's faster to use entry.parentPath instead).
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Path of containing folder (including trailing "/"); or "" if path was the root
+     */
+    function getParentPath(fullPath) {
+        if (fullPath === "/") {
+            return "";
+        }
+        return fullPath.substring(0, fullPath.lastIndexOf("/", fullPath.length - 2) + 1);
+    }
+
+    /**
+     * Get the file name without the extension. Returns "" if name starts with "."
+     * @param {string} filename File name of a file or directory, without preceding path
      * @return {string} Returns the file name without the extension
      */
     function getFilenameWithoutExtension(filename) {
         var index = filename.lastIndexOf(".");
         return index === -1 ? filename : filename.slice(0, index);
     }
-    
+
+    /**
+     * @private
+     * OS-specific helper for `compareFilenames()`
+     * @return {Function} The OS-specific compare function
+     */
+    var _cmpNames = (function () {
+        if (brackets.platform === "win") {
+            // Use this function on Windows
+            return function (filename1, filename2, lang) {
+                var f1 = getFilenameWithoutExtension(filename1),
+                    f2 = getFilenameWithoutExtension(filename2);
+                return f1.localeCompare(f2, lang, {numeric: true});
+            };
+        }
+
+        // Use this function other OSes
+        return function (filename1, filename2, lang) {
+            return filename1.localeCompare(filename2, lang, {numeric: true});
+        };
+    }());
+
     /**
      * Compares 2 filenames in lowercases. In Windows it compares the names without the
      * extension first and then the extensions to fix issue #4409
      * @param {string} filename1
      * @param {string} filename2
      * @param {boolean} extFirst If true it compares the extensions first and then the file names.
-     * @return {number} The result of the local compare function
+     * @return {number} The result of the compare function
      */
     function compareFilenames(filename1, filename2, extFirst) {
-        var ext1   = getFileExtension(filename1),
-            ext2   = getFileExtension(filename2),
-            lang   = brackets.getLocale(),
-            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), lang, {numeric: true}),
-            cmpNames;
-        
-        if (brackets.platform === "win") {
-            filename1 = getFilenameWithoutExtension(filename1);
-            filename2 = getFilenameWithoutExtension(filename2);
+        var lang = brackets.getLocale();
+
+        filename1 = filename1.toLocaleLowerCase();
+        filename2 = filename2.toLocaleLowerCase();
+
+        function cmpExt() {
+            var ext1 = getFileExtension(filename1),
+                ext2 = getFileExtension(filename2);
+            return ext1.localeCompare(ext2, lang, {numeric: true});
         }
-        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), lang, {numeric: true});
-        
-        return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
+
+        function cmpNames() {
+            return _cmpNames(filename1, filename2, lang);
+        }
+
+        return extFirst ? (cmpExt() || cmpNames()) : (cmpNames() || cmpExt());
     }
-    
+
     /**
-     * Compares two paths segment-by-segment, used for sorting. Sorts folders before files,
-     * and sorts files based on `compareFilenames()`.
+     * Compares two paths segment-by-segment, used for sorting. When two files share a path prefix,
+     * the less deeply nested one is sorted earlier in the list. Sorts files within the same parent
+     * folder based on `compareFilenames()`.
      * @param {string} path1
      * @param {string} path2
      * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
@@ -506,12 +500,39 @@ define(function (require, exports, module) {
                 } else if (index >= folders1 && index >= folders2) {
                     return compareFilenames(entryName1, entryName2);
                 }
-                return (index >= folders1 && index < folders2) ? 1 : -1;
+                return (index >= folders1 && index < folders2) ? -1 : 1;
             }
             index++;
         }
         return 0;
     }
+
+    /**
+     * @param {string} path Native path in the format used by FileSystemEntry.fullPath
+     * @return {string} URI-encoded version suitable for appending to 'file:///`. It's not safe to use encodeURI()
+     *     directly since it doesn't escape chars like "#".
+     */
+    function encodeFilePath(path) {
+        var pathArray = path.split("/");
+        pathArray = pathArray.map(function (subPath) {
+            return encodeURIComponent(subPath);
+        });
+        return pathArray.join("/");
+    }
+
+    // Asynchronously load DocumentCommandHandlers
+    // This avoids a temporary circular dependency created
+    // by relocating showFileOpenError() until deprecation is over
+    require(["document/DocumentCommandHandlers"], function (dchModule) {
+        DocumentCommandHandlers = dchModule;
+    });
+
+    // Asynchronously load LiveDevelopmentUtils
+    // This avoids a temporary circular dependency created
+    // by relocating isStaticHtmlFileExt() until deprecation is over
+    require(["LiveDevelopment/LiveDevelopmentUtils"], function (lduModule) {
+        LiveDevelopmentUtils = lduModule;
+    });
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -528,12 +549,10 @@ define(function (require, exports, module) {
     exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
-    exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
-    exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
-    exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
+    exports.getParentPath                  = getParentPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
     exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
@@ -541,4 +560,6 @@ define(function (require, exports, module) {
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
+    exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
+    exports.encodeFilePath                 = encodeFilePath;
 });

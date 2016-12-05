@@ -102,6 +102,7 @@
     "table":      { "attributes": ["border"] },
     "tbody":      { "attributes": [] },
     "td":         { "attributes": ["colspan", "headers", "rowspan"] },
+    "template":   { "attributes": ["content"] },
     "textarea":   { "attributes": ["autofocus", "cols", "dirname", "disabled", "form", "label", "maxlength", "name", "placeholder", "readonly", "required", "rows", "wrap"] },
     "tfoot":      { "attributes": [] },
     "th":         { "attributes": ["colspan", "headers", "rowspan", "scope"] },

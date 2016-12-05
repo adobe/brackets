@@ -1,0 +1,10 @@
+{
+    "title": "Code Folding",
+    "name": "code-folding",
+    "author": "Patrick Oladimeji <patrick@dustygem.co.uk>",
+    "contributors": [
+        {"name": "Patrick Oladimeji", "email": "thehogfather@dustygem.co.uk", "url": "https://github.com/thehogfather"},
+        {"name": "Daniel Glazman", "email": "daniel@glazman.org"}
+    ],
+    "license": "MIT"
+}

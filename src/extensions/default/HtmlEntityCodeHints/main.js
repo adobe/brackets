@@ -1,29 +1,25 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,12 +29,19 @@ define(function (require, exports, module) {
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        Strings             = brackets.getModule("strings"),
         HtmlSpecialChars    = require("text!SpecialChars.json"),
         specialChars;
 
+
+    PreferencesManager.definePreference("codehint.SpecialCharHints", "boolean", true, {
+        description: Strings.DESCRIPTION_SPECIAL_CHAR_HINTS
+    });
+
     /**
-     * Encodes the special Char value given. 
-     * 
+     * Encodes the special Char value given.
+     *
      * @param {string} value
      * The value to encode
      *
@@ -48,10 +51,10 @@ define(function (require, exports, module) {
     function _encodeValue(value) {
         return value.replace("&", "&amp;").replace("#", "&#35;");
     }
-    
+
     /**
-     * Decodes the special Char value given. 
-     * 
+     * Decodes the special Char value given.
+     *
      * @param {string} value
      * The value to decode
      *
@@ -61,7 +64,7 @@ define(function (require, exports, module) {
     function _decodeValue(value) {
         return value.replace("&amp;", "&").replace("&#35;", "#");
     }
-    
+
     /**
      * @constructor
      */
@@ -69,12 +72,12 @@ define(function (require, exports, module) {
         this.primaryTriggerKeys = "&ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#0123456789";
         this.currentQuery = "";
     }
-    
+
     /**
      * Determines whether HtmlSpecialChar hints are available in the current editor
      * context.
-     * 
-     * @param {Editor} editor 
+     *
+     * @param {Editor} editor
      * A non-null editor object for the active window.
      *
      * @param {string} implicitChar
@@ -92,11 +95,11 @@ define(function (require, exports, module) {
 
         return this._getQuery() !== null;
     };
-       
+
     /**
      * Returns a list of avaliable HtmlSpecialChar hints if possible for the current
-     * editor context. 
-     * 
+     * editor context.
+     *
      * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
@@ -129,11 +132,11 @@ define(function (require, exports, module) {
                     return shownValue  + "; <span class='entity-display-character'>" + value + ";</span>";
                 }
             }).sort(this._internalSort);
-            
+
             if (query !== null) {
                 query = _encodeValue(query);
             }
-            
+
             return {
                 hints: result,
                 match: query,
@@ -141,13 +144,13 @@ define(function (require, exports, module) {
                 handleWideResults: false
             };
         }
-        
+
         return null;
     };
-    
+
     /**
      * Sort function used internally when sorting the Hints
-     * 
+     *
      * @param {string} value
      * The value to decode
      *
@@ -157,20 +160,20 @@ define(function (require, exports, module) {
     SpecialCharHints.prototype._internalSort = function (a, b) {
         a = _decodeValue(a.slice(0, a.indexOf(" "))).toLowerCase();
         b = _decodeValue(b.slice(0, b.indexOf(" "))).toLowerCase();
-        
+
         if (a.indexOf("#") !== -1 && b.indexOf("#") !== -1) {
             var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
                 num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
-                    
+
             return (num1 - num2);
         }
-                
+
         return a.localeCompare(b);
     };
-    
+
     /**
      * Returns a query for the Hints
-     * 
+     *
      * @return {string}
      * The Query for which to search
      */
@@ -180,38 +183,38 @@ define(function (require, exports, module) {
             startChar,
             endChar,
             cursor = this.editor.getCursorPos();
-        
+
         if (HTMLUtils.getTagInfo(this.editor, cursor).tagName !== "") {
             return null;
         }
-                
+
         lineContentBeforeCursor = this.editor.document.getRange({
             line: cursor.line,
             ch: 0
         }, cursor);
-        
+
         startChar = lineContentBeforeCursor.lastIndexOf("&");
         endChar = lineContentBeforeCursor.lastIndexOf(";");
-        
+
         // If no startChar was found or the endChar is greater than the startChar then it is no entity
         if (startChar === -1 || endChar > startChar) {
             return null;
         }
-        
+
         query = this.editor.document.getRange({
             line: cursor.line,
             ch: startChar
         }, cursor);
-        
+
         return query;
     };
-    
+
     /**
-     * Inserts a given HtmlSpecialChar hint into the current editor context. 
-     * 
+     * Inserts a given HtmlSpecialChar hint into the current editor context.
+     *
      * @param {string} completition
      * The hint to be inserted into the editor context.
-     * 
+     *
      * @return {boolean}
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
@@ -246,7 +249,7 @@ define(function (require, exports, module) {
                 end.ch = line.indexOf(";", start.ch) + 1;
             }
         }
-        
+
         completion = completion.slice(0, completion.indexOf(" "));
         completion = _decodeValue(completion);
         if (start.ch !== end.ch) {
@@ -254,7 +257,7 @@ define(function (require, exports, module) {
         } else {
             this.editor.document.replaceRange(completion, start);
         }
-        
+
         return false;
     };
 
@@ -262,13 +265,13 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "styles.css");
         // Parse JSON files
         specialChars = JSON.parse(HtmlSpecialChars);
-        
+
         // Register code hint providers
         var specialCharHints = new SpecialCharHints();
-        
+
         CodeHintManager.registerHintProvider(specialCharHints, ["html"], 1);
     });
-    
+
     //Export Hints for Unit Tests
     exports.SpecialCharHints = SpecialCharHints;
 });

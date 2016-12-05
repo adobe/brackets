@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,11 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
-    
+
     /**
      * Errors
      */
@@ -34,6 +31,7 @@ define({
     "GENERIC_ERROR"                             : "(помилка {0})",
     "NOT_FOUND_ERR"                             : "Файл не знайдено.",
     "NOT_READABLE_ERR"                          : "Не вдається прочитати файл.",
+    "EXCEEDS_MAX_FILE_SIZE"                     : "{APP_NAME} не працює з файлами, що перевищують {0} Мб.",
     "NO_MODIFICATION_ALLOWED_ERR"               : "Не вдається внести зміни до цільової теки.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"          : "Ваших повноважень недостатньо, аби вносити змінити.",
     "CONTENTS_MODIFIED_ERR"                     : "Файл змінено за межами {APP_NAME}.",
@@ -47,7 +45,6 @@ define({
     "FILENAMES_LEDE"                            : "Назви файлів",
     "FILENAME"                                  : "Назва файлу",
     "DIRECTORY_NAME"                            : "Назва теки",
-    
 
     // Project error strings
     "ERROR_LOADING_PROJECT"                     : "Помилка завантаження проекту",
@@ -72,6 +69,18 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"               : "Файл або тека з назвою <span class=\'dialog-filename\'>{0}</span> уже існує.",
     "ERROR_CREATING_FILE_TITLE"                 : "Помилка створення {0}",
     "ERROR_CREATING_FILE"                       : "Сталась помилка під час спроби створити файл {0} <span class=\'dialog-filename\'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"                      : "Не можна відкривати теку одночасно відкриваючи інші файли",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                        : "Не вдалось прочитати карту прив’язок клавіш",
+    "ERROR_KEYMAP_CORRUPT"                      : "У вашому файлі помилкова структура JSON. Файли буде відкрито, аби ви могли її виправити.",
+    "ERROR_LOADING_KEYMAP"                      : "Ваш файл не у кодуванні UTF-8 і не може бути завантаженим",
+    "ERROR_RESTRICTED_COMMANDS"                 : "Ви не можете переприв’язати клавіатурні скорочення для команд: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"                : "Ви не можете переприв’язати ці клавіатурні скорочення: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"                  : "Ви переприв’язуєте кілька клавіатурних скорочень для команд: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"                 : "У вас кілька прив’язок до цих комбінацій: {0}",
+    "ERROR_INVALID_SHORTCUTS"                   : "Це клавіатурне скорочення помилкове: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"                : "Ви назначили клавіатурне скорочення для неіснуючій команді: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"                 : "Помилка читання налаштувань",
@@ -80,27 +89,27 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"                    : "Ой! {APP_NAME} ще не працює у браузерах.",
     "ERROR_IN_BROWSER"                          : "{APP_NAME} створено на базі веб-технологій, але наразі працює як звичайна програма аби мати змогу редагувати локальні файли. Будь ласка, скористайтесь спеціальною оболонкою на <b>github.com/adobe/brackets-shell</b> для запуску {APP_NAME}.",
-    
+
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"                     : "Помилка індексації файлів",
-    "ERROR_MAX_FILES"                           : "Кількість файлів індексування перевищує максимально можливу кількість. Дії, які використовують дані індексації можуть працювати не правильно.",
+    "ERROR_MAX_FILES"                           : "Цей проект містить більше 30 000 файлів. Функції, що оперують кількома файлам можуть не працювати правильно або вимкнутись. <a href=\'https://github.com/adobe/brackets/wiki/Large-Projects\'>Дізнайтесь більше про роботу програми під час відкриття великих проектів</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"             : "Помилка запуску браузера",
     "ERROR_CANT_FIND_CHROME"                    : "Не знайдено браузер Google Chrome. Переконайтесь, будь ласка, що він встановлений.",
     "ERROR_LAUNCHING_BROWSER"                   : "Під час запуску браузера сталася помилка. (помилка {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"              : "Помилка Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"           : "Підключення до броузера",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"            : "Live Preview потребує перезапустити Chrome з увімкненням віддаленого відлагодження.<br /><br />Бажаєте виконати це?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"            : "Помилка завантаження сторінки Live Preview",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"            : "Live Preview потребує перезапустити Chrome з увімкненням віддаленого відлагодження.<br /><br />Бажаєте виконати це?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"            : "Помилка завантаження сторінки Live Preview.",
     "LIVE_DEV_NEED_HTML_MESSAGE"                : "Відкрийте файл HTML або ж переконайтесь, що для запуску live preview у вашому проекті існує файл index.html.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"             : "Аби запустити live preview з серверним файлом, вам варто вказати базову адресу для цього проекту.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE"         : "Помилка запуску HTTP-сервера для live preview. Будь ласка, спробуйте пізніше.",
     "LIVE_DEVELOPMENT_INFO_TITLE"               : "Вітаємо у Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"             : "Live Preview підключає {APP_NAME} до вашого браузера та забезпечує попередній перегляд файлів HTML. Функція оновлює попередній перегляд одразу, як ви вносите зміни в код.<br /><br />У цій ранній збірці {APP_NAME}, Live Preview працює тільки з <strong>Google Chrome</strong> і оновлення в реальному часі відображається тільки для <strong>файлів CSS та HTML</strong>. Зміни до файлів JavaScript вносяться автоматично під час збереження.<br /><br />(Це повідомлення більше не турбуватиме вас.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"          : "Для докладнішої інформації погляньте на <a href=\'{0}\' title=\'{0}\'>пошук та усунення помилок підключення Live Preview</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED"         : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"             : "Live Preview: Підключення\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"             : "Live Preview: Ініціалізація\u2026",
@@ -112,18 +121,18 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"           : "Live Preview зупинено, оскільки сторінку закрито в браузері",
     "LIVE_DEV_NAVIGATED_AWAY"                   : "Live Preview зупинено, оскільки браузер перенаправлено на сторінку, що не є частиною поточного проекту",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"            : "Live Preview скасовано з невідомих причин ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                          : "Зберегти зміни",
     "SAVE_CLOSE_MESSAGE"                        : "Чи бажаєте ви зберегти зміни внесені у файл <span class=\'dialog-filename\'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"                  : "Чи бажаєте ви зберегти зміни до наступних файлів?",
     "EXT_MODIFIED_TITLE"                        : "Зовнішні зміни",
-    "CONFIRM_FOLDER_DELETE_TITLE"               : "Підтвердження видалення",
+    "CONFIRM_DELETE_TITLE"                      : "Підтвердження видалення",
     "CONFIRM_FOLDER_DELETE"                     : "Ви дійсно хочете видалити теку <span class=\'dialog-filename\'>{0}</span>?",
     "FILE_DELETED_TITLE"                        : "Файл видалено",
     "EXT_MODIFIED_WARNING"                      : "<span class=\'dialog-filename\'>{0}</span> змінено на диску.<br /><br />Чи ви хочете зберегти файл і перезаписати ці зміни?",
     "EXT_MODIFIED_MESSAGE"                      : "<span class=\'dialog-filename\'>{0}</span> змінено на диску, проте існують також не збережені зміни у {APP_NAME}.<br /><br />Яку версію ви бажаєте лишити?",
     "EXT_DELETED_MESSAGE"                       : "<span class=\'dialog-filename\'>{0}</span> видалено з диску, але {APP_NAME} містить не збережені в нього зміни.<br /><br />Чи бажаєте ви залишити їх?",
-    
+
     // Generic dialog/button labels
     "DONE"                                      : "Готово",
     "OK"                                        : "OK",
@@ -135,7 +144,7 @@ define({
     "DELETE"                                    : "Видалити",
     "BUTTON_YES"                                : "Так",
     "BUTTON_NO"                                 : "Ні",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX"                          : "{0} з {1}",
     "FIND_NO_RESULTS"                           : "Жодних результатів",
@@ -183,10 +192,10 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"             : "Ctrl/Cmd+клік згорнути/розгорнути все",
     "REPLACE_IN_FILES_ERRORS_TITLE"             : "Помилки під час заміни",
     "REPLACE_IN_FILES_ERRORS"                   : "Наступні файли не змінено, оскільки вони змінились після пошуку аби недоступні для запису.",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"          : "Сталась помилка під час отримання даних про оновлення",
     "ERROR_FETCHING_UPDATE_INFO_MSG"            : "Помилка отримання з сервера інформації про оновлення. Переконайтесь, що маєте доступ до інтернету та спробуйте знову.",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                           : "Новий набір виключень\u2026",
     "CLEAR_FILE_FILTER"                         : "Не виключати файли",
@@ -221,12 +230,29 @@ define({
     "WORKING_FILES"                             : "Робочі файли",
 
     /**
+     * MainViewManager
+     */
+    "TOP"                                       : "Верхня",
+    "BOTTOM"                                    : "Нижня",
+    "LEFT"                                      : "Ліва",
+    "RIGHT"                                     : "Права",
+
+    "CMD_SPLITVIEW_NONE"                        : "Не розділяти",
+    "CMD_SPLITVIEW_VERTICAL"                    : "Вертикальне розділення",
+    "CMD_SPLITVIEW_HORIZONTAL"                  : "Горизонтальне розділення",
+    "SPLITVIEW_MENU_TOOLTIP"                    : "Розділити редактор горизонтально або вертикально",
+    "GEAR_MENU_TOOLTIP"                         : "Налаштувати робочий набір",
+
+    "SPLITVIEW_INFO_TITLE"                      : "Уже відкрито",
+    "SPLITVIEW_MULTIPANE_WARNING"               : "Цей файл відкрито в іншій панелі. {APP_NAME} незабаром підтримуватиме відкриття файлу в кількох панелях одночасно. А до того часу, файл буде показуватись у тій панелі, у якій уже відкритий.<br /><br />(Ви більше не бачитимете цього повідомлення.)",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"                             : "Ctrl",
     "KEYBOARD_SHIFT"                            : "Shift",
     "KEYBOARD_SPACE"                            : "Пробіл",
-    
+
     /**
      * StatusBar strings
      */
@@ -264,8 +290,7 @@ define({
     "NOTHING_TO_LINT"                           : "Нічого аналізувати",
     "LINTER_TIMED_OUT"                          : "Аналізатором {0} перевищено час очікування у {1} мс",
     "LINTER_FAILED"                             : "Аналізатор {0} завершився з помилкою: {1}",
-    
-    
+
     /**
      * Command Name Constants
      */
@@ -276,7 +301,7 @@ define({
     "CMD_FILE_NEW"                              : "Новий файл",
     "CMD_FILE_NEW_FOLDER"                       : "Нова тека",
     "CMD_FILE_OPEN"                             : "Відкрити\u2026",
-    "CMD_ADD_TO_WORKING_SET"                    : "Додати до робочого набору",
+    "CMD_ADD_TO_WORKING_SET"                    : "Відкрити у робочому наборі",
     "CMD_OPEN_DROPPED_FILES"                    : "Відкрити вкинуті файли",
     "CMD_OPEN_FOLDER"                           : "Відкрити теку\u2026",
     "CMD_FILE_CLOSE"                            : "Закрити",
@@ -324,7 +349,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                       : "Відкрити рядок нижче",
     "CMD_TOGGLE_CLOSE_BRACKETS"                 : "Автозакривання дужок",
     "CMD_SHOW_CODE_HINTS"                       : "Показувати поради до коду",
-    
+
     // Search menu commands
     "FIND_MENU"                                 : "Пошук",
     "CMD_FIND"                                  : "Знайти",
@@ -334,13 +359,11 @@ define({
     "CMD_ADD_NEXT_MATCH"                        : "Додати наступний збіг до виділення",
     "CMD_SKIP_CURRENT_MATCH"                    : "Пропустити поточний збіг",
     "CMD_FIND_IN_FILES"                         : "Знайти у файлах",
-    "CMD_FIND_IN_SELECTED"                      : "Знайти в обраному файлі/теці",
     "CMD_FIND_IN_SUBTREE"                       : "Знайти у\u2026",
     "CMD_REPLACE"                               : "Замінити",
     "CMD_REPLACE_IN_FILES"                      : "Замінити у файлах",
-    "CMD_REPLACE_IN_SELECTED"                   : "Замінити у вибраному файлі/теці",
     "CMD_REPLACE_IN_SUBTREE"                    : "Замінити\u2026",
-    
+
     // View menu commands
     "VIEW_MENU"                                 : "Вигляд",
     "CMD_HIDE_SIDEBAR"                          : "Приховати бокову панель",
@@ -355,10 +378,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                      : "Перенесення слів",
     "CMD_LIVE_HIGHLIGHT"                        : "Виділяти у Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"                : "Аналізувати файли під час збереження",
-    "CMD_SORT_WORKINGSET_BY_ADDED"              : "Впорядкувати за додаванням",
-    "CMD_SORT_WORKINGSET_BY_NAME"               : "Впорядкувати за назвою",
-    "CMD_SORT_WORKINGSET_BY_TYPE"               : "Впорядкувати за типом",
-    "CMD_SORT_WORKINGSET_AUTO"                  : "Автоматичне впорядкування",
+    "CMD_WORKINGSET_SORT_BY_ADDED"              : "Впорядкувати за додаванням",
+    "CMD_WORKINGSET_SORT_BY_NAME"               : "Впорядкувати за назвою",
+    "CMD_WORKINGSET_SORT_BY_TYPE"               : "Впорядкувати за типом",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"              : "Автоматичне впорядкування",
     "CMD_THEMES"                                : "Теми\u2026",
 
     // Navigate menu Commands
@@ -366,7 +389,7 @@ define({
     "CMD_QUICK_OPEN"                            : "Швидке відкриття",
     "CMD_GOTO_LINE"                             : "Перейти до рядка",
     "CMD_GOTO_DEFINITION"                       : "Швидкий пошук оголошення",
-    "CMD_GOTO_FIRST_PROBLEM"                    : "Перейти до найближчої помилки/застереження",
+    "CMD_GOTO_FIRST_PROBLEM"                    : "Перейти до найближчої помилки",
     "CMD_TOGGLE_QUICK_EDIT"                     : "Швидке редагування",
     "CMD_TOGGLE_QUICK_DOCS"                     : "Швидка документація",
     "CMD_QUICK_EDIT_PREV_MATCH"                 : "Попередній збіг",
@@ -378,7 +401,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                      : "Показати у провіднику",
     "CMD_SHOW_IN_FINDER"                        : "Показати у Finder",
     "CMD_SHOW_IN_OS"                            : "Показати у ОС",
-    
+
     // Help menu commands
     "HELP_MENU"                                 : "Допомога",
     "CMD_CHECK_FOR_UPDATE"                      : "Перевірити наявність оновлень",
@@ -392,9 +415,11 @@ define({
     "CMD_TWITTER"                               : "{TWITTER_NAME} у Twitter",
     "CMD_ABOUT"                                 : "Про {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                      : "Відкрити файл налаштувань",
+    "CMD_OPEN_KEYMAP"                           : "Відкрити карту клавіатурних скорочень",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                        : "експериментальна збірка",
+    "RELEASE_BUILD"                             : "збірка",
     "DEVELOPMENT_BUILD"                         : "тестова збірка",
     "RELOAD_FROM_DISK"                          : "Завантажити з диска",
     "KEEP_CHANGES_IN_EDITOR"                    : "Залишити зміни в редакторі",
@@ -402,7 +427,7 @@ define({
     "RELAUNCH_CHROME"                           : "Перезапустити Chrome",
     "ABOUT"                                     : "Про програму",
     "CLOSE"                                     : "Закрити",
-    "ABOUT_TEXT_LINE1"                          : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                          : "Версія {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"                : "часова мітка збирання:",
     "ABOUT_TEXT_LINE3"                          : "Зауважте, що правила та умови використання комерційного програмного забезпечення розміщенні на <a href=\'{ADOBE_THIRD_PARTY}\'>{ADOBE_THIRD_PARTY}</a> і наводяться тут в якості посилання.",
     "ABOUT_TEXT_LINE4"                          : "Документація та сирці доступні на <a href=\'https://github.com/adobe/brackets/\'>https://github.com/adobe/brackets/</a>",
@@ -415,22 +440,24 @@ define({
     "GET_IT_NOW"                                : "Забрати негайно!",
     "PROJECT_SETTINGS_TITLE"                    : "Налаштування проекту для: {0}",
     "PROJECT_SETTING_BASE_URL"                  : "Базова адреса Live Preview",
-    "PROJECT_SETTING_BASE_URL_HINT"             : "Аби скористатись локальним сервером, уведіть URL кшталту http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"             : "Уведіть URL кшталту http://localhost:8000/, аби користуватись локальним сервером",
     "BASEURL_ERROR_INVALID_PROTOCOL"            : "Протокол {0} не підтримується Preview&mdash;будь ласка, використовуйте http: або https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"           : "Базова адреса не може містити параметри пошуку, кшталту \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"             : "Базова адреса не може містити хеші кшталту \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"                : "Спеціальні символи, кшталту \'{0}\', мають бути з обох боків заключені у %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"               : "Неочікувана помилка розбору базової адреси",
-    
+    "EMPTY_VIEW_HEADER"                         : "<em>Відкрийте файл, поки ця панель у фокусі</em>",
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                             : "Поточна тема",
     "USE_THEME_SCROLLBARS"                      : "Брати панель прокрутки з теми",
     "FONT_SIZE"                                 : "Розмір шрифту",
     "FONT_FAMILY"                               : "Сімейство шрифтів",
+    "THEMES_SETTINGS"                           : "Налаштування тем",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                           : "Нове правило",
-    
+
     // Extension Management strings
     "INSTALL"                                   : "Встановити",
     "UPDATE"                                    : "Оновити",
@@ -453,12 +480,12 @@ define({
     "VIEW_TRUNCATED_DESCRIPTION"                : "Переглянути короткий опис",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                          : "Завантажені дані не є zip-архівом.",
-    "INVALID_PACKAGE_JSON"                      : "Файл package.json – недійсний (помилка: {0}).",
+    "INVALID_PACKAGE_JSON"                      : "Файл package.json – помилковий (помилка: {0}).",
     "MISSING_PACKAGE_NAME"                      : "Файл package.json не містить назви пакунку.",
-    "BAD_PACKAGE_NAME"                          : "{0} – недійсна назва пакунку.",
+    "BAD_PACKAGE_NAME"                          : "{0} – помилкова назва пакунку.",
     "MISSING_PACKAGE_VERSION"                   : "Файл package.json не містить версії пакунку.",
-    "INVALID_VERSION_NUMBER"                    : "Номер версії пакунку ({0}) – недійсний.",
-    "INVALID_BRACKETS_VERSION"                  : "У {APP_NAME} рядок сумісності ({0}) – невірний.",
+    "INVALID_VERSION_NUMBER"                    : "Номер версії пакунку ({0}) – помилковий.",
+    "INVALID_BRACKETS_VERSION"                  : "У {APP_NAME} рядок сумісності ({0}) – помилковий.",
     "DISALLOWED_WORDS"                          : "Слова ({1}) недозволені у полі {0}.",
     "API_NOT_COMPATIBLE"                        : "Розширення не сумісне з цією версією {APP_NAME}. Його встановлено до теки disabled.",
     "MISSING_MAIN"                              : "Пакунок не містить файлу main.js.",
@@ -479,7 +506,7 @@ define({
     "INSTALL_EXTENSION_DRAG"                    : "Перетягніть сюди .zip або",
     "INSTALL_EXTENSION_DROP"                    : "Перетягніть .zip для встановлення",
     "INSTALL_EXTENSION_DROP_ERROR"              : "Встановлення/оновлення скасовано через наступні помилки:",
-    "INSTALL_FROM_URL"                          : "Встановити з URL\u2026",
+    "INSTALL_FROM_URL"                          : "встановіть з URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"              : "Перевірка\u2026",
     "EXTENSION_AUTHOR"                          : "Автор",
     "EXTENSION_DATE"                            : "Дата",
@@ -513,21 +540,23 @@ define({
     "CHANGE_AND_RELOAD"                         : "Змінити розширення і перезапустити",
     "UPDATE_AND_RELOAD"                         : "Оновити розширення і перезапустити",
     "PROCESSING_EXTENSIONS"                     : "Обробка змін розширення\u2026",
-    "EXTENSION_NOT_INSTALLED"                   : "Не вдалось вилучити розширення {0} оскільки воно не встановлено.",
+    "EXTENSION_NOT_INSTALLED"                   : "Не вдалось вилучити розширення {0} оскільки воно не встановлене.",
     "NO_EXTENSIONS"                             : "Ви ще не маєте жодного розширення.<br>Натисніть на вкладку Доступні вище, аби щось встановити.",
     "NO_EXTENSION_MATCHES"                      : "Жодне розширення не відповідає вашому запиту.",
     "REGISTRY_SANITY_CHECK_WARNING"             : "ЗАУВАЖТЕ: Ці розширення поширюються різними авторами і не тільки від {APP_NAME}. Вони не перевіряються і мають повні локальні права. Будьте обережні під час встановлення розширень з невідомих джерел",
     "EXTENSIONS_INSTALLED_TITLE"                : "Встановлені",
     "EXTENSIONS_AVAILABLE_TITLE"                : "Доступні",
+    "EXTENSIONS_THEMES_TITLE"                   : "Теми",
     "EXTENSIONS_UPDATES_TITLE"                  : "Оновлення",
-    
+
     "INLINE_EDITOR_NO_MATCHES"                  : "Нічого не знайдено.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"              : "Всі збіги згорнуто. Розгортайте файли наведені справа, аби переглянути збіги.",
     "CSS_QUICK_EDIT_NO_MATCHES"                 : "Жодне правило CSS, що відповідає виділенню.<br> Натисніть \'Нове правило\' для створення. ",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"             : "У вашому проекті відсутні таблиці стилів.<br>Створіть хоча б одну аби мати можливість додавати CSS-правила.",
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"                 : "найбільша",
-    
+
     /**
      * Unit names
      */
@@ -548,20 +577,21 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Логувати статус Node до консолі",
     "CMD_RESTART_NODE"                          : "Перезапустити Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Показати помилки у рядку стану",
-    
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Відкрити код Brackets",
+
     "LANGUAGE_TITLE"                            : "Змінити мову",
     "LANGUAGE_MESSAGE"                          : "Мова:",
     "LANGUAGE_SUBMIT"                           : "Перезапустити {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Скасувати",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Типова в системі",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Час",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Просування",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Переміщення обраної точки<br><kbd class=\'text\'>Shift</kbd> Переміщення на 10 одиниць<br><kbd class=\'text\'>Tab</kbd> Навігація точками",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Збільшення та зменшення кроку<br><kbd>←</kbd><kbd>→</kbd> \'Початок\' та \'кінець\'",
     "INLINE_TIMING_EDITOR_INVALID"              : "Старе значення <code>{0}</code> – невірне, тому функцію змінено на <code>{1}</code>. Документ буде оновлено після першого редагування.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Поточний колір",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Початковий колір",
@@ -570,24 +600,24 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Формат HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (використано {1} раз)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (використано {1} разів)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Перейти до оголошення",
     "CMD_SHOW_PARAMETER_HINT"                   : "Показувати підсвічування параметрів функції",
     "NO_ARGUMENTS"                              : "<параметри відсутні>",
     "DETECTED_EXCLUSION_TITLE"                  : "Помилка виведення файлу JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets зіткнувся з проблемою під час обробки:<br><br>{0}<br><br>Для цього файлу більше не працюватиме аналіз та швидкий перехід до оголошень. Аби повернути їх, відкрийте <code>.brackets.json</code> у теці свого проекту та вилучіть назву файлу з jscodehints.detectedExclusions.",
-    
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets зіткнувся з проблемою під час обробки <span class=\'dialog-filename\'>{0}</span>.<br><br>Для цього файлу більше не працюватиме аналіз, перехід до оголошень та швидке редагування. Аби повернути їх, відкрийте <code>.brackets.json</code> у теці свого проекту та відредагуйте параметр <code>jscodehints.detectedExclusions</code>. <br><br> Це схоже на ваду у Brackets. Якщо ви можете надати копію цього файлу, будь ласка, <a href=\'https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue\'>сповістіть про ваду</a> та вкажіть посилання на нього.",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Швидкий перегляд під час наведення",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Останні проекти",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Докладніше"
 });
-/* Last translated for 884ee8414fa7d7dad0cb85b062573e65b3a827a0 */
+/* Last translated for ed1b597f2c0e72fc11c9ec42d88d35f57cd6798b */

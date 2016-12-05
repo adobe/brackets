@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
-/*global define, $, Mustache, brackets */
 
 /**
  * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for
@@ -58,8 +54,9 @@ define(function (require, exports, module) {
         StatusBar               = require("widgets/StatusBar"),
         Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
-        ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
-    
+        ResultsTemplate         = require("text!htmlContent/problems-panel-table.html"),
+        Mustache                = require("thirdparty/mustache/mustache");
+
     var INDICATOR_ID = "status-inspection";
 
     /** Values for problem's 'type' property */
@@ -75,17 +72,14 @@ define(function (require, exports, module) {
     /**
      * Constants for the preferences defined in this file.
      */
-    var PREF_ENABLED = "enabled",
-        PREF_COLLAPSED = "collapsed",
-        PREF_ASYNC_TIMEOUT = "asyncTimeout";
-    
+    var PREF_ENABLED            = "enabled",
+        PREF_COLLAPSED          = "collapsed",
+        PREF_ASYNC_TIMEOUT      = "asyncTimeout",
+        PREF_PREFER_PROVIDERS   = "prefer",
+        PREF_PREFERRED_ONLY     = "usePreferredOnly";
+
     var prefs = PreferencesManager.getExtensionPrefs("linting");
-    
-    PreferencesManager.convertPreferences(module, {
-        "enabled": "user linting.enabled",
-        "collapsed": "user linting.collapsed"
-    });
-    
+
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.
@@ -130,7 +124,7 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _hasErrors;
-    
+
     /**
      * Promise of the returned by the last call to inspectFile or null if linting is disabled. Used to prevent any stale promises
      * to cause updates of the UI.
@@ -158,10 +152,57 @@ define(function (require, exports, module) {
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
+     * @return {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>}
      */
     function getProvidersForPath(filePath) {
-        return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
+        var language            = LanguageManager.getLanguageForPath(filePath).getId(),
+            context             = PreferencesManager._buildContext(filePath, language),
+            installedProviders  = _providers[language],
+            preferredProviders,
+
+            prefPreferredProviderNames  = prefs.get(PREF_PREFER_PROVIDERS, context),
+            prefPreferredOnly           = prefs.get(PREF_PREFERRED_ONLY, context),
+
+            providers;
+
+        // ensure there is an instance and that a copy is returned, always
+        installedProviders = (installedProviders && installedProviders.slice(0)) || [];
+
+        if (prefPreferredProviderNames && prefPreferredProviderNames.length) {
+            if (typeof prefPreferredProviderNames === "string") {
+                prefPreferredProviderNames = [prefPreferredProviderNames];
+            }
+            preferredProviders = prefPreferredProviderNames.reduce(function (result, key) {
+                var provider = _.find(installedProviders, {name: key});
+                if (provider) {
+                    result.push(provider);
+                }
+                return result;
+            }, []);
+            if (prefPreferredOnly) {
+                providers = preferredProviders;
+            } else {
+                providers = _.union(preferredProviders, installedProviders);
+            }
+        } else {
+            providers = installedProviders;
+        }
+        return providers;
+    }
+
+    /**
+     * Returns an array of the IDs of providers registered for a specific language
+     *
+     * @param {!string} languageId
+     * @return {Array.<string>} Names of registered providers.
+     */
+    function getProviderIDsForLanguage(languageId) {
+        if (!_providers[languageId]) {
+            return [];
+        }
+        return _providers[languageId].map(function (provider) {
+            return provider.name;
+        });
     }
 
     /**
@@ -169,7 +210,7 @@ define(function (require, exports, module) {
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
      * These results will reflect any unsaved changes present in the file if currently open.
-     * 
+     *
      * The Promise yields an array of provider-result pair objects (the result is the return value of the
      * provider's scanFile() - see register() for details). The result object may be null if there were no
      * errors from that provider.
@@ -183,13 +224,13 @@ define(function (require, exports, module) {
         var response = new $.Deferred(),
             results = [];
 
-        providerList = (providerList || getProvidersForPath(file.fullPath)) || [];
+        providerList = providerList || getProvidersForPath(file.fullPath);
 
         if (!providerList.length) {
             response.resolve(null);
             return response.promise();
         }
-        
+
         DocumentManager.getDocumentText(file)
             .done(function (fileText) {
                 var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
@@ -198,11 +239,11 @@ define(function (require, exports, module) {
                 masterPromise = Async.doInParallel(providerList, function (provider) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
                         runPromise = new $.Deferred();
-                    
+
                     runPromise.done(function (scanResult) {
                         results.push({provider: provider, result: scanResult});
                     });
-                    
+
                     if (provider.scanFileAsync) {
                         window.setTimeout(function () {
                             // timeout error
@@ -219,6 +260,7 @@ define(function (require, exports, module) {
                                 runPromise.resolve(scanResult);
                             })
                             .fail(function (err) {
+                                PerfUtils.finalizeMeasurement(perfTimerProvider);
                                 var errError = {
                                     pos: {line: -1, col: 0},
                                     message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -233,6 +275,7 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
                         } catch (err) {
+                            PerfUtils.finalizeMeasurement(perfTimerProvider);
                             var errError = {
                                 pos: {line: -1, col: 0},
                                 message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -245,7 +288,7 @@ define(function (require, exports, module) {
                     return runPromise.promise();
 
                 }, false);
-                
+
                 masterPromise.then(function () {
                     // sync async may have pushed results in different order, restore the original order
                     results.sort(function (a, b) {
@@ -267,7 +310,7 @@ define(function (require, exports, module) {
     /**
      * Update the title of the problem panel and the tooltip of the status bar icon. The title and the tooltip will
      * change based on the number of problems reported and how many provider reported problems.
-     * 
+     *
      * @param {Number} numProblems - total number of problems across all providers
      * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
@@ -278,6 +321,7 @@ define(function (require, exports, module) {
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
             $problemsPanelTable.find(".inspector-section").hide();
+            $problemsPanelTable.find("tr").removeClass("forced-hidden");
 
             if (numProblems === 1 && !aborted) {
                 message = StringUtils.format(Strings.SINGLE_ERROR, providersReportingProblems[0].name);
@@ -309,7 +353,7 @@ define(function (require, exports, module) {
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel. Does not run if inspection is disabled or if a providerName is given and does not
      * match the current doc's provider name.
-     * 
+     *
      * @param {?string} providerName name of the provider that is requesting a run
      */
     function run() {
@@ -338,7 +382,7 @@ define(function (require, exports, module) {
                 if (this !== _currentPromise) {
                     return;
                 }
-                
+
                 // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.result ? item.result.errors.length : 0); }, 0);
 
@@ -359,10 +403,11 @@ define(function (require, exports, module) {
                 }
 
                 var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-                
+
                 // Augment error objects with additional fields needed by Mustache template
                 results.forEach(function (inspectionResult) {
                     var provider = inspectionResult.provider;
+                    var isExpanded = prefs.get(provider.name + ".collapsed") !== false;
 
                     if (inspectionResult.result) {
                         inspectionResult.result.errors.forEach(function (error) {
@@ -371,12 +416,15 @@ define(function (require, exports, module) {
                                     (error.pos.line + 1) > 0 &&
                                     (error.codeSnippet = currentDoc.getLine(error.pos.line)) !== undefined) {
                                 error.friendlyLine = error.pos.line + 1;
-                                error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                                error.codeSnippet = error.codeSnippet.substr(0, 175);  // limit snippet width
                             }
-                            
+
                             if (error.type !== Type.META) {
                                 numProblems++;
                             }
+
+                            // Hide the errors when the provider is collapsed.
+                            error.display = isExpanded ? "" : "forced-hidden";
                         });
 
                         // if the code inspector was unable to process the whole file, we keep track to show a different status
@@ -386,6 +434,7 @@ define(function (require, exports, module) {
 
                         if (inspectionResult.result.errors.length) {
                             allErrors.push({
+                                isExpanded:   isExpanded,
                                 providerName: provider.name,
                                 results:      inspectionResult.result.errors
                             });
@@ -394,10 +443,10 @@ define(function (require, exports, module) {
                         }
                     }
                 });
-                
+
                 // Update results table
                 html = Mustache.render(ResultsTemplate, {reportList: allErrors});
-                
+
                 $problemsPanelTable
                     .empty()
                     .append(html)
@@ -432,16 +481,16 @@ define(function (require, exports, module) {
      * The provider is passed the text of the file and its fullPath. Providers should not assume
      * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
      * that the file on disk matches the text given (file may have unsaved changes).
-     * 
+     *
      * Registering any provider for the "javascript" language automatically unregisters the built-in
      * Brackets JSLint provider. This is a temporary convenience until UI exists for disabling
      * registered providers.
-     * 
+     *
      * Providers implement scanFile() if results are available synchronously, or scanFileAsync() if results
      * may require an async wait (if both are implemented, scanFile() is ignored). scanFileAsync() returns
      * a {$.Promise} object resolved with the same type of value as scanFile() is expected to return.
      * Rejecting the promise is treated as an internal error in the provider.
-     * 
+     *
      * @param {string} languageId
      * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
      *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
@@ -454,17 +503,9 @@ define(function (require, exports, module) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
         }
-        
-        if (languageId === "javascript") {
-            // This is a special case to enable extension provider to replace the JSLint provider
-            // in favor of their own implementation
-            _.remove(_providers[languageId], function (registeredProvider) {
-                return registeredProvider.name === "JSLint";
-            });
-        }
-        
+
         _providers[languageId].push(provider);
-        
+
         run();  // in case a file of this type is open currently
     }
 
@@ -474,11 +515,11 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
-            $(MainViewManager)
+            MainViewManager
                 .on("currentFileChange.codeInspection", function () {
                     run();
                 });
-            $(DocumentManager)
+            DocumentManager
                 .on("currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
@@ -488,8 +529,8 @@ define(function (require, exports, module) {
                     }
                 });
         } else {
-            $(DocumentManager).off(".codeInspection");
-            $(MainViewManager).off(".codeInspection");
+            DocumentManager.off(".codeInspection");
+            MainViewManager.off(".codeInspection");
         }
     }
 
@@ -502,12 +543,12 @@ define(function (require, exports, module) {
         if (enabled === undefined) {
             enabled = !_enabled;
         }
-        
+
         // Take no action when there is no change.
         if (enabled === _enabled) {
             return;
         }
-        
+
         _enabled = enabled;
 
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
@@ -516,7 +557,7 @@ define(function (require, exports, module) {
             prefs.set(PREF_ENABLED, _enabled);
             prefs.save();
         }
-    
+
         // run immediately
         run();
     }
@@ -533,7 +574,7 @@ define(function (require, exports, module) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
         }
-        
+
         if (collapsed === _collapsed) {
             return;
         }
@@ -543,7 +584,7 @@ define(function (require, exports, module) {
             prefs.set(PREF_COLLAPSED, _collapsed);
             prefs.save();
         }
-        
+
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
@@ -553,7 +594,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Command to go to the first Error/Warning */
+    /** Command to go to the first Problem */
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
@@ -564,20 +605,35 @@ define(function (require, exports, module) {
     // Register command handlers
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
-    
+
     // Register preferences
-    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"])
+    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"], {
+        description: Strings.DESCRIPTION_LINTING_ENABLED
+    })
         .on("change", function (e, data) {
             toggleEnabled(prefs.get(PREF_ENABLED), true);
         });
-    
-    prefs.definePreference(PREF_COLLAPSED, "boolean", false)
+
+    prefs.definePreference(PREF_COLLAPSED, "boolean", false, {
+        description: Strings.DESCRIPTION_LINTING_COLLAPSED
+    })
         .on("change", function (e, data) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
-    
-    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
-    
+
+    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000, {
+        description: Strings.DESCRIPTION_ASYNC_TIMEOUT
+    });
+
+    prefs.definePreference(PREF_PREFER_PROVIDERS, "array", [], {
+        description: Strings.DESCRIPTION_LINTING_PREFER,
+        valueType: "string"
+    });
+
+    prefs.definePreference(PREF_PREFERRED_ONLY, "boolean", false, {
+        description: Strings.DESCRIPTION_USE_PREFERED_ONLY
+    });
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
@@ -597,11 +653,20 @@ define(function (require, exports, module) {
 
                 // This is a inspector title row, expand/collapse on click
                 if ($selectedRow.hasClass("inspector-section")) {
-                    // Clicking the inspector title section header collapses/expands result rows
-                    $selectedRow.nextUntil(".inspector-section").toggle();
-
                     var $triangle = $(".disclosure-triangle", $selectedRow);
-                    $triangle.toggleClass("expanded").toggleClass("collapsed");
+                    var isExpanded = $triangle.hasClass("expanded");
+
+                    // Clicking the inspector title section header collapses/expands result rows
+                    if (isExpanded) {
+                        $selectedRow.nextUntil(".inspector-section").addClass("forced-hidden");
+                    } else {
+                        $selectedRow.nextUntil(".inspector-section").removeClass("forced-hidden");
+                    }
+                    $triangle.toggleClass("expanded");
+
+                    var providerName = $selectedRow.find("input[type='hidden']").val();
+                    prefs.set(providerName + ".collapsed", !isExpanded);
+                    prefs.save();
                 } else {
                     // This is a problem marker row, show the result on click
                     // Grab the required position data
@@ -610,7 +675,7 @@ define(function (require, exports, module) {
                     // if there is no line number available, don't do anything
                     if (!isNaN(line)) {
                         var character = lineTd.data("character");
-    
+
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line, character, true);
                         MainViewManager.focusActivePane();
@@ -641,11 +706,15 @@ define(function (require, exports, module) {
     // Testing
     exports._unregisterAll          = _unregisterAll;
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
+    exports._PREF_PREFER_PROVIDERS  = PREF_PREFER_PROVIDERS;
+    exports._PREF_PREFERRED_ONLY    = PREF_PREFERRED_ONLY;
 
     // Public API
-    exports.register       = register;
-    exports.Type           = Type;
-    exports.toggleEnabled  = toggleEnabled;
-    exports.inspectFile    = inspectFile;
-    exports.requestRun     = run;
+    exports.register                    = register;
+    exports.Type                        = Type;
+    exports.toggleEnabled               = toggleEnabled;
+    exports.inspectFile                 = inspectFile;
+    exports.requestRun                  = run;
+    exports.getProvidersForPath         = getProvidersForPath;
+    exports.getProviderIDsForLanguage   = getProviderIDsForLanguage;
 });

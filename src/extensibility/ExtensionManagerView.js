@@ -1,40 +1,48 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Strings                   = require("strings"),
+        EventDispatcher           = require("utils/EventDispatcher"),
         StringUtils               = require("utils/StringUtils"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
+        LanguageManager           = require("language/LanguageManager"),
+        Mustache                  = require("thirdparty/mustache/mustache"),
+        PathUtils                 = require("thirdparty/path-utils/path-utils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        
+
+    /**
+     * Create a detached link element, so that we can use it later to extract url details like 'protocol'
+     */
+    var _tmpLink = window.document.createElement('a');
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
@@ -43,7 +51,8 @@ define(function (require, exports, module) {
      */
     function ExtensionManagerView() {
     }
-    
+    EventDispatcher.makeEventDispatcher(ExtensionManagerView.prototype);
+
     /**
      * Initializes the view to show a set of extensions.
      * @param {ExtensionManagerViewModel} model Model object containing extension data to view
@@ -62,48 +71,48 @@ define(function (require, exports, module) {
         this._$infoMessage = $("<div class='info-message'/>")
             .appendTo(this.$el).html(this.model.infoMessage);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
-        
+
         this.model.initialize().done(function () {
             self._setupEventHandlers();
         }).always(function () {
             self._render();
             result.resolve();
         });
-        
+
         return result.promise();
     };
-    
+
     /**
      * @type {jQueryObject}
      * The root of the view's DOM tree.
      */
     ExtensionManagerView.prototype.$el = null;
-    
+
     /**
      * @type {Model}
      * The view's model. Handles sorting and filtering of items in the view.
      */
     ExtensionManagerView.prototype.model = null;
-    
+
     /**
      * @type {jQueryObject}
      * Element showing a message when there are no extensions.
      */
     ExtensionManagerView.prototype._$emptyMessage = null;
-    
+
     /**
      * @private
      * @type {jQueryObject}
      * The root of the table inside the view.
      */
     ExtensionManagerView.prototype._$table = null;
-    
+
     /**
      * @private
      * @type {function} The compiled template we use for rendering items in the extension list.
      */
     ExtensionManagerView.prototype._itemTemplate = null;
-    
+
     /**
      * @private
      * @type {Object.<string, jQueryObject>}
@@ -135,7 +144,7 @@ define(function (require, exports, module) {
                 .attr("title", linkTitle)
                 .prev(".ext-full-description").text(description);
     };
-    
+
     /**
      * @private
      * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
@@ -144,7 +153,7 @@ define(function (require, exports, module) {
         var self = this;
 
         // Listen for model data and filter changes.
-        $(this.model)
+        this.model
             .on("filter", function () {
                 self._render();
             })
@@ -168,7 +177,7 @@ define(function (require, exports, module) {
                     }
                 }
             });
-        
+
         // UI event handlers
         this.$el
             .on("click", "a", function (e) {
@@ -179,6 +188,8 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
+                } else if ($target.hasClass("undo-disable")) {
+                    ExtensionManager.markForDisabling($target.attr("data-extension-id"), false);
                 } else if ($target.data("toggle-desc") === "expand-desc") {
                     this._toggleDescription($target.attr("data-extension-id"), $target, true);
                 } else if ($target.data("toggle-desc") === "trunc-desc") {
@@ -193,9 +204,15 @@ define(function (require, exports, module) {
             })
             .on("click", "button.remove", function (e) {
                 ExtensionManager.markForRemoval($(e.target).attr("data-extension-id"), true);
+            })
+            .on("click", "button.disable", function (e) {
+                ExtensionManager.markForDisabling($(e.target).attr("data-extension-id"), true);
+            })
+            .on("click", "button.enable", function (e) {
+                ExtensionManager.enable($(e.target).attr("data-extension-id"));
             });
     };
-    
+
     /**
      * @private
      * Renders the view for a single extension entry.
@@ -205,22 +222,23 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._renderItem = function (entry, info) {
         // Create a Mustache context object containing the entry data and our helper functions.
-        
+
         // Start with the basic info from the given entry, either the installation info or the
         // registry info depending on what we're listing.
         var context = $.extend({}, info);
-        
+
         // Normally we would merge the strings into the context we're passing into the template,
         // but since we're instantiating the template for every item, it seems wrong to take the hit
         // of copying all the strings into the context, so we just make it a subfield.
         context.Strings = Strings;
-        
+
         // Calculate various bools, since Mustache doesn't let you use expressions and interprets
         // arrays as iteration contexts.
         context.isInstalled = !!entry.installInfo;
         context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
+        context.disabled = (entry.installInfo && entry.installInfo.status === ExtensionManager.DISABLED);
         context.hasVersionInfo = !!info.versions;
-                
+
         if (entry.registryInfo) {
             var latestVerCompatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
             context.isCompatible = latestVerCompatInfo.isCompatible;
@@ -257,8 +275,10 @@ define(function (require, exports, module) {
         }
 
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
+        context.isMarkedForDisabling = ExtensionManager.isMarkedForDisabling(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
-        
+        var hasPendingAction = context.isMarkedForDisabling || context.isMarkedForRemoval || context.isMarkedForUpdate;
+
         context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY || this.model.source === this.model.SOURCE_THEMES) && !context.updateAvailable;
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
 
@@ -312,16 +332,38 @@ define(function (require, exports, module) {
         }
 
         context.removalAllowed = this.model.source === "installed" &&
-            !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
-        
+            !context.failedToStart && !hasPendingAction;
+        context.disablingAllowed = this.model.source === "installed" &&
+            !context.disabled && !hasPendingAction;
+        context.enablingAllowed = this.model.source === "installed" &&
+            context.disabled && !hasPendingAction;
+
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
             context[helper] = registry_utils[helper];
         });
-        
+
+        // Do some extra validation on homepage url to make sure we don't end up executing local binary
+        if (context.metadata.homepage) {
+            var parsed = PathUtils.parseUrl(context.metadata.homepage);
+
+            // We can't rely on path-utils because of known problems with protocol identification
+            // Falling back to Browsers protocol identification mechanism
+            _tmpLink.href = context.metadata.homepage;
+
+            // Check if the homepage refers to a local resource
+            if (_tmpLink.protocol === "file:") {
+                var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ''));
+                // If identified language for the local resource is binary, don't list it
+                if (language && language.isBinary()) {
+                    delete context.metadata.homepage;
+                }
+            }
+        }
+
         return $(this._itemTemplate(context));
     };
-    
+
     /**
      * @private
      * Display an optional message (hiding the extension list if displayed)
@@ -333,17 +375,17 @@ define(function (require, exports, module) {
             this._$emptyMessage.html(this.model.message);
             this._$infoMessage.css("display", "none");
             this._$table.css("display", "none");
-            
+
             return true;
         } else {
             this._$emptyMessage.css("display", "none");
             this._$infoMessage.css("display", this.model.infoMessage ? "block" : "none");
             this._$table.css("display", "");
-            
+
             return false;
         }
     };
-    
+
     /**
      * @private
      * Renders the extension entry table based on the model's current filter set. Will create
@@ -351,10 +393,10 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._render = function () {
         var self = this;
-        
+
         this._$table.empty();
         this._updateMessage();
-        
+
         this.model.filterSet.forEach(function (id) {
             var $item = self._itemViews[id];
             if (!$item) {
@@ -363,10 +405,10 @@ define(function (require, exports, module) {
             }
             $item.appendTo(self._$table);
         });
-        
-        $(this).triggerHandler("render");
+
+        this.trigger("render");
     };
-    
+
     /**
      * @private
      * Install the extension with the given ID using the install dialog.
@@ -377,7 +419,7 @@ define(function (require, exports, module) {
         if (entry && entry.registryInfo) {
             var compatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion),
                 url = ExtensionManager.getExtensionURL(id, compatInfo.compatibleVersion);
-            
+
             // TODO: this should set .done on the returned promise
             if (_isUpdate) {
                 InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
@@ -386,7 +428,7 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
     /**
      * Filters the contents of the view.
      * @param {string} query The query to filter by.
@@ -394,6 +436,6 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.filter = function (query) {
         this.model.filter(query);
     };
-        
+
     exports.ExtensionManagerView = ExtensionManagerView;
 });

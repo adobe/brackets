@@ -1,31 +1,28 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
-    
+
     /**
      * Errors
      */
@@ -86,7 +83,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Ошибка запуска браузера.",
     "ERROR_CANT_FIND_CHROME"            : "Браузер Google Chrome не найден. Пожалуйста, убедитесь, что он установлен.",
     "ERROR_LAUNCHING_BROWSER"           : "Произошла ошибка при запуске браузера. (ошибка {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Ошибка функции Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Соединение с браузером",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Функция Live Preview требует перезапуска Chrome с включенной функцией удаленной отладки. <br /><br />Перезапустить Chrome с удаленной отладкой?",
@@ -97,30 +94,30 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Добро пожаловать в Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview, функция синхронного предпросмотра, подключает браузер к среде разработки {APP_NAME}. Эта функция загружает HTML файл для предварительного просмотра в браузере и мгновенно отображает все изменения при редактировании кода.<br /><br />В данной версии {APP_NAME}, функция Live Preview пока что работает только с <strong>Google Chrome</strong> и обновления в реальном времени отображаются только при редактировании <strong>CSS или HTML файлов</strong>. Изменения в JavaScript файлах автоматически перезагружают страницу при сохранении.<br /><br />(Это сообщение будет показано только один раз.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Для дополнительной информации, смотрите <a href='{0}' title='{0}'>Поиск и устранение неисправностей ошибок подключения Live Preview</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Подключение\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Инициализация\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Отсоединить Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview (Для отображения изменений сохраните их)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live Preview (Не обновляется из-за синтаксической ошибки)",
-    
+
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Функция Live Preview была отключена при открытии инструментов разработки в браузере",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Функция Live Preview была отключена при закрытии страницы в браузере",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Функция Live Preview была отключена при переходе на страницу не принадлежащую проекту",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Функция Live Preview была отменена по неизвестной причине ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Сохранить изменения",
     "SAVE_CLOSE_MESSAGE"                : "Вы хотите сохранить изменения, которые вы сделали в документе <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Вы хотите сохранить изменения для следующих файлов?",
     "EXT_MODIFIED_TITLE"                : "Внешние изменения",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Подтвердить удаление",
+    "CONFIRM_DELETE_TITLE"              : "Подтвердить удаление",
     "CONFIRM_FOLDER_DELETE"             : "Вы уверены, что хотите удалить директорию <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Файл удален",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> был изменен на диске.<br /><br />Вы хотите сохранить ваши изменения и перезаписать внешние?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> был изменен на диске, но также имеются несохраненные изменения в {APP_NAME}.<br /><br />Какую версию вы хотите оставить?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> был удален на диске, но имеются несохраненные изменения в {APP_NAME}.<br /><br />Вы хотите оставить ваши изменения?",
-    
+
     // Generic dialog/button labels
     "DONE"                              : "Готово",
     "OK"                                : "ОК",
@@ -132,10 +129,8 @@ define({
     "DELETE"                            : "Удалить",
     "BUTTON_YES"                        : "Да",
     "BUTTON_NO"                         : "Нет",
-        
+
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} результатов",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 результат",
     "FIND_NO_RESULTS"                   : "Не найдено",
     "FIND_QUERY_PLACEHOLDER"            : "Найти\u2026",
     "REPLACE_PLACEHOLDER"               : "Заменить на\u2026",
@@ -164,11 +159,8 @@ define({
     "FIND_REPLACE_TITLE_WITH"           : "на",
     "FIND_TITLE_LABEL"                  : "Найдено",
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} в {3}",
-	
+
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" найдено",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} в {3} {4}",
     "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "в <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "в проекте",
@@ -185,7 +177,7 @@ define({
     "REPLACE_IN_FILES_ERRORS"           : "Данные файлы не были изменены, т.к. они изменились после поиска или не могут быть записаны.",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Ошибка при получении информации об обновлениях",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ошибка при получении информации о последних обновлениях с сервера. Пожалуйста, убедитесь, что вы подключены к интернету и попробуйте снова. ",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Новый фильтр\u2026",
     "CLEAR_FILE_FILTER"                 : "Не исключать файлы",
@@ -195,7 +187,6 @@ define({
     "FILE_FILTER_DIALOG"                : "Редактировать фильтр",
     "FILE_FILTER_INSTRUCTIONS"          : "Исключить файлы и директории содержащие любую из перечисленных строк, возможно использование <a href='{0}' title='{0}'>групповых символов</a>. Указывайте по одной строке на линию.",
     "FILTER_NAME_PLACEHOLDER"           : "Назвать этот фильтр (опционально)",
-    "FILE_FILTER_LIST_PREFIX"           : "кроме",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "и еще {0}",
 
     "FILTER_COUNTING_FILES"             : "Подсчет количества файлов\u2026",
@@ -227,7 +218,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -260,8 +251,8 @@ define({
     "NOTHING_TO_LINT"                       : "Не подлежит статическому анализу",
     "LINTER_TIMED_OUT"                      : "{0} превысил время ожидания {1} мс",
     "LINTER_FAILED"                         : "{0} завершил исполнение с ошибкой: {1}",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -323,20 +314,17 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Поиск",
     "CMD_FIND"                            : "Найти",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Найти\u2026",
     "CMD_FIND_NEXT"                       : "Найти след.",
     "CMD_FIND_PREVIOUS"                   : "Найти пред.",
     "CMD_FIND_ALL_AND_SELECT"             : "Найти все и выделить",
     "CMD_ADD_NEXT_MATCH"                  : "Добавить следущее найденное к выделению",
     "CMD_SKIP_CURRENT_MATCH"              : "Пропустить и добавить следующее найденное",
     "CMD_FIND_IN_FILES"                   : "Найти в файлах",
-    "CMD_FIND_IN_SELECTED"                : "Найти в выделенном файле/директории",
     "CMD_FIND_IN_SUBTREE"                 : "Найти в\u2026",
     "CMD_REPLACE"                         : "Заменить",
     "CMD_REPLACE_IN_FILES"                : "Заменить в файлах",
-    "CMD_REPLACE_IN_SELECTED"             : "Заменить в выделенном файле/директории",
     "CMD_REPLACE_IN_SUBTREE"              : "Заменить в\u2026",
-	
+
     // View menu commands
     "VIEW_MENU"                           : "Вид",
     "CMD_HIDE_SIDEBAR"                    : "Скрыть боковую панель",
@@ -351,10 +339,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Заворачивать строки",
     "CMD_LIVE_HIGHLIGHT"                  : "Подсвечивать в Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Анализировать при сохранении",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Сортировать по порядку добавления",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Сортировать по имени",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Сортировать по типу",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Автоматическая сортировка",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Сортировать по порядку добавления",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Сортировать по имени",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Сортировать по типу",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Автоматическая сортировка",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Навигация",
@@ -373,7 +361,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Показать в Проводнике",
     "CMD_SHOW_IN_FINDER"                  : "Показать в Finder",
     "CMD_SHOW_IN_OS"                      : "Показать в операционной системе",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
     "CMD_CHECK_FOR_UPDATE"                : "Проверить наличие обновлений",
@@ -415,10 +403,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Базовый URL не может содержать такие хеши как \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Специальные символы как '{0}' должны быть %-экранированы.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Неизвестная ошибка при синтаксическом разборе основного URL",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Новое правило",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Установить",
     "UPDATE"                               : "Обновить",
@@ -499,14 +487,14 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Установленные",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Доступные",
     "EXTENSIONS_UPDATES_TITLE"             : "Обновления",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Совпадений не найдено.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Существующих правил CSS соответвующих выделенному тексту не определено. <br> Выберите \"Новое правило\" чтобы создать новое.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Ваш проект не содержит таблиц стилей (stylesheets).<br>Создайте его чтобы добавить правила CSS.",
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "наибольший размер",
-    
+
     /**
      * Unit names
      */
@@ -527,20 +515,20 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Отображать состояние node в консоли",
     "CMD_RESTART_NODE"                          : "Перезапустить node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Показывать ошибки в строке состояния",
-    
+
     "LANGUAGE_TITLE"                            : "Изменить язык",
     "LANGUAGE_MESSAGE"                          : "Пожалуйста, выберите желаемый язык из списка ниже:",
     "LANGUAGE_SUBMIT"                           : "Перезагрузить {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Отмена",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "По умолчанию",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Время",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Прогресс",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Передвинуть выделенную точку<br><kbd class='text'>Shift</kbd> Передвинуться на десять единиц<br><kbd class='text'>Tab</kbd> Переключиться между точками",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Увеличить или уменьшить шаги<br><kbd>←</kbd><kbd>→</kbd> 'Начало' или 'Конец'",
     "INLINE_TIMING_EDITOR_INVALID"              : "Старое значение <code>{0}</code> некорректно, отображаемая функция была заменена на <code>{1}</code>. Документ будет обновлен с первой правкой.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Текущий цвет",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Оригинальный цвет",
@@ -549,21 +537,27 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa формат",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Использовано {1} раз)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Использовано {1} раза)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Перейти к определению",
     "CMD_SHOW_PARAMETER_HINT"                   : "Показывать подсказки по аргументам функции",
     "NO_ARGUMENTS"                              : "<нет аргументов>",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Быстрый просмотр при наведении",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Предыдущие проекты",
-    
+
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Подробнее\u2026"
+    "DOCS_MORE_LINK"                            : "Подробнее\u2026",
+
+    //extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Свернуть все",
+    "EXPAND_ALL"                    : "Развернуть все",
+    "COLLAPSE_CURRENT"              : "Свернуть текущий",
+    "EXPAND_CURRENT"                : "Развернуть текущий"
 });

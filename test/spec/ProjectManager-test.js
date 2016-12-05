@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -53,6 +51,10 @@ define(function (require, exports, module) {
             // copy files to temp directory
             runs(function () {
                 waitsForDone(SpecRunnerUtils.copy(testPath, tempDir), "copy temp files");
+            });
+
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.rename(tempDir + "/git/", tempDir + "/.git/"), "move files");
             });
 
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -243,6 +245,62 @@ define(function (require, exports, module) {
                     runs(assertFile);
                 }
             });
+
+            // Issue #10183 -- Brackets writing to filtered directories could cause them to appear
+            // in the file tree
+            it("should not display excluded entry when resolved and written to", function () {
+                var opFailed = false,
+                    doneResolving = false,
+                    doneWriting = false,
+                    entry;
+
+                runs(function () {
+                    var found = testWindow.$(".jstree-brackets span:contains(\".git\")").length;
+                    expect(found).toBe(0);
+                });
+
+                runs(function () {
+                    FileSystem.resolve(ProjectManager.getProjectRoot().fullPath + ".git/", function (err, e, stat) {
+                        if (err) {
+                            opFailed = true;
+                            return;
+                        }
+                        entry = e;
+                        doneResolving = true;
+                    });
+                });
+
+                waitsFor(function () {
+                    return !opFailed && doneResolving;
+                }, "FileSystem.resolve()", 500);
+
+                runs(function () {
+                    var file = FileSystem.getFileForPath(entry.fullPath + "test");
+                    file.write("hi there!", function (err) {
+                        if (err) {
+                            opFailed = true;
+                            return;
+                        }
+                        doneWriting = true;
+                    });
+                });
+
+                waitsFor(function () {
+                    return !opFailed && doneWriting;
+                }, "create a file under .git", 500);
+
+                // wait for the fs event to propagate to the project model
+                waits(500);
+
+                runs(function () {
+                    var found = testWindow.$(".jstree-brackets span:contains(\".git\")").length,
+                        sanity = testWindow.$(".jstree-brackets span:contains(\"file\") + span:contains(\".js\")").length;
+                    expect(sanity).toBe(1);
+                    expect(found).toBe(0);
+                });
+
+            });
+
         });
 
         describe("deleteItem", function () {
@@ -368,6 +426,14 @@ define(function (require, exports, module) {
                 }
             }
 
+            /**
+             * ProjectManager pauses between renders for performance reasons. For some tests,
+             * we'll need to wait for the next render.
+             */
+            function waitForRenderDebounce() {
+                waits(ProjectManager._RENDER_DEBOUNCE_TIME);
+            }
+
             it("should deselect after opening file not rendered in tree", function () {
                 var promise,
                     exposedFile   = tempDir + "/file.js",
@@ -377,12 +443,14 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: exposedFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(exposedFile);
 
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: unexposedFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(null);
                 });
@@ -429,6 +497,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(initialFile);
                     toggleFolder(folder, true);     // open folder
@@ -437,6 +506,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: fileInFolder });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(fileInFolder);
                     toggleFolder(folder, false);    // close folder
@@ -444,6 +514,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     toggleFolder(folder, true);     // open folder again
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(fileInFolder);
                     toggleFolder(folder, false);    // close folder
@@ -460,6 +531,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(initialFile);
                     toggleFolder(folder, true);     // open folder
@@ -471,10 +543,12 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: fileInFolder });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(null);
                     toggleFolder(folder, true);     // open folder again
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(fileInFolder);
                     toggleFolder(folder, false);    // close folder

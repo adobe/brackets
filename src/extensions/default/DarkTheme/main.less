@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+// Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@
     background: #2f2f2f;
 }
 
-&.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
+.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
     box-shadow: inset 15px 0 0 0 #000;
 }
 
@@ -155,6 +155,25 @@
             color: #fff;
         }
     }
+}
+
+.CodeMirror-foldgutter-open:after {
+    color: #666;
+}
+.CodeMirror-foldgutter-folded:after {
+    color: #aaa;
+}
+
+.CodeMirror.over-gutter, .CodeMirror-activeline {
+    .CodeMirror-foldgutter-open:after {
+        color: #888;
+    }
+}
+
+.CodeMirror-foldmarker {
+    border-color: #000;
+    color: #ccc;
+    background-color: #444;
 }
 
 /* Non-editor styling */

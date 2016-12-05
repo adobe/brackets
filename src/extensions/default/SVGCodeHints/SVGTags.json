@@ -1,0 +1,330 @@
+{
+    "attributeGroups": {
+        "animationAddition":        ["accumulate", "additive"],
+        "animationAttributeTarget": ["attributeName", "attributeType"],
+        "animationEvent":           ["onbegin", "onend", "onload", "onrepeat"],
+        "animationTiming":          ["begin", "dur", "end", "fill", "max", "min", "repeatCount", "repeatDur", "restart"],
+        "animationValue":           ["by", "calcMode", "from", "keySplines", "keyTimes", "to", "values"],
+        "conditionalProcessing":    ["requiredExtensions", "requiredFeatures", "systemLanguage"],
+        "core":                     ["id", "xml:base", "xml:lang", "xml:space"],
+        "documentEvent":            ["onabort", "onerror", "onresize", "onscroll", "onunload", "onzoom"],
+        "filterPrimitive":          ["height", "result", "width", "x", "y"],
+        "graphicalEvent":           ["onactivate", "onclick", "onfocusin", "onfocusout", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup"],
+        "presentation":             ["alignment-baseline", "baseline-shift", "clip", "clip-path", "clip-rule", "color", "color-interpolation", "color-interpolation-filters", "color-profile", "color-rendering", "cursor", "direction", "display", "dominant-baseline", "enable-background", "fill", "fill-opacity", "fill-rule", "filter", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-orientation-horizontal", "glyph-orientation-vertical", "image-rendering", "kerning", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "overflow", "pointer-events", "shape-rendering", "stop-color", "stop-opacity", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-anchor", "text-decoration", "text-rendering", "unicode-bidi", "visibility", "word-spacing", "writing-mode"],
+        "transferFunctionElement":  ["amplitude", "exponent", "intercept", "offset", "slope", "tableValues", "type"],
+        "xlink":                    ["xlink:actuate", "xlink:arcrole", "xlink:href", "xlink:role", "xlink:show", "xlink:title", "xlink:type"]
+    },
+    "tags": {
+        "a": {
+            "attributes": ["class", "externalResourcesRequired", "style", "target", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation", "xlink"]
+        },
+        "altGlyph": {
+            "attributes": ["class", "dx", "dy", "externalResourcesRequired", "format", "glyphRef", "rotate", "style", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation", "xlink"]
+        },
+        "altGlyphDef": {
+            "attributeGroups": ["core"]
+        },
+        "altGlyphItem": {
+            "attributeGroups": ["core"]
+        },
+        "animate": {
+            "attributes": ["externalResourcesRequired"],
+            "attributeGroups": ["animationAddition", "animationAttributeTarget", "animationEvent", "animationTiming", "animationValue", "conditionalProcessing", "core", "presentation", "xlink"]
+        },
+        "animateColor": {
+            "attributes": ["externalResourcesRequired"],
+            "attributeGroups": ["animationAddition", "animationAttributeTarget", "animationEvent", "animationTiming", "animationValue", "conditionalProcessing", "core", "presentation", "xlink"]
+        },
+        "animateMotion": {
+            "attributes": ["externalResourcesRequired", "keyPoints", "origin", "path", "rotate"],
+            "attributeGroups": ["animationAddition", "animationEvent", "animationTiming", "animationValue", "conditionalProcessing", "core", "xlink"]
+        },
+        "animateTransform": {
+            "attributes": ["externalResourcesRequired", "type"],
+            "attributeGroups": ["animationAddition", "animationAttributeTarget", "animationEvent", "animationTiming", "animationValue", "conditionalProcessing", "core", "xlink"]
+        },
+        "circle": {
+            "attributes": ["class", "cx", "cy", "externalResourcesRequired", "r", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "clipPath": {
+            "attributes": ["class", "clipPathUnits", "externalResourcesRequired", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "presentation"]
+        },
+        "color-profile": {
+            "attributes": ["local", "name", "rendering-intent"],
+            "attributeGroups": ["core", "xlink"]
+        },
+        "cursor": {
+            "attributes": ["externalResourcesRequired", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "xlink"]
+        },
+        "defs": {
+            "attributes": ["class", "externalResourcesRequired", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "desc": {
+            "attributes": ["class", "style"],
+            "attributeGroups": ["core"]
+        },
+        "ellipse": {
+            "attributes": ["class", "cx", "cy", "externalResourcesRequired", "rx", "ry", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "feBlend": {
+            "attributes": ["class", "in2", "in", "mode", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feColorMatrix": {
+            "attibutes": ["class", "in", "style", "type", "values"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feComponentTransfer": {
+            "attributes": ["class", "in", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feComposite": {
+            "attributes": ["class", "in2", "in", "k1", "k2", "k3", "k4", "operator", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feConvolveMatrix": {
+            "attributes": ["bias", "class", "divisor", "edgeMode", "in", "kernelMatrix", "kernelUnitLength", "order", "preserveAlpha", "style", "targetX", "targetY"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feDiffuseLighting": {
+            "attributes": ["class", "diffuseConstant", "in", "kernelUnitLength", "style", "surfaceScale"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feDisplacementMap": {
+            "attributes": ["class", "in2", "in", "scale", "style", "xChannelSelector", "yChannelSelector"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feDistantLight": {
+            "attributes": ["azimuth", "elevation"],
+            "attributeGroups": ["core"]
+        },
+        "feFlood": {
+            "attributes": ["class", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feFuncA": {
+        	"attributeGroups": ["core", "transferFunctionElement"]
+        },
+        "feFuncB": {
+        	"attributeGroups": ["core", "transferFunctionElement"]
+        },
+        "feFuncG": {
+        	"attributeGroups": ["core", "transferFunctionElement"]
+        },
+        "feFuncR": {
+        	"attributeGroups": ["core", "transferFunctionElement"]
+        },
+        "feGaussianBlur": {
+            "attributes": ["class", "in", "stdDeviation", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feImage": {
+            "attributes": ["class", "externalResourcesRequired", "preserveAspectRatio", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation", "xlink"]
+        },
+        "feMerge": {
+            "attributes": ["class", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feMergeNode": {
+            "attributes": ["in"],
+            "attributeGroups": ["core"]
+        },
+        "feMorphology": {
+            "attributes": ["class", "in", "operator", "radius", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feOffset": {
+            "attributes": ["class", "dx", "dy", "in", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "fePointLight": {
+            "attributes": ["x", "y", "z"],
+            "attributeGroups": ["core"]
+        },
+        "feSpecularLighting": {
+            "attributes": ["class", "in", "kernelUnitLength", "specularConstant", "specularExponent", "style", "surfaceScale"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feSpotLight": {
+            "attributes": ["limitingConeAngle", "pointsAtX", "pointsAtY", "pointsAtZ", "specularExponent", "x", "y", "z"],
+            "attributeGroups": ["core"]
+        },
+        "feTile": {
+            "attributes": ["class", "in", "style"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "feTurbulence": {
+            "attributes": ["baseFrequency", "class", "numOctaves", "seed", "stitchTiles", "style", "type"],
+            "attributeGroups": ["core", "filterPrimitive", "presentation"]
+        },
+        "filter": {
+            "attributes": ["class", "externalResourcesRequired", "filterRes", "filterUnits", "height", "primitiveUnits", "style", "width", "x", "y"],
+            "attributeGroups": ["core", "presentation", "xlink"]
+        },
+        "font": {
+            "attributes": ["class", "externalResourcesRequired", "horiz-adv-x", "horiz-origin-x", "horiz-origin-y", "style", "vert-adv-y", "vert-origin-x", "vert-origin-y"],
+            "attributeGroups": ["core", "presentation"]
+        },
+        "font-face": {
+            "attributes": ["accent-height", "alphabetic", "ascent", "bbox", "cap-height", "descent", "font-family", "font-size", "font-stretch", "font-style", "font-variant", "font-weight", "hanging", "ideographic", "mathematical", "overline-position", "overline-thickness", "panose-1", "slope", "stemh", "stemv", "strikethrough-position", "strikethrough-thickness", "underline-position", "underline-thickness", "unicode-range", "units-per-em", "v-alphabetic", "v-hanging", "v-ideographic", "v-mathematical", "widths", "x-height"],
+            "attributeGroups": ["core"]
+        },
+        "font-face-format": {
+            "attributes": ["string"],
+            "attributeGroups": ["core"]
+        },
+        "font-face-name": {
+            "attributes": ["name"],
+            "attributeGroups": ["core"]
+        },
+        "font-face-src": {
+        	"attributeGroups": ["core"]
+        },
+        "font-face-uri": {
+        	"attributeGroups": ["core", "xlink"]
+        },
+        "foreignObject": {
+            "attributes": ["class", "externalResourcesRequired", "height", "style", "transform", "width", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "g": {
+            "attributes": ["class", "externalResourcesRequired", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "glyph": {
+            "attributes": ["arabic-form", "class", "d", "glyph-name", "horiz-adv-x", "lang", "orientation", "style", "unicode", "vert-adv-y", "vert-origin-x", "vert-origin-y"],
+            "attributeGroups": ["core", "presentation"]
+        },
+        "glyphRef": {
+            "attributes": ["class", "dx", "dy", "format", "glyphRef", "style", "x", "y"],
+            "attributeGroups": ["core", "presentation", "xlink"]
+        },
+        "hkern": {
+            "attributes": ["g1", "g2", "k", "u1", "u2"],
+            "attributeGroups": ["core"]
+        },
+        "image": {
+            "attributes": ["class", "externalResourcesRequired", "height", "preserveAspectRatio", "style", "transform", "width", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation", "xlink"]
+        },
+        "line": {
+            "attributes": ["class", "externalResourcesRequired", "style", "transform", "x1", "x2", "y1", "y2"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "linearGradient": {
+            "attributes": ["class", "externalResourcesRequired", "gradientTransform", "gradientUnits", "spreadMethod", "style", "x1", "x2", "y1", "y2"],
+            "attributeGroups": ["core", "presentation", "xlink"]
+        },
+        "marker": {
+            "attributes": ["class", "externalResourcesRequired", "markerHeight", "markerUnits", "markerWidth", "orient", "preserveAspectRatio", "refX", "refY", "style", "viewBox"],
+            "attributeGroups": ["core", "presentation"]
+        },
+        "mask": {
+            "attributes": ["class", "externalResourcesRequired", "height", "maskContentUnits", "maskUnits", "style", "width", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "presentation"]
+        },
+        "metadata": {
+        	"attributeGroups": ["core"]
+        },
+        "missing-glyph": {
+            "attributes": ["class", "d", "horiz-adv-x", "style", "vert-adv-y", "vert-origin-x", "vert-origin-y"],
+            "attributeGroups": ["core", "presentation"]
+        },
+        "mpath": {
+            "attributes": ["externalResourcesRequired"],
+            "attributeGroups": ["core", "xlink"]
+        },
+        "path": {
+            "attributes": ["class", "d", "externalResourcesRequired", "pathLength", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "pattern": {
+            "attributes": ["class", "externalResourcesRequired", "height", "patternContentUnits", "patternTransform", "patternUnits", "preserveAspectRatio", "style", "viewBox", "width", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "presentation", "xlink"]
+        },
+        "polygon": {
+            "attributes": ["class", "externalResourcesRequired", "points", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "polyline": {
+            "attributes": ["class", "externalResourcesRequired", "points", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "radialGradient": {
+            "attributes": ["class", "cx", "cy", "externalResourcesRequired", "fx", "fy", "gradientTransform", "gradientUnits", "r", "spreadMethod", "style"],
+            "attributeGroups": ["core", "presentation", "xlink"]
+        },
+        "rect": {
+            "attributes": ["class", "externalResourcesRequired", "height", "rx", "ry", "style", "transform", "width", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "script": {
+            "attributes": ["externalResourcesRequired", "type"],
+            "attributeGroups": ["core", "xlink"]
+        },
+        "set": {
+            "attributes": ["externalResourcesRequired", "to"],
+            "attributeGroups": ["animationAttributeTarget", "animationEvent", "animationTiming", "conditionalProcessing", "core", "xlink"]
+        },
+        "stop": {
+            "attributes": ["class", "offset", "style"],
+            "attributeGroups": ["core", "presentation"]
+        },
+        "style": {
+            "attributes": ["media", "title", "type"],
+            "attributeGroups": ["core"]
+        },
+        "svg": {
+            "attributes": ["baseProfile", "class", "contentScriptType", "contentStyleType", "externalResourcesRequired", "height", "preserveAspectRatio", "style", "version", "viewBox", "width", "x", "xmlns", "xmlns:xlink", "y", "zoomAndPan"],
+            "attributeGroups": ["conditionalProcessing", "core", "documentEvent", "graphicalEvent", "presentation"]
+        },
+        "switch": {
+            "attributes": ["class", "externalResourcesRequired", "style", "transform"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "symbol": {
+            "attributes": ["class", "externalResourcesRequired", "preserveAspectRatio", "style", "viewBox"],
+            "attributeGroups": ["core", "graphicalEvent", "presentation"]
+        },
+        "text": {
+            "attributes": ["class", "dx", "dy", "externalResourcesRequired", "lengthAdjust", "rotate", "style", "textLength", "transform", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "textPath": {
+            "attributes": ["class", "externalResourcesRequired", "method", "spacing", "startOffset", "style"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "title": {
+            "attributes": ["class", "style"],
+            "attributeGroups": ["core"]
+        },
+        "tref": {
+            "attributes": ["class", "externalResourcesRequired", "style"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation", "xlink"]
+        },
+        "tspan": {
+            "attributes": ["class", "dx", "dy", "externalResourcesRequired", "lengthAdjust", "rotate", "style", "textLength", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation"]
+        },
+        "use": {
+            "attributes": ["class", "externalResourcesRequired", "height", "style", "transform", "width", "x", "y"],
+            "attributeGroups": ["conditionalProcessing", "core", "graphicalEvent", "presentation", "xlink"]
+        },
+        "view": {
+            "attributes": ["externalResourcesRequired", "preserveAspectRatio", "viewBox", "viewTarget", "zoomAndPan"],
+            "attributeGroups": ["core"]
+        },
+        "vkern": {
+            "attributes": ["g1", "g2", "k", "u1", "u2"],
+            "attributeGroups": ["core"]
+        }
+    }
+}

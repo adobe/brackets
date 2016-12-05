@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,16 +54,15 @@ html, body {
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
 
-    /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
-    -webkit-font-smoothing: antialiased;
-
-    /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
-       It seems that we have to put it here rather than on the animated element in order to prevent the
-       entire window from flashing.
-       See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
-    */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    &.platform-mac {
+        // Use gray scale antialiasing for UI. Code view editor-holder
+        // overrides this to use subpixel antialiasing on Mac, which then
+        // can be overridden by setting "fontSmoothing" preference to
+        // "antialiased". Gray scale AA is used for UI parts which use
+        // SourceSansPro font, which does't look good with subpixel AA,
+        // especially on low resolution monitors.
+        -webkit-font-smoothing: antialiased;
+    }
 
     .dark,
     &.dark {
@@ -71,7 +70,9 @@ html, body {
     }
 }
 
-
+.subpixel-aa{
+    -webkit-font-smoothing: subpixel-antialiased;
+}
 
 .resizing-container {
     position: absolute;
@@ -118,6 +119,10 @@ a, img {
         padding: 0;
         left: @sidebar-width;  // changed dynamically via Resizer
         right: @main-toolbar-width;
+    }
+    
+    .force-right-zero {
+        right: 0;
     }
 }
 
@@ -215,8 +220,8 @@ a, img {
 
     #status-language {
         border-right: 1px solid @bc-panel-border;
-        padding: 0px;
-        margin: 0px;
+        padding: 0;
+        margin: 0;
         
         .dark & {
             border-right: 1px solid @dark-bc-panel-separator;
@@ -323,20 +328,9 @@ a, img {
     position: relative;
 
     /* Placeholder shown when there is no editor open */
-    .not-editor {
-        height: 100%;
-        .vbox;
-        .box-pack(center);
-        .box-align(center);
-        background: @bc-menu-bg url('images/no_content_bg.svg') no-repeat center 45%;
-
-        .dark & {
-            background: @dark-bc-menu-bg url('images/no_content_bg_dark.svg') no-repeat center 45%;
-        }
-    }
 
     .view-pane {
-        display: block;
+        display: block !important;
         margin: 0;
         overflow: hidden;
     }
@@ -353,17 +347,16 @@ a, img {
         .image-view {
             overflow: hidden;
             position: absolute;
-            top: 0px;
-            right: 0px;
-            bottom: 0px;
-            left: 0px;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             text-align: center;
             .image-centering {
                 display: inline-block;
                 vertical-align: middle;
-                margin-top: -50px; /* Offset as vertical align takes image metadata into account */
-                max-width: 90%;
-                max-height: 90%;
+                width: 90%; //As long as the width isn't set on the image itself theres no need for max-width/height
+                height: 90%;
             }
             .image-data {
                 font-weight: @font-weight-semibold;
@@ -379,12 +372,12 @@ a, img {
         }
 
         .image-preview {
-            background: url(images/preview_bg.png);
+            background: url(images/preview-bg.svg);
             box-shadow: 0 1px 3px @bc-shadow;
-            max-height: 90%;
+            max-height: 100%;
 
             .dark & {
-                background: url(images/preview_bg_dark.png);
+                background: url(images/preview-bg-dark.svg);
                 box-shadow: 0 1px 3px @dark-bc-shadow;
             }
         }
@@ -412,6 +405,7 @@ a, img {
 
         .image {
             position: relative;
+            height: calc(~'100% - 53px');//.image-header height+margin
         }
 
         .image-guide,
@@ -447,7 +441,7 @@ a, img {
             color: @bc-text-alt;
             background-color: rgba(0, 0, 0, 0.8);
             font-size: 11px;
-            font-family: SourceCodePro;
+            font-family: @sourceFontFamily;
             line-height: 13px;
             border-radius: 3px;
             box-shadow: 0 1px 3px @bc-shadow;
@@ -488,29 +482,126 @@ a, img {
         }
     }
     .pane-header {
+        opacity: 0.7; // quieten inactive pane header
         box-sizing: border-box;
         border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
-        color: @bc-text-thin-quiet;
         background-color: @background;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        
+
+        &-text {
+            display: inline;
+        }
+
         .dark & {
-            color: @dark-bc-text-quiet;
             background-color: #1d1f21; // not using a variable on purpose.
             border-bottom-color: rgba(255, 255, 255, 0.05);
         }
+
+        &-flipview-btn {
+            position: relative;
+            display: none;
+            top: 0;
+            padding-top: 2px;
+            padding-right: 4px;
+            padding-left: 4px;
+            margin-left: 0;
+            margin-bottom: 0;
+            .sprite-icon(0, 0, 13px, 13px, "images/flip-view-icons.svg");
+            background-origin: content-box;
+            -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
+            transform: translateZ(0); // future proofing
+            z-index: 1;
+            vertical-align: middle;
+
+            &:hover {
+                background-image: url("images/flip-view-icons-hover.svg")
+            }
+
+            &.flipview-icon-none {
+                display: none;
+            }
+
+            &.flipview-icon-top {
+                background-position: center 1px;
+            }
+            
+            &.flipview-icon-right {
+                background-position: center -18px;
+            }
+
+            &.flipview-icon-bottom {
+                background-position: center -35px;
+            }
+
+            &.flipview-icon-left {
+                background-position: center -54px;
+            }
+        }
+
+        &-close-btn {
+            position: relative;
+            display: none;
+            height: 16px;
+            width: 16px;
+            float: right;
+            margin-top: -2px;
+
+            &:before {
+                color: rgba(0, 0, 0, 0.5);
+            }
+
+            &:hover:before {
+                color: rgba(0, 0, 0, 0.8);
+            }
+
+            .dark & {
+                &:before {
+                    color: rgba(255, 255, 255, 0.5);
+                }
+
+                &:hover:before {
+                    color: rgba(255, 255, 255, 0.8);
+                }
+            }
+        }
+
+        &:hover, &.always-show-header-buttons {
+            > .pane-header-flipview-btn:not(.flipview-icon-none) {
+                display: inline-block;
+            }
+
+            > .pane-header-close-btn {
+                display: inline;
+            }
+        }
     }
+
     .active-pane {
+        
         .pane-header {
+            opacity: 1;
             color: @bc-menu-text;
 
             .dark & {
                 color: @dark-bc-menu-text;
             }
         }
+    }
+}
+
+// moved this out of #editor-holder because we need to lower the specificity so theme authors can override the background color
+.not-editor {
+    height: 100%;
+    .vbox;
+    .box-pack(center);
+    .box-align(center);
+    background: #f8f8f8 url('images/no_content_bg.svg') no-repeat center 45%;
+
+    .dark & {
+        background: #1d1f21 url('images/no_content_bg_dark.svg') no-repeat center 45%;
     }
 }
 
@@ -635,7 +726,7 @@ a, img {
 
     .line-number {
         color: @bc-text-thin-quiet;
-        font-family: SourceCodePro;
+        font-family: @sourceFontFamily;
         font-size: 11px;
         padding: 4px 0 0 15px;
         text-align: right;
@@ -716,6 +807,12 @@ a, img {
     text-shadow: none;
     overflow: hidden;
     
+    > span {
+        background: @bc-sidebar-bg;
+        position: relative;
+        z-index: 9;
+    }
+    
     > div {
         background-color: @dark-bc-sidebar-bg;
         opacity: 1;
@@ -740,9 +837,13 @@ a, img {
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
     background-origin: content-box;  // center image within the 13x13 area - ignore button's padding
+    -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
+    transform: translateZ(0); // future proofing
     -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
     z-index: 1;
 }
+
 .splitview-icon-none {
     background-position: center 1px;
 }
@@ -752,6 +853,8 @@ a, img {
 .splitview-icon-horizontal {
     background-position: center -41px;
 }
+
+
 
 // Show splitview icons on the button's dropdown menu too
 #splitview-menu ul.dropdown-menu > li {
@@ -791,11 +894,19 @@ a, img {
     font-size: 13px;
     color: @project-panel-text-2;
     overflow: hidden;
+    
+    .btn-alt-quiet {
+        background-color: #47484b;
+        
+        // relative positioning plus z-index make sure that the splitview button flows under the left aligned buttons in the project pane when there are no working set files
+        position: relative;
+        z-index: 9; 
+    }
 }
 
 .open-files-container {
     .box-flex(0);
-    padding: 0px;
+    padding: 0;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
 
@@ -810,6 +921,7 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
+        white-space: nowrap;
         
         &.selected a {
             color: @open-working-file-name-highlight;
@@ -856,13 +968,24 @@ a, img {
     border-bottom: 1px solid @bc-highlight;
     box-sizing: border-box;
     height: 23px;
+    width: 100%;
     position: absolute;
 }
 
-.sidebar-selection-extension {
+.sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
+    box-sizing: border-box;
+    height: 23px;
+    width: 9px; /* quiet scrollbar width */
+    position: fixed;
+
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
+}
+
+.filetree-context-extension {
+    background: rgba(255, 255, 255, 0.06);
     box-sizing: border-box;
     height: 23px;
     width: 9px; /* quiet scrollbar width */
@@ -876,6 +999,7 @@ a, img {
     box-sizing: border-box;
     position: absolute;
     height: 23px;
+    width: 100%;
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -886,13 +1010,10 @@ a, img {
 #project-files-container {
     .box-flex(1);
 
-    ul {
+    div > ul {
+        padding-bottom: 24px;
         padding-left: 8px;
     }
-
-    > ul {
-        padding-bottom: 24px;
-    }    
 }
 
 .scroller-shadow {
@@ -901,6 +1022,7 @@ a, img {
     height: 5px;
     position: fixed;
     z-index: @z-index-brackets-scroller-shadow;
+    pointer-events: none; // serves as a "click through", so clicks go to the file tree behind (see #12684)
 
     &.top {
         #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
@@ -938,22 +1060,30 @@ a, img {
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
-    -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
+    transform: translateZ(0) rotate(90deg);
+    transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 190ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+        filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
-    -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transform: translateZ(0);
+    transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 90ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+        filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
 
@@ -1002,12 +1132,13 @@ a, img {
 /* Styles for inline editors */
 
 .inline-text-editor {
-    line-height: 0px;
+    line-height: 0;
 }
 
 .inline-widget {
     position: relative;
     overflow: hidden;
+    outline: none;
 
     background-color: @bc-bg-inline-widget;
     min-width: 250px;
@@ -1036,7 +1167,7 @@ a, img {
 
     .inline-editor-header {
         display: inline-block;
-        padding: 9px 10px 1px 40px;
+        padding: 8px 10px 2px 40px;
 
         .filename {
             vertical-align: middle;
@@ -1081,13 +1212,13 @@ a, img {
     }
 
     .shadow.top {
-        top: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+        top: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
 
     .shadow.bottom {
-        bottom: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+        bottom: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
     }
 
     .CodeMirror-scroll {
@@ -1181,7 +1312,7 @@ a, img {
 
         ul {
             margin: 0;
-            padding: @top-margin 0px;
+            padding: 10px 0 10px 5px;
             list-style: none;
         }
 
@@ -1189,16 +1320,28 @@ a, img {
             color: @bc-text-emphasized;
             margin: 0;
             overflow: hidden;
-            padding: 2px 0px 2px 15px;
+            padding: 2px 0 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
 
             .dark & {
                 color: @dark-bc-text-emphasized;
             }
+            
+            &.section-header {
+                padding-left: 0;
+                padding-bottom: 0;
+                .disclosure-triangle {
+                    .expand-collapse-triangle();
+                }
+                .filename {
+                    font-weight: @font-weight-semibold;
+                }
+            }
 
             .related-file {
                 color: @bc-text-thin-quiet;
+                padding-left: 3px;
                 
                 .dark & {
                     color: @dark-bc-text-thin-quiet;
@@ -1325,16 +1468,17 @@ a, img {
 
 .search-results .disclosure-triangle,
 #problems-panel .disclosure-triangle {
+    .expand-collapse-triangle();
+}
+.expand-collapse-triangle() {
     .jstree-sprite;
     display: inline-block;
+    background-position: 7px 5px;
     &.expanded {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        background-position: 7px 5px;
         -webkit-transform: translateZ(0) rotate(90deg);
-    }
-    &.collapsed {
-        background-position: 7px 5px;
+        transform: translateZ(0) rotate(90deg);
     }
 }
 
@@ -1352,7 +1496,9 @@ a, img {
     padding: 5px 4px 4px 14px;
 
     -webkit-transform: translate(0, 0); // Prefix still required.
+    transform: translate(0, 0);
     transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
+    transition: transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
 
     .dark & {
@@ -1465,6 +1611,17 @@ a, img {
         margin-left: 10px;
     }
 
+    .indexing-group {
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .indexing-message {
+        display: inline-block;
+        font-style: italic;
+        margin-left: 5px;
+    }
+
     .message, .no-results-message {
         display: inline-block;
     }
@@ -1524,19 +1681,19 @@ a, img {
     }
     #replace-all.solo {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
     }
 
     // Make find field snug with options buttons
     //    & replace snug with replace commands
     #find-what, #replace-with {
-        margin-right: 0px;
+        margin-right: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
     #find-case-sensitive, #replace-yes {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
         border-radius: 0;
     }
 }
@@ -1671,6 +1828,12 @@ textarea.exclusions-editor {
         border-top: 1px solid #e0d123;
         border-bottom: 1px solid #d4c620;
         opacity: 0.85;  // allow thumb to show through
+        &.tickmark-current {
+            background-color: #ed9823;
+            border-top: 1px solid #dd9128;
+            border-bottom: 1px solid #cb8320;
+            z-index: 1;  // ensure this one appears above overlapping sibling highlights
+        }
     }
 }
 
@@ -1692,32 +1855,24 @@ textarea.exclusions-editor {
     }
 }
 
-.smart_autocomplete_container {
-    // the borders show up even if the container is empty, must set height to zero using JS.
+.quick-search-container {
+    border: 1px solid @bc-panel-border;
+    box-sizing: border-box;  // lets QuickSearchField size the width more nicely
     background-color: @bc-panel-bg;
     border-radius: 0 0 4px 4px;
     box-shadow: 0 5px 10px @bc-shadow;
     opacity: 0;
     
-    // Need this for border-radius because there are no borders
-    overflow: hidden;
-    
-    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 190ms, 1);
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99));
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
     -webkit-transform-origin: 0 0;
     transform-origin: 0 0;
 
-    // so that border won't show when height is 0.
-    box-sizing: border-box;
-
-    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 434px !important;
-
-    /* smart auto complete doesn't correctly position the container
-     * so these specific padding and margin values are necessary*/
-    padding: 0px;
+    padding: 0;
     margin: 9px 0 0;
+    
+    z-index: @z-index-brackets-context-menu-base;
 
     .dark & {
         background-color: @dark-bc-panel-bg;
@@ -1754,6 +1909,9 @@ textarea.exclusions-editor {
                 background-color: @dark-bc-panel-bg-alt;
             }
         }
+        &:last-child {
+            border-radius: 0 0 4px 4px;  // don't cover over quick-search-container's rounded corners
+        }
 
         &:hover {
             background-color: @bc-panel-bg-hover;
@@ -1763,7 +1921,7 @@ textarea.exclusions-editor {
             }
         }
 
-        &.smart_autocomplete_highlight {
+        &.highlight {
             background-color: @bc-bg-highlight;
             color: @bc-menu-text;
             
@@ -1878,14 +2036,14 @@ textarea.exclusions-editor {
 }
 
 @-webkit-keyframes spinner-rotateplane {
-    0% { -webkit-transform: perspective(120px) }
-    50% { -webkit-transform: perspective(120px) rotateY(180deg) }
-    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+    0% { -webkit-transform: perspective(120px); }
+    50% { -webkit-transform: perspective(120px) rotateY(180deg); }
+    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg); }
 }
 @keyframes spinner-rotateplane {
-    0% { -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg); transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
-    50% { -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
-    100% { -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+    0% { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+    50% { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
+    100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
 }
 
 
@@ -2007,7 +2165,7 @@ label input {
         }
     }
     &.animateOpen {
-        -webkit-transition: -webkit-transform 125ms;
+        transition: -webkit-transform 125ms;
         transition: transform 125ms;
         -webkit-transform: scale(1);
         transform: scale(1);
@@ -2016,7 +2174,7 @@ label input {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
-        -webkit-transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
+        transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
         transition: opacity 500ms 5s ease-in, transform 500ms 5s;
         opacity: 0.0;
     }

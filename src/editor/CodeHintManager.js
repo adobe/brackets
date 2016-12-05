@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 
 /*
  * __CodeHintManager Overview:__
@@ -131,7 +128,7 @@
  *  1. hints, a sorted array hints that the provider could later insert
  *     into the editor;
  *  2. match, a string that the manager may use to emphasize substrings of
- *     hints in the hint list; and
+ *     hints in the hint list (case-insensitive); and
  *  3. selectInitial, a boolean that indicates whether or not the the
  *     first hint in the list should be selected by default.
  *  4. handleWideResults, a boolean (or undefined) that indicates whether
@@ -249,16 +246,24 @@ define(function (require, exports, module) {
         hintList         = null,
         deferredHints    = null,
         keyDownEditor    = null,
-        codeHintsEnabled = true;
+        codeHintsEnabled = true,
+        codeHintOpened   = false;
 
 
-    PreferencesManager.definePreference("showCodeHints", "boolean", true);
-    PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
+    PreferencesManager.definePreference("showCodeHints", "boolean", true, {
+        description: Strings.DESCRIPTION_SHOW_CODE_HINTS
+    });
+    PreferencesManager.definePreference("insertHintOnTab", "boolean", false, {
+        description: Strings.DESCRIPTION_INSERT_HINT_ON_TAB
+    });
+    PreferencesManager.definePreference("maxCodeHints", "number", 50, {
+        description: Strings.DESCRIPTION_MAX_CODE_HINTS
+    });
 
     PreferencesManager.on("change", "showCodeHints", function () {
         codeHintsEnabled = PreferencesManager.get("showCodeHints");
     });
-    
+
     /**
      * Comparator to sort providers from high to low priority
      */
@@ -351,7 +356,7 @@ define(function (require, exports, module) {
      */
     function _getProvidersForLanguageId(languageId) {
         var providers = hintProviders[languageId] || hintProviders.all;
-        
+
         // Exclude providers that are explicitly disabled in the preferences.
         // All code hint providers that do not have their constructor
         // names listed in the preferences are enabled by default.
@@ -372,6 +377,7 @@ define(function (require, exports, module) {
         }
         hintList.close();
         hintList = null;
+        codeHintOpened = false;
         keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;
@@ -403,17 +409,23 @@ define(function (require, exports, module) {
         }
         return false;
     }
-
     /**
      * From an active hinting session, get hints from the current provider and
      * render the hint list window.
      *
      * Assumes that it is called when a session is active (i.e. sessionProvider is not null).
      */
-    function _updateHintList() {
+    function _updateHintList(callMoveUpEvent) {
+
+        callMoveUpEvent = typeof callMoveUpEvent === "undefined" ? false : callMoveUpEvent;
+
         if (deferredHints) {
             deferredHints.reject();
             deferredHints = null;
+        }
+
+        if (callMoveUpEvent) {
+            return hintList.callMoveUp(callMoveUpEvent);
         }
 
         var response = sessionProvider.getHints(lastChar);
@@ -426,6 +438,7 @@ define(function (require, exports, module) {
             // if the response is true, end the session and begin another
             if (response === true) {
                 var previousEditor = sessionEditor;
+
                 _endSession();
                 _beginSession(previousEditor);
             } else if (response.hasOwnProperty("hints")) { // a synchronous response
@@ -462,6 +475,7 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     _beginSession = function (editor) {
+
         if (!codeHintsEnabled) {
             return;
         }
@@ -470,7 +484,7 @@ define(function (require, exports, module) {
         if (editor.getSelections().length > 1) {
             return;
         }
-        
+
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageId(language.getId());
@@ -484,7 +498,8 @@ define(function (require, exports, module) {
 
         // If a provider is found, initialize the hint list and update it
         if (sessionProvider) {
-            var insertHintOnTab;
+            var insertHintOnTab,
+                maxCodeHints = PreferencesManager.get("maxCodeHints");
             if (sessionProvider.insertHintOnTab !== undefined) {
                 insertHintOnTab = sessionProvider.insertHintOnTab;
             } else {
@@ -492,8 +507,7 @@ define(function (require, exports, module) {
             }
 
             sessionEditor = editor;
-
-            hintList = new CodeHintList(sessionEditor, insertHintOnTab);
+            hintList = new CodeHintList(sessionEditor, insertHintOnTab, maxCodeHints);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
                     previousEditor = sessionEditor;
@@ -509,26 +523,6 @@ define(function (require, exports, module) {
             lastChar = null;
         }
     };
-
-    /**
-     * Explicitly start a new session. If we have an existing session,
-     * then close the current one and restart a new one.
-     * @param {Editor} editor
-     */
-    function _startNewSession(editor) {
-        if (!editor) {
-            editor = EditorManager.getFocusedEditor();
-        }
-
-        if (editor) {
-            lastChar = null;
-            if (_inSession(editor)) {
-                _endSession();
-            }
-            // Begin a new explicit session
-            _beginSession(editor);
-        }
-    }
 
     /**
      * Handles keys related to displaying, searching, and navigating the hint list.
@@ -566,7 +560,8 @@ define(function (require, exports, module) {
     function _handleKeyupEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
         if (_inSession(editor)) {
-            if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
+          if (event.keyCode === KeyEvent.DOM_VK_HOME || 
+                  event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
                        event.keyCode === KeyEvent.DOM_VK_RIGHT ||
@@ -575,17 +570,19 @@ define(function (require, exports, module) {
                 // We do this in "keyup" because we want the cursor position to be updated before
                 // we redraw the list.
                 _updateHintList();
+            } else if (event.ctrlKey && event.keyCode === KeyEvent.DOM_VK_SPACE) {
+                _updateHintList(event);
             }
         }
     }
-    
+
     /**
      * Handle a selection change event in the editor. If the selection becomes a
      * multiple selection, end our current session.
-     * @param {Event} jqEvent
+     * @param {BracketsEvent} event
      * @param {Editor} editor
      */
-    function _handleCursorActivity(jqEvent, editor) {
+    function _handleCursorActivity(event, editor) {
         if (_inSession(editor)) {
             if (editor.getSelections().length > 1) {
                 _endSession();
@@ -660,6 +657,30 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Explicitly start a new session. If we have an existing session,
+     * then close the current one and restart a new one.
+     * @param {Editor} editor
+     */
+    function _startNewSession(editor) {
+        if (isOpen()) {
+            return;
+        }
+
+        if (!editor) {
+            editor = EditorManager.getFocusedEditor();
+        }
+        if (editor) {
+            lastChar = null;
+            if (_inSession(editor)) {
+                _endSession();
+            }
+
+            // Begin a new explicit session
+            _beginSession(editor);
+        }
+    }
+
+    /**
      * Expose CodeHintList for unit testing
      */
     function _getCodeHintList() {
@@ -668,32 +689,36 @@ define(function (require, exports, module) {
 
     function activeEditorChangeHandler(event, current, previous) {
         if (current) {
-            $(current).on("editorChange", _handleChange);
-            $(current).on("keydown",  _handleKeydownEvent);
-            $(current).on("keypress", _handleKeypressEvent);
-            $(current).on("keyup",    _handleKeyupEvent);
-            $(current).on("cursorActivity", _handleCursorActivity);
+            current.on("editorChange", _handleChange);
+            current.on("keydown",  _handleKeydownEvent);
+            current.on("keypress", _handleKeypressEvent);
+            current.on("keyup",    _handleKeyupEvent);
+            current.on("cursorActivity", _handleCursorActivity);
         }
 
         if (previous) {
             //Removing all old Handlers
-            $(previous).off("editorChange", _handleChange);
-            $(previous).off("keydown",  _handleKeydownEvent);
-            $(previous).off("keypress", _handleKeypressEvent);
-            $(previous).off("keyup",    _handleKeyupEvent);
-            $(previous).off("cursorActivity", _handleCursorActivity);
+            previous.off("editorChange", _handleChange);
+            previous.off("keydown",  _handleKeydownEvent);
+            previous.off("keypress", _handleKeypressEvent);
+            previous.off("keyup",    _handleKeyupEvent);
+            previous.off("cursorActivity", _handleCursorActivity);
         }
     }
 
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
-    $(EditorManager).on("activeEditorChange", activeEditorChangeHandler);
-
-    // Dismiss code hints before executing any command since the command
+    EditorManager.on("activeEditorChange", activeEditorChangeHandler);
+ 
+    // Dismiss code hints before executing any command other than showing code hints since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is
-    // pointless to keep the hint list since the user wants to view the Quick Doc.
-    $(CommandManager).on("beforeExecuteCommand", _endSession);
+    // pointless to keep the hint list since the user wants to view the Quick Doc
+    CommandManager.on("beforeExecuteCommand", function (event, commandId) {
+        if (commandId !== Commands.SHOW_CODE_HINTS) {
+            _endSession();
+        }
+    });
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 

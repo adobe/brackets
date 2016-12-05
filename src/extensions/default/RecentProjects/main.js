@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, window, $, Mustache */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -43,11 +40,12 @@ define(function (require, exports, module) {
         FileUtils               = brackets.getModule("file/FileUtils"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         Strings                 = brackets.getModule("strings"),
+        Mustache                = brackets.getModule("thirdparty/mustache/mustache"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
 
-    
+
     /** @const {string} Recent Projects commands ID */
     var TOGGLE_DROPDOWN = "recentProjects.toggle";
 
@@ -264,7 +262,6 @@ define(function (require, exports, module) {
     function cleanupDropdown() {
         $("html").off("click", closeDropdown);
         $("#project-files-container").off("scroll", closeDropdown);
-        $(SidebarView).off("hide", closeDropdown);
         $("#titlebar .nav").off("click", closeDropdown);
         $dropdown = null;
 
@@ -405,9 +402,8 @@ define(function (require, exports, module) {
         // as making Esc close the dropdown. See issue #1381.
         $("#project-files-container").on("scroll", closeDropdown);
 
-        // Hide the menu if the sidebar is hidden.
-        // TODO: Is there some more general way we could handle this for dropdowns?
-        $(SidebarView).on("hide", closeDropdown);
+        // Note: PopUpManager will automatically hide the sidebar in other cases, such as when a
+        // command is run, Esc is pressed, or the menu is focused.
 
         // Hacky: if we detect a click in the menubar, close ourselves.
         // TODO: again, we should have centralized popup management.
@@ -426,9 +422,9 @@ define(function (require, exports, module) {
             if (!SidebarView.isVisible()) {
                 SidebarView.show();
             }
-            
+
             $("#project-dropdown-toggle").trigger("click");
-            
+
             $dropdown.focus();
             $links = $dropdown.find("a");
             // By default, select the most recent project (which is at the top of the list underneath Open Folder),
@@ -443,8 +439,6 @@ define(function (require, exports, module) {
         }
     }
 
-    PreferencesManager.convertPreferences(module, {"recentProjects": "user"}, true);
-
     // Register command handlers
     CommandManager.register(Strings.CMD_TOGGLE_RECENT_PROJECTS, TOGGLE_DROPDOWN, handleKeyEvent);
     KeyBindingManager.addBinding(TOGGLE_DROPDOWN, KeyboardPrefs.recentProjects);
@@ -453,8 +447,8 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         ExtensionUtils.loadStyleSheet(module, "styles/styles.less");
 
-        $(ProjectManager).on("projectOpen", add);
-        $(ProjectManager).on("beforeProjectClose", add);
+        ProjectManager.on("projectOpen", add);
+        ProjectManager.on("beforeProjectClose", add);
     });
 
     AppInit.htmlReady(function () {

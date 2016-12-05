@@ -1,30 +1,28 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError, XMLHttpRequest */
+/*jslint forin: true */
+/*global FileError */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -49,7 +47,7 @@
  *
  * Inspector can connect directly to a web socket via `connect(socketURL)`, or
  * it can find the web socket that corresponds to the tab at the given URL and
- * connect to it via `connectToURL(url)`. The later returns a promise. To 
+ * connect to it via `connectToURL(url)`. The later returns a promise. To
  * disconnect use `disconnect()`.
  *
  * __EVENTS__
@@ -83,10 +81,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
-    var Async = require("utils/Async");
-
-    // jQuery exports object for events
-    var $exports = $(exports);
+    var Async           = require("utils/Async"),
+        EventDispatcher = require("utils/EventDispatcher");
 
     /**
      * Map message IDs to the callback function and original JSON message
@@ -124,8 +120,8 @@ define(function Inspector(require, exports, module) {
 
             // FUTURE: Our current implementation closes and re-opens an inspector connection whenever
             // a new HTML file is selected. If done quickly enough, pending requests from the previous
-            // connection could come in before the new socket connection is established. For now we 
-            // simply ignore this condition. 
+            // connection could come in before the new socket connection is established. For now we
+            // simply ignore this condition.
             // This race condition will go away once we support multiple inspector connections and turn
             // off auto re-opening when a new HTML file is selected.
             return (new $.Deferred()).reject().promise();
@@ -183,7 +179,7 @@ define(function Inspector(require, exports, module) {
     /** WebSocket did close */
     function _onDisconnect() {
         _socket = undefined;
-        $exports.triggerHandler("disconnect");
+        exports.trigger("disconnect");
     }
 
     /** WebSocket reported an error */
@@ -192,7 +188,7 @@ define(function Inspector(require, exports, module) {
             _connectDeferred.reject();
             _connectDeferred = null;
         }
-        $exports.triggerHandler("error", [error]);
+        exports.trigger("error", error);
     }
 
     /** WebSocket did open */
@@ -201,7 +197,7 @@ define(function Inspector(require, exports, module) {
             _connectDeferred.resolve();
             _connectDeferred = null;
         }
-        $exports.triggerHandler("connect");
+        exports.trigger("connect");
     }
 
     /** Received message from the WebSocket
@@ -227,14 +223,14 @@ define(function Inspector(require, exports, module) {
                 domain = domainAndMethod[0],
                 method = domainAndMethod[1];
 
-            $(exports[domain]).triggerHandler(method, response.params);
+            EventDispatcher.triggerWithArray(exports[domain], method, response.params);
         }
 
         // Always fire event handlers for all messages/errors
-        $exports.triggerHandler("message", [response]);
+        exports.trigger("message", response);
 
         if (response.error) {
-            $exports.triggerHandler("error", [response.error, msgText]);
+            exports.trigger("error", response.error, msgText);
         }
     }
 
@@ -268,22 +264,6 @@ define(function Inspector(require, exports, module) {
         return def.promise();
     }
 
-    /** Register a handler to be called when the given event is triggered
-     * @param {string} event name
-     * @param {function} handler function
-     */
-    function on(name, handler) {
-        $exports.on(name, handler);
-    }
-
-    /** Remove the given or all event handler(s) for the given event or remove all event handlers
-     * @param {string} optional event name
-     * @param {function} optional handler function
-     */
-    function off(name, handler) {
-        $exports.off(name, handler);
-    }
-
     /**
      * Disconnect from the remote debugger WebSocket
      * @return {jQuery.Promise} Promise that is resolved immediately if not
@@ -313,13 +293,13 @@ define(function Inspector(require, exports, module) {
 
                 _socket = undefined;
             }
-            
+
             deferred.resolve();
         }
 
         return promise;
     }
-    
+
     /**
      * Connect to the remote debugger WebSocket at the given URL.
      * Clients must listen for the `connect` event.
@@ -394,17 +374,22 @@ define(function Inspector(require, exports, module) {
 
         var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
             InspectorJSON = JSON.parse(InspectorText);
-        
+
         var i, j, domain, command;
         for (i in InspectorJSON.domains) {
             domain = InspectorJSON.domains[i];
-            exports[domain.domain] = {};
+            var exportedDomain = {};
+            exports[domain.domain] = exportedDomain;
+            EventDispatcher.makeEventDispatcher(exportedDomain);
             for (j in domain.commands) {
                 command = domain.commands[j];
-                exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
+                exportedDomain[command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
             }
         }
     }
+
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.connect              = connect;
@@ -414,8 +399,6 @@ define(function Inspector(require, exports, module) {
     exports.getDebuggableWindows = getDebuggableWindows;
     exports.getUserAgent         = getUserAgent;
     exports.init                 = init;
-    exports.off                  = off;
-    exports.on                   = on;
     exports.send                 = send;
     exports.setUserAgent         = setUserAgent;
 });

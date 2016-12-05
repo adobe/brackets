@@ -1,48 +1,46 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, runs, $, brackets, waitsForDone, spyOn, tinycolor */
+/*global describe, it, expect, beforeEach, afterEach, waits, runs, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var SpecRunnerUtils   = brackets.getModule("spec/SpecRunnerUtils"),
-        KeyEvent          = brackets.getModule("utils/KeyEvent"),
-        testContentCSS    = require("text!unittest-files/unittests.css"),
-        testContentHTML   = require("text!unittest-files/unittests.html"),
-        provider          = require("main").inlineColorEditorProvider,
-        InlineColorEditor = require("InlineColorEditor").InlineColorEditor,
-        ColorEditor       = require("ColorEditor").ColorEditor;
-
-    require("thirdparty/tinycolor-min");
+    var KeyEvent           = brackets.getModule("utils/KeyEvent"),
+        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
+        SpecRunnerUtils    = brackets.getModule("spec/SpecRunnerUtils"),
+        testContentCSS     = require("text!unittest-files/unittests.css"),
+        testContentHTML    = require("text!unittest-files/unittests.html"),
+        provider           = require("main").inlineColorEditorProvider,
+        InlineColorEditor  = require("InlineColorEditor").InlineColorEditor,
+        ColorEditor        = require("ColorEditor").ColorEditor,
+        tinycolor          = require("thirdparty/tinycolor-min");
 
     describe("Inline Color Editor - unit", function () {
 
         var testDocument, testEditor, inline;
-        
+
         /**
          * Creates an inline color editor connected to the given cursor position in the test editor.
          * Note that this does *not* actually open it as an inline editor in the test editor.
@@ -62,7 +60,7 @@ define(function (require, exports, module) {
                 }
             });
         }
-            
+
         /**
          * Expects an inline editor to be opened at the given cursor position and to have the
          * given initial color (which should match the color at that position).
@@ -76,7 +74,7 @@ define(function (require, exports, module) {
                 expect(inline._color).toBe(color);
             });
         }
-        
+
         /**
          * Simulate the given event with clientX/clientY specified by the given
          * ratios of the item's actual width/height (offset by the left/top of the
@@ -92,7 +90,7 @@ define(function (require, exports, module) {
                 clientY: $item.offset().top + (ratios[1] * $item.height())
             }));
         }
-                
+
         describe("Inline editor - CSS", function () {
 
             beforeEach(function () {
@@ -100,16 +98,16 @@ define(function (require, exports, module) {
                 testDocument = mock.doc;
                 testEditor = mock.editor;
             });
-            
+
             afterEach(function () {
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
                 inline = null;
             });
-         
+
             describe("simple open cases", function () {
-                
+
                 it("should show the correct color when opened on an #rrggbb color", function () {
                     testOpenColor({line: 1, ch: 18}, "#abcdef");
                 });
@@ -146,7 +144,7 @@ define(function (require, exports, module) {
                 it("should show the correct color when opened on an hsla() color with a leading period in the alpha field", function () {
                     testOpenColor({line: 49, ch: 18}, "hsla(180, 50%, 50%, .5)");
                 });
-                
+
                 it("should not open when not on a color", function () {
                     makeColorEditor({line: 1, ch: 6});
                     runs(function () {
@@ -165,11 +163,11 @@ define(function (require, exports, module) {
                         expect(inline).toEqual(null);
                     });
                 });
-                
+
                 it("should open on the second color when there are two colors in the same line", function () {
                     testOpenColor({line: 29, ch: 48}, "#ddeeff");
                 });
-            
+
                 it("should properly add/remove ref to document when opened/closed", function () {
                     runs(function () {
                         spyOn(testDocument, "addRef").andCallThrough();
@@ -179,17 +177,17 @@ define(function (require, exports, module) {
                     runs(function () {
                         expect(testDocument.addRef).toHaveBeenCalled();
                         expect(testDocument.addRef.callCount).toBe(1);
-                        
+
                         inline.onClosed();
                         expect(testDocument.releaseRef).toHaveBeenCalled();
                         expect(testDocument.releaseRef.callCount).toBe(1);
                     });
                 });
-                
+
             });
-            
+
             describe("update host document on edit in color editor", function () {
-                
+
                 it("should update host document when change is committed in color editor", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
@@ -197,7 +195,7 @@ define(function (require, exports, module) {
                         expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#c0c0c0");
                     });
                 });
-                
+
                 it("should update correct range of host document with color format of different length", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
@@ -205,7 +203,7 @@ define(function (require, exports, module) {
                         expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 31})).toBe("rgb(20, 20, 20)");
                     });
                 });
-    
+
                 it("should not invalidate range when change is committed", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
@@ -213,16 +211,26 @@ define(function (require, exports, module) {
                         expect(inline.getCurrentRange()).toBeTruthy();
                     });
                 });
-    
+
+                it("should update correct range of host document when the in-editor color string is invalid", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
+                        inline.colorEditor.setColorFromString("#c0c0c0");
+                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
+                        expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#c0c0c0");
+                    });
+                });
+
             });
-            
+
             describe("update color editor on edit in host editor", function () {
-                
+
                 it("should update when edit is made to color range in host editor", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         spyOn(inline, "close");
-        
+
                         testDocument.replaceRange("0", {line: 1, ch: 18}, {line: 1, ch: 19});
                         expect(inline._color).toBe("#a0cdef");
                         // TODO (#2201): this assumes getColor() is a tinycolor, but sometimes it's a string
@@ -231,23 +239,23 @@ define(function (require, exports, module) {
                         expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
                     });
                 });
-                
-                it("should close itself if edit is made that destroys end bookmark and leaves color invalid", function () {
+
+                it("should close itself if edit is made that destroys end textmark and leaves color invalid", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         spyOn(inline, "close");
-                        
-                        // Replace everything including the semicolon, so it crosses the bookmark boundary.
+
+                        // Replace everything including the semicolon, so it crosses the textmark boundary.
                         testDocument.replaceRange("rgb(255, 25", {line: 1, ch: 16}, {line: 1, ch: 24});
                         expect(inline.close).toHaveBeenCalled();
                     });
                 });
-                
+
                 it("should maintain the range if the user deletes the last character of the color and types a new one", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         spyOn(inline, "close");
-        
+
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
                         testDocument.replaceRange("0", {line: 1, ch: 22}, {line: 1, ch: 22});
                         expect(inline._color).toBe("#abcde0");
@@ -255,29 +263,27 @@ define(function (require, exports, module) {
                         expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
                     });
                 });
-                
-                it("should not update the end bookmark to a shorter valid match if the bookmark still exists and the color becomes invalid", function () {
+
+                it("should not update the end textmark and the color shown to a shorter valid match if the marker still exists and the color becomes invalid", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
-                        expect(inline._color).toBe("#abcde");
+                        expect(inline._color).toBe("#abcdef");
                         expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
                     });
                 });
-                
-                // TODO: (issue #2166) The following test fails because if the end bookmark is deleted, we match the shorter
-                // #xxx string at the beginning of the color and assume that's valid, and then reset the bookmark
-                // to the end of that location.
-    //            it("should not update the end bookmark to a shorter valid match if the bookmark no longer exists and the color becomes invalid", function () {
-    //                makeColorEditor({line: 1, ch: 18}).done(function (inline) {
-    //                    testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
-    //                    expect(inline._color).toBe("#abcde");
-    //                    expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
-    //                });
-    //            });
-                
+
+                it("should not update the end textmark and the color shown to a shorter valid match if the marker no longer exists and the color becomes invalid", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
+                        expect(inline._color).toBe("#abcdef");
+                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
+                    });
+                });
+
             });
-            
+
             describe("edit batching", function () {
                 it("should combine multiple edits within the same inline editor into a single undo in the host editor", function () {
                     makeColorEditor({line: 1, ch: 18});
@@ -291,7 +297,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Inline editor - HTML", function () {
 
             beforeEach(function () {
@@ -299,20 +305,20 @@ define(function (require, exports, module) {
                 testDocument = mock.doc;
                 testEditor = mock.editor;
             });
-            
+
             afterEach(function () {
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
             });
-         
+
             it("should open on a color in an HTML file", function () {
                 testOpenColor({line: 4, ch: 30}, "#dead01");
             });
         });
-            
+
         describe("Inline editor - used colors processing", function () {
-            
+
             it("should trim the original array to the given length", function () {
                 var inline = new InlineColorEditor();
                 var result = inline._collateColors(["#abcdef", "#fedcba", "#aabbcc", "#bbccdd"], 2);
@@ -321,7 +327,7 @@ define(function (require, exports, module) {
                     {value: "#fedcba", count: 1}
                 ]);
             });
-            
+
             it("should remove duplicates from the original array and sort it by usage", function () {
                 var inline = new InlineColorEditor();
                 var result = inline._collateColors(["#abcdef", "#fedcba", "#123456", "#FEDCBA", "#123456", "#123456", "rgb(100, 100, 100)"], 100);
@@ -333,11 +339,11 @@ define(function (require, exports, module) {
                 ]);
             });
         });
-        
+
         describe("Color editor UI", function () {
             var colorEditor,
                 defaultSwatches = [{value: "#abcdef", count: 3}, {value: "rgba(100, 200, 250, 0.5)", count: 2}];
-            
+
             /**
              * Creates a hidden ColorEditor and appends it to the body. Note that this is a standalone
              * ColorEditor, not inside an InlineColorEditor.
@@ -349,7 +355,7 @@ define(function (require, exports, module) {
              * @param {boolean=} hide Whether to hide the color picker; default is true.
              */
             function makeUI(initialColor, callback, swatches, hide) {
-                colorEditor = new ColorEditor($(document.body),
+                colorEditor = new ColorEditor($(window.document.body),
                                               initialColor,
                                               callback || function () { },
                                               swatches || defaultSwatches);
@@ -357,11 +363,11 @@ define(function (require, exports, module) {
                     colorEditor.getRootElement().css("display", "none");
                 }
             }
-                        
+
             afterEach(function () {
                 colorEditor.getRootElement().remove();
             });
-            
+
             /**
              * Checks whether the difference between val1 and val2 is within the given tolerance.
              * (We can't use Jasmine's .toBeCloseTo() because that takes a precision in decimal places,
@@ -381,34 +387,34 @@ define(function (require, exports, module) {
             function checkPercentageNear(pct, val) {
                 expect(checkNear(pct.substr(0, pct.length - 1), val));
             }
-            
+
             /** Returns the colorEditor's current value as a string in its current format */
             function getColorString() {
-                return tinycolor(colorEditor.getColor()).toString();
+                return tinycolor(colorEditor.getColor()).getOriginalInput();
             }
-            
+
             describe("simple load/commit", function () {
-            
+
                 it("should load the initial color correctly", function () {
                     var colorStr    = "rgba(77, 122, 31, 0.5)";
                     var colorStrRgb = "rgb(77, 122, 31)";
-                    
+
                     runs(function () {
                         makeUI(colorStr);
-                        expect(colorEditor.getColor().toString()).toBe(colorStr);
+                        expect(colorEditor.getColor().getOriginalInput()).toBe(colorStr);
                         expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
-    
+
                         // Not sure why the tolerances need to be larger for these.
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, 90, 2.0);
                         checkNear(tinycolor(colorEditor.$hueBase.css("background-color")).toHsv().h, 90, 2.0);
-    
+
                         expect(tinycolor.equals(colorEditor.$selectionBase.css("background-color"), colorStrRgb)).toBe(true);
                     });
 
                     // Need to do these on a timeout since we can't seem to read back CSS positions synchronously.
                     waits(1);
-                    
+
                     runs(function () {
                         checkPercentageNear(colorEditor.$hueSelector[0].style.bottom, 25);
                         checkPercentageNear(colorEditor.$opacitySelector[0].style.bottom, 50);
@@ -416,15 +422,15 @@ define(function (require, exports, module) {
                         checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);
                     });
                 });
-                
+
                 it("should load a committed color correctly", function () {
                     var colorStr = "rgba(77, 122, 31, 0.5)";
                     var colorStrRgb = "rgb(77, 122, 31)";
-                    
+
                     runs(function () {
                         makeUI("#0a0a0a");
                         colorEditor.setColorFromString(colorStr);
-                        expect(colorEditor.getColor().toString()).toBe(colorStr);
+                        expect(colorEditor.getColor().getOriginalInput()).toBe(colorStr);
                         expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
@@ -442,7 +448,7 @@ define(function (require, exports, module) {
                         checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);
                     });
                 });
-    
+
                 it("should call the callback when a new color is committed", function () {
                     var lastColor;
                     makeUI("rgba(100, 100, 100, 0.5)", function (color) {
@@ -451,28 +457,28 @@ define(function (require, exports, module) {
                     colorEditor.setColorFromString("#a0a0a0");
                     expect(lastColor).toBe("#a0a0a0");
                 });
-                
+
             });
-            
-            describe("conversions", function () {
-                
-                /**
-                 * Test whether converting the given color to the given mode results in the expected color.
-                 * @param {string} initialColor The color to convert.
-                 * @param {string} mode The mode to convert to: most be "rgba", "hsla", or "hex".
-                 * @param {string} result The expected result of the conversion.
-                 */
-                function testConvert(initialColor, mode, result) {
-                    makeUI(initialColor);
-                    var buttonMap = {
-                        "rgba": "$rgbaButton",
-                        "hsla": "$hslButton",
-                        "hex": "$hexButton"
-                    };
-                    colorEditor[buttonMap[mode]].trigger("click");
-                    expect(colorEditor.getColor().toString()).toBe(result);
-                }
-                
+
+            /**
+             * Test whether converting the given color to the given mode results in the expected color.
+             * @param {string} initialColor The color to convert.
+             * @param {string} mode The mode to convert to: must be "rgba", "hsla", or "hex".
+             * @param {string} result The expected result of the conversion.
+             */
+            function testConvert(initialColor, mode, result) {
+                makeUI(initialColor);
+                var buttonMap = {
+                    "rgba": "$rgbaButton",
+                    "hsla": "$hslButton",
+                    "hex": "$hexButton"
+                };
+                colorEditor[buttonMap[mode]].trigger("click");
+                expect(colorEditor.getColor().getOriginalInput()).toBe(result);
+            }
+
+            describe("conversions in lower case", function () {
+
                 it("should convert a hex color to rgb when mode button clicked", function () {
                     testConvert("#112233", "rgba", "rgb(17, 34, 51)");
                 });
@@ -503,11 +509,70 @@ define(function (require, exports, module) {
                 it("should convert an hsla color to rgba when mode button clicked", function () {
                     testConvert("hsla(152, 12%, 22%, 0.7)", "rgba", "rgba(49, 63, 57, 0.7)");
                 });
-                
+                it("should convert a mixed case hsla color to rgba when mode button clicked", function () {
+                    testConvert("HsLa(152, 12%, 22%, 0.7)", "rgba", "rgba(49, 63, 57, 0.7)");
+                });
+                it("should convert a mixed case hex color to rgb when mode button clicked", function () {
+                    testConvert("#fFfFfF", "rgba", "rgb(255, 255, 255)");
+                });
+
             });
-            
+
+            describe("conversions in UPPER CASE", function () {
+
+                beforeEach(function () {
+                    // Enable uppercase colors
+                    PreferencesManager.set("uppercaseColors", true);
+                });
+                afterEach(function () {
+                    // Re-disable uppercase colors
+                    PreferencesManager.set("uppercaseColors", false);
+                });
+
+                it("should use uppercase colors", function () {
+                    expect(PreferencesManager.get("uppercaseColors")).toBe(true);
+                });
+                it("should convert a hex color to rgb in uppercase when mode button clicked", function () {
+                    testConvert("#112233", "rgba", "RGB(17, 34, 51)");
+                });
+                it("should convert a hex color to hsl in uppercase when mode button clicked", function () {
+                    testConvert("#112233", "hsla", "HSL(210, 50%, 13%)");
+                });
+                it("should convert an rgb color to hex in uppercase when mode button clicked", function () {
+                    testConvert("RGB(15, 160, 21)", "hex", "#0FA015");
+                });
+                it("should convert an rgba color to hex (dropping alpha) in uppercase when mode button clicked", function () {
+                    testConvert("RGBA(15, 160, 21, 0.5)", "hex", "#0FA015");
+                });
+                it("should convert an rgb color to hsl in uppercase when mode button clicked", function () {
+                    testConvert("RGB(15, 160, 21)", "hsla", "HSL(122, 83%, 34%)");
+                });
+                it("should convert an rgba color to hsla in uppercase when mode button clicked", function () {
+                    testConvert("RGBA(15, 160, 21, 0.3)", "hsla", "HSLA(122, 83%, 34%, 0.3)");
+                });
+                it("should convert an hsl color to hex in uppercase when mode button clicked", function () {
+                    testConvert("HSL(152, 12%, 22%)", "hex", "#313F39");
+                });
+                it("should convert an hsla color to hex (dropping alpha) in uppercase when mode button clicked", function () {
+                    testConvert("HSLA(152, 12%, 22%, 0.7)", "hex", "#313F39");
+                });
+                it("should convert an hsl color to rgb in uppercase when mode button clicked", function () {
+                    testConvert("HSL(152, 12%, 22%)", "rgba", "RGB(49, 63, 57)");
+                });
+                it("should convert an hsla color to rgba in uppercase when mode button clicked", function () {
+                    testConvert("HSLA(152, 12%, 22%, 0.7)", "rgba", "RGBA(49, 63, 57, 0.7)");
+                });
+                it("should convert a mixed case hsla color to rgba in uppercase when mode button clicked", function () {
+                    testConvert("HsLa(152, 12%, 22%, 0.7)", "rgba", "RGBA(49, 63, 57, 0.7)");
+                });
+                it("should convert a mixed case hex color to rgb in uppercase when mode button clicked", function () {
+                    testConvert("#fFfFfF", "rgba", "RGB(255, 255, 255)");
+                });
+
+            });
+
             describe("parameter editing with mouse", function () {
-                
+
                 /**
                  * Test a mouse down event on the given UI element.
                  * @param {object} opts The parameters to test:
@@ -531,7 +596,7 @@ define(function (require, exports, module) {
                  * @param {object} opts The parameters to test:
                  *     item: The (string) name of the member of ColorEditor that references the element to test.
                  *     clickAt: An [x, y] array specifying the simulated x/y mouse position for the initial mouse down
-                 *          as a fraction of the item's width/height. For example, [0.5, 0.5] would specify a click 
+                 *          as a fraction of the item's width/height. For example, [0.5, 0.5] would specify a click
                  *          exactly in the center of the element.
                  *     dragTo: An [x, y] array specifying the location to drag to, using the same convention as clickAt.
                  *     param: The (string) parameter whose value we're testing (h, s, v, or a).
@@ -545,7 +610,7 @@ define(function (require, exports, module) {
                     checkNear(tinycolor(colorEditor.getColor()).toHsv()[opts.param], opts.expected, opts.tolerance);
                     colorEditor[opts.item].trigger("mouseup");  // clean up drag state
                 }
-                
+
                 it("should set saturation on mousedown", function () {
                     testMousedown({
                         item:      "$selection",
@@ -703,11 +768,11 @@ define(function (require, exports, module) {
                         tolerance: 0.1
                     });
                 });
-                
+
             });
-            
+
             describe("parameter editing with keyboard", function () {
-                
+
                 function makeKeyEvent(opts) {
                     return $.Event("keydown", { keyCode: opts.key, shiftKey: !!opts.shift });
                 }
@@ -726,7 +791,7 @@ define(function (require, exports, module) {
                  *          compare tinycolor's normalization of the color value.
                  */
                 function testKey(opts) {
-                    
+
                     function getParam() {
                         if (opts.exact) {
                             var result = colorEditor._hsv[opts.param];
@@ -739,16 +804,16 @@ define(function (require, exports, module) {
                             return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
                         }
                     }
-                    
+
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
 
                     var before = getParam();
                     colorEditor[opts.item].trigger(makeKeyEvent(opts));
-                    
+
                     var after = getParam();
                     checkNear(after, before + opts.delta, opts.tolerance);
                 }
-                
+
                 /**
                  * Test whether the given event's default is or isn't prevented on a given key.
                  * @param {object} opts The parameters to test:
@@ -761,23 +826,23 @@ define(function (require, exports, module) {
                  */
                 function testPreventDefault(opts) {
                     var event, $item;
-                    
+
                     // The color picker needs to be displayed for this test; otherwise the
                     // selection won't be properly set, because you can only set the selection
                     // when the text field has focus.
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)", function () { }, defaultSwatches, false);
-                    
+
                     $item = colorEditor[opts.item];
                     $item.focus();
                     if (opts.selection) {
                         $item[0].setSelectionRange(opts.selection[0], opts.selection[1]);
                     }
-                    
+
                     event = makeKeyEvent(opts);
                     $item.trigger(event);
                     expect(event.isDefaultPrevented()).toBe(opts.expected);
                 }
-                
+
                 it("should increase saturation by 1.5% on right arrow", function () {
                     testKey({
                         item:      "$selectionBase",
@@ -1098,7 +1163,7 @@ define(function (require, exports, module) {
                         tolerance: 0.005
                     });
                 });
-                
+
                 // For #2138
                 it("should increase hue by 18 on shift up arrow even if saturation is 0", function () {
                     testKey({
@@ -1136,7 +1201,7 @@ define(function (require, exports, module) {
                         exact:     true
                     });
                 });
-                
+
                 // For #2193 and #2229
                 it("should prevent default on the key event for an unhandled arrow key on non-text-field", function () {
                     testPreventDefault({
@@ -1220,31 +1285,31 @@ define(function (require, exports, module) {
                 });
 
             });
-            
+
             describe("color swatches and original color", function () {
-                
+
                 it("should restore to original color when clicked on", function () {
                     makeUI("#abcdef");
                     colorEditor.setColorFromString("#0000ff");
                     colorEditor.$originalColor.trigger("click");
                     expect(tinycolor(colorEditor.getColor()).toHexString()).toBe("#abcdef");
                 });
-                
+
                 it("should create swatches", function () {
                     makeUI("#abcdef");
                     expect($(".swatch").length).toBe(2);
                 });
-                
+
                 it("should set color to a swatch when clicked on", function () {
                     makeUI("#fedcba");
                     $($(".swatch")[0]).trigger("click");
                     expect(tinycolor(colorEditor.getColor()).toHexString()).toBe("#abcdef");
                 });
-                
+
             });
-            
+
             describe("input text field syncing", function () {
-                
+
                 it("should commit valid changes made in the input field on the input event", function () {
                     makeUI("#abcdef");
                     colorEditor.$colorValue.val("#fedcba");
@@ -1271,7 +1336,7 @@ define(function (require, exports, module) {
                     expect(tinycolor(colorEditor.getColor()).toHexString()).toBe("#abcdef");
                     expect(colorEditor.$colorValue.val()).toBe("#abcdef");
                 });
-                
+
                 it("should convert percentage RGB values to normal values", function () {
                     makeUI("#abcdef");
                     expect(colorEditor._convertToNormalRGB("rgb(25%, 50%, 75%)")).toBe("rgb(64, 128, 191)");
@@ -1283,16 +1348,16 @@ define(function (require, exports, module) {
                     expect(colorEditor._normalizeColorString("rgb(10,20,   30)")).toBe("rgb(10, 20, 30)");
                 });
             });
-            
+
             describe("undo/redo", function () {
-                
+
                 function triggerCtrlKey($element, key, shift) {
                     var ctrlKeyProperty = (brackets.platform === "win" ? "ctrlKey" : "metaKey"),
                         eventProps = {keyCode: key, shiftKey: shift};
                     eventProps[ctrlKeyProperty] = true;
                     $element.trigger($.Event("keydown", eventProps));
                 }
-                
+
                 it("should undo when Ctrl-Z is pressed on a focused element in the color editor", function () {
                     makeUI("#abcdef");
                     runs(function () {
@@ -1313,7 +1378,7 @@ define(function (require, exports, module) {
                         expect(getColorString()).toBe("#a0a0a0");
                     });
                 });
-                
+
                 it("should redo when Ctrl-Y is pressed on a focused element in the color editor", function () {
                     makeUI("#abcdef");
                     runs(function () {
@@ -1324,7 +1389,7 @@ define(function (require, exports, module) {
                         expect(getColorString()).toBe("#a0a0a0");
                     });
                 });
-                
+
                 it("should redo when Ctrl-Y is pressed after two Ctrl-Zs (only one Ctrl-Z should take effect)", function () {
                     makeUI("#abcdef");
                     runs(function () {
@@ -1402,7 +1467,7 @@ define(function (require, exports, module) {
                         colorEditor.$opacitySelector.trigger("mouseup");  // clean up drag state
                     });
                 });
-                
+
                 it("should undo a text field change", function () {
                     makeUI("rgba(100, 150, 200, 0.3)");
                     runs(function () {

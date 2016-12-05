@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,11 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
-    
+
     /**
      * Errors
      */
@@ -34,6 +31,7 @@ define({
     "GENERIC_ERROR"                     : "(fel {0})",
     "NOT_FOUND_ERR"                     : "Filen kunde inte hittas.",
     "NOT_READABLE_ERR"                  : "Filen kunde inte läsas.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Filer större än {0} MB kan inte öppnas i {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Målmappen kunde inte ändras.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Du har inte behörighet att modifiera filen.",
     "CONTENTS_MODIFIED_ERR"             : "Filen har ändrats utanför {APP_NAME}.",
@@ -47,11 +45,11 @@ define({
     "FILENAMES_LEDE"                    : "Filnamn",
     "FILENAME"                          : "filnamn",
     "DIRECTORY_NAME"                    : "mappnamn",
-    
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Projektet kunde inte öppnas",
-    "OPEN_DIALOG_ERROR"                 : "Ett fel inträffade när öppna-dialogen skulle visas. (fel {0})",
+    "OPEN_DIALOG_ERROR"                 : "Ett fel inträffade när öppningsdialogen skulle visas. (fel {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Ett fel inträffade när mappen skulle öppnas <span class='dialog-filename'>{0}</span>. (fel {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Ett fel inträffade när mappens innehåll skulle läsas <span class='dialog-filename'>{0}</span>. (fel {1})",
 
@@ -64,14 +62,26 @@ define({
     "ERROR_SAVING_FILE_TITLE"           : "Filen kunde inte sparas",
     "ERROR_SAVING_FILE"                 : "Ett fel inträffade när filen <span class='dialog-filename'>{0}</span> skulle sparas. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Filen kunde inte döpas om",
-    "ERROR_RENAMING_FILE"               : "Ett fel uppstod när filen <span class='dialog-filename'>{0}</span> skulle döpas om. {1}",
+    "ERROR_RENAMING_FILE"               : "Ett fel uppstod när {2}-filen <span class='dialog-filename'>{0}</span> skulle döpas om. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Filen kunde inte raderas",
-    "ERROR_DELETING_FILE"               : "Ett fel uppstod när filen <span class='dialog-filename'>{0}</span> skulle tas bort. {1}",
-    "INVALID_FILENAME_TITLE"            : "Ogiltigt filnamn",
-    "INVALID_FILENAME_MESSAGE"          : "Filnamn får inte innehålla följande tecken: {0} eller innehålla ord som reserverats av systemet.",
+    "ERROR_DELETING_FILE"               : "Ett fel uppstod när {2}-filen <span class='dialog-filename'>{0}</span> skulle tas bort. {1}",
+    "INVALID_FILENAME_TITLE"            : "Ogiltigt {0}",
+    "INVALID_FILENAME_MESSAGE"          : "{0} får inte innehålla ord som reserverats av systemet, sluta med punkt (.) eller använda något av följande tecken: <code class='emphasized'>{1}</code>.",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "En fil eller mapp med namnet <span class='dialog-filename'>{0}</span> existerar redan.",
-    "ERROR_CREATING_FILE_TITLE"         : "Filen {0} kunde inte skapas",
-    "ERROR_CREATING_FILE"               : "Ett fel uppstod när {0} <span class='dialog-filename'>{1}</span> skulle skapas. {2}",
+    "ERROR_CREATING_FILE_TITLE"         : "Kunde inte skapa {0}",
+    "ERROR_CREATING_FILE"               : "Ett fel uppstod när en {0} med namnet <span class='dialog-filename'>{1}</span> skulle skapas. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Kan inte öppna en mapp samtidigt som andra filer öppnas.",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Fel uppstod när användarens tangentuppsättning lästes in",
+    "ERROR_KEYMAP_CORRUPT"              : "Din tangentuppsättningsfil är inte korrekt formaterad JSON. Filen kommer att öppnas så att du kan åtgärda formateringsfelet.",
+    "ERROR_LOADING_KEYMAP"              : "Din tangentuppsättningsfil är inte en UTF-8-kodad textfil och kan inte läsas",
+    "ERROR_RESTRICTED_COMMANDS"         : "Du kan inte ändra kortkommandot för följande kommandon: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Du kan inte ändra följande kortkommandon: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Du håller på att koppla flera kortkommandon till följande kommandon: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Du har flera kopplingar till följande kommandon: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Följande kortkommandon är felaktiga: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Du håller på att skapa kortkommandon till följande icke-existerande kommandon: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Kunde inte läsa inställningar",
@@ -89,7 +99,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Webbläsaren kunde inte öppnas.",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome kunde inte hittas. Kontrollera att den är installerad.",
     "ERROR_LAUNCHING_BROWSER"           : "Ett fel inträffade då webbläsaren skulle startas. (fel {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Förhandsvisning misslyckades",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Ansluter till webbläsaren",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "För att förhandsvisningen ska lyckas måste Chrome startas om med fjärrfelsökning aktiverad.<br /><br />Vill du starta om Chrome och aktivera fjärrfelsökning?",
@@ -100,7 +110,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Välkommen till förhandsvisningen!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Förhandsvisningen ansluter {APP_NAME} till din webbläsare. Den öppnar en förhandsvisning av din HTML-fil i webbläsaren och uppdaterar förhandsvisningen så fort ändringar skett i koden.<br /><br />I denna tidiga version av {APP_NAME} fungerar förhandsvisningen endast för redigering av <strong>CSS- och HTML-filer</strong> och endast med <strong>Google Chrome</strong>. Vid ändringar i JavaScript-kod laddas webbläsaren om när du sparar filen.<br /><br />(Du kommer bara se detta meddelande en gång.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "För mer information se <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Förhandsvisning",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Förhandsvisning: Ansluter\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Förhandsvisning: Initierar\u2026",
@@ -109,21 +119,21 @@ define({
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Förhandsvisning (uppdateras inte på grund av syntaxfel)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Förhandsvisningen avbröts eftersom webbläsarens utvecklarverktyg öppnades.",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Förhandsvisningen avbröst eftersom sidan stängdes i webbläsaren.",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Förhandsvisningen avbröts eftersom sidan stängdes i webbläsaren.",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Förhandsvisningen avbröts eftersom webbläsaren navigerades till en sida som inte är del av det nuvarande projektet.",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Förhandsvisningen avbröts på grund av ett okänt fel. ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Spara ändringar?",
     "SAVE_CLOSE_MESSAGE"                : "Vill du spara de ändringar i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vill du spara ändringarna du gjort följande filer?",
     "EXT_MODIFIED_TITLE"                : "Externa ändringar",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekräfta borttagning",
+    "CONFIRM_DELETE_TITLE"              : "Bekräfta borttagning",
     "CONFIRM_FOLDER_DELETE"             : "Är du säker att du vill radera mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Filen raderades",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> har ändrats.<br /><br />Vill du spara filen och skriva över dessa ändringar?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> har ändrats men har också osparade ändringar i {APP_NAME}.<br /><br />Vilken version vill du behålla?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> har raderats man har också osparade ändringar i {APP_NAME}.<br /><br />Vill du behålla dina ändringar?",
-    
+
     // Generic dialog/button labels
     "DONE"                              : "Klar",
     "OK"                                : "OK",
@@ -135,10 +145,9 @@ define({
     "DELETE"                            : "Radera",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nej",
-    
+
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} träffar",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 träff",
+    "FIND_MATCH_INDEX"                  : "{0} av {1}",
     "FIND_NO_RESULTS"                   : "Inga träffar",
     "FIND_QUERY_PLACEHOLDER"            : "Sök\u2026",
     "REPLACE_PLACEHOLDER"               : "Ersätt med\u2026",
@@ -184,10 +193,10 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd-klicka för att expandera/minimera alla",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Ersättningsfel",
     "REPLACE_IN_FILES_ERRORS"           : "Följande filer ändrades inte eftersom de förändrats efter sökningen eller inte kunde skrivas till.",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fel vid hämtning av versioninformation",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Det gick inte att hämta versionsinformation från servern. Kontrollera din internetuppkoppling och försök igen.",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nytt exkluderingsset\u2026",
     "CLEAR_FILE_FILTER"                 : "Exkludera inte filer",
@@ -222,12 +231,29 @@ define({
     "WORKING_FILES"     : "Öppna filer",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Övre",
+    "BOTTOM"            : "Undre",
+    "LEFT"              : "Vänster",
+    "RIGHT"             : "Höger",
+
+    "CMD_SPLITVIEW_NONE"        : "Ingen delning",
+    "CMD_SPLITVIEW_VERTICAL"    : "Vertikal delning",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Horisontell delning",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Dela editorn vertikalt eller horisontellt",
+    "GEAR_MENU_TOOLTIP"         : "Konfigurera arbetsyta",
+
+    "SPLITVIEW_INFO_TITLE"              : "Redan öppen",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Filen är redan öppen i en annan panel. {APP_NAME} kommer inom kort att stödja möjligheten att öppna samma fil i flera paneler. Filen kommer att visas i nuvarande panel tills dess.<br /><br />(Detta meddelande kommer bara att visas en gång.)",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -248,7 +274,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Tillägg har avaktiverats",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "ÖVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Klicka för att växla mellan Insert (INS)- och Overwrite (OVR)-läge.",
+    "STATUSBAR_LANG_TOOLTIP"                : "Klicka för att byta filtyp",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klicka för att visa rapportpanel.",
     "STATUSBAR_DEFAULT_LANG"                : "(standard)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Ställ in som standard för .{0}-filer",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} fel",
@@ -261,8 +291,8 @@ define({
     "NOTHING_TO_LINT"                       : "Ingenting att linta",
     "LINTER_TIMED_OUT"                      : "{0} har avbrutits efter att ha väntat {1} ms",
     "LINTER_FAILED"                         : "{0} avbröts efter ett fel: {1}",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -319,9 +349,9 @@ define({
     "CMD_LINE_DOWN"                       : "Flytta rad nedåt",
     "CMD_OPEN_LINE_ABOVE"                 : "Öppna rad ovanför",
     "CMD_OPEN_LINE_BELOW"                 : "Öppna rad nedanför",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Stäng paranteser automatiskt",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Stäng parenteser automatiskt",
     "CMD_SHOW_CODE_HINTS"                 : "Visa kodförslag",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "Sök",
     "CMD_FIND"                            : "Sök",
@@ -331,13 +361,11 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Lägg nästa träff till markering",
     "CMD_SKIP_CURRENT_MATCH"              : "Hoppa över och lägg till nästa träff",
     "CMD_FIND_IN_FILES"                   : "Sök i filer",
-    "CMD_FIND_IN_SELECTED"                : "Sök i markerad fil/mapp",
     "CMD_FIND_IN_SUBTREE"                 : "Sök i\u2026",
     "CMD_REPLACE"                         : "Ersätt",
     "CMD_REPLACE_IN_FILES"                : "Ersätt i filer",
-    "CMD_REPLACE_IN_SELECTED"             : "Ersätt i markerad fil/mapp",
     "CMD_REPLACE_IN_SUBTREE"              : "Ersätt i\u2026",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Visa",
     "CMD_HIDE_SIDEBAR"                    : "Dölj sidomeny",
@@ -352,10 +380,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Automatisk radbrytning",
     "CMD_LIVE_HIGHLIGHT"                  : "Markera förhandsvisning",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Linta filer vid spara",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortera efter senast tillagd",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortera efter namn",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortera efter typ",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatisk sortering",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sortera efter senast tillagd",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sortera efter namn",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sortera efter typ",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisk sortering",
     "CMD_THEMES"                          : "Teman\u2026",
 
     // Navigate menu Commands
@@ -375,7 +403,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Visa i Utforskaren",
     "CMD_SHOW_IN_FINDER"                  : "Visa i Finder",
     "CMD_SHOW_IN_OS"                      : "Visa i operativsystemet",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Hjälp",
     "CMD_CHECK_FOR_UPDATE"                : "Sök efter uppdateringar",
@@ -389,9 +417,11 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} på Twitter",
     "CMD_ABOUT"                           : "Om {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Öppna inställningsfil",
+    "CMD_OPEN_KEYMAP"                     : "Öppna användarens tangentuppsättning",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
+    "RELEASE_BUILD"                        : "build",
     "DEVELOPMENT_BUILD"                    : "development build",
     "RELOAD_FROM_DISK"                     : "Ladda om",
     "KEEP_CHANGES_IN_EDITOR"               : "Behåll ändringar i editorn",
@@ -418,16 +448,18 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adressen kan inte innehålla hashar som \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Specialtecken som '{0}' måste vara %-kodade.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Okänt fel när adressen skulle läsas!",
-    
+    "EMPTY_VIEW_HEADER"                    : "<em>Öppna en fil medan denna panel är i fokus</em>",
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nuvarande tema",
     "USE_THEME_SCROLLBARS"                 : "Använd temats scrollbars",
     "FONT_SIZE"                            : "Teckenstorlek",
     "FONT_FAMILY"                          : "Typsnitt",
+    "THEMES_SETTINGS"                      : "Temainställningar",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Installera",
     "UPDATE"                               : "Uppdatera",
@@ -516,15 +548,17 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "Var försiktig när du installerar tillägg från okända källor.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installerade",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Tillgängliga",
+    "EXTENSIONS_THEMES_TITLE"              : "Teman",
     "EXTENSIONS_UPDATES_TITLE"             : "Uppdateringar",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Inga träffar tillgängliga.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Alla träffar är minimerade. Expandera filerna listade till höger för att visa träffar.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Det finns inga CSS-regler som matchar din markering.<br> Klicka på \"Ny regel\" för att skapa en.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Det finns inga stilmallar i ditt projekt.<br>Skapa en flr att lägga till CSS-regler.",
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "största",
-    
+
     /**
      * Unit names
      */
@@ -545,20 +579,21 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Skriv ut Node-status till konsollen",
     "CMD_RESTART_NODE"                          : "Starta om Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Visa fel i statusraden",
-    
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Öppna Brackets källkod",
+
     "LANGUAGE_TITLE"                            : "Byt språk",
     "LANGUAGE_MESSAGE"                          : "Språk:",
     "LANGUAGE_SUBMIT"                           : "Uppdatera {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Avbryt",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tid",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Flytta markerad punkt<br><kbd class='text'>Shift</kbd> Flytta tio enheter",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Öka eller minska antal steg<br><kbd>←</kbd><kbd>→</kbd> 'Start' eller 'Slut'",
     "INLINE_TIMING_EDITOR_INVALID"              : "Det tidigare värdet <code>{0}</code> är inte korrekt så den visade funktionen har ändrats till <code>{1}</code>. Dokumentet kommer att uppdateras med det första värdet.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nuvarande färg",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Originalfärg",
@@ -567,7 +602,7 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (använd {1} gång)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (använd {1} gånger)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Gå till definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Visa parameterförslag",
@@ -577,15 +612,15 @@ define({
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
-    // extensions/default/QuickView 
+
+    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View vid hover",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Senaste projekt",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Läs mer"
 });
 
-/* Last translated for 2f5acd9c6fb21330cad0dae16e26bf659859583e */
+/* Last translated for fd3ef2bf9041fc067c47d600df1372725f6f5f04 */

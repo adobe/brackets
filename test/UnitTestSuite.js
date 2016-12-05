@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 define(function (require, exports, module) {
     "use strict";
 
@@ -43,6 +41,7 @@ define(function (require, exports, module) {
     require("spec/EditorCommandHandlers-test");
     require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
+    require("spec/EventDispatcher-test");
     require("spec/ExtensionInstallation-test");
     require("spec/ExtensionLoader-test");
     require("spec/ExtensionManager-test");
@@ -59,9 +58,11 @@ define(function (require, exports, module) {
     require("spec/HTMLTokenizer-test");
     require("spec/InlineEditorProviders-test");
     require("spec/InstallExtensionDialog-test");
+    require("spec/JSONUtils-test");
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
+    require("spec/LiveDevelopmentMultiBrowser-test");
     require("spec/LowLevelFileIO-test");
     require("spec/MainViewFactory-test");
     require("spec/MainViewManager-test");
@@ -75,6 +76,7 @@ define(function (require, exports, module) {
     require("spec/ProjectManager-test");
     require("spec/ProjectModel-test");
     require("spec/QuickOpen-test");
+    require("spec/QuickSearchField-test");
     require("spec/RemoteFunctions-test");
     require("spec/StringMatch-test");
     require("spec/StringUtils-test");
@@ -84,8 +86,9 @@ define(function (require, exports, module) {
     require("spec/UrlParams-test");
     require("spec/ValidationUtils-test");
     require("spec/ViewFactory-test");
-    //require("spec/ViewCommandHandlers-test");
+    require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");
     require("spec/WorkingSetSort-test");
+    require("spec/XMLUtils-test");
 });

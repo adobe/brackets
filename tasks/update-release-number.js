@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,27 +20,28 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global module, require*/
+
+/*eslint-env node */
+/*jslint node: true */
+"use strict";
 
 module.exports = function (grunt) {
-    "use strict";
-
-    var common = require("./lib/common")(grunt);
+    var common = require("./lib/common")(grunt),
+        semver = require("semver");
 
     // task: update-release-number
     // Updates the version property in package.json
     grunt.registerTask('update-release-number', function () {
         var path        = "package.json",
             packageJSON = grunt.file.readJSON(path),
-            release     = grunt.option("release") || 0,
-            versionNumberRegexp = /([0-9]+\.)([0-9]+)([\.\-a-zA-Z0-9]*)?/;
+            release     = grunt.option("release") || "";
 
-        if (!release) {
-            grunt.fail.fatal("Please specify a release. e.g. grunt update-release-number --release=40");
+        if (!release || !semver.valid(release)) {
+            grunt.fail.fatal("Please specify a release. e.g. grunt update-release-number --release=1.1.0");
         }
 
-        packageJSON.version = packageJSON.version.replace(versionNumberRegexp, "$1" + release + "$3");
-        packageJSON.apiVersion = packageJSON.apiVersion.replace(versionNumberRegexp, "$1" + release + "$3");
+        packageJSON.version = release + "-0";
+        packageJSON.apiVersion = release;
 
         common.writeJSON(grunt, path, packageJSON);
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,25 +21,22 @@
  *
  */
 
-
-/*global define, $ */
-
 /**
  * Generates the fully configured preferences systems used IN TESTING. This configuration does
  * not manipulate the user's preferences.
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var PreferencesBase = require("./PreferencesBase"),
-    
+
         // The SETTINGS_FILENAME is used with a preceding "." within user projects
         SETTINGS_FILENAME = "brackets.json",
         STATE_FILENAME    = "state.json",
-    
+
         // User-level preferences
         userPrefFile = null;
-    
+
     /**
      * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
      * @private
@@ -47,7 +44,7 @@ define(function (require, exports, module) {
      */
     var _prefManagerReadyDeferred = new $.Deferred();
 
-    /** 
+    /**
      * A boolean property indicating if the user scope configuration file is malformed.
      */
     var userScopeCorrupt = false;
@@ -62,11 +59,20 @@ define(function (require, exports, module) {
     // Create a Project scope
     var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
         projectScope            = new PreferencesBase.Scope(projectStorage),
-        projectPathLayer        = new PreferencesBase.PathLayer();
+        projectPathLayer        = new PreferencesBase.PathLayer(),
+        projectLanguageLayer    = new PreferencesBase.LanguageLayer();
 
     projectScope.addLayer(projectPathLayer);
+    projectScope.addLayer(projectLanguageLayer);
 
-    var userScopeLoading = manager.addScope("user", new PreferencesBase.MemoryStorage());
+    var userScope           = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage()),
+        userPathLayer       = new PreferencesBase.PathLayer(),
+        userLanguageLayer   = new PreferencesBase.LanguageLayer();
+
+    userScope.addLayer(userPathLayer);
+    userScope.addLayer(userLanguageLayer);
+
+    var userScopeLoading = manager.addScope("user", userScope);
 
     // Set up the .brackets.json file handling
     manager.addScope("project", projectScope, {
@@ -86,11 +92,11 @@ define(function (require, exports, module) {
     var stateProjectLayer = new PreferencesBase.ProjectLayer();
     smUserScope.addLayer(stateProjectLayer);
     var smUserScopeLoading = stateManager.addScope("user", smUserScope);
-    
+
     function _reloadUserPrefs() {
         return;
     }
-    
+
     // Semi-Public API. Use this at your own risk. The public API is in PreferencesManager.
     exports.manager             = manager;
     exports.projectStorage      = projectStorage;

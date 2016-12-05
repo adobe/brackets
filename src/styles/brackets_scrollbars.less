@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
+ /* Temporary fix for issue#10150 for weird project tree scrollbar behaviour on mac. Scrollbar not appearing on hover. Forcing the project tree div to render displays the scrollbar. So setting transparent background color of div on hover.
+*/
+
+.platform-mac
+{
+    .open-files-container:hover,
+    #project-files-container:hover {
+        background-color: rgba(128, 128, 128, 0);
+    }
+}
 
 /* Temporary implementation of unobtrusive scrollbars.
    FUTURE: These currently rely on nonstandard WebKit styles, and don't have all the right behavior.

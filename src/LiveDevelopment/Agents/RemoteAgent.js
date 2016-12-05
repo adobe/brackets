@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window */
+/*jslint regexp: true */
 
 /**
  * RemoteAgent defines and provides an interface for custom remote functions
@@ -35,9 +33,8 @@
 define(function RemoteAgent(require, exports, module) {
     "use strict";
 
-    var $exports = $(exports);
-
     var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        EventDispatcher = require("utils/EventDispatcher"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
@@ -50,7 +47,7 @@ define(function RemoteAgent(require, exports, module) {
         // res = {nodeId, name, value}
         var matches = /^data-ld-(.*)/.exec(res.name);
         if (matches) {
-            $exports.triggerHandler(matches[1], res);
+            exports.trigger(matches[1], res);
         }
     }
 
@@ -121,7 +118,7 @@ define(function RemoteAgent(require, exports, module) {
             call("keepAlive");
         }, 1000);
     }
-    
+
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
@@ -150,19 +147,22 @@ define(function RemoteAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        $(Inspector.Page).on("frameNavigated.RemoteAgent", _onFrameNavigated);
-        $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
-        $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
+        Inspector.Page.on("frameNavigated.RemoteAgent", _onFrameNavigated);
+        Inspector.Page.on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
+        Inspector.DOM.on("attributeModified.RemoteAgent", _onAttributeModified);
 
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".RemoteAgent");
-        $(Inspector.DOM).off(".RemoteAgent");
+        Inspector.Page.off(".RemoteAgent");
+        Inspector.DOM.off(".RemoteAgent");
         _stopKeepAliveInterval();
     }
+
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.call = call;

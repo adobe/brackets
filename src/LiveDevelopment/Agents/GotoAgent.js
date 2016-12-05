@@ -1,29 +1,28 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, brackets, $, window */
+/*jslint forin: true, regexp: true */
 
 /**
  * GotoAgent constructs and responds to the in-browser goto dialog.
@@ -33,14 +32,14 @@ define(function GotoAgent(require, exports, module) {
 
     require("utils/Global");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
-    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
+    var Inspector = require("LiveDevelopment/Inspector/Inspector"),
+        DOMAgent = require("LiveDevelopment/Agents/DOMAgent"),
+        ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent"),
+        RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent"),
+        EditorManager = require("editor/EditorManager"),
+        CommandManager = require("command/CommandManager"),
+        Commands = require("command/Commands");
 
-    var DocumentManager = require("document/DocumentManager");
-    var EditorManager = require("editor/EditorManager");
-    var MainViewManager = require("view/MainViewManager");
 
     /** Return the URL without the query string
      * @param {string} URL
@@ -168,9 +167,8 @@ define(function GotoAgent(require, exports, module) {
         var path = url.slice(brackets.platform === "win" ? 8 : 7);
         // URL-decode the path ('%20' => ' ')
         path = decodeURI(path);
-        var promise = DocumentManager.getDocumentForPath(path);
+        var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
         promise.done(function onDone(doc) {
-            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
             if (location) {
                 openLocation(location, noFlash);
             }
@@ -203,14 +201,14 @@ define(function GotoAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(RemoteAgent)
+        RemoteAgent
             .on("showgoto.GotoAgent", _onRemoteShowGoto)
             .on("goto.GotoAgent", _onRemoteGoto);
     }
 
     /** Initialize the agent */
     function unload() {
-        $(RemoteAgent).off(".GotoAgent");
+        RemoteAgent.off(".GotoAgent");
     }
 
     // Export public functions

@@ -1,29 +1,25 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 /**
  * Functions for iterating through tokens in the current editor buffer. Useful for doing
@@ -32,24 +28,77 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
-    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
-    
+
+    var _           = require("thirdparty/lodash"),
+        CodeMirror  = require("thirdparty/CodeMirror/lib/codemirror");
+
+    var cache;
+
+
+    function _clearCache(cm) {
+        cache = null;
+        if (cm) { // event handler
+            cm.off("changes", _clearCache);
+        }
+    }
+
+    /*
+     * Caches the tokens for the given editor/line if needed
+     * @param {!CodeMirror} cm
+     * @param {!number} line
+     * @return {Array.<Object>} (Cached) array of tokens
+     */
+    function _manageCache(cm, line) {
+        if (!cache || !cache.tokens || cache.line !== line || cache.cm !== cm) {
+            // Cache is no longer matching -> Update
+            var tokens = cm.getLineTokens(line, false);
+            // Add empty beginning-of-line token for backwards compatibility
+            tokens.unshift(cm.getTokenAt({line: line, ch: 0}, false));
+            cache = {
+                cm: cm,
+                line: line,
+                timeStamp: Date.now(),
+                tokens: tokens
+            };
+            cm.off("changes", _clearCache);
+            cm.on("changes", _clearCache);
+        }
+        return cache.tokens;
+    }
+
+    /*
+     * Like cm.getTokenAt, but with caching. Way more performant for long lines.
+     * @param {!CodeMirror} cm
+     * @param {!{ch:number, line:number}} pos
+     * @param {boolean} precise If given, results in more current results. Suppresses caching.
+     * @return {Object} Token for position
+     */
+    function getTokenAt(cm, pos, precise) {
+        if (precise) {
+            _clearCache(); // reset cache
+            return cm.getTokenAt(pos, precise);
+        }
+        var cachedTokens    = _manageCache(cm, pos.line),
+            tokenIndex      = _.sortedIndex(cachedTokens, {end: pos.ch}, "end"), // binary search is faster for long arrays
+            token           = cachedTokens[tokenIndex];
+        return token || cm.getTokenAt(pos, precise); // fall back to CMs getTokenAt, for example in an empty line
+    }
+
    /**
      * Creates a context object for the given editor and position, suitable for passing to the
      * move functions.
-     * @param {!CodeMirror} editor
+     * @param {!CodeMirror} cm
      * @param {!{ch:number, line:number}} pos
      * @return {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}}
      */
-    function getInitialContext(editor, pos) {
+    function getInitialContext(cm, pos) {
         return {
-            "editor": editor,
+            "editor": cm,
             "pos": pos,
-            "token": editor.getTokenAt(pos, true)
+            "token": cm.getTokenAt(pos, true)
         };
     }
-    
+
     /**
      * Moves the given context backwards by one token.
      * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
@@ -61,7 +110,7 @@ define(function (require, exports, module) {
         if (precise === undefined) {
             precise = true;
         }
-        
+
         if (ctx.pos.ch <= 0 || ctx.token.start <= 0) {
             //move up a line
             if (ctx.pos.line <= 0) {
@@ -72,10 +121,10 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
+        ctx.token = getTokenAt(ctx.editor, ctx.pos, precise);
         return true;
     }
-    
+
     /**
      * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
      * @return {boolean} true if movePrevToken() would return false without changing pos
@@ -83,7 +132,7 @@ define(function (require, exports, module) {
     function isAtStart(ctx) {
         return (ctx.pos.ch <= 0 || ctx.token.start <= 0) && (ctx.pos.line <= 0);
     }
-    
+
     /**
      * Moves the given context forward by one token.
      * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
@@ -96,7 +145,7 @@ define(function (require, exports, module) {
         if (precise === undefined) {
             precise = true;
         }
-        
+
         if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
             //move down a line
             if (ctx.pos.line >= ctx.editor.lineCount() - 1) {
@@ -107,10 +156,10 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
+        ctx.token = getTokenAt(ctx.editor, ctx.pos, precise);
         return true;
     }
-    
+
     /**
      * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
      * @return {boolean} true if moveNextToken() would return false without changing pos
@@ -119,7 +168,7 @@ define(function (require, exports, module) {
         var eol = ctx.editor.getLine(ctx.pos.line).length;
         return (ctx.pos.ch >= eol || ctx.token.end >= eol) && (ctx.pos.line >= ctx.editor.lineCount() - 1);
     }
-    
+
    /**
      * Moves the given context in the given direction, skipping any whitespace it hits.
      * @param {function} moveFxn the function to move the context
@@ -155,19 +204,25 @@ define(function (require, exports, module) {
      * Returns the mode object and mode name string at a given position
      * @param {!CodeMirror} cm CodeMirror instance
      * @param {!{line:number, ch:number}} pos Position to query for mode
+     * @param {boolean} precise If given, results in more current results. Suppresses caching.
      * @return {mode:{Object}, name:string}
      */
-    function getModeAt(cm, pos) {
-        var outerMode = cm.getMode(),
-            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos, true).state),
+    function getModeAt(cm, pos, precise) {
+        precise = precise || true;
+        var modeData = cm.getMode(),
             name;
 
-        name = (modeData.mode.name === "xml") ?
-                modeData.mode.configuration : modeData.mode.name;
+        if (modeData.innerMode) {
+            modeData = CodeMirror.innerMode(modeData, getTokenAt(cm, pos, precise).state).mode;
+        }
 
-        return {mode: modeData.mode, name: name};
+        name = (modeData.name === "xml") ?
+                modeData.configuration : modeData.name;
+
+        return {mode: modeData, name: name};
     }
 
+    exports.getTokenAt              = getTokenAt;
     exports.movePrevToken           = movePrevToken;
     exports.moveNextToken           = moveNextToken;
     exports.isAtStart               = isAtStart;

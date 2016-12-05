@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
  *
  */
 
-/*global define, $*/
 /*unittests: FileTreeView*/
 
 /**
@@ -33,9 +32,12 @@ define(function (require, exports, module) {
     "use strict";
 
     var React             = require("thirdparty/react"),
+        ReactDOM          = require("thirdparty/react-dom"),
+        Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
         FileUtils         = require("file/FileUtils"),
+        LanguageManager   = require("language/LanguageManager"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");
@@ -57,6 +59,8 @@ define(function (require, exports, module) {
     var CLICK_RENAME_MINIMUM  = 500,
         RIGHT_MOUSE_BUTTON    = 2,
         LEFT_MOUSE_BUTTON     = 0;
+
+    var INDENTATION_WIDTH     = 10;
 
     /**
      * @private
@@ -91,6 +95,56 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @private
+     *
+     * Gets an appropriate width given the text provided.
+     *
+     * @param {string} text Text to measure
+     * @return {int} Width to use
+     */
+    function _measureText(text) {
+        var measuringElement = $("<span />", { css : { "position" : "absolute", "top" : "-200px", "left" : "-1000px", "visibility" : "hidden", "white-space": "pre" } }).appendTo("body");
+        measuringElement.text("pW" + text);
+        var width = measuringElement.width();
+        measuringElement.remove();
+        return width;
+    }
+
+    /**
+     * @private
+     *
+     * Create an appropriate div based "thickness" to indent the tree correctly.
+     *
+     * @param {int} depth The depth of the current node.
+     * @return {ReactComponent} The resulting div.
+     */
+    function _createThickness(depth) {
+        return DOM.div({
+            style: {
+                display: "inline-block",
+                width: INDENTATION_WIDTH * depth
+            }
+        });
+    }
+
+    /**
+     * @private
+     *
+     * Create, and indent correctly, the arrow icons used for the folders.
+     *
+     * @param {int} depth The depth of the current node.
+     * @return {ReactComponent} The resulting ins.
+     */
+    function _createAlignedIns(depth) {
+        return DOM.ins({
+            className: "jstree-icon",
+            style: {
+                marginLeft: INDENTATION_WIDTH * depth
+            }
+        });
+    }
+
+    /**
      * This is a mixin that provides rename input behavior. It is responsible for taking keyboard input
      * and invoking the correct action based on that input.
      */
@@ -102,11 +156,10 @@ define(function (require, exports, module) {
         handleClick: function (e) {
             e.stopPropagation();
             if (e.button !== LEFT_MOUSE_BUTTON) {
-                return false;
+                e.preventDefault();
             }
-            return true;
         },
-        
+
         /**
          * If the user presses enter or escape, we either successfully complete or cancel, respectively,
          * the rename or create operation that is underway.
@@ -123,10 +176,18 @@ define(function (require, exports, module) {
          * The rename or create operation can be completed or canceled by actions outside of
          * this component, so we keep the model up to date by sending every update via an action.
          */
-        handleKeyUp: function () {
-            this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
+        handleInput: function (e) {
+            this.props.actions.setRenameValue(this.refs.name.value.trim());
+
+            if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
+                    e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
+                // update the width of the input field
+                var node = this.refs.name,
+                    newWidth = _measureText(node.value);
+                $(node).width(newWidth);
+            }
         },
-        
+
         /**
          * If we leave the field for any reason, complete the rename.
          */
@@ -138,22 +199,6 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Gets an appropriate width given the text provided.
-     *
-     * @param {string} text Text to measure
-     * @return {int} Width to use
-     */
-    function _measureText(text) {
-        var measuringElement = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : ("-1000px"), "visibility" : "hidden" } }).appendTo("body");
-        measuringElement.text("pW" + text);
-        var width = measuringElement.width();
-        measuringElement.remove();
-        return width;
-    }
-
-    /**
-     * @private
-     *
      * This component presents an input field to the user for renaming a file.
      *
      * Props:
@@ -161,7 +206,7 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var fileRenameInput = React.createClass({
+    var fileRenameInput = React.createFactory(React.createClass({
         mixins: [renameBehavior],
 
         /**
@@ -170,9 +215,9 @@ define(function (require, exports, module) {
          */
         componentDidMount: function () {
             var fullname = this.props.name,
-                extension = FileUtils.getSmartFileExtension(fullname);
+                extension = LanguageManager.getCompoundFileExtension(fullname);
 
-            var node = this.refs.name.getDOMNode();
+            var node = this.refs.name;
             node.setSelectionRange(0, _getName(fullname, extension).length);
             ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
         },
@@ -186,7 +231,7 @@ define(function (require, exports, module) {
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
-                onKeyUp: this.handleKeyUp,
+                onInput: this.handleInput,
                 onClick: this.handleClick,
                 onBlur: this.handleBlur,
                 style: {
@@ -195,7 +240,7 @@ define(function (require, exports, module) {
                 ref: "name"
             });
         }
-    });
+    }));
 
     /**
      * @private
@@ -209,11 +254,18 @@ define(function (require, exports, module) {
          * Send matching mouseDown events to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
+            e.stopPropagation();
             if (e.button === RIGHT_MOUSE_BUTTON ||
                     (this.props.platform === "mac" && e.button === LEFT_MOUSE_BUTTON && e.ctrlKey)) {
                 this.props.actions.setContext(this.myPath());
-                return false;
+                e.preventDefault();
+                return;
             }
+            // Return true only for mouse down in rename mode.
+            if (this.props.entry.get("rename")) {
+                return;
+            }
+            e.preventDefault();
         }
     };
 
@@ -250,16 +302,16 @@ define(function (require, exports, module) {
                 result = extensions.get("icons").map(function (callback) {
                     try {
                         var result = callback(data);
-                        if (!React.isValidComponent(result)) {
+                        if (result && !React.isValidElement(result)) {
                             result = React.DOM.span({
                                 dangerouslySetInnerHTML: {
                                     __html: $(result)[0].outerHTML
                                 }
                             });
                         }
-                        return result;
+                        return result;  // by this point, returns either undefined or a React object
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView icon provider:", e);
+                        console.error("Exception thrown in FileTreeView icon provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray();
             }
@@ -288,7 +340,7 @@ define(function (require, exports, module) {
                     try {
                         return callback(data);
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView addClass provider:", e);
+                        console.error("Exception thrown in FileTreeView addClass provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray().join(" ");
             }
@@ -310,7 +362,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    var fileNode = React.createClass({
+    var fileNode = React.createFactory(React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -346,7 +398,7 @@ define(function (require, exports, module) {
                 // start with project-files-container instead of just the interior of
                 // project-files-container and then the file tree will be one self-contained
                 // functional unit.
-                ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
+                ViewUtils.scrollElementIntoView($("#project-files-container"), $(ReactDOM.findDOMNode(this)), true);
             } else if (!isSelected && wasSelected && this.state.clickTimer !== null) {
                 this.clearTimer();
             }
@@ -375,14 +427,15 @@ define(function (require, exports, module) {
         handleClick: function (e) {
             // If we're renaming, allow the click to go through to the rename input.
             if (this.props.entry.get("rename")) {
-                return true;
+                e.stopPropagation();
+                return;
             }
 
             if (e.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
 
-            if (this.props.entry.get("selected")) {
+            if (this.props.entry.get("selected") && !e.ctrlKey) {
                 if (this.state.clickTimer === null && !this.props.entry.get("rename")) {
                     var timer = window.setTimeout(this.startRename, CLICK_RENAME_MINIMUM);
                     this.setState({
@@ -392,7 +445,8 @@ define(function (require, exports, module) {
             } else {
                 this.props.actions.setSelected(this.myPath());
             }
-            return false;
+            e.stopPropagation();
+            e.preventDefault();
         },
 
         /**
@@ -411,7 +465,7 @@ define(function (require, exports, module) {
         /**
          * Create the data object to pass to extensions.
          *
-         * @return {{name: {string}, isFile: {boolean}, fullPath: {string}}} Data for extensions
+         * @return {!{name:string, isFile:boolean, fullPath:string}} Data for extensions
          */
         getDataForExtension: function () {
             return {
@@ -423,7 +477,7 @@ define(function (require, exports, module) {
 
         render: function () {
             var fullname = this.props.name,
-                extension = FileUtils.getSmartFileExtension(fullname),
+                extension = LanguageManager.getCompoundFileExtension(fullname),
                 name = _getName(fullname, extension);
 
             if (extension) {
@@ -433,14 +487,29 @@ define(function (require, exports, module) {
             }
 
             var nameDisplay,
-                cx = React.addons.classSet;
+                cx = Classnames;
 
             var fileClasses = cx({
                 'jstree-clicked selected-node': this.props.entry.get("selected"),
                 'context-node': this.props.entry.get("context")
             });
 
+            var liArgs = [
+                {
+                    className: this.getClasses("jstree-leaf"),
+                    onClick: this.handleClick,
+                    onMouseDown: this.handleMouseDown,
+                    onDoubleClick: this.handleDoubleClick
+                },
+                DOM.ins({
+                    className: "jstree-icon"
+                }),
+            ];
+
+            var thickness = _createThickness(this.props.depth);
+
             if (this.props.entry.get("rename")) {
+                liArgs.push(thickness);
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
                     entry: this.props.entry,
@@ -452,22 +521,15 @@ define(function (require, exports, module) {
                 var aArgs = _.flatten([{
                     href: "#",
                     className: fileClasses
-                }, this.getIcons(), name, extension], true);
+                }, thickness, this.getIcons(), name, extension]);
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
 
-            return DOM.li({
-                className: this.getClasses("jstree-leaf"),
-                onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown,
-                onDoubleClick: this.handleDoubleClick
-            },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, " "),
-                nameDisplay);
+            liArgs.push(nameDisplay);
+
+            return DOM.li.apply(DOM.li, liArgs);
         }
-    });
+    }));
 
     /**
      * @private
@@ -528,8 +590,19 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var directoryRenameInput = React.createClass({
+    var directoryRenameInput = React.createFactory(React.createClass({
         mixins: [renameBehavior],
+
+        /**
+         * When this component is displayed, we scroll it into view and select the folder name.
+         */
+        componentDidMount: function () {
+            var fullname = this.props.name;
+
+            var node = this.refs.name;
+            node.setSelectionRange(0, fullname.length);
+            ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
+        },
 
         render: function () {
             var width = _measureText(this.props.name);
@@ -540,7 +613,7 @@ define(function (require, exports, module) {
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
-                onKeyUp: this.handleKeyUp,
+                onInput: this.handleInput,
                 onBlur: this.handleBlur,
                 style: {
                     width: width
@@ -549,7 +622,7 @@ define(function (require, exports, module) {
                 ref: "name"
             });
         }
-    });
+    }));
 
     /**
      * @private
@@ -565,7 +638,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryNode = React.createClass({
+    directoryNode = React.createFactory(React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -584,6 +657,11 @@ define(function (require, exports, module) {
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
+            if (this.props.entry.get("rename")) {
+                event.stopPropagation();
+                return;
+            }
+
             if (event.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
@@ -612,7 +690,8 @@ define(function (require, exports, module) {
                 // directory toggle with no modifier
                 this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
             }
-            return false;
+            event.stopPropagation();
+            event.preventDefault();
         },
 
         /**
@@ -633,12 +712,12 @@ define(function (require, exports, module) {
                 nodeClass,
                 childNodes,
                 children = entry.get("children"),
-                isOpen = entry.get("open"),
-                directoryClasses = "";
+                isOpen = entry.get("open");
 
             if (isOpen && children) {
                 nodeClass = "open";
                 childNodes = directoryContents({
+                    depth: this.props.depth + 1,
                     parentPath: this.myPath(),
                     contents: children,
                     extensions: this.props.extensions,
@@ -651,48 +730,48 @@ define(function (require, exports, module) {
                 nodeClass = "closed";
             }
 
-            if (this.props.entry.get("selected")) {
-                directoryClasses += " jstree-clicked sidebar-selection";
-            }
+            var nameDisplay,
+                cx = Classnames;
 
-            if (entry.get("context")) {
-                directoryClasses += " context-node";
-            }
+            var directoryClasses = cx({
+                'jstree-clicked sidebar-selection': entry.get("selected"),
+                'context-node': entry.get("context")
+            });
 
-            var nameDisplay, renameInput;
+            var liArgs = [
+                {
+                    className: this.getClasses("jstree-" + nodeClass),
+                    onClick: this.handleClick,
+                    onMouseDown: this.handleMouseDown
+                },
+                _createAlignedIns(this.props.depth)
+            ];
+
+            var thickness = _createThickness(this.props.depth);
+
             if (entry.get("rename")) {
-                renameInput = directoryRenameInput({
+                liArgs.push(thickness);
+                nameDisplay = directoryRenameInput({
                     actions: this.props.actions,
-                    entry: this.props.entry,
+                    entry: entry,
                     name: this.props.name,
                     parentPath: this.props.parentPath
                 });
+            } else {
+                // Need to flatten the arguments because getIcons returns an array
+                var aArgs = _.flatten([{
+                    href: "#",
+                    className: directoryClasses
+                }, thickness, this.getIcons(), this.props.name]);
+                nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
-            
-            // Need to flatten the arguments because getIcons returns an array
-            var aArgs = _.flatten([{
-                href: "#",
-                className: directoryClasses
-            }, this.getIcons()], true);
-            if (!entry.get("rename")) {
-                aArgs.push(this.props.name);
-            }
-            
-            nameDisplay = DOM.a.apply(DOM.a, aArgs);
 
-            return DOM.li({
-                className: this.getClasses("jstree-" + nodeClass),
-                onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown
-            },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, " "),
-                renameInput,
-                nameDisplay,
-                childNodes);
+            liArgs.push(nameDisplay);
+            liArgs.push(childNodes);
+
+            return DOM.li.apply(DOM.li, liArgs);
         }
-    });
+    }));
 
     /**
      * @private
@@ -708,7 +787,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryContents = React.createClass({
+    directoryContents = React.createFactory(React.createClass({
 
         /**
          * Need to re-render if the sort order or the contents change.
@@ -735,6 +814,7 @@ define(function (require, exports, module) {
 
                 if (FileTreeViewModel.isFile(entry)) {
                     return fileNode({
+                        depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -746,6 +826,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     return directoryNode({
+                        depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -759,7 +840,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this)).toArray());
         }
-    });
+    }));
 
     /**
      * Displays the absolutely positioned box for the selection or context in the
@@ -769,19 +850,9 @@ define(function (require, exports, module) {
      * Props:
      * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
      * * visible: should this be visible now
-     * * widthAdjustment: if this box should not fill the entire width, pass in a positive number here which is subtracted from the width in selectionViewInfo
+     * * selectedClassName: class name applied to the element that is selected
      */
-    var fileSelectionBox = React.createClass({
-
-        /**
-         * Sets up initial state.
-         */
-        getInitialState: function () {
-            return {
-                initialScroll: 0
-            };
-        },
-
+    var fileSelectionBox = React.createFactory(React.createClass({
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -791,7 +862,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var node = this.getDOMNode(),
+            var node = ReactDOM.findDOMNode(this),
                 selectedNode = $(node.parentNode).find(this.props.selectedClassName),
                 selectionViewInfo = this.props.selectionViewInfo;
 
@@ -805,25 +876,92 @@ define(function (require, exports, module) {
         render: function () {
             var selectionViewInfo = this.props.selectionViewInfo,
                 left = selectionViewInfo.get("scrollLeft"),
-                width = selectionViewInfo.get("width") - this.props.widthAdjustment,
+                width = selectionViewInfo.get("width"),
                 scrollWidth = selectionViewInfo.get("scrollWidth");
-            
-            // Avoid endless horizontal scrolling
-            if (left + width > scrollWidth) {
-                left = scrollWidth - width;
-            }
 
             return DOM.div({
                 style: {
                     overflow: "auto",
                     left: left,
-                    width: width,
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className
             });
         }
-    });
+    }));
+
+    /**
+     * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
+     * The selectionExtension sits on top of the scroll bar to make the selection bar appear to span the
+     * whole width of the sidebar.
+     *
+     * Props:
+     * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
+     * * visible: should this be visible now
+     * * selectedClassName: class name applied to the element that is selected
+     * * className: class to be applied to the extension element
+     */
+    var selectionExtension = React.createFactory(React.createClass({
+        /**
+         * When the component has updated in the DOM, reposition it to where the currently
+         * selected node is located now.
+         */
+        componentDidUpdate: function () {
+            if (!this.props.visible) {
+                return;
+            }
+
+            var node = ReactDOM.findDOMNode(this),
+                selectedNode = $(node.parentNode).find(this.props.selectedClassName).closest("li"),
+                selectionViewInfo = this.props.selectionViewInfo;
+
+            if (selectedNode.length === 0) {
+                return;
+            }
+
+            var top = selectedNode.offset().top,
+                baselineHeight = node.dataset.initialHeight,
+                height = baselineHeight,
+                scrollerTop = selectionViewInfo.get("offsetTop");
+
+            if (!baselineHeight) {
+                baselineHeight = $(node).outerHeight();
+                node.dataset.initialHeight = baselineHeight;
+                height = baselineHeight;
+            }
+
+            // Check to see if the selection is completely scrolled out of view
+            // to prevent the extension from appearing in the working set area.
+            if (top < scrollerTop - baselineHeight) {
+                node.style.display = "none";
+                return;
+            }
+
+            node.style.display = "block";
+
+            // The selectionExtension sits on top of the other nodes
+            // so we need to shrink it if only part of the selection node is visible
+            if (top < scrollerTop) {
+                var difference = scrollerTop - top;
+                top += difference;
+                height = parseInt(height, 10);
+                height -= difference;
+            }
+
+            node.style.top = top + "px";
+            node.style.height = height + "px";
+            node.style.left = selectionViewInfo.get("width") - $(node).outerWidth() + "px";
+        },
+
+        render: function () {
+            return DOM.div({
+                style: {
+                    display: this.props.visible ? "block" : "none"
+                },
+                className: this.props.className
+            });
+        }
+    }));
 
     /**
      * @private
@@ -837,8 +975,9 @@ define(function (require, exports, module) {
      * * actions: the action creator responsible for communicating actions the user has taken
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
+     * * platform: platform that Brackets is running on
      */
-    var fileTreeView = React.createClass({
+    var fileTreeView = React.createFactory(React.createClass({
 
         /**
          * Update for any change in the tree data or directory sorting preference.
@@ -857,7 +996,6 @@ define(function (require, exports, module) {
                 selectionViewInfo: this.props.selectionViewInfo,
                 className: "filetree-selection",
                 visible: this.props.selectionViewInfo.get("hasSelection"),
-                widthAdjustment: 0,
                 selectedClassName: ".selected-node",
                 forceUpdate: true
             }),
@@ -866,17 +1004,26 @@ define(function (require, exports, module) {
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
                     visible: this.props.selectionViewInfo.get("hasContext"),
-                    widthAdjustment: 0,
                     selectedClassName: ".context-node",
                     forceUpdate: true
-                });
-
-            return DOM.div(
-                null,
-                selectionBackground,
-                contextBackground,
-                directoryContents({
+                }),
+                extensionForSelection = selectionExtension({
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    selectedClassName: ".selected-node",
+                    visible: this.props.selectionViewInfo.get("hasSelection"),
+                    forceUpdate: true,
+                    className: "filetree-selection-extension"
+                }),
+                extensionForContext = selectionExtension({
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    selectedClassName: ".context-node",
+                    visible: this.props.selectionViewInfo.get("hasContext"),
+                    forceUpdate: true,
+                    className: "filetree-context-extension"
+                }),
+                contents = directoryContents({
                     isRoot: true,
+                    depth: 1,
                     parentPath: this.props.parentPath,
                     sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                     contents: this.props.treeData,
@@ -884,10 +1031,18 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
-                })
+                });
+
+            return DOM.div(
+                null,
+                selectionBackground,
+                contextBackground,
+                extensionForSelection,
+                extensionForContext,
+                contents
             );
         }
-    });
+    }));
 
     /**
      * Renders the file tree to the given element.
@@ -904,7 +1059,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        React.renderComponent(fileTreeView({
+        ReactDOM.render(fileTreeView({
             treeData: viewModel.treeData,
             selectionViewInfo: viewModel.selectionViewInfo,
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
@@ -932,36 +1087,21 @@ define(function (require, exports, module) {
         }
         var callbackList = _extensions.get(category);
         if (!callbackList) {
-            callbackList = Immutable.Vector();
+            callbackList = Immutable.List();
         }
         callbackList = callbackList.push(callback);
         _extensions = _extensions.set(category, callbackList);
     }
 
     /**
-     * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance for the icons within the tree. The callback can
-     * alternatively return a string, DOM node or a jQuery object for the ins node to be added.
-     *
-     * The data object contains:
-     *
-     * * `name`: the file or directory name
-     * * `fullPath`: full path to the file or directory
-     * * `isFile`: true if it's a file, false if it's a directory
+     * @see {@link ProjectManager::#addIconProvider}
      */
     function addIconProvider(callback) {
         _addExtension("icons", callback);
     }
 
     /**
-     * Adds an additional classes provider which can return classes that should be added to a
-     * given file or directory in the tree.
-     *
-     * The data object contains:
-     *
-     * * `name`: the file or directory name
-     * * `fullPath`: full path to the file or directory
-     * * `isFile`: true if it's a file, false if it's a directory
+     * @see {@link ProjectManager::#addClassesProvider}
      */
     function addClassesProvider(callback) {
         _addExtension("addClass", callback);
