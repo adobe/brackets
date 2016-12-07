@@ -1002,14 +1002,21 @@ define(function (require, exports, module) {
      */
     function simulateKeyEvent(key, event, element, options) {
         var doc = element.ownerDocument;
-        var defaultOptions = {
-        		view: doc.defaultView,
-        		bubbles: true,
-        		cancelable: true,
-        		keyIdentifier: key
-        };
-        var newOptions = Object.assign({}, options, defaultOptions);
-        var oEvent = new KeyboardEvent(event, newOptions);
+
+        if(typeof options === 'undefined') {
+            options = {
+                view: doc.defaultView,
+                bubbles: true,
+                cancelable: true,
+                keyIdentifer: key
+            };
+        } else {
+            options.view = doc.defaultView;
+            options.bubbles = true;
+            options.cancelable = true;
+            options.keyIdentifier = key;
+        }
+        var oEvent = new KeyboardEvent(event, options);
 
         if (event !== "keydown" && event !== "keyup" && event !== "keypress") {
             console.log("SpecRunnerUtils.simulateKeyEvent() - unsupported keyevent: " + event);
