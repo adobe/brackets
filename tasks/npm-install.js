@@ -47,16 +47,15 @@ module.exports = function (grunt) {
     }
 
     grunt.registerTask("npm-install", "Install node_modules to the dist folder so it gets bundled with release", function () {
-        var npmShrinkwrapJSON = grunt.file.readJSON("npm-shrinkwrap.json");
-        common.writeJSON(grunt, "dist/npm-shrinkwrap.json", npmShrinkwrapJSON);
-
-        var packageJSON = grunt.file.readJSON("package.json");
-        delete packageJSON.devDependencies;
-        delete packageJSON.scripts; // we don't want to run post-install scripts in dist folder
-        common.writeJSON(grunt, "dist/package.json", packageJSON);
-
         var done = this.async();
         runNpmInstall("dist", function (err) {
+            return err ? done(false) : done();
+        });
+    });
+
+    grunt.registerTask("npm-install-src", "Install node_modules to the src folder", function () {
+        var done = this.async();
+        runNpmInstall("src", function (err) {
             return err ? done(false) : done();
         });
     });
@@ -79,5 +78,11 @@ module.exports = function (grunt) {
             });
         });
     });
+
+    grunt.registerTask(
+        "npm-install-source",
+        "Install node_modules for src folder and default extensions which have package.json defined",
+        ["npm-install-src", "npm-install-extensions"]
+    );
 
 };
