@@ -262,7 +262,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 return;
             }
 
-            var setVisibility = function (el){
+            var setVisibility = function (el) {
                 if (
                     !config.remoteHighlight.showPaddingMargin || 
                     parseInt(el.height, 10) <= 0 || 
@@ -276,13 +276,12 @@ function RemoteFunctions(config, remoteWSPort) {
             
             var elementStyling = window.getComputedStyle(element, null);
             
-            var calculateSize = function () {
-                var sum = 0;
-                var i;
-                for (i = 0; i < arguments.length; i++) {
-                    sum += parseInt(arguments[i], 10);
-                }
-                return sum;
+            var sum = function (offsets) {
+                var value = offsets.reduce(function (previous, current) {
+                    return parseInt(previous, 10) + parseInt(current, 10);
+                });
+                
+                return value + "px";
             };
             
             var mainBoxStyles = config.remoteHighlight.stylesToSet;
@@ -293,12 +292,12 @@ function RemoteFunctions(config, remoteWSPort) {
                     "height": elementStyling.getPropertyValue('padding-top'),
                     "width": elementBounds.width + "px",
                     "position": "absolute",
-                    "top": -calculateSize(
+                    "top": "-" + sum([
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "left": -calculateSize(
+                    ]),
+                    "left": sum([
                         mainBoxStyles['border-width']
-                    ) + "px"
+                    ])
                 },
                 // padding-right
                 {
@@ -306,18 +305,18 @@ function RemoteFunctions(config, remoteWSPort) {
                     "height": elementBounds.height + "px",
                     "position": "absolute",
                     "top": 0,
-                    "right": -calculateSize(
+                    "right": "-" + sum([
                         mainBoxStyles['border-width']
-                    ) + "px"
+                    ])
                 },
                 // padding-bottom
                 {
                     "height": elementStyling.getPropertyValue('padding-bottom'),
                     "width": elementBounds.width + "px",
                     "position": "absolute",
-                    "bottom": -calculateSize(
+                    "bottom": "-" + sum([
                         mainBoxStyles['border-width']
-                    ) + "px",
+                    ]),
                     "left": 0
                 },
                 // padding-left
@@ -326,9 +325,9 @@ function RemoteFunctions(config, remoteWSPort) {
                     "width": elementStyling.getPropertyValue('padding-left'),
                     "position": "absolute",
                     "top": 0,
-                    "left": -calculateSize(
+                    "left": "-" + sum([
                         mainBoxStyles['border-width']
-                    ) + "px"
+                    ])
                 }
             ];
                 
@@ -338,62 +337,62 @@ function RemoteFunctions(config, remoteWSPort) {
                     "height": elementStyling.getPropertyValue('margin-top'),
                     "width": elementBounds.width + "px",
                     "position": "absolute",
-                    "top": -calculateSize(
+                    "top": "-" + sum([
                         elementStyling.getPropertyValue('margin-top'),
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "left": -calculateSize(
+                    ]),
+                    "left": "-" + sum([
                         mainBoxStyles['border-width']
-                    ) + "px"
+                    ])
                 },
                 // margin-right
                 {
                     "width": elementStyling.getPropertyValue('margin-right'),
                     "height":
-                        calculateSize(
+                        sum([
                             elementBounds.height,
                             elementStyling.getPropertyValue('margin-top'),
                             elementStyling.getPropertyValue('margin-bottom')
-                        ) + "px",
+                        ]),
                     "position": "absolute",
-                    "top": -calculateSize(
+                    "top": "-" + sum([
                         elementStyling.getPropertyValue('margin-top'),
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "right": -calculateSize(
+                    ]),
+                    "right": "-" + sum([
                         elementStyling.getPropertyValue('margin-right'),
                         mainBoxStyles['border-width']
-                    ) + "px"
+                    ])
                 },
                 // margin-bottom
                 {
                     "height": elementStyling.getPropertyValue('margin-bottom'),
                     "width": elementBounds.width + "px",
                     "position": "absolute",
-                    "bottom": -calculateSize(
+                    "bottom": "-" + sum([
                         mainBoxStyles['border-width'],
                         elementStyling.getPropertyValue('margin-bottom')
-                    ) + "px",
-                    "left": -calculateSize(
+                    ]),
+                    "left": "-" + sum([
                         mainBoxStyles['border-width']
-                    ) + "px"
+                    ])
                 },
                 {
-                    "height": calculateSize(
+                    "height": sum([
                         elementBounds.height,
                         elementStyling.getPropertyValue('margin-top'),
                         elementStyling.getPropertyValue('margin-bottom')
-                    ) + "px",
+                    ]),
                     "width": elementStyling.getPropertyValue('margin-left'),
                     "position": "absolute",
-                    "top": -calculateSize(
+                    "top": "-" + sum([
                         elementStyling.getPropertyValue('margin-top'),
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "left": -calculateSize(
+                    ]),
+                    "left": "-" + sum([
                         elementStyling.getPropertyValue('margin-left'),
                         mainBoxStyles['border-width']
-                    ) + "px"
+                    ])
                 }
             ];
             
