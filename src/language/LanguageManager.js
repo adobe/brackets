@@ -1084,6 +1084,33 @@ define(function (require, exports, module) {
                 _restoreOverriddenDefault(name, state);
             }
         });
+
+        // Look for invalid mappings and correct/restore them
+        newNames.forEach(function(name) {
+            var prefsLanguage = getLanguage(newMapping[name]),
+                currentLanguage = exports[state.get](name);
+
+            if(prefsLanguage) {
+                // If the current language doesn't match the prefs language, update it
+                if(currentLanguage && currentLanguage.getId() !== prefsLanguage.getId()) {
+                    currentLanguage[state.remove](name);
+                    if(!overridden[name]) {
+                        overridden[name] = currentLanguage.getId();
+                    }
+                    prefsLanguage[state.add](name);
+                }
+
+                // If the current language is undefined, use the language in prefs
+                if(!currentLanguage) {
+                    prefsLanguage[state.add](name);
+                }
+            } else {
+                // If the language in prefs doesn't exist and is overriding a default, restore it
+                if(overridden[name]) {
+                    _restoreOverriddenDefault(name, state);
+                }
+            }
+        });
         state.last = newMapping;
     }
 
