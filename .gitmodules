@@ -1,6 +1,3 @@
-[submodule "src/thirdparty/CodeMirror"]
-	path = src/thirdparty/CodeMirror
-	url = https://github.com/adobe/CodeMirror2.git
 [submodule "src/thirdparty/path-utils"]
 	path = src/thirdparty/path-utils
 	url = https://github.com/jblas/path-utils.git
