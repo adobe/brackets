@@ -43,7 +43,7 @@
         "ws": "~0.4.31"
     },
     "devDependencies": {
-        "glob": "7.0.6",
+        "glob": "7.1.1",
         "grunt": "0.4.5",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
@@ -66,9 +66,10 @@
         "grunt-usemin": "0.1.11",
         "load-grunt-tasks": "3.5.0",
         "q": "1.4.1",
-        "semver": "^4.1.0",
+        "rewire": "1.1.2",
         "xmldoc": "^0.1.2",
-        "grunt-cleanempty": "1.0.3"
+        "grunt-cleanempty": "1.0.3",
+        "webpack": "1.13.3"
     },
     "scripts": {
         "postinstall": "grunt install",
