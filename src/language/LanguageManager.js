@@ -997,6 +997,12 @@ define(function (require, exports, module) {
                 delete _pendingLanguages[id];
             });
         }
+        
+        // Non-default languages should update prefs to fix any invalid mappings
+        if(_defaultLanguagesJSON[id] === undefined) {
+            _updateFromPrefs(_EXTENSION_MAP_PREF);
+            _updateFromPrefs(_NAME_MAP_PREF);
+        }
 
         return result.promise();
     }
