@@ -956,6 +956,14 @@ define(function (require, exports, module) {
 
             // store language to language map
             _languages[language.getId()] = language;
+
+            // restore any preferences for non-default languages
+            if(!_defaultLanguagesJSON[language.getId()]) {
+                if(PreferencesManager) {
+                    _updateFromPrefs(_EXTENSION_MAP_PREF);
+                    _updateFromPrefs(_NAME_MAP_PREF);
+                }
+            }
         }
 
         if (!language._setId(id) || !language._setName(name) ||
@@ -997,13 +1005,6 @@ define(function (require, exports, module) {
                 delete _pendingLanguages[id];
             });
         }
-        
-        // Non-default languages should update prefs to fix any invalid mappings
-        if(_defaultLanguagesJSON[id] === undefined) {
-            _updateFromPrefs(_EXTENSION_MAP_PREF);
-            _updateFromPrefs(_NAME_MAP_PREF);
-        }
-
         return result.promise();
     }
 
@@ -1091,30 +1092,14 @@ define(function (require, exports, module) {
             }
         });
 
-        // Look for invalid mappings and correct/restore them
+        // Look for invalid mappings and remove them
         newNames.forEach(function(name) {
-            var prefsLanguage = getLanguage(newMapping[name]),
-                currentLanguage = exports[state.get](name);
-
-            if(prefsLanguage) {
-                // If the current language doesn't match the prefs language, update it
-                if(currentLanguage && currentLanguage.getId() !== prefsLanguage.getId()) {
-                    currentLanguage[state.remove](name);
-                    if(!overridden[name]) {
-                        overridden[name] = currentLanguage.getId();
-                    }
-                    prefsLanguage[state.add](name);
-                }
-
-                // If the current language is undefined, use the language in prefs
-                if(!currentLanguage) {
-                    prefsLanguage[state.add](name);
-                }
-            } else {
-                // If the language in prefs doesn't exist and is overriding a default, restore it
+            var language = getLanguage(newMapping[name]);
+            if(!language) {
                 if(overridden[name]) {
                     _restoreOverriddenDefault(name, state);
                 }
+                delete newMapping[name];
             }
         });
         state.last = newMapping;
