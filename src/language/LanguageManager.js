@@ -1005,6 +1005,7 @@ define(function (require, exports, module) {
                 delete _pendingLanguages[id];
             });
         }
+
         return result.promise();
     }
 
