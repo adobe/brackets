@@ -301,6 +301,9 @@ define(function (require, exports, module) {
 
         // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
         if (fsStyle.search(validFont) === -1) {
+        	  fsAdjustment = PreferencesManager.getViewState("fontSizeAdjustment");
+   				 fsStyle = (DEFAULT_FONT_SIZE + fsAdjustment) + "px";
+                prefs.set("fontSize", fsStyle);
             return false;
         }
 
