@@ -1082,6 +1082,15 @@ define(function (require, exports, module) {
                     language[state.add](name);
                 }
             }
+            if(!getLanguage(newMapping[name])) {
+                
+                // If the language doesn't exist, restore any overrides and remove it
+                // from the state.
+                if(overridden[name]) {
+                    _restoreOverriddenDefault(name, state);
+                }
+                delete newMapping[name];
+            }
         });
 
         // Look for removed names (extensions or filenames)
@@ -1090,17 +1099,6 @@ define(function (require, exports, module) {
             if (language) {
                 language[state.remove](name);
                 _restoreOverriddenDefault(name, state);
-            }
-        });
-
-        // Look for invalid mappings and remove them
-        newNames.forEach(function(name) {
-            var language = getLanguage(newMapping[name]);
-            if(!language) {
-                if(overridden[name]) {
-                    _restoreOverriddenDefault(name, state);
-                }
-                delete newMapping[name];
             }
         });
         state.last = newMapping;
