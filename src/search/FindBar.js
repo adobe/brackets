@@ -325,12 +325,8 @@ define(function (require, exports, module) {
                                 self.trigger("doFind");
                             }
                         } else {
-<<<<<<< HEAD
-                            self.trigger("doReplaceBatch");
-=======
                             HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
-                            self.trigger("doReplaceAll");
->>>>>>> upstream/master
+                            self.trigger("doReplaceBatch");
                         }
                     } else {
                         // In the single file case, we just want to trigger a Find Next (or Find Previous
