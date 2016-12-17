@@ -666,6 +666,11 @@ define(function (require, exports, module) {
             }
 
             this._wasModified();
+        } else if(!_fileExtensionToLanguageMap[extension]) {
+            
+            // Language should be in the extension map but isn't
+            _fileExtensionToLanguageMap[extension] = this;
+            this._wasModified();
         }
     };
 
