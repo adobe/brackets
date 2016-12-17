@@ -672,7 +672,10 @@ define(function (require, exports, module) {
             state = getSearchState(cm),
             replaceText = findBar.getReplaceText();
 
-        if (all) {
+        if(all === null){
+            findBar.close();
+            FindInFilesUI.searchAndReplaceResults(state.queryInfo, editor.document.file, null, replaceText);
+        } else if (all) {
             findBar.close();
             // Delegate to Replace in Files.
             FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
@@ -702,8 +705,11 @@ define(function (require, exports, module) {
             .on("doReplace.FindReplace", function (e) {
                 doReplace(editor, false);
             })
-            .on("doReplaceAll.FindReplace", function (e) {
+            .on("doReplaceBatch.FindReplace", function (e) {
                 doReplace(editor, true);
+            })
+            .on("doReplaceAll.FindReplace", function (e) {
+                doReplace(editor, null);
             });
     }
 
