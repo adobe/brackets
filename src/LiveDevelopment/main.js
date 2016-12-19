@@ -386,8 +386,9 @@ define(function main(require, exports, module) {
             .on("change", function () {
                 config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
                        
-                if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE)
+                if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
                     LiveDevImpl.agents.remote.call("updateConfig",JSON.stringify(config));
+                }
             });
 
     });

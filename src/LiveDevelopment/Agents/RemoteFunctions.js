@@ -43,13 +43,13 @@ function RemoteFunctions(config, remoteWSPort) {
 	var req, timeout;
 	var animateHighlight = function (time) {
 		if(req) {
-			cancelAnimationFrame(req);	
-			clearTimeout(timeout);
+			window.cancelAnimationFrame(req);	
+			window.clearTimeout(timeout);
 		}
-		req = requestAnimationFrame(redrawHighlights);
+		req = window.requestAnimationFrame(redrawHighlights);
 
 		timeout = setTimeout(function () {
-			cancelAnimationFrame(req);	
+			window.cancelAnimationFrame(req);	
 			req = null;
 		}, time * 1000);
 	};
