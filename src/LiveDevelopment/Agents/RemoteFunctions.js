@@ -35,6 +35,19 @@ function RemoteFunctions(config, remoteWSPort) {
 
     var experimental = config.experimental;
     var lastKeepAliveTime = Date.now();
+	var req, timeout;
+	var animateHighlight = function (time) {
+		if(req) {
+			cancelAnimationFrame(req);	
+			clearTimeout(timeout);
+		}
+		req = requestAnimationFrame(redrawHighlights);
+
+		timeout = setTimeout(function () {
+			cancelAnimationFrame(req);	
+			req = null;
+		}, time * 1000);
+	};
 
     /**
      * @type {DOMEditHandler}
@@ -251,11 +264,18 @@ function RemoteFunctions(config, remoteWSPort) {
             }
             return false;
         },
-
         _makeHighlightDiv: function (element, doAnimation) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
                 styles = window.getComputedStyle(element);
+		var transitionDuration = parseFloat(styles.getPropertyValue('transition-duration'));
+			
+		var animationDuration = parseFloat(styles.getPropertyValue('animation-duration'));
+			
+		if (transitionDuration)
+			animateHighlight(transitionDuration);
+		if (animationDuration) 
+			animateHighlight(animationDuration);
 
             // Don't highlight elements with 0 width & height
             if (elementBounds.width === 0 && elementBounds.height === 0) {
@@ -450,7 +470,8 @@ function RemoteFunctions(config, remoteWSPort) {
                 "border-width": "1px",
                 "border-color": "#00a2ff",
                 "box-shadow": "0 0 1px #fff",
-                "box-sizing": "border-box"
+                "box-sizing": "border-box",
+				"transform": styles.getPropertyValue('transform')
             };
             
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
