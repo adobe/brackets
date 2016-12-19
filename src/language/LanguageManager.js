@@ -963,11 +963,9 @@ define(function (require, exports, module) {
             _languages[language.getId()] = language;
 
             // restore any preferences for non-default languages
-            if(!_defaultLanguagesJSON[language.getId()]) {
-                if(PreferencesManager) {
-                    _updateFromPrefs(_EXTENSION_MAP_PREF);
-                    _updateFromPrefs(_NAME_MAP_PREF);
-                }
+            if(PreferencesManager) {
+                _updateFromPrefs(_EXTENSION_MAP_PREF);
+                _updateFromPrefs(_NAME_MAP_PREF);
             }
         }
 
