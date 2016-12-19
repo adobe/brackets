@@ -33,7 +33,12 @@
 function RemoteFunctions(config, remoteWSPort) {
     "use strict";
 
-    var experimental = config.experimental;
+    var experimental;
+    if (!config) {
+        experimental = false;    
+    } else {
+        experimental = config.experimental;    
+    }
     var lastKeepAliveTime = Date.now();
 	var req, timeout;
 	var animateHighlight = function (time) {
@@ -267,15 +272,17 @@ function RemoteFunctions(config, remoteWSPort) {
         _makeHighlightDiv: function (element, doAnimation) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
-                styles = window.getComputedStyle(element);
-		var transitionDuration = parseFloat(styles.getPropertyValue('transition-duration'));
+                elementStyling = window.getComputedStyle(element),
+                transitionDuration = parseFloat(elementStyling.getPropertyValue('transition-duration')),
+                animationDuration = parseFloat(elementStyling.getPropertyValue('animation-duration'));
 			
-		var animationDuration = parseFloat(styles.getPropertyValue('animation-duration'));
-			
-		if (transitionDuration)
-			animateHighlight(transitionDuration);
-		if (animationDuration) 
-			animateHighlight(animationDuration);
+            if (transitionDuration) {
+                animateHighlight(transitionDuration);
+            }
+
+            if (animationDuration) {
+                animateHighlight(animationDuration);
+            }
 
             // Don't highlight elements with 0 width & height
             if (elementBounds.width === 0 && elementBounds.height === 0) {
@@ -293,8 +300,6 @@ function RemoteFunctions(config, remoteWSPort) {
                     el.display = 'block';
                 }
             };
-            
-            var elementStyling = window.getComputedStyle(element, null);
             
             var sum = function (offsets) {
                 var value = offsets.reduce(function (previous, current) {
@@ -462,16 +467,16 @@ function RemoteFunctions(config, remoteWSPort) {
                 "padding": 0,
                 "position": "absolute",
                 "pointer-events": "none",
-                "border-top-left-radius": styles.borderTopLeftRadius,
-                "border-top-right-radius": styles.borderTopRightRadius,
-                "border-bottom-left-radius": styles.borderBottomLeftRadius,
-                "border-bottom-right-radius": styles.borderBottomRightRadius,
+                "border-top-left-radius": elementStyling.borderTopLeftRadius,
+                "border-top-right-radius": elementStyling.borderTopRightRadius,
+                "border-bottom-left-radius": elementStyling.borderBottomLeftRadius,
+                "border-bottom-right-radius": elementStyling.borderBottomRightRadius,
                 "border-style": "solid",
                 "border-width": "1px",
                 "border-color": "#00a2ff",
                 "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box",
-				"transform": styles.getPropertyValue('transform')
+				"transform": elementStyling.getPropertyValue('transform')
             };
             
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
