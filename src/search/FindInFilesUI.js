@@ -62,6 +62,13 @@ define(function (require, exports, module) {
     var _findBar = null;
 
     /**
+     * @private
+     * Forward declaration for JSLint.
+     * @type {Function}
+     */
+    var _finishReplaceBatch;
+    
+    /**
      * Does a search in the given scope with the given filter. Shows the result list once the search is complete.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
@@ -107,15 +114,15 @@ define(function (require, exports, module) {
     }
 
     /**
-    * Does a search in the given scope with the given filter. Replace the result list once the search is complete.
-    * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
-    * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
-    * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
-    * @param {?string} replaceText If this is a replacement, the text to replace matches with.
-    * @param {?$.Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
-    *      getCandidateFiles(scope) would return.
-    * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
-    */
+     * Does a search in the given scope with the given filter. Replace the result list once the search is complete.
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
+     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
+     * @param {?string} replaceText If this is a replacement, the text to replace matches with.
+     * @param {?$.Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
+     *      getCandidateFiles(scope) would return.
+     * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
+     */
     function searchAndReplaceResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
         return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
             .done(function (zeroFilesToken) {

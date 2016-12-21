@@ -672,7 +672,7 @@ define(function (require, exports, module) {
             state = getSearchState(cm),
             replaceText = findBar.getReplaceText();
 
-        if(all === null){
+        if (all === null) {
             findBar.close();
             FindInFilesUI.searchAndReplaceResults(state.queryInfo, editor.document.file, null, replaceText);
         } else if (all) {

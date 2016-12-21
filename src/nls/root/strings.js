@@ -153,7 +153,7 @@ define({
     "FIND_NO_RESULTS"                   : "No results",
     "FIND_QUERY_PLACEHOLDER"            : "Find\u2026",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
-    "BUTTON_REPLACE_ALL"                : "Replace All\u2026",
+    "BUTTON_REPLACE_ALL"                : "Replace All",
     "BUTTON_REPLACE_BATCH"              : "Batch\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Replace\u2026",
     "BUTTON_REPLACE"                    : "Replace",
