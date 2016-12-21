@@ -1,9 +1,0 @@
-{
-  "name": "brackets-src",
-  "dependencies": {
-    "anymatch": "1.3.0",
-    "chokidar": "1.6.0",
-    "codemirror": "5.21.0",
-    "lodash": "4.15.0"
-  }
-}

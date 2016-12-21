@@ -1716,7 +1716,7 @@ define(function (require, exports, module) {
                         if (fromKeyboard) {
                             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#replace-with").get(0));
                         } else {
-                            $("#replace-all").click();
+                            $("#replace-batch").click();
                         }
                     });
                 }
@@ -1740,7 +1740,7 @@ define(function (require, exports, module) {
                         openSearchBar(null, true);
                         runs(function () {
                             expect($("#replace-yes").length).toBe(0);
-                            expect($("#replace-all").length).toBe(1);
+                            expect($("#replace-batch").length).toBe(1);
                         });
                     });
 
@@ -1749,7 +1749,7 @@ define(function (require, exports, module) {
                         openSearchBar(null, true);
                         runs(function () {
                             $("#find-what").val("").trigger("input");
-                            expect($("#replace-all").is(":disabled")).toBe(true);
+                            expect($("#replace-batch").is(":disabled")).toBe(true);
                         });
                     });
 
@@ -1758,7 +1758,7 @@ define(function (require, exports, module) {
                         openSearchBar(null, true);
                         runs(function () {
                             $("#find-what").val("my query").trigger("input");
-                            expect($("#replace-all").is(":disabled")).toBe(false);
+                            expect($("#replace-batch").is(":disabled")).toBe(false);
                         });
                     });
 
@@ -1768,7 +1768,7 @@ define(function (require, exports, module) {
                         runs(function () {
                             $("#find-regexp").click();
                             $("#find-what").val("[invalid").trigger("input");
-                            expect($("#replace-all").is(":disabled")).toBe(true);
+                            expect($("#replace-batch").is(":disabled")).toBe(true);
                         });
                     });
 
@@ -1778,7 +1778,7 @@ define(function (require, exports, module) {
                         runs(function () {
                             $("#find-regexp").click();
                             $("#find-what").val("[valid]").trigger("input");
-                            expect($("#replace-all").is(":disabled")).toBe(false);
+                            expect($("#replace-batch").is(":disabled")).toBe(false);
                         });
                     });
 
@@ -2285,9 +2285,9 @@ define(function (require, exports, module) {
                         });
                     });
                 });
-                
+
                 describe("Disclosure Arrows", function () {
-               
+
                     it("should expand/collapse items when clicked", function () {
                         showSearchResults("foo", "bar");
                         runs(function () {

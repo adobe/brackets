@@ -1,7 +1,6 @@
 {
     "htmlAttrs": {
         "href":         { "attribOption": [] },
-        "poster":       { "attribOption": [] },
         "src":          { "attribOption": [] }
     }
 }

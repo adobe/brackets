@@ -1,27 +1,29 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
- *
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
  * Software is furnished to do so, subject to the following conditions:
- *
+ *  
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ *  
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  * DEALINGS IN THE SOFTWARE.
- *
+ * 
  */
 
-/*jslint regexp: true */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $ */
 
 /**
  * LiveCSSDocument manages a single CSS source document
@@ -47,10 +49,9 @@ define(function LiveCSSDocumentModule(require, exports, module) {
     var _               = require("thirdparty/lodash"),
         CSSUtils        = require("language/CSSUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
-        LiveDocument    = require("LiveDevelopment/MultiBrowserImpl/documents/LiveDocument"),
-        PathUtils       = require("thirdparty/path-utils/path-utils");
+        LiveDocument    = require("LiveDevelopment/MultiBrowserImpl/documents/LiveDocument");
 
-    /**
+    /** 
      * @constructor
      * @see LiveDocument
      * @param {LiveDevProtocol} protocol The protocol to use for communicating with the browser.
@@ -63,7 +64,7 @@ define(function LiveCSSDocumentModule(require, exports, module) {
      */
     var LiveCSSDocument = function LiveCSSDocument(protocol, urlResolver, doc, editor, roots) {
         LiveDocument.apply(this, arguments);
-
+        
         // Add a ref to the doc since we're listening for change events
         this.doc.addRef();
         this.onChange = this.onChange.bind(this);
@@ -71,17 +72,14 @@ define(function LiveCSSDocumentModule(require, exports, module) {
 
         this.doc.on("change.LiveCSSDocument", this.onChange);
         this.doc.on("deleted.LiveCSSDocument", this.onDeleted);
-        if (editor) {
-            this._attachToEditor(editor);
-        }
     };
-
+    
     LiveCSSDocument.prototype = Object.create(LiveDocument.prototype);
     LiveCSSDocument.prototype.constructor = LiveCSSDocument;
     LiveCSSDocument.prototype.parentClass = LiveDocument.prototype;
-
+    
     EventDispatcher.makeEventDispatcher(LiveCSSDocument.prototype);
-
+ 
     /**
      * @override
      * Closes the live document, terminating its connection to the browser.
@@ -96,31 +94,14 @@ define(function LiveCSSDocumentModule(require, exports, module) {
      * When the user edits the file, update the stylesheet in the browser and redraw highlights.
      */
     LiveCSSDocument.prototype._updateBrowser = function () {
-        var i,
-            docUrl = this.doc.url;
-
-        // Determines whether an url() line contains a relative or absolute URL, and makes
-        // the URL absolute to the CSS file if it is relative
-        function makeUrlsRelativeToCss(match, quotationMark, url) {
-            if (PathUtils.isRelativeUrl(url)) {
-                var absUrl = PathUtils.makeUrlAbsolute(url, docUrl);
-                return "url(" + quotationMark + absUrl + quotationMark + ")";
-            }
-            return match;
-        }
-
+        var i;
         for (i = 0; i < this.roots.length; i++) {
-            if (docUrl !== this.roots[i].toString()) {
+            if (this.doc.url !== this.roots[i].toString()) {
                 // if it's not directly included through <link>,
                 // reload the original doc
                 this.trigger("updateDoc", this.roots[i]);
             } else {
-                var docText = this.doc.getText();
-
-                // Replace all occurrences of url() where the URL is relative to the CSS file with
-                // an absolute URL so it is relative to the CSS file, not the HTML file (see #11936)
-                docText = docText.replace(/\burl\(\s*(["']?)([^)\n]+)\1\s*\)/ig, makeUrlsRelativeToCss);
-                this.protocol.setStylesheetText(docUrl, docText);
+                this.protocol.setStylesheetText(this.doc.url, this.doc.getText());
             }
         }
         this.redrawHighlights();
@@ -147,16 +128,16 @@ define(function LiveCSSDocumentModule(require, exports, module) {
             }
         }
     };
-
+    
     /**
      * @override
      * Returns true if document edits appear live in the connected browser.
-     * @return {boolean}
+     * @return {boolean} 
      */
     LiveCSSDocument.prototype.isLiveEditingEnabled = function () {
         return true;
     };
-
+ 
     /** Event Handlers *******************************************************/
 
     /**
@@ -170,7 +151,7 @@ define(function LiveCSSDocumentModule(require, exports, module) {
         this._updateBrowser();
     };
 
-    /**
+    /** 
      * @private
      * Handles when the associated CSS document is deleted on disk. Removes the
      * stylesheet from the browser and shuts down the live document.
@@ -188,12 +169,12 @@ define(function LiveCSSDocumentModule(require, exports, module) {
     // Only used for unit testing.
     LiveCSSDocument.prototype.getSourceFromBrowser = function () {
         var deferred = new $.Deferred();
-
+        
         this.protocol.getStylesheetText(this.doc.url)
             .then(function (res) {
                 deferred.resolve(res.text);
             }, deferred.reject);
-
+        
         return deferred.promise();
     };
 

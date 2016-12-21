@@ -1503,7 +1503,7 @@ define(function (require, exports, module) {
                 twFindInFiles._replaceDone = false;
             });
 
-            it("should find and replace all", function () {
+            it("should find and replace all using replace all button", function () {
                 var searchText  = "require",
                     replaceText = "brackets.getModule";
                 runs(function () {
@@ -1516,6 +1516,37 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
+                });
+
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
+                    // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
+                    //       but not first instance of "require" in text
+                    expectTextAtPositions(replaceText, [
+                        {line: 1, ch: 17},
+                        {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START}
+                    ]);
+                });
+            });
+
+            it("should find and replace all using batch replace button", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
+                runs(function () {
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    enterSearchText(searchText);
+                    enterReplaceText(replaceText);
+
+                    expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
+                    expect(myEditor.getSelectedText()).toBe(searchText);
+
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1553,8 +1584,8 @@ define(function (require, exports, module) {
                     expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
                     expect(myEditor.getSelectedText()).toBe(searchText);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1579,8 +1610,8 @@ define(function (require, exports, module) {
                     expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
                     expect(myEditor.getSelectedText()).toBe(searchText);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1632,8 +1663,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1672,8 +1703,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1712,8 +1743,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1752,8 +1783,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1792,8 +1823,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1832,8 +1863,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {

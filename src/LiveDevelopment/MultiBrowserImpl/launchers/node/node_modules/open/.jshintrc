@@ -1,0 +1,27 @@
+{
+  "bitwise": true,
+  "curly": true,
+  "eqeqeq": true,
+  "forin": true,
+  "immed": true,
+  "latedef": false,
+  "newcap": true,
+  "noarg": true,
+  "noempty": false,
+  "nonew": true,
+  "plusplus": false,
+  "regexp": false,
+  "undef": true,
+  "strict": false,
+  "trailing": true,
+
+  "eqnull": true,
+  "laxcomma": true,
+
+  "node": true,
+
+  "onevar": true,
+  "white": true,
+
+  "indent": 2
+}

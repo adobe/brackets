@@ -21,8 +21,8 @@
  *
  */
 
-/*jslint regexp: true */
-/*global less */
+/*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
+/*global $, define, less */
 
 define(function (require, exports, module) {
     "use strict";
@@ -162,15 +162,16 @@ define(function (require, exports, module) {
      */
     function lessifyTheme(content, theme) {
         var deferred = new $.Deferred();
-
-        less.render("#editor-holder {" + content + "\n}", {
+        var parser   = new less.Parser({
             rootpath: fixPath(stylesPath),
             filename: fixPath(theme.file._path)
-        }, function (err, tree) {
+        });
+
+        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
-                deferred.resolve(tree.css);
+                deferred.resolve(tree.toCSS());
             }
         });
 
@@ -358,9 +359,9 @@ define(function (require, exports, module) {
         refresh();
     });
 
-
+    
     EventDispatcher.makeEventDispatcher(exports);
-
+    
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;
     exports.loadPackage     = loadPackage;

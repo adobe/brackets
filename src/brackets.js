@@ -1,27 +1,29 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
- *
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
  * Software is furnished to do so, subject to the following conditions:
- *
+ *  
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ *  
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  * DEALINGS IN THE SOFTWARE.
- *
+ * 
  */
 
-/*global jQuery */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets: true, $, window, navigator, Mustache, jQuery */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -37,6 +39,7 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent non-module scripts
+    require("thirdparty/path-utils/path-utils.min");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
@@ -88,7 +91,6 @@ define(function (require, exports, module) {
     require("editor/CSSInlineEditor");
     require("project/WorkingSetSort");
     require("search/QuickOpen");
-    require("search/QuickOpenHelper");
     require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
@@ -100,7 +102,7 @@ define(function (require, exports, module) {
     require("thirdparty/lodash");
     require("language/XMLUtils");
     require("language/JSONUtils");
-
+    
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
     // interim.
@@ -112,31 +114,7 @@ define(function (require, exports, module) {
             return CodeMirror;
         }
     });
-
-    // DEPRECATED: In future we want to remove the global Mustache, but for now we
-    // expose our required Mustache globally so as to avoid breaking extensions in the
-    // interim.
-    var Mustache = require("thirdparty/mustache/mustache");
-
-    Object.defineProperty(window, "Mustache", {
-        get: function () {
-            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/mustache/mustache") instead of global Mustache.', true);
-            return Mustache;
-        }
-    });
-
-    // DEPRECATED: In future we want to remove the global PathUtils, but for now we
-    // expose our required PathUtils globally so as to avoid breaking extensions in the
-    // interim.
-    var PathUtils = require("thirdparty/path-utils/path-utils");
-
-    Object.defineProperty(window, "PathUtils", {
-        get: function () {
-            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/path-utils/path-utils") instead of global PathUtils.', true);
-            return PathUtils;
-        }
-    });
-
+    
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
@@ -149,18 +127,23 @@ define(function (require, exports, module) {
     require("help/HelpCommandHandlers");
     require("search/FindInFilesUI");
     require("search/FindReplace");
-
+    
+    // Compatibility shims for filesystem API migration
+    require("file/NativeFileError");
+    require("file/NativeFileSystem");
+    require("project/FileIndexManager");
+    
     // Compatibility shim for PanelManager to WorkspaceManager migration
     require("view/PanelManager");
-
+    
     PerfUtils.addMeasurement("brackets module dependencies resolved");
-
+    
     // Local variables
     var params = new UrlParams();
-
+    
     // read URL params
     params.parse();
-
+    
 
     /**
      * Setup test object
@@ -241,16 +224,16 @@ define(function (require, exports, module) {
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
-        // using the "Always" scroll bar setting.
-        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(window.navigator.userAgent);
+        // using the "Always" scroll bar setting. 
+        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
         if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
             // test a scrolling div for scrollbars
             var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(window.document.body);
-
+            
             if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
                 $(".sidebar").removeClass("quiet-scrollbars");
             }
-
+            
             $testDiv.remove();
         }
 
@@ -260,7 +243,7 @@ define(function (require, exports, module) {
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests
             var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
-
+            
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                // Signal that extensions are loaded
@@ -271,13 +254,13 @@ define(function (require, exports, module) {
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
-
+                    
                     // If this is the first launch, and we have an index.html file in the project folder (which should be
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
                     var deferred = new $.Deferred();
-
+                    
                     if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
                         PreferencesManager.setViewState("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
@@ -295,13 +278,13 @@ define(function (require, exports, module) {
                     } else {
                         deferred.resolve();
                     }
-
+                    
                     deferred.always(function () {
                         // Signal that Brackets is loaded
                         AppInit._dispatchReady(AppInit.APP_READY);
-
+                        
                         PerfUtils.addMeasurement("Application Startup");
-
+                        
                         if (PreferencesManager._isUserScopeCorrupt()) {
                             var userPrefFullPath = PreferencesManager.getUserPrefFile();
                             // user scope can get corrupt only if the file exists, is readable,
@@ -323,9 +306,9 @@ define(function (require, exports, module) {
                                     });
                                 });
                         }
-
+                        
                     });
-
+                    
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, paths) {
@@ -337,21 +320,21 @@ define(function (require, exports, module) {
         });
 
         // Check for updates
-        if (!brackets.inBrowser && !params.get("skipUpdateCheck")) {
+        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             AppInit.appReady(function () {
                 // launches periodic checks for updates cca every 24 hours
                 UpdateNotification.launchAutomaticUpdate();
             });
         }
     }
-
+    
     /**
      * Setup event handlers prior to dispatching AppInit.HTML_READY
      */
     function _beforeHTMLReady() {
         // Add the platform (mac, win or linux) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
-
+        
         // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
         if (brackets.inBrowser) {
             $("body").addClass("in-browser");
@@ -374,24 +357,24 @@ define(function (require, exports, module) {
                 };
             }());
         }
-
+        
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, { shouldAddAA: (brackets.platform === "mac"), Strings: Strings }));
 
         // Update title
         $("title").text(brackets.config.app_title);
-
+        
         // Respond to dragging & dropping files/folders onto the window by opening them. If we don't respond
         // to these events, the file would load in place of the Brackets UI
         DragAndDrop.attachHandlers();
-
+        
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
             // This call to syncOpenDocuments() *should* be a no-op now that we have
             // file watchers, but is still here as a safety net.
             FileSyncManager.syncOpenDocuments();
         });
-
+        
         // Prevent unhandled middle button clicks from triggering native behavior
         // Example: activating AutoScroll (see #510)
         $("html").on("mousedown", ".inline-widget", function (e) {
@@ -399,7 +382,7 @@ define(function (require, exports, module) {
                 e.preventDefault();
             }
         });
-
+        
         // The .no-focus style is added to clickable elements that should
         // not steal focus. Calling preventDefault() on mousedown prevents
         // focus from going to the click target.
@@ -415,7 +398,7 @@ define(function (require, exports, module) {
                 e.preventDefault();
             }
         });
-
+        
         // Prevent clicks on any link from navigating to a different page (which could lose unsaved
         // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
         // jQuery hides non-left clicks from such event handlers, yet middle-clicks still cause CEF to
@@ -436,6 +419,32 @@ define(function (require, exports, module) {
             }
         }, true);
 
+        // on Windows, cancel every other scroll event (#10214)
+        // TODO: remove this hack when we upgrade CEF to a build with this bug fixed:
+        // https://bitbucket.org/chromiumembedded/cef/issue/1481
+        var winCancelWheelEvent = true;
+        function windowsScrollFix(e) {
+            winCancelWheelEvent = !winCancelWheelEvent;
+            if (winCancelWheelEvent) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }
+
+        function enableOrDisableWinScrollFix() {
+            window.document.body.removeEventListener("wheel", windowsScrollFix, true);
+            if (PreferencesManager.get("_windowsScrollFix")) {
+                window.document.body.addEventListener("wheel", windowsScrollFix, true);
+            }
+        }
+
+        if (brackets.platform === "win" && !brackets.inBrowser) {
+            PreferencesManager.definePreference("_windowsScrollFix", "boolean", true, {
+                excludeFromHints: true
+            }).on("change", enableOrDisableWinScrollFix);
+            enableOrDisableWinScrollFix();
+        }
+
         // Prevent extensions from using window.open() to insecurely load untrusted web content
         var real_windowOpen = window.open;
         window.open = function (url) {
@@ -445,7 +454,7 @@ define(function (require, exports, module) {
             }
             return real_windowOpen.apply(window, arguments);
         };
-
+        
         // jQuery patch to shim deprecated usage of $() on EventDispatchers
         var DefaultCtor = jQuery.fn.init;
         jQuery.fn.init = function (firstArg, secondArg) {
@@ -467,7 +476,7 @@ define(function (require, exports, module) {
             return jQObject;
         };
     }
-
+    
     // Wait for view state to load.
     var viewStateTimer = PerfUtils.markStart("User viewstate loading");
     PreferencesManager._smUserScopeLoading.always(function () {

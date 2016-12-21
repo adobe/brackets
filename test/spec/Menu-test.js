@@ -1,27 +1,29 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
- *
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
  * Software is furnished to do so, subject to the following conditions:
- *
+ *  
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ *  
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  * DEALINGS IN THE SOFTWARE.
- *
+ * 
  */
 
-/*global describe, it, expect, runs, beforeFirst, afterLast */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, expect, runs, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -35,14 +37,14 @@ define(function (require, exports, module) {
 
 
     describe("Menus (Native Shell)", function () {
-
+        
         this.category = "integration";
 
         var testWindow;
 
         beforeFirst(function () {
             var testWindowOptions = {"hasNativeMenus" : true};
-
+            
             // Create a new native menu window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
@@ -54,7 +56,7 @@ define(function (require, exports, module) {
                 Menus             = testWindow.brackets.test.Menus;
             }, testWindowOptions);
         });
-
+        
         afterLast(function () {
             testWindow        = null;
             CommandManager    = null;
@@ -69,10 +71,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     var menuId = "Menu-test";
                     Menus.addMenu("Custom", menuId);
-
+                    
                     var menu = Menus.getMenu(menuId);
                     expect(menu).toBeTruthy();
-
+                    
                     Menus.removeMenu(menuId);
                     menu = Menus.getMenu(menuId);
                     expect(menu).toBeUndefined();
@@ -83,39 +85,39 @@ define(function (require, exports, module) {
                 runs(function () {
                     var menuId = "Menu-test";
                     Menus.addMenu("Custom", menuId);
-
+                    
                     var menu = Menus.getMenu(menuId);
                     expect(menu).toBeTruthy();
-
+                    
                     var commandId = "Remove-Menu-test.Item-1";
                     CommandManager.register("Remove Menu Test Command", commandId, function () {});
-
+                    
                     var menuItem = menu.addMenuItem(commandId);
                     expect(menuItem).toBeTruthy();
-
+                    
                     var menuItemId = menuItem.id;
                     expect(menuItemId).toBeTruthy();
-
+                    
                     var menuDivider = menu.addMenuDivider();
                     expect(menuDivider).toBeTruthy();
-
+                    
                     var menuDividerId = menuDivider.id;
                     expect(menuDividerId).toBeTruthy();
-
+                    
                     menuItem = Menus.getMenuItem(menuItemId);
                     expect(menuItem).toBeTruthy();
-
+                    
                     menuDivider = Menus.getMenuItem(menuDividerId);
                     expect(menuDivider).toBeTruthy();
-
+                    
                     Menus.removeMenu(menuId);
-
+                    
                     menu = Menus.getMenu(menuId);
                     expect(menu).toBeUndefined();
-
+                    
                     menuItem = Menus.getMenuItem(menuItemId);
                     expect(menuItem).toBeUndefined();
-
+                    
                     menuDivider = Menus.getMenuItem(menuDividerId);
                     expect(menuDivider).toBeUndefined();
                 });
@@ -287,7 +289,7 @@ define(function (require, exports, module) {
                 cmenu.addMenuItem("Menu-test.command55");
 
                 cmenu.open({pageX: 0, pageY: 0});
-
+                
                 // verify dropdown is open
                 var isOpen = cmenu.isOpen();
                 expect(isOpen).toBe(true);
@@ -302,16 +304,16 @@ define(function (require, exports, module) {
         });
     });
 
-
+    
     describe("Menus (HTML)", function () {
-
+        
         this.category = "integration";
 
         var testWindow;
 
         beforeFirst(function () {
             var testWindowOptions = {"hasNativeMenus" : false};
-
+            
             // Create a new HTML menu window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
@@ -323,7 +325,7 @@ define(function (require, exports, module) {
                 Menus             = testWindow.brackets.test.Menus;
             }, testWindowOptions);
         });
-
+        
         afterLast(function () {
             testWindow        = null;
             CommandManager    = null;
@@ -332,9 +334,9 @@ define(function (require, exports, module) {
             Menus             = null;
             SpecRunnerUtils.closeTestWindow();
         });
-
+        
         describe("Add Menus", function () {
-
+            
             function getTopMenus() {
                 return testWindow.$("#titlebar > ul.nav").children();
             }
@@ -734,38 +736,6 @@ define(function (require, exports, module) {
                     expect(menu).toBeTruthy();   // Verify that we got this far...
                 });
             });
-
-            it("should add then remove new menu item ensuring event listeners have also been detached", function () {
-                runs(function () {
-                    var menuItemId = "menu-test-removeMenuItem4";
-                    var commandId = "Menu-test.removeMenuItem.command4";
-                    CommandManager.register("Brackets Test Command Custom", commandId, function () {});
-                    var menu = Menus.addMenu("Custom", menuItemId);
-
-                    var command = CommandManager.get(commandId);
-                    command.on("nameChange", function () {});
-                    expect(Object.keys(command._eventHandlers).length).toBe(1);
-                    expect(command._eventHandlers.nameChange.length).toBe(1);                    
-                    
-                    var menuItem = menu.addMenuItem(commandId);
-                    expect(Object.keys(command._eventHandlers).length).toBe(5);
-                    expect(command._eventHandlers.nameChange.length).toBe(2);
-                    expect(command._eventHandlers.enabledStateChange.length).toBe(1);
-                    expect(command._eventHandlers.checkedStateChange.length).toBe(1);                    
-                    expect(command._eventHandlers.keyBindingAdded.length).toBe(1);
-                    expect(command._eventHandlers.keyBindingRemoved.length).toBe(1);
-
-                    // Check if attached events have been removed
-                    menu.removeMenuItem(command);
-                    expect(Object.keys(command._eventHandlers).length).toBe(1);
-                    expect(command._eventHandlers.nameChange.length).toBe(1);  
-                    expect(command._eventHandlers.enabledStateChange).toBeUndefined();
-                    expect(command._eventHandlers.checkedStateChange).toBeUndefined();
-                    expect(command._eventHandlers.keyBindingAdded).toBeUndefined();
-                    expect(command._eventHandlers.keyBindingRemoved).toBeUndefined();                    
-
-                });
-            });
         });
 
 
@@ -782,10 +752,10 @@ define(function (require, exports, module) {
 
                     var menuDivider = menu.addMenuDivider();
                     expect(menuDivider).toBeTruthy();
-
+                    
                     var $listItems = menuDividerDOM(menuDivider.id);
                     expect($listItems.length).toBe(1);
-
+                    
                     menu.removeMenuDivider(menuDivider.id);
                     $listItems = menuDividerDOM(menuDivider.id);
                     expect($listItems.length).toBe(0);
@@ -796,7 +766,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var menuId = "menu-custom-removeMenuDivider-2";
                     var menu = Menus.addMenu("Custom", menuId);
-
+                    
                     menu.removeMenuDivider();
                     expect(menu).toBeTruthy();   // Verify that we got this far...
                 });
@@ -806,7 +776,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var menuId = "menu-custom-removeMenuDivider-3";
                     var menu = Menus.addMenu("Custom", menuId);
-
+                    
                     menu.removeMenuDivider("foo");
                     expect(menu).toBeTruthy();   // Verify that we got this far...
                 });
@@ -818,7 +788,7 @@ define(function (require, exports, module) {
                     var menu = Menus.addMenu("Custom", menuId);
                     var menuItemId = "menu-test-removeMenuDivider1";
                     menu.addMenuItem(menuItemId);
-
+                    
                     menu.removeMenuDivider(menuItemId);
                     expect(menu).toBeTruthy();   // Verify that we got this far...
                 });
@@ -1018,7 +988,7 @@ define(function (require, exports, module) {
                        bounds.top    >= 0 &&
                        bounds.bottom <= $(testWindow).height();
             }
-
+                
             it("context menu is not clipped", function () {
                 runs(function () {
                     var cmenu = Menus.registerContextMenu("test-cmenu52");
@@ -1026,7 +996,7 @@ define(function (require, exports, module) {
                     cmenu.addMenuItem("Menu-test.command52");
                     var winWidth = $(testWindow).width();
                     var winHeight = $(testWindow).height();
-
+                    
                     cmenu.open({pageX: 0, pageY: 0});
                     var $menu = testWindow.$(".dropdown.open > ul");
                     expect(boundsInsideWindow($menu)).toBeTruthy();
@@ -1084,14 +1054,14 @@ define(function (require, exports, module) {
                 $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
             });
-
+            
             it("check for context menu to have the right status", function () {
                 var cmenu = Menus.registerContextMenu("test-cmenu55");
                 CommandManager.register("Brackets Test Command Custom 55", "Menu-test.command55", function () {});
                 cmenu.addMenuItem("Menu-test.command55");
 
                 cmenu.open({pageX: 0, pageY: 0});
-
+                
                 // verify dropdown is open
                 var isOpen = cmenu.isOpen();
                 expect(isOpen).toBe(true);

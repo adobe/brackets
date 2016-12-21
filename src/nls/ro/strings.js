@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
 
 define({
 
@@ -126,7 +129,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Doriți să salvați modificările făcute în documentul <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Doriți să salvați modificările din următoarele fișiere?",
     "EXT_MODIFIED_TITLE"                : "Modificări externe",
-    "CONFIRM_DELETE_TITLE"              : "Confirmare ștergere dosar",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmare ștergere dosar",
     "CONFIRM_FOLDER_DELETE"             : "Sunteți sigur că doriți să ștergeți dosarul <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fișier șters",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> a fost modificat pe disc.<br /><br />Doriți să salvați fișierul și să suprascrieți aceste modificări?",
@@ -359,9 +362,11 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Adaugă următoarea potrivire la selecție",
     "CMD_SKIP_CURRENT_MATCH"              : "Omite și adaugă următoarea potrivire",
     "CMD_FIND_IN_FILES"                   : "Caută în fișiere",
+    "CMD_FIND_IN_SELECTED"                : "Caută în fișierul/directoriul selectat",
     "CMD_FIND_IN_SUBTREE"                 : "Caută în\u2026",
     "CMD_REPLACE"                         : "Înlocuiește",
     "CMD_REPLACE_IN_FILES"                : "Înlocuiește în fișiere",
+    "CMD_REPLACE_IN_SELECTED"             : "Înlocuiește în fișierul/directoriul selecta",
     "CMD_REPLACE_IN_SUBTREE"              : "Înlocuiește în\u2026",
 
     // View menu commands

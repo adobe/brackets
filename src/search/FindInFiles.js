@@ -1,32 +1,35 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
- *
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
  * Software is furnished to do so, subject to the following conditions:
- *
+ *  
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ *  
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  * DEALINGS IN THE SOFTWARE.
- *
+ * 
  */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 /*
  * The core search functionality used by Find in Files and single-file Replace Batch.
  */
 define(function (require, exports, module) {
     "use strict";
-
+    
     var _                     = require("thirdparty/lodash"),
         FileFilters           = require("search/FileFilters"),
         Async                 = require("utils/Async"),
@@ -44,7 +47,7 @@ define(function (require, exports, module) {
         FileUtils             = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils"),
         HealthLogger          = require("utils/HealthLogger");
-
+    
     var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath       = "node/FindInFilesDomain",
@@ -59,65 +62,41 @@ define(function (require, exports, module) {
      * @const @type {!Object}
      */
     var ZERO_FILES_TO_SEARCH = {};
-
+    
     /**
      * Maximum length of text displayed in search results panel
      * @const
      */
     var MAX_DISPLAY_LENGTH = 200;
-
-    /**
-     * The search query and results model.
-     * @type {SearchModel}
-     */
-    var searchModel = new SearchModel();
-
-    /* Forward declarations */
-    var _documentChangeHandler,
-        _fileSystemChangeHandler,
-        _processCachedFileSystemEvents,
-        _debouncedFileSystemChangeHandler,
-        _fileNameChangeHandler,
-        clearSearch;
     
     /**
-     * Waits for FS changes to stack up until processing them
-     * (scripts like npm install can do a lot of movements on the disk)
-     * @const
+     * The search query and results model.
+     * @type {SearchModel} 
      */
-    var FILE_SYSTEM_EVENT_DEBOUNCE_TIME = 100;
-
+    var searchModel = new SearchModel();
+    
+    /* Forward declarations */
+    var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler, clearSearch;
+    
     /** Remove the listeners that were tracking potential search result changes */
     function _removeListeners() {
         DocumentModule.off("documentChange", _documentChangeHandler);
-        FileSystem.off("change", _debouncedFileSystemChangeHandler);
+        FileSystem.off("change", _fileSystemChangeHandler);
         DocumentManager.off("fileNameChange", _fileNameChangeHandler);
     }
-
+    
     /** Add listeners to track events that might change the search result set */
     function _addListeners() {
         // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
         _removeListeners();
 
         DocumentModule.on("documentChange", _documentChangeHandler);
-        FileSystem.on("change", _debouncedFileSystemChangeHandler);
+        FileSystem.on("change", _fileSystemChangeHandler);
         DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
     }
-
+    
     function nodeFileCacheComplete(event, numFiles, cacheSize) {
-        if (/\/test\/SpecRunner\.html$/.test(window.location.pathname)) {
-            // Ignore the event in the SpecRunner window
-            return;
-        }
-
-        var projectRoot = ProjectManager.getProjectRoot(),
-            projectName = projectRoot ? projectRoot.name : null;
-
-        if (!projectName) {
-            console.error("'File cache complete' event received, but no project root found");
-            projectName = "noName00";
-        }
-
+        var projectName = ProjectManager.getProjectRoot().name || "noName00";
         FindUtils.setInstantSearchDisabled(false);
         // Node search could be disabled if some error has happened in node. But upon
         // project change, if we get this message, then it means that node search is working,
@@ -139,12 +118,12 @@ define(function (require, exports, module) {
         if (searchModel.foundMaximum || contents.search(queryExpr) === -1) {
             return [];
         }
-
+        
         var match, lineNum, line, ch, totalMatchLength, matchedLines, numMatchedLines, lastLineLength, endCh,
             padding, leftPadding, rightPadding, highlightOffset, highlightEndCh,
             lines   = StringUtils.getLines(contents),
             matches = [];
-
+        
         while ((match = queryExpr.exec(contents)) !== null) {
             lineNum          = StringUtils.offsetToLineNum(lines, match.index);
             line             = lines[lineNum];
@@ -156,7 +135,7 @@ define(function (require, exports, module) {
             endCh            = (numMatchedLines === 1 ? ch + totalMatchLength : lastLineLength);
             highlightEndCh   = (numMatchedLines === 1 ? endCh : line.length);
             highlightOffset  = 0;
-
+            
             if (highlightEndCh <= MAX_DISPLAY_LENGTH) {
                 // Don't store more than 200 chars per line
                 line = line.substr(0, MAX_DISPLAY_LENGTH);
@@ -172,13 +151,13 @@ define(function (require, exports, module) {
                 highlightOffset = ch - leftPadding;
                 line = line.substring(highlightOffset, highlightEndCh + rightPadding);
             }
-
+            
             matches.push({
                 start:       {line: lineNum, ch: ch},
                 end:         {line: lineNum + numMatchedLines - 1, ch: endCh},
-
+                
                 highlightOffset: highlightOffset,
-
+                
                 // Note that the following offsets from the beginning of the file are *not* updated if the search
                 // results change. These are currently only used for multi-file replacement, and we always
                 // abort the replace (by shutting the results panel) if we detect any result changes, so we don't
@@ -187,7 +166,7 @@ define(function (require, exports, module) {
                 // doing a replace) or properly update them.
                 startOffset: match.index,
                 endOffset:   match.index + totalMatchLength,
-
+                
                 line:        line,
                 result:      match,
                 isChecked:   true
@@ -201,7 +180,7 @@ define(function (require, exports, module) {
                 queryExpr.lastIndex = 0;
                 break;
             }
-
+            
             // Pathological regexps like /^/ return 0-length matches. Ensure we make progress anyway
             if (totalMatchLength === 0) {
                 queryExpr.lastIndex++;
@@ -210,7 +189,7 @@ define(function (require, exports, module) {
 
         return matches;
     }
-
+    
     /**
      * @private
      * Update the search results using the given list of changes for the given document
@@ -223,10 +202,10 @@ define(function (require, exports, module) {
             resultsChanged = false,
             fullPath       = doc.file.fullPath,
             resultInfo     = searchModel.results[fullPath];
-
+        
         // Remove the results before we make any changes, so the SearchModel can accurately update its count.
         searchModel.removeResults(fullPath);
-
+        
         changeList.forEach(function (change) {
             lines = [];
             start = 0;
@@ -298,7 +277,7 @@ define(function (require, exports, module) {
                 }
             }
         });
-
+        
         // Always re-add the results, even if nothing changed.
         if (resultInfo && resultInfo.matches.length) {
             searchModel.setResults(fullPath, resultInfo);
@@ -314,7 +293,7 @@ define(function (require, exports, module) {
     /**
      * Checks that the file matches the given subtree scope. To fully check whether the file
      * should be in the search set, use _inSearchScope() instead - a supserset of this.
-     *
+     * 
      * @param {!File} file
      * @param {?FileSystemEntry} scope Search scope, or null if whole project
      * @return {boolean}
@@ -331,7 +310,7 @@ define(function (require, exports, module) {
         }
         return true;
     }
-
+    
     /**
      * Filters out files that are known binary types.
      * @param {string} fullPath
@@ -340,7 +319,7 @@ define(function (require, exports, module) {
     function _isReadableText(fullPath) {
         return !LanguageManager.getLanguageForPath(fullPath).isBinary();
     }
-
+    
     /**
      * Finds all candidate files to search in the given scope's subtree that are not binary content. Does NOT apply
      * the current filter yet.
@@ -351,7 +330,7 @@ define(function (require, exports, module) {
         function filter(file) {
             return _subtreeFilter(file, scope) && _isReadableText(file.fullPath);
         }
-
+        
         // If the scope is a single file, just check if the file passes the filter directly rather than
         // trying to use ProjectManager.getAllFiles(), both for performance and because an individual
         // in-memory file might be an untitled document that doesn't show up in getAllFiles().
@@ -361,7 +340,7 @@ define(function (require, exports, module) {
             return ProjectManager.getAllFiles(filter, true, true);
         }
     }
-
+    
     /**
      * Checks that the file is eligible for inclusion in the search (matches the user's subtree scope and
      * file exclusion filters, and isn't binary). Used when updating results incrementally - during the
@@ -389,12 +368,12 @@ define(function (require, exports, module) {
         if (!_isReadableText(file.fullPath)) {
             return false;
         }
-
+        
         // Replicate the filtering filterFileList() does
         return FileFilters.filterPath(searchModel.filter, file.fullPath);
     }
 
-
+    
     /**
      * @private
      * Tries to update the search result on document changes
@@ -412,22 +391,22 @@ define(function (require, exports, module) {
             }
         }
     };
-
+    
     /**
      * @private
      * Finds search results in the given file and adds them to 'searchResults.' Resolves with
      * true if any matches found, false if none found. Errors reading the file are treated the
      * same as if no results found.
-     *
+     * 
      * Does not perform any filtering - assumes caller has already vetted this file as a search
      * candidate.
-     *
+     * 
      * @param {!File} file
      * @return {$.Promise}
      */
     function _doSearchInOneFile(file) {
         var result = new $.Deferred();
-
+        
         DocumentManager.getDocumentText(file)
             .done(function (text, timestamp) {
                 // Note that we don't fire a model change here, since this is always called by some outer batch
@@ -441,10 +420,10 @@ define(function (require, exports, module) {
                 // is skipped and we move on to the next file.
                 result.resolve(false);
             });
-
+        
         return result.promise();
     }
-
+    
     /**
      * @private
      * Inform node that the document has changed [along with its contents]
@@ -479,20 +458,20 @@ define(function (require, exports, module) {
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
-     * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes.
+     * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
-
+        
         var queryResult = searchModel.setQueryInfo(queryInfo);
         if (!queryResult) {
             return null;
         }
-
+        
         var scopeName = searchModel.scope ? searchModel.scope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query);
-
+        
         findOrReplaceInProgress = true;
 
         return candidateFilesPromise
@@ -508,9 +487,9 @@ define(function (require, exports, module) {
                         return ZERO_FILES_TO_SEARCH;
                     }
                 }
-
+            
                 var searchDeferred = new $.Deferred();
-
+                
                 if (fileListResult.length) {
                     var searchObject;
                     if (searchScopeChanged) {
@@ -585,13 +564,13 @@ define(function (require, exports, module) {
             }, function (err) {
                 console.log("find in files failed: ", err);
                 PerfUtils.finalizeMeasurement(perfTimer);
-
+                
                 // In jQuery promises, returning the error here propagates the rejection,
                 // unlike in Promises/A, where we would need to re-throw it to do so.
                 return err;
             });
     }
-
+    
     /**
      * @private
      * Clears any previous search information, removing update listeners and clearing the model.
@@ -624,20 +603,20 @@ define(function (require, exports, module) {
         candidateFilesPromise = candidateFilesPromise || getCandidateFiles(scope);
         return _doSearch(queryInfo, candidateFilesPromise, filter);
     }
-
+        
     /**
      * Given a set of search results, replaces them with the given replaceText, either on disk or in memory.
      * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
      *      The list of results to replace, as returned from _doSearch..
      * @param {string} replaceText The text to replace each result with.
      * @param {?Object} options An options object:
-     *      forceFilesOpen: boolean - Whether to open all files in editors and do replacements there rather than doing the
+     *      forceFilesOpen: boolean - Whether to open all files in editors and do replacements there rather than doing the 
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
      *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
-     *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one
+     *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
      *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText, options) {
@@ -646,7 +625,7 @@ define(function (require, exports, module) {
             exports._replaceDone = true;
         });
     }
-
+    
     /**
      * @private
      * Flags that the search scope has changed, so that the file list for the following search is recomputed
@@ -670,7 +649,7 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that changed.
      */
     function filesChanged(fileList) {
-        if (FindUtils.isNodeSearchDisabled() || !fileList || fileList.length === 0) {
+        if (FindUtils.isNodeSearchDisabled()) {
             return;
         }
         var updateObject = {
@@ -688,7 +667,7 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that was removed.
      */
     function filesRemoved(fileList) {
-        if (FindUtils.isNodeSearchDisabled() || !fileList || fileList.length === 0) {
+        if (FindUtils.isNodeSearchDisabled()) {
             return;
         }
         var updateObject = {
@@ -710,7 +689,7 @@ define(function (require, exports, module) {
      */
     _fileNameChangeHandler = function (event, oldName, newName) {
         var resultsChanged = false;
-
+        
             // Update the search results
         _.forEach(searchModel.results, function (item, fullPath) {
             if (fullPath.indexOf(oldName) === 0) {
@@ -730,7 +709,7 @@ define(function (require, exports, module) {
             searchModel.fireChanged();
         }
     };
-
+    
     /**
      * @private
      * Updates search results in response to FileSystem "change" event
@@ -744,167 +723,103 @@ define(function (require, exports, module) {
 
         /*
          * Remove existing search results that match the given entry's path
-         * @param {Array.<(File|Directory)>} entries
+         * @param {(File|Directory)} entry
          */
-        function _removeSearchResultsForEntries(entries) {
-            var fullPaths = [];
-            entries.forEach(function (entry) {
-                Object.keys(searchModel.results).forEach(function (fullPath) {
-                    if (fullPath === entry.fullPath ||
-                            (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
-                        // node search : inform node that the file is removed
-                        fullPaths.push(fullPath);
-                        if (findOrReplaceInProgress) {
-                            searchModel.removeResults(fullPath);
-                            resultsChanged = true;
-                        }
+        function _removeSearchResultsForEntry(entry) {
+            Object.keys(searchModel.results).forEach(function (fullPath) {
+                if (fullPath === entry.fullPath ||
+                        (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
+                    // node search : inform node that the file is removed
+                    filesRemoved([fullPath]);
+                    if (findOrReplaceInProgress) {
+                        searchModel.removeResults(fullPath);
+                        resultsChanged = true;
                     }
-                });
+                }
             });
-            // this should be called once with a large array instead of numerous calls with single items
-            filesRemoved(fullPaths);
         }
-
+    
         /*
-         * Add new search results for these entries and all of its children
-         * @param {Array.<(File|Directory)>} entries
+         * Add new search results for this entry and all of its children
+         * @param {(File|Directory)} entry
          * @return {jQuery.Promise} Resolves when the results have been added
          */
-        function _addSearchResultsForEntries(entries) {
-            var fullPaths = [];
-            return Async.doInParallel(entries, function (entry) {
-                var addedFiles = [],
-                    addedFilePaths = [],
-                    deferred = new $.Deferred();
-
-                // gather up added files
-                var visitor = function (child) {
-                    // Replicate filtering that getAllFiles() does
-                    if (ProjectManager.shouldShow(child)) {
-                        if (child.isFile && _isReadableText(child.name)) {
-                            // Re-check the filtering that the initial search applied
-                            if (_inSearchScope(child)) {
-                                addedFiles.push(child);
-                                addedFilePaths.push(child.fullPath);
-                            }
+        function _addSearchResultsForEntry(entry) {
+            var addedFiles = [],
+                addedFilePaths = [],
+                deferred = new $.Deferred();
+            
+            // gather up added files
+            var visitor = function (child) {
+                // Replicate filtering that getAllFiles() does
+                if (ProjectManager.shouldShow(child)) {
+                    if (child.isFile && _isReadableText(child.name)) {
+                        // Re-check the filtering that the initial search applied
+                        if (_inSearchScope(child)) {
+                            addedFiles.push(child);
+                            addedFilePaths.push(child.fullPath);
                         }
-                        return true;
                     }
-                    return false;
-                };
+                    return true;
+                }
+                return false;
+            };
+    
+            entry.visit(visitor, function (err) {
+                if (err) {
+                    deferred.reject(err);
+                    return;
+                }
+                
+                //node Search : inform node about the file changes
+                filesChanged(addedFilePaths);
 
-                entry.visit(visitor, function (err) {
-                    if (err) {
-                        deferred.reject(err);
-                        return;
-                    }
-
-                    //node Search : inform node about the file changes
-                    //filesChanged(addedFilePaths);
-                    fullPaths = fullPaths.concat(addedFilePaths);
-
-                    if (findOrReplaceInProgress) {
-                        // find additional matches in all added files
-                        Async.doInParallel(addedFiles, function (file) {
-                            return _doSearchInOneFile(file)
-                                .done(function (foundMatches) {
-                                    resultsChanged = resultsChanged || foundMatches;
-                                });
-                        }).always(deferred.resolve);
-                    } else {
-                        deferred.resolve();
-                    }
-                });
-
-                return deferred.promise();
-            }).always(function () {
-                // this should be called once with a large array instead of numerous calls with single items
-                filesChanged(fullPaths);
+                if (findOrReplaceInProgress) {
+                    // find additional matches in all added files
+                    Async.doInParallel(addedFiles, function (file) {
+                        return _doSearchInOneFile(file)
+                            .done(function (foundMatches) {
+                                resultsChanged = resultsChanged || foundMatches;
+                            });
+                    }).always(deferred.resolve);
+                }
             });
+    
+            return deferred.promise();
         }
-
+        
         if (!entry) {
             // TODO: re-execute the search completely?
             return;
         }
-
+        
         var addPromise;
         if (entry.isDirectory) {
-            if (added.length === 0 && removed.length === 0) {
+            if (!added || !removed) {
                 // If the added or removed sets are null, must redo the search for the entire subtree - we
                 // don't know which child files/folders may have been added or removed.
-                _removeSearchResultsForEntries([ entry ]);
-
+                _removeSearchResultsForEntry(entry);
+                
                 var deferred = $.Deferred();
                 addPromise = deferred.promise();
                 entry.getContents(function (err, entries) {
-                    _addSearchResultsForEntries(entries).always(deferred.resolve);
+                    Async.doInParallel(entries, _addSearchResultsForEntry).always(deferred.resolve);
                 });
             } else {
-                _removeSearchResultsForEntries(removed);
-                addPromise = _addSearchResultsForEntries(added);
+                removed.forEach(_removeSearchResultsForEntry);
+                addPromise = Async.doInParallel(added, _addSearchResultsForEntry);
             }
         } else { // entry.isFile
-            _removeSearchResultsForEntries([ entry ]);
-            addPromise = _addSearchResultsForEntries([ entry ]);
+            _removeSearchResultsForEntry(entry);
+            addPromise = _addSearchResultsForEntry(entry);
         }
-
+        
         addPromise.always(function () {
             // Restore the results if needed
             if (resultsChanged) {
                 searchModel.fireChanged();
             }
         });
-    };
-    
-    /**
-     * This stores file system events emitted by watchers that were not yet processed
-     */
-    var _cachedFileSystemEvents = [];
-    
-    /**
-     * Debounced function to process emitted file system events
-     * for cases when there's a lot of fs events emitted in a very short period of time
-     */
-    _processCachedFileSystemEvents = _.debounce(function () {
-        // we need to reduce _cachedFileSystemEvents not to contain duplicates!
-        _cachedFileSystemEvents = _cachedFileSystemEvents.reduce(function (result, obj) {
-            var fullPath = obj.entry ? obj.entry.fullPath : null;
-            // merge added & removed
-            if (result[fullPath] && obj.isDirectory) {
-                obj.added = obj.added.concat(result[fullPath].added);
-                obj.removed = obj.removed.concat(result[fullPath].removed);
-            }
-            // use the latest event as base
-            result[fullPath] = obj;
-            return result;
-        }, {});
-        _.forEach(_cachedFileSystemEvents, function (obj) {
-            _fileSystemChangeHandler(obj.event, obj.entry, obj.added, obj.removed);
-        });
-        _cachedFileSystemEvents = [];
-    }, FILE_SYSTEM_EVENT_DEBOUNCE_TIME);
-    
-    /**
-     * Wrapper function for _fileSystemChangeHandler which handles all incoming fs events
-     * putting them to cache and executing a debounced function
-     */
-    _debouncedFileSystemChangeHandler = function (event, entry, added, removed) {
-        // normalize this here so we don't need to handle null later
-        var isDirectory = false;
-        if (entry && entry.isDirectory) {
-            isDirectory = true;
-            added = added || [];
-            removed = removed || [];
-        }
-        _cachedFileSystemEvents.push({
-            event: event,
-            entry: entry,
-            isDirectory: isDirectory,
-            added: added,
-            removed: removed
-        });
-        _processCachedFileSystemEvents();
     };
 
     /**
@@ -925,16 +840,13 @@ define(function (require, exports, module) {
         }
         ProjectManager.getAllFiles(filter, true, true)
             .done(function (fileListResult) {
-                var files = fileListResult,
-                    filter = FileFilters.getActiveFilter();
-                if (filter && filter.patterns.length > 0) {
-                    files = FileFilters.filterFileList(FileFilters.compile(filter.patterns), files);
-                }
-                files = files.filter(function (entry) {
-                    return entry.isFile && _isReadableText(entry.fullPath);
-                }).map(function (entry) {
-                    return entry.fullPath;
-                });
+                var files = fileListResult
+                    .filter(function (entry) {
+                        return entry.isFile && _isReadableText(entry.fullPath);
+                    })
+                    .map(function (entry) {
+                        return entry.fullPath;
+                    });
                 FindUtils.notifyIndexingStarted();
                 searchDomain.exec("initCache", files);
             });
@@ -1009,7 +921,7 @@ define(function (require, exports, module) {
     FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
     FindUtils.on(FindUtils.SEARCH_COLLAPSE_RESULTS, _searchcollapseResults);
     searchDomain.on("crawlComplete", nodeFileCacheComplete);
-
+    
     // Public exports
     exports.searchModel            = searchModel;
     exports.doSearchInScope        = doSearchInScope;
@@ -1019,7 +931,7 @@ define(function (require, exports, module) {
     exports.ZERO_FILES_TO_SEARCH   = ZERO_FILES_TO_SEARCH;
     exports.getNextPageofSearchResults          = getNextPageofSearchResults;
     exports.getAllSearchResults    = getAllSearchResults;
-
+    
     // For unit tests only
     exports._documentChangeHandler = _documentChangeHandler;
     exports._fileNameChangeHandler = _fileNameChangeHandler;

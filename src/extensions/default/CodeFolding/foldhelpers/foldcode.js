@@ -2,7 +2,8 @@
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 // Based on http://codemirror.net/addon/fold/foldcode.js
 // Modified by Patrick Oladimeji for Brackets
-
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets, document*/
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
@@ -35,7 +36,7 @@ define(function (require, exports, module) {
                 lastMark,
                 foldMarks;
             for (i = 0; i < marks.length; ++i) {
-                if (marks[i].__isFold) {
+                if (marks[i].__isFold && force !== "fold") {
                     if (!allowFolded) {
                         return null;
                     }
@@ -59,7 +60,7 @@ define(function (require, exports, module) {
         }
 
         function makeWidget() {
-            var widget = window.document.createElement("span");
+            var widget = document.createElement("span");
             widget.className = "CodeMirror-foldmarker";
             return widget;
         }
@@ -95,14 +96,7 @@ define(function (require, exports, module) {
 
         if (force === "fold") {
             delete range.cleared;
-            // In some cases such as in xml style files, the start of  line folds can span multiple lines.
-            // For instance the attributes of an element can span multiple lines. In these cases when folding
-            // we want to render a gutter marker for both the beginning and end of the opening xml tag.
-            if (pos.line < range.from.line) {
-                cm._lineFolds[range.from.line] = range;
-            } else {
-                cm._lineFolds[pos.line] = range;
-            }
+            cm._lineFolds[pos.line] = range;
         } else {
             delete cm._lineFolds[pos.line];
         }
@@ -143,6 +137,7 @@ define(function (require, exports, module) {
                         cachedRange = folds[lineNumber];
                         if (range && cachedRange && range.from.line === cachedRange.from.line &&
                                 range.to.line === cachedRange.to.line) {
+                            cm.foldCode(lineNumber, {range: folds[lineNumber]}, "fold");
                             result[lineNumber] = folds[lineNumber];
                         }
                     }
@@ -232,9 +227,7 @@ define(function (require, exports, module) {
         };
 
         /**
-          * Helper to combine an array of fold range finders into one. This goes through the
-          * list of fold helpers in the parameter arguments and returns the first non-null
-          * range found from calling the fold helpers in order.
+          * Helper to combine an array of fold range finders into one
           */
         CodeMirror.registerHelper("fold", "combine", function () {
             var funcs = Array.prototype.slice.call(arguments, 0);
@@ -256,7 +249,7 @@ define(function (require, exports, module) {
           * @param {number} start the current position in the document
           */
         CodeMirror.registerHelper("fold", "auto", function (cm, start) {
-            var helpers = cm.getHelpers(start, "fold"), i, range;
+            var helpers = cm.getHelpers(start, "fold"), i, cur;
             //ensure mode helper is loaded if there is one
             var mode = cm.getMode().name;
             var modeHelper = CodeMirror.fold[mode];
@@ -264,8 +257,8 @@ define(function (require, exports, module) {
                 helpers.push(modeHelper);
             }
             for (i = 0; i < helpers.length; i++) {
-                range = helpers[i](cm, start);
-                if (range && range.to.line - range.from.line >= prefs.getSetting("minFoldSize")) { return range; }
+                cur = helpers[i](cm, start);
+                if (cur) { return cur; }
             }
         });
     }

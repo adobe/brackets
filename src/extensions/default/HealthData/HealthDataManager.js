@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, console */
 
 define(function (require, exports, module) {
     "use strict";
@@ -63,7 +66,7 @@ define(function (require, exports, module) {
         oneTimeHealthData.uuid = userUuid;
         oneTimeHealthData.snapshotTime = Date.now();
         oneTimeHealthData.os = brackets.platform;
-        oneTimeHealthData.userAgent = window.navigator.userAgent;
+        oneTimeHealthData.userAgent = navigator.userAgent;
         oneTimeHealthData.osLanguage = brackets.app.language;
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
@@ -81,7 +84,7 @@ define(function (require, exports, module) {
                     .always(function () {
                         return result.resolve(oneTimeHealthData);
                     });
-
+                
             });
 
         return result.promise();
@@ -92,9 +95,9 @@ define(function (require, exports, module) {
      */
     function sendHealthDataToServer() {
         var result = new $.Deferred();
-
+        
         getHealthData().done(function (healthData) {
-
+            
             var url = brackets.config.healthDataServerURL,
                 data = JSON.stringify(healthData);
 
@@ -123,7 +126,7 @@ define(function (require, exports, module) {
     /*
      * Check if the Health Data is to be sent to the server. If the user has enabled tracking, Health Data will be sent once every 24 hours.
      * Send Health Data to the server if the period is more than 24 hours.
-     * We are sending the data as soon as the user launches brackets. The data will be sent to the server only after the notification dialog
+     * We are sending the data as soon as the user launches brackets. The data will be sent to the server only after the notification dialog 
      * for opt-out/in is closed.
      */
     function checkHealthDataSend() {
@@ -134,7 +137,7 @@ define(function (require, exports, module) {
         if (isHDTracking) {
             var nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime"),
                 currentTime = Date.now();
-
+            
             // Never send data before FIRST_LAUNCH_SEND_DELAY has ellapsed on a fresh install. This gives the user time to read the notification
             // popup, learn more, and opt out if desired
             if (!nextTimeToSend) {
@@ -147,7 +150,7 @@ define(function (require, exports, module) {
                 // Bump up nextHealthDataSendTime now to avoid any chance of sending data again before 24 hours, e.g. if the server request fails
                 // or the code below crashes
                 PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
-
+                
                 sendHealthDataToServer()
                     .done(function () {
                         // We have already sent the health data, so can clear all health data

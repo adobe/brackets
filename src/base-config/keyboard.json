@@ -217,7 +217,7 @@
             "platform": "mac"
         }
     ],
-    "view.toggleSidebar":  [
+    "view.hideSidebar":  [
         {   
             "key" : "Ctrl-Alt-H"
         },
@@ -290,6 +290,32 @@
         },
         {
             "key": "Cmd-'",
+            "platform": "mac"
+        }
+    ],
+    "navigate.nextDoc":  [
+        {
+            "key": "Ctrl-Tab"
+        },
+        {
+            "key": "Ctrl-Tab",
+            "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-]",
+            "platform": "mac"
+        }
+    ],
+    "navigate.prevDoc":  [
+        {
+            "key": "Ctrl-Shift-Tab"
+        },
+        {
+            "key": "Ctrl-Shift-Tab",
+            "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-[",
             "platform": "mac"
         }
     ],

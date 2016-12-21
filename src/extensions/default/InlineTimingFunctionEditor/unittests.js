@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,8 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, expect, beforeEach, afterEach, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -38,7 +39,7 @@ define(function (require, exports, module) {
     describe("Inline Timing Function Editor", function () {
 
         var testDocument, testEditor, inline;
-
+        
         /**
          * Creates an inline timing function editor connected to the given cursor position in the test editor.
          * Note that this does *not* actually open it as an inline editor in the test editor.
@@ -58,7 +59,7 @@ define(function (require, exports, module) {
                 }
             });
         }
-
+        
         /**
          * Expects arrays to be of specified length and equal.
          * @param {Array} a1 Result to test
@@ -71,10 +72,10 @@ define(function (require, exports, module) {
                 expect(entry).toEqual(a1[index]);
             });
         }
-
+        
         describe("TimingFunctionUtils for bezier curve functions", function () {
             var match;
-
+            
             /**
              * Expects an invalid steps() function to be corrected the right way, with the right match
              * and originalString given a string to match and an expectation of the output match.
@@ -88,7 +89,7 @@ define(function (require, exports, module) {
                     expect(match.originalString).toEqual(str);
                 });
             }
-
+            
             // Valid cubic-bezier function cases
             it("should match bezier curve function in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(.1, .2, .3, .4)", false);
@@ -132,7 +133,7 @@ define(function (require, exports, module) {
                 expectArraysToBeEqual(match, ["cubic-bezier( .1 , .2 , .3 , .4 )", ".1", ".2", ".3", ".4"]);
                 expect(match.originalString).toBeFalsy();
             });
-
+            
             // Valid other functions
             it("should match linear animation function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("animation-timing-function: linear;", false);
@@ -225,7 +226,7 @@ define(function (require, exports, module) {
                 expect(match[0]).toEqual("ease-in-out");
                 expect(match.originalString).toBeFalsy();
             });
-
+            
             // Invalid cubic-beziers - they should be corrected automatically
             it("should correct cubic-bezier function with out-of-range X parameters", function () {
                 testInvalidBezier("cubic-bezier(-.2, 0, 1.2, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
@@ -248,7 +249,7 @@ define(function (require, exports, module) {
             it("should correct cubic-bezier function with trailing comma", function () {
                 testInvalidBezier("cubic-bezier(.42, 0, .58, .5,)", ["cubic-bezier(.42, 0, .58, .5)", ".42", "0", ".58", ".5"]);
             });
-
+            
             // Real invalid cubic-beziers - they should NOT be corrected automatically
             it("should not match cubic-bezier function with invalid whitespace", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier (0, 0, 1, 1)", false);
@@ -267,10 +268,10 @@ define(function (require, exports, module) {
                 expect(match).toBeFalsy();
             });
         });
-
+        
         describe("TimingFunctionUtils for step functions", function () {
             var match;
-
+            
             /**
              * Expects an invalid steps() function to be corrected the right way, with the right match
              * and originalString given a string to match and an expectation of the output match.
@@ -284,7 +285,7 @@ define(function (require, exports, module) {
                     expect(match.originalString).toEqual(str);
                 });
             }
-
+            
             // Valid steps function cases
             it("should match steps function in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps(3, start)", false);
@@ -343,7 +344,7 @@ define(function (require, exports, module) {
                 expectArraysToBeEqual(match, ["steps( 8 , start )", "8", "start"]);
                 expect(match.originalString).toBeFalsy();
             });
-
+            
             // Valid other functions
             it("should match step-start function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: step-start;", false);
@@ -369,7 +370,7 @@ define(function (require, exports, module) {
                 expect(match[0]).toEqual("step-end");
                 expect(match.originalString).toBeFalsy();
             });
-
+            
             // Invalid steps - they should be corrected automatically
             it("should correct steps function with zero steps", function () {
                 testInvalidStep("steps(0)", ["steps(5, end)", "5", "end"]);
@@ -410,7 +411,7 @@ define(function (require, exports, module) {
             it("should correct steps function with 3 parameters", function () {
                 testInvalidStep("steps(1, start, end)", ["steps(1, start)", "1", "start"]);
             });
-
+            
             // Real invalid cubic-beziers - they should NOT be corrected automatically
             it("should not match steps function with no parens", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps", false);
@@ -429,22 +430,22 @@ define(function (require, exports, module) {
                 expect(match).toBeFalsy();
             });
         });
-
-
+        
+        
         describe("Bookmark Timing Function", function () {
             beforeEach(function () {
                 var mock = SpecRunnerUtils.createMockEditor(testContentCSS, "css");
                 testDocument = mock.doc;
                 testEditor = mock.editor;
             });
-
+            
             afterEach(function () {
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
                 inline = null;
             });
-
+         
             /**
              * Expects an inline editor to be opened at the given cursor position and to have the
              * given initial timing function (which should match the timing function at that position).
@@ -460,7 +461,7 @@ define(function (require, exports, module) {
                     expect(inline._endBookmark.find().ch).toBe(end);
                 });
             }
-
+        
             it("should bookmark cubic-bezier() function when opened in inline editor", function () {
                 testOpenTimingFunction({line: 3, ch: 34}, 32, 60);
             });
@@ -489,10 +490,10 @@ define(function (require, exports, module) {
                 testOpenTimingFunction({line: 31, ch: 45}, 32, 39);
             });
         });
-
+        
         describe("TimingFunction editor UI", function () {
             var timingFuncEditor;
-
+            
             /**
              * Creates a hidden BezierCurveEditor and appends it to the body. Note that this is a
              * standalone BezierCurveEditor, not inside an InlineTimingFunctionEditor.
@@ -502,7 +503,7 @@ define(function (require, exports, module) {
              *     callback. If none is supplied, a dummy function is passed.
              */
             function makeTimingFuncUI(initialTimingFunction, callback) {
-                var parent = $(window.document.body),
+                var parent = $(document.body),
                     match = TimingFunctionUtils.timingFunctionMatch(initialTimingFunction, true),
                     cb = callback || function () { };
 
@@ -511,19 +512,19 @@ define(function (require, exports, module) {
                 } else if (match.isStep) {
                     timingFuncEditor = new StepEditor(parent, match, cb);
                 }
-
+                
                 // Hide it
                 timingFuncEditor.getRootElement().css("display", "none");
             }
-
+            
             afterEach(function () {
                 timingFuncEditor.getRootElement().remove();
                 timingFuncEditor = null;
             });
-
-
+            
+            
             describe("Initial Load and External Update", function () {
-
+            
                 it("should load the initial cubic-bezier function correctly", function () {
                     runs(function () {
                         makeTimingFuncUI("cubic-bezier(.2, .3, .4, .5)");
@@ -559,9 +560,9 @@ define(function (require, exports, module) {
                     });
                 });
             });
-
+            
             describe("Conversions", function () {
-
+                
                 it("should convert linear function to cubic-bezier function parameters", function () {
                     runs(function () {
                         makeTimingFuncUI("linear");
@@ -609,9 +610,9 @@ define(function (require, exports, module) {
                     });
                 });
             });
-
+            
             describe("Editing with Mouse", function () {
-
+                
                 /**
                  * Translate from a bezier-curve point (1.0 x 1.0 grid)
                  *           to a canvas element point (150px x 150px grid).
@@ -639,7 +640,7 @@ define(function (require, exports, module) {
                         which: 1
                     }));
                 }
-
+                
                 /**
                  * Test a mouse down event on the given UI element in a cubic-bezier function.
                  * @param {object} opts The parameters to test:
@@ -672,13 +673,13 @@ define(function (require, exports, module) {
                     makeTimingFuncUI("cubic-bezier(.42, 0, .58 ,1)");
                     var $downItem = $(timingFuncEditor[opts.downItem]),
                         $dragItem = $(timingFuncEditor[opts.dragItem]);
-
+                    
                     eventAtOffset("mousedown", $downItem, opts.clickAt);
                     eventAtOffset("mousemove", $dragItem, opts.dragTo);
                     $downItem.trigger("mouseup");
                     expectArraysToBeEqual(timingFuncEditor._cubicBezierCoords, opts.expected);
                 }
-
+                
                 it("should move point P1 on mousedown in curve", function () {
                     testCubicBezierClick({
                         item:      "curve",
@@ -721,9 +722,9 @@ define(function (require, exports, module) {
                     });
                 });
             });
-
+            
             describe("Editing with Keyboard", function () {
-
+                
                 function makeKeyEvent(opts) {
                     return $.Event("keydown", { keyCode: opts.key, shiftKey: !!opts.shift });
                 }
@@ -745,7 +746,7 @@ define(function (require, exports, module) {
                     $item.focus();
                     $item.trigger(makeKeyEvent(opts));
                 }
-
+                
                 // cubic-bezier() tests
                 it("should increase P1 x-value by .02 on right arrow in cubic-bezier()", function () {
                     triggerTimingFunctionEditorKey({
@@ -803,12 +804,12 @@ define(function (require, exports, module) {
                 });
                 it("should call callback function after cubic-bezier edit in cubic-bezier()", function () {
                     var calledBack = false;
-
+                    
                     var _callback = function (timingFunctionString) {
                         calledBack = true;
                         expect(timingFunctionString).toBe("cubic-bezier(.42, .1, .58, 1)");
                     };
-
+                        
                     runs(function () {
                         triggerTimingFunctionEditorKey({
                             func:      "cubic-bezier(.42, 0, .58 ,1)",
@@ -819,12 +820,12 @@ define(function (require, exports, module) {
                         });
                         expectArraysToBeEqual(timingFuncEditor._cubicBezierCoords, [".42", ".1", ".58", "1"]);
                     });
-
+                    
                     runs(function () {
                         expect(calledBack).toBeTruthy();
                     });
                 });
-
+                
                 // steps() tests
                 it("should increase count by 1 on up arrow in steps()", function () {
                     triggerTimingFunctionEditorKey({
@@ -885,12 +886,12 @@ define(function (require, exports, module) {
 
                 it("should call callback function after steps function edit", function () {
                     var calledBack = false;
-
+                    
                     var _callback = function (timingFunctionString) {
                         calledBack = true;
                         expect(timingFunctionString).toBe("steps(5, start)");
                     };
-
+                        
                     runs(function () {
                         triggerTimingFunctionEditorKey({
                             func:      "steps(4, start)",
@@ -900,12 +901,12 @@ define(function (require, exports, module) {
                         });
                         expect(timingFuncEditor._stepParams.count).toEqual(5);
                     });
-
+                    
                     runs(function () {
                         expect(calledBack).toBeTruthy();
                     });
                 });
-
+                
             });
         });
     });

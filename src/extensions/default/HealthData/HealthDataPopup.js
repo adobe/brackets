@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,11 @@
  *
  */
 
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global brackets, define, Mustache, $*/
+
+
 define(function (require, exports, module) {
     "use strict";
 
@@ -28,7 +33,6 @@ define(function (require, exports, module) {
     var MainViewManager             = brackets.getModule("view/MainViewManager"),
         Dialogs                     = brackets.getModule("widgets/Dialogs"),
         Strings                     = brackets.getModule("strings"),
-        Mustache                    = brackets.getModule("thirdparty/mustache/mustache"),
         HealthDataNotificationHtml  = require("text!htmlContent/healthdata-popup.html");
 
     function closeCallout() {
@@ -55,9 +59,9 @@ define(function (require, exports, module) {
             popupTop = $("#editor-holder").offset().top + TOP_MARGIN,
             result = new $.Deferred(),
             $firstLaunchPopup = $(Mustache.render(HealthDataNotificationHtml, {"Strings": Strings}));
-
+        
         Dialogs.addLinkTooltips($firstLaunchPopup);
-
+        
         $firstLaunchPopup.appendTo("body").hide()
                          .css("top", popupTop)
                          .find(".healthdata-popup-close-button").click(function () {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
 
 define({
 
@@ -62,7 +65,6 @@ define({
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen von {0}", // TODO: depends on {0} gender
     "ERROR_RENAMING_FILE"               : "Beim Umbenennen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}", // TODO: depends on {2} gender
-    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Die Datei oder der Ordner ist nicht Teil des geöffneten Projekts. Leider können derzeit nur Dateien im Projekt umbenannt werden.",
     "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen von {0}", // TODO: depends on {0} gender
     "ERROR_DELETING_FILE"               : "Beim Löschen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}", // TODO: depends on {2} gender
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}",
@@ -128,7 +130,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "CONFIRM_DELETE_TITLE"              : "Löschen bestätigen",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
@@ -250,17 +252,11 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Diese Datei ist bereits in einer anderen Ansicht geöffnet. Das Öffnen einer Datei in mehreren Ansichten wird {APP_NAME} bald unterstützen. Bis dahin wird die Datei in der Ansicht angezeigt, in der sie bereits geöffnet ist.<br /><br />(Sie sehen diese Nachricht nur einmal.)",
 
     /**
-     * Keyboard modifiers and special key names
+     * Keyboard modifier names
      */
-    "KEYBOARD_CTRL"         : "Strg",
-    "KEYBOARD_SHIFT"        : "Umschalt",
-    "KEYBOARD_SPACE"        : "Leer",
-    "KEYBOARD_PAGE_UP"      : "Bild\u2191",
-    "KEYBOARD_PAGE_DOWN"    : "Bild\u2193",
-    "KEYBOARD_HOME"         : "Pos 1",
-    "KEYBOARD_END"          : "Ende",
-    "KEYBOARD_INSERT"       : "Einfg",
-    "KEYBOARD_DELETE"       : "Entf",
+    "KEYBOARD_CTRL"   : "Strg",
+    "KEYBOARD_SHIFT"  : "Umschalt",
+    "KEYBOARD_SPACE"  : "Leer",
 
     /**
      * StatusBar strings
@@ -310,7 +306,6 @@ define({
     "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
-    "CMD_RECENT_FILES_OPEN"               : "Zuletzt verwendete Dateien öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Im Projekt öffnen",
     "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
@@ -379,9 +374,6 @@ define({
     "VIEW_MENU"                           : "Ansicht",
     "CMD_HIDE_SIDEBAR"                    : "Seitenleiste verbergen",
     "CMD_SHOW_SIDEBAR"                    : "Seitenleiste zeigen",
-    "CMD_TOGGLE_SIDEBAR"                  : "Seitenleiste anzeigen/verbergen",
-    "CMD_TOGGLE_PANELS"                   : "Panels anzeigen/verbergen",
-    "CMD_TOGGLE_PURE_CODE"                : "Ablenkungsfreier Modus",
     "CMD_INCREASE_FONT_SIZE"              : "Schrift vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schrift verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftgröße zurücksetzen",
@@ -463,10 +455,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
-
-    // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Öffnen Sie eine Datei, während diese Ansicht fokussiert ist</em>",
-    "FLIPVIEW_BTN_TOOLTIP"                 : "Diese Ansicht nach {0} verschieben",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Aktuelles Design",
@@ -669,12 +658,6 @@ define({
     "EXPAND_ALL"                    : "Alle ausklappen",
     "COLLAPSE_CURRENT"              : "Aktuelle einklappen",
     "EXPAND_CURRENT"                : "Aktuelle ausklappen",
-    
-    // extensions/default/NavigationAndHistory
-    "RECENT_FILES_DLG_HEADER"                    : "Kürzlich verwendete Dateien",
-    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Leeren",
-    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Entferne alle Dateien aus der Liste, die nicht im Projekt geöffnet sind",
-    
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "Aktiviert das automatische Schließen von runden, eckigen und geschweiften Klammern",
@@ -692,11 +675,9 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limitiert die maximale Anzahl von \"Alle Einklappen\"-Markierungen",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mindestzahl an Zeilen, bevor eine einklappbare Folding-Markierung erscheint",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "Aktiviert das Speichern der eingeklappten Abschnitte",
-    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "Aktiviert das Einklappen von ausgewähltem Text",
     "DESCRIPTION_ATTR_HINTS"                         : "Aktiviert Code Hints für HTML-Attribute",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Aktiviert Code Hints für CSS/LESS/SCSS",
     "DESCRIPTION_JS_HINTS"                           : "Aktiviert Code Hints für JavaScript",
-    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Zeigt Details zum Datentyp in den Code Hints für JavaScript",
     "DESCRIPTION_PREF_HINTS"                         : "Aktiviert Code Hints für Einstellungen",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Aktiviert Code Hints für HTML Entities",
     "DESCRIPTION_SVG_HINTS"                          : "Aktiviert Code Hints für SVG",
@@ -779,14 +760,8 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "Nur Mac: \"subpixel-antialiased\", um Subpixel-Antialiasing zu aktivieren, oder \"antialiased\" für Graustufen-Antialiasing",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "Aktiviert das Öffnen der Einstellungsdatei in einer geteilten Ansicht",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "Öffnet die Einstellungsdatei in der rechten bzw. unteren Ansicht",
-    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "Eine Ansicht einer geteilten Ansicht wird automatisch geschlossen, wenn ihre letzte Datei mit dem Schließen-Button oben rechts geschlossen wird",
-    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Zeigt bei der geteilten Ansicht die Schließen- und Umschalten-Buttons in der Kopfzeile",
-
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Dies ist ein schreibgeschütztes Dokument, das alle von\n * {APP_NAME} unterstützten Einstellungen auflistet.\n * Nutzen Sie dieses Dokument als Referenz, um die\n * Einstellungsdatei \"brackets.json\", die in der anderen\n * Ansicht geöffnet ist, anzupassen.\n * Besuchen Sie auch https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences,\n * um mehr über den Umgang mit Einstellungen in {APP_NAME}\n * zu erfahren.\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard",
-    "DESCRIPTION_PURE_CODING_SURFACE"                : "Aktiviert den Ablenkungsfreien Modus, bei dem alle UI-Elemente außer dem Code ausgeblendet werden",
-    "DESCRIPTION_INDENT_LINE_COMMENT"                : "Aktiviert das Einrücken von Zeilenkommentaren",
-    "DESCRIPTION_RECENT_FILES_NAV"                   : "Aktiviert das Navigieren durch kürzlich verwendete Dateien"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
 });
 
-/* Last translated for 96f34a04b0cb3226fff29ae43bc3bc07bedc2d16 */
+/* Last translated for 1e5ba8f612dcf983d3cbffbbf1bfe455a90788c8 */

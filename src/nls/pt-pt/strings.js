@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,6 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
 
 define({
     /**
@@ -51,6 +54,7 @@ define({
     "ERROR_RENAMING_FILE"               : "Ocorreu um erro ao tentar renomear o ficheiro <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nome do ficheiro inválido",
     "INVALID_FILENAME_MESSAGE"          : "O nome do ficheiro não pode conter os seguintes caracteres: {0}",
+    "FILE_ALREADY_EXISTS"               : "O ficheiro <span class='dialog-filename'>{0}</span> já existe.",
     "ERROR_CREATING_FILE_TITLE"         : "Erro ao criar ficheiro.",
     "ERROR_CREATING_FILE"               : "Ocorreu um erro ao tentar criar o ficheiro <span class='dialog-filename'>{0}</span>. {1}",
 
@@ -88,8 +92,11 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> foi apagado do disco, mas tem alterações não guardadas em {APP_NAME}.<br /><br />Quer manter as suas alterações?",
 
     // Find, Replace, Find in Files
+    "SEARCH_REGEXP_INFO"                : "Usar /re/ sintaxe para usar regexp na pesquisa",
+    "WITH"                              : "Com",
     "BUTTON_YES"                        : "Sim",
     "BUTTON_NO"                         : "Não",
+    "BUTTON_STOP"                       : "Parar",
 
     "OPEN_FILE"                         : "Abrir ficheiro",
     "CHOOSE_FOLDER"                     : "Escolha uma pasta",
@@ -98,6 +105,7 @@ define({
     "NO_UPDATE_TITLE"                   : "Está atualizado!",
     "NO_UPDATE_MESSAGE"                 : "Está a executar a versão mais recente de {APP_NAME}.",
 
+    "FIND_IN_FILES_TITLE"               : "Para \"{4}\" {5} - {0} {1} em {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "em <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "no projeto",
     "FIND_IN_FILES_FILE"                : "ficheiro",
@@ -105,7 +113,9 @@ define({
     "FIND_IN_FILES_MATCH"               : "resultado",
     "FIND_IN_FILES_MATCHES"             : "resultado",
     "FIND_IN_FILES_MORE_THAN"           : "Mais que ",
+    "FIND_IN_FILES_MAX"                 : " (a mostar os primeiros {0} resultados)",
     "FIND_IN_FILES_FILE_PATH"           : "Ficheiro: <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_LINE"                : "linha:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Erro ao receber as atualizações",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Houve um problema a receber a atualização mais recente a partir do servidor. Por favor, verifique se você está conectado à Internet e tente novamente.",
@@ -134,6 +144,7 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Mudar a largura do caractere de tabulação",
     "STATUSBAR_SPACES"                      : "Espaços",
     "STATUSBAR_TAB_SIZE"                    : "Tamanho da tabulação",
+    "STATUSBAR_LINE_COUNT"                  : "{0} Linhas",
 
     /**
      * Command Name Constants
@@ -181,10 +192,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamanho da fonte",
     "CMD_DECREASE_FONT_SIZE"              : "Diminuir tamanho da fonte",
     "CMD_RESTORE_FONT_SIZE"               : "Restaurar tamanho da fonte",
-    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Ordenar por data adicionado",
-    "CMD_WORKINGSET_SORT_BY_NAME"         : "Ordenar por nome",
-    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Ordenar por tipo",
-    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Ordenação automática",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por data adicionado",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por nome",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por tipo",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenação automática",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegar",
@@ -203,9 +214,15 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
     "CMD_CHECK_FOR_UPDATE"                : "Verificar atualizações",
     "CMD_ABOUT"                           : "Sobre",
+    "CMD_FORUM"                           : "Forum do {APP_NAME}",
+
+    // Special commands invoked by the native shell
+    "CMD_CLOSE_WINDOW"                    : "Fechar a janela",
+    "CMD_ABORT_QUIT"                      : "Cancelar a saída",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versão Experimental",
+    "SEARCH_RESULTS"                       : "Resultados da pesquisa",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Não guardar",
     "SAVE"                                 : "Guardar",
@@ -223,6 +240,7 @@ define({
     "UPDATE_AVAILABLE_TITLE"               : "Atualização disponível",
     "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} {VERSION} disponível. Aqui estão alguns dos novos recursos:",
     "GET_IT_NOW"                           : "Obter agora!",
+    "PROJECT_SETTINGS_TOOLTIP"             : "Definições do projeto",
     "PROJECT_SETTINGS_TITLE"               : "Definições do projeto para: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview URL base",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(deixe em branco para url do ficheiro)",
@@ -231,8 +249,8 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "O URL base não pode conter cardinal como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracteres especiais como '{0}' têm que ser %-codificados.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Erro desconhecido na análise do URL base",
-
-
+    
+    
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Debug",
     "CMD_SHOW_DEV_TOOLS"                   : "Mostrar ferramentas de desenvolvimento",
@@ -241,9 +259,17 @@ define({
     "CMD_SWITCH_LANGUAGE"                  : "Mudar linguagem",
     "CMD_RUN_UNIT_TESTS"                   : "Executar testes",
     "CMD_SHOW_PERF_DATA"                   : "Mostrar dados de desempenho",
-
+    
     "LANGUAGE_TITLE"                       : "Mudar idioma",
     "LANGUAGE_MESSAGE"                     : "Por favor, selecione o idioma desejado na lista abaixo:",
     "LANGUAGE_SUBMIT"                      : "Recarregar {APP_NAME}",
-    "LANGUAGE_CANCEL"                      : "Cancelar"
+    "LANGUAGE_CANCEL"                      : "Cancelar",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                           : "Activar JSLint",
+    "JSLINT_ERRORS"                        : "Erros JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "1 Erro JSLint",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} Erros JSLint",
+    "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
+    "JSLINT_DISABLED"                      : "JSLint desabilitado ou não funcionando para o arquivo atual"
 });

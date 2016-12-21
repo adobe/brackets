@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,9 @@
  *
  */
 
-/*global describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
+
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -52,7 +54,7 @@ define(function (require, exports, module) {
             runs(function () {
                 waitsForDone(SpecRunnerUtils.copy(testPath, tempDir), "copy temp files");
             });
-
+            
             runs(function () {
                 waitsForDone(SpecRunnerUtils.rename(tempDir + "/git/", tempDir + "/.git/"), "move files");
             });
@@ -122,7 +124,7 @@ define(function (require, exports, module) {
                     expect(stat.isFile).toBe(true);
                 });
             });
-
+            
             it("should fail when a file already exists", function () {
                 var didCreate = false, gotError = false;
 
@@ -245,7 +247,7 @@ define(function (require, exports, module) {
                     runs(assertFile);
                 }
             });
-
+            
             // Issue #10183 -- Brackets writing to filtered directories could cause them to appear
             // in the file tree
             it("should not display excluded entry when resolved and written to", function () {
@@ -253,12 +255,12 @@ define(function (require, exports, module) {
                     doneResolving = false,
                     doneWriting = false,
                     entry;
-
+                                
                 runs(function () {
                     var found = testWindow.$(".jstree-brackets span:contains(\".git\")").length;
                     expect(found).toBe(0);
                 });
-
+                
                 runs(function () {
                     FileSystem.resolve(ProjectManager.getProjectRoot().fullPath + ".git/", function (err, e, stat) {
                         if (err) {
@@ -269,7 +271,7 @@ define(function (require, exports, module) {
                         doneResolving = true;
                     });
                 });
-
+                
                 waitsFor(function () {
                     return !opFailed && doneResolving;
                 }, "FileSystem.resolve()", 500);
@@ -284,21 +286,21 @@ define(function (require, exports, module) {
                         doneWriting = true;
                     });
                 });
-
+                
                 waitsFor(function () {
                     return !opFailed && doneWriting;
                 }, "create a file under .git", 500);
-
+                
                 // wait for the fs event to propagate to the project model
                 waits(500);
-
+                
                 runs(function () {
                     var found = testWindow.$(".jstree-brackets span:contains(\".git\")").length,
                         sanity = testWindow.$(".jstree-brackets span:contains(\"file\") + span:contains(\".js\")").length;
                     expect(sanity).toBe(1);
                     expect(found).toBe(0);
                 });
-
+                
             });
 
         });
@@ -425,7 +427,7 @@ define(function (require, exports, module) {
                     expect($selectedItem.text().trim()).toBe(name);
                 }
             }
-
+            
             /**
              * ProjectManager pauses between renders for performance reasons. For some tests,
              * we'll need to wait for the next render.
