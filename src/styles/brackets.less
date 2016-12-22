@@ -1670,7 +1670,7 @@ a, img {
     }
 
     // Make button pairs snug
-    #find-prev, #replace-yes, #find-case-sensitive {
+    #find-prev, #replace-yes, #replace-batch, #find-case-sensitive {
         border-right: none;
         margin-right: 0;
     }
@@ -1679,9 +1679,15 @@ a, img {
         border-bottom-left-radius: 0;
         margin-left: 0;
     }
-    #replace-all.solo {
-        border-left: none;
+    #replace-batch {
+        border-radius: 0;
         margin-left: 0;
+    }
+    #replace-batch.solo {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+        border-left: none;
+        border-right: 1px solid #b2b5b5;
     }
 
     // Make find field snug with options buttons

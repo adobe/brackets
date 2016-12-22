@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      * @constructor
      * Handles the search results panel.
      * Dispatches the following events:
-     *      replaceAll - when the "Replace" button is clicked.
+     *      replaceBatch - when the "Replace" button is clicked.
      *      close - when the panel is closed.
      *
      * @param {SearchModel} model The model that this view is showing.
@@ -328,7 +328,7 @@ define(function (require, exports, module) {
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    self.trigger("replaceAll");
+                    self.trigger("replaceBatch");
                 });
         }
     };
