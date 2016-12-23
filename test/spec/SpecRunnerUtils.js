@@ -992,9 +992,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Simulate key event. Found this code here:
-     * http://stackoverflow.com/questions/10455626/keydown-simulation-in-chrome-fires-normally-but-not-the-correct-key
-     *
+     * Simulate a key event.
      * @param {Number} key Key code
      * @param (String) event Key event to simulate
      * @param {HTMLElement} element Element to receive event
