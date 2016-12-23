@@ -7,6 +7,9 @@ Thumbs.db
 /node_modules
 /npm-debug.log
 
+# ignore node_modules inside src
+/src/node_modules
+
 # ignore compiled files
 /dist
 /src/.index.html

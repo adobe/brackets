@@ -62,6 +62,13 @@ define(function (require, exports, module) {
     var _findBar = null;
 
     /**
+     * @private
+     * Forward declaration for JSLint.
+     * @type {Function}
+     */
+    var _finishReplaceBatch;
+    
+    /**
      * Does a search in the given scope with the given filter. Shows the result list once the search is complete.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
@@ -102,6 +109,37 @@ define(function (require, exports, module) {
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
+                StatusBar.hideBusyIndicator();
+            });
+    }
+
+    /**
+     * Does a search in the given scope with the given filter. Replace the result list once the search is complete.
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
+     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
+     * @param {?string} replaceText If this is a replacement, the text to replace matches with.
+     * @param {?$.Promise} candidateFilesPromise If specified, a promise that should resolve with the same set of files that
+     *      getCandidateFiles(scope) would return.
+     * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
+     */
+    function searchAndReplaceResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
+        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+            .done(function (zeroFilesToken) {
+                // Done searching all files: replace all
+                if (FindInFiles.searchModel.hasResults()) {
+                    _finishReplaceBatch(FindInFiles.searchModel);
+
+                    if (_findBar) {
+                        _findBar.enable(true);
+                        _findBar.focus();
+                    }
+
+                }
+                StatusBar.hideBusyIndicator();
+            })
+            .fail(function (err) {
+                console.log("replace all failed: ", err);
                 StatusBar.hideBusyIndicator();
             });
     }
@@ -222,7 +260,7 @@ define(function (require, exports, module) {
         if (showReplace) {
             // We shouldn't get a "doReplace" in this case, since the Replace button
             // is hidden when we set options.multifile.
-            _findBar.on("doReplaceAll.FindInFiles", startReplace);
+            _findBar.on("doReplaceBatch.FindInFiles", startReplace);
         }
 
         var oldModalBarHeight = _findBar._modalBar.height();
@@ -261,7 +299,7 @@ define(function (require, exports, module) {
      * Finish a replace across files operation when the user clicks "Replace" on the results panel.
      * @param {SearchModel} model The model for the search associated with ths replace.
      */
-    function _finishReplaceAll(model) {
+    function _finishReplaceBatch(model) {
         var replaceText = model.replaceText;
         if (replaceText === null) {
             return;
@@ -416,8 +454,8 @@ define(function (require, exports, module) {
         var model = FindInFiles.searchModel;
         _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
         _resultsView
-            .on("replaceAll", function () {
-                _finishReplaceAll(model);
+            .on("replaceBatch", function () {
+                _finishReplaceBatch(model);
             })
             .on("close", function () {
                 FindInFiles.clearSearch();
@@ -455,6 +493,7 @@ define(function (require, exports, module) {
 
     // Public exports
     exports.searchAndShowResults = searchAndShowResults;
+    exports.searchAndReplaceResults = searchAndReplaceResults;
 
     // For unit testing
     exports._showFindBar  = _showFindBar;

@@ -38,9 +38,17 @@ require.config({
     },
     map: {
         "*": {
-            "thirdparty/react":	"react"
+            "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
+            "thirdparty/react":       "react"
         }
-    }
+    },
+    packages: [
+        {
+            name: "thirdparty/CodeMirror",
+            location: "node_modules/codemirror",
+            main: "lib/codemirror"
+        }
+    ]
 });
 
 define(function (require, exports, module) {
