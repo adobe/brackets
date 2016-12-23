@@ -102,6 +102,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         var body;
         if (this._instrumentationEnabled && this.editor) {
             body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
+        } else if (this._instrumentationEnabled && this.doc._masterEditor) {
+            body = HTMLInstrumentation.generateInstrumentedHTML(this.doc._masterEditor);
         }
 
         return {
