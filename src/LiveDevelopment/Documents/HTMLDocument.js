@@ -100,10 +100,13 @@ define(function HTMLDocumentModule(require, exports, module) {
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
-        if (this._instrumentationEnabled && this.editor) {
-            body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
-        } else if (this._instrumentationEnabled && this.doc._masterEditor) {
-            body = HTMLInstrumentation.generateInstrumentedHTML(this.doc._masterEditor);
+        if(this._instrumentationEnabled) {
+            if(this.editor) {
+                body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
+            } else {
+                this.doc._ensureMasterEditor();
+                body = HTMLInstrumentation.generateInstrumentedHTML(this.doc._masterEditor);
+            }
         }
 
         return {
