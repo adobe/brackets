@@ -100,8 +100,8 @@ define(function HTMLDocumentModule(require, exports, module) {
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
-        if(this._instrumentationEnabled) {
-            if(this.editor) {
+        if (this._instrumentationEnabled) {
+            if (this.editor) {
                 body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
             } else {
                 this.doc._ensureMasterEditor();
