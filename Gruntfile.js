@@ -65,8 +65,6 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             'nls/{,*/}*.js',
-                            'package.json',
-                            'npm-shrinkwrap.json',
                             'xorigin.js',
                             'dependencies.js',
                             'thirdparty/requirejs/require.js',
@@ -105,13 +103,7 @@ module.exports = function (grunt) {
                             '!extensions/default/*/thirdparty/**/*.htm{,l}',
                             'extensions/dev/*',
                             'extensions/samples/**/*',
-                            'thirdparty/CodeMirror/addon/{,*/}*',
-                            'thirdparty/CodeMirror/keymap/{,*/}*',
-                            'thirdparty/CodeMirror/lib/{,*/}*',
-                            'thirdparty/CodeMirror/mode/{,*/}*',
-                            '!thirdparty/CodeMirror/mode/**/*.html',
-                            '!thirdparty/CodeMirror/**/*test.js',
-                            'thirdparty/CodeMirror/theme/{,*/}*',
+                            'thirdparty/CodeMirror/**',
                             'thirdparty/i18n/*.js',
                             'thirdparty/text/*.js'
                         ]
@@ -122,6 +114,22 @@ module.exports = function (grunt) {
                         dest: 'dist/styles',
                         cwd: 'src/styles',
                         src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*', 'brackets.min.css*']
+                    }
+                ]
+            },
+            thirdparty: {
+                files: [
+                    {
+                        expand: true,
+                        dest: 'src/thirdparty/CodeMirror',
+                        cwd: 'src/node_modules/codemirror',
+                        src: [
+                            'addon/{,*/}*',
+                            'keymap/{,*/}*',
+                            'lib/{,*/}*',
+                            'mode/{,*/}*',
+                            'theme/{,*/}*',
+                        ]
                     }
                 ]
             }
@@ -295,19 +303,7 @@ module.exports = function (grunt) {
                             'spec' : '../test/spec',
                             'text' : 'thirdparty/text/text',
                             'i18n' : 'thirdparty/i18n/i18n'
-                        },
-                        map: {
-                            "*": {
-                                "thirdparty/CodeMirror2": "thirdparty/CodeMirror"
-                            }
-                        },
-                        packages: [
-                            {
-                                name: "thirdparty/CodeMirror",
-                                location: "node_modules/codemirror",
-                                main: "lib/codemirror"
-                            }
-                        ]
+                        }
                     }
                 }
             }
@@ -355,7 +351,7 @@ module.exports = function (grunt) {
         'concat',
         /*'cssmin',*/
         /*'uglify',*/
-        'copy',
+        'copy:dist',
         'npm-install',
         'cleanempty',
         'usemin',

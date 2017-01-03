@@ -40,14 +40,7 @@ require.config({
             "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
             "thirdparty/react":       "react"
         }
-    },
-    packages: [
-        {
-            name: "thirdparty/CodeMirror",
-            location: "node_modules/codemirror",
-            main: "lib/codemirror"
-        }
-    ]
+    }
 });
 
 if (window.location.search.indexOf("testEnvironment") > -1) {
