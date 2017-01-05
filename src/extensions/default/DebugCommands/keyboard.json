@@ -16,5 +16,14 @@
             "key": "Cmd-R",
             "platform": "mac"
         }
+    ],
+    "reloadWithoutUserExts":  [
+        {
+            "key": "Shift-F5"
+        },
+        {
+            "key": "Cmd-Ctrl-R",
+            "platform": "mac"
+        }
     ]
 }

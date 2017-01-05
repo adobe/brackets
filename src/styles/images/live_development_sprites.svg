@@ -1,27 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 16.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="24px" height="144px" viewBox="-8.5 7.5 24 144" enable-background="new -8.5 7.5 24 144" xml:space="preserve">
-<g transform="translate(0, 1)">
-	<polygon id="bolt" fill="#BBBBBB"    points="6.5,18.5 0.5,14.5 -7.5,24.5 0.5,19.5 6.5,23.5 14.5,13.5 	"/>
-</g>
-<g transform="translate(0, 33)">
-	<polygon id="bolt_2_" fill="#FBB03B" points="6.5,10.5 0.5,6.5 -7.5,16.5 0.5,11.5 6.5,15.5 14.5,5.5 	"/>
-</g>
-<g transform="translate(0, 65)">
-	<g>
-		<polygon id="bolt_4_" fill="#BBBBBB" points="6.5,2.5 0.5,-1.5 -7.5,8.5 0.5,3.5 6.5,7.5 14.5,-2.5 		"/>
-	</g>
-	<polygon fill="#FBB03B" points="0.5,-1.5 -7.5,8.5 0.5,3.5 0.5,3.5 6.5,2.5 	"/>
-</g>
-<g transform="translate(0, 81)">
-	<g>
-		<polygon id="bolt_5_" fill="#FBB03B" points="6.5,10.5 0.5,6.5 -7.5,16.5 0.5,11.5 6.5,15.5 14.5,5.5 		"/>
-	</g>
-	<circle fill="#BBBBBB" cx="12.5" cy="13.5" r="2"/>
-</g>
-<g transform="translate(0, 105)">
-	<polygon id="bolt_3_" fill="#ff5d99" points="6.5,10.5 0.5,6.5 -7.5,16.5 0.5,11.5 6.5,15.5 14.5,5.5 	"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="144" viewBox="-8.5 7.5 24 144">
+    <defs>
+        <polygon id="bolt" points="6.5 18.5 .5 14.5-7.5 24.5 .5 19.5 6.5 23.5 14.5 13.5"/>
+    </defs>
+    <use xlink:href="#bolt" y="1" fill="#bbb"/>
+    <use xlink:href="#bolt" y="25" fill="#fbb03b"/>
+    <use xlink:href="#bolt" y="49" fill="#bbb"/>
+    <polygon fill="#fbb03b" points=".5 63.5-7.5 73.5 .5 68.5 .5 68.5 6.5 67.5"/>
+    <use xlink:href="#bolt" y="73" fill="#fbb03b"/>
+    <circle fill="#bbb" cx="12.5" cy="94.5" r="2"/>
+    <use xlink:href="#bolt" y="97" fill="#ff5d99"/>
 </svg>

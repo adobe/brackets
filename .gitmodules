@@ -1,18 +1,9 @@
-[submodule "src/thirdparty/CodeMirror2"]
-	path = src/thirdparty/CodeMirror2
-	url = https://github.com/adobe/CodeMirror2.git
 [submodule "src/thirdparty/path-utils"]
 	path = src/thirdparty/path-utils
 	url = https://github.com/jblas/path-utils.git
 [submodule "src/thirdparty/mustache"]
 	path = src/thirdparty/mustache
 	url = https://github.com/janl/mustache.js.git
-[submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/tern"]
-	path = src/extensions/default/JavaScriptCodeHints/thirdparty/tern
-	url = https://github.com/marijnh/tern.git
-[submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/acorn"]
-	path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn
-	url = https://github.com/marijnh/acorn.git
 [submodule "src/thirdparty/requirejs"]
 	path = src/thirdparty/requirejs
 	url = https://github.com/jrburke/requirejs.git
@@ -24,4 +15,4 @@
 	url = https://github.com/requirejs/i18n.git
 [submodule "src/extensions/default/JSLint/thirdparty/jslint"]
 	path = src/extensions/default/JSLint/thirdparty/jslint
-	url = https://github.com/douglascrockford/JSLint.git
+	url = https://github.com/peterflynn/JSLint.git

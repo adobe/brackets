@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,6 +44,7 @@
 /* Overall layout */
 
 html, body {
+    color: @bc-text;
     height: 100%;
     overflow: hidden;
 
@@ -53,16 +54,24 @@ html, body {
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
 
-    /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
-    -webkit-font-smoothing: antialiased;
+    &.platform-mac {
+        // Use gray scale antialiasing for UI. Code view editor-holder
+        // overrides this to use subpixel antialiasing on Mac, which then
+        // can be overridden by setting "fontSmoothing" preference to
+        // "antialiased". Gray scale AA is used for UI parts which use
+        // SourceSansPro font, which does't look good with subpixel AA,
+        // especially on low resolution monitors.
+        -webkit-font-smoothing: antialiased;
+    }
 
-    /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
-       It seems that we have to put it here rather than on the animated element in order to prevent the
-       entire window from flashing.
-       See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
-    */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    .dark,
+    &.dark {
+         color: @dark-bc-text;
+    }
+}
+
+.subpixel-aa{
+    -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .resizing-container {
@@ -86,35 +95,53 @@ a, img {
 }
 
 .main-view {
-    background: @background-color-3; // to keep the theme background consistent
+    background: @bc-menu-bg; // to keep the theme background consistent
     height: 100%;
 
-    .sidebar {
+    .dark & {
+        background: @dark-bc-menu-bg;
+    }
+
+    .sidebar, .content {
         height: 100%;
-        .vbox;
-        width: @sidebar-width;  // changed dynamically via Resizer
         position: absolute;
-        left: 0;
         top: 0;
     }
 
+    .sidebar {
+        .vbox;
+        left: 0;
+        width: @sidebar-width;  // changed dynamically via Resizer
+        white-space: nowrap;
+    }
+
     .content {
-        height: 100%;
-        position: absolute;
         padding: 0;
-        top: 0;
         left: @sidebar-width;  // changed dynamically via Resizer
         right: @main-toolbar-width;
+    }
+    
+    .force-right-zero {
+        right: 0;
     }
 }
 
 #titlebar, .modal-bar {
-    border-bottom: 1px solid @tc-gray-panel-border;
-    box-shadow: @tc-small-shadow-bottom;
+    border-bottom: 1px solid @bc-panel-border;
+    box-shadow: 0 1px 3px @bc-shadow-small;
 
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
     z-index: @z-index-brackets-toolbar;
+    
+    .dark & {
+        border-bottom: 1px solid @dark-bc-shadow;
+        box-shadow: 0 1px 3px @dark-bc-shadow-small;
+    }
+}
+
+.forced-hidden {
+    display: none !important;
 }
 
 .busyCursor {
@@ -123,22 +150,31 @@ a, img {
 
 #status-bar {
     position: relative;
-    background: #fff;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: @bc-bg-status-bar;
+    border-top: 1px solid @bc-panel-border;
     box-sizing: border-box;
-    color: @tc-text;
+    color: @bc-text;
     font-family: @sansFontFamily;
     font-size: 11px;
     line-height: 25px;
     height: 26px;
     overflow: hidden;
+    .dark & {
+        background: @dark-bc-bg-status-bar;
+        border-top: 1px solid @dark-bc-panel-separator;
+        color: @dark-bc-text;
+    }
 }
 
 #status-info {
-    color: @tc-text;
+    color: @bc-text;
     left: 10px;
     position: absolute;
     white-space: nowrap;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 
     div {
         display: inline;
@@ -146,40 +182,83 @@ a, img {
 }
 
 #status-file {
-    color: #999;
+    color: @bc-text-quiet;
+    
+    .dark & {
+        color: @dark-bc-text-quiet;
+    }
 }
 
 #status-indicators {
-    background: #fff;
-    color: @tc-text;
+    background: @bc-bg-status-bar;
+    color: @bc-text;
     position: absolute;
     right: 0;
     text-align: right;
     white-space: nowrap;
 
+    .dark & {
+        background: @dark-bc-bg-status-bar;
+        color: @dark-bc-text;
+    }
+
     > div {
-        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        &:not(.spinner) {
+            border-left: 1px solid @bc-panel-border;
+            
+            .dark & {
+                border-left: 1px solid @dark-bc-panel-separator;
+            }
+        }
         float: right;
         padding: 0 10px;
     }
     .spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
-        border: none;
         margin: 6px 10px;
         padding: 0;
     }
 
     #status-language {
-        border-right: 1px solid rgba(0, 0, 0, 0.1);
+        border-right: 1px solid @bc-panel-border;
+        padding: 0;
+        margin: 0;
+        
+        .dark & {
+            border-right: 1px solid @dark-bc-panel-separator;
+        }
     }
-}
-
-@-webkit-keyframes spinner-sprites-12 {
-      0% { background-position:    0px 0px; }
-    100% { background-position: -120px 0px; }
-}
-@-webkit-keyframes spinner-sprites-36 {
-      0% { background-position:    0px 0px; }
-    100% { background-position: -360px 0px; }
+    
+    /* dropdown button styling */
+    .btn-status-bar {
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        font: inherit;
+        height: inherit;
+        line-height: inherit;
+        margin: 0;
+        padding: 0 21px 0 10px;
+        vertical-align: top;
+        width: auto;
+        cursor: pointer;
+        border-radius: 0;
+        box-shadow: none;
+        text-shadow: none;
+        
+        &:focus {
+            outline: 0;
+        }
+        &[disabled] {
+            cursor: inherit;
+            background: none;
+            text-decoration: none;
+        }
+        &::after {
+            top: 10px;
+            right: 8px;
+        }
+    }
+    
 }
 
 #status-indent > * {
@@ -195,7 +274,7 @@ a, img {
     margin-right: 3px;
 }
 
-#indent-type:hover, #indent-width-label:hover {
+#status-overwrite:hover, #indent-type:hover, #indent-width-label:hover {
     text-decoration: underline;
 }
 
@@ -205,7 +284,7 @@ a, img {
     height: 13px;
     line-height: 1;
     vertical-align: middle;
-    color: @tc-text;
+    color: @bc-text;
     margin: 0;
     padding: 0 3px 2px;
     position: relative;
@@ -213,6 +292,10 @@ a, img {
     top: -1px;
     width: 6px;
     transition: 0.1s linear all;
+    
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 #indent-width-input:focus {
@@ -224,139 +307,316 @@ a, img {
     margin: 0;
 }
 
+#status-overwrite {
+    transition: background-color 3s;
+    background-color: rgba(255, 255, 255, 0);
+    color: @bc-text;
+    cursor: pointer;
+    
+    .dark & {
+        color: @dark-bc-text;
+    }
+}
+
+#status-overwrite.flash {
+    transition: background-color 1s;
+    background-color: rgb(120, 178, 242);
+}
+
+
 #editor-holder {
     position: relative;
 
     /* Placeholder shown when there is no editor open */
-    #not-editor {
-        height: 100%;
-        .vbox;
-        .box-pack(center);
-        .box-align(center);
-        background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
-    }
 
-    /* Image Preview */
-    #image-holder {
+    .view-pane {
+        display: block !important;
+        margin: 0;
         overflow: hidden;
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        bottom: 0px;
-        left: 0px;
-        text-align: center;
-        display: none;
-        #img-centering {
-            display: inline-block;
-            vertical-align: middle;
-            margin-top: -50px; /* Offset as vertical align takes image metadata into account */
-            max-width: 90%;
-            max-height: 90%;
-        }
-        #img-data {
-            font-weight: @font-weight-semibold;
-        }
     }
-    
-    #image-holder:before {
-        content: '';
-        display: inline-block;
+
+    .pane-content {
+        display: block;
+        margin: 0;
+        overflow: hidden;
         height: 100%;
-        margin-right: -0.25em; /* Adjusts for spacing */
-        vertical-align: middle;
-    }
-    
-    #img-preview {
-        background: url(images/preview_bg.png);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
-        max-height: 90%;
-    }
-
-    #img-header {
-        display: block;
         width: 100%;
-        height: 38px;
-        margin-bottom: 15px;
+        box-sizing: border-box;
+
+        /* Image Preview */
+        .image-view {
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            text-align: center;
+            .image-centering {
+                display: inline-block;
+                vertical-align: middle;
+                width: 90%; //As long as the width isn't set on the image itself theres no need for max-width/height
+                height: 90%;
+            }
+            .image-data {
+                font-weight: @font-weight-semibold;
+            }
+        }
+
+        .image-view:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            margin-right: -0.25em; /* Adjusts for spacing */
+            vertical-align: middle;
+        }
+
+        .image-preview {
+            background: url(images/preview-bg.svg);
+            box-shadow: 0 1px 3px @bc-shadow;
+            max-height: 100%;
+
+            .dark & {
+                background: url(images/preview-bg-dark.svg);
+                box-shadow: 0 1px 3px @dark-bc-shadow;
+            }
+        }
+
+        .image-header {
+            display: block;
+            width: 100%;
+            height: 38px;
+            margin-bottom: 15px;
+        }
+
+        .image-data,
+        .image-path {
+            text-align: left;
+            .user-select(text);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .image-data::selection,
+        .image-path::selection {
+            background: @selection-color-focused;
+        }
+
+        .image {
+            position: relative;
+            height: calc(~'100% - 53px');//.image-header height+margin
+        }
+
+        .image-guide,
+        .image-tip, 
+        .image-scale {
+            pointer-events: none;
+        }
+
+        .image-scale {
+            display: block;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 40px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: @bc-text-alt;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px @bc-shadow;
+
+            .dark & {
+                color: @dark-bc-text-alt;
+                box-shadow: 0 1px 3px @dark-bc-shadow;
+            }
+        }
+
+        .image-tip {
+            display: block;
+            position: absolute;
+            text-align: left;
+            white-space: nowrap;
+            padding: 6px 9px;
+            color: @bc-text-alt;
+            background-color: rgba(0, 0, 0, 0.8);
+            font-size: 11px;
+            font-family: @sourceFontFamily;
+            line-height: 13px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px @bc-shadow;
+
+            .dark & {
+                color: @dark-bc-text-alt;
+                box-shadow: 0 1px 3px @dark-bc-shadow;
+            }
+        }
+
+        .x-value,
+        .y-value {
+            text-align: right;
+        }
+
+        .tip-container {
+            border: 0;
+        }
+
+        .horz-guide {
+            background-image: url("images/horizontal-dash.svg");
+            background-repeat: repeat-x;
+            width: 8px;
+            height: 1px;
+        }
+
+        .vert-guide {
+            background-image: url("images/vertical-dash.svg");
+            background-repeat: repeat-y;
+            width: 1px;
+            height: 8px;
+        }
+
+        .horz-guide,
+        .vert-guide {
+            position: absolute;
+            display: block;
+        }
     }
-    
-    #img-data,
-    #img-path {
-        text-align: left;
-        .user-select(text);
+    .pane-header {
+        opacity: 0.7; // quieten inactive pane header
+        box-sizing: border-box;
+        border-bottom:  1px solid rgba(0, 0, 0, 0.05);
+        padding: 5px 10px;
+        background-color: @background;
         white-space: nowrap;
+        overflow: hidden;
         text-overflow: ellipsis;
-        overflow: hidden;        
-    }
-    
-    #img-data::selection,
-    #img-path::selection {
-        background: @selection-color-focused;
-    }
-    
-    #img {
-        position: relative;
-    }
-    
-    .img-guide,
-    #img-preview {
-        cursor: none;
+
+        &-text {
+            display: inline;
+        }
+
+        .dark & {
+            background-color: #1d1f21; // not using a variable on purpose.
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        &-flipview-btn {
+            position: relative;
+            display: none;
+            top: 0;
+            padding-top: 2px;
+            padding-right: 4px;
+            padding-left: 4px;
+            margin-left: 0;
+            margin-bottom: 0;
+            .sprite-icon(0, 0, 13px, 13px, "images/flip-view-icons.svg");
+            background-origin: content-box;
+            -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
+            transform: translateZ(0); // future proofing
+            z-index: 1;
+            vertical-align: middle;
+
+            &:hover {
+                background-image: url("images/flip-view-icons-hover.svg")
+            }
+
+            &.flipview-icon-none {
+                display: none;
+            }
+
+            &.flipview-icon-top {
+                background-position: center 1px;
+            }
+            
+            &.flipview-icon-right {
+                background-position: center -18px;
+            }
+
+            &.flipview-icon-bottom {
+                background-position: center -35px;
+            }
+
+            &.flipview-icon-left {
+                background-position: center -54px;
+            }
+        }
+
+        &-close-btn {
+            position: relative;
+            display: none;
+            height: 16px;
+            width: 16px;
+            float: right;
+            margin-top: -2px;
+
+            &:before {
+                color: rgba(0, 0, 0, 0.5);
+            }
+
+            &:hover:before {
+                color: rgba(0, 0, 0, 0.8);
+            }
+
+            .dark & {
+                &:before {
+                    color: rgba(255, 255, 255, 0.5);
+                }
+
+                &:hover:before {
+                    color: rgba(255, 255, 255, 0.8);
+                }
+            }
+        }
+
+        &:hover, &.always-show-header-buttons {
+            > .pane-header-flipview-btn:not(.flipview-icon-none) {
+                display: inline-block;
+            }
+
+            > .pane-header-close-btn {
+                display: inline;
+            }
+        }
     }
 
-    #img-scale {
-        display: block;
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        width: 40px;
-        text-align: center;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: #fff;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    }
-    
-    #img-tip {
-        display: block;
-        position: absolute;
-        text-align: left;
-        white-space: nowrap;
-        padding: 6px 9px;
-        color: #fff;
-        background-color: rgba(0, 0, 0, 0.8);
-        font-size: 11px;
-        font-family: SourceCodePro;
-        line-height: 13px;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
-    }
-    
-    #x-value,
-    #y-value {
-        text-align: right;
-    }
-    
-    .tip-container {
-        border: 0;
-    }
-    
-    #horiz-guide {
-        background-image: url("images/horizontal-dash.svg");
-        background-repeat: repeat-x;
-        width: 8px;
-        height: 1px;
-    }
+    .active-pane {
+        
+        .pane-header {
+            opacity: 1;
+            color: @bc-menu-text;
 
-    #vert-guide {
-        background-image: url("images/vertical-dash.svg");
-        background-repeat: repeat-y;
-        width: 1px;
-        height: 8px;
+            .dark & {
+                color: @dark-bc-menu-text;
+            }
+        }
     }
-    
-    #horiz-guide,
-    #vert-guide {
-        position: absolute;
-        display: block;
+}
+
+// moved this out of #editor-holder because we need to lower the specificity so theme authors can override the background color
+.not-editor {
+    height: 100%;
+    .vbox;
+    .box-pack(center);
+    .box-align(center);
+    background: #f8f8f8 url('images/no_content_bg.svg') no-repeat center 45%;
+
+    .dark & {
+        background: #1d1f21 url('images/no_content_bg_dark.svg') no-repeat center 45%;
+    }
+}
+
+// Split View Separator Styles
+.split-vertical #second-pane {
+    border-left: 1px solid rgba(0, 0, 0, 0.17);
+    .dark & {
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+    }
+}
+
+.split-horizontal #second-pane {
+    border-top: 1px solid rgba(0, 0, 0, 0.17);
+    .dark & {
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
     }
 }
 
@@ -379,29 +639,43 @@ a, img {
 }
 
 .bottom-panel {
-    background-color: @tc-gray-panel;
+    background-color: @bc-panel-bg;
     display: none;
     height: 200px;
-    border-top-style: solid;
-    border-width: 1px;
-    border-color: @tc-gray-panel-border;
+    border-top: 1px solid @bc-panel-border;
+    
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border-top: 1px solid @dark-bc-panel-border;        
+    }
 
     .check-all {
         margin: 7px 15px 7px 7px;
     }
 
     .toolbar {
-        background-color: @tc-gray-panel-top-bar;
-        border-bottom: @tc-gray-panel-top-bar-shadow;
+        background-color: @bc-panel-bg-promoted;
+        border-bottom: @bc-panel-separator;
         height: auto;
         padding-top: (@base-padding / 2);
         padding-bottom: (@base-padding / 2);
         z-index: @z-index-brackets-results-panel;
-        box-shadow: @tc-gray-panel-bevel, @tc-small-shadow-top;
+        box-shadow: inset 0 1px 0 @bc-highlight-hard, 0 -1px 3px @bc-shadow-small;
+        
+        .dark & {
+            background-color: @dark-bc-panel-bg-promoted;
+            border-bottom: @dark-bc-panel-separator;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 -1px 3px @dark-bc-shadow-small;            
+        }
+        
         .title {
-            color: @tc-text;
+            color: @bc-text;
             font-size: @label-font-size;
             font-weight: @font-weight-semibold;
+            
+            .dark & {
+                color: @dark-bc-text;
+            }
         }
         .close {
             position: absolute;
@@ -418,13 +692,22 @@ a, img {
         overflow: auto;
 
         .highlight {
-            background: @bc-white;
+            background: @bc-panel-bg-text-highlight;
             border-radius: 2px;
+            
+            .dark & {
+                background: @dark-bc-panel-bg-text-highlight;
+            }
         }
 
         tr.selected td {
-            background-color: @tc-selected-row;
-            color: @bc-black;
+            background-color: @bc-panel-bg-selected;
+            color: @bc-text-thin;
+            
+            .dark & {
+                background-color: @dark-bc-panel-bg-selected;
+                color: @dark-bc-text-thin;
+            }
         }
     }
 }
@@ -437,18 +720,22 @@ a, img {
         vertical-align: baseline;
     }
 
-    .file-section > td {
-        padding-left: 5px;
+    .file-section > .checkbox-column {
+        width: 15px;
     }
 
     .line-number {
-        color: @tc-light-weight-quiet-text;
-        font-family: SourceCodePro;
+        color: @bc-text-thin-quiet;
+        font-family: @sourceFontFamily;
         font-size: 11px;
         padding: 4px 0 0 15px;
         text-align: right;
         white-space: nowrap;
         width: 5px;
+        
+        .dark & {
+            color: @dark-bc-text-thin-quiet;
+        }
     }
 
     .dialog-filename {
@@ -495,23 +782,101 @@ a, img {
 }
 
 #toolbar-extension-manager {
-    .sprite-icon(0, 0, 24px, 24px, "images/topcoat-plugin-20.svg");
+    .sprite-icon(0, 0, 24px, 24px, "images/extension-manager-sprite.svg");
+    &.updatesAvailable {
+        .sprite-icon(0, 24px, 24px, 24px, "images/extension-manager-sprite.svg");
+    }
 }
 
 /* Project panel */
 
-#working-set-header {
-    height: 19px;
-    padding: 10px 0 9px 12px;
-    background: #3C3F41;
-    color: @project-panel-text-2;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
-    overflow: hidden;
+#working-set-list-container {
+    background: @bc-sidebar-bg;
+    
+    > div:last-child ul { 
+        padding-bottom: 21px; // Adds working set bottom padding to the last UL.
+    }
 }
 
-#sidebar {
+.working-set-header {
     position: relative;
-    white-space: nowrap;
+    height: 19px;
+    padding: 10px 0 9px 12px;
+    background: @bc-sidebar-bg;
+    color: @project-panel-text-2;
+    text-shadow: none;
+    overflow: hidden;
+    
+    > span {
+        background: @bc-sidebar-bg;
+        position: relative;
+        z-index: 9;
+    }
+    
+    > div {
+        background-color: @dark-bc-sidebar-bg;
+        opacity: 1;
+    }
+}
+
+.working-set-option-btn {
+    position: absolute;
+    right: 30px;
+    top: 7px;
+    padding: 4px 6px;
+    .sprite-icon(0, 0, 13px, 13px, "images/topcoat-settings-13.svg");
+    background-position: center;
+    opacity: 0.8;
+    z-index: 1;
+}
+
+.working-set-splitview-btn {
+    position: absolute;
+    right: 4px;
+    top: 7px;
+    padding: 4px 6px;
+    .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
+    background-origin: content-box;  // center image within the 13x13 area - ignore button's padding
+    -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
+    transform: translateZ(0); // future proofing
+    -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
+    z-index: 1;
+}
+
+.splitview-icon-none {
+    background-position: center 1px;
+}
+.splitview-icon-vertical {
+    background-position: center -20px;
+}
+.splitview-icon-horizontal {
+    background-position: center -41px;
+}
+
+
+
+// Show splitview icons on the button's dropdown menu too
+#splitview-menu ul.dropdown-menu > li {
+    .menu-name::before {
+        display: inline-block;
+        .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
+        margin: 0 5px 0 -1px;
+        vertical-align: -2px;
+        
+        .dark & {
+            .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons-dark.svg");
+        }
+    }
+    &:nth-child(1) .menu-name::before {
+        .splitview-icon-none();
+    }
+    &:nth-child(2) .menu-name::before {
+        .splitview-icon-vertical();
+    }
+    &:nth-child(3) .menu-name::before {
+        .splitview-icon-horizontal();
+    }
 }
 
 #sidebar-resizer {
@@ -524,24 +889,30 @@ a, img {
 }
 
 #project-files-header {
-    border-top: 1px solid #56595a;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 0 9px 12px;
     font-size: 13px;
     color: @project-panel-text-2;
     overflow: hidden;
+    
+    .btn-alt-quiet {
+        background-color: #47484b;
+        
+        // relative positioning plus z-index make sure that the splitview button flows under the left aligned buttons in the project pane when there are no working set files
+        position: relative;
+        z-index: 9; 
+    }
 }
 
-#open-files-container {
+.open-files-container {
     .box-flex(0);
-    background: #3C3F41;
-    padding: 0px;
+    padding: 0;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
 
     ul {
         list-style-type: none;
-        margin: 0;
-        padding-bottom: 23px;
+        margin: 0 0 2px; // 2px bottom margin required to stop scrollbar from appearing when the cursor is hovering over the last opened file.
     }
 
     li {
@@ -550,7 +921,8 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
-
+        white-space: nowrap;
+        
         &.selected a {
             color: @open-working-file-name-highlight;
         }
@@ -561,7 +933,7 @@ a, img {
     }
 
     a {
-        color: #fff;
+        color: @bc-text-alt;
 
         font-size: 13px;
         text-decoration: none;
@@ -570,9 +942,13 @@ a, img {
         height: 16px;
         line-height: 15px;
         margin-left: 18px;
-        padding: 3px (@sidebar-triangle-size * 2) 3px 0;
+        padding: 3px 0 3px 0;
 
         cursor: default;
+
+        .dark & {
+            color: @dark-bc-text-alt;
+        }
 
         .directory {
             font-size: 11px;
@@ -584,56 +960,59 @@ a, img {
     }
 }
 
-.sidebar-selection {
-    background: url("images/active_back.png") no-repeat top right;
-    height: 22px;
+
+
+.sidebar-selection, .filetree-selection {
+    background: @bc-sidebar-selection;
+    border-top: 1px solid @bc-shadow-small;
+    border-bottom: 1px solid @bc-highlight;
+    box-sizing: border-box;
+    height: 23px;
+    width: 100%;
     position: absolute;
 }
 
-.sidebar-selection-triangle {
-    background: url("images/active_back.png");
+.sidebar-selection-extension, .filetree-selection-extension {
+    background: @bc-sidebar-selection;
+    border-top: 1px solid @bc-shadow-small;
+    border-bottom: 1px solid @bc-highlight;
+    box-sizing: border-box;
+    height: 23px;
     width: 9px; /* quiet scrollbar width */
-    height: 22px;
     position: fixed;
 
-    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
-.sidebar-selection-triangle.triangle-visible:before {
-    content: "";
+.filetree-context-extension {
+    background: rgba(255, 255, 255, 0.06);
+    box-sizing: border-box;
+    height: 23px;
+    width: 9px; /* quiet scrollbar width */
+    position: fixed;
 
-    border-top: @sidebar-triangle-size solid transparent;
-    border-bottom: (@sidebar-triangle-size - 1) solid transparent;
-    border-left: @sidebar-triangle-size solid #2D2E30;
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
+}
 
-    display: block;
+.filetree-context {
+    background: rgba(255, 255, 255, 0.06);
+    box-sizing: border-box;
     position: absolute;
-    top: -1px;
-    right: -9px;
-    width: 0;
-    height: 0;
-
-    .scale-x(0.8, right, top);
+    height: 23px;
+    width: 100%;
 }
 
 //Initially start with the open files hidden, they will get show as files are added
-#open-files-container {
+.open-files-container {
     display:none;
 }
 
 #project-files-container {
     .box-flex(1);
 
-    .jstree-brackets li > a {
-        padding-right: (@sidebar-triangle-size * 2);
-    }
-
-    ul {
-        padding-left: 8px;
-    }
-
-    > ul {
+    div > ul {
         padding-bottom: 24px;
+        padding-left: 8px;
     }
 }
 
@@ -643,6 +1022,7 @@ a, img {
     height: 5px;
     position: fixed;
     z-index: @z-index-brackets-scroller-shadow;
+    pointer-events: none; // serves as a "click through", so clicks go to the file tree behind (see #12684)
 
     &.top {
         #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
@@ -663,12 +1043,16 @@ a, img {
 /** Classes for icons from jsTreeSprites.svg
 */
 .jstree-sprite {
-    background-image: url("images/jsTreeSprites.svg");
+    background-image: @jstree-sprite;
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
     width: @jstree-sprite-size;
     height: @jstree-sprite-size;
+    
+    .dark & {
+        background-image: @dark-jstree-sprite;
+    }
 }
 
 /** Overriding jsTreeTheme.less
@@ -676,67 +1060,94 @@ a, img {
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
-    -webkit-filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.36));
+    transform: translateZ(0) rotate(90deg);
+    transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 190ms cubic-bezier(.01, .91, 0, .99);
+    -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    filter: drop-shadow(1px 0 1px @bc-shadow);
+    
+    .dark & {
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+        filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+    }
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
-    -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
+    transform: translateZ(0);
+    transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 90ms cubic-bezier(.01, .91, 0, .99);
+    -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    filter: drop-shadow(1px 0 1px @bc-shadow);
+    
+    .dark & {
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+        filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+    }
 }
 
-/** Classes for icons from bracketSprites.png
+/** Unicode Icon container
 */
-.bracket-sprite {
-    background-image: url("images/close_btn.svg");
-    background-repeat: no-repeat;
-    background-color: transparent;
-    vertical-align: middle;
-    width: 15px;
+.unicode-icon-container {
+    display: inline-block;
+    width: 16px;
     height: 16px;
+    font-size: 20px;
+    line-height: 15px;
+    text-align: center;
 }
-
 
 .file-status-icon {
-    margin: 2px 0 0 8px;
-    .bracket-sprite;
-    display: inline-block;
+    margin: 0 0 0 8px;
     position: absolute;
-    left: 0px;
-    top: 1px;
+    left: 0;
+    top: 0;
 
-    &.dirty {
-        background-position: -30px 1px;
+    &.dirty:before,
+    &.can-close:before {
+        .unicode-icon-container;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    &.dirty:before {
+        content: "\2022";
+        line-height: 1em;
+    }
+    
+    &.can-close:before {
+        content: "\00D7";
+        line-height: 1.1em;
+    }
+    
+    &.can-close:hover:before {
+        color: rgba(255, 255, 255, 0.7);
     }
 
-    &.can-close {
-        background-position: 0 0;
-    }
-
-    &.can-close:hover {
-        background-position: -15px 0;
-    }
-
-    &.can-close:active {
-        background-position: -15px 0;
-        opacity: @tc-icon-down;
+    &.can-close:active:before {
+        color: rgba(255, 255, 255, 0.3);
     }
 }
 
 /* Styles for inline editors */
 
 .inline-text-editor {
-    line-height: 0px;
+    line-height: 0;
 }
 
 .inline-widget {
     position: relative;
     overflow: hidden;
+    outline: none;
 
-    background-color: @tc-lighter-gray;
+    background-color: @bc-bg-inline-widget;
     min-width: 250px;
     cursor: default;
-    
+
+    .dark & {
+        background-color: @dark-bc-bg-inline-widget; 
+    }
+
     &.animating {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
@@ -756,31 +1167,40 @@ a, img {
 
     .inline-editor-header {
         display: inline-block;
-        padding: 10px 10px 0px 40px;
+        padding: 8px 10px 2px 40px;
 
         .filename {
             vertical-align: middle;
             font-family: @sansFontFamily;
             font-size: 13px;
-            color: @bc-black;
+            color: @bc-text-thin;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
             cursor: pointer;
 
+            .dark & {
+                color: @dark-bc-text-thin;
+            }
+
             .dirty-indicator {
-                .bracket-sprite;
-                display: inline-block;
-                background-position: -32px 2px;
-                padding-top: 5px;
+                .unicode-icon-container;
+                color: @bc-text-quiet;
+                overflow: hidden;
+                position: relative;
+                top: 1px;
+                
+                .dark & {
+                    color: @dark-bc-text-quiet;
+                }
             }
 
             .line-number {
-                color: @inline-color-2;
+                color: @accent-comment;
             }
         }
     }
-    
+
     .shadow {
         display: block;
         height: 4px;
@@ -792,20 +1212,24 @@ a, img {
     }
 
     .shadow.top {
-        top: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+        top: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
 
     .shadow.bottom {
-        bottom: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+        bottom: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
     }
 
     .CodeMirror-scroll {
-        background-color: transparent;
+        background-color: transparent !important;
 
         .CodeMirror-linenumbers {
-            background-color: @tc-lighter-gray;
+            background-color: @bc-bg-inline-widget;
+            
+            .dark & {
+                background-color: @dark-bc-bg-inline-widget;
+            }
         }
     }
 
@@ -829,20 +1253,28 @@ a, img {
     width: 250px;
     max-width: 50%;
     overflow: hidden;
-    background: @inline-background-color-2;
-    
+    background: @bc-panel-bg;
+
     // Without this, the "New Rule" button shows on top of the rule list if you resize
     // the window narrow enough. No idea why, since there's no z-index on the button, and
     // the other items in the header go behind the rule list.
     z-index: 1;
 
+    .dark & {
+        background: @dark-bc-panel-bg;
+    }
+
     .selection {
         width: 100%;
-        background: #d0d5d5;
+        background: @bc-panel-bg-selected;
         position: absolute;
-        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
-        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
+        border-top: none;
+        border-bottom: none;
         top: @top-margin;
+
+        .dark & {
+            background: @dark-bc-panel-bg-selected;
+        }
 
         &.animate {
             transition: top 0.1s ease-out;
@@ -859,12 +1291,16 @@ a, img {
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @inline-triangle-size solid @inline-background-color-3;
-        border-bottom: @inline-triangle-size solid @inline-background-color-3;
-        border-left: @inline-triangle-size solid @inline-background-color-1;
+        border-top: @inline-triangle-size solid transparent;
+        border-bottom: @inline-triangle-size solid transparent;
+        border-left: @inline-triangle-size solid @bc-bg-inline-widget;
         margin-top: -@inline-triangle-size;
         top: 50%;
         .scale-x(0.9, left, top);
+        
+        .dark & {
+            border-left: @inline-triangle-size solid @dark-bc-bg-inline-widget;
+        }
     }
 
     .related {
@@ -876,37 +1312,65 @@ a, img {
 
         ul {
             margin: 0;
-            padding: @top-margin 0px;
+            padding: 10px 0 10px 5px;
             list-style: none;
         }
 
         li {
-            color: @tc-emphasized-text;
+            color: @bc-text-emphasized;
             margin: 0;
             overflow: hidden;
-            padding: 2px 0px 2px 15px;
+            padding: 2px 0 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
+
+            .dark & {
+                color: @dark-bc-text-emphasized;
+            }
             
+            &.section-header {
+                padding-left: 0;
+                padding-bottom: 0;
+                .disclosure-triangle {
+                    .expand-collapse-triangle();
+                }
+                .filename {
+                    font-weight: @font-weight-semibold;
+                }
+            }
+
             .related-file {
-                color: @tc-input-placeholder-text;
+                color: @bc-text-thin-quiet;
+                padding-left: 3px;
+                
+                .dark & {
+                    color: @dark-bc-text-thin-quiet;
+                }
             }
         }
 
         .selected {
-            color: @tc-light-weight-text;
+            color: @bc-text-thin;
             transition: color 0.1s ease-out .15s;
+            
+            .dark & {
+                color: @dark-bc-text-thin;
+            }
         }
     }
 }
 
 .inline-editor-message {
-    color: @tc-input-placeholder-text;
+    color: @bc-text-thin-quiet;
     font-family: @sansFontFamily;
     font-size: 12px;
     line-height: 17px;
     height: 20px;
     padding: 10px 0 40px 50px;
+    
+    .dark & {
+        color: @dark-bc-text-thin-quiet;
+    }
 }
 
 /* This text is used to force the code editor's font to be loaded early on if it's a
@@ -932,7 +1396,7 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
-#search-results .title, #replace-all-results .title {
+.search-results .title {
     .sane-box-model;
     padding-right: 20px;
     width: 100%;
@@ -949,9 +1413,20 @@ a, img {
         .flex-item(0, 0);
     }
     .pagination-col {
-        .flex-item(1, 0);
+        .flex-item(0, 0);
         min-width: 100px;
+        word-spacing: 0;
     }
+    .pagination-col > span:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    .pagination-col > span:active {
+        background-color: @bc-shadow;
+        
+        .dark & {
+            background-color: @dark-bc-shadow;
+        }
+    } 
     .replace-col {
         .flex-item(1, 0);
         min-width: 120px;
@@ -962,37 +1437,48 @@ a, img {
     .next-page,
     .last-page {
         .jstree-sprite;
-        width: 6px;
+        width: 18px;
         display: inline-block;
-        margin: 0 2px;
-        background-position: 0px 4px;
+        margin: 0;
+        background-position: 7px 6px;
+        vertical-align: text-top;
+        border-radius: 3px;
     }
     .first-page {
-        background-position: 0px -80px;
+        background-position: 6px -78px;
         margin-left: 10px;
     }
     .prev-page {
-        background-position: 0px -24px;
+        background-position: 6px -22px;
+        margin-right: 5px;
+    }
+    .next-page {
+        margin-left: 5px;
     }
     .last-page {
-        background-position: 0px -52px;
+        background-position: 6px -50px;
     }
-    .disabled {
+    .disabled,
+    .disabled:hover,
+    .disabled:active {
+        background-color: transparent;
         opacity: 0.3;
     }
 }
 
-#search-results .disclosure-triangle {
+.search-results .disclosure-triangle,
+#problems-panel .disclosure-triangle {
+    .expand-collapse-triangle();
+}
+.expand-collapse-triangle() {
     .jstree-sprite;
     display: inline-block;
+    background-position: 7px 5px;
     &.expanded {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        background-position: 7px 5px;
         -webkit-transform: translateZ(0) rotate(90deg);
-    }
-    &.collapsed {
-        background-position: 7px 5px;
+        transform: translateZ(0) rotate(90deg);
     }
 }
 
@@ -1004,37 +1490,44 @@ a, img {
 
     font-family: @sansFontFamily;
     font-size: 14px;
-    color: @tc-text;
-    background: @tc-gray-panel;
+    color: @bc-text;
+    background: @bc-panel-bg;
     overflow: visible;  // needed for .error popup
     padding: 5px 4px 4px 14px;
 
     -webkit-transform: translate(0, 0); // Prefix still required.
+    transform: translate(0, 0);
     transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
+    transition: transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
+
+    .dark & {
+        color: @dark-bc-text;
+        background: @dark-bc-panel-bg;
+    }
 
     body.in-browser &,
     body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
-        border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
+        border-top: 1px solid @bc-panel-border;
+        
+        .dark & {
+            border-top: 1px solid @dark-bc-panel-border;
+        }
     }
-    
+
     &.popout {
         position: absolute;
         left: 0;
         right: 0;
         top: 0;
     }
-    
+
     &.offscreen {
-        -webkit-transform: translate(0, -44px);
-        transform: translate(0, -44px);
+        -webkit-transform: translate(0, -100%);
+        transform: translate(0, -100%);
         transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
         transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
-    
-        body:not(.has-appshell-menus) & {
-            top: 37px;
-        }
     }
 
     input {
@@ -1045,11 +1538,16 @@ a, img {
         position: relative;
         top: -3px;
         &.no-results {
-            border: 1px solid #bc0023;
-            box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);
+            border: 1px solid  @bc-btn-border-error;
+            box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-error-glow;
+            
+            .dark & {
+                border: 1px solid  @dark-bc-btn-border-error;
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small, 0 0 0 1px @dark-bc-btn-border-error-glow;
+            }
         }
     }
-    
+
     #find-what, #replace-with {
         width: 295px;
     }
@@ -1057,49 +1555,87 @@ a, img {
     .search-input-container {
         position: relative;
         display: inline;
-        
+
         .error {  // "popup" that hangs below search field
             position: absolute;
             left: 5px;
             top: 24px;
             min-width: 291px + 2px;  // to align with search field above it
-            
-            background-color: #f74687;
-            color: @bc-white;
+            z-index: 1; // to appear above any controls that wrap below
+
+            background-color: @bc-error;
+            color: @bc-text-alt;
             font-size: 12px;
             padding: 3px 8px;
             border-radius: 0 0 3px 3px;
-            box-shadow: @tc-small-shadow-bottom;
+            box-shadow: 0 1px 3px @bc-shadow-small;
+            
+            .dark & {
+                background-color: @dark-bc-error;
+                color: @dark-bc-text-alt;
+                box-shadow: 0 1px 3px @dark-bc-shadow-small;
+            }
         }
-        
+
         #find-what {
             padding-right: 62px;  // room for #find-counter overlay
             width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
         }
         #find-counter {
             position: absolute;
-            color: @tc-light-weight-quiet-text;
+            color: @bc-text-thin-quiet;
             top: 1px;
             right: 2px;
             font-size: 12px;
+            
+            .dark & {
+                color: @dark-bc-text-thin-quiet;
+            }
         }
     }
-    
+
+    .find-input-group {
+        display: inline-block;
+    }
     #find-group, #replace-group {
         display: inline-block;
         white-space: nowrap;
     }
+    #replace-group.has-scope {
+        // If scope controls are showing, force the replace controls to a second line.
+        display: block;
+    }
     
+    .scope-group {
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .indexing-group {
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .indexing-message {
+        display: inline-block;
+        font-style: italic;
+        margin-left: 5px;
+    }
+
     .message, .no-results-message {
         display: inline-block;
     }
-    
+
     #find-case-sensitive, #find-regexp {
         padding: 1px 5px;
     }
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
-        .sprite-icon(0, 0, 24px, 24px, "images/find-replace-sprites.svg");
+        .sprite-icon(0, 0, 24px, 24px, @button-icon);
         background-repeat: no-repeat;
+
+        .dark & {
+            .sprite-icon(0, 0, 24px, 24px, @dark-button-icon);
+        }
     }
     #find-regexp.active .button-icon {
         .sprite-swap(0, 24px);
@@ -1110,8 +1646,15 @@ a, img {
     #find-case-sensitive.active .button-icon {
         .sprite-swap(0, 72px);
     }
-    #find-regexp.active, #find-case-sensitive.active {
-        background-color: @tc-highlight;
+    #find-regexp.active,
+    #find-regexp:active,
+    #find-case-sensitive.active,
+    #find-case-sensitive:active { // Make the toggle buttons' down states the same color as 'on' state to prevent a flash of different color.
+        background-color: @bc-bg-highlight;
+        
+        .dark & {
+            background-color: @dark-bc-bg-highlight;
+        }
     }
 
     .navigator {  // next/prev buttons
@@ -1125,9 +1668,9 @@ a, img {
         border-bottom-right-radius: 0;
         margin-left: 5px;
     }
-    
+
     // Make button pairs snug
-    #find-prev, #replace-yes, #find-case-sensitive {
+    #find-prev, #replace-yes, #replace-batch, #find-case-sensitive {
         border-right: none;
         margin-right: 0;
     }
@@ -1136,40 +1679,138 @@ a, img {
         border-bottom-left-radius: 0;
         margin-left: 0;
     }
-    
+    #replace-batch {
+        border-radius: 0;
+        margin-left: 0;
+    }
+    #replace-batch.solo {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+        border-left: none;
+        border-right: 1px solid #b2b5b5;
+    }
+
     // Make find field snug with options buttons
     //    & replace snug with replace commands
     #find-what, #replace-with {
-        margin-right: 0px;
+        margin-right: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
     #find-case-sensitive, #replace-yes {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
         border-radius: 0;
     }
 }
 
-// Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
-// blended on TOP of the selection color. The "current" search result is indicated by selection,
-// so we want the selection visible underneath the highlight. To do this, the highlight must be
-// transparent; it has to look good atop both the selection color AND the regular text bg color.
-.CodeMirror-searching {
-    // Highlight color, overlaid on top of the .find-highlighting color
-    background-color: @cm-match-highlight;
-    border-radius: @tc-inline-border-radius;
-    box-shadow: @tc-small-shadow-bottom;
-    color: @match-text !important;
+// File exclusion filter (used only in Find in Files search bar, for now)
+.filter-trash-icon {
+    position: absolute;
+    left: 7px;
+    width: 16px;
+    height: 16px;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 15px;
+    text-align: center;
+    visibility: hidden;
 }
-.CodeMirror.find-highlighting div.CodeMirror-selected,
-.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
-    // Selection color while highlighting shown - ALWAYS has the .CodeMirror-searching color
-    // blended atop it.
-    // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
-    // brackets_codemirror_override.less (see the note about #324).
-    background: @cm-current-match-highlight;
-    border-radius: @tc-inline-border-radius;
+
+.filter-trash-icon:hover {
+    color: rgba(0, 0, 0, 1);
+}
+
+.filter-edit-icon {
+    float: right;
+    width: 13px;
+    height: 13px;
+    background-image: url("images/edit-icon.svg");
+    background-repeat: no-repeat;
+    opacity: 0.5;
+    visibility: hidden;
+    position: relative;
+    top: 2px;
+    right: -4px;
+}
+
+.filter-edit-icon:hover {
+    opacity: 1;
+}
+
+li:hover .filter-trash-icon,
+li:hover .filter-edit-icon {
+    visibility: visible;
+}
+
+.recent-filter-name {
+    margin-left: 12px;
+}
+
+.recent-filter-patterns {
+    color: @bc-text-thin-quiet;
+    padding-right: 52px;
+    
+    .dark & {
+        color: @dark-bc-text-thin-quiet;
+    }
+}
+
+button.file-filter-picker {
+    margin-left: 10px;
+}
+
+// File exclusion filter editor dialog
+input.exclusions-name {
+    display: block;
+    width: 100%;
+    height: 30px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+textarea.exclusions-editor {
+    display: block;
+    width: 100%;
+    height: 120px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
+    margin-top: 5px;
+    margin-bottom: 0;
+    .code-font();
+}
+.exclusions-filecount {
+    margin: 12px 0 -14px 0;
+    padding: 4px 8px;
+    background-color: @bc-bg-highlight;
+    border-radius: @bc-border-radius;
+    
+    .dark & {
+        background-color: @dark-bc-bg-highlight;
+    }
+}
+
+
+// Find/Replace result highlighting
+.CodeMirror-searching {
+    background-color: @cm-match-highlight;
+    box-shadow: 0 1px 3px @bc-shadow-small;
+    color: @match-text !important;
+    
+    .dark & {
+        box-shadow: 0 1px 3px @dark-bc-shadow-small;
+    }
+    
+    &.searching-current-match {
+        background-color: @cm-current-match-highlight;
+    }
+    &.searching-first {  // first in a contiguous run of highlights
+        border-top-left-radius: @bc-border-radius-small;
+        border-bottom-left-radius: @bc-border-radius-small;
+    }
+    &.searching-last {  // last in a contiguous run of highlights
+        border-top-right-radius: @bc-border-radius-small;
+        border-bottom-right-radius: @bc-border-radius-small;
+    }
 }
 #find-counter {
     font-weight: @font-weight-semibold;
@@ -1181,72 +1822,130 @@ a, img {
     bottom: 0;
     top: 0;
     right: 0;
-    width: 16px;
+    width: 12px;
     z-index: @z-index-cm-max;
     pointer-events: none;
-    
+
     .tickmark {
         position: absolute;
-        width: 16px;
-        body.platform-mac & { width: 15px; }
-        
+        width: 12px;
         height: 1px;
         background-color: #eddd23;
         border-top: 1px solid #e0d123;
         border-bottom: 1px solid #d4c620;
         opacity: 0.85;  // allow thumb to show through
+        &.tickmark-current {
+            background-color: #ed9823;
+            border-top: 1px solid #dd9128;
+            border-bottom: 1px solid #cb8320;
+            z-index: 1;  // ensure this one appears above overlapping sibling highlights
+        }
     }
 }
 
 
 /* Quick Open search bar & dropdown */
 
-.smart_autocomplete_container {
+.find-dialog-label {
+    background: @bc-input-bg;
+    color: @bc-text-quiet;
+    position: absolute;
+    right: 15px;
+    text-align: right;
+    top: 12px;
+    z-index: 9999;
+    
+    .dark & {
+        background: @dark-bc-input-bg;
+        color: @dark-bc-text-quiet;
+    }
+}
 
-    // the borders show up even if the container is empty, must set height to zero using JS.
-    border: 1px solid @tc-gray-panel-border;
-
-    background-color: @tc-gray-panel;
+.quick-search-container {
+    border: 1px solid @bc-panel-border;
+    box-sizing: border-box;  // lets QuickSearchField size the width more nicely
+    background-color: @bc-panel-bg;
     border-radius: 0 0 4px 4px;
-    box-shadow: @tc-normal-shadow-bottom;
+    box-shadow: 0 5px 10px @bc-shadow;
+    opacity: 0;
+    
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99));
+    -webkit-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
 
-    // so that border won't show when height is 0.
-    box-sizing: border-box;
-
-    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 434px !important;
-
-    /* smart auto complete doesn't correctly position the container
-     * so these specific padding and margin values are necessary*/
-    padding: 0px;
+    padding: 0;
     margin: 9px 0 0;
+    
+    z-index: @z-index-brackets-context-menu-base;
+
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 5px 10px @dark-bc-shadow;
+    }
 
     .quick-open-path {
-        color: #666;
+        color: @bc-text-medium;
         font-size: 11px;
         letter-spacing: 0.04em;
         line-height: 11px;
+        
+        .dark & {
+            color: @dark-bc-text-medium;
+        }
     }
 
     li {
-        color: #222;
+        color: @bc-text-emphasized;
         line-height: 15px;
         list-style: none;
         cursor: default;
         padding: 6px 10px;
-        
-        &:nth-child(odd) {
-            background-color: @tc-lighter-gray;
-        }
-        
-        &:hover {
-            background-color: @tc-hover-highlight;
+
+        .dark & {
+            color: @dark-bc-text-emphasized;
         }
 
-        &.smart_autocomplete_highlight {
-            background-color: @tc-highlight;
+        &:nth-child(odd) {
+            background-color: @bc-panel-bg-alt;
+            
+            .dark & {
+                background-color: @dark-bc-panel-bg-alt;
+            }
+        }
+        &:last-child {
+            border-radius: 0 0 4px 4px;  // don't cover over quick-search-container's rounded corners
+        }
+
+        &:hover {
+            background-color: @bc-panel-bg-hover;
+            
+            .dark & {
+                background-color: @dark-bc-panel-bg-hover;
+            }
+        }
+
+        &.highlight {
+            background-color: @bc-bg-highlight;
+            color: @bc-menu-text;
+            
+            .dark & {
+                background-color: @dark-bc-bg-highlight;
+                color: @dark-bc-menu-text;
+            }
         }
     }
+}
+
+@-webkit-keyframes autocomplete {
+    0%   { opacity: 0.6; -webkit-transform: translate3d(0, 0, 0) scale(0.6); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes autocomplete {
+    0%   { opacity: 0.6; transform: translate3d(0, 0, 0) scale(0.6); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .quicksearch-pathmatch,
@@ -1255,7 +1954,11 @@ a, img {
 }
 
 .quicksearch-pathmatch {
-    color: #555;
+    color: @bc-text-medium;
+    
+    .dark & {
+        color: @dark-bc-text-medium;
+    }
 }
 
 
@@ -1263,42 +1966,92 @@ a, img {
 
 .spinner {
     display: inline-block;
-    vertical-align: middle;
-    margin-top: -2px;
-    width: 12px;
-    height: 12px;
-    background: url("images/spinner_small_sprites12.png") no-repeat;
+    box-sizing: border-box;
+    width: 14px;
+    height: 14px;
+    border-left: 3px solid @bc-spinner;
+    border-right: 3px solid @bc-spinner;
+    overflow: hidden;
+    position: relative;
     visibility: hidden;
 
+    .dark & {
+        border-left: 3px solid @dark-bc-spinner;
+        border-right: 3px solid @dark-bc-spinner;
+    }
+
+    &:before,
+    &:after {
+        border-left: 3px solid @bc-spinner;
+        border-right: 3px solid @bc-spinner;
+        box-sizing: border-box;
+        content: "";
+        display: block;
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        left: 0;
+
+        .dark & {
+            border-left: 3px solid @dark-bc-spinner;
+            border-right: 3px solid @dark-bc-spinner;
+        }
+    }
+    &:before {
+        top: 0;
+    }
+    &:after {
+        bottom: 0;
+    }
+
     &.spin {
-        -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
+        -webkit-animation: spinner-rotateplane 1.2s infinite ease-in-out;
+        animation: spinner-rotateplane 1.2s infinite ease-in-out;
         visibility: visible;
     }
 
     &.large {
         width: 36px;
         height: 36px;
-        margin-top: 0;
-        background: url("images/spinner_large_sprites36.png") no-repeat;
+        border-left: 9px solid @bc-spinner;
+        border-right: 9px solid @bc-spinner;
 
-        &.spin {
-            -webkit-animation: spinner-sprites-36 1.2s steps(10) infinite;
+        .dark & {
+            border-left: 9px solid @dark-bc-spinner;
+            border-right: 9px solid @dark-bc-spinner;
+        }
+
+        &:before,
+        &:after {
+            border-left: 7px solid @bc-spinner;
+            border-right: 7px solid @bc-spinner;
+            height: 9px;
+
+            .dark & {
+                border-left: 7px solid @dark-bc-spinner;
+                border-right: 7px solid @dark-bc-spinner;
+            }
         }
     }
-}
-// Retina versions
-@media only screen and (-webkit-min-device-pixel-ratio: 2),
-       only screen and (min-device-pixel-ratio: 2) {
-    .spinner {
-        background-image: url("images/spinner_small_sprites12@2x.png");
-        background-size: 120px 12px;
-
-        &.large {
-            background: url("images/spinner_large_sprites36@2x.png") no-repeat;
-            background-size: 360px 36px;
-        }
+    
+    &.inline {
+        margin-left: 8px;
+        position: relative;
+        top: 3px;
     }
 }
+
+@-webkit-keyframes spinner-rotateplane {
+    0% { -webkit-transform: perspective(120px); }
+    50% { -webkit-transform: perspective(120px) rotateY(180deg); }
+    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg); }
+}
+@keyframes spinner-rotateplane {
+    0% { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+    50% { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
+    100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+}
+
 
 
 /* Problems panel & CodeInspection status bar indicator */
@@ -1307,6 +2060,10 @@ a, img {
     border: none;
     cursor: default;
     width: 13px;
+    
+    &.inspection-errors {
+        cursor: pointer;
+    }
 }
 
 .inspection-disabled {
@@ -1334,8 +2091,22 @@ a, img {
     .line {
         text-align: right;  // make line number line up with editor line numbers
     }
-}
 
+    .line-text {
+        white-space: nowrap;
+        width: auto;
+    }
+
+    .line-snippet {
+        white-space: nowrap;
+        width: 100%;
+        padding-left: 10px;
+    }
+    
+    .inspector-section > td {
+        padding-left: 5px;
+    }
+}
 
 /* Line up label text and input text */
 label input {
@@ -1344,7 +2115,168 @@ label input {
 }
 
 /* Live Preview */
+
+// CodeMirror uses inline styles for active line number, so must use !important here to override
 .live-preview-sync-error .CodeMirror-linenumber {
-    background-color: @live-preview-sync-error-background;
-    color: @live-preview-sync-error-color;
+    background-color: @live-preview-sync-error-background !important;
+    color: @live-preview-sync-error-color !important;
+}
+
+/* Quick Edit, Quick Docs */
+.popover-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: @z-index-brackets-inline-editor-error;
+    opacity: 1.0;
+
+    -webkit-transform: scale(0);
+    transform: scale(0);
+
+    .text {
+        padding: 5px 10px;
+        background-color: @bc-error;
+        border-radius: 3px;
+        color: @bc-text-alt;
+        box-shadow: 0 3px 9px @bc-shadow;
+        white-space: nowrap;
+        
+        .dark & {
+            background-color: @dark-bc-error;
+            border-radius: 3px;
+            color: @dark-bc-text-alt;
+            box-shadow: 0 3px 9px @dark-bc-shadow;            
+        }
+    }
+    .arrowAbove {
+        height: 0;
+        width: 0;
+        border-width: 0 10px 10px 10px;
+        border-color: transparent transparent @bc-error transparent;
+        border-style: solid;
+        
+        .dark & {
+            border-color: transparent transparent @dark-bc-error transparent;
+        }
+    }
+    .arrowBelow {
+        height: 0;
+        width: 0;
+        border-width: 10px 10px 0 10px;
+        border-color: @bc-error transparent transparent transparent;
+        border-style: solid;
+        
+        .dark & {
+            border-color: @dark-bc-error transparent transparent transparent;
+        }
+    }
+    &.animateOpen {
+        transition: -webkit-transform 125ms;
+        transition: transform 125ms;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+    &.animateClose {
+        // Make the animation use the GPU--especially important for retina.
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
+        transition: opacity 500ms 5s ease-in, transform 500ms 5s;
+        opacity: 0.0;
+    }
+    &.open {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+}
+
+.emphasized {
+    font-weight: 900;
+    font-size: 1.01em;
+}
+
+/* Extension Manager */
+#install-drop-zone {
+    background-color: transparent;
+    box-shadow: initial;
+    font-weight: normal;
+    border-style: dashed;
+    position: relative;
+
+    .dark & {
+        border-color: #5f5f5f;
+    }
+}
+
+#install-drop-zone .install-from-url {
+    cursor: pointer;
+}
+
+#install-drop-zone-mask {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    
+    padding: 1px;
+    width: 100%;
+    height: 100%;
+    display: none;
+    
+    cursor: copy;
+}
+
+#install-drop-zone.drop #install-drop-zone-mask {
+    display: block;
+}
+
+#install-drop-zone.drop {
+    background: @bc-primary-btn-bg;
+    box-shadow: initial;
+    font-weight: normal;
+    border: 1px solid @bc-primary-btn-bg;
+    color: @bc-text-alt;
+    text-shadow: none;
+    
+    .dark & {
+        background: @dark-bc-primary-btn-bg;
+        border: 1px solid @dark-bc-primary-btn-bg;
+        color: @dark-bc-text-alt;        
+    }
+}
+
+.install-drag-message {
+    display: none;
+}
+
+.install-drop-message {
+    display: none;
+}
+
+.install-validating-message {
+    display: none;
+}
+
+#install-drop-zone.drag .install-drag-message {
+    display: inline;
+}
+
+#install-drop-zone.drop .install-drop-message {
+    display: inline;
+}
+
+#install-drop-zone.validating .install-validating-message {
+    display: inline;
+}
+
+#hidden-editors {
+    display: none;
+}
+
+.theme-settings td {
+    padding: 2px;
+}
+
+.theme-settings .modal-body {
+    min-height: 300px;
+    max-height: 300px;
 }

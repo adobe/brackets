@@ -1,41 +1,37 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets */
 
 /**
  * HTMLDocument manages a single HTML source document
  *
- * # EDITING
+ * __EDITING__
  *
  * Editing the document will cause the corresponding node to be updated
  * by calling `applyChanges` on the DOMAgent. This will only work for
  * altering text nodes and will break when attempting to change DOM elements
  * or inserting or deleting nodes.
  *
- * # HIGHLIGHTING
+ * __HIGHLIGHTING__
  *
  * HTMLDocument supports highlighting nodes from the HighlightAgent and
  * highlighting the DOMNode corresponding to the cursor position in the
@@ -44,92 +40,88 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var DocumentManager     = require("document/DocumentManager"),
-        DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
+    var EditorManager       = require("editor/EditorManager"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         PerfUtils           = require("utils/PerfUtils"),
         RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
-        StringUtils         = require("utils/StringUtils");
+        _                   = require("thirdparty/lodash");
 
     /**
-     * Constructor
-     * @param {!DocumentManager.Document} doc the source document from Brackets
-     * @param {editor=} editor
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
-        var self = this;
-
         this.doc = doc;
-        if (!editor) {
-            return;
+        if (this.doc) {
+            this.doc.addRef();
         }
+
         this.editor = editor;
         this._instrumentationEnabled = false;
-        
-        // Performance optimization to use closures instead of Function.bind()
-        // to improve responsiveness during cursor movement and keyboard events
-        $(this.editor).on("cursorActivity.HTMLDocument", function (event, editor) {
-            self._onCursorActivity(event, editor);
-        });
 
-        $(this.editor).on("change.HTMLDocument", function (event, editor, change) {
-            self._onChange(event, editor, change);
-        });
-        
-        // Experimental code
-        if (LiveDevelopment.config.experimental) {
-            $(HighlightAgent).on("highlight.HTMLDocument", function (event, node) {
-                self._onHighlight(event, node);
-            });
-        }
+        this._onActiveEditorChange = this._onActiveEditorChange.bind(this);
+        EditorManager.on("activeEditorChange", this._onActiveEditorChange);
+
+        // Attach now
+        this.attachToEditor(editor);
     };
-    
+    EventDispatcher.makeEventDispatcher(HTMLDocument.prototype);
+
     /**
-     * Enable instrumented HTML
-     * @param enabled {boolean} 
+     * Enable or disable instrumented HTML
+     * @param {boolean} enabled Whether to enable or disable
      */
     HTMLDocument.prototype.setInstrumentationEnabled = function setInstrumentationEnabled(enabled) {
-        if (enabled && !this._instrumentationEnabled) {
+        if (enabled && !this._instrumentationEnabled && this.editor) {
             HTMLInstrumentation.scanDocument(this.doc);
             HTMLInstrumentation._markText(this.editor);
         }
-        
+
         this._instrumentationEnabled = enabled;
     };
-    
+
     /**
      * Returns true if document edits appear live in the connected browser
-     * @return {boolean} 
+     * @return {boolean}
      */
     HTMLDocument.prototype.isLiveEditingEnabled = function () {
         return this._instrumentationEnabled;
     };
-    
+
     /**
      * Returns a JSON object with HTTP response overrides
+     * @param {boolean} enabled (Unused)
      * @return {{body: string}}
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
-        if (this._instrumentationEnabled) {
+        if (this._instrumentationEnabled && this.editor) {
             body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
         }
-        
+
         return {
             body: body || this.doc.getText()
         };
     };
 
-    /** Close the document */
+    /**
+     * Close the document
+     */
     HTMLDocument.prototype.close = function close() {
-        if (!this.editor) {
-            return;
+        if (this.editor) {
+            this.editor.off(".HTMLDocument");
         }
 
-        $(this.editor).off(".HTMLDocument");
+        if (this.doc) {
+            this.doc.releaseRef();
+        }
+
+        EditorManager.off("activeEditorChange", this._onActiveEditorChange);
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -137,34 +129,96 @@ define(function HTMLDocumentModule(require, exports, module) {
             this._onHighlight();
         }
     };
-    
-    /** Update the highlight */
+
+    /**
+     * Attach new editor
+     * @param {!Editor} editor The editor for this document
+     */
+    HTMLDocument.prototype.attachToEditor = function (editor) {
+        var self = this;
+        this.editor = editor;
+
+        // Performance optimization to use closures instead of Function.bind()
+        // to improve responsiveness during cursor movement and keyboard events
+        this.editor.on("cursorActivity.HTMLDocument", function (event, editor) {
+            self._onCursorActivity(event, editor);
+        });
+
+        this.editor.on("change.HTMLDocument", function (event, editor, change) {
+            self._onChange(event, editor, change);
+        });
+
+        this.editor.on("beforeDestroy.HTMLDocument", function (event, editor) {
+            self._onDestroy(event, editor);
+        });
+
+        // Experimental code
+        if (LiveDevelopment.config.experimental) {
+            HighlightAgent.on("highlight.HTMLDocument", function (event, node) {
+                self._onHighlight(event, node);
+            });
+        }
+
+        if (this._instrumentationEnabled) {
+            // Resync instrumentation with editor
+            HTMLInstrumentation._markText(this.editor);
+        }
+    };
+
+    /**
+     * Detach current editor
+     */
+    HTMLDocument.prototype.detachFromEditor = function () {
+        if (this.editor) {
+            HighlightAgent.hide();
+            this.editor.off(".HTMLDocument");
+            this._removeHighlight();
+            this.editor = null;
+        }
+    };
+
+    /**
+     * Update the highlight
+     */
     HTMLDocument.prototype.updateHighlight = function () {
-        var codeMirror = this.editor._codeMirror;
+        var editor = this.editor,
+            ids = [];
+
         if (Inspector.config.highlight) {
-            var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
-                this.editor,
-                codeMirror.getCursor()
-            );
-            
-            if (tagID === -1) {
+            if (editor) {
+                _.each(editor.getSelections(), function (sel) {
+                    var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
+                        editor,
+                        sel.reversed ? sel.end : sel.start
+                    );
+                    if (tagID !== -1) {
+                        ids.push(tagID);
+                    }
+                });
+            }
+
+            if (!ids.length) {
                 HighlightAgent.hide();
             } else {
-                HighlightAgent.domElement(tagID);
+                HighlightAgent.domElement(ids);
             }
         }
     };
 
     /** Event Handlers *******************************************************/
 
-    /** Triggered on cursor activity by the editor */
+    /**
+     * Triggered on cursor activity by the editor
+     * @param {$.Event} event Event
+     * @param {!Editor} editor The editor for this document
+     */
     HTMLDocument.prototype._onCursorActivity = function (event, editor) {
-        if (!this.editor) {
+        if (this.editor !== editor) {
             return;
         }
         this.updateHighlight();
     };
-    
+
     /**
      * @private
      * For the given editor change, compare the resulting browser DOM with the
@@ -174,13 +228,13 @@ define(function HTMLDocumentModule(require, exports, module) {
      */
     HTMLDocument.prototype._compareWithBrowser = function (change) {
         var self = this;
-        
+
         RemoteAgent.call("getSimpleDOM").done(function (res) {
             var browserSimpleDOM = JSON.parse(res.result.value),
                 edits,
                 node,
                 result;
-            
+
             try {
                 result = HTMLInstrumentation._getBrowserDiff(self.editor, browserSimpleDOM);
             } catch (err) {
@@ -188,21 +242,21 @@ define(function HTMLDocumentModule(require, exports, module) {
                 console.error(err.stack);
                 return;
             }
-            
+
             edits = result.diff.filter(function (delta) {
                 // ignore textDelete in html root element
                 node = result.browser.nodeMap[delta.parentID];
-                
+
                 if (node && node.tag === "html" && delta.type === "textDelete") {
                     return false;
                 }
-                
+
                 return true;
             });
-            
+
             if (edits.length > 0) {
                 console.warn("Browser DOM does not match after change: " + JSON.stringify(change));
-                
+
                 edits.forEach(function (delta) {
                     console.log(delta);
                 });
@@ -210,10 +264,27 @@ define(function HTMLDocumentModule(require, exports, module) {
         });
     };
 
-    /** Triggered on change by the editor */
+    /**
+     * Triggered when the editor is being destroyed
+     * @param {$.Event} event Event
+     * @param {!Editor} editor The editor being destroyed
+     */
+    HTMLDocument.prototype._onDestroy = function (event, editor) {
+        if (this.editor === editor) {
+            this.detachFromEditor();
+        }
+    };
+
+
+    /**
+     * Triggered on change by the editor
+     * @param {$.Event} event Event
+     * @param {!Editor} editor The editor for this document
+     * @param {Object} change CodeMirror editor change data
+     */
     HTMLDocument.prototype._onChange = function (event, editor, change) {
         // Make sure LiveHTML is turned on
-        if (!brackets.livehtml || !this._instrumentationEnabled) {
+        if (!this._instrumentationEnabled) {
             return;
         }
 
@@ -225,17 +296,17 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (!isNestedTimer) {
             PerfUtils.markStart(perfTimerName);
         }
-        
+
         // Only handles attribute changes currently.
         // TODO: text changes should be easy to add
         // TODO: if new tags are added, need to instrument them
         var self                = this,
             result              = HTMLInstrumentation.getUnappliedEditList(editor, change),
             applyEditsPromise;
-        
+
         if (result.edits) {
             applyEditsPromise = RemoteAgent.call("applyDOMEdits", result.edits);
-    
+
             applyEditsPromise.always(function () {
                 if (!isNestedTimer) {
                     PerfUtils.addMeasurement(perfTimerName);
@@ -244,8 +315,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         this.errors = result.errors || [];
-        $(this).triggerHandler("statusChanged", [this]);
-        
+        this.trigger("statusChanged", this);
+
         // Debug-only: compare in-memory vs. in-browser DOM
         // edit this file or set a conditional breakpoint at the top of this function:
         //     "this._debug = true, false"
@@ -256,7 +327,7 @@ define(function HTMLDocumentModule(require, exports, module) {
                 self._compareWithBrowser(change);
             });
         }
-        
+
 //        var marker = HTMLInstrumentation._getMarkerAtDocumentPos(
 //            this.editor,
 //            editor.getCursorPos()
@@ -286,15 +357,31 @@ define(function HTMLDocumentModule(require, exports, module) {
         // }
     };
 
-    /** Triggered by the HighlightAgent to highlight a node in the editor */
+    /**
+     * Triggered when the active editor changes
+     * @param {$.Event} event Event
+     * @param {!Editor} newActive The new active editor
+     * @param {!Editor} oldActive The old active editor
+     */
+    HTMLDocument.prototype._onActiveEditorChange = function (event, newActive, oldActive) {
+        this.detachFromEditor();
+
+        if (newActive && newActive.document === this.doc) {
+            this.attachToEditor(newActive);
+        }
+    };
+
+    /**
+     * Triggered by the HighlightAgent to highlight a node in the editor
+     * @param {$.Event} event Event
+     * @param {DOMElement} node Element to highlight
+     */
     HTMLDocument.prototype._onHighlight = function (event, node) {
+        this._removeHighlight();
         if (!node || !node.location || !this.editor) {
-            if (this._highlight) {
-                this._highlight.clear();
-                delete this._highlight;
-            }
             return;
         }
+
         var codeMirror = this.editor._codeMirror;
         var to, from = codeMirror.posFromIndex(node.location);
         if (node.closeLocation) {
@@ -302,11 +389,19 @@ define(function HTMLDocumentModule(require, exports, module) {
         } else {
             to = node.location + node.length;
         }
+
         to = codeMirror.posFromIndex(to);
+        this._highlight = codeMirror.markText(from, to, { className: "highlight" });
+    };
+
+    /**
+     * Remove all highlighting
+     */
+    HTMLDocument.prototype._removeHighlight = function () {
         if (this._highlight) {
             this._highlight.clear();
+            this._highlight = null;
         }
-        this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
     // Export the class

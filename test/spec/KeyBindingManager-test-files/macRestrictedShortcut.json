@@ -1,0 +1,8 @@
+{
+    "documentation": "https://github.com/adobe/brackets/wiki/Key-Bindings",
+    "overrides": {
+        "cmd-z": "edit.selectLine",
+        "Cmd-m": "view.toggleSidebar",
+        "cmd-h": "navigate.quickOpen"
+    } 
+}

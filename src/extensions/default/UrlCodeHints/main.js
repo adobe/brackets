@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,30 +20,33 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
-
-
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Brackets modules
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
-
+        PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils"),
+        Strings             = brackets.getModule("strings"),
         Data                = require("text!data.json"),
 
+        urlHints,
         data,
-        htmlAttrs;
-    
+        htmlAttrs,
+        styleModes      = ["css", "text/x-less", "text/x-scss"];
+
+
+    PreferencesManager.definePreference("codehint.UrlCodeHints", "boolean", true, {
+        description: Strings.DESCRIPTION_URL_CODE_HINTS
+    });
+
     /**
      * @constructor
      */
@@ -66,16 +69,15 @@ define(function (require, exports, module) {
             targetDir,
             unfiltered = [];
 
-        // get path to current document
-        doc = DocumentManager.getCurrentDocument();
+        doc = this.editor && this.editor.document;
         if (!doc || !doc.file) {
             return result;
         }
 
         docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
-        
+
         // get relative path from query string
-        queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }
@@ -160,7 +162,7 @@ define(function (require, exports, module) {
                     self.cachedHints.query      = query;
                     self.cachedHints.queryDir   = queryDir;
                     self.cachedHints.docDir     = docDir;
-                    
+
                     if (self.cachedHints.deferred.state() !== "rejected") {
                         currentDeferred = self.cachedHints.deferred;
 
@@ -174,7 +176,7 @@ define(function (require, exports, module) {
                             if (currentDeferred && currentDeferred.state() === "pending") {
                                 currentDeferred.reject();
                             }
-                            
+
                             if (self.cachedHints.deferred &&
                                     self.cachedHints.deferred.state() === "pending") {
                                 self.cachedHints.deferred.reject();
@@ -222,20 +224,20 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype._getUrlHints = function (query) {
         var hints = [],
-            sortFunc = null;
+            sortFunc;
 
         // Do not show hints after "?" in url
         if (query.queryStr.indexOf("?") === -1) {
-            
+
             // Default behavior for url hints is do not close on select.
             this.closeOnSelect = false;
             hints = this._getUrlList(query);
             sortFunc = StringUtils.urlSort;
         }
-        
+
         return { hints: hints, sortFunc: sortFunc };
     };
-    
+
     /**
      * Determines whether url hints are available in the current editor
      * context.
@@ -257,7 +259,7 @@ define(function (require, exports, module) {
         var mode = editor.getModeForSelection();
         if (mode === "html") {
             return this.hasHtmlHints(editor, implicitChar);
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             return this.hasCssHints(editor, implicitChar);
         }
 
@@ -301,7 +303,7 @@ define(function (require, exports, module) {
                 val += this.info.values[i].substring(0, this.info.offset);
             }
         }
-        
+
         // starts with "url(" ?
         if (val.match(/^\s*url\(/i)) {
             return true;
@@ -332,16 +334,16 @@ define(function (require, exports, module) {
             tokenType;
 
         this.editor = editor;
-        
+
         tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
         query = null;
         tokenType = tagInfo.position.tokenType;
-        
+
         if (tokenType === HTMLUtils.ATTR_VALUE) {
-                
+
             // Verify that attribute name has hintable values
             if (htmlAttrs[tagInfo.attr.name]) {
-                
+
                 if (tagInfo.position.offset >= 0) {
                     query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
                 } else {
@@ -350,18 +352,21 @@ define(function (require, exports, module) {
                     // So just set the queryStr to an empty string.
                     query = "";
                 }
-                
-                var hintsAndSortFunc = this._getUrlHints({queryStr: query});
-                var hints = hintsAndSortFunc.hints;
+
+                var hintsAndSortFunc = this._getUrlHints({queryStr: query}),
+                    hints = hintsAndSortFunc.hints;
+
                 if (hints instanceof Array) {
                     // If we got synchronous hints, check if we have something we'll actually use
                     var i, foundPrefix = false;
+                    query = query.toLowerCase();
                     for (i = 0; i < hints.length; i++) {
-                        if (hints[i].indexOf(query) === 0) {
+                        if (hints[i].toLowerCase().indexOf(query) === 0) {
                             foundPrefix = true;
                             break;
                         }
                     }
+
                     if (!foundPrefix) {
                         query = null;
                     }
@@ -395,9 +400,8 @@ define(function (require, exports, module) {
         var mode = this.editor.getModeForSelection(),
             cursor = this.editor.getCursorPos(),
             filter = "",
-            unfiltered = [],
             hints = [],
-            sortFunc = null,
+            sortFunc,
             query = { queryStr: "" },
             result = [];
 
@@ -408,13 +412,13 @@ define(function (require, exports, module) {
             if (tokenType !== HTMLUtils.ATTR_VALUE || !htmlAttrs[tagInfo.attr.name]) {
                 return null;
             }
-            
+
             if (tagInfo.position.offset >= 0) {
                 query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
             }
             this.info = tagInfo;
 
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
             var context = this.info.context;
@@ -446,7 +450,7 @@ define(function (require, exports, module) {
                 } else {
                     this.info.leadingWhitespace = null;
                 }
-                
+
                 // Keep track of opening quote and strip it
                 if (val.match(/^["']/)) {
                     this.info.openingQuote = val[0];
@@ -472,9 +476,10 @@ define(function (require, exports, module) {
 
         if (hints instanceof Array && hints.length) {
             // Array was returned
+            var lowerCaseFilter = filter.toLowerCase();
             console.assert(!result.length);
             result = $.map(hints, function (item) {
-                if (item.indexOf(filter) === 0) {
+                if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                     return item;
                 }
             }).sort(sortFunc);
@@ -490,8 +495,9 @@ define(function (require, exports, module) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
+                var lowerCaseFilter = filter.toLowerCase();
                 result = $.map(asyncHints, function (item) {
-                    if (item.indexOf(filter) === 0) {
+                    if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                         return item;
                     }
                 }).sort(sortFunc);
@@ -522,13 +528,13 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.insertHint = function (completion) {
         var mode = this.editor.getModeForSelection();
-        
+
         // Encode the string just prior to inserting the hint into the editor
         completion = encodeURI(completion);
-        
+
         if (mode === "html") {
             return this.insertHtmlHint(completion);
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             return this.insertCssHint(completion);
         }
 
@@ -552,14 +558,14 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.getCharOffset = function (array, pos1, pos2) {
         var i, count = 0;
-        
+
         if (pos1.index === pos2.index) {
             return (pos2.offset >= pos1.offset) ? (pos2.offset - pos1.offset) : 0;
         } else if (pos1.index < pos2.index) {
             if (pos1.index < 0 || pos1.index >= array.length || pos2.index < 0 || pos2.index >= array.length) {
                 return 0;
             }
-            
+
             for (i = pos1.index; i <= pos2.index; i++) {
                 if (i === pos1.index) {
                     count += (array[i].length - pos1.offset);
@@ -570,7 +576,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         return count;
     };
 
@@ -593,7 +599,7 @@ define(function (require, exports, module) {
             // Only use offset on index, then offset of 0 after that
             searchOffset = (i === pos.index) ? pos.offset : 0;
             o = array[i].indexOf(ch, searchOffset);
-            
+
             if (o !== -1) {
                 return { index: i, offset: o };
             }
@@ -649,9 +655,19 @@ define(function (require, exports, module) {
             hasClosingParen = (closingPos.index !== -1);
         }
 
-        // Adjust insert char positions to replace existing value, if there is a closing paren
-        if (closingPos.index !== -1) {
-            end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+        // Insert folder names, but replace file names, so if a file is selected
+        // (i.e. closeOnSelect === true), then adjust insert char positions to
+        // replace existing value, if there is a closing paren
+        if (this.closeOnSelect) {
+            if (closingPos.index !== -1) {
+                end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+            }
+        } else {
+            // If next char is "/", then overwrite it since we're inserting a "/"
+            var nextSlash = this.findNextPosInArray(this.info.values, "/", this.info);
+            if (nextSlash.index === this.info.index && nextSlash.offset === this.info.offset) {
+                end.ch += 1;
+            }
         }
         if (this.info.filter.length > 0) {
             start.ch -= this.info.filter.length;
@@ -712,19 +728,19 @@ define(function (require, exports, module) {
             tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
             tokenType = tagInfo.position.tokenType,
             charCount = 0,
-            replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "",
-            shouldReplace = true;
+            shouldReplace = false;
 
         if (tokenType === HTMLUtils.ATTR_VALUE) {
-            charCount = tagInfo.attr.value.length;
-            
             // Special handling for URL hinting -- if the completion is a file name
             // and not a folder, then close the code hint list.
             if (!this.closeOnSelect && completion.match(/\/$/) === null) {
                 this.closeOnSelect = true;
+
+                // Insert folder names, but replace file names
+                shouldReplace = true;
             }
-            
+
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
                 if (endQuote) {
@@ -732,8 +748,19 @@ define(function (require, exports, module) {
                 } else if (tagInfo.position.offset === 0) {
                     completion = "\"" + completion + "\"";
                 }
-            } else if (completion === tagInfo.attr.value) {
-                shouldReplace = false;
+            }
+
+            if (shouldReplace) {
+                // Replace entire value
+                charCount = tagInfo.attr.value.length;
+            } else {
+                // Replace filter (to insert new selection)
+                charCount = this.info.filter.length;
+
+                // If next char is "/", then overwrite it since we're inserting a "/"
+                if (this.info.attr.value.length > charCount && this.info.attr.value[charCount] === "/") {
+                    charCount += 1;
+                }
             }
         }
 
@@ -741,13 +768,7 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (shouldReplace) {
-            if (start.ch !== end.ch) {
-                this.editor.document.replaceRange(completion, start, end);
-            } else {
-                this.editor.document.replaceRange(completion, start);
-            }
-        }
+        this.editor.document.replaceRange(completion, start, end);
 
         if (!this.closeOnSelect) {
             // If we append the missing quote, then we need to adjust the cursor postion
@@ -757,29 +778,34 @@ define(function (require, exports, module) {
             }
             return true;
         }
-        
+
         if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
             // Move the cursor to the right of the existing end quote after value insertion.
             this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }
-        
+
         return false;
     };
 
-    AppInit.appReady(function () {
-        data            = JSON.parse(Data);
-        htmlAttrs       = data.htmlAttrs;
+    function _clearCachedHints() {
+        // Verify cache exists and is not deferred
+        if (urlHints && urlHints.cachedHints && urlHints.cachedHints.deferred &&
+                urlHints.cachedHints.deferred.state() !== "pending") {
 
-        var urlHints = new UrlCodeHints();
-        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
-        
-        function _clearCachedHints() {
             // Cache may or may not be stale. Main benefit of cache is to limit async lookups
             // during typing. File tree updates cannot happen during typing, so it's probably
             // not worth determining whether cache may still be valid. Just delete it.
             urlHints.cachedHints = null;
         }
-        
+    }
+
+    AppInit.appReady(function () {
+        data            = JSON.parse(Data);
+        htmlAttrs       = data.htmlAttrs;
+
+        urlHints        = new UrlCodeHints();
+        CodeHintManager.registerHintProvider(urlHints, ["css", "html", "less", "scss"], 5);
+
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);
 

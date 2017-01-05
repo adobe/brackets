@@ -73,7 +73,7 @@
     color: redsox;
     color: pinky;
     color: blue-cheese;
-    color: @bc-white;
+    color: @bc-bg-highlight;
 }
 
 .gradients {
@@ -164,4 +164,60 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
     background: -webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 300px, red 600px); 
     background-image: repeating-linear-gradient(red, blue 20px, red 40px);
     background-image: repeating-radial-gradient(red, blue 20px, red 40px);    
+}
+
+.whitespaceCheck_linear_gradient { 
+    background : linear-gradient(to bottom, black 0%, white 100%); 
+    background: linear-gradient(to bottom, black 0%, white 100%);
+    background :linear-gradient(to bottom, black 0%, white 100%);
+    background:linear-gradient(to bottom, black 0%, white 100%);
+}
+
+.whitespaceCheck_radial_gradient {
+    background : radial-gradient(red, white 50%, blue 100%);
+    background: radial-gradient(red, white 50%, blue 100%);
+    background :radial-gradient(red, white 50%, blue 100%);
+    background:radial-gradient(red, white 50%, blue 100%);
+}
+
+.quotes {
+    background: url(img/don't.png);
+    background: url("img/don't.png");
+    background:url("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>");
+}
+
+.unbalanced-parens {
+    background-image: linear-gradient(to bottom, #333, #CCC;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204));
+}
+
+.good-preview-image-urls {
+    background: "http://example.com/image.gif";
+    background: "http://example.com/image.png";
+    background: "http://example.com/image.jpe";
+    background: "http://example.com/image.jpeg";
+    background: "http://example.com/image.jpg";
+    background: "http://example.com/image.ico";
+    background: "http://example.com/image.bmp";
+    background: "http://example.com/image.svg";
+
+    background: "https://image.service.com/id/1234513";
+    background: "http://image.service.com/id/1234513";
+    background: "https://image.service.com/id/1234513?w=300&h=400";
+}
+
+.ignored-preview-image-urls {
+    background: "https://website.com/index.html";
+    background: "https://website.com/style.css";
+    background: "https://website.com/script.js";
+    background: "https://website.com/package.json";
+    background: "https://website.com/readme.md";
+    background: "https://website.com/data.xml";
+    background: "https://website.com/music.mp3";
+    background: "https://website.com/video.ogv";
+    background: "https://website.com/video.mp4";
+    background: "https://website.com/video.mpeg";
+    background: "https://website.com/video.webm";
+    background: "https://website.com/archive.zip";
+    background: "https://website.com/archive.tgz";
 }

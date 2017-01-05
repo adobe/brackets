@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+// Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"), 
@@ -30,7 +30,6 @@
 @menu-item-font-size: 13px; // individual menu items
 
 /* CSS triangles */
-@sidebar-triangle-size: 12px;
 @inline-triangle-size: 9px;
 
 /* Main layout */
@@ -44,16 +43,19 @@
 
 @z-index-brackets-ui: (@z-index-cm-max + 1);
 @z-index-brackets-results-panel: @z-index-brackets-ui;
-@z-index-brackets-selection-triangle: (@z-index-brackets-ui + 1);
-@z-index-brackets-scroller-shadow: (@z-index-brackets-selection-triangle + 1);
+@z-index-brackets-selection-extension: (@z-index-brackets-ui + 1);
+@z-index-brackets-scroller-shadow: (@z-index-brackets-selection-extension + 1);
 @z-index-brackets-inline-editor-shadow: @z-index-brackets-ui;
 @z-index-brackets-toolbar: (@z-index-brackets-ui + 1);
 @z-index-brackets-max: @z-index-brackets-toolbar;
 @z-index-brackets-modalbar: (@z-index-brackets-toolbar - 1);
+@z-index-brackets-main-toolbar: (@z-index-brackets-toolbar + 1);
 
 @z-index-brackets-sidebar-resizer: (@z-index-brackets-ui + 2);
 @z-index-brackets-resizer-div: (@z-index-brackets-sidebar-resizer + 1);
 @z-index-brackets-panel-resizer: (@z-index-brackets-ui + 2);
 
+@z-index-brackets-drag-ghost:            999;
 @z-index-brackets-context-menu-base:    1000;
 @z-index-brackets-stylesheet-menu:      1000;
+@z-index-brackets-inline-editor-error:  1000;

@@ -26,6 +26,11 @@
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
+    "file.reloadLivePreview": [
+        {
+            "key": "Ctrl-Shift-R"
+        }
+    ],
     "file.previewHighlight":  [
         "Ctrl-Shift-C"
     ],
@@ -65,37 +70,25 @@
             "platform": "mac"
         }
     ],
-    "edit.find":  [
-        "Ctrl-F"
-    ],
-    "edit.findInFiles":  [
-        "Ctrl-Shift-F"
-    ],
-    "edit.findNext":  [
+    "edit.splitSelIntoLines": [
         {
-            "key": "F3"
+           "key": "Ctrl-Alt-L"
         },
         {
-            "key": "Cmd-G",
-            "platform": "mac"
+           "key":"Ctrl-Shift-L",
+           "platform": "linux"
         }
     ],
-    "edit.findPrevious":  [
+    "edit.addCursorToPrevLine": [
         {
-            "key": "Shift-F3"
-        },
-        {
-            "key": "Cmd-Shift-G",
-            "platform": "mac"
+            "key": "Shift-Alt-Up",
+            "displayKey": "Shift-Alt-↑"
         }
     ],
-    "edit.replace":  [
+    "edit.addCursorToNextLine": [
         {
-            "key": "Ctrl-H"
-        },
-        {
-            "key": "Cmd-Alt-F",
-            "platform": "mac"
+            "key": "Shift-Alt-Down",
+            "displayKey": "Shift-Alt-↓"
         }
     ],
     "edit.indent":  [
@@ -163,23 +156,89 @@
             "platform": "mac"
         }
     ],
-    "view.hideSidebar":  [
-        "Ctrl-Shift-H"
+    "cmd.find":  [
+        "Ctrl-F"
+    ],
+    "cmd.findInFiles":  [
+        "Ctrl-Shift-F"
+    ],
+    "cmd.replaceInFiles":  [
+        {
+            "key": "Ctrl-Shift-H"
+        },
+        {
+            "key": "Cmd-Opt-Shift-F",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findNext":  [
+        {
+            "key": "F3"
+        },
+        {
+            "key": "Cmd-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findPrevious":  [
+        {
+            "key": "Shift-F3"
+        },
+        {
+            "key": "Cmd-Shift-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findAllAndSelect": [
+        {
+            "key": "Alt-F3"
+        },
+        {
+            "key": "Cmd-Ctrl-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.addNextMatch": [
+        {
+            "key": "Ctrl-B"
+        }
+    ],
+    "cmd.skipCurrentMatch": [
+        {
+            "key": "Ctrl-Shift-B"
+        }
+    ],
+    "cmd.replace":  [
+        {
+            "key": "Ctrl-H"
+        },
+        {
+            "key": "Cmd-Opt-F",
+            "platform": "mac"
+        }
+    ],
+    "view.toggleSidebar":  [
+        {   
+            "key" : "Ctrl-Alt-H"
+        },
+        {
+            "key": "Cmd-Shift-H",
+            "platform": "mac"
+        }
     ],
     "view.increaseFontSize":  [
         {
             "key": "Ctrl-=",
-            "displayKey": "Cmd-+"
+            "displayKey": "Ctrl-+"
         },
         {
-            "key": "Ctrl-+",
-            "displayKey": "Cmd-+"
+            "key": "Ctrl-+"
         }
     ],
     "view.decreaseFontSize":  [
         {
             "key": "Ctrl--",
-            "displayKey": "Cmd-−"
+            "displayKey": "Ctrl-−"
         }
     ],
     "view.restoreFontSize":  [
@@ -191,8 +250,8 @@
             "displayKey": "Ctrl-\u2191"
         },
         {
-            "key": "Ctrl-Alt-Up",
-            "displayKey": "Ctrl-Alt-\u2191",
+            "key": "Ctrl-Opt-Up",
+            "displayKey": "Ctrl-Opt-\u2191",
             "platform": "mac"
         }
     ],
@@ -202,8 +261,8 @@
             "displayKey": "Ctrl-\u2193"
         },
         {
-            "key": "Ctrl-Alt-Down",
-            "displayKey": "Ctrl-Alt-\u2193",
+            "key": "Ctrl-Opt-Down",
+            "displayKey": "Ctrl-Opt-\u2193",
             "platform": "mac"
         }
     ],
@@ -234,30 +293,14 @@
             "platform": "mac"
         }
     ],
-    "navigate.nextDoc":  [
+    "navigate.nextDocListOrder":  [
         {
-            "key": "Ctrl-Tab"
-        },
-        {
-            "key": "Ctrl-Tab",
-            "platform": "mac"
-        },
-        {
-            "key": "Cmd-Shift-]",
-            "platform": "mac"
+            "key": "Ctrl-PageDown"
         }
     ],
-    "navigate.prevDoc":  [
+    "navigate.prevDocListOrder":  [
         {
-            "key": "Ctrl-Shift-Tab"
-        },
-        {
-            "key": "Ctrl-Shift-Tab",
-            "platform": "mac"
-        },
-        {
-            "key": "Cmd-Shift-[",
-            "platform": "mac"
+            "key": "Ctrl-PageUp"
         }
     ],
     "navigate.toggleQuickEdit":  [
@@ -279,9 +322,12 @@
         }
     ],
     "navigate.newRule":  [
-        "Cmd-Alt-N"
+        "Ctrl-Alt-N"
     ],
     "file.rename":  [
         "F2"
+    ],
+    "help.support": [
+        "F1"
     ]
 }

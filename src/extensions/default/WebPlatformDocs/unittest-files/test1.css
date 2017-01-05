@@ -3,4 +3,6 @@
     {{3}}does-not-exist: 0;
     /* {{5}}color: #000 */
     background: border{{4}};
+    {{6}}-webkit-animation: none;
+    {{7}}-border-width: 2px;
 }

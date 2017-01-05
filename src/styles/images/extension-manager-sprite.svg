@@ -1,0 +1,8 @@
+<svg width="24" height="120" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <path id="block" transform="translate(3 6)" d="M7 2.25C7 .75 6.53 0 4.97 0C3.47 0 3 .81 3 2.25L3 3L2 3C.44 3 0 3.75 0 5.25L0 11.25C0 12.78 .44 13.04 2 13.04L16 13.04C17.56 13.04 18 12.78 18 11.25L18 5.25C18 3.75 17.56 3 16 3L15 3L15 2.25C15 .81 14.47 0 12.97 0C11.41 0 11 .75 11 2.25L11 3L7 3L7 2.25L7 2.25"/>
+    </defs>
+    <use xlink:href="#block" fill="#bbb"/>
+    <use xlink:href="#block" fill="#91cc41" transform="translate(0 24)"/>
+    <circle cx="21" cy="30" r="2" fill="#91cc41"/>
+</svg>

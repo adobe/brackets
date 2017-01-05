@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, XMLHttpRequest, window */
+/*jslint regexp: true */
 
 /**
  * RemoteAgent defines and provides an interface for custom remote functions
@@ -35,9 +33,8 @@
 define(function RemoteAgent(require, exports, module) {
     "use strict";
 
-    var $exports = $(exports);
-
     var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        EventDispatcher = require("utils/EventDispatcher"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
@@ -50,7 +47,7 @@ define(function RemoteAgent(require, exports, module) {
         // res = {nodeId, name, value}
         var matches = /^data-ld-(.*)/.exec(res.name);
         if (matches) {
-            $exports.triggerHandler(matches[1], res);
+            exports.trigger(matches[1], res);
         }
     }
 
@@ -122,24 +119,22 @@ define(function RemoteAgent(require, exports, module) {
         }, 1000);
     }
 
-    /**
-     * @private
-     * Cancel the keepAlive interval if the page reloads
-     */
-    function _onFrameStartedLoading(event, res) {
-        _stopKeepAliveInterval();
-    }
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
+        // res = {frame}
+        // Re-inject RemoteFunctions when navigating to a new page, but not if an iframe was loaded
+        if (res.frame.parentId) {
+            return;
+        }
 
-    // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(event, res) {
-        // res = {timestamp}
+        _stopKeepAliveInterval();
 
         // inject RemoteFunctions
         var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
 
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
-                _load.reject(null, response.error);
+                _load.reject(response.error);
             } else {
                 _objectId = response.result.objectId;
                 _load.resolve();
@@ -152,19 +147,22 @@ define(function RemoteAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        $(Inspector.Page).on("loadEventFired.RemoteAgent", _onLoadEventFired);
-        $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _onFrameStartedLoading);
-        $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
+        Inspector.Page.on("frameNavigated.RemoteAgent", _onFrameNavigated);
+        Inspector.Page.on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
+        Inspector.DOM.on("attributeModified.RemoteAgent", _onAttributeModified);
 
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".RemoteAgent");
-        $(Inspector.DOM).off(".RemoteAgent");
+        Inspector.Page.off(".RemoteAgent");
+        Inspector.DOM.off(".RemoteAgent");
         _stopKeepAliveInterval();
     }
+
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.call = call;

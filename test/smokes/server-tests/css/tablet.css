@@ -1,47 +1,47 @@
 @charset "utf-8";
 #container {
-	width:700px;
+	width: 700px;
 }
 #logo {
-	background-image:url(../images/med_logo.png);
-	height:100px;
+	background-image: url(../images/med_logo.png);
+	height: 100px;
 }
 nav {
-	padding-top:110px;
+	padding-top: 110px;
 }
 nav ul {
-	font-size:18px;
+	font-size: 18px;
 }
 nav ul a {
-	width:114px;
+	width: 114px;
 }
 #maincontent {
+	margin-left: 5px;
 	padding: 0;
-	margin-left:5px;
 	width: 700px;
 }
 #vision {
-	background-image:url(../images/med_hero.jpg);
+	background-image: url(../images/med_hero.jpg);
+	font-size: 26px;
+	height: 217px;
+	padding-top: 45px;
+	padding-right: 350px;
 	width: 289px;
-	height:217px;
-	padding-top:45px;
-	padding-right:350px;
-	font-size:26px;
 }
 .pod {
 	width: 305px;
 }
 .podContent {
 	width: 302px;
-	height:180px;
+	height: 180px;
 }
 #events {
-	margin-left:7px;
+	margin-left: 7px;
 }
 #news {
-	width:650px;
-	margin-top:20px;
+	margin-top: 20px;
+	width: 650px;
 }
 footer p {
-	margin-left:5px;
+	margin-left: 5px;
 }

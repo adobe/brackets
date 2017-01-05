@@ -1,0 +1,209 @@
+// Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
+/*
+ * Brackets Colors
+ *
+ * These are general purpose colors that can be used in defining
+ * themes or UI elements.
+ 
+ * IMPORTANT: IF we want a UI element to be themeable, these variable names or
+ * color literals (#aaa) should not be used in its definition.
+ *
+ * Instead, a new semantically-meaningful variables/mixins should be added
+ * to the "brackets_theme_default.less" file, and then these variables/mixins
+ * should be used in the definition of the UI element
+ *
+ * For UI elements we do NOT want to theme, we should use these color names
+ *
+ * All brackets color variable names (that refer to an actual color)
+ * are prefixed with "bc-" for "brackets". This is to avoid confusion
+ * with system and css color names. (We define our own colors because system
+ * colors are ugly.)
+ */
+
+// General
+@bc-bg-highlight:               #e0f0fa;
+@bc-bg-inline-widget:           #e6e9e9;
+@bc-bg-tool-bar:                #5D5F60;
+@bc-bg-status-bar:              #fff;
+@bc-disabled-opacity:           0.3;
+@bc-error:                      #f74687;
+@bc-modal-backdrop-opacity:     0.4;
+@bc-spinner:                    #78b2f2;
+
+// Highlights and Shadows
+@bc-highlight:                  rgba(255, 255, 255, 0.12);
+@bc-highlight-hard:             rgba(255, 255, 255, 0.5);
+@bc-shadow:                     rgba(0, 0, 0, 0.24);
+@bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+// Border Radius
+@bc-border-radius:              3px;
+@bc-border-radius-large:        5px;
+@bc-border-radius-small:        2px;
+
+// Menu
+@bc-menu-bg:                    #fff;
+@bc-menu-text:                  #000;
+@bc-menu-separator:             #eaeaea;
+
+// Warning
+@bc-warning-bg:                 #fdf5cc;
+@bc-warning-text:               #635301;
+
+// Text
+@bc-text:                       #333;
+@bc-text-alt:                   #fff;
+@bc-text-emphasized:            #111;
+@bc-text-link:                  #0083e8;
+@bc-text-medium:                #606060;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin:                  #000;
+@bc-text-thin-quiet:            #777;
+
+// Panel
+@bc-panel-bg:                   #dfe2e2;
+@bc-panel-bg-alt:               #e6e9e9;
+@bc-panel-bg-promoted:          #d4d7d7;
+@bc-panel-bg-hover:             rgba(255, 255, 255, 0.6);
+@bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.04);
+@bc-panel-bg-selected:          #d0d5d5;
+@bc-panel-bg-text-highlight:    #fff;
+@bc-panel-border:               rgba(0, 0, 0, 0.09);
+@bc-panel-separator:            #c3c6c5;
+
+// Default Button
+@bc-btn-bg:                     #e5e9e9;
+@bc-btn-bg-down:                #d3d7d7;
+@bc-btn-bg-down-alt:            #404141;
+@bc-btn-border:                 #b2b5b5;
+@bc-btn-border-error:           #fa689d;
+@bc-btn-border-error-glow:      #ffb0cd;
+@bc-btn-border-focused:         #2893ef;
+@bc-btn-border-focused-glow:    #94ceff;
+@bc-btn-triangle:               #9b9b9b;
+@bc-input-bg:                   #fff;
+
+// Primary Button
+@bc-primary-btn-bg:             #288edf;
+@bc-primary-btn-bg-down:        #0380e8;
+@bc-primary-btn-border:         #1474bf;
+
+// Secondary Button
+@bc-secondary-btn-bg:           #91cc41;
+@bc-secondary-btn-bg-down:      #82b839;
+@bc-secondary-btn-border:       #74B120;
+
+// Sidebar
+@bc-sidebar-bg:                 #3C3F41;
+@bc-sidebar-selection:          #2D2E30;
+
+// images
+@button-icon:                   "images/find-replace-sprites.svg";
+@jstree-sprite:                 url("images/jsTreeSprites.svg") !important;
+
+
+
+/* Dark Core UI variables -----------------------------------------------------------------------------*/
+
+// General
+@dark-bc-bg-highlight:               #284160;
+@dark-bc-bg-inline-widget:           #1b1b1b;
+@dark-bc-bg-tool-bar:                #5D5F60;
+@dark-bc-bg-status-bar:              #1c1c1e;
+@dark-bc-disabled-opacity:           0.3;
+@dark-bc-error:                      #f74687;
+@dark-bc-modal-backdrop-opacity:     0.7;
+@dark-bc-spinner:                    #2b85ea;
+
+// Highlights and Shadows
+@dark-bc-highlight:                  rgba(255, 255, 255, 0.06);
+@dark-bc-highlight-hard:             rgba(255, 255, 255, 0.2);
+@dark-bc-shadow:                     rgba(0, 0, 0, 0.24);
+@dark-bc-shadow-medium:              rgba(0, 0, 0, 0.12);
+@dark-bc-shadow-large:               rgba(0, 0, 0, 0.5);
+@dark-bc-shadow-small:               rgba(0, 0, 0, 0.06);
+
+// Border Radius
+@dark-bc-border-radius:              3px;
+@dark-bc-border-radius-large:        5px;
+@dark-bc-border-radius-small:        2px;
+
+// Menu
+@dark-bc-menu-bg:                    #000;
+@dark-bc-menu-text:                  #fff;
+@dark-bc-menu-separator:             #343434;
+
+// Warning
+@dark-bc-warning-bg:                 #c95800;
+@dark-bc-warning-text:               #fff;
+
+// Text
+@dark-bc-text:                       #ccc;
+@dark-bc-text-alt:                   #fff;
+@dark-bc-text-emphasized:            #fff;
+@dark-bc-text-link:                  #6bbeff;
+@dark-bc-text-medium:                #ccc;
+@dark-bc-text-quiet:                 #9a9a9a;
+@dark-bc-text-thin:                  #fff;
+@dark-bc-text-thin-quiet:            #bbb;
+
+// Panel
+@dark-bc-panel-bg:                   #2c2c2c;
+@dark-bc-panel-bg-alt:               #313131;
+@dark-bc-panel-bg-promoted:          #222;
+@dark-bc-panel-bg-hover:             rgba(255, 255, 255, 0.12);
+@dark-bc-panel-bg-hover-alt:         rgba(0, 0, 0, 0.1);
+@dark-bc-panel-bg-selected:          #3d3e40;
+@dark-bc-panel-bg-text-highlight:    #000;
+@dark-bc-panel-border:               #000;
+@dark-bc-panel-separator:            #343434;
+
+// Default Button
+@dark-bc-btn-bg:                     #3f3f3f;
+@dark-bc-btn-bg-down:                #383838;
+@dark-bc-btn-bg-down-alt:            #404141;
+@dark-bc-btn-border:                 #202020;
+@dark-bc-btn-border-error:           #fa689d;
+@dark-bc-btn-border-error-glow:      transparent;
+@dark-bc-btn-border-focused:         #2893ef;
+@dark-bc-btn-border-focused-glow:    transparent;
+@dark-bc-btn-triangle:               #767676;
+@dark-bc-input-bg:                   #555;
+
+// Primary Button
+@dark-bc-primary-btn-bg:             #016dc4;
+@dark-bc-primary-btn-bg-down:        #00569b;
+@dark-bc-primary-btn-border:         #202020;
+
+// Secondary Button
+@dark-bc-secondary-btn-bg:           #5b9e00;
+@dark-bc-secondary-btn-bg-down:      #437900;
+@dark-bc-secondary-btn-border:       #202020;
+
+// Sidebar
+@dark-bc-sidebar-bg:                 #3C3F41;
+@dark-bc-sidebar-selection:          #2D2E30;
+
+// images
+@dark-button-icon:                   "images/find-replace-sprites-dark.svg";
+@dark-jstree-sprite:                 url("images/jsTreeSprites-dark.svg") !important;

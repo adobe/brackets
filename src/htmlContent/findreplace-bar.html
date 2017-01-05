@@ -1,17 +1,40 @@
-<div id="find-group"><!--
-    --><div class="search-input-container"><input type="text" id="find-what"/><div class="error"></div><span id="find-counter"></span></div><!--
-    --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
-    --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
-    --><div class="navigator"><!--
-        --><button id="find-prev" class="btn no-focus" tabindex="-1" title="{{BUTTON_PREV_HINT}}">{{BUTTON_PREV}}</button><!--
-        --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{BUTTON_NEXT_HINT}}">{{BUTTON_NEXT}}</button><!--
-    --></div><!--
---></div><!--
+<div class="find-input-group">
+    <div id="find-group"><!--
+        --><div class="search-input-container"><input type="text" id="find-what" placeholder="{{queryPlaceholder}}" value="{{initialQuery}}" /><div class="error"></div><span id="find-counter"></span></div><!--
+        --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
+        --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
+        {{^multifile}}
+        --><div class="navigator"><!--
+            --><button id="find-prev" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_PREV_HINT}}">{{Strings.BUTTON_PREV}}</button><!--
+            --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_NEXT_HINT}}">{{Strings.BUTTON_NEXT}}</button><!--
+        --></div><!--
+        {{/multifile}}
+    --></div>
 
-{{#replace}}
---><div id="replace-group"><!--
-    --><input type="text" id="replace-with" placeholder="{{REPLACE_PLACEHOLDER}}"/><!--
-    --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{BUTTON_REPLACE}}</button><!--
-    --><button id="replace-all" class="btn no-focus" tabindex="-1">{{BUTTON_REPLACE_ALL}}</button><!--
---></div>
-{{/replace}}
+    {{#replace}}
+    <div id="replace-group" {{#scope}}class="has-scope"{{/scope}}><!--
+        --><input type="text" id="replace-with" placeholder="{{Strings.REPLACE_PLACEHOLDER}}" value="{{initialReplaceText}}" /><!--
+        {{^multifile}}
+        --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{Strings.BUTTON_REPLACE}}</button><!--
+        {{/multifile}}
+        --><button id="replace-batch" class="btn no-focus {{#multifile}}solo{{/multifile}}" tabindex="-1">{{replaceBatchLabel}}</button><!--
+        {{^multifile}}
+        --><button id="replace-all" class="btn no-focus" tabindex="-1">{{replaceAllLabel}}</button><!--
+        {{/multifile}}
+        --></div>
+    {{/replace}}
+</div>
+
+{{#multifile}}
+<div class="scope-group">
+    <div class="no-results-message">{{Strings.FIND_NO_RESULTS}}</div>
+    <div class="message">
+        <span id="searchlabel">{{{scopeLabel}}}</span>
+    </div>
+    <!-- For Find in Files, the filter picker will be added here programmatically. -->
+</div>
+<div id="indexing-spinner" class="indexing-group forced-hidden">
+    <div class="spinner inline spin"></div>
+    <div class="indexing-message">{{Strings.FIND_IN_FILES_INDEXING}}</div>
+</div>
+{{/multifile}}

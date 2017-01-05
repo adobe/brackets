@@ -1,43 +1,39 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
     "use strict";
-    
-    var DocumentManager = require("document/DocumentManager"),
-        Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
-        MurmurHash3     = require("thirdparty/murmurhash3_gc"),
-        PerfUtils       = require("utils/PerfUtils");
-    
+
+    var Tokenizer   = require("language/HTMLTokenizer").Tokenizer,
+        MurmurHash3 = require("thirdparty/murmurhash3_gc"),
+        PerfUtils   = require("utils/PerfUtils");
+
     var seed = Math.floor(Math.random() * 65535);
-    
+
     var tagID = 1;
-    
+
     /**
      * A list of tags whose start causes any of a given set of immediate parent
      * tags to close. This mostly comes from the HTML5 spec section on omitted close tags:
@@ -52,10 +48,14 @@ define(function (require, exports, module) {
         article : { p: true },
         aside   : { p: true },
         blockquote : { p: true },
+        colgroup: { caption: true },
+        details : { p: true },
         dir     : { p: true },
         div     : { p: true },
         dl      : { p: true },
         fieldset: { p: true },
+        figcaption: { p: true },
+        figure  : { p: true },
         footer  : { p: true },
         form    : { p: true },
         h1      : { p: true },
@@ -76,17 +76,48 @@ define(function (require, exports, module) {
         section : { p: true },
         table   : { p: true },
         ul      : { p: true },
-        rt      : { rp: true, rt: true },
-        rp      : { rp: true, rt: true },
+        rb      : { rb: true, rt: true, rtc: true, rp: true },
+        rp      : { rb: true, rt: true, rp: true },
+        rt      : { rb: true, rt: true, rp: true },
+        rtc     : { rb: true, rt: true, rtc: true, rp: true },
         optgroup: { optgroup: true, option: true },
         option  : { option: true },
-        tbody   : { thead: true, tbody: true, tfoot: true },
-        tfoot   : { tbody: true },
-        tr      : { tr: true, th: true, td: true },
+        tbody   : { caption: true, colgroup: true, thead: true, tbody: true, tfoot: true, },
+        tfoot   : { caption: true, colgroup: true, thead: true, tbody: true },
+        thead   : { caption: true, colgroup: true },
+        tr      : { tr: true, th: true, td: true, caption: true },
         th      : { th: true, td: true },
-        td      : { thead: true, th: true, td: true },
-        body    : { head: true, link: true, script: true }
+        td      : { th: true, td: true },
+        body    : { head: true }
     };
+
+    /**
+     * A list of elements which are automatically closed when their parent is closed:
+     * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
+     */
+    var optionalClose = {
+      html: true,
+      body: true,
+      li: true,
+      dd: true,
+      dt: true, // This is not actually correct, but showing a syntax error is not helpful
+      p: true,
+      rb: true,
+      rt: true,
+      rtc: true,
+      rp: true,
+      optgroup: true,
+      option: true,
+      colgroup: true,
+      caption: true,
+      tbody: true,
+      tfoot: true,
+      tr: true,
+      td: true,
+      th: true
+    };
+
+    // TODO: handle optional start tags
 
     /**
      * A list of tags that are self-closing (do not contain other elements).
@@ -114,23 +145,23 @@ define(function (require, exports, module) {
         track: true,
         wbr: true
     };
-    
+
     /**
-     * @constructor
-     *
      * A SimpleNode represents one node in a SimpleDOM tree. Each node can have
      * any set of properties on it, though there are a couple of assumptions made.
      * Elements will have `children` and `attributes` properties. Text nodes will have a `content`
      * property. All Elements will have a `tagID` and text nodes *can* have one.
+     *
+     * @constructor
      *
      * @param {Object} properties the properties provided will be set on the new object.
      */
     function SimpleNode(properties) {
         $.extend(this, properties);
     }
-    
+
     SimpleNode.prototype = {
-        
+
         /**
          * Updates signatures used to optimize the number of comparisons done during
          * diffing. This is important to call if you change:
@@ -162,7 +193,7 @@ define(function (require, exports, module) {
                 this.textSignature = MurmurHash3.hashString(this.content, this.content.length, seed);
             }
         },
-        
+
         /**
          * Updates the signature of this node's attributes. Call this after making attribute changes.
          */
@@ -170,7 +201,7 @@ define(function (require, exports, module) {
             var attributeString = JSON.stringify(this.attributes);
             this.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, seed);
         },
-        
+
         /**
          * Is this node an element node?
          *
@@ -179,7 +210,7 @@ define(function (require, exports, module) {
         isElement: function () {
             return !!this.children;
         },
-        
+
         /**
          * Is this node a text node?
          *
@@ -189,7 +220,7 @@ define(function (require, exports, module) {
             return !this.children;
         }
     };
-    
+
     /**
      * @private
      *
@@ -206,7 +237,7 @@ define(function (require, exports, module) {
         }
         return textNode.parent.children[childIndex - 1].tagID + "t";
     }
-    
+
     /**
      * @private
      *
@@ -215,7 +246,7 @@ define(function (require, exports, module) {
     function _addPos(pos1, pos2) {
         return {line: pos1.line + pos2.line, ch: (pos2.line === 0 ? pos1.ch + pos2.ch : pos2.ch)};
     }
-    
+
     /**
      * @private
      *
@@ -225,14 +256,14 @@ define(function (require, exports, module) {
     function _offsetPos(pos, offset) {
         return {line: pos.line, ch: pos.ch + offset};
     }
-    
+
     /**
-     * @constructor
-     *
      * A Builder creates a SimpleDOM tree of SimpleNode objects representing the
      * "important" contents of an HTML document. It does not include things like comments.
      * The nodes include information about their position in the text provided.
-     * 
+     *
+     * @constructor
+     *
      * @param {string} text The text to parse
      * @param {?int} startOffset starting offset in the text
      * @param {?{line: int, ch: int}} startOffsetPos line/ch position in the text
@@ -250,7 +281,7 @@ define(function (require, exports, module) {
         var error       = { token: token },
             startPos    = token ? (token.startPos || token.endPos) : this.startOffsetPos,
             endPos      = token ? token.endPos : this.startOffsetPos;
-        
+
         error.startPos = _addPos(this.startOffsetPos, startPos);
         error.endPos = _addPos(this.startOffsetPos, endPos);
 
@@ -260,7 +291,7 @@ define(function (require, exports, module) {
 
         this.errors.push(error);
     };
-    
+
     /**
      * Builds the SimpleDOM.
      *
@@ -274,24 +305,27 @@ define(function (require, exports, module) {
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
-                
+
         markCache = markCache || {};
-        
+
         // Start timers for building full and partial DOMs.
         // Appropriate timer is used, and the other is discarded.
         var timerBuildFull = "HTMLInstr. Build DOM Full";
         var timerBuildPart = "HTMLInstr. Build DOM Partial";
-        PerfUtils.markStart([timerBuildFull, timerBuildPart]);
-        
+        var timers; // timer handles
+        timers = PerfUtils.markStart([timerBuildFull, timerBuildPart]);
+        timerBuildFull = timers[0];
+        timerBuildPart = timers[1];
+
         function closeTag(endIndex, endPos) {
             lastClosedTag = stack[stack.length - 1];
             stack.pop();
             lastClosedTag.update();
-            
+
             lastClosedTag.end = self.startOffset + endIndex;
             lastClosedTag.endPos = _addPos(self.startOffsetPos, endPos);
         }
-        
+
         while ((token = this.t.nextToken()) !== null) {
             // lastTextNode is used to glue text nodes together
             // If the last node we saw was text but this one is not, then we're done gluing.
@@ -299,7 +333,7 @@ define(function (require, exports, module) {
             if (token.type !== "text" && token.type !== "comment" && lastTextNode) {
                 lastTextNode = null;
             }
-            
+
             if (token.type === "error") {
                 PerfUtils.finalizeMeasurement(timerBuildFull);  // discard
                 PerfUtils.addMeasurement(timerBuildPart);       // use
@@ -308,7 +342,7 @@ define(function (require, exports, module) {
             } else if (token.type === "opentagname") {
                 var newTagName = token.contents.toLowerCase(),
                     newTag;
-                
+
                 if (openImpliesClose.hasOwnProperty(newTagName)) {
                     var closable = openImpliesClose[newTagName];
                     while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
@@ -317,7 +351,7 @@ define(function (require, exports, module) {
                         closeTag(token.start - 1, _offsetPos(token.startPos, -1));
                     }
                 }
-                
+
                 newTag = new SimpleNode({
                     tag: token.contents.toLowerCase(),
                     children: [],
@@ -327,20 +361,20 @@ define(function (require, exports, module) {
                     startPos: _addPos(this.startOffsetPos, _offsetPos(token.startPos, -1)) // ok because we know the previous char was a "<"
                 });
                 newTag.tagID = this.getID(newTag, markCache);
-                
+
                 // During undo in particular, it's possible that tag IDs may be reused and
                 // the marks in the document may be misleading. If a tag ID has been reused,
                 // we apply a new tag ID to ensure that our edits come out correctly.
                 if (nodeMap[newTag.tagID]) {
                     newTag.tagID = this.getNewID();
                 }
-                
+
                 nodeMap[newTag.tagID] = newTag;
                 if (newTag.parent) {
                     newTag.parent.children.push(newTag);
                 }
                 this.currentTag = newTag;
-                
+
                 if (voidElements.hasOwnProperty(newTag.tag)) {
                     // This is a self-closing element.
                     newTag.update();
@@ -383,13 +417,6 @@ define(function (require, exports, module) {
                             break;
                         }
                     }
-                    if (strict && i !== stack.length - 1) {
-                        // If we're in strict mode, treat unbalanced tags as invalid.
-                        PerfUtils.finalizeMeasurement(timerBuildFull);
-                        PerfUtils.addMeasurement(timerBuildPart);
-                        this._logError(token);
-                        return null;
-                    }
                     if (i >= 0) {
                         do {
                             // For all tags we're implicitly closing (before we hit the matching tag), we want the
@@ -400,6 +427,13 @@ define(function (require, exports, module) {
                             if (stack.length === i + 1) {
                                 closeTag(token.end + 1, _offsetPos(token.endPos, 1));
                             } else {
+                                if (strict && !optionalClose.hasOwnProperty(stack[stack.length - 1].tag)) {
+                                    // If we're in strict mode, treat unbalanced tags as invalid.
+                                    PerfUtils.finalizeMeasurement(timerBuildFull);
+                                    PerfUtils.addMeasurement(timerBuildPart);
+                                    this._logError(token);
+                                    return null;
+                                }
                                 closeTag(token.start - 2, _offsetPos(token.startPos, -2));
                             }
                         } while (stack.length > i);
@@ -426,7 +460,7 @@ define(function (require, exports, module) {
                 if (stack.length) {
                     var parent = stack[stack.length - 1];
                     var newNode;
-                    
+
                     // Check to see if we're continuing a previous text.
                     if (lastTextNode) {
                         newNode = lastTextNode;
@@ -441,33 +475,25 @@ define(function (require, exports, module) {
                         nodeMap[newNode.tagID] = newNode;
                         lastTextNode = newNode;
                     }
-                    
+
                     newNode.update();
                 }
             }
             lastIndex = token.end;
         }
-        
-        // If we have any tags hanging open (e.g. html or body), fail the parse if we're in strict mode,
+
+        // If we have any tags hanging open, fail the parse if we're in strict mode,
         // otherwise close them at the end of the document.
-        if (stack.length) {
-            if (strict) {
+        while (stack.length) {
+            if (strict && !optionalClose.hasOwnProperty(stack[stack.length - 1].tag)) {
                 PerfUtils.finalizeMeasurement(timerBuildFull);
                 PerfUtils.addMeasurement(timerBuildPart);
                 this._logError(token);
                 return null;
-            } else {
-                // Manually compute the position of the end of the text (we can't rely on the
-                // tokenizer for this since it may not get to the very end)
-                // TODO: should probably make the tokenizer get to the end...
-                var lines = this.text.split("\n"),
-                    lastPos = {line: lines.length - 1, ch: lines[lines.length - 1].length};
-                while (stack.length) {
-                    closeTag(this.text.length, lastPos);
-                }
             }
+            closeTag(this.text.length, this.t._indexPos);
         }
-        
+
         var dom = lastClosedTag;
         if (!dom) {
             // This can happen if the document has no nontrivial content, or if the user tries to
@@ -476,14 +502,14 @@ define(function (require, exports, module) {
             this._logError(token);
             return null;
         }
-        
+
         dom.nodeMap = nodeMap;
         PerfUtils.addMeasurement(timerBuildFull);       // use
         PerfUtils.finalizeMeasurement(timerBuildPart);  // discard
-        
+
         return dom;
     };
-    
+
     /**
      * Returns a new tag ID.
      *
@@ -492,9 +518,9 @@ define(function (require, exports, module) {
     Builder.prototype.getNewID = function () {
         return tagID++;
     };
-    
+
     /**
-     * Returns the best tag ID for the new tag object given. 
+     * Returns the best tag ID for the new tag object given.
      * The default implementation just calls `getNewID`
      * and returns a unique ID.
      *
@@ -502,7 +528,7 @@ define(function (require, exports, module) {
      * @return {int} unique tag ID
      */
     Builder.prototype.getID = Builder.prototype.getNewID;
-    
+
     /**
      * Builds a SimpleDOM from the text provided. If `strict` mode is true, parsing
      * will halt as soon as any error is seen and null will be returned.
@@ -515,7 +541,7 @@ define(function (require, exports, module) {
         var builder = new Builder(text);
         return builder.build(strict);
     }
-    
+
     /**
      * @private
      *
@@ -527,7 +553,7 @@ define(function (require, exports, module) {
     function _dumpDOM(root) {
         var result = "",
             indent = "";
-        
+
         function walk(node) {
             if (node.tag) {
                 result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
@@ -541,15 +567,15 @@ define(function (require, exports, module) {
             }
         }
         walk(root);
-        
+
         return result;
     }
-    
+
     // Public API
     exports.build                       = build;
     exports.Builder                     = Builder;
     exports.SimpleNode                  = SimpleNode;
-    
+
     // Private API
     exports._dumpDOM                    = _dumpDOM;
     exports._offsetPos                  = _offsetPos;

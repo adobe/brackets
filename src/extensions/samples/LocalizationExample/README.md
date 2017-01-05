@@ -44,21 +44,23 @@ For an example of a simple localized plugin see: brackets\src\extensions\disable
 
 Move this plugin to the extensions\user\ folder to run the plugin. It will add a "My New Command" menu item to the end of the Edit menu. This command shows an alert with localized text and then a modal dialog with localized HTML content.
 
-#### Below is the folder struture and comments on the role of each file
+#### Below is the folder structure and comments on the role of each file
 
 * main.js – loads the Strings module for the plugin and uses mustache to localize html content
+
+* package.json - add the translation languages as in the example: `"i18n": ["en", "fr" ]`.  Also, add any localized metadata for displayed metadata in the Extension Manager, as in the example: `"fr": { "title": "localized title" }`.
 
 * strings.js – uses i18n to load a strings.js file in the nls folder
 
 * htmlContent
     * htmlfragment.html – html template to be localized by mustache
-    * nls
-        * strings.js – configures i18n by specifying the root folder  and listing the locales supported by the plugin
-        * root
-		    * strings.js – contains the English strings
-	    * fr
-		    * strings.js – contains the French strings
-	    * etc. for each locale
+* nls
+    * strings.js – configures i18n by specifying the  root folder and listing the locales supported by the plugin
+    * root
+        * strings.js – contains the English strings
+    * fr
+        * strings.js – contains the French strings
+    * etc. for each locale
 
 #### Strings for plugins vs Brackets
 Note that there is a distinction between loading strings for a plugin vs. strings in the Brackets core. To access strings local to your plugin use `var strings = require("strings")`. To load the core Brackets strings use `var bracketsStrings = brackets.getModule("strings")`

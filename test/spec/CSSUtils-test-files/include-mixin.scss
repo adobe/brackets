@@ -1,0 +1,34 @@
+.sidebar {
+	//background: white;
+	position: fixed;
+	width: 220px;
+	height: 100%;
+	padding: 20px 40px 0;
+	font-size: 90%;
+	border-right: 1px solid $cauldron-border;
+	@include box-sizing(border-box);
+
+	@include breakpoint(small) {
+		display: none;
+	}
+
+	@include breakpoint(large) {
+		width: 190px;
+	}
+
+	h3 {
+		padding-bottom: 8px;
+		margin-bottom: 0;
+	}
+
+	a {
+		color: #777;
+		text-decoration: none;
+		font-weight: 500;
+		display: block;
+		line-height: 1.72;
+		&:hover {
+			color: black;
+		}
+	}
+}

@@ -1,36 +1,32 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
 
 /**
  * Utilities for working with Deferred, Promise, and other asynchronous processes.
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Further ideas for Async utilities...
     //  - Utilities for blocking UI until a Promise completes?
     //  - A "SuperDeferred" could feature some very useful enhancements:
@@ -43,7 +39,7 @@ define(function (require, exports, module) {
     //    wrap every async callback (including low-level native ones that don't use [Super]Deferred)
     //    to catch exceptions, and then understand which Deferred(s) the code *would* have resolved/
     //    rejected had it run to completion.
-    
+
 
     /**
      * Executes a series of tasks in parallel, returning a "master" Promise that is resolved once
@@ -90,18 +86,18 @@ define(function (require, exports, module) {
     function doInParallel(items, beginProcessItem, failFast) {
         var promises = [];
         var masterDeferred = new $.Deferred();
-        
+
         if (items.length === 0) {
             masterDeferred.resolve();
-            
+
         } else {
             var numCompleted = 0;
             var hasFailed = false;
-            
+
             items.forEach(function (item, i) {
                 var itemPromise = beginProcessItem(item, i);
                 promises.push(itemPromise);
-                
+
                 itemPromise.fail(function () {
                     if (failFast) {
                         masterDeferred.reject();
@@ -120,12 +116,12 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
+
         }
-        
+
         return masterDeferred.promise();
     }
-    
+
     /**
      * Executes a series of tasks in serial (task N does not begin until task N-1 has completed).
      * Returns a "master" Promise that is resolved once all the tasks have resolved. If one or more
@@ -157,7 +153,7 @@ define(function (require, exports, module) {
      *
      * To perform task-specific work after an individual task completes, attach handlers to each
      * Promise before beginProcessItem() returns it.
-     * 
+     *
      * @param {!Array.<*>} items
      * @param {!function(*, number):Promise} beginProcessItem
      * @param {!boolean} failAndStopFast
@@ -167,7 +163,7 @@ define(function (require, exports, module) {
 
         var masterDeferred = new $.Deferred(),
             hasFailed = false;
-        
+
         function doItem(i) {
             if (i >= items.length) {
                 if (hasFailed) {
@@ -177,9 +173,9 @@ define(function (require, exports, module) {
                 }
                 return;
             }
-            
+
             var itemPromise = beginProcessItem(items[i], i);
-            
+
             itemPromise.done(function () {
                 doItem(i + 1);
             });
@@ -193,16 +189,16 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         doItem(0);
-        
+
         return masterDeferred.promise();
     }
-    
+
     /**
      * Executes a series of synchronous tasks sequentially spread over time-slices less than maxBlockingTime.
      * Processing yields by idleTime between time-slices.
-     * 
+     *
      * @param {!Array.<*>} items
      * @param {!function(*, number)} fnProcessItem  Function that synchronously processes one item
      * @param {number=} maxBlockingTime
@@ -210,18 +206,18 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function doSequentiallyInBackground(items, fnProcessItem, maxBlockingTime, idleTime) {
-        
+
         maxBlockingTime = maxBlockingTime || 15;
         idleTime = idleTime || 30;
-        
+
         var sliceStartTime = (new Date()).getTime();
-        
+
         return doSequentially(items, function (item, i) {
             var result = new $.Deferred();
-            
+
             // process the next item
             fnProcessItem(item, i);
-            
+
             // if we've exhausted our maxBlockingTime
             if ((new Date()).getTime() - sliceStartTime >= maxBlockingTime) {
                 //yield
@@ -237,8 +233,39 @@ define(function (require, exports, module) {
             return result;
         }, false);
     }
-    
-    
+
+    /**
+     * Executes a series of tasks in serial (task N does not begin until task N-1 has completed).
+     * Returns a "master" Promise that is resolved when the first task has resolved. If all tasks
+     * fail, the master Promise is rejected.
+     *
+     * @param {!Array.<*>} items
+     * @param {!function(*, number):Promise} beginProcessItem
+     * @return {$.Promise}
+     */
+    function firstSequentially(items, beginProcessItem) {
+
+        var masterDeferred = new $.Deferred();
+
+        function doItem(i) {
+            if (i >= items.length) {
+                masterDeferred.reject();
+                return;
+            }
+
+            beginProcessItem(items[i], i)
+                .fail(function () {
+                    doItem(i + 1);
+                })
+                .done(function () {
+                    masterDeferred.resolve(items[i]);
+                });
+        }
+
+        doItem(0);
+        return masterDeferred.promise();
+    }
+
     /**
      * Executes a series of tasks in parallel, saving up error info from any that fail along the way.
      * Returns a Promise that is only resolved/rejected once all tasks are complete. This is
@@ -255,9 +282,9 @@ define(function (require, exports, module) {
      */
     function doInParallel_aggregateErrors(items, beginProcessItem) {
         var errors = [];
-        
+
         var masterDeferred = new $.Deferred();
-        
+
         var parallelResult = doInParallel(
             items,
             function (item, i) {
@@ -269,7 +296,7 @@ define(function (require, exports, module) {
             },
             false
         );
-        
+
         parallelResult
             .done(function () {
                 masterDeferred.resolve();
@@ -277,51 +304,121 @@ define(function (require, exports, module) {
             .fail(function () {
                 masterDeferred.reject(errors);
             });
-        
+
         return masterDeferred.promise();
     }
-    
-    
+
     /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
     var ERROR_TIMEOUT = {};
-    
+
     /**
-     * Adds timeout-driven failure to a Promise: returns a new Promise that is resolved/rejected when
-     * the given original Promise is resolved/rejected, OR is rejected after the given delay - whichever
-     * happens first.
-     * 
+     * Adds timeout-driven termination to a Promise: returns a new Promise that is resolved/rejected when
+     * the given original Promise is resolved/rejected, OR is resolved/rejected after the given delay -
+     * whichever happens first.
+     *
      * If the original Promise is resolved/rejected first, done()/fail() handlers receive arguments
-     * piped from the original Promise. If the timeout occurs first instead, fail() is called with the
-     * token Async.ERROR_TIMEOUT.
-     * 
+     * piped from the original Promise. If the timeout occurs first instead, then resolve() or
+     * fail() (with Async.ERROR_TIMEOUT) is called based on value of resolveTimeout.
+     *
      * @param {$.Promise} promise
      * @param {number} timeout
+     * @param {boolean=} resolveTimeout If true, then resolve deferred on timeout, otherwise reject. Default is false.
      * @return {$.Promise}
      */
-    function withTimeout(promise, timeout) {
+    function withTimeout(promise, timeout, resolveTimeout) {
         var wrapper = new $.Deferred();
-        
+
         var timer = window.setTimeout(function () {
-            wrapper.reject(ERROR_TIMEOUT);
+            if (resolveTimeout) {
+                wrapper.resolve();
+            } else {
+                wrapper.reject(ERROR_TIMEOUT);
+            }
         }, timeout);
         promise.always(function () {
             window.clearTimeout(timer);
         });
-        
+
         // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
         // won't do anything
         promise.then(wrapper.resolve, wrapper.reject);
-        
+
         return wrapper.promise();
     }
-    
+
     /**
-     * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions 
-     * together, using the result of each successive function as the argument(s) to the next. 
-     * A promise is returned that resolves with the result of the final call if all calls 
-     * resolve or return normally. Otherwise, if any of the functions reject or throw, the 
+     * Allows waiting for all the promises to be either resolved or rejected.
+     * Unlike $.when(), it does not call .fail() or .always() handlers on first
+     * reject. The caller should take all the precaution to make sure all the
+     * promises passed to this function are completed to avoid blocking.
+     *
+     * If failOnReject is set to true, promise returned by the function will be
+     * rejected if at least one of the promises was rejected. The default value
+     * is false, which will cause the call to this function to be always
+     * successfully resolved.
+     *
+     * If timeout is specified, the promise will be rejected on timeout as per
+     * Async.withTimeout.
+     *
+     * @param {!Array.<$.Promise>} promises Array of promises to wait for
+     * @param {boolean=} failOnReject       Whether to reject or not if one of the promises has been rejected.
+     * @param {number=} timeout             Number of milliseconds to wait until rejecting the promise
+     *
+     * @return {$.Promise} A Promise which will be resolved once all dependent promises are resolved.
+     *                     It is resolved with an array of results from the successfully resolved dependent promises.
+     *                     The resulting array may not be in the same order or contain as many items as there were
+     *                     promises to wait on and it will contain 'undefined' entries for those promises that resolve
+     *                     without a result.
+     *
+     */
+    function waitForAll(promises, failOnReject, timeout) {
+        var masterDeferred = new $.Deferred(),
+            results = [],
+            count = 0,
+            sawRejects = false;
+
+        if (!promises || promises.length === 0) {
+            masterDeferred.resolve();
+            return masterDeferred.promise();
+        }
+
+        // set defaults if needed
+        failOnReject = (failOnReject === undefined) ? false : true;
+
+        if (timeout !== undefined) {
+            withTimeout(masterDeferred, timeout);
+        }
+
+        promises.forEach(function (promise) {
+            promise
+                .fail(function (err) {
+                    sawRejects = true;
+                })
+                .done(function (result) {
+                    results.push(result);
+                })
+                .always(function () {
+                    count++;
+                    if (count === promises.length) {
+                        if (failOnReject && sawRejects) {
+                            masterDeferred.reject();
+                        } else {
+                            masterDeferred.resolve(results);
+                        }
+                    }
+                });
+        });
+
+        return masterDeferred.promise();
+    }
+
+    /**
+     * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions
+     * together, using the result of each successive function as the argument(s) to the next.
+     * A promise is returned that resolves with the result of the final call if all calls
+     * resolve or return normally. Otherwise, if any of the functions reject or throw, the
      * computation is halted immediately and the promise is rejected with this halting error.
-     * 
+     *
      * @param {Array.<function(*)>} functions Functions to be chained
      * @param {?Array} args Arguments to call the first function with
      * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
@@ -329,7 +426,7 @@ define(function (require, exports, module) {
      */
     function chain(functions, args) {
         var deferred = $.Deferred();
-        
+
         function chainHelper(index, args) {
             if (functions.length === index) {
                 deferred.resolveWith(null, args);
@@ -353,37 +450,96 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         chainHelper(0, args || []);
-        
+
         return deferred.promise();
     }
 
     /**
-     * @constructor
+     * Utility for converting a method that takes (error, callback) to one that returns a promise;
+     * useful for using FileSystem methods (or other Node-style API methods) in a promise-oriented
+     * workflow. For example, instead of
+     *
+     *      var deferred = new $.Deferred();
+     *      file.read(function (err, contents) {
+     *          if (err) {
+     *              deferred.reject(err);
+     *          } else {
+     *              // ...process the contents...
+     *              deferred.resolve();
+     *          }
+     *      }
+     *      return deferred.promise();
+     *
+     * you can just do
+     *
+     *      return Async.promisify(file, "read").then(function (contents) {
+     *          // ...process the contents...
+     *      });
+     *
+     * The object/method are passed as an object/string pair so that we can
+     * properly call the method without the caller having to deal with "bind" all the time.
+     *
+     * @param {Object} obj The object to call the method on.
+     * @param {string} method The name of the method. The method should expect the errback
+     *      as its last parameter.
+     * @param {...Object} varargs The arguments you would have normally passed to the method
+     *      (excluding the errback itself).
+     * @return {$.Promise} A promise that is resolved with the arguments that were passed to the
+     *      errback (not including the err argument) if err is null, or rejected with the err if
+     *      non-null.
+     */
+    function promisify(obj, method) {
+        var result = new $.Deferred(),
+            args = Array.prototype.slice.call(arguments, 2);
+        args.push(function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve.apply(result, Array.prototype.slice.call(arguments, 1));
+            }
+        });
+        obj[method].apply(obj, args);
+        return result.promise();
+    }
+
+    /**
      * Creates a queue of async operations that will be executed sequentially. Operations can be added to the
-     * queue at any time. If the queue is empty and nothing is currently executing when an operation is added, 
-     * it will execute immediately. Otherwise, it will execute when the last operation currently in the queue 
+     * queue at any time. If the queue is empty and nothing is currently executing when an operation is added,
+     * it will execute immediately. Otherwise, it will execute when the last operation currently in the queue
      * has finished.
+     * @constructor
      */
     function PromiseQueue() {
+        this._queue = [];
     }
-    
+
     /**
      * @private
      * @type {Array.<function(): $.Promise>}
      * The queue of operations to execute sequentially. Note that even if this array is empty, there might
      * still be an operation we need to wait on; that operation's promise is stored in _curPromise.
      */
-    PromiseQueue.prototype._queue = [];
-    
+    PromiseQueue.prototype._queue = null;
+
     /**
      * @private
      * @type {$.Promise}
      * The promise we're currently waiting on, or null if there's nothing currently executing.
      */
     PromiseQueue.prototype._curPromise = null;
-    
+
+    /**
+     * @type {number} The number of queued promises.
+     */
+    Object.defineProperties(PromiseQueue.prototype, {
+        "length": {
+            get: function () { return this._queue.length; },
+            set: function () { throw new Error("Cannot set length"); }
+        }
+    });
+
     /**
      * Adds an operation to the queue. If nothing is currently executing, it will execute immediately (and
      * the next operation added to the queue will wait for it to complete). Otherwise, it will wait until
@@ -403,7 +559,14 @@ define(function (require, exports, module) {
             this._doNext();
         }
     };
-    
+
+    /**
+     * Removes all pending promises from the queue.
+     */
+    PromiseQueue.prototype.removeAll = function () {
+        this._queue = [];
+    };
+
     /**
      * @private
      * Pulls the next operation off the queue and executes it.
@@ -413,20 +576,23 @@ define(function (require, exports, module) {
         if (this._queue.length) {
             var op = this._queue.shift();
             this._curPromise = op();
-            this._curPromise.done(function () {
+            this._curPromise.always(function () {
                 self._curPromise = null;
                 self._doNext();
             });
         }
     };
-    
+
     // Define public API
-    exports.doInParallel   = doInParallel;
-    exports.doSequentially = doSequentially;
+    exports.doInParallel        = doInParallel;
+    exports.doSequentially      = doSequentially;
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
-    exports.withTimeout    = withTimeout;
-    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
-    exports.chain          = chain;
-    exports.PromiseQueue   = PromiseQueue;
+    exports.firstSequentially   = firstSequentially;
+    exports.withTimeout         = withTimeout;
+    exports.waitForAll          = waitForAll;
+    exports.ERROR_TIMEOUT       = ERROR_TIMEOUT;
+    exports.chain               = chain;
+    exports.promisify           = promisify;
+    exports.PromiseQueue        = PromiseQueue;
 });

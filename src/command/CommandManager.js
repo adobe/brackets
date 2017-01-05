@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
  /**
   * Manages global application commands that can be called from menu items, key bindings, or subparts
   * of the application.
@@ -35,34 +31,37 @@
   */
 define(function (require, exports, module) {
     "use strict";
-    
+
+    var EventDispatcher = require("utils/EventDispatcher");
+
+
     /**
      * Map of all registered global commands
-     * @type Object.<commandID: string, Command>
+     * @type {Object.<commandID: string, Command>}
      */
     var _commands = {};
-    
+
     /**
      * Temporary copy of commands map for restoring after testing
      * TODO (issue #1039): implement separate require contexts for unit tests
-     * @type Object.<commandID: string, Command>
+     * @type {Object.<commandID: string, Command>}
      */
     var _commandsOriginal = {};
-    
+
     /**
+     * Events:
+     * - enabledStateChange
+     * - checkedStateChange
+     * - keyBindingAdded
+     * - keyBindingRemoved
+     *
      * @constructor
      * @private
-     *
      * @param {string} name - text that will be displayed in the UI to represent command
      * @param {string} id
      * @param {function} commandFn - the function that is called when the command is executed.
      *
      * TODO: where should this be triggered, The Command or Exports?
-     * Events:
-     *      enabledStateChange
-     *      checkedStateChange
-     *      keyBindingAdded
-     *      keyBindingRemoved
      */
     function Command(name, id, commandFn) {
         this._name = name;
@@ -71,8 +70,12 @@ define(function (require, exports, module) {
         this._checked = undefined;
         this._enabled = true;
     }
+    EventDispatcher.makeEventDispatcher(Command.prototype);
 
-    /** @return {Command} */
+    /**
+     * Get command id
+     * @return {string}
+     */
     Command.prototype.getID = function () {
         return this._id;
     };
@@ -86,7 +89,7 @@ define(function (require, exports, module) {
         if (!this._enabled) {
             return (new $.Deferred()).reject().promise();
         }
-        
+
         var result = this._commandFn.apply(this, arguments);
         if (!result) {
             // If command does not return a promise, assume that it handled the
@@ -97,7 +100,10 @@ define(function (require, exports, module) {
         }
     };
 
-    /** @return {boolean} */
+    /**
+     * Is command enabled?
+     * @return {boolean}
+     */
     Command.prototype.getEnabled = function () {
         return this._enabled;
     };
@@ -112,7 +118,7 @@ define(function (require, exports, module) {
         this._enabled = enabled;
 
         if (changed) {
-            $(this).triggerHandler("enabledStateChange");
+            this.trigger("enabledStateChange");
         }
     };
 
@@ -126,11 +132,14 @@ define(function (require, exports, module) {
         this._checked = checked;
 
         if (changed) {
-            $(this).triggerHandler("checkedStateChange");
+            this.trigger("checkedStateChange");
         }
     };
 
-    /** @return {boolean} */
+    /**
+     * Is command checked?
+     * @return {boolean}
+     */
     Command.prototype.getChecked = function () {
         return this._checked;
     };
@@ -150,11 +159,14 @@ define(function (require, exports, module) {
         this._name = name;
 
         if (changed) {
-            $(this).triggerHandler("nameChange");
+            this.trigger("nameChange");
         }
     };
 
-    /** @return {string} */
+    /**
+     * Get command name
+     * @return {string}
+     */
     Command.prototype.getName = function () {
         return this._name;
     };
@@ -186,9 +198,9 @@ define(function (require, exports, module) {
 
         var command = new Command(name, id, commandFn);
         _commands[id] = command;
-        
-        $(exports).triggerHandler("commandRegistered", [command]);
-        
+
+        exports.trigger("commandRegistered", command);
+
         return command;
     }
 
@@ -216,12 +228,12 @@ define(function (require, exports, module) {
 
         var command = new Command(null, id, commandFn);
         _commands[id] = command;
-        
-        $(exports).triggerHandler("commandRegistered", [command]);
-        
+
+        exports.trigger("commandRegistered", command);
+
         return command;
     }
-    
+
     /**
      * Clear all commands for unit testing, but first make copy of commands so that
      * they can be restored afterward
@@ -238,7 +250,7 @@ define(function (require, exports, module) {
         _commands = _commandsOriginal;
         _commandsOriginal = {};
     }
-    
+
     /**
      * Retrieves a Command object by id
      * @param {string} id
@@ -247,7 +259,7 @@ define(function (require, exports, module) {
     function get(id) {
         return _commands[id];
     }
-    
+
     /**
      * Returns the ids of all registered commands
      * @return {Array.<string>}
@@ -264,19 +276,21 @@ define(function (require, exports, module) {
      */
     function execute(id) {
         var command = _commands[id];
-        
+
         if (command) {
             try {
-                $(exports).triggerHandler("beforeExecuteCommand", id);
+                exports.trigger("beforeExecuteCommand", id);
             } catch (err) {
                 console.error(err);
             }
-            
+
             return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
         } else {
             return (new $.Deferred()).reject().promise();
         }
     }
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Define public API
     exports.register            = register;

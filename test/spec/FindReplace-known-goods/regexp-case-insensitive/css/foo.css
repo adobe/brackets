@@ -1,0 +1,13 @@
+/* CHANGED.CHANGED */
+body {
+    margin: 0;
+}
+h1, footer {
+    padding: 2px auto;
+}
+ul.CHANGED {
+    list-style: none;
+}
+.CHANGED {
+    font-size: large;
+}

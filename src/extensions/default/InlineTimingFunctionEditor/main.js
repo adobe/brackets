@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,10 @@
 /*
  * The timing function canvas and editing code was adapted from Lea Verou's cubic-bezier project:
  * - https://github.com/LeaVerou/cubic-bezier (cubic-bezier.com)
- * 
+ *
  * The canvas exceeds the top and bottom of main grid so y-value of points can be
  * dragged outside of the 0-1 range.
- * 
+ *
  *   . . . . . .
  *   .         .
  *   +---------+
@@ -37,11 +37,8 @@
  *   +---------+ <-- main grid has height of 150
  *   .         .
  *   . . . . . . <-- canvas has height of 300 (extra 75 above/below)
- * 
+ *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -50,12 +47,13 @@ define(function (require, exports, module) {
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Strings             = brackets.getModule("strings"),
+        Mustache            = brackets.getModule("thirdparty/mustache/mustache"),
 
         InlineTimingFunctionEditor = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor,
         TimingFunctionUtils        = require("TimingFunctionUtils"),
-        Localized               = require("text!Localized.css");
+        Localized                  = require("text!Localized.css");
 
-    
+
     // Functions
 
 
@@ -65,7 +63,7 @@ define(function (require, exports, module) {
      *
      * @param {Editor} hostEditor
      * @param {{line:Number, ch:Number}} pos
-     * @return {?{color:String, start:TextMarker, end:TextMarker}}
+     * @return {timingFunction:{?string}, reason:{?string}, start:{?TextMarker}, end:{?TextMarker}}
      */
     function prepareEditorForProvider(hostEditor, pos) {
         var cursorLine, sel, startPos, endPos, startBookmark, endBookmark, currentMatch,
@@ -73,30 +71,31 @@ define(function (require, exports, module) {
 
         sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
-            return null;
+            return {timingFunction: null, reason: null};
         }
-        
+
         cursorLine = hostEditor.document.getLine(pos.line);
-        
+
         // code runs several matches complicated patterns, multiple times, so
         // first do a quick, simple check to see make sure we may have a match
-        if (!cursorLine.match(/cubic-bezier|linear|ease/)) {
-            return null;
+        if (!cursorLine.match(/cubic-bezier|linear|ease|step/)) {
+            return {timingFunction: null, reason: null};
         }
 
-        currentMatch = TimingFunctionUtils.bezierCurveMatch(cursorLine, false);
+        currentMatch = TimingFunctionUtils.timingFunctionMatch(cursorLine, false);
         if (!currentMatch) {
-            return null;
+            return {timingFunction: null, reason: Strings.ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX};
         }
-        
+
         // check for subsequent matches, and use first match after pos
-        var lineOffset = 0;
-        while (pos.ch > (currentMatch.index + currentMatch[0].length + lineOffset)) {
-            var restOfLine = cursorLine.substring(currentMatch.index + currentMatch[0].length + lineOffset),
-                newMatch = TimingFunctionUtils.bezierCurveMatch(restOfLine, false);
+        var lineOffset = 0,
+            matchLength = ((currentMatch.originalString && currentMatch.originalString.length) || currentMatch[0].length);
+        while (pos.ch > (currentMatch.index + matchLength + lineOffset)) {
+            var restOfLine = cursorLine.substring(currentMatch.index + matchLength + lineOffset),
+                newMatch = TimingFunctionUtils.timingFunctionMatch(restOfLine, false);
 
             if (newMatch) {
-                lineOffset += (currentMatch.index + currentMatch[0].length);
+                lineOffset += (currentMatch.index + matchLength);
                 currentMatch = $.extend(true, [], newMatch);
             } else {
                 break;
@@ -106,64 +105,63 @@ define(function (require, exports, module) {
         currentMatch.lineOffset = lineOffset;
 
         startPos = {line: pos.line, ch: lineOffset + currentMatch.index};
-        endPos   = {line: pos.line, ch: lineOffset + currentMatch.index + currentMatch[0].length};
-        
+        endPos   = {line: pos.line, ch: lineOffset + currentMatch.index + matchLength};
+
         startBookmark = cm.setBookmark(startPos);
         endBookmark   = cm.setBookmark(endPos);
-        
+
         // Adjust selection to the match so that the inline editor won't
         // get dismissed while we're updating the timing function.
         hostEditor.setSelection(startPos, endPos);
-        
+
         return {
             timingFunction: currentMatch,
             start: startBookmark,
             end: endBookmark
         };
     }
-    
+
     /**
      * Registered as an inline editor provider: creates an InlineTimingFunctionEditor
      * when the cursor is on a timing function value.
      *
      * @param {!Editor} hostEditor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
-     *      no color at pos.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if timing function with invalid syntax is detected at pos, or
+     *         null if there's no timing function at pos.
      */
     function inlineTimingFunctionEditorProvider(hostEditor, pos) {
         var context = prepareEditorForProvider(hostEditor, pos),
             inlineTimingFunctionEditor,
             result;
-        
-        if (!context) {
-            return null;
+
+        if (!context.timingFunction) {
+            return context.reason || null;
         } else {
             inlineTimingFunctionEditor = new InlineTimingFunctionEditor(context.timingFunction, context.start, context.end);
             inlineTimingFunctionEditor.load(hostEditor);
-    
+
             result = new $.Deferred();
             result.resolve(inlineTimingFunctionEditor);
             return result.promise();
         }
     }
-    
+
     /**
      * Initialization code
      */
     function init() {
         // Load our stylesheet
-        ExtensionUtils.loadStyleSheet(module, "main.css");
+        ExtensionUtils.loadStyleSheet(module, "main.less");
         ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(Localized, Strings));
-    
+
         EditorManager.registerInlineEditProvider(inlineTimingFunctionEditorProvider);
     }
 
     init();
 
-    // for use by other InlineColorEditors
-    exports.prepareEditorForProvider = prepareEditorForProvider;
-    
+
     // for unit tests only
     exports.inlineTimingFunctionEditorProvider = inlineTimingFunctionEditorProvider;
 });

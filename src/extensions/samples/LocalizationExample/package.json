@@ -1,0 +1,22 @@
+{
+    "name": "localization-example",
+    "title": "Localization Example",
+    "description": "A guide on how to localize your extension.",
+    "homepage": "https://github.com/adobe/brackets/tree/master/src/extensions/samples/LocalizationExample",
+    "version": "1.0.0",
+    "author": "The Brackets team",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.42.0"
+    },
+    "i18n": [
+        "en", 
+        "fr" 
+    ],
+    "package-i18n": {
+        "fr": {
+            "title": "Localisation Exemple",
+            "description": "Un guide sur la façon de localiser votre poste."
+        }
+    }
+}

@@ -1,0 +1,15 @@
+.brackets-config-central 
+{
+    background-color: bisque;
+}
+
+.brackets-config-central input[type="text"]
+{
+    width: 1em;
+}
+
+.brackets-config-central .config-options 
+{
+    margin: 2em;
+}
+

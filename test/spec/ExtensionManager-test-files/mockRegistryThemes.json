@@ -1,0 +1,210 @@
+{
+  "test-quickly": {
+    "metadata": {
+      "name": "test-quickly",
+      "title": "TestQuickly",
+      "description": "Launches the test runner (or re-runs tests) with a keypress",
+      "version": "1.0.2",
+      "author": {
+        "name": "Someone Awesome",
+        "email": "awesome@somereallyfakeemailaddressthatdoesntexist.com"
+      },
+      "engines": {
+        "brackets": ">0.20.0"
+      }
+    },
+    "owner": "github:someoneawesome",
+    "versions": [
+      {
+        "version": "1.0.2",
+        "published": "2013-04-10T18:21:27.058Z",
+        "brackets": ">0.20.0"
+      }
+    ]
+  },
+  "long-desc-extension": {
+    "metadata": {
+      "name": "long-desc-extension",
+      "author": {
+        "name": "Really Great Guy"
+      },
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quam purus, convallis ut fringilla nec, iaculis ac felis. Cras ac commodo dui. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In nibh eros, venenatis sed consectetur ut, rutrum ac dolor. Ut scelerisque egestas odio, sed dignissim ligula lobortis ac.",
+      "homepage": "https://fakesite.com/long-desc-extension.html",
+      "keywords": [
+        "awesome",
+        "socool"
+      ],
+      "version": "1.0.0"
+    },
+    "owner": "github:greatguy",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-10T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-1": {
+    "metadata": {
+      "name": "mock-extension-1",
+      "description": "First mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-2": {
+    "metadata": {
+      "name": "mock-extension-2",
+      "description": "Second mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-3": {
+    "metadata": {
+      "name": "mock-extension-3",
+      "description": "Third mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-4": {
+    "metadata": {
+      "name": "mock-extension-4",
+      "description": "Fourth mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
+  "malicious-script-extension": {
+    "metadata": {
+      "name": "malicious-script-extension",
+      "title": "Basic <script>malicious content<\/script> Extension",
+      "description": "I'm totally <script>more malicious content<\/script> harmless.",
+      "version": "1.0.0"
+    },
+    "owner": "github:someuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-10T18:26:24.956Z"
+      }
+    ]
+  },
+  "select-parent": {
+    "metadata": {
+      "name": "select-parent",
+      "title": "Select Parent",
+      "version": "1.0.0",
+      "description": "Lets you quickly select the parent block of the current selection using Cmd\/Ctrl-<, and go back down using Cmd\/Ctrl->.",
+      "files": [
+        "main.js",
+        "SelectParent.js",
+        "README.md",
+        "unittests.js"
+      ],
+      "engines": {
+        "brackets": ">0.22.0"
+      }
+    },
+    "owner": "github:anotheruser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-10T18:26:47.580Z",
+        "brackets": ">0.22.0"
+      }
+    ]
+  },
+  "basic-valid-extension": {
+    "metadata": {
+      "name": "basic-valid-extension",
+      "title": "Basic Valid Extension",
+      "version": "3.0.0"
+    },
+    "owner": "github:someuser",
+    "versions": [
+      {
+        "version": "2.0.0",
+        "published": "2013-04-10T18:28:20.530Z"
+      },
+      {
+        "version": "3.0.0",
+        "published": "2013-04-10T18:29:11.907Z"
+      }
+    ]
+  },
+  "everyscrub": {
+    "metadata": {
+      "name": "everyscrub",
+      "title": "Everyscrub",
+      "version": "0.23.0"
+    },
+    "owner": "github:anotherawesomeuser",
+    "versions": [
+      {
+        "version": "0.23.0",
+        "published": "2013-04-11T17:22:38.033Z"
+      }
+    ]
+  },
+  "theme-1": {
+    "metadata": {
+      "name": "theme-1",
+      "description": "Sample theme 1",
+      "version": "0.0.1",
+      "theme": {
+        "file": "main.less",
+        "dark": true
+      }
+    },
+    "owner": "github:superuser",
+    "versions": [
+      {
+        "version": "0.0.1",
+        "published": "2014-08-31T04:05:47.778Z"
+      }
+    ]
+  },
+  "theme-2": {
+    "metadata": {
+      "name": "theme-2",
+      "description": "Sample theme 1",
+      "version": "1.0.1",
+      "theme": {
+        "file": "main.less"
+      }
+    },
+    "owner": "github:superuser",
+    "versions": [
+      {
+        "version": "1.0.1",
+        "published": "2014-07-31T04:05:47.778Z"
+      }
+    ]
+  }
+}

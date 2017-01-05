@@ -1,0 +1,188 @@
+// Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
+// Style definitions are from
+// https://github.com/chriskempson/tomorrow-theme/tree/master/Brackets
+
+/*
+ * Brackets Default Theme
+ *
+ * Defines all the variables that one can configure in a theme. This should
+ * contain all variables / mixins for UI styling that we want to be able to
+ * change in a theme.
+ *
+ * Throughout the rest of the LESS files we should _only_ use color
+ * variable names that are on the LHS of the list below. So, if we
+ * need a new color for some UI element, we should add a variable
+ * in this file.
+ */
+
+/* Define some variables used in multiple places */
+@background: #1d1f21;
+@foreground: #ddd;
+
+/* Code Styling */
+
+.CodeMirror, .CodeMirror-scroll {
+    background-color: @background;
+    color: @foreground;
+}
+
+.CodeMirror-focused .CodeMirror-activeline-background {
+    background: #2f2f2f;
+}
+
+.show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
+    box-shadow: inset 15px 0 0 0 #000;
+}
+
+.CodeMirror-focused .CodeMirror-activeline {
+    .CodeMirror-gutter-elt {
+        background: rgba(0, 0, 0, 0.2);
+        color: #fff;
+    }
+    .inline-widget .CodeMirror-gutter-elt {
+        color: #767676;    
+    }
+}
+
+.cm-atom, .cm-string, .cm-string-2, .cm-hr {color: #d89333;}
+.cm-number, .cm-attribute, .cm-plus {color: #85a300;}
+.cm-def, .cm-property {color: #b77fdb;}
+.cm-variable, .cm-variable-2, .cm-variable-3, .cm-operator, .cm-meta, .cm-bracket {color: @foreground;}
+.cm-comment {color: #767676;}
+.cm-error, .cm-minus {color: #dc322f;}
+.cm-header {color: #d85896;}
+.cm-link {color: #b77fdb; text-decoration: none;}
+.cm-rangeinfo {color: #6c71c4;}
+.cm-keyword, .cm-qualifier, .cm-builtin, .cm-tag, .cm-quote {color: #6c9ef8;}
+
+/* Extra CSS */
+
+.CodeMirror-searching {
+    background-color: #d3cd69;
+    &.searching-current-match {
+        background-color: #f6a644;
+    }
+}
+
+
+.CodeMirror-cursor {
+    border-left: 1px solid #c5c8c6 !important;
+}
+
+.CodeMirror-gutters {
+    background-color: @background;
+    border-right: none;
+}
+
+.CodeMirror-linenumber {
+    color: #767676;
+}
+
+.CodeMirror .CodeMirror-selected {
+    background: #333f48;
+}
+.CodeMirror-focused .CodeMirror-selected {
+    background: #0050a0;
+}
+
+.CodeMirror-matchingbracket, .CodeMirror-matchingtag {
+    /* Ensure visibility against gray inline editor background */
+    background-color: #2e5c00;
+    color: @foreground !important;
+}
+
+.CodeMirror-overwrite .CodeMirror-cursor {
+    border-left: none !important;
+    border-bottom: 1px solid #fff;
+}
+
+/*
+    CodeMirror's use of descendant selectors for certain styling causes problems when editors are
+    nested because, for items in the inner editor, the left-hand clause in the selector will now
+    match either the actual containing CodeMirror instance *OR* the outer "host" CodeMirror instance.
+
+    TODO (issue #324): We'll still have problems if editors can be nested more than one level deep,
+    or if any other descendant-selector-driven CM styles can differ between inner & outer editors
+    (potential problem areas include line wrap and coloring theme: basically, anything in codemirror.css
+    that uses a descandant selector where the CSS class name to the left of the space is something
+    other than a vanilla .CodeMirror)
+ */
+.CodeMirror {
+    .CodeMirror {
+        background: transparent;
+    }
+
+    .CodeMirror .CodeMirror-gutters {
+        background: transparent;
+        border-right: none;
+    }
+
+    .CodeMirror .CodeMirror-activeline-background {
+        background: transparent;
+    }
+
+    .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
+        background: transparent;
+        color: #767676;
+    }
+
+    .CodeMirror-focused .CodeMirror-activeline-background {
+        background: #2f2f2f;
+    }
+
+    .CodeMirror-focused .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+        }
+    }
+}
+
+.CodeMirror-foldgutter-open:after {
+    color: #666;
+}
+.CodeMirror-foldgutter-folded:after {
+    color: #aaa;
+}
+
+.CodeMirror.over-gutter, .CodeMirror-activeline {
+    .CodeMirror-foldgutter-open:after {
+        color: #888;
+    }
+}
+
+.CodeMirror-foldmarker {
+    border-color: #000;
+    color: #ccc;
+    background-color: #444;
+}
+
+/* Non-editor styling */
+
+.image-view,
+.not-editor {
+    background-color: @background;
+}
+
+.view-pane .image-view {
+    color: @foreground;
+}

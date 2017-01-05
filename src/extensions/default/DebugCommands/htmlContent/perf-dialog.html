@@ -1,23 +1,25 @@
 <div class="modal">
     <div class="modal-header">
-        <a href="#" class="close" data-dismiss="modal">&times;</a>
         <h1 class="dialog-title">Performance Data</h1>
-        <div style="text-align: right">
-            Raw data (copy paste out):
-            <textarea rows="1" style="width:30px; height:16px; overflow: hidden; resize: none" id="brackets-perf-raw-data">{{delimitedPerfData}}</textarea>
-        </div>
     </div>
-    <div class="modal-body" style="padding: 0; max-height: 500px; overflow: auto; width: 592px">
-        <table class="zebra-striped condensed-table">
-            <thead><th>Operation</th><th>Time (ms)</th></thead>
+    <div class="modal-body no-padding">
+        <table class="table table-striped">
+            <thead><th>Operation</th><th class="right">Time (ms)</th></thead>
             <tbody>
                 {{#perfData}}
                 <tr>
                     <td>{{{testName}}}</td>
-                    <td>{{value}}</td>
+                    <td class="right">{{value}}</td>
                 </tr>
                 {{/perfData}}
             </tbody>
         </table>
+    </div>
+    <div class="modal-footer">
+        <div class="left">
+            <label for="brackets-perf-raw-data" class="inline">Raw data (copy paste out):</label>
+            <textarea rows="1" id="brackets-perf-raw-data" style="margin: 0; width: 50px;">{{delimitedPerfData}}</textarea>        
+        </div>
+        <button class="dialog-button btn primary" data-button-id="ok">Close</button>
     </div>
 </div>

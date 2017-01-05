@@ -1,52 +1,66 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $ */
 
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
  *    - fontSizeChange -- Triggered when the font size is changed via the
- *          Increase Font Size, Decrease Font Size, or Restore Font Size commands.
- *          The 2nd arg to the listener is the amount of the change. The 3rd arg
- *          is a string containing the new font size after applying the change.
- *          The 4th arg is a string containing the new line height after applying
- *          the change.
+ *      Increase Font Size, Decrease Font Size, or Restore Font Size commands.
+ *      The 2nd arg to the listener is the amount of the change. The 3rd arg
+ *      is a string containing the new font size after applying the change.
  */
-
 define(function (require, exports, module) {
     "use strict";
-    
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        KeyBindingManager       = require("command/KeyBindingManager"),
-        Strings                 = require("strings"),
-        ProjectManager          = require("project/ProjectManager"),
-        EditorManager           = require("editor/EditorManager"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        DocumentManager         = require("document/DocumentManager"),
-        AppInit                 = require("utils/AppInit");
-    
+
+    var Commands            = require("command/Commands"),
+        EventDispatcher     = require("utils/EventDispatcher"),
+        CommandManager      = require("command/CommandManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        EditorManager       = require("editor/EditorManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        ThemeSettings       = require("view/ThemeSettings"),
+        MainViewManager     = require("view/MainViewManager"),
+        AppInit             = require("utils/AppInit"),
+        _                   = require("thirdparty/lodash");
+
+    var prefs = PreferencesManager.getExtensionPrefs("fonts");
+
+
+    /**
+     * @private
+     * The currently present font size. Used to detect no-op changes.
+     * @type {string}
+     */
+    var currFontSize;
+
+    /**
+     * @private
+     * The currently present font family. Used to detect no-op changes.
+     * @type {string}
+     */
+    var currFontFamily;
+
     /**
      * @const
      * @type {string}
@@ -55,167 +69,273 @@ define(function (require, exports, module) {
 
     /**
      * @const
+     * @type {string}
+     */
+    var DYNAMIC_FONT_FAMILY_ID = "codemirror-dynamic-font-family";
+
+    /**
+     * @const
      * @private
      * The smallest font size in pixels
-     * @type {int}
+     * @type {number}
      */
     var MIN_FONT_SIZE = 1;
-    
+
     /**
      * @const
      * @private
      * The largest font size in pixels
-     * @type {int}
+     * @type {number}
      */
     var MAX_FONT_SIZE = 72;
-    
+
     /**
      * @const
      * @private
-     * The ratio of line-height to font-size when they use the same units
-     * @type {float}
+     * The default font size used only to convert the old fontSizeAdjustment view state to the new fontSize
+     * @type {number}
      */
-    var LINE_HEIGHT = 1.25;
-    
+    var DEFAULT_FONT_SIZE = 12;
+
     /**
+     * @const
      * @private
-     * @type {PreferenceStorage}
+     * The default font family
+     * @type {string}
      */
-    var _prefs = {};
+    var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
 
     /**
      * @private
-     * @type {PreferenceStorage}
+     * Removes style property from the DOM
+     * @param {string} propertyID is the id of the property to be removed
      */
-    var _defaultPrefs = { fontSizeAdjustment: 0 };
+    function _removeDynamicProperty(propertyID) {
+        $("#" + propertyID).remove();
+    }
 
     /**
      * @private
-     * @type {boolean}
+     * Add the style property to the DOM
+     * @param {string} propertyID Is the property ID to be added
+     * @param {string} name Is the name of the style property
+     * @param {string} value Is the value of the style
+     * @param {boolean} important Is a flag to make the style property !important
      */
-    var _fontSizePrefsLoaded = false;
-    
-    
+    function _addDynamicProperty(propertyID, name, value, important, cssRule) {
+        cssRule = cssRule || ".CodeMirror";
+        var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
+        var styleStr = StringUtils.format("{0}: {1}{2}", name, value, important ? " !important" : "");
+        $style.html(cssRule + "{ " + styleStr + " }");
+
+        // Let's make sure we remove the already existing item from the DOM.
+        _removeDynamicProperty(propertyID);
+        $("head").append($style);
+    }
+
     /**
      * @private
      * Removes the styles used to update the font size
      */
     function _removeDynamicFontSize() {
-        $("#" + DYNAMIC_FONT_STYLE_ID).remove();
+        _removeDynamicProperty(DYNAMIC_FONT_STYLE_ID);
     }
-    
+
+    /**
+     * @private
+     * Add the styles used to update the font size
+     * @param {string} fontSize  A string with the font size and the size unit
+     */
+    function _addDynamicFontSize(fontSize) {
+        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSize, true);
+    }
+
+    /**
+     * @private
+     * Removes the styles used to update the font family
+     */
+    function _removeDynamicFontFamily() {
+        _removeDynamicProperty(DYNAMIC_FONT_FAMILY_ID);
+    }
+
+    /**
+     * @private
+     * Add the styles used to update the font family
+     * @param {string} fontFamily  A string with the font family
+     */
+    function _addDynamicFontFamily(fontFamily) {
+        _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, "font-family", fontFamily);
+    }
+
     /**
      * @private
      * Sets the font size and restores the scroll position as best as possible.
-     * TODO: Remove the viewportTop hack and direclty use scrollPos.y once #3115 is fixed.
-     * @param {string} fontSizeStyle A string with the font size and the size unit
-     * @param {string} lineHeightStyle A string with the line height and a the size unit
+     * @param {!Editor} editor  Editor to update.
+     * @param {string=} fontSize  A string with the font size and the size unit
      */
-    function _setSizeAndRestoreScroll(fontSizeStyle, lineHeightStyle) {
-        var editor      = EditorManager.getCurrentFullEditor(),
-            oldWidth    = editor._codeMirror.defaultCharWidth(),
-            oldHeight   = editor.getTextHeight(),
+    function _updateScroll(editor, fontSize) {
+        var oldWidth    = editor._codeMirror.defaultCharWidth(),
+            oldFontSize = prefs.get("fontSize"),
+            newFontSize = fontSize,
+            delta       = 0,
+            adjustment  = 0,
             scrollPos   = editor.getScrollPos(),
-            viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
-            scrollTop   = scrollPos.y - viewportTop;
-        
-        // It's necessary to inject a new rule to address all editors.
-        _removeDynamicFontSize();
-        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
-        style.html(".CodeMirror {" +
-                   "font-size: "   + fontSizeStyle   + " !important;" +
-                   "line-height: " + lineHeightStyle + " !important;}");
-        $("head").append(style);
-        
-        editor.refreshAll();
-        
+            line        = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
+
+        delta = /em$/.test(oldFontSize) ? 10 : 1;
+        adjustment = parseInt((parseFloat(newFontSize) - parseFloat(oldFontSize)) * delta, 10);
+
+        // Only adjust the scroll position if there was any adjustments to the font size.
+        // Otherwise there will be unintended scrolling.
+        //
+        if (adjustment) {
+            editor.refreshAll();
+        }
+
         // Calculate the new scroll based on the old font sizes and scroll position
-        var newWidth    = editor._codeMirror.defaultCharWidth(),
-            newHeight   = editor.getTextHeight(),
-            deltaX      = scrollPos.x / oldWidth,
-            deltaY      = scrollTop / oldHeight,
-            scrollPosX  = scrollPos.x + Math.round(deltaX * (newWidth - oldWidth)),
-            scrollPosY  = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
-        
-        // Scroll the document back to its original position, but not on the first load since the position
-        // was saved with the new height and already been restored.
-        if (_fontSizePrefsLoaded) {
-            editor.setScrollPos(scrollPosX, scrollPosY);
+        var newWidth   = editor._codeMirror.defaultCharWidth(),
+            deltaX     = scrollPos.x / oldWidth,
+            scrollPosX = scrollPos.x + Math.round(deltaX * (newWidth  - oldWidth)),
+            scrollPosY = editor._codeMirror.heightAtLine(line, "local");
+
+        editor.setScrollPos(scrollPosX, scrollPosY);
+    }
+
+    /**
+     * Font size setter to set the font size for the document editor
+     * @param {string} fontSize The font size with size unit as 'px' or 'em'
+     */
+    function setFontSize(fontSize) {
+        if (currFontSize === fontSize) {
+            return;
+        }
+
+        _removeDynamicFontSize();
+        if (fontSize) {
+            _addDynamicFontSize(fontSize);
+        }
+
+        // Update scroll metrics in viewed editors
+        _.forEach(MainViewManager.getPaneIdList(), function (paneId) {
+            var currentPath = MainViewManager.getCurrentlyViewedPath(paneId),
+                doc = currentPath && DocumentManager.getOpenDocumentForPath(currentPath);
+            if (doc && doc._masterEditor) {
+                _updateScroll(doc._masterEditor, fontSize);
+            }
+        });
+
+        exports.trigger("fontSizeChange", fontSize, currFontSize);
+        currFontSize = fontSize;
+        prefs.set("fontSize", fontSize);
+    }
+
+    /**
+     * Font size getter to get the current font size for the document editor
+     * @return {string} Font size with size unit as 'px' or 'em'
+     */
+    function getFontSize() {
+        return prefs.get("fontSize");
+    }
+
+
+    /**
+     * Font family setter to set the font family for the document editor
+     * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
+     */
+    function setFontFamily(fontFamily) {
+        var editor = EditorManager.getCurrentFullEditor();
+
+        if (currFontFamily === fontFamily) {
+            return;
+        }
+
+        _removeDynamicFontFamily();
+        if (fontFamily) {
+            _addDynamicFontFamily(fontFamily);
+        }
+
+        exports.trigger("fontFamilyChange", fontFamily, currFontFamily);
+        currFontFamily = fontFamily;
+        prefs.set("fontFamily", fontFamily);
+
+        if (editor) {
+            editor.refreshAll();
         }
     }
-    
+
+
+    /**
+     * Font smoothing setter to set the anti-aliasing type for the code area on Mac.
+     * @param {string} aaType The antialiasing type to be set. It can take either "subpixel-antialiased" or "antialiased"
+     */
+    function setMacFontSmoothingType(aaType) {
+        var $editor_holder  = $("#editor-holder");
+
+        // Add/Remove the class based on the preference. Also
+        // default to subpixel AA in case of invalid entries.
+        if (aaType === "antialiased") {
+            $editor_holder.removeClass("subpixel-aa");
+        } else {
+            $editor_holder.addClass("subpixel-aa");
+        }
+    }
+
+    /**
+     * Font family getter to get the currently configured font family for the document editor
+     * @return {string} The font family for the document editor
+     */
+    function getFontFamily() {
+        return prefs.get("fontFamily");
+    }
+
+
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {number} adjustment Negative number to make the font smaller; positive number to make it bigger
-     * @return {boolean} true if adjustment occurred, false if it did not occur 
+     * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
+     * @return {boolean} true if adjustment occurred, false if it did not occur
      */
     function _adjustFontSize(adjustment) {
-        var fsStyle = $(".CodeMirror").css("font-size");
-        var lhStyle = $(".CodeMirror").css("line-height");
+        var fsStyle   = prefs.get("fontSize"),
+            validFont = /^[\d\.]+(px|em)$/;
 
-        var validFont = /^[\d\.]+(px|em)$/;
-        
-        // Make sure the font size and line height are expressed in terms
-        // we can handle (px or em). If not, simply bail.
-        if (fsStyle.search(validFont) === -1 || lhStyle.search(validFont) === -1) {
+        // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
+        if (fsStyle.search(validFont) === -1) {
             return false;
         }
-        
+
         // Guaranteed to work by the validation above.
-        var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length);
-        var lhUnits = lhStyle.substring(lhStyle.length - 2, lhStyle.length);
-        var delta   = (fsUnits === "px") ? 1 : 0.1;
-        
-        var fsOld   = parseFloat(fsStyle.substring(0, fsStyle.length - 2));
-        var lhOld   = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
-        
-        var fsNew   = fsOld + (delta * adjustment);
-        var lhNew   = lhOld;
-        if (fsUnits === lhUnits) {
-            lhNew = fsNew * LINE_HEIGHT;
-            if (lhUnits === "px") {
-                // Use integer px value to avoid rounding differences
-                lhNew = Math.ceil(lhNew);
-            }
-        }
-        
-        var fsStr   = fsNew + fsUnits;
-        var lhStr   = lhNew + lhUnits;
+        var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length),
+            delta   = fsUnits === "px" ? 1 : 0.1,
+            fsOld   = parseFloat(fsStyle.substring(0, fsStyle.length - 2)),
+            fsNew   = fsOld + (delta * adjustment),
+            fsStr   = fsNew + fsUnits;
 
         // Don't let the font size get too small or too large. The minimum font size is 1px or 0.1em
         // and the maximum font size is 72px or 7.2em depending on the unit used
         if (fsNew < MIN_FONT_SIZE * delta || fsNew > MAX_FONT_SIZE * delta) {
             return false;
         }
-        
-        _setSizeAndRestoreScroll(fsStr, lhStr);
-        
-        $(exports).triggerHandler("fontSizeChange", [adjustment, fsStr, lhStr]);
+
+        setFontSize(fsStr);
         return true;
     }
-    
+
     /** Increases the font size by 1 */
     function _handleIncreaseFontSize() {
-        if (_adjustFontSize(1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
-        }
+        _adjustFontSize(1);
     }
-    
+
     /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
-        if (_adjustFontSize(-1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
-        }
+        _adjustFontSize(-1);
     }
-    
+
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _adjustFontSize(-_prefs.getValue("fontSizeAdjustment"));
-        _prefs.setValue("fontSizeAdjustment", 0);
+        setFontSize(DEFAULT_FONT_SIZE + "px");
     }
-    
-    
+
     /**
      * @private
      * Updates the user interface appropriately based on whether or not a document is
@@ -229,14 +349,6 @@ define(function (require, exports, module) {
                 CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(true);
                 CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(true);
             }
-            
-            // Font Size preferences only need to be loaded one time
-            if (!_fontSizePrefsLoaded) {
-                _removeDynamicFontSize();
-                _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
-                _fontSizePrefsLoaded = true;
-            }
-            
         } else {
             // No current document so disable all of the Font Size commands
             CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).setEnabled(false);
@@ -244,30 +356,71 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
     }
-    
-    
-    
+
+    /**
+     * Initializes the different settings that need to loaded
+     */
+    function init() {
+        currFontFamily = prefs.get("fontFamily");
+        _addDynamicFontFamily(currFontFamily);
+        currFontSize = prefs.get("fontSize");
+        _addDynamicFontSize(currFontSize);
+        _updateUI();
+    }
+
+    /**
+     * Restores the font size using the saved style and migrates the old fontSizeAdjustment
+     * view state to the new fontSize, when required
+     */
+    function restoreFontSize() {
+        var fsStyle      = prefs.get("fontSize"),
+            fsAdjustment = PreferencesManager.getViewState("fontSizeAdjustment");
+
+        if (fsAdjustment) {
+            // Always remove the old view state even if we also have the new view state.
+            PreferencesManager.setViewState("fontSizeAdjustment");
+
+            if (!fsStyle) {
+                // Migrate the old view state to the new one.
+                fsStyle = (DEFAULT_FONT_SIZE + fsAdjustment) + "px";
+                prefs.set("fontSize", fsStyle);
+            }
+        }
+
+        if (fsStyle) {
+            _removeDynamicFontSize();
+            _addDynamicFontSize(fsStyle);
+        }
+    }
+
+    /**
+     * Restores the font size and font family back to factory settings.
+     */
+    function restoreFonts() {
+        setFontFamily(DEFAULT_FONT_FAMILY);
+        setFontSize(DEFAULT_FONT_SIZE + "px");
+    }
+
+
     /**
      * @private
      * Calculates the first and last visible lines of the focused editor
      * @param {number} textHeight
      * @param {number} scrollTop
      * @param {number} editorHeight
-     * @param {number} viewportFrom
      * @return {{first: number, last: number}}
      */
-    function _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom) {
+    function _getLinesInView(textHeight, scrollTop, editorHeight) {
         var scrolledTop    = scrollTop / textHeight,
             scrolledBottom = (scrollTop + editorHeight) / textHeight;
-        
-        // Subtract a line from both for zero-based index. Also adjust last line
-        // to round inward to show a whole lines.
-        var firstLine      = Math.ceil(scrolledTop) - 1,
-            lastLine       = Math.floor(scrolledBottom) - 2;
-        
-        return { first: viewportFrom + firstLine, last: viewportFrom + lastLine };
+
+        // Adjust the last line to round inward to show a whole lines.
+        var firstLine      = Math.ceil(scrolledTop),
+            lastLine       = Math.floor(scrolledBottom) - 1;
+
+        return { first: firstLine, last: lastLine };
     }
-    
+
     /**
      * @private
      * Scroll the viewport one line up or down.
@@ -280,90 +433,112 @@ define(function (require, exports, module) {
             hasSelecction = editor.hasSelection(),
             inlineEditors = editor.getInlineWidgets(),
             scrollInfo    = editor._codeMirror.getScrollInfo(),
-            viewportFrom  = editor._codeMirror.getViewport().from,
             paddingTop    = editor._getLineSpaceElement().offsetTop,
-            viewportTop   = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
-            editorHeight  = scrollInfo.clientHeight;
-        
-        // To make it snap better to lines and dont cover the cursor when the scroll is lower than the top padding,
-        // we make it start direclty from the top padding
-        var scrolledTop   = scrollInfo.top < paddingTop && direction > 0 ? paddingTop : scrollInfo.top;
-        
-        // CodeMirror has a strange behaviour when it comes to calculate the height of the not rendered lines,
-        // so instead, we calculate the amount of hidden rendered lines at top and add it to the first rendered line.
-        var scrollTop     = scrolledTop - viewportTop,
-            linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
-        
-        // Go through all the editors and reduce the scroll top and editor height to recalculate the lines in view 
-        var line, total;
+            editorHeight  = scrollInfo.clientHeight,
+            scrollTop     = scrollInfo.top - paddingTop,
+            removedScroll = paddingTop;
+
+        // Go through all the editors and reduce the scroll top and editor height to properly calculate the lines in view
+        var line, coords;
         inlineEditors.forEach(function (inlineEditor) {
-            line  = editor._getInlineWidgetLineNumber(inlineEditor);
-            total = inlineEditor.info.height / textHeight;
-            
-            if (line >= viewportFrom) {
-                if (line < linesInView.first) {
-                    scrollTop   -= inlineEditor.info.height;
-                    linesInView  = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
-                
-                } else if (line + total < linesInView.last) {
-                    editorHeight -= inlineEditor.info.height;
-                    linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
-                }
+            line   = editor._getInlineWidgetLineNumber(inlineEditor);
+            coords = editor._codeMirror.charCoords({line: line, ch: 0}, "local");
+
+            if (coords.top < scrollInfo.top) {
+                scrollTop     -= inlineEditor.info.height;
+                removedScroll += inlineEditor.info.height;
+
+            } else if (coords.top + inlineEditor.info.height < scrollInfo.top + editorHeight) {
+                editorHeight -= inlineEditor.info.height;
             }
         });
-        
+
+        // Calculate the lines in view
+        var linesInView = _getLinesInView(textHeight, scrollTop, editorHeight);
+
         // If there is no selection move the cursor so that is always visible.
         if (!hasSelecction) {
             // Move the cursor to the first visible line.
             if (cursorPos.line < linesInView.first) {
                 editor.setCursorPos({line: linesInView.first + direction, ch: cursorPos.ch});
-            
+
             // Move the cursor to the last visible line.
             } else if (cursorPos.line > linesInView.last) {
                 editor.setCursorPos({line: linesInView.last + direction, ch: cursorPos.ch});
-            
+
             // Move the cursor up or down using moveV to keep the goal column intact, since setCursorPos deletes it.
             } else if ((direction > 0 && cursorPos.line === linesInView.first) ||
                     (direction < 0 && cursorPos.line === linesInView.last)) {
                 editor._codeMirror.moveV(direction, "line");
             }
         }
-        
-        // If there are inline editors just add/remove 1 line to the scroll top.
-        if (inlineEditors.length) {
-            editor.setScrollPos(scrollInfo.left, scrolledTop + (textHeight * direction));
-        
-        // If there arent, we can make it snap to the line.
-        } else {
-            var lines = linesInView.first - viewportFrom + direction + 1;
-            editor.setScrollPos(scrollInfo.left, viewportTop + (textHeight * lines));
-        }
+
+        // Scroll and make it snap to lines
+        var lines = linesInView.first + direction;
+        editor.setScrollPos(scrollInfo.left, (textHeight * lines) + removedScroll);
     }
-    
+
     /** Scrolls one line up */
     function _handleScrollLineUp() {
         _scrollLine(-1);
     }
-    
+
     /** Scrolls one line down */
     function _handleScrollLineDown() {
         _scrollLine(1);
     }
-    
-    
-    // Register command handlers
-    CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
-    CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
-    CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
-    CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
-    CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
-    // Initialize the PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);
+    /** Open theme settings dialog */
+    function _handleThemeSettings() {
+        ThemeSettings.showDialog();
+    }
+
+    // Register command handlers
+    CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE,  _handleIncreaseFontSize);
+    CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE,  _handleDecreaseFontSize);
+    CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,   _handleRestoreFontSize);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,      _handleScrollLineUp);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,    _handleScrollLineDown);
+    CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN_SETTINGS, _handleThemeSettings);
+
+    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
+        description: Strings.DESCRIPTION_FONT_SIZE
+    }).on("change", function () {
+        setFontSize(prefs.get("fontSize"));
+    });
+    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY, {
+        description: Strings.DESCRIPTION_FONT_FAMILY
+    }).on("change", function () {
+        setFontFamily(prefs.get("fontFamily"));
+    });
+
+    // Define a preference for font smoothing mode on Mac.
+    // By default fontSmoothing is set to "subpixel-antialiased"
+    // for the text inside code editor. It can be overridden
+    // to "antialiased", that would set text rendering AA to use
+    // gray scale antialiasing.
+    if (brackets.platform === "mac") {
+        prefs.definePreference("fontSmoothing", "string", "subpixel-antialiased", {
+            description: Strings.DESCRIPTION_FONT_SMOOTHING,
+            values: ["subpixel-antialiased", "antialiased"]
+        }).on("change", function () {
+            setMacFontSmoothingType(prefs.get("fontSmoothing"));
+        });
+    }
 
     // Update UI when opening or closing a document
-    $(DocumentManager).on("currentDocumentChange", _updateUI);
+    MainViewManager.on("currentFileChange", _updateUI);
 
     // Update UI when Brackets finishes loading
-    AppInit.appReady(_updateUI);
+    AppInit.appReady(init);
+
+
+    EventDispatcher.makeEventDispatcher(exports);
+
+    exports.restoreFontSize = restoreFontSize;
+    exports.restoreFonts    = restoreFonts;
+    exports.getFontSize     = getFontSize;
+    exports.setFontSize     = setFontSize;
+    exports.getFontFamily   = getFontFamily;
+    exports.setFontFamily   = setFontFamily;
 });

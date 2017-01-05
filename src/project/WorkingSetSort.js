@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,60 +21,75 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
-
 /**
- * Manages the workingSet sort methods.
+ * Manages the workingSetList sort methods.
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        DocumentManager         = require("document/DocumentManager"),
+        MainViewManager         = require("view/MainViewManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         FileUtils               = require("file/FileUtils"),
         AppInit                 = require("utils/AppInit"),
-        Strings                 = require("strings");
-    
-    var defaultPrefs = {
-        currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
-        automaticSort: false
-    };
-    
+        Strings                 = require("strings"),
+        _                       = require("thirdparty/lodash");
+
     /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = {};
-    
-    /**
+     * List of sorting method objects
      * @private
      * @type {Array.<Sort>}
      */
     var _sorts = [];
-    
+
     /**
+     * Denotes the current sort method object
      * @private
      * @type {Sort}
      */
     var _currentSort = null;
-    
+
     /**
+     * Denotes if automatic sorting is enabled or not
      * @private
      * @type {boolean}
      */
     var _automaticSort = false;
-    
+
+
     /**
+     * Maps Legacy sort method names  to new sort method names
      * @private
-     * @type {boolean}
-     * Used to know when to do the automatic sort for MRU order.
+     * @type {object.<string: string>} oldname: newname
      */
-    var _openedDocument = false;
-    
+    var _sortPrefConversionMap = {
+        "view.sortWorkingSetByAdded" : "cmd.sortWorkingSetByAdded",
+        "view.sortWorkingSetByName"  : "cmd.sortWorkingSetByName",
+        "view.sortWorkingSetByType"  : "cmd.sortWorkingSetByType"
+    };
+
+    /**
+     * Events which the sort command will listen for to trigger a sort
+     * @constant {string}
+     * @private
+     */
+    var _SORT_EVENT_NAMES = "workingSetAdd workingSetAddList";
+
+    /**
+     * Preference name
+     * @constant {string}
+     * @private
+     */
+    var _WORKING_SET_SORT_PREF = "workingSetSortMethod";
+
+    /**
+     * Legacy preference name
+     * @constant {string}
+     * @private
+     */
+    var _LEGACY_SORT_PREF = "currentSort";
+
     /**
      * Retrieves a Sort object by id
      * @param {(string|Command)} command A command ID or a command object.
@@ -86,7 +101,7 @@ define(function (require, exports, module) {
             console.error("Attempting to get a Sort method with a missing required parameter: command");
             return;
         }
-        
+
         if (typeof command === "string") {
             commandID = command;
         } else {
@@ -94,89 +109,104 @@ define(function (require, exports, module) {
         }
         return _sorts[commandID];
     }
-    
+
+    /**
+     * Converts the old brackets working set sort preference into the modern paneview sort preference
+     * @private
+     * @param {!string} sortMethod - sort preference to convert
+     * @return {?string} new sort preference string or undefined if an sortMethod is not found
+     */
+    function _convertSortPref(sortMethod) {
+        if (!sortMethod) {
+            return null;
+        }
+
+        if (_sortPrefConversionMap.hasOwnProperty(sortMethod)) {
+            sortMethod = _sortPrefConversionMap[sortMethod];
+            PreferencesManager.setViewState(_WORKING_SET_SORT_PREF, sortMethod);
+        } else {
+            sortMethod = null;
+        }
+
+        return sortMethod;
+    }
+
     /**
      * @return {boolean} Enabled state of Automatic Sort.
      */
     function getAutomatic() {
         return _automaticSort;
     }
-    
+
     /**
+     * Removes the sort listeners.
      * @private
-     * Removes the sort DocumentManager listeners.
      */
     function _removeListeners() {
-        $(DocumentManager).off(".sort");
+        MainViewManager.off(".sort");
     }
-    
+
     /**
      * Enables/Disables Automatic Sort depending on the value.
      * @param {boolean} enable True to enable, false to disable.
      */
     function setAutomatic(enable) {
         _automaticSort = enable;
-        _prefs.setValue("automaticSort", _automaticSort);
-        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
-        
-        if (enable) {
+        PreferencesManager.setViewState("automaticSort", _automaticSort);
+        CommandManager.get(Commands.CMD_WORKING_SORT_TOGGLE_AUTO).setChecked(_automaticSort);
+        _currentSort.setChecked(_automaticSort);
+
+        if (_automaticSort) {
             _currentSort.sort();
         } else {
             _removeListeners();
         }
     }
-    
+
     /**
+     * Adds the current sort MainViewManager listeners.
      * @private
-     * Adds the current sort DocumentManager listeners.
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
-            $(DocumentManager)
+            MainViewManager
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })
-                .on("workingSetDisableAutoSorting.sort", function () {
+                .on("_workingSetDisableAutoSort.sort", function () {
                     setAutomatic(false);
                 });
         }
     }
-    
-    
+
+
     /**
-     * @private
      * Sets the current sort method and checks it on the context menu.
+     * @private
      * @param {Sort} newSort
      */
     function _setCurrentSort(newSort) {
-        var command;
         if (_currentSort !== newSort) {
             if (_currentSort !== null) {
-                command = CommandManager.get(_currentSort.getCommandID());
-                if (command) {
-                    command.setChecked(false);
-                }
+                _currentSort.setChecked(false);
             }
-            command = CommandManager.get(newSort.getCommandID());
-            if (command) {
-                command.setChecked(true);
+            if (_automaticSort) {
+                newSort.setChecked(true);
             }
-            
-            CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setEnabled(!!newSort.getEvents());
+
+            CommandManager.get(Commands.CMD_WORKING_SORT_TOGGLE_AUTO).setEnabled(!!newSort.getEvents());
+            PreferencesManager.setViewState(_WORKING_SET_SORT_PREF, newSort.getCommandID());
             _currentSort = newSort;
-            _prefs.setValue("currentSort", _currentSort.getCommandID());
         }
     }
-    
-    
+
+
     /**
      * @constructor
-     * @private
-     *
      * @param {string} commandID A valid command identifier.
      * @param {function(File, File): number} compareFn A valid sort
      *      function (see register for a longer explanation).
-     * @param {string} events Space-separated DocumentManager possible events
+     * @param {string} events Space-separated WorkingSetSort possible events
      *      ending with ".sort".
      */
     function Sort(commandID, compareFn, events, automaticFn) {
@@ -184,22 +214,42 @@ define(function (require, exports, module) {
         this._compareFn = compareFn;
         this._events    = events;
     }
-    
-    /** @return {string} The Command ID */
+
+    /**
+     * The Command ID
+     * @return {string}
+     */
     Sort.prototype.getCommandID = function () {
         return this._commandID;
     };
-    
-    /** @return {function(File, File): number} The compare function */
+
+    /**
+     * The compare function
+     * @return {function(File, File): number}
+     */
     Sort.prototype.getCompareFn = function () {
         return this._compareFn;
     };
-    
-    /** @return {string} The DocumentManager events */
+
+    /**
+     * Gets the event that this sort object is listening to
+     * @return {string}
+     */
     Sort.prototype.getEvents = function () {
         return this._events;
     };
-    
+
+    /**
+     * Checks/Unchecks the command which will show a check in the menu
+     * @param {boolean} value
+     */
+    Sort.prototype.setChecked = function (value) {
+        var command = CommandManager.get(this._commandID);
+        if (command) {
+            command.setChecked(value);
+        }
+    };
+
     /**
      * Performs the sort and makes it the current sort method.
      */
@@ -207,19 +257,19 @@ define(function (require, exports, module) {
         _setCurrentSort(this);
         this.sort();
     };
-    
+
     /**
      * Only performs the working set sort if this is the current sort.
      */
     Sort.prototype.sort = function () {
         if (_currentSort === this) {
             _removeListeners();
-            DocumentManager.sortWorkingSet(this._compareFn);
+            MainViewManager._sortWorkingSet(MainViewManager.ALL_PANES, this._compareFn);
             _addListeners();
         }
     };
-    
-    
+
+
     /**
      * Registers a working set sort method.
      * @param {(string|Command)} command A command ID or a command object
@@ -238,7 +288,7 @@ define(function (require, exports, module) {
      */
     function register(command, compareFn, events) {
         var commandID = "";
-        
+
         if (!command || !compareFn) {
             console.log("Attempting to register a Sort method with a missing required parameter: command or compare function");
             return;
@@ -248,12 +298,12 @@ define(function (require, exports, module) {
         } else {
             commandID = command.getID();
         }
-        
+
         if (_sorts[commandID]) {
             console.log("Attempting to register an already-registered Sort method: " + command);
             return;
         }
-        
+
         // Adds ".sort" to the end of each event to make them specific for the automatic sort.
         if (events) {
             events = events.split(" ");
@@ -262,86 +312,115 @@ define(function (require, exports, module) {
             });
             events = events.join(" ");
         }
-        
+
         var sort = new Sort(commandID, compareFn, events);
         _sorts[commandID] = sort;
         return sort;
     }
-    
-    
-    /** Command Handlers */
-    function _handleSortWorkingSetByAdded() {
-        get(Commands.SORT_WORKINGSET_BY_ADDED).execute();
-    }
-    
-    function _handleSortWorkingSetByName() {
-        get(Commands.SORT_WORKINGSET_BY_NAME).execute();
-    }
-    
-    function _handleSortWorkingSetByType() {
-        get(Commands.SORT_WORKINGSET_BY_TYPE).execute();
-    }
-    
-    function _handleAutomaticSort() {
+
+
+    /**
+     * Command Handler for CMD_WORKING_SORT_TOGGLE_AUTO
+     * @private
+     */
+    function _handleToggleAutoSort() {
         setAutomatic(!getAutomatic());
     }
-    
-    
-    // Register Sort Methods
+
+    /**
+     * Command Handler for CMD_WORKINGSET_SORT_BY_*
+     * @private
+     * @param {!string} commandId identifies the sort method to use
+     */
+    function _handleSort(commandId) {
+        get(commandId).execute();
+    }
+
+    /**
+     * Register Sort Methods
+     */
     register(
-        Commands.SORT_WORKINGSET_BY_ADDED,
-        function (file1, file2) {
-            var index1 = DocumentManager.findInWorkingSetAddedOrder(file1.fullPath),
-                index2 = DocumentManager.findInWorkingSetAddedOrder(file2.fullPath);
-            
+        Commands.CMD_WORKINGSET_SORT_BY_ADDED,
+        function (paneId, file1, file2) {
+            var index1 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file1.fullPath),
+                index2 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file2.fullPath);
+
             return index1 - index2;
         },
-        "workingSetAdd workingSetAddList"
+        _SORT_EVENT_NAMES
     );
     register(
-        Commands.SORT_WORKINGSET_BY_NAME,
-        function (file1, file2) {
+        Commands.CMD_WORKINGSET_SORT_BY_NAME,
+        function (paneId, file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
-        "workingSetAdd workingSetAddList"
+        _SORT_EVENT_NAMES
     );
     register(
-        Commands.SORT_WORKINGSET_BY_TYPE,
-        function (file1, file2) {
+        Commands.CMD_WORKINGSET_SORT_BY_TYPE,
+        function (paneId, file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
-        "workingSetAdd workingSetAddList"
+        _SORT_EVENT_NAMES
     );
-    
-    
-    // Register Command Handlers
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_ADDED, Commands.SORT_WORKINGSET_BY_ADDED, _handleSortWorkingSetByAdded);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_NAME,  Commands.SORT_WORKINGSET_BY_NAME,  _handleSortWorkingSetByName);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_TYPE,  Commands.SORT_WORKINGSET_BY_TYPE,  _handleSortWorkingSetByType);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_AUTO,     Commands.SORT_WORKINGSET_AUTO,     _handleAutomaticSort);
-    
-    
-    // Initialize PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
-    
-    // Initialize items dependent on extensions/workingSet
+
+
+    /**
+     * Register Command Handlers
+     */
+    CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_ADDED, Commands.CMD_WORKINGSET_SORT_BY_ADDED, _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_ADDED));
+    CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_NAME,  Commands.CMD_WORKINGSET_SORT_BY_NAME,  _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_NAME));
+    CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_TYPE,  Commands.CMD_WORKINGSET_SORT_BY_TYPE,  _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_TYPE));
+    CommandManager.register(Strings.CMD_WORKING_SORT_TOGGLE_AUTO,   Commands.CMD_WORKING_SORT_TOGGLE_AUTO,    _handleToggleAutoSort);
+
+
+    /**
+     * Initialize default values for sorting preferences
+     */
+    PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
+
+    /**
+     * Define a default sort method that's empty so that we
+     *   just convert and use the legacy sort method
+     */
+    PreferencesManager.stateManager.definePreference(_WORKING_SET_SORT_PREF, "string", "");
+
+    /*
+     * initializes global sort method from preference settings or the default
+     */
+    function initSortMethod() {
+        var sortMethod = PreferencesManager.getViewState(_WORKING_SET_SORT_PREF);
+
+        if (!sortMethod) {
+            sortMethod = _convertSortPref(PreferencesManager.getViewState(_LEGACY_SORT_PREF));
+        }
+
+        if (!sortMethod) {
+            sortMethod = Commands.CMD_WORKINGSET_SORT_BY_ADDED;
+        }
+        return sortMethod;
+    }
+
+    /**
+     * Initialize items dependent on extensions/workingSetList
+     */
     AppInit.appReady(function () {
-        var curSort  = get(_prefs.getValue("currentSort")),
-            autoSort = _prefs.getValue("automaticSort");
-        
+        var sortMethod = initSortMethod(),
+            curSort    = get(sortMethod),
+            autoSort = PreferencesManager.getViewState("automaticSort");
+
         if (curSort) {
             _setCurrentSort(curSort);
         }
         if (autoSort) {
-            setAutomatic(true);
+            setAutomatic(autoSort);
         }
         if (curSort && autoSort) {
             curSort.sort();
         }
     });
-    
-    
-    // Define public API
+
+    // Public API
     exports.register        = register;
     exports.get             = get;
     exports.getAutomatic    = getAutomatic;

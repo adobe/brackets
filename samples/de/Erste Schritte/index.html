@@ -3,11 +3,10 @@
 
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>ERSTE SCHRITTE MIT BRACKETS</title>
         <meta name="description" content="Ein interaktiver Wegweiser für die ersten Schritte mit Brackets.">
         <link rel="stylesheet" href="main.css">
-        <script src="https://use.edgefonts.net/source-sans-pro:n4,i4,n6,i6:all.js"></script>
     </head>
     <body>
 
@@ -19,10 +18,9 @@
         -->
 
         <p>
-            Willkommen zu einer frühen Vorschau von Brackets, einem neuen Open-Source-Editor für die
-            nächste Generation des Webs. Wir sind große Fans von Standards und wollen bessere Tools für
-            JavaScript, HTML und CSS sowie verwandte offene Web-Technologien bauen. Dies ist erst
-            der Anfang von dem, was wir noch vorhaben.
+            Willkommen zu Brackets, einem modernen, quelloffenen Code-Editor, der Webdesign versteht. Es ist ein
+            einfacher, aber dennoch leistungsfähiger Editor, der Ihnen immer die richtigen Tools einblendet, sodass
+            Sie die genau richtige Menge an Hilfestellung haben, wann immer Sie diese brauchen.
         </p>
 
         <!--
@@ -30,36 +28,53 @@
         -->
         <p>
             <em>Brackets ist eine andere Art Editor.</em>
-            Ein entscheidender Unterschied ist, dass dieser Editor in JavaScript, HTML und CSS geschrieben ist.
-            Das heißt, dass die meisten von euch Brackets-Nutzern die nötigen Fähigkeiten haben, Brackets selbst
-            zu verändern und erweitern.
-            Tatsächlich benutzen wir Brackets täglich, um Brackets zu verbessern.
-            Es hat außerdem einige einzigartige Funktionen wie Schnelles Bearbeiten, die Live-Vorschau und andere,
-            die sie wahrscheinlich nicht in anderen Editoren finden werden.
-            Lesen Sie weiter, um zu erfahren, wie sie diese Funktionen nutzen können.
+            Brackets hat ein paar einzigartige Features wie Schnelles Bearbeiten, Live-Vorschau und zahlreiche
+            weitere, die Sie in anderen Editoren vergeblich suchen werden. Zudem ist Brackets in JavaScript, HTML
+            und CSS geschrieben. Das heißt, dass die meisten Brackets-Nutzer dazu in der Lage sind, den Editor selbst
+            zu verändern und zu erweitern. Tatsächlich nutzen wir Brackets täglich, um Brackets zu verbessern.
+            Lesen Sie weiter, um mehr über die Nutzung der Hauptfeatures zu erfahren.
         </p>
+        
+        <!--
+            BEGINNEN SIE, IHRE EIGENEN DATEIEN ZU NUTZEN
+        -->
 
-
-        <h2>Wir probieren ein paar neue Dinge aus</h2>
+        <h3>Projekte in Brackets</h3>
+        <p>
+            Um Ihren eigenen Code in Brackets zu bearbeiten, können Sie einfach den Ordner öffnen, der Ihre
+            Dateien enthält.
+            Brackets sieht den geöffneten Ordner als "Projekt"; Features wie Code-Vervollständigung, Live-Vorschau
+            und Schnelles Bearbeiten nutzen nur Dateien im aktuell geöffneten Ordner.
+        </p>
+        
+        <samp>
+            Sobald Sie bereit sind, dieses Beispielprojekt zu verlassen und Ihren eigenen Code zu editieren, können
+            Sie die Drop-Down-Liste auf der linken Seite nutzen, um einen Ordner auszuwählen. Die Drop-Down-Liste
+            heißt zurzeit "Erste Schritte" - das ist der Ordner, der die aktuell geöffnete Datei enthält. Klicken
+            Sie darauf und wählen Sie daraufhin "Ordner öffnen…", um Ihren eigenen Ordner zu öffnen.
+            Sie können auf diese Weise auch später wieder zu zuvor geöffneten Ordnern, wie diesem Beispielprojekt,
+            zurückkehren.
+        </samp>
 
         <!--
             DIE BEZIEHUNG VON HTML, CSS UND JAVASCRIPT
         -->
-        <h3>Schnelles Bearbeiten für CSS und JavaScript</h3>
+        <h3>Schnelles Bearbeiten von CSS und JavaScript</h3>
         <p>
             Kein Wechsel zwischen Dokumenten mehr - so verlieren Sie nie den Überblick. Wenn Sie HTML editieren,
             können Sie die Tastenkombination <kbd>Cmd/Strg + E</kbd> verwenden, um einen Inline-Editor anzuzeigen,
             der Ihnen alle relevanten CSS-Regeln zum Schnellen Bearbeiten anzeigt.
-            Ändern Sie etwas in dem CSS, drücken Sie <kbd>ESC</kbd> und schon sind Sie zurück im HTML-Code. Oder
-            lassen Sie die CSS-Regeln einfach offen und sie werden Teil ihres HTML-Editors. Sobald Sie <kbd>ESC</kbd>
-            außerhalb eines solchen Editors drücken, schließen sich all diese.
+            Ändern Sie etwas im CSS, drücken Sie <kbd>ESC</kbd> und schon sind Sie zurück im HTML-Code. Oder lassen
+            Sie die CSS-Regeln einfach offen und sie werden Teil ihres HTML-Editors. Sobald Sie <kbd>ESC</kbd>
+            außerhalb eines solchen Editors drücken, schließen sich alle zusammen. Ein Inline-Editor zeigt Ihnen
+            auch Regeln in LESS- und SCSS-Dateien, inklusive geschachtelter Regeln.
         </p>
 
         <samp>
             Sie wollen das in Aktion sehen? Setzen Sie Ihren Cursor auf den <!-- <samp> -->-Tag oben und drücken
             Sie <kbd>Cmd/Strg + E</kbd>. Sie sollten einen Editor zum Schnellen Bearbeiten von CSS erscheinen sehen,
-            der die geltenden CSS-Regeln anzeigt. Das Schnelle Bearbeiten funktioniert genauso in Klassen- und 
-            ID-Attributen.
+            der die geltenden CSS-Regeln anzeigt. Das Schnelle Bearbeiten funktioniert genauso in Klassen- und
+            ID-Attributen. Sie können es zudem in LESS- und SCSS-Dateien nutzen.
             
             Sie können auf die selbe Weise neue Regeln erstellen. Klicken Sie in einen der <!-- <p> -->-Tags weiter
             oben und drücken Sie <kbd>Cmd/Strg + E</kbd>. Es gibt noch keine Regeln dafür, aber Sie können den
@@ -73,6 +88,8 @@
         <p>
             Sie können die selbe Tastenkombination nutzen, um andere Dinge auf die selbe Weise zu bearbeiten - wie
             JavaScript-Funktionen, Farben und Animations-Timing-Funktionen - und wir fügen ständig mehr hinzu.
+        </p>
+        <p>
             Im Augenblick können solche Editoren allerdings nicht verschachtelt werden. Sie können das
             Schnelle Bearbeiten also nur nutzen, während der Cursor sich im Haupteditor befindet.
         </p>
@@ -146,10 +163,10 @@
         <h3>Sie benötigen etwas anderes? Probieren Sie es mit einer Erweiterung!</h3>
         <p>
             Zusätzlich zu all dem, was in Brackets eingebaut ist, hat unsere große und wachsende Community der
-            Erweiterungs-Entwickler über hundert Erweiterungen erstellt, die nützliche Funktionen bringen. Wenn
+            Erweiterungs-Entwickler hunderte Erweiterungen erstellt, die nützliche Funktionen bringen. Wenn
             Sie etwas brauchen, was es nicht in Brackets gibt, ist es sehr wahrscheinlich, dass bereits jemand
             eine Erweiterung dafür geschrieben hat. Um die Liste der verfügbaren Erweiterungen zu durchstöbern
-            oder zu durchsuchen nutzen Sie <strong>Datei &gt; Erweiterungs-Verwaltung</strong> und klicken auf
+            oder zu durchsuchen nutzen Sie <strong>Datei > Erweiterungs-Verwaltung</strong> und klicken auf
             den Tab "Verfügbar". Wenn Sie eine Erweiterung finden, die Sie nutzen wollen, klicken Sie einfach
             auf den "Installieren"-Button daneben.
         </p>
@@ -167,35 +184,35 @@
         <ul>
             <li><a href="http://brackets.io">Brackets.io</a></li>
             <li><a href="http://blog.brackets.io">Brackets Team-Blog</a></li>
-            <li><a href="http://github.com/adobe/brackets">Brackets auf GitHub</a></li>
+            <li><a href="https://github.com/adobe/brackets">Brackets auf GitHub</a></li>
             <li><a href="https://brackets-registry.aboutweb.com">Brackets Erweiterungs-Verzeichnis</a></li>
-            <li><a href="http://github.com/adobe/brackets/wiki">Brackets Wiki</a></li>
-            <li><a href="http://groups.google.com/group/brackets-dev">Brackets Developer-Mailingliste</a></li>
-            <li><a href="https://twitter.com/#!/brackets">@brackets auf Twitter</a></li>
-            <li>Mit Brackets-Entwicklern per IRC in #brackets auf Freenode chatten</li>
+            <li><a href="https://github.com/adobe/brackets/wiki">Brackets Wiki</a></li>
+            <li><a href="https://groups.google.com/forum/#!forum/brackets-dev">Brackets Developer-Mailingliste</a></li>
+            <li><a href="https://twitter.com/brackets">@brackets auf Twitter</a></li>
+            <li>Mit Brackets-Entwicklern via IRC in <a href="http://webchat.freenode.net/?channels=brackets&uio=d4">#brackets auf Freenode</a> chatten</li>
         </ul>
 
     </body>
 </html>
 <!--
 
-    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
-    [::::::::::::::     ::::::::::::::]
-    [::::::::::::::     ::::::::::::::]
-    [::::::[[[[[[[:     :]]]]]]]::::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[    CODE THE WEB     ]:::::]
-    [:::::[  http://brackets.io ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [::::::[[[[[[[:     :]]]]]]]::::::]
-    [::::::::::::::     ::::::::::::::]
-    [::::::::::::::     ::::::::::::::]
-    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io  ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
 
 -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,8 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, localStorage */
+/*global define, console */
+/*unittests: Preferences Manager */
 
 /**
  * PreferencesManager
@@ -31,171 +30,325 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
-    var _ = require("thirdparty/lodash");
-    
-    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
-        FileUtils         = require("file/FileUtils"),
-        ExtensionLoader   = require("utils/ExtensionLoader");
-    
-    /**
-     * The local storage ID
-     * @const
-     * @type {string}
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.preferences";
-    
-    /**
-     * The prefix used in the generated client ID
-     * @const
-     * @type {string}
-     */
-    var CLIENT_ID_PREFIX = "com.adobe.brackets.";
-    
-    
-    // Private Properties
-    var preferencesKey,
-        prefStorage,
-        persistentStorage,
-        extensionPaths,
-        doLoadPreferences   = false;
-    
-    
+
+    var AppInit                 = require("utils/AppInit"),
+        Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
+        FileUtils               = require("file/FileUtils"),
+        PreferencesBase         = require("preferences/PreferencesBase"),
+        FileSystem              = require("filesystem/FileSystem"),
+        Strings                 = require("strings"),
+        PreferencesImpl         = require("preferences/PreferencesImpl"),
+        _                       = require("thirdparty/lodash");
+
+    var currentFilename         = null, // the filename currently being edited
+        currentLanguageId       = null, // the language id of the file currently being edited
+        projectDirectory        = null,
+        projectScopeIsIncluded  = true;
+
     /**
      * @private
-     * Returns an array with the extension paths used in Brackets. The result is stored on a
-     * private variable on the first call and used to return the value on the next calls.
-     * @return {Array.<string>}
+     *
+     * Determines whether the project Scope should be included based on whether
+     * the currently edited file is within the project.
+     *
+     * @param {string=} filename Full path to edited file
+     * @return {boolean} true if the project Scope should be included.
      */
-    function _getExtensionPaths() {
-        if (!extensionPaths) {
-            var dirPath = FileUtils.getNativeBracketsDirectoryPath();
-            
-            extensionPaths = [
-                dirPath + "/extensions/default/",
-                dirPath + "/extensions/dev/",
-                ExtensionLoader.getUserExtensionPath() + "/"
-            ];
+    function _includeProjectScope(filename) {
+        filename = filename || currentFilename;
+        if (!filename || !projectDirectory) {
+            return false;
         }
-        return extensionPaths;
+        return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
 
     /**
-     * This method returns a standardized ClientID for a given requireJS module object
-     * @param {!{id: string, uri: string}} module - A requireJS module object
-     * @return {string} The ClientID
+     * Get the full path to the user-level preferences file.
+     *
+     * @return {string} Path to the preferences file
      */
-    function getClientID(module) {
-        var paths = exports._getExtensionPaths();
-        var pathExp, pathUrl, clientID;
+    function getUserPrefFile() {
+        return PreferencesImpl.userPrefFile;
+    }
 
-        paths.some(function (path) {
-            if (module.uri.toLocaleLowerCase().indexOf(path.toLocaleLowerCase()) === 0) {
-                pathUrl = path;
-                return true;
+    /**
+     * @private
+     *
+     * Adds or removes the project Scope as needed based on whether the currently
+     * edited file is within the project.
+     */
+    function _toggleProjectScope() {
+        if (_includeProjectScope() === projectScopeIsIncluded) {
+            return;
+        }
+        if (projectScopeIsIncluded) {
+            PreferencesImpl.manager.removeFromScopeOrder("project");
+        } else {
+            PreferencesImpl.manager.addToScopeOrder("project", "user");
+        }
+        projectScopeIsIncluded = !projectScopeIsIncluded;
+    }
+
+    /**
+     * @private
+     *
+     * This is used internally within Brackets for the ProjectManager to signal
+     * which file contains the project-level preferences.
+     *
+     * @param {string} settingsFile Full path to the project's settings file
+     */
+    function _setProjectSettingsFile(settingsFile) {
+        projectDirectory = FileUtils.getDirectoryPath(settingsFile);
+        _toggleProjectScope();
+        PreferencesImpl.projectPathLayer.setPrefFilePath(settingsFile);
+        PreferencesImpl.projectStorage.setPath(settingsFile);
+    }
+
+    /**
+     * Creates an extension-specific preferences manager using the prefix given.
+     * A `.` character will be appended to the prefix. So, a preference named `foo`
+     * with a prefix of `myExtension` will be stored as `myExtension.foo` in the
+     * preferences files.
+     *
+     * @param {string} prefix Prefix to be applied
+     */
+    function getExtensionPrefs(prefix) {
+        return PreferencesImpl.manager.getPrefixedSystem(prefix);
+    }
+
+    // Constants for preference lookup contexts.
+
+    /**
+     * Context to look up preferences in the current project.
+     * @type {Object}
+     */
+    var CURRENT_PROJECT = {};
+
+    /**
+     * Context to look up preferences for the currently edited file.
+     * This is undefined because this is the default behavior of PreferencesSystem.get.
+     *
+     * @type {Object}
+     */
+    var CURRENT_FILE;
+
+    /**
+     * Cached copy of the scopeOrder with the project Scope
+     */
+    var scopeOrderWithProject = null;
+
+    /**
+     * Cached copy of the scopeOrder without the project Scope
+     */
+    var scopeOrderWithoutProject = null;
+
+    /**
+     * @private
+     *
+     * Adjusts scopeOrder to have the project Scope if necessary.
+     * Returns a new array if changes are needed, otherwise returns
+     * the original array.
+     *
+     * @param {Array.<string>} scopeOrder initial scopeOrder
+     * @param {boolean} includeProject Whether the project Scope should be included
+     * @return {Array.<string>} array with or without project Scope as needed.
+     */
+    function _adjustScopeOrderForProject(scopeOrder, includeProject) {
+        var hasProject = scopeOrder.indexOf("project") > -1;
+
+        if (hasProject === includeProject) {
+            return scopeOrder;
+        }
+
+        var newScopeOrder;
+
+        if (includeProject) {
+            var before = scopeOrder.indexOf("user");
+            if (before === -1) {
+                before = scopeOrder.length - 2;
+            }
+            newScopeOrder = _.take(scopeOrder, before);
+            newScopeOrder.push("project");
+            newScopeOrder.push.apply(newScopeOrder, _.drop(scopeOrder, before));
+        } else {
+            newScopeOrder = _.without(scopeOrder, "project");
+        }
+        return newScopeOrder;
+    }
+
+    /**
+     * @private
+     *
+     * Creates a context based on the specified filename and language.
+     *
+     * @param {string=} filename Filename to create the context with.
+     * @param {string=} languageId Language ID to create the context with.
+     */
+    function _buildContext(filename, languageId) {
+        var ctx = {};
+        if (filename) {
+            ctx.path = filename;
+        } else {
+            ctx.path = currentFilename;
+        }
+        if (languageId) {
+            ctx.language = languageId;
+        } else {
+            ctx.language = currentLanguageId;
+        }
+        ctx.scopeOrder = _includeProjectScope(ctx.path) ?
+                        scopeOrderWithProject :
+                        scopeOrderWithoutProject;
+        return ctx;
+    }
+
+    function _getContext(context) {
+        context = context || {};
+        return _buildContext(context.path, context.language);
+    }
+
+    /**
+     * @private
+     *
+     * This is used internally within Brackets for the EditorManager to signal
+     * to the preferences what the currently edited file is.
+     *
+     * @param {string} newFilename Full path to currently edited file
+     */
+    function _setCurrentFile(newFilename) {
+        var oldFilename = currentFilename;
+        if (oldFilename === newFilename) {
+            return;
+        }
+        currentFilename = newFilename;
+        _toggleProjectScope();
+        PreferencesImpl.manager.signalContextChanged(_buildContext(oldFilename, currentLanguageId),
+                                                     _buildContext(newFilename, currentLanguageId));
+    }
+
+    /**
+     * @private
+     * This function is used internally to set the current language of the document.
+     * Both at the moment of opening the file and when the language is manually
+     * overriden.
+     *
+     * @param {string} newLanguageId The id of the language of the current editor.
+     */
+    function _setCurrentLanguage(newLanguageId) {
+        var oldLanguageId = currentLanguageId;
+        if (oldLanguageId === newLanguageId) {
+            return;
+        }
+        currentLanguageId = newLanguageId;
+        PreferencesImpl.manager.signalContextChanged(_buildContext(currentFilename, oldLanguageId),
+                                                     _buildContext(currentFilename, newLanguageId));
+    }
+
+
+    PreferencesImpl.manager.contextBuilder = _getContext;
+
+    /**
+     * @private
+     *
+     * Updates the CURRENT_PROJECT context to have the correct scopes.
+     */
+    function _updateCurrentProjectContext() {
+        var defaultScopeOrder = PreferencesImpl.manager._getScopeOrder({});
+        scopeOrderWithProject = _adjustScopeOrderForProject(defaultScopeOrder, true);
+        scopeOrderWithoutProject = _adjustScopeOrderForProject(defaultScopeOrder, false);
+        CURRENT_PROJECT.scopeOrder = scopeOrderWithProject;
+    }
+
+    _updateCurrentProjectContext();
+
+    PreferencesImpl.manager.on("scopeOrderChange", _updateCurrentProjectContext);
+
+    /**
+     * @private
+     */
+    function _handleOpenPreferences() {
+        var fullPath = getUserPrefFile(),
+            file = FileSystem.getFileForPath(fullPath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                    });
             }
         });
 
-        if (pathUrl) {
-            clientID = CLIENT_ID_PREFIX + module.uri.replace(pathUrl, "");
-        } else {
-            clientID = CLIENT_ID_PREFIX + module.id;
-        }
-        return clientID;
     }
-    
+
+    CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
+
     /**
-     * Retreive the preferences data for the given clientID.
-     * @param {string|{id: string, uri: string}} clientID - A unique identifier or a requireJS module object
-     * @param {string} defaults - Default preferences stored as JSON
-     * @return {PreferenceStorage}
+     * Convenience function that gets a view state
+     *
+     * @param {string} id preference to get
+     * @param {?Object} context Optional additional information about the request
      */
-    function getPreferenceStorage(clientID, defaults) {
-        if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
-            console.error("Invalid clientID");
-            return;
-        }
-        if (typeof clientID === "object") {
-            clientID = getClientID(clientID);
-        }
-
-        var prefs = prefStorage[clientID];
-
-        if (prefs === undefined) {
-            // create a new empty preferences object
-            prefs = (defaults && JSON.stringify(defaults)) ? defaults : {};
-            prefStorage[clientID] = prefs;
-        } else if (defaults) {
-            // add new defaults
-            _.forEach(defaults, function (value, key) {
-                if (prefs[key] === undefined) {
-                    prefs[key] = value;
-                }
-            });
-        }
-
-        return new PreferenceStorage(clientID, prefs);
+    function getViewState(id, context) {
+        return PreferencesImpl.stateManager.get(id, context);
     }
 
     /**
-     * Save all preference clients.
+     * Convenience function that sets a view state and then saves the file
+     *
+     * @param {string} id preference to set
+     * @param {*} value new value for the preference
+     * @param {?Object} context Optional additional information about the request
+     * @param {boolean=} doNotSave If it is undefined or false, then save the
+     *      view state immediately.
      */
-    function savePreferences() {
-        // save all preferences
-        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
-    }
+    function setViewState(id, value, context, doNotSave) {
 
-    /**
-     * @private
-     * Reset preferences and callbacks
-     */
-    function _reset() {
-        prefStorage = {};
+        PreferencesImpl.stateManager.set(id, value, context);
 
-        // Note that storage.clear() is not used. Production and unit test code
-        // both rely on the same backing storage but unique item keys.
-        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
-    }
-
-    /**
-     * @private
-     * Initialize persistent storage implementation
-     */
-    function _initStorage(storage) {
-        persistentStorage = storage;
-
-        if (doLoadPreferences) {
-            prefStorage = JSON.parse(persistentStorage.getItem(preferencesKey));
-        }
-
-        // initialize empty preferences if none were found in storage
-        if (!prefStorage) {
-            _reset();
+        if (!doNotSave) {
+            PreferencesImpl.stateManager.save();
         }
     }
 
-    // Check localStorage for a preferencesKey. Production and unit test keys
-    // are used to keep preferences separate within the same storage implementation.
-    preferencesKey = localStorage.getItem("preferencesKey");
-    
-    if (!preferencesKey) {
-        // use default key if none is found
-        preferencesKey = PREFERENCES_CLIENT_ID;
-        doLoadPreferences = true;
-    } else {
-        // using a non-default key, check for additional settings
-        doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
-    }
+    AppInit.appReady(function () {
+        PreferencesImpl.manager.resumeChangeEvents();
+    });
 
-    // Use localStorage by default
-    _initStorage(localStorage);
+    // Private API for unit testing and use elsewhere in Brackets core
+    exports._isUserScopeCorrupt     = PreferencesImpl.isUserScopeCorrupt;
+    exports._setCurrentFile         = _setCurrentFile;
+    exports._setCurrentLanguage     = _setCurrentLanguage;
+    exports._setProjectSettingsFile = _setProjectSettingsFile;
+    exports._smUserScopeLoading     = PreferencesImpl.smUserScopeLoading;
+    exports._stateProjectLayer      = PreferencesImpl.stateProjectLayer;
+    exports._reloadUserPrefs        = PreferencesImpl.reloadUserPrefs;
+    exports._buildContext           = _buildContext;
 
     // Public API
-    exports.getPreferenceStorage    = getPreferenceStorage;
-    exports.savePreferences         = savePreferences;
-    exports.getClientID             = getClientID;
 
-    // Unit test use only
-    exports._reset                  = _reset;
-    exports._getExtensionPaths      = _getExtensionPaths;
+    // Context names for preference lookups
+    exports.CURRENT_FILE        = CURRENT_FILE;
+    exports.CURRENT_PROJECT     = CURRENT_PROJECT;
+
+    exports.ready               = PreferencesImpl.managerReady;
+    exports.getUserPrefFile     = getUserPrefFile;
+    exports.get                 = PreferencesImpl.manager.get.bind(PreferencesImpl.manager);
+    exports.set                 = PreferencesImpl.manager.set.bind(PreferencesImpl.manager);
+    exports.save                = PreferencesImpl.manager.save.bind(PreferencesImpl.manager);
+    exports.on                  = PreferencesImpl.manager.on.bind(PreferencesImpl.manager);
+    exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);
+    exports.getPreference       = PreferencesImpl.manager.getPreference.bind(PreferencesImpl.manager);
+    exports.getAllPreferences   = PreferencesImpl.manager.getAllPreferences.bind(PreferencesImpl.manager);
+    exports.getExtensionPrefs   = getExtensionPrefs;
+    exports.getViewState        = getViewState;
+    exports.setViewState        = setViewState;
+    exports.addScope            = PreferencesImpl.manager.addScope.bind(PreferencesImpl.manager);
+    exports.stateManager        = PreferencesImpl.stateManager;
+    exports.FileStorage         = PreferencesBase.FileStorage;
+    exports.SETTINGS_FILENAME   = PreferencesImpl.SETTINGS_FILENAME;
+    exports.definePreference    = PreferencesImpl.manager.definePreference.bind(PreferencesImpl.manager);
+    exports.fileChanged         = PreferencesImpl.manager.fileChanged.bind(PreferencesImpl.manager);
 });

@@ -1,0 +1,10 @@
+#error-counter {
+    cursor: pointer;
+    transition: all 3s;
+    color: #f74687;
+    background-color: transparent;
+}
+#error-counter.flash {
+    transition: all 1s;
+    background-color: #ffb0cd;
+}

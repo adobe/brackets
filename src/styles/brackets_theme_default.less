@@ -1,5 +1,5 @@
 
-// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+// Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -43,27 +43,16 @@
  * The opposite is true for a dark background -- background-color-3 should be
  * the darkest, -2 should be lighter, and -1 should be lighter still.
  */
-@background-color-1: darken(@bc-white, @bc-color-step-size*2);
-@background-color-2: darken(@bc-white, @bc-color-step-size);
-@background-color-3: #f8f8f8;
 
-/*
- * @content-color-stronger should be should be further away from the
- * background color than @content-color (i.e. more contrasty).
- *
- * @content-color-weaker should be closer to the background color
- * than @content-color (i.e. less contrasty).
- */
-@content-color: #535353;
-@content-color-stronger: @bc-black;
-@content-color-weaker: lighten(@bc-black, @bc-color-step-size*6);
+@background: #f8f8f8;
+@foreground: #535353;
 
 /* Code Styling */
 
 /* code accent colors */
 @accent-keyword: #446fbd;
-@accent-atom: #f18900;
-@accent-number: #738d00;
+@accent-atom: #e88501;
+@accent-number: #6d8600;
 @accent-def: #8757ad;
 @accent-variable: #535353;
 @accent-variable-2: #535353;
@@ -71,42 +60,33 @@
 @accent-property: #8757ad;
 @accent-operator: #535353;
 @accent-comment: #949494;
-@accent-string: #f18900;
-@accent-string-2: #f18900;
+@accent-string: #e88501;
+@accent-string-2: #e88501;
 @accent-meta: #535353;
 @accent-error: #dc322f;
 @accent-qualifier: #446fbd;
 @accent-builtin: #446fbd;
 @accent-bracket: #222;
 @accent-tag: #446fbd;
-@accent-attribute: #738d00;
+@accent-attribute: #6d8600;
 @accent-header: #d33682;
 @accent-quote: #446fbd;
-@accent-hr: #f18900;
+@accent-hr: #e88501;
 @accent-link: #8757ad;
 @accent-rangeinfo: #6c71c4;
 @accent-minus: #dc322f;
 @accent-plus: #859900;
 @match-text: #121212;
-@cm-match-highlight: rgba(244, 237, 98, 0.7);
-@cm-current-match-highlight: rgb(255, 108, 0);
+@cm-match-highlight: #f5ee92;
+@cm-current-match-highlight: #f7c44e;
 
 /* code highlight */
 @matching-bracket: #cfead6;
 
-/* inline editor colors */
-@inline-background-color-1: #eaeaea;
-@inline-background-color-2: #dfe2e2;
-@inline-background-color-3: #d0d5d5;
-
-@inline-color-1: #a1a3a4;
-@inline-color-2: #8a8a8a;
-@inline-color-3: @bc-black;
-
 /* sidebar/toolbar colors */
-@project-panel-base-color: #3C3F41;
+@project-panel-base-color: #47484B;
 @project-panel-text-1: #ffffff;
-@project-panel-text-2: #94A3A7;
+@project-panel-text-2: #adb9bd;
 @main-toolbar-background-color: #5D5F60;
 
 /* open working file highlight */
@@ -118,15 +98,23 @@
 @selection-color-unfocused: #d5dee3;
 
 /* background color of the line that has the cursor */
-@activeline-bgcolor: #ebefef;
+@activeline-bg: #ebefef;
+@activeline-number: #000;
+@activeline-number-bg: #dee5e6;
+@activeline-number-bg-inline: #d7dede;
 
 /* custom scrollbar colors */
-@custom-scrollbar-thumb: rgba(0, 0, 0, 0.24);
-@custom-scrollbar-thumb-inactive: rgba(0, 0, 0, 0.12);
+@win-scrollbar-track: rgb(240, 240, 240);
+@win-scrollbar-thumb: rgb(206, 206, 206);
+@win-scrollbar-thumb-hover: rgb(166, 166, 166);
+@win-scrollbar-thumb-active: rgb(96, 96, 96);
+
+@linux-scrollbar-thumb: rgba(0, 0, 0, 0.24);
+@linux-scrollbar-thumb-inactive: rgba(0, 0, 0, 0.12);
 
 /* live preview */
 @live-preview-sync-error-background: #ff5d99;
-@live-preview-sync-error-color: @bc-white;
+@live-preview-sync-error-color: #fff;
 
 /* Code font formatting
  *
@@ -137,12 +125,14 @@
  * We rely on this behavior to load platform-specific web fonts early.
  */
 .code-font() {
-    color: @content-color;
-    // line-height must be specified in px not em because the code font and line number font sizes are different.
-    // Sizing via em will cause the code and line numbers to misalign
-    line-height: 15px;
-    font-size: 12px;
-    font-family: "SourceCodePro-Medium", "ＭＳ ゴシック", "MS Gothic", monospace;
+    color: @foreground;
+    line-height: 1.25;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
+
+    font-family: @sourceFontFamily-Medium;
 }
 
 .code-font-win() {
@@ -157,8 +147,106 @@
     // border: none !important;
 
     // to make an I-cursor, use something like this:
-    border-left: 1px solid black !important;
+    border-left: 1px solid black;
 
+}
+
+/* Dark theme styling
+ * 
+ * These are overrides to make the UI look better when the editor theme is dark.
+ * Eventually, these will likely be replaced by full-featured UI themes.
+ */
+
+.dark {
+    .inline-widget {
+        color: @dark-bc-text;
+        background-color: @dark-bc-bg-inline-widget;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+        .inline-editor-header {
+            .filename {
+                color: #fff;
+
+                .dirty-indicator {
+                    color: #aaa;
+                }
+
+                .line-number {
+                    color: #bbb;
+                }
+            }
+        }
+
+        .btn {
+            background-color: @dark-bc-btn-bg;
+            color: @dark-bc-text;
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+
+            &:hover {
+                background-color: @dark-bc-btn-bg;
+                color: @dark-bc-text;
+            }
+
+            &:focus {
+                border: 1px solid @dark-bc-btn-border-focused;
+                box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+                color: @dark-bc-text;
+            }
+
+            &:active:not([disabled]) {
+                background-color: @dark-bc-btn-bg-down;
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+                color: @dark-bc-text;
+            }
+        }
+
+        .close {
+            color: @dark-bc-text;
+        }
+            
+        .CodeMirror-scroll {
+            .CodeMirror-linenumbers {
+                background-color: @dark-bc-bg-inline-widget;
+            }
+        }            
+        
+    }
+
+    #editor-holder .inline-widget .CodeMirror, #editor-holder .inline-widget .CodeMirror-gutters {
+        background: transparent;
+    }
+
+    .related-container {
+        background: @dark-bc-panel-bg;
+
+        .selection {
+            background: @dark-bc-panel-bg-selected;
+        }
+
+        .selection:before {
+            border-left: @inline-triangle-size solid @dark-bc-bg-inline-widget;
+        }
+
+        .related {
+            li {
+                color: @dark-bc-text-alt;
+
+                .related-file {
+                    color: @dark-bc-text-thin-quiet;
+                }
+            }
+
+            .selected {
+                color: @dark-bc-text-alt;
+            }
+        }
+
+        .inline-editor-message {
+            color: @dark-bc-text-thin-quiet;
+        }
+    }
 }
 
 /* Variables and Mixins for non-code UI elements that can be styled */

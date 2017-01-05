@@ -1,5 +1,5 @@
 
-// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+// Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -31,29 +31,36 @@
  *
  */
 
-/* Variable Overrides */
-
-@tooltipBackground: #fff;
-@tooltipArrowColor: @tooltipBackground;
-
 /* Links */
 
 a {
-    color: @tc-link;
+    color: @bc-text-link;
     text-decoration: none;
+
+    .dark & {
+        color: @dark-bc-text-link;
+    }
 }
 
 a:hover {
-    color: @tc-link-hover;
+    color: @bc-text-link;
     text-decoration: underline;
+    
+    .dark & {
+        color: @dark-bc-text-link;
+    }
 }
 
 a:focus {
-    color: @tc-link-hover;
+    color: @bc-text-link;
     outline: 0;
-    border-radius: 3px;
-    box-shadow: @tc-input-glow;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
     text-decoration: none;
+
+    .dark & {
+        color: @dark-bc-text-link;
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused;
+    }
 }
 
 .panel {
@@ -63,12 +70,38 @@ a:focus {
     padding: 0;
     margin: 0;
 
-    background: @project-panel-base-color url("images/propertiespanel_back.png") repeat-x 0 0;
+    background: @project-panel-base-color;
     color: #bbb;
     letter-spacing: .01em;
-    text-shadow: 0px 1px 2px rgba(0,0,0,.5);
+    text-shadow: 0 1px 2px @bc-shadow-large;
+
+    .dark & {
+        text-shadow: 0 1px 2px @dark-bc-shadow-large;
+    }
 }
 
+/* working set drag ghost styles */
+
+.wsv-drag-ghost {
+    letter-spacing: .01em;
+    position: absolute;
+    z-index: @z-index-brackets-drag-ghost;
+    background-color: transparent;
+
+    text-shadow: 0 1px 2px @bc-shadow-large;
+    
+    .dark & {
+        text-shadow: 0 1px 2px @dark-bc-shadow-large;
+    }
+}
+
+.wsv-drag-ghost.dragging-current-file {
+    background-color: @bc-sidebar-selection;
+}
+
+#working-set-list-container .drag-show-as-selected {
+    background-color: @bc-sidebar-selection;
+}
 
 /* Toolbar-related styles */
 
@@ -118,6 +151,13 @@ a:focus {
         > li {
             float: left;
         }
+        .dropdown-menu {
+            //max-height: calc(~"100vh - 34px"); doesn't seem to work...
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-animation: none;
+            animation: none;
+        }
     }
     .title {
         float: none;
@@ -140,12 +180,15 @@ a:focus {
     box-sizing: border-box;
 
     background: @main-toolbar-background-color;
-    padding: 7px 0px;
+    padding: 7px 0;
 
     // Ensure icons are vertically stacked & horizontally centered
     .vbox;
     .box-flex(1);
     text-align: center;
+
+    // Ensure that it stays on top
+    z-index: @z-index-brackets-main-toolbar;
 
     .buttons,
     .bottom-buttons {
@@ -153,20 +196,28 @@ a:focus {
         margin: 0;
 
         > a {
-            border-radius: 3px;
+            border-radius: @bc-border-radius;
             background-repeat: no-repeat;
             display: block;
             height: 24px;
-            margin: 7px 0px 0px 3px;
+            margin: 7px 0 0 3px;
             width: 24px;
         }
 
         > a:hover {
-            background-color: rgba(0, 0, 0, 0.24) !important;
+            background-color: @bc-shadow !important;
+
+            .dark & {
+                background-color: @dark-bc-shadow !important;
+            }
         }
 
         > a:active {
-            background-color: rgba(0, 0, 0, 0.66) !important;
+            background-color: @bc-shadow-large !important;
+
+            .dark & {
+                background-color: @dark-bc-shadow-large !important;
+            }
         }
     }
 
@@ -183,10 +234,15 @@ a:focus {
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
-    background-color: @bc-white;
-    color: @bc-black;
+    background-color: @bc-menu-bg;
+    color: @bc-menu-text;
 
     position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
+
+    .dark & {
+        background-color: @dark-bc-panel-bg-promoted;
+        color: @dark-bc-menu-text;
+    }
 
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -204,8 +260,6 @@ a:focus {
 
         white-space: nowrap;
         overflow: hidden;
-        -ms-text-overflow: ellipsis;
-        -o-text-overflow: ellipsis;
         text-overflow: ellipsis;
     }
 
@@ -224,7 +278,35 @@ a:focus {
 @menubar-top-padding: 8px;
 @menubar-bottom-padding: 6px;
 @menubar-h-padding: 9px;
-@item-highlight-color: #e0f0fa;
+
+// Dropdown Menu Animation
+.dropdown-menu {
+    .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99));
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+    border: none;
+    border-radius: @bc-border-radius;
+
+    .dark & {
+        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    }
+}
+
+@-webkit-keyframes dropdown {
+    0%   { opacity: 0.5; -webkit-transform: translate3d(0, 0, 0) scale(0.5); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes dropdown {
+    0%   { opacity: 0.5; transform: translate3d(0, 0, 0) scale(0.5); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+// Code hints don't need scaling navigation so we're removing it
+
+.codehint-menu.open .dropdown-menu {
+    -webkit-animation: none;
+    animation: none;
+}
 
 .toolbar .nav, .context-menu, .codehint-menu {
 
@@ -233,29 +315,46 @@ a:focus {
 
     // General item appearance
     a {
-        color: @bc-black;
+        color: @bc-menu-text;
         text-shadow: none;
         cursor: default;
+
+        .dark & {
+            color: @dark-bc-menu-text;
+        }
     }
 
     // Menubar item appearance
     .dropdown-toggle {
         padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
         border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
-        color: fadeout(@bc-black, 25%);
-        font-weight: @font-weight-light;
+        color: fadeout(@bc-menu-text, 25%);
+
+        .dark & {
+            color: fadeout(@dark-bc-menu-text, 25%);
+        }
     }
     .dropdown-toggle:focus {
-        background-color: @bc-white;
+        background-color: @bc-menu-bg;
         outline: 0;
+
+        .dark & {
+            background-color: @dark-bc-menu-bg;
+        }
     }
     .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
         /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
            in their defaults). */
-        color: @bc-black;
-        background: @item-highlight-color;
-        border-color: #dbeaf4;
+        color: @bc-menu-text;
+        background: @bc-bg-highlight;
+        border-color: @bc-bg-highlight;
+
+        .dark & {
+            color: @dark-bc-menu-text;
+            background: @dark-bc-bg-highlight;
+            border-color: @dark-bc-bg-highlight;
+        }
     }
 
     // no triangle icon after menu items
@@ -266,7 +365,8 @@ a:focus {
 
     // Menu dropdown appearance
     .dropdown-menu {
-        top: 34px; // Offset from top of menubar item
+        // Offset for better alignment with button
+        top: 34px;
         margin-top: 0;
         
         // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
@@ -274,11 +374,17 @@ a:focus {
         // This technique won't work on all browsers; see comments in #4593 for alternative options.
         width: -webkit-max-content;
         width: -moz-max-content;
+        width: max-content;
 
-        background-color: @bc-white;
+        background-color: @bc-menu-bg;
         .border-radius(0 0 3px 3px);
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         border: none;
+
+        .dark & {
+            background-color: @dark-bc-menu-bg;
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
 
         // Menu items
         li {
@@ -288,27 +394,44 @@ a:focus {
 
                 // Slightly less padding on left to account for checkmark.
                 // More padding on top than bottom to center font within its bg highlight better.
-                padding: 2px 10px 0px 6px;
+                padding: 2px 10px 0 6px;
 
-                color: @bc-black;
+                color: @bc-menu-text;
                 text-shadow: none;
                 white-space: nowrap;
                 .box-shadow(none);
+
+                .dark & {
+                    color: @dark-bc-menu-text;
+                }
 
                 &.wide-result {
                     white-space: normal;
                 }
 
                 &:hover, &.highlight {
-                    color: @bc-black;
-                    background: @item-highlight-color;
+                    color: @bc-menu-text;
+                    background: @bc-bg-highlight;
+
+                    .dark & {
+                        color: @dark-bc-menu-text;
+                        background: @dark-bc-bg-highlight;
+                    }
                 }
 
                 &.disabled {
-                    color: @bc-gray;
+                    color: @bc-text-thin-quiet;
+
+                    .dark & {
+                        color: @dark-bc-text-thin-quiet;
+                    }
 
                     &:hover {
-                        background: @bc-white;
+                        background: @bc-menu-bg;
+
+                        .dark & {
+                            background: @dark-bc-menu-bg;
+                        }
                     }
                 }
 
@@ -325,9 +448,13 @@ a:focus {
         }
 
         .divider {
-            background-color: #eaeaea;
+            background-color: @bc-menu-separator;
             border: 0;
             margin: 5px 1px;
+
+            .dark & {
+                 background-color: @dark-bc-menu-separator;
+            }
         }
     }
 
@@ -349,7 +476,11 @@ a:focus {
 
     .dropdown-menu {
         .border-radius(3px);
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
+
+        .dark & {
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
     }
 
     .menu-shortcut {
@@ -360,27 +491,60 @@ a:focus {
 .codehint-menu {
     opacity: 0;
     .dropdown-menu {
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         max-height: 160px;
         overflow-y: auto;
         padding: 0;
+
+        .dark & {
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
 
         li {
             a {
                 // Less padding than on menus. More padding on top than bottom
                 // to center font within its bg highlight better.
-                padding: 2px 20px 0px 0px;
+                padding: 2px 20px 0 0;
 
                 // Don't show highlighting on hover for code hints...
                 &:hover {
-                    color: @bc-black;
-                    background-color: @bc-white;
+                    color: @bc-menu-text;
+                    background-color: @bc-menu-bg;
+
+                    .dark & {
+                        color: @dark-bc-menu-text;
+                        background-color: @dark-bc-menu-bg;
+                    }
                 }
 
                 // ...except for selected item
                 &.highlight:hover {
-                    color: @bc-black;
-                    background-color: @item-highlight-color;
+                    color: @bc-menu-text;
+                    background-color: @bc-bg-highlight;
+
+                    .dark & {
+                        color: @dark-bc-menu-text;
+                        background-color: @dark-bc-bg-highlight;
+                    }
+                }
+
+                .color-swatch {
+                    border-radius: 2px;
+                    width: 12px;
+                    height: 12px;
+                    float: left;
+                    margin: 2px -8px 0 4px;
+                    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.24);
+
+                    .dark & {
+                        box-shadow: inset 0 0 1px rgba(255, 255, 255, 0.24);
+                    }
+                }
+
+                // Used to align non-swatch items with the others. Only applied
+                // if there's at least one item with a swatch in the list
+                .no-swatch-margin {
+                    margin-left: 8px;
                 }
             }
         }
@@ -400,82 +564,175 @@ a:focus {
     margin: 0;
 }
 
-/* Stylesheet button & dropdown styles */
+/* DropdownButton widget */
 
-.stylesheet-button.btn-mini {
-    margin-left: 8px;
-    position: relative;
-    top: -1px;
+.btn-dropdown, .btn-dropdown.btn-mini {
+    position: relative;   // needed to position ::after arrow
+    padding-right: 24px;  // makes room for ::after arrow
 }
-
-.stylesheet-button.btn-mini.btn-dropdown {
-    padding-right: 24px;
-}
-
-.stylesheet-button.btn-dropdown::after {
+.btn-dropdown::after {
     content: "";
     display: block;
-    height: 0px;
-    width: 0px;
+    height: 0;
+    width: 0;
     position: absolute;
-    right: 6px;
-    top: 7px;
+    right: 7px;
+    top: 11px;
 
     /* dropdown triangle */
-    border-top: 4px solid @tc-gray-component-triangle;
+    border-top: 5px solid @bc-btn-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
+
+    .dark & {
+        border-top: 5px solid @dark-bc-btn-triangle;
+    }
+}
+.btn-dropdown.btn-mini::after {
+    top: 7px;
 }
 
-.stylesheet-dropdown {
+.dropdownbutton-popup {
     &.dropdown-menu:focus {
         outline: none;
     }
     
     &.dropdown-menu {
         border: none;
-        border-radius: @tc-control-border-radius;
-        padding: 0;
+        border-radius: @bc-border-radius;
+        padding: 5px 0;
         position: absolute;
         display: block;
-        box-shadow: @tc-dropdown-shadow;
+        box-shadow: 0 3px 9px @bc-shadow;
         max-height: 160px;
         overflow-y: auto;
         max-width: none;
         min-width: 200px;
         z-index: @z-index-brackets-stylesheet-menu;
-    }
-    
-    .stylesheet-link, .stylesheet-name {
-        white-space: nowrap;
+
+        .dark & {
+            box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
     }
     
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
+        color: @bc-menu-text;
+        
+        .dark & {
+            color: @dark-bc-menu-text;
+        }
+
+        &.disabled {
+            color: @bc-text-thin-quiet;
+
+            .dark & {
+                color: @dark-bc-text-thin-quiet;
+            }
+        }
     }
     
     &.dropdown-menu .stylesheet-link {
         display: block;
     }
     
-    .stylesheet-name {
-        color: @tc-text;
-    }
-    
-    .stylesheet-dir {
-        color: @tc-quiet-text;
-    }
-    
     &.dropdown-menu a.selected {
-        background: @tc-highlight;
-        color: @bc-black !important;
+        background: @bc-bg-highlight;
+        color: @bc-menu-text !important;
+
+        .dark & {
+            background: @dark-bc-bg-highlight;
+            color: @dark-bc-menu-text !important;
+        }
+    }
+
+    &.dropdown-menu a {
+        &::before {
+            position: absolute;
+            left: 10px;
+            text-align: center;
+            content: "✓";
+            display: none;
+        }
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: inline-block;
+        }
+    }
+    
+    &.dropdown-menu a:hover {
+        /* toggle checkmark visibility */
+        &.checked::before {
+            display: none;
+        }
     }
 
     &.dropdown-menu a:not(.selected):hover {
-         background: none;
+        background: none;
+    }
+
+    .divider {
+        margin: 5px 1px;
+    }
+
+}
+
+/* Status bar language picker's DropdownButton */
+.dropdownbutton-popup.dropdown-status-bar {
+    -webkit-transform-origin: 0 100%;
+    transform-origin: 0 100%;
+    height: auto;
+    max-height: 80%;
+    
+    // Improve how bottom of the dropdown joins with top of status bar button
+    margin-top: -6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    
+    li a .default-language {
+        font-style: italic;
+        color: @bc-text-quiet;
+
+        .dark & {
+            color: @dark-bc-text-quiet;
+        }
+    }
+
+    li a .checked-language::before {
+        content: "✓";
+        margin-left: -11px;
+        margin-right: 3px;
     }
 }
 
+/* Inline editor stylesheet-picker DropdownButton */
+
+.stylesheet-button.btn-mini {
+    margin-left: 8px;
+    top: -1px;
+}
+
+.dropdownbutton-popup {
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    .stylesheet-name {
+        color: @bc-text;
+
+        .dark & {
+            color: @dark-bc-text;
+        }
+    }
+    
+    .stylesheet-dir {
+        color: @bc-text-quiet;
+
+        .dark & {
+            color: @dark-bc-text-quiet;
+        }
+    }
+}
 
 /* Dialog-related styles */
 
@@ -495,11 +752,18 @@ a:focus {
 }
 
 .modal {
-    background-color: @tc-gray-panel;
+    background-color: @bc-panel-bg;
+    border: 1px solid @bc-panel-border;
     min-width: 200px;
     position: relative;
     top: 0;
     margin: auto;
+    .animation(modal, 240ms, cubic-bezier(0, 1.05, .35, 1));
+
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border: 1px solid @dark-bc-panel-border;
+    }
 }
 
 .modal .close {
@@ -508,13 +772,38 @@ a:focus {
 }
 
 .modal-header {
-    background: @tc-gray-panel-top-bar;
+    background: @bc-panel-bg-promoted;;
     border-radius: 4px 4px 0 0;
-    border-bottom: 1px solid @tc-gray-panel-separator;
+    border-bottom: 1px solid @bc-panel-separator;
+    box-shadow: inset 0 1px 0 @bc-highlight;
+
+    .dark & {
+        background: @dark-bc-panel-bg-promoted;;
+        border-bottom: 1px solid @dark-bc-panel-separator;
+        box-shadow: inset 0 1px 0 @dark-bc-highlight;
+    }
 }
 
 .modal-body {
-    background-color: @tc-gray-panel;
+    background-color: @bc-panel-bg;
+
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+    }
+}
+
+.modal-body.no-padding {
+    padding: 0;
+}
+
+.modal-body.no-padding td:first-child,
+.modal-body.no-padding th:first-child {
+    padding-left: 15px;
+}
+
+.modal-body.no-padding td:last-child,
+.modal-body.no-padding th:last-child {
+    padding-right: 15px;
 }
 
 .modal-body, .modal-header, .modal-footer {
@@ -526,17 +815,22 @@ a:focus {
 
 .modal-footer {
     text-align: right;
-    background-color: @tc-gray-panel;
-    border-top: 1px solid @tc-gray-panel-separator;
+    background-color: @bc-panel-bg;
+    border-top: 1px solid @bc-panel-separator;
     box-shadow: none;
     padding: 10px 15px 12px;
     white-space: nowrap;
+
+    .dark & {
+        background-color: @dark-bc-panel-bg;
+        border-top: 1px solid @dark-bc-panel-separator;
+    }
 }
 
 .modal-footer .btn {
     float: none;
 }
-.modal-footer .btn.left {
+.modal-footer .left {
     float: left;
 
     /* Transfer the margin to the right of each left-aligned button, so the left side lines up properly
@@ -566,35 +860,70 @@ a:focus {
 }
 
 .modal-backdrop {
-    opacity: 0;
+    .animation (backdrop, 200ms, linear);
+    opacity: @bc-modal-backdrop-opacity;
+
+    .dark & {
+        opacity: @dark-bc-modal-backdrop-opacity;
+    }
 }
-.last-backdrop {
-    /* Only show the last modal backdrop */
-    opacity: 0.5;
+
+@-webkit-keyframes backdrop {
+    0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0); }
+    100% { opacity: 0.4; -webkit-transform: translate3d(0, 0, 0); }
+}
+@keyframes backdrop {
+    0%   { opacity: 0; transform: translate3d(0, 0, 0); }
+    100% { opacity: 0.4; transform: translate3d(0, 0, 0); }
+}
+
+@-webkit-keyframes modal {
+    0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0) scale(0); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes modal {
+    0%   { opacity: 0; transform: translate3d(0, 0, 0) scale(0); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 
 .dialog-title {
-    color: @tc-light-weight-text;
+    color: @bc-text-thin;
     margin-bottom: 0;
     margin-top: 0;
     font-size: 22px;
     line-height: 30px;
     font-weight: normal;
+
+    .dark & {
+        color: @dark-bc-text-thin;
+    }
 }
 
 .dialog-message {
-    color: @tc-text;
+    color: @bc-text;
     font-size: 14px;
     line-height: 20px;
     margin-bottom: 20px;
     font-weight: normal;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 .dialog-message li {
     line-height: 20px;
-    color: @tc-light-weight-text;
+    color: @bc-text-thin;
     padding: 0 0 5px;
+
+    .dark & {
+        color: @dark-bc-text-thin;
+    }
+}
+
+.dialog-message select {
+    margin-left: 10px;
 }
 
 .dialog-message select {
@@ -608,10 +937,14 @@ a:focus {
 
 .dialog-list > li:before {
     content: "•  ";
-    color: @tc-input-border;
+    color: @bc-text-quiet;
     font-size: 1.5em;
     position: relative;
-    top: 1px;
+    top: 2px;
+
+    .dark & {
+        color: @dark-bc-text-quiet;
+    }
 }
 
 .dialog-filename {
@@ -637,15 +970,30 @@ a[href^="http"] {
     }
     .update-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
-        margin: 0 10px 0 123px;
+        margin-left: 130px;
+
+        padding-top: 20px;
+        max-height: 280px;
+        overflow: auto;
 
         .update-info {
-            max-height: 200px;
-            overflow: auto;
-
+            margin-right: 10px;
             // Enable text selection
             cursor: auto;
             .user-select(text);
+            
+            h3 {
+                font-weight: normal;
+                margin: 0 0 10px;
+            }
+            
+            ul {
+                margin-bottom: 0 0 20px;
+                
+                > li {
+                    margin-bottom: 10px;
+                }
+            }
         }
     }
 }
@@ -677,22 +1025,30 @@ a[href^="http"] {
 
 /* Extension Manager dialog */
 .extension-manager-dialog {
-    background-color: #d4d7d7;
+    background-color: @bc-panel-bg-promoted;
     width: 760px;
     
+    .dark & {
+        background-color: @dark-bc-panel-bg-promoted;
+    }
+
     .modal-header {
         border-bottom: none;
         padding: 0;
         
         .nav-tabs {
             margin: 0;
-            border-color: #c3c6c5;
+            border-color: @bc-panel-separator;
+
+            .dark & {
+                border-color: @dark-bc-panel-separator;
+            }
 
             /* Tab styling */
             > li > a {
                 min-width: 80px;
                 min-height: 60px;
-                color: black;
+                color: @bc-text-thin;
                 cursor: default;
                 font-size: 12px;
 
@@ -705,9 +1061,28 @@ a[href^="http"] {
 
                 text-align: center;
 
+                .dark & {
+                    color: @dark-bc-text-thin;
+                }
+
                 &:hover {
-                    background-color: rgba(0, 0, 0, 0.04);
-                    border-color: rgba(0, 0, 0, 0.04);
+                    background-color: @bc-panel-bg-hover-alt;
+                    border-color: @bc-panel-bg-hover-alt;
+
+                    .dark & {
+                        background-color: @dark-bc-panel-bg-hover-alt;
+                        border-color: @dark-bc-panel-bg-hover-alt;
+                    }
+                }
+
+                &:focus {
+                    background-color: @bc-menu-bg;
+                    border-color: @bc-menu-bg;
+
+                    .dark & {
+                        background-color: @dark-bc-menu-bg;
+                        border-color: @dark-bc-menu-bg;
+                    }
                 }
 
                 > img {
@@ -724,21 +1099,42 @@ a[href^="http"] {
             /* Colors for the active tab, remove bottom border */
             > .active > a,
             > .active > a:hover {
-                background-color: #dfe2e2;
-                border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
+                background-color: @bc-panel-bg;
+                border-color: @bc-btn-border @bc-btn-border transparent @bc-btn-border;
+
+                .dark & {
+                    background-color: @dark-bc-panel-bg;
+                    border-color: @dark-bc-btn-border @dark-bc-btn-border transparent @dark-bc-btn-border;
+                }
             }
             
+            > .active > a:focus {
+                background-color: @bc-panel-bg;
+                border-color: @bc-btn-border-focused @bc-btn-border-focused transparent @bc-btn-border-focused;
+                box-shadow: none;
+
+                .dark & {
+                    background-color: @dark-bc-panel-bg;
+                    border-color: @dark-bc-btn-border-focused @dark-bc-btn-border-focused transparent @dark-bc-btn-border-focused;
+                }
+            }
+
             > li {
                 position: relative;  // for positioning .notification icon
-                > .notification {
+                .notification {
                     display: none;  // hidden by default
-                    background-color: #91CC41;
-                    color: white;
+                    background-color: @bc-secondary-btn-bg;
+                    color: @bc-text-alt;
                     border-radius: 16px;
                     padding: 0 5px;
                     position: absolute;
                     right: 19px;
                     top: 8px;
+
+                    .dark & {
+                        background-color: @dark-bc-secondary-btn-bg;
+                        color: @dark-bc-text-alt;
+                    }
                 }
             }
         }
@@ -750,21 +1146,28 @@ a[href^="http"] {
             right: 15px;
         }
         .search {
-            background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            background: @bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
             margin: 0;
             padding-left: 27px;
             padding-right: 20px;
+
+            .dark & {
+                background: @dark-bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            }
         }
         .search-clear {
+            background: transparent;
             position: relative;
             display: block;
             float: right;
-            left: -5px;
-            margin: 7px 0 0 -20px;
+            font-size: 20px;
+            left: -6px;
+            line-height: 0;
+            margin: 6px 0 0 -20px;
             opacity: 0.5;
-            background: url("images/topcoat-cancel-15.svg") no-repeat;
-            width: 15px;
+            padding: 0;
+            width: 16px;
             height: 16px;
             z-index: 1;
             border: 0;
@@ -784,9 +1187,13 @@ a[href^="http"] {
     .modal-body {
         height: 400px;
         overflow-y: scroll;
-        background-color: @tc-gray-panel;
+        background-color: @bc-panel-bg;
         padding: 0;
         
+        .dark & {
+            background-color: @dark-bc-panel-bg;
+        }
+
         .empty-message {
             position: absolute;
             top: 50%;
@@ -796,8 +1203,14 @@ a[href^="http"] {
         }
 
         .info-message {
-            background-color: @tc-gray-panel;
+            background-color: @bc-panel-bg;
+            color: @bc-text-thin-quiet;
             padding: 1em;
+
+            .dark & {
+                background-color: @dark-bc-panel-bg;
+                color: @dark-bc-text-quiet;
+            }
         }
 
         .spinner {
@@ -817,26 +1230,53 @@ a[href^="http"] {
                 width: 220px;
             }
             .ext-name {
-                color: @tc-text;
+                color: @bc-text;
                 display: block;
                 font-size: 15px;
                 font-weight: normal;
                 .user-select(text);
                 cursor: text;
+
+                .dark & {
+                    color: @dark-bc-text;
+                }
             }
             .ext-desc {
                 width: auto;
-                color: @tc-text;
+                color: @bc-text;
                 font-weight: normal;
                 .user-select(text);
                 cursor: text;
+
+                .dark & {
+                    color: @dark-bc-text;
+                }
             }
+            .ext-translated,
             .muted {
-                color: #888;
+                color: @bc-text-thin-quiet;
+
+                .dark & {
+                    color: @dark-bc-text-quiet;
+                }
+            }
+            .alert {
+                font-size: 11px;
+                margin: 0 0 10px;
+
+                .dark & {
+                    background: @dark-bc-warning-bg;
+                    border-radius: 2px;
+                    color: @dark-bc-warning-text;
+                }
             }
             .error {
                 font-weight: @font-weight-semibold;
-                color: #ff5656;
+                color: @bc-error;
+
+                .dark & {
+                    color: @dark-bc-error;
+                }
             }
             .ext-version,
             .ext-date,
@@ -867,33 +1307,42 @@ a[href^="http"] {
     position: relative;
     .about-icon {
         position: absolute;
-        left: 10px;  // relative to border of modal-body (bounds outside padding)
-        top:  11px;
+        left: 19px;  // relative to border of modal-body (bounds outside padding)
+        top:  15px;
+        width: 100px;
+        height: 100px;
     }
     .about-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
-        margin: 0 10px 0 123px;
+        margin-left: 130px;
+        overflow: auto;
 
         #about-build-number {
-            color: @tc-light-weight-quiet-text;
+            color: @bc-text-thin-quiet;
+
+            .dark & {
+                color: @dark-bc-text-thin-quiet;
+            }
         }
         .about-info {
             max-height: 300px;
-            overflow: auto;
+            margin-right: 10px;
         }
         .about-contributors {
             min-height: 100px;
+            padding-bottom: 13px;
 
             a {
                 text-decoration: none;
             }
-        }
-        .about-contributors img {
-            opacity: 0;
-            -webkit-transition: opacity 1s;
-            -moz-transition: opacity 1s;
-            -o-transition: opacity 1s;
-            transition: opacity 1s;
+            img {
+                opacity: 0;
+                transition: opacity 1s;
+
+                .dark & {
+                    background-color: #f0f0f0; // same as GitHub's avatar background color.
+                }
+            }
         }
     }
 
@@ -901,7 +1350,7 @@ a[href^="http"] {
         font-weight: normal;
         font-size: 25px;
         margin-bottom: -4px;
-        margin-top: 3px;
+        margin-top: 13px;
     }
     .dialog-message {
         font-size: 14px;
@@ -930,33 +1379,54 @@ input[type="search"],
 input[type="tel"],
 input[type="color"],
 .uneditable-input {
-    background-color: @tc-input-background;
-    border: 1px solid @tc-input-border;
-    color: @tc-light-weight-text;
+    background-color: @bc-input-bg;
+    border: 1px solid @bc-btn-border;
+    color: @bc-text-thin;
     font-size: (@baseFontSize + 1px);
     font-weight: normal;
     -webkit-font-smoothing: antialiased;
-    .border-radius(@tc-control-border-radius);
-    .box-shadow(@tc-input-inner-shadow);
-    .transition(~"border linear 0s, box-shadow linear 0s");
+    box-shadow: inset 0 1px 0 @bc-shadow-small;
+    .border-radius(@bc-border-radius);
+    .transition(~"border linear 180ms, box-shadow linear 180ms");
+
+    .dark & {
+        background-color: @dark-bc-input-bg;
+        border: 1px solid @dark-bc-btn-border;
+        color: @dark-bc-text-thin;
+        box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+    }
 
     &::-webkit-input-placeholder {
-        color: @tc-input-placeholder-text;
+        color: @bc-text-thin-quiet;
         font-weight: normal;
         -webkit-font-smoothing: antialiased;
+
+        .dark & {
+            color: @dark-bc-text-thin-quiet;
+        }
     }
 
     &:focus {
         outline: 0;
-        background-color: @tc-input-background;
+        background-color: @bc-input-bg;
         text-shadow: none;
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-input-inner-shadow, @tc-input-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-focused-glow;
+
+        .dark & {
+            background-color: @dark-bc-input-bg;
+            border: 1px solid @dark-bc-btn-border-focused;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+        }
     }
 
     &:disabled {
-        opacity: @tc-disabled-opacity;
+        opacity: @bc-disabled-opacity;
         cursor: default;
+
+        .dark & {
+            opacity: @dark-bc-disabled-opacity;
+        }
     }
 }
 
@@ -967,24 +1437,51 @@ input[type="color"],
 }
 
 .tooltip-inner {
-    box-shadow: @tc-dropdown-shadow;
-    color: @tc-text;
+    background: @bc-menu-bg;
+    box-shadow: 0 3px 9px @bc-shadow;
+    color: @bc-menu-text;
     max-width: 220px;
     text-align: left;
+
+    .dark & {
+        background: @dark-bc-menu-bg;
+        box-shadow: 0 3px 9px @dark-bc-shadow;
+        color: @dark-bc-menu-text;
+    }
 }
 
 .tooltip {
     &.top .tooltip-arrow {
+        border-top-color: @bc-menu-bg;
         left: 50%;
+        
+        .dark & {
+            border-top-color: @dark-bc-menu-bg;
+        }
     }
     &.right .tooltip-arrow {
+        border-right-color: @bc-menu-bg;
         top: 15px;
+        
+        .dark & {
+            border-right-color: @dark-bc-menu-bg;
+        }
     }
     &.left .tooltip-arrow {
+        border-left-color: @bc-menu-bg;
         top: 15px;
+        
+        .dark & {
+            border-left-color: @dark-bc-menu-bg;
+        }
     }
     &.bottom .tooltip-arrow {
+        border-bottom-color: @bc-menu-bg;
         left: 50%;
+        
+        .dark & {
+            border-bottom-color: @dark-bc-menu-bg;
+        }
     }
 }
 
@@ -996,88 +1493,214 @@ input[type="color"],
 .btn:focus,
 .btn.disabled,
 .btn[disabled] {
-    background-color: @tc-button-background;
+    background-color: @bc-btn-bg;
+    color: @bc-text;
+
+    .dark & {
+        background-color: @dark-bc-btn-bg;
+        color: @dark-bc-text;
+    }
 }
 
 .btn.primary:hover,
 .btn.primary:focus,
 .btn.primary.disabled,
 .btn.primary[disabled] {
-    background-color: @tc-call-to-action;
+    background-color: @bc-primary-btn-bg;
+
+    .dark & {
+        background-color: @dark-bc-primary-btn-bg;
+    }
 }
 
 .btn {
     // Button Base
     background-image: none;
 
-    background-color: @tc-button-background;
-    text-shadow: @tc-text-shadow;
-    color: @tc-text;
+    background-color: @bc-btn-bg;
+    color: @bc-text;
     cursor: default;
     font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
-    border: 1px solid @tc-gray-component-border;
-    .border-radius(@tc-control-border-radius);
-    box-shadow: @tc-button-highlight;
+    border: 1px solid @bc-btn-border;
+    .border-radius(@bc-border-radius);
+    box-shadow: inset 0 1px @bc-highlight-hard;
     -webkit-font-smoothing: antialiased;
+    text-shadow: none;
+    margin: 3px 0 3px 3px;
+
+    .dark & {
+        background-color: @dark-bc-btn-bg;
+        color: @dark-bc-text;
+        border: 1px solid @dark-bc-btn-border;
+        box-shadow: inset 0 1px @dark-bc-highlight;
+    }
 
     &:hover {
-        background-color: @tc-button-background;
-        color: @tc-text;
+        background-color: @bc-btn-bg;
+        color: @bc-text;
+
+        .dark & {
+            background-color: @dark-bc-btn-bg;
+            color: @dark-bc-text;
+        }
     }
 
     // Focus state for keyboard and accessibility
     &:focus {
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-button-highlight, @tc-input-glow;
-        color: @tc-text;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
+        color: @bc-text;
         outline: none;
+
+        .dark & {
+            border: 1px solid @dark-bc-btn-border-focused;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+            color: @dark-bc-text;
+        }
     }
 
     // Active and Disabled states
-    &.active:not([disabled]),
+    &.active:active {
+        background-color: @bc-bg-highlight !important;
+
+        .dark & {
+            background-color:@dark-bc-bg-highlight !important;
+        }
+    }
+
+    &.active:not([disabled]) {
+        background-image: none;
+        background-color: @bc-bg-highlight;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        color: @bc-text-alt;
+
+        .dark & {
+            background-color:@dark-bc-bg-highlight;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+            color: @dark-bc-text-alt;
+        }
+    }
+    
     &:active:not([disabled]) {
         background-image: none;
-        background-color: @tc-button-down-background;
-        box-shadow: @tc-button-down-shadow;
-        color: @tc-text;
+        background-color: @bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        color: @bc-text;
+
+        .dark & {
+            background-color: @dark-bc-btn-bg-down;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+            color: @dark-bc-text;
+        }
     }
 
     &.disabled, &[disabled] {
-        opacity: @tc-disabled-opacity;
+        opacity: @bc-disabled-opacity;
+
+        .dark & {
+            opacity: @dark-bc-disabled-opacity;
+        }
     }
 
     // Primary Button Type
     &.primary {
         background-image: none;
-        background-color: @tc-call-to-action;
-        border: 1px solid  @tc-call-to-action-border;
-        box-shadow: @tc-call-to-action-highlight;
-        color: @tc-call-to-action-text;
-        text-shadow: @tc-call-to-action-text-shadow;
+        background-color: @bc-primary-btn-bg;
+        border: 1px solid  @bc-primary-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
+        color: @bc-text-alt;
+        text-shadow: none;
+
+        .dark & {
+            background-color: @dark-bc-primary-btn-bg;
+            border: 1px solid  @dark-bc-primary-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text-alt
+        }
+
         &.active,
         &:active {
             background-image: none;
-            background-color: @tc-call-to-action-down;
-            box-shadow: @tc-call-to-action-down-shadow;
-            color: @tc-call-to-action-text;
+            background-color: @bc-primary-btn-bg-down;
+            box-shadow: inset 0 1px 0 @bc-shadow-small;
+            color: @bc-text-alt;
+
+            .dark & {
+                background-color: @dark-bc-primary-btn-bg-down;
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+                color: @dark-bc-text-alt;
+            }
         }
 
         &:focus {
-            border: 1px solid @tc-gray-component-focused-border;
-            box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
+            border: 1px solid @bc-primary-btn-border;
+            box-shadow: inset 0 1px 0 @bc-highlight, 0 0 0 1px @bc-btn-border-focused-glow;
             outline: none;
+
+            .dark & {
+                border: 1px solid @dark-bc-primary-btn-border;
+                box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 0 0 1px @dark-bc-btn-border-focused-glow;
+            }
+        }
+    }
+    
+    // Update Button Type
+    &.update {
+        background-color: @bc-secondary-btn-bg;
+        border-color: @bc-secondary-btn-border;
+        box-shadow: inset 0 1px 0 @bc-highlight;
+        color: @bc-text-alt;
+        font-weight: @font-weight-semibold;
+        text-shadow: 0 -1px 0 @bc-shadow-small;
+        
+        .dark & {
+            background-color: @dark-bc-secondary-btn-bg;
+            border-color: @dark-bc-secondary-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text-alt;
+            text-shadow: 0 -1px 0 @dark-bc-shadow-small;
+        }
+
+        &:active {
+            background-color: @bc-secondary-btn-bg-down;
+            border-color: @bc-secondary-btn-border;
+            box-shadow: inset 0 1px 0 @bc-shadow-small;
+            color: @bc-text-alt;
+
+            .dark & {
+                background-color: @dark-bc-secondary-btn-bg-down;
+                border-color: @dark-bc-secondary-btn-border;
+                box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+                color: @dark-bc-text-alt
+            }
         }
     }
 
     // Button Sizes
     &.large {
         font-size: (@baseFontSize + 1px);
-        .border-radius(@tc-control-border-radius);
+        .border-radius(@bc-border-radius);
     }
     &.small {
         font-size: (@baseFontSize - 1px);
+    }
+}
+
+.btn-alt-quiet {    // No dark style required because these reside in the sidebar.
+    border: 1px solid transparent;
+    border-radius: @bc-border-radius;
+    text-decoration: none;
+
+    &:hover {
+        border: 1px solid @bc-shadow;
+        box-shadow: inset 0 1px 0 @bc-highlight;
+    }
+    &:active {
+        background-color: @bc-btn-bg-down-alt;
+        border: 1px solid @bc-shadow;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
     }
 }
 
@@ -1087,11 +1710,17 @@ input[type="color"],
     font-weight: normal;
     line-height: 14px;
     &:focus {
-        border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-button-highlight, @tc-input-small-glow;
+        border: 1px solid @bc-btn-border-focused;
+        box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
         outline: none;
+
+        .dark & {
+            border: 1px solid @dark-bc-btn-border-focused;
+            box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+        }
     }
 }
+
 
 /* Tables */
 
@@ -1103,24 +1732,41 @@ input[type="color"],
         border-top: 1px solid transparent;
     }
     tbody th {
-        border-top: 1px solid transparent);
+        border-top: 1px solid transparent;
+    }
+    .right {
+        text-align: right;
     }
 }
 
 .table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
-        background-color: @tc-lighter-gray; // TopCoat palette
+        background-color: @bc-panel-bg-alt;
+
+        .dark & {
+            background-color: @dark-bc-panel-bg-alt;
+        }
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {
-        background-color: @tc-gray-panel; // turn off bootstrap hover highlight
+        background-color: @bc-panel-bg; // turn off bootstrap hover highlight
+
+        .dark & {
+            background-color: @dark-bc-panel-bg;
+        }
     }
 }
 .row-highlight tbody {
     tr:hover td,
     tr:hover th {
-        background-color: @tc-highlight; // TopCoat palette
+        background-color: @bc-bg-highlight;
+        color: @bc-menu-text;
+
+        .dark & {
+            background-color: @dark-bc-bg-highlight;
+            color: @dark-bc-menu-text;
+        }
     }
 }
 
@@ -1133,12 +1779,20 @@ strong {
 /* Type */
 
 code {
-    color: @bc-black;
+    color: @bc-text;
     background-color: transparent;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 label {
     font-size: @label-font-size;
+}
+
+label.inline {
+    display: inline;
 }
 
 /* Overriding Bootstrap's bold properties */
@@ -1153,7 +1807,12 @@ b,
 strong,
 dt,
 .label {
+    color: @bc-text;
     font-weight: @font-weight-semibold;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 .alert-message a,
@@ -1163,49 +1822,170 @@ dt,
 
 .alert {
     text-shadow: none;
-    background-color: @tc-warning-background;
+    background-color: @bc-warning-bg;
     border: none;
+
+    .dark & {
+        color: @dark-bc-warning-bg;
+    }
 }
-.alert,
 .alert h4 {
     // Specified for the h4 to prevent conflicts of changing @headingsColor
-    color: @tc-warning-text;
+    color: @bc-warning-bg;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
 
 input[type="radio"],
 input[type="checkbox"] {
-    margin: 0;
+    margin: 0 5px 0 0;
 }
 
 input[type="checkbox"] {
     height: 13px;
     width: 13px;
     vertical-align: middle;
-    border: 1px solid @tc-gray-component-border;
-    border-radius: 3px;
-    background-color: @tc-button-background;
+    border: 1px solid @bc-btn-border;
+    border-radius: @bc-border-radius;
+    background-color: @bc-btn-bg;
     -webkit-appearance: none;
-    box-shadow: @tc-button-highlight;
+    box-shadow: inset 0 1px 0 @bc-highlight;
+
+    .dark & {
+        border: 1px solid @dark-bc-btn-border;
+        background-color: @dark-bc-btn-bg;
+        box-shadow: inset 0 1px 0 @dark-bc-highlight;
+    }
 }
 
 input[type="checkbox"]:active:not(:disabled) {
-    background-color: @tc-button-down-background;
-    box-shadow: @tc-button-down-shadow;
+    background-color: @bc-btn-bg-down;
+    box-shadow: inset 0 1px 0 @bc-shadow-small;
+
+    .dark & {
+        background-color: @dark-bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+    }
 }
 
+select:focus,
 input[type="checkbox"]:focus {
     outline:none;
-    border: 1px solid @tc-gray-component-focused-border;
-    box-shadow: @tc-input-glow;
+    border: 1px solid @bc-btn-border-focused;
+    box-shadow: 0 0 0 1px @bc-btn-border-focused-glow;
+
+    .dark & {
+        border: 1px solid @dark-bc-btn-border-focused;
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+    }
+}
+
+select {
+    background: @bc-btn-bg url("images/select-triangles.svg") no-repeat right 7px center;
+    border: 1px solid @bc-btn-border;
+    border-radius: @bc-border-radius;
+    box-shadow: inset 0 1px @bc-highlight;
+    color: @bc-text;
+    line-height: 1.3;
+    position: relative;
+    -webkit-appearance: none;
+
+    &:active {
+        background-color: @bc-btn-bg-down;
+        box-shadow: inset 0 1px 0 @bc-shadow-small;
+        
+        .dark & {
+            background-color: @dark-bc-btn-bg-down;
+            box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+        }
+    }
+    
+    > option { // Windows (but not Mac) lets you style the dropdown items
+        background-color: @bc-menu-bg;
+        color: @bc-menu-text;
+
+        .dark & {
+            background: @dark-bc-menu-bg;
+            color: @dark-bc-menu-text;
+        }
+    }
+
+    .dark & {
+        background-color: @dark-bc-btn-bg;
+        border: 1px solid @dark-bc-btn-border;
+        box-shadow: inset 0 1px @dark-bc-highlight;
+        color: @dark-bc-text;
+    }
 }
 
 input[type="checkbox"]:checked:before {
     font-weight: bold;
-    color: @tc-text;
+    color: @bc-text;
     content: '\2713';
     -webkit-margin-start: 0;
     position: relative;
     left: 2px;
     top: -7px;
     font-size: 16px;
+
+    .dark & {
+        color: @dark-bc-text;
+    }
 }
+
+code {
+    border: none;
+}
+
+
+.close {
+    color: @bc-text;
+    text-shadow: none;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+
+    .dark & {
+        color: @dark-bc-text;
+    }
+}
+
+.close:hover {
+    color: @bc-text;
+    opacity: 1;
+    filter: alpha(opacity=100);
+
+    .dark & {
+        color: @dark-bc-text;
+    }
+}
+
+.dropdown-menu {
+    background-color: @bc-menu-bg;
+    color: @bc-menu-text;
+    
+    .dark & {
+        background-color: @dark-bc-menu-bg;
+        color: @dark-bc-menu-text;
+    }
+
+    .divider {
+        background-color: @bc-menu-separator;
+        border: none;
+
+        .dark & {
+            background-color: @dark-bc-menu-separator;
+        }
+    }
+}
+
+.form-horizontal {
+    .controls {
+        margin-left: 170px;
+        
+        input[type='checkbox'] {
+             margin-top: 8px;
+        }
+     }
+ }

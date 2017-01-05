@@ -1,14 +1,15 @@
 <div class="extension-manager-dialog modal">
     <div class="modal-header">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs no-focus">
             {{#showRegistry}}
                 <li><a href="#registry" class="registry" data-toggle="tab"><img src="styles/images/extension-manager-registry.svg"/><br/>{{Strings.EXTENSIONS_AVAILABLE_TITLE}}</a></li>
+                <li><a href="#themes" class="themes" data-toggle="tab"><img src="styles/images/themes-icon.svg"/><br/>{{Strings.EXTENSIONS_THEMES_TITLE}}</a></li>
                 <!--<li><a href="#updates" class="updates" data-toggle="tab"><img src="styles/images/extension-manager-updates.svg"/><br/>{{Strings.EXTENSIONS_UPDATES_TITLE}}</a></li>-->
             {{/showRegistry}}
-            <li><a href="#installed" class="installed" data-toggle="tab"><img src="styles/images/extension-manager-installed.svg"/><br/>{{Strings.EXTENSIONS_INSTALLED_TITLE}}</a><span class="notification"></span></li>
+            <li><a href="#installed" class="installed" data-toggle="tab"><span class="notification"></span><img src="styles/images/extension-manager-installed.svg"/><br/>{{Strings.EXTENSIONS_INSTALLED_TITLE}}</a></li>
         </ul>
         <div>
-            <button class="search-clear"></button>
+            <button class="search-clear">&times;</button>
             <input class="search" type="text" placeholder="{{EXTENSION_SEARCH_PLACEHOLDER}}">
         </div>
     </div>
@@ -16,7 +17,12 @@
         <div class='spinner large spin'/>
     </div>
     <div class="modal-footer">
-        <button class="btn left install-from-url">{{Strings.INSTALL_FROM_URL}}</button>
+        <span id="install-drop-zone" class="btn left drag">
+            <span class="install-drag-message">{{Strings.INSTALL_EXTENSION_DRAG}} <a class="install-from-url">{{Strings.INSTALL_FROM_URL}}</a></span>
+            <span class="install-drop-message">{{Strings.INSTALL_EXTENSION_DROP}}</span>
+            <span class="install-validating-message">{{Strings.INSTALL_EXTENSION_VALIDATING}}</span>
+            <div id="install-drop-zone-mask"></div>
+        </span>
         <button class="dialog-button btn primary" data-button-id="close">{{Strings.CLOSE}}</button>
     </div>
 </div>

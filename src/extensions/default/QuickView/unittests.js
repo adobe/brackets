@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,14 +21,15 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global describe, it, expect, beforeEach, runs, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileUtils       = brackets.getModule("file/FileUtils");
+    var SpecRunnerUtils    = brackets.getModule("spec/SpecRunnerUtils"),
+        FileUtils          = brackets.getModule("file/FileUtils"),
+        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
+        prefs              = PreferencesManager.getExtensionPrefs("quickview");
 
     describe("Quick View", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
@@ -41,7 +42,9 @@ define(function (require, exports, module) {
             Commands,
             EditorManager,
             QuickView,
-            editor;
+            editor,
+            testFile = "test.css",
+            oldFile;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -62,13 +65,16 @@ define(function (require, exports, module) {
                 runs(function () {
                     SpecRunnerUtils.loadProjectInTestWindow(testFolder);
                 });
+            }
 
+            if (testFile !== oldFile) {
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["test.css"]), "open test file");
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([testFile]), "open test file: " + testFile);
                 });
 
                 runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
+                    editor  = EditorManager.getCurrentFullEditor();
+                    oldFile = testFile;
                 });
             }
         });
@@ -188,12 +194,46 @@ define(function (require, exports, module) {
                     expectNoPreviewAtPos(72, 15);    // cursor on redsox
                     expectNoPreviewAtPos(73, 16);    // cursor on pinky
                     expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-cheese
-                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
+                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-bg-highlight
+                });
+            });
+
+            describe("JavaScript file", function () {
+                runs(function () {
+                    testFile = "test.js";
+                });
+
+                it("should NOT show preview of color-named functions and object/array keys", function () {
+                    runs(function () {
+                        expectNoPreviewAtPos(2, 12);    // cursor on green()
+                        expectNoPreviewAtPos(4, 22);    // cursor on Math.tan
+                        expectNoPreviewAtPos(5, 14);    // cursor on tan()
+                        expectNoPreviewAtPos(5, 38);    // cursor on array[red]
+                    });
+                });
+                it("should not show preview of literal color names", function () {
+                    runs(function () {
+                        expectNoPreviewAtPos(2, 36);  // green
+                        expectNoPreviewAtPos(3, 21);  // green
+                        expectNoPreviewAtPos(4, 11);  // tan
+                        expectNoPreviewAtPos(5, 25);  // red
+                        expectNoPreviewAtPos(7,  1);  // darkgray
+                    });
+                });
+                it("should show preview of non-literal color codes", function () {
+                    runs(function () {
+                        checkColorAtPos("#123456",          8, 7);
+                        checkColorAtPos("rgb(65, 43, 21)",  9, 8);
+                    });
                 });
             });
         });
 
         describe("Quick view gradients", function () {
+            runs(function () {
+                testFile = "test.css";
+            });
+
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
@@ -206,6 +246,26 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient3, 83, 36);   // -o- prefix gets stripped
                     checkGradientAtPos(expectedGradient3, 84, 36);   // -ms- prefix gets stripped
                     checkGradientAtPos(expectedGradient4, 90, 36);   // test parameters with 2 levels of nested parens
+                });
+            });
+
+            it("Should show linear gradient preview for those with colon or space before", function () {
+                runs(function () {
+                    var expectedGradient = "linear-gradient(to bottom, black 0%, white 100%)";
+                    checkGradientAtPos(expectedGradient, 169, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 170, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 171, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 172, 25);   // colon
+                });
+            });
+
+            it("Should show radial gradient preview for those with colon or space before", function () {
+                runs(function () {
+                    var expectedGradient = "radial-gradient(red, white 50%, blue 100%)";
+                    checkGradientAtPos(expectedGradient, 176, 25);   // space colon space
+                    checkGradientAtPos(expectedGradient, 177, 25);   // colon space
+                    checkGradientAtPos(expectedGradient, 178, 25);   // space colon
+                    checkGradientAtPos(expectedGradient, 179, 25);   // colon
                 });
             });
 
@@ -248,7 +308,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 122, 50);
                     checkGradientAtPos("repeating-linear-gradient(red 0%, white 0%, blue 0%)", 123, 50);
-                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 5%, blue 10%)", 124, 50);
+                    checkGradientAtPos("repeating-linear-gradient(red 0%, white 50%, blue 100%)", 124, 50);
                 });
             });
 
@@ -269,8 +329,8 @@ define(function (require, exports, module) {
                     checkGradientAtPos("linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
                 });
             });
-            
-            it("Should should convert gradients arguments from pixel to percent", function () {
+
+            it("Should convert gradients arguments from pixel to percent", function () {
                 runs(function () {
                     // linear gradient in px
                     checkGradientAtPos("-webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 50%, red 100%)", 163, 40);
@@ -278,6 +338,14 @@ define(function (require, exports, module) {
                     checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 164, 40);
                     // repeating radial-gradient in pixels (no prefix)
                     checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 165, 40);
+                });
+            });
+
+            it("Should not go into infinite loop on unbalanced parens", function () {
+                runs(function () {
+                    // no preview, and no infinite loop
+                    expectNoPreviewAtPos(189, 30);
+                    expectNoPreviewAtPos(190, 40);
                 });
             });
         });
@@ -303,7 +371,7 @@ define(function (require, exports, module) {
             function boundsInsideWindow(object) {
                 // For the popover, we can't use offset(), because jQuery gets confused by the
                 // scale factor and transform origin that the animation uses. Instead, we rely
-                // on the fact that its offset parent is body, and just test its explicit left/top 
+                // on the fact that its offset parent is body, and just test its explicit left/top
                 // values.
                 var bounds = getBounds(object, false),
                     editorBounds = getBounds(testWindow.$("#editor-holder"), true);
@@ -398,6 +466,63 @@ define(function (require, exports, module) {
                     checkImagePathAtPos("img/Gradient.png", 154, 80);    // url()
                     checkImagePathAtPos("img/Gradient.png", 155, 80);    // ""
                 });
+            });
+
+            it("Should show image preview for URIs containing quotes", function () {
+                checkImagePathAtPos("img/don't.png", 183, 26);  // url() containing '
+                checkImagePathAtPos("img/don't.png", 184, 26);  // url("") containing '
+                checkImageDataAtPos("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>", 185, 26);  // data url("") containing '
+            });
+
+            it("Should show image preview for URLs with known image extensions", function () {
+                checkImageDataAtPos("http://example.com/image.gif", 194, 20);
+                checkImageDataAtPos("http://example.com/image.png", 195, 20);
+                checkImageDataAtPos("http://example.com/image.jpe", 196, 20);
+                checkImageDataAtPos("http://example.com/image.jpeg", 197, 20);
+                checkImageDataAtPos("http://example.com/image.jpg", 198, 20);
+                checkImageDataAtPos("http://example.com/image.ico", 199, 20);
+                checkImageDataAtPos("http://example.com/image.bmp", 200, 20);
+                checkImageDataAtPos("http://example.com/image.svg", 201, 20);
+            });
+
+            it("Should show image preview for extensionless URLs (with protocol) with pref set", function () {
+                // Flip the pref on and restore when done
+                var original = prefs.get("extensionlessImagePreview");
+                prefs.set("extensionlessImagePreview", true);
+
+                checkImageDataAtPos("https://image.service.com/id/1234513", 203, 20); // https
+                checkImageDataAtPos("http://image.service.com/id/1234513", 204, 20);  // http
+                checkImageDataAtPos("https://image.service.com/id/1234513?w=300&h=400", 205, 20); // qs params
+
+                prefs.set("extensionlessImagePreview", original);
+            });
+
+            it("Should not show image preview for extensionless URLs (with protocol) without pref set", function () {
+                // Flip the pref off and restore when done
+                var original = prefs.get("extensionlessImagePreview");
+                prefs.set("extensionlessImagePreview", false);
+
+                checkImageDataAtPos("https://image.service.com/id/1234513", 203, 20); // https
+                checkImageDataAtPos("http://image.service.com/id/1234513", 204, 20);  // http
+                checkImageDataAtPos("https://image.service.com/id/1234513?w=300&h=400", 205, 20); // qs params
+
+                prefs.set("extensionlessImagePreview", original);
+            });
+
+            it("Should ignore URLs for common non-image extensions", function () {
+                expectNoPreviewAtPos(209, 20); // .html
+                expectNoPreviewAtPos(210, 20); // .css
+                expectNoPreviewAtPos(211, 20); // .js
+                expectNoPreviewAtPos(212, 20); // .json
+                expectNoPreviewAtPos(213, 20); // .md
+                expectNoPreviewAtPos(214, 20); // .xml
+                expectNoPreviewAtPos(215, 20); // .mp3
+                expectNoPreviewAtPos(216, 20); // .ogv
+                expectNoPreviewAtPos(217, 20); // .mp4
+                expectNoPreviewAtPos(218, 20); // .mpeg
+                expectNoPreviewAtPos(219, 20); // .webm
+                expectNoPreviewAtPos(220, 20); // .zip
+                expectNoPreviewAtPos(221, 20); // .tgz
             });
 
             it("Should show image preview for a data URI inside url()", function () {

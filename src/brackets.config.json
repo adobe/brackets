@@ -1,21 +1,26 @@
 {
     "config"                :
     {
-        "app_title"         : "Brackets",
-        "app_name_about"    : "Brackets",
-        "about_icon"        : "styles/images/brackets_icon.svg",
-        "update_info_url"   : "http://dev.brackets.io/updates/stable/",
-        "how_to_use_url"    : "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
-        "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",
-        "release_notes_url" : "https://github.com/adobe/brackets/wiki/Release-Notes",
-        "report_issue_url"  : "https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue",
-        "twitter_url"       : "https://twitter.com/brackets",
-        "troubleshoot_url"  : "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
-        "twitter_name"      : "@brackets",
-        "contributors_url"  : "https://api.github.com/repos/adobe/brackets/contributors",
-        "extension_wiki_url": "https://github.com/adobe/brackets/wiki/Brackets-Extensions",
-        "extension_registry": "https://s3.amazonaws.com/extend.brackets/registry.json",
-        "extension_url"     : "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
-        "linting.enabled_by_default" : true
+        "app_title"                  : "Brackets",
+        "app_name_about"             : "Brackets",
+        "about_icon"                 : "styles/images/brackets_icon.svg",
+        "update_info_url"            : "https://getupdates.brackets.io/getupdates/",
+        "how_to_use_url"             : "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
+        "support_url"                : "https://github.com/adobe/brackets/wiki/Troubleshooting",
+        "suggest_feature_url"        : "https://github.com/adobe/brackets/wiki/Suggest-a-Feature",
+        "get_involved_url"           : "https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md",
+        "glob_help_url"              : "https://github.com/adobe/brackets/wiki/Using-File-Filters",
+        "release_notes_url"          : "https://github.com/adobe/brackets/wiki/Release-Notes",
+        "homepage_url"               : "http://brackets.io",
+        "twitter_url"                : "https://twitter.com/brackets",
+        "troubleshoot_url"           : "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
+        "twitter_name"               : "@brackets",
+        "contributors_url"           : "https://api.github.com/repos/adobe/brackets/contributors?per_page={0}&page={1}",
+        "extension_listing_url"      : "",
+        "extension_registry"         : "https://s3.amazonaws.com/extend.brackets/registry.json",
+        "extension_url"              : "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
+        "linting.enabled_by_default" : true,
+        "build_timestamp"            : "",
+        "healthDataServerURL"        : "https://health.brackets.io/healthDataLog"
     }
 }

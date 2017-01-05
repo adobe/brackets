@@ -1,11 +1,16 @@
 <table class="bottom-panel-table table table-striped table-condensed row-highlight">
     <tbody>
         {{#searchList}}
-        <tr class="file-section" data-file="{{file}}">
-            <td colspan="2"><span class="disclosure-triangle expanded"></span>{{{filename}}}</td>
+        <tr class="file-section" data-file-index="{{fileIndex}}">
+            {{#replace}}<td class="checkbox-column"><input type="checkbox" class="check-one-file" {{#isChecked}}checked="true"{{/isChecked}} /></td>{{/replace}}
+            <td colspan="2">
+                <span class="disclosure-triangle {{^isCollapsed}}expanded{{/isCollapsed}}" title="{{Strings.FIND_IN_FILES_EXPAND_COLLAPSE}}"></span>
+                {{{filename}}}
+            </td>
         </tr>
         {{#items}}
-        <tr data-file="{{file}}" data-item="{{item}}">
+        <tr data-file-index="{{fileIndex}}" data-item-index="{{itemIndex}}" data-match-index="{{matchIndex}}" {{#isCollapsed}}style="display:none;"{{/isCollapsed}}>
+            {{#replace}}<td class="checkbox-column"><input type="checkbox" class="check-one" {{#isChecked}}checked="true"{{/isChecked}} /></td>{{/replace}}
             <td class="line-number">{{line}}</td>
             <td class="line-text">{{pre}}<span class="highlight">{{highlight}}</span>{{post}}</td>
         </tr>

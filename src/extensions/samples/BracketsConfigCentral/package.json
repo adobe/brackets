@@ -1,0 +1,12 @@
+{
+    "name": "JeffryBooher.BracketsConfigCentral",
+    "title": "Brackets Config Central",
+    "description": "A simple view factory provider",
+    "homepage": "https://github.com/JeffryBooher",
+    "version": "0.0.1",
+    "author": "@JeffryBooher",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.44.0"
+    }
+}

@@ -1,29 +1,25 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
 
 /**
  * ScriptAgent tracks all executed scripts, defines internal breakpoints, and
@@ -39,15 +35,6 @@ define(function ScriptAgent(require, exports, module) {
     var _urlToScript; // url -> script info
     var _idToScript; // id -> script info
     var _insertTrace; // the last recorded trace of a DOM insertion
-
-    /** Add a call stack trace to a node
-     * @param {integer} node id
-     * @param [{Debugger.CallFrame}] call stack
-     */
-    function _addTraceToNode(nodeId, trace) {
-        var node = DOMAgent.nodeWithId(nodeId);
-        node.trace = trace;
-    }
 
     // TODO: should the parameter to this be an ID rather than a URL?
     /** Get the script information for a given url
@@ -117,10 +104,27 @@ define(function ScriptAgent(require, exports, module) {
 
     }
 
-    /** Initialize the agent */
-    function load() {
+    function _reset() {
         _urlToScript = {};
         _idToScript = {};
+    }
+
+    /**
+     * @private
+     * WebInspector Event: Page.frameNavigated
+     * @param {jQuery.Event} event
+     * @param {frame: Frame} res
+     */
+    function _onFrameNavigated(event, res) {
+        // Clear maps when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _reset();
+        }
+    }
+
+    /** Initialize the agent */
+    function load() {
+        _reset();
         _load = new $.Deferred();
 
         var enableResult = new $.Deferred();
@@ -131,21 +135,24 @@ define(function ScriptAgent(require, exports, module) {
             });
         });
 
-        $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
-        $(Inspector.Debugger)
+        Inspector.Page.on("frameNavigated.ScriptAgent", _onFrameNavigated);
+        DOMAgent.on("getDocument.ScriptAgent", _onGetDocument);
+        Inspector.Debugger
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
             .on("scriptFailedToParse.ScriptAgent", _onScriptFailedToParse)
             .on("paused.ScriptAgent", _onPaused);
-        $(Inspector.DOM).on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
+        Inspector.DOM.on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
 
         return $.when(_load.promise(), enableResult.promise());
     }
 
     /** Clean up */
     function unload() {
-        $(DOMAgent).off(".ScriptAgent");
-        $(Inspector.Debugger).off(".ScriptAgent");
-        $(Inspector.DOM).off(".ScriptAgent");
+        _reset();
+        Inspector.Page.off(".ScriptAgent");
+        DOMAgent.off(".ScriptAgent");
+        Inspector.Debugger.off(".ScriptAgent");
+        Inspector.DOM.off(".ScriptAgent");
     }
 
     // Export public functions

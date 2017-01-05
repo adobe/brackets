@@ -1,18 +1,21 @@
 /* Colors */
-@body-text-color: #666;
-@emphasized-text-color: #454545;
-@heading-color: #454545;
-@link-color: #0083e8;
+@bc-btn-bg: #e5e9e9;
+@bc-btn-border: #b2b5b5;
+@bc-highlight: rgba(255, 255, 255, 0.12);
+@bc-panel-separator: #c3c6c5;
+@bc-text: #333;
+@bc-text-link: #0083e8;
+@bc-text-thin-quiet: #777;
 
 /* Typography */
- @font-weight-semibold: 500;
+@font-weight-semibold: 500;
 
 
 /* Overall inline widget content container */
 .css-prop-defn {
     margin-left: 20px;
     
-    color: @body-text-color;
+    color: @bc-text-thin-quiet;
     
     /* Enable text selection */
     cursor: auto;
@@ -31,7 +34,7 @@
     font-size: 14px;
     
     h1 {
-        color: @heading-color;
+        color: @bc-text;
         font-size: 16px;
         font-weight: @font-weight-semibold;
         line-height: normal;
@@ -39,13 +42,13 @@
     }
     
     a {
-        color: @link-color;
+        color: @bc-text-link;
     }
     
     code {
         font-family: SourceCodePro;
         font-size: 12px;
-        color: @emphasized-text-color;
+        color: @bc-text;
         background: none;   // revert Bootstrap's styling
         padding: 0;
         white-space: normal;
@@ -53,6 +56,15 @@
     
     b {
         font-weight: @font-weight-semibold;
+    }
+
+    table {
+        width: 100%;
+        margin-bottom: 1em;
+        th, td {
+            border: 1px solid lighten(@bc-text-thin-quiet, 20%);
+            padding: 0 .15em;
+        }
     }
 }
 
@@ -95,7 +107,7 @@
         margin-top: 0px;
         
         dt {
-            color: @emphasized-text-color;
+            color: @bc-text;
             font-size: 13px;
             font-weight: @font-weight-semibold;
             margin-bottom: 3px;
@@ -128,8 +140,7 @@
         margin-left: 12px;
         width: 0px;
         height: 100%;
-        border-left: 1px solid #cccccc;
-        border-right: 1px solid white;
+        border-left: 1px solid @bc-panel-separator;
     }
 }
 
@@ -146,22 +157,70 @@ a.more-info {
     right: (33px + @scrollbar-wid);
     padding: 4px 10px 4px 28px;
     
-    background: #e5e9e9 url("logo.svg");
+    background: @bc-btn-bg url("logo.svg");
     background-repeat: no-repeat;
     background-size: 15px 15px;
     background-position: 8px 4px;
     
-    border: 1px solid #9c9e9e;
+    border: 1px solid @bc-btn-border;
     border-radius: 3px 3px 0 0;
     border-bottom: none;
-    box-shadow: inset 0 1px 0 white;  // white chisel along top edge
+    box-shadow: inset 0 1px 0 @bc-highlight;  // white chisel along top edge
     
     font-size: 12px;
     font-weight: @font-weight-semibold;
-    color: @heading-color;
-    text-shadow: 0 1px 0 white;
+    color: @bc-text;
+    text-shadow: 0 1px 0 @bc-highlight;
     &:hover {
-        background-color: #edf1f1;
         text-decoration: none;
+    }
+}
+
+/* Dark UI Theme */
+@dark-bc-highlight: rgba(255, 255, 255, 0.06);
+@dark-bc-text: #ccc;
+@dark-bc-text-link: #6bbeff;
+@dark-bc-text-thin-quiet: #bbb;
+@dark-bc-btn-bg: #3f3f3f;
+@dark-bc-btn-border: #202020;
+@dark-bc-panel-separator: #343434;
+
+.dark {
+    .css-prop-defn {
+        color: @dark-bc-text-thin-quiet;
+        
+        h1, b {
+            color: @dark-bc-text;
+        }
+
+        a {
+            color: @dark-bc-text-link;
+        }
+
+        code {
+            color: @dark-bc-text;
+        }
+
+        dl dt {
+            color: @dark-bc-text;
+        }
+
+        .divider-holder .divider {
+            border-left: 1px solid @dark-bc-panel-separator;
+        }
+
+        a.more-info {
+            background-color: @dark-bc-btn-bg;
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text;
+            text-shadow: 0 1px 0 @dark-bc-highlight;
+        }
+
+        table {
+            th, td {
+                border-color: darken(@dark-bc-text-thin-quiet, 35%);
+            }
+        }
     }
 }

@@ -1,0 +1,459 @@
+/*
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+.color-editor {
+    font-size: 12px;
+    min-width: 450px;
+    height: 190px;
+    padding: 16px 16px 14px 46px;
+}
+.color-editor:focus {
+    outline: none;
+}
+.color-editor aside {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    overflow: visible;
+    margin-left: 6px;
+    vertical-align: top;
+}
+.color-editor aside header {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.color-editor aside header .large-swatches {
+    border-radius: 3px;
+    background-image: url("../img/color_thumb_back.png");
+    background-size: 8px;
+    height: 35px;
+    width: 88px;
+    margin-right: 9px;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+.color-editor aside header .large-swatch {
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.2);
+}
+.color-editor aside header .current-color {
+    border-radius: 3px 0px 0px 3px;
+    left: 0;
+    top: 0;
+}
+.color-editor aside header .original-color {
+    border-radius: 0px 3px 3px 0px;
+    right: 0;
+    top: 0;
+}
+.color-editor aside ul.swatches {
+    list-style: none;
+}
+.color-editor aside ul.swatches li {
+    height: 18px;
+    margin-bottom: 2px;
+    padding: 0 1px 1px 2px;
+}
+.color-editor aside ul.swatches li:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #94ceff;
+    border-radius: 2px;
+}
+.color-editor aside ul.swatches li .swatch-bg {
+    background-image: url("../img/color_thumb_back.png");
+    background-size: 8px;
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    position: relative;
+    top: 2px;
+    display: inline-block;
+}
+.color-editor aside ul.swatches li .swatch-bg .swatch {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    box-shadow: 0 -1px 0 rgba(0,0,0,0.2), 0 1px 0 #fff;
+    top: 0;
+}
+.color-editor aside ul.swatches li .value {
+    left: -3px;
+    position: relative;
+    top: -1px;
+}
+.color-editor section {
+    display: inline-block;
+    position: relative;
+    vertical-align: top;
+}
+.color-editor section .sliders {
+    position: relative;
+    clear: both;
+}
+.color-editor section .gradient-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12), 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.color-editor section .color-selection-field {
+    width: 181px;
+    height: 156px;
+    margin-right: 13px;
+    display: block;
+    border-radius: 4px;
+    position: relative;
+    float: left;
+}
+.color-editor section .color-selection-field .saturation-gradient {
+    background-image: linear-gradient(to left, hsla(0,0%,100%,0), #fff);
+}
+.color-editor section .color-selection-field .luminosity-gradient {
+    background-image: linear-gradient(hsla(0,0%,100%,0), #000);
+}
+.color-editor section .color-selection-field .selector-base {
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    position: absolute;
+    margin-bottom: -8px;
+    margin-left: -5px;
+}
+.color-editor section .color-selection-field .selector-base:focus {
+    outline: none;
+    box-shadow: 0 0 0 5px #94ceff;
+    border-radius: 10px;
+}
+.color-editor section .color-selection-field .selector {
+    width: 19px;
+    height: 19px;
+    position: absolute;
+    left: -4px;
+    top: -4px;
+    background-image: url("../img/grabber_color-well.png");
+}
+.color-editor section .slider {
+    border-radius: 3px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);      
+    width: 12px;
+    height: 156px;
+    margin-right: 13px;
+    background-color: #ccc;
+    display: block;
+    box-shadow: 0 1px 0 #fff, inset 0 1px 0 rgba(0,0,0,0.2);
+    float: left;
+    position: relative;
+}
+.color-editor section .slider .selector-base {
+    width: 14px;
+    height: 6px;
+    background-color: transparent;
+    position: absolute;
+    margin: -1px -6px -4px -1px;
+}
+.color-editor section .slider .selector-base:focus {
+    outline: none;
+    box-shadow: 0 0 0 5px #94ceff;
+    border-radius: 1px;
+}
+.color-editor section .slider .selector {
+    width: 20px;
+    height: 12px;
+    left: -3px;
+    top: -3px;
+    position: absolute;
+    background-image: url("../img/grabber_color-slider.png");
+}
+.color-editor section .slider.opacity-slider {
+    background-image: url("../img/color_thumb_back.png");
+    background-size: 8px;
+    margin-right: 0px;  
+}
+.color-editor section .hue-slider {
+    background-image: linear-gradient(#f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
+}
+.color-editor section footer {
+    font-size: 100%;
+    clear: both;
+    line-height: normal;
+    padding-top: 10px;
+}
+.color-editor section footer .color-value {
+    width: 118px;
+    height: 23px;
+    margin-right: 5px;
+    border-color: #b2b5b5;
+    box-sizing: border-box;
+    display: inline-block;
+    color: #222;
+}
+.color-editor section footer input {
+    display: inline-block;
+    height: 23px;
+    padding: 0 0 0 4px;
+    border: 1px solid #b2b5b5;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+    background: #fff;
+    font-family: "SourceSansPro";
+    font-size: 12px;
+    color: #454545;
+    border-radius: 3px;
+    margin: 0;
+    vertical-align: middle;
+}
+.color-editor section footer input:focus {
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 1px #94ceff;
+    border: 1px solid #2893ef;
+    z-index: 911;
+}
+@media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
+    .color-editor aside header .large-swatches {
+        background-image: url("../img/color_thumb_back@2x.png");
+    }
+    .color-editor aside ul.swatches li .swatch-bg {
+        background-image: url("../img/color_thumb_back@2x.png");
+    }
+    .color-editor section .color-selection-field .selector {
+        background-image: url("../img/grabber_color-well@2x.png");
+        background-size: 100% 100%;
+    }
+    .color-editor section .slider .selector {
+        background-image: url("../img/grabber_color-slider@2x.png");
+        background-size: 200% 100%;
+    }
+    .color-editor section .slider.opacity-slider {
+        background-image: url("../img/color_thumb_back@2x.png");
+    }
+}
+.color-editor ul, .color-editor li {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: middle;
+    background: transparent;
+    -webkit-font-smoothing: antialiased;
+}
+.color-editor ul.button-bar {
+    list-style: none;
+    border-radius: 3px;
+    display: inline-block;
+    font-size: 12px;
+    margin-left: -3px;
+}
+.color-editor .button-bar li {
+    display: inline-block;
+    margin-left: -4px;
+}
+.color-editor .button-bar a {
+    text-decoration: none;
+    color: #454545;
+    cursor: default;
+    display: block;
+    padding: 2px 4px 4px;
+    height: 15px;
+    font-size: 12px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
+    background-color: #e5e9e9;
+    border: 1px solid #b2b5b5;
+    border-right: 1px solid transparent;
+    margin-left: -3px;
+    
+    box-shadow: inset 0 1px 0 #f3f3f3;
+}
+
+.color-editor .button-bar a:focus, .color-editor .button-bar li.selected a:focus{
+    outline: none;
+    position: relative;
+    border: 1px solid #2893ef;
+    border-right: 1px solid #2893ef !important; /* we need this !important, sorry! */
+    box-shadow: 0 0 0 1px #94ceff;
+    z-index: 999;
+}
+.color-editor .button-bar li:first-child {
+    margin-left: 0;
+}
+.color-editor .button-bar li:first-child a {
+    margin-left: 0;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+.color-editor .button-bar li:last-child a {
+    border-right: 1px solid #b2b5b5;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+.color-editor .button-bar li.selected a {
+    background-color: #e0f0fa;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+    background-image: none;
+    color: #0083e8;
+}
+.color-editor .button-bar li.disabled a {
+    cursor: default;
+    opacity: 0.3;
+}
+
+
+.color-editor .platform-mac .CodeMirror {
+    font-family: "SourceSansPro" !important;
+}
+
+// Dark UI theme
+
+@dark-bc-bg-highlight: #2a3b50;
+@dark-bc-highlight: rgba(255, 255, 255, 0.06);
+@dark-bc-text: #ccc;
+@dark-bc-text-alt: #fff;
+@dark-bc-highlight-hard: rgba(255, 255, 255, 0.2);
+@dark-bc-btn-bg: #3f3f3f;
+@dark-bc-btn-border: #202020;
+@dark-bc-btn-border-focused: #2893ef;
+@dark-bc-btn-border-focused-glow: transparent;
+@dark-bc-shadow: rgba(0, 0, 0, 0.24);
+@dark-bc-shadow-small: rgba(0, 0, 0, 0.06);
+@dark-bc-shadow-medium: rgba(0, 0, 0, 0.12);
+@dark-bc-input-bg: #555;
+
+@dark-swatch-bg: url("../img/color_thumb_back_dark.png");
+@dark-swatch-bg-2x: url("../img/color_thumb_back_dark@2x.png");
+
+.dark {
+    .color-editor aside header .large-swatches,
+    .color-editor aside ul.swatches li .swatch-bg,
+    .color-editor section .slider.opacity-slider {
+        background-image: @dark-swatch-bg;
+    }
+    
+    .color-editor aside header .large-swatches {
+        border-bottom: 1px solid @dark-bc-highlight;
+    }
+
+    .color-editor ul.swatches li .value {
+        color: @dark-bc-text;
+    }
+
+    .color-editor section .gradient-overlay {
+        box-shadow: 0 1px 0 @dark-bc-highlight, inset 0 1px 0 @dark-bc-shadow-medium;
+    }
+
+    .color-editor aside ul.swatches li .swatch-bg .swatch {
+        box-shadow: 0 -1px 1px @dark-bc-shadow-small, 0 1px 0 @dark-bc-highlight;
+    }
+
+    .color-editor aside ul.swatches li:focus {
+        outline: 1px solid @dark-bc-btn-border-focused;
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+    }
+
+    .color-editor section .color-selection-field .selector-base {
+        color: @dark-bc-input-bg;
+    }
+
+    .color-editor section .color-selection-field .selector-base:focus {
+        box-shadow: 0 0 0 5px @dark-bc-btn-border-focused;
+    }
+
+    .color-editor section .slider {
+        border-bottom: 1px solid @dark-bc-highlight-hard;
+        box-shadow: 0 -1px 0 @dark-bc-shadow-small;
+        background-color: @dark-bc-highlight-hard;
+        box-shadow: 0 1px 0 @dark-bc-highlight-hard, inset 0 1px 0 @dark-bc-shadow;
+    }
+
+    .color-editor section .slider .selector-base:focus {
+        box-shadow: 0 0 0 5px @dark-bc-btn-border-focused;
+    }
+
+    .color-editor section footer .color-value {
+        border-color: @dark-bc-btn-border;
+        color: @dark-bc-text;
+    }
+
+    .color-editor section footer input {
+        border: 1px solid @dark-bc-btn-border;
+        box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+        background: @dark-bc-input-bg;
+        color: @dark-bc-text;
+    }
+
+    .color-editor section footer input:focus {
+        background: @dark-bc-input-bg;
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+        border: 1px solid @dark-bc-btn-border-focused;
+    }
+
+    .color-editor .button-bar a {
+        color: @dark-bc-text;
+        text-shadow: 0 1px 0 @dark-bc-highlight;
+        background-color: @dark-bc-btn-bg;
+        border: 1px solid @dark-bc-btn-border;
+        border-right: 1px solid transparent;
+        box-shadow: inset 0 1px 0 @dark-bc-highlight;
+    }
+
+    .color-editor .button-bar a:focus, .color-editor .button-bar li.selected a:focus {
+        border: 1px solid @dark-bc-btn-border-focused;
+        border-right: 1px solid @dark-bc-btn-border-focused !important; /* we need this !important, sorry! */
+        box-shadow: 0 0 0 1px @dark-bc-btn-border-focused-glow;
+    }
+
+    .color-editor .button-bar li:last-child a {
+        border-right: 1px solid @dark-bc-btn-border;
+    }
+
+    .color-editor .button-bar li.selected a {
+        background-color: @dark-bc-bg-highlight;
+        box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
+        color: @dark-bc-text-alt;
+    }
+}
+
+@media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
+    .dark {
+        .color-editor aside header .large-swatches {
+            background-image: @dark-swatch-bg-2x;
+        }
+
+        .color-editor aside ul.swatches li .swatch-bg {
+            background-image: @dark-swatch-bg-2x;
+        }
+
+        .color-editor section .slider.opacity-slider {
+            background-image: @dark-swatch-bg-2x;
+        }
+    }
+}
