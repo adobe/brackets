@@ -132,7 +132,7 @@ define({
 
     "OPEN_FILE"                         : "Άνοιγμα Αρχείου",
     "SAVE_FILE_AS"                      : "Αποθήκευση Αρχείου",
-    "CHOOSE_FOLDER"                     : "Επέλεξε ένα φάκελο",
+    "CHOOSE_FOLDER"                     : "Επίλεξε ένα φάκελο",
 
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "Έχετε την τελευταία έκδοση!",
@@ -296,7 +296,7 @@ define({
     "CMD_NEXT_DOC"                        : "Επόμενο Έγγραφο",
     "CMD_PREV_DOC"                        : "Προηγούμενο Έγγραφο",
     "CMD_NEXT_DOC_LIST_ORDER"             : "Επόμενο έγγραφο στην λίστα",
-    "CMD_PREV_DOC_LIST_ORDER"             : "Προηγούμενο έγγραφο στην λίστ",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Προηγούμενο έγγραφο στην λίστα",
     "CMD_SHOW_IN_TREE"                    : "Προβολή στο Δέντρο Αρχείων",
     "CMD_SHOW_IN_OS"                      : "Προβολή στο Λειτουργικό Σύστημα",
 
@@ -442,7 +442,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Επαναφόρτωση {APP_NAME}",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Επαναφόρτωση χωρίς τις επεκτάσεις",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Νέο Παράθυρο {APP_NAME}",
-    "CMD_LAUNCH_SCRIPT_MAC"                     : "Εγκάτασταση συντόμευσης για την γραμμή εντολών",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Εγκατάσταση συντόμευσης για την γραμμή εντολών",
     "CMD_SWITCH_LANGUAGE"                       : "Αλλαγή Γλώσσας",
     "CMD_RUN_UNIT_TESTS"                        : "Τρέξε Tests",
     "CMD_SHOW_PERF_DATA"                        : "Προβολή Δεδομένων Επίδοσης",
