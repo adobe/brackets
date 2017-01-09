@@ -130,6 +130,15 @@ module.exports = function (grunt) {
                             'mode/{,*/}*',
                             'theme/{,*/}*',
                         ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty',
+                        cwd: 'src/node_modules',
+                        src: [
+                            'less/dist/less.min.js'
+                        ]
                     }
                 ]
             }
@@ -286,9 +295,12 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
+                    // For reference to why this polyfill is needed see Issue #7951.
+                    // The need for this should go away once the version of phantomjs gets upgraded to 2.0
+                    'test/polyfills.js',
+
                     'src/thirdparty/jquery-2.1.3.min.js',
-                    'src/thirdparty/less-2.5.1.min.js'
+                    'src/thirdparty/less.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
