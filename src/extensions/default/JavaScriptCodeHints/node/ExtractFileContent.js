@@ -24,10 +24,10 @@
 /*eslint-env node */
 /*jslint node: true */
 
+"use strict";
 
 (function () {
-    "use strict";
-    
+        
     var fs = require("fs"),
         _dirtyFilesCache = [];
     
