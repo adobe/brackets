@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,15 +21,14 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Brackets modules
     var EditorManager           = brackets.getModule("editor/EditorManager"),
+        ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         ProjectManager          = brackets.getModule("project/ProjectManager");
 
     // Local modules
@@ -47,7 +46,7 @@ define(function (require, exports, module) {
 
         // If the pos is at the beginning of a name, token will be the
         // preceding whitespace or dot. In that case, try the next pos.
-        if (!/\S/.match(token.string) || token.string === ".") {
+        if (!/\S/.test(token.string) || token.string === ".") {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
         }
 
@@ -130,5 +129,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    ExtensionUtils.loadStyleSheet(module, "style.css");
     EditorManager.registerInlineEditProvider(inlineImageViewerProvider);
 });

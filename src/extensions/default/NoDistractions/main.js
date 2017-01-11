@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -47,8 +44,10 @@ define(function (require, exports, module) {
     //key binding keys
     var togglePureCodeKey         = "Ctrl-Shift-2",
         togglePureCodeKeyMac      = "Cmd-Shift-2",
-        togglePanelsKey           = "Ctrl-Shift-`",
-        togglePanelsKeyMac        = "Cmd-Shift-`";
+        togglePanelsKey           = "Ctrl-Shift-1",
+        togglePanelsKeyMac        = "Cmd-Shift-1",
+        togglePanelsKey_EN        = "Ctrl-Shift-`",
+        togglePanelsKeyMac_EN     = "Cmd-Shift-`";
 
     //locals
     var _previouslyOpenPanelIDs = [],
@@ -160,7 +159,11 @@ define(function (require, exports, module) {
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_TOGGLE_PURE_CODE, "", Menus.AFTER, CMD_TOGGLE_PANELS);
 
         KeyBindingManager.addBinding(CMD_TOGGLE_PURE_CODE, [ {key: togglePureCodeKey}, {key: togglePureCodeKeyMac, platform: "mac"} ]);
+
+        //default toggle panel shortcut was ctrl+shift+` as it is present in one vertical line in the keyboard. However, we later learnt
+        //from IQE team than non-English keyboards does not have the ` char. So added one more shortcut ctrl+shift+1 which will be preferred
         KeyBindingManager.addBinding(CMD_TOGGLE_PANELS, [ {key: togglePanelsKey}, {key: togglePanelsKeyMac, platform: "mac"} ]);
+        KeyBindingManager.addBinding(CMD_TOGGLE_PANELS, [ {key: togglePanelsKey_EN}, {key: togglePanelsKeyMac_EN, platform: "mac"} ]);
     }
 
     initializeCommands();

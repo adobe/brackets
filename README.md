@@ -34,6 +34,9 @@ The Linux version has most of the features of the Mac and Windows versions, but
 is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
 for a list of known issues and to find out how you can help.
 
+Additionally, for a list of common Linux installation issues and workarounds you can [visit this guide](https://nathanjplummer.github.io/Brackets/).
+
+
 #### Usage
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
@@ -56,7 +59,6 @@ see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-E
 Having problems starting Brackets the first time, or not sure how to use Brackets?  Please 
 review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps 
 you to fix common problems and find extra help if needed.
-
 
 Helping Brackets
 ----------------
@@ -111,9 +113,13 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
 
 #### Contact info
 
-* **Slack:** [Brackets on Slack](https://brackets.slack.com) (You can join by [requesting an invite](https://brackets-slack.herokuapp.com/))
+* **E-mail:** [admin@brackets.io](mailto:admin@brackets.io)
+* **Slack:** [Brackets on Slack](https://brackets.slack.com) (You can join by sending a mail to [admin@brackets.io](mailto:admin@brackets.io) with the subject line `slack registration request` specifying the email addresses you would like to register).
 * **Developers mailing list:** http://groups.google.com/group/brackets-dev
 * **Twitter:** [@brackets](https://twitter.com/brackets)
 * **Blog:** http://blog.brackets.io/
 * **IRC:** [#brackets on freenode](http://webchat.freenode.net/?channels=brackets)
 
+---
+
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/adobe/brackets/blob/master/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.

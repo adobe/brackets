@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: false, $ */
 
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
@@ -496,21 +493,6 @@ define(function (require, exports, module) {
         ThemeSettings.showDialog();
     }
 
-
-    /**
-     * @private
-     * Convert the old "fontSizeAdjustment" preference to the new view state.
-     *
-     * @param {string} key  The key of the preference to be examined for migration
-     *      of old preferences. Not used since we only have one in this module.
-     * @param {string} value  The value of "fontSizeAdjustment" preference
-     * @return {Object} JSON object for the new view state equivalent to
-     *      the old "fontSizeAdjustment" preference.
-     */
-    function _convertToNewViewState(key, value) {
-        return { "fontSizeStyle": (DEFAULT_FONT_SIZE + value) + "px" };
-    }
-
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE,  _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE,  _handleDecreaseFontSize);
@@ -518,8 +500,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,      _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,    _handleScrollLineDown);
     CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN_SETTINGS, _handleThemeSettings);
-
-    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
     prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
         description: Strings.DESCRIPTION_FONT_SIZE

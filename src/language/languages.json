@@ -7,7 +7,7 @@
     "groovy": {
         "name": "Groovy",
         "mode": "groovy",
-        "fileExtensions": ["groovy"],
+        "fileExtensions": ["groovy", "gradle"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -65,7 +65,15 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
+        "fileExtensions": ["js", "js.erb", "jsm", "_js"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
+    "jsx": {
+        "name": "JSX",
+        "mode": "jsx",
+        "fileExtensions": ["jsx"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -195,7 +203,7 @@
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw", "wsgi"],
+        "fileExtensions": ["py", "pyw", "wsgi", "gyp", "gypi"],
         "lineComment": ["#"]
     },
 
@@ -258,6 +266,7 @@
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
         "fileExtensions": ["sh", "command", "bash"],
+        "fileNames": [".bash_login", ".bash_logout", ".bash_profile", ".bashrc", ".profile"],
         "lineComment": ["#"]
     },
   

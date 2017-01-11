@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,10 +19,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
 
 /**
  * Button that opens a dropdown list when clicked. More akin to a popup menu than a combobox. Compared to a
@@ -264,14 +260,19 @@ define(function (require, exports, module) {
             posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
         }
 
+        // Take in consideration the scrollbar to prevent unexpected behaviours (see #10963).
+        var dropdownElement = this.$dropdown[0];
+        var scrollWidth = dropdownElement.offsetWidth - dropdownElement.clientWidth + 1;
+
         if (clip.right > 0) {
-            // Right is clipped, so adjust left to fit menu in editor
-            posLeft = Math.max(0, posLeft - clip.right);
+            // Right is clipped, so adjust left to fit menu in editor.
+            posLeft = Math.max(0, posLeft - clip.right - scrollWidth);
         }
 
         $dropdown.css({
             left: posLeft,
-            top: posTop
+            top: posTop,
+            width: $dropdown.width() + scrollWidth
         });
 
         // Attach event handlers

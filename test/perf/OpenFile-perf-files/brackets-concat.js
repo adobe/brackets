@@ -896,7 +896,7 @@ define("thirdparty/path-utils/path-utils.min", function(){});
 define("thirdparty/smart-auto-complete/jquery.smart_autocomplete", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -1223,7 +1223,7 @@ define('utils/Async',['require','exports','module'],function (require, exports, 
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -6664,7 +6664,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 define("thirdparty/jstree_pre1.0_fix_1/jquery.jstree", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -6840,7 +6840,7 @@ define('preferences/PreferenceStorage',['require','exports','module','preference
     exports.PreferenceStorage = PreferenceStorage;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -6967,7 +6967,7 @@ define('preferences/PreferencesManager',['require','exports','module','preferenc
     exports._reset                  = _reset;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -7209,7 +7209,7 @@ define('command/CommandManager',['require','exports','module'],function (require
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -7312,7 +7312,7 @@ define('command/Commands',['require','exports','module'],function (require, expo
 
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -7804,7 +7804,7 @@ define('command/KeyBindingManager',['require','exports','module','command/Comman
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -8032,7 +8032,7 @@ define('widgets/Dialogs',['require','exports','module','command/KeyBindingManage
     exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -8553,7 +8553,7 @@ define('utils/PerfUtils',['require','exports','module'],function (require, expor
 }());
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -8597,7 +8597,7 @@ define('nls/strings',['require','exports','module'],function (require, exports, 
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -8808,7 +8808,7 @@ define('nls/root/strings',{
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -8846,7 +8846,7 @@ define('strings',['require','exports','module','i18n!nls/strings'],function (req
 
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -8976,7 +8976,7 @@ define('utils/StringUtils',['require','exports','module'],function (require, exp
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -9240,7 +9240,7 @@ define('file/FileUtils',['require','exports','module','file/NativeFileSystem','u
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -9729,7 +9729,7 @@ define('language/HTMLUtils',['require','exports','module'],function (require, ex
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -9854,7 +9854,7 @@ define('widgets/PopUpManager',['require','exports','module','editor/EditorManage
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -10186,7 +10186,7 @@ define('utils/ViewUtils',['require','exports','module'],function (require, expor
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -10625,7 +10625,7 @@ define('editor/CodeHintManager',['require','exports','module','language/HTMLUtil
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -10805,7 +10805,7 @@ define('document/TextRange',['require','exports','module'],function (require, ex
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -11868,7 +11868,7 @@ define('editor/Editor',['require','exports','module','editor/EditorManager','edi
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -11979,7 +11979,7 @@ define('editor/InlineWidget',['require','exports','module','editor/EditorManager
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -15927,7 +15927,7 @@ CodeMirror.defineMIME("text/x-markdown", "markdown");
 define("thirdparty/CodeMirror2/mode/markdown/markdown", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -16078,7 +16078,7 @@ define('editor/EditorUtils',['require','exports','module','thirdparty/path-utils
     exports.getModeFromFileExtension = getModeFromFileExtension;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -16645,7 +16645,7 @@ define('editor/EditorManager',['require','exports','module','file/FileUtils','co
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -17695,7 +17695,7 @@ define('command/Menus',['require','exports','module','command/Commands','command
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -17915,7 +17915,7 @@ define('project/FileViewController',['require','exports','module','document/Docu
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -18880,7 +18880,7 @@ define('project/ProjectManager',['require','exports','module','thirdparty/jstree
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -19968,7 +19968,7 @@ define('document/DocumentManager',['require','exports','module','file/NativeFile
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -20098,7 +20098,7 @@ define('utils/NativeApp',['require','exports','module','utils/Async'],function (
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -20424,7 +20424,7 @@ define('LiveDevelopment/Inspector/Inspector',['require','exports','module'],func
     exports.init = init;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -20548,7 +20548,7 @@ define('LiveDevelopment/Agents/RemoteAgent',['require','exports','module','LiveD
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -20808,7 +20808,7 @@ define('LiveDevelopment/Agents/DOMHelpers',['require','exports','module'],functi
     exports.eachNode = eachNode;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21331,7 +21331,7 @@ define('LiveDevelopment/Agents/DOMNode',['require','exports','module','LiveDevel
     return DOMNode;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21653,7 +21653,7 @@ define('LiveDevelopment/Agents/DOMAgent',['require','exports','module','LiveDeve
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21775,7 +21775,7 @@ define('LiveDevelopment/Agents/HighlightAgent',['require','exports','module','Li
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21900,7 +21900,7 @@ define('LiveDevelopment/Documents/HTMLDocument',['require','exports','module','L
     module.exports = HTMLDocument;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22021,7 +22021,7 @@ define('LiveDevelopment/Agents/CSSAgent',['require','exports','module','thirdpar
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22236,7 +22236,7 @@ define('LiveDevelopment/Documents/CSSDocument',['require','exports','module','Li
     module.exports = CSSDocument;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22384,7 +22384,7 @@ define('LiveDevelopment/Agents/ScriptAgent',['require','exports','module','LiveD
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22503,7 +22503,7 @@ define('LiveDevelopment/Documents/JSDocument',['require','exports','module','Liv
     module.exports = JSDocument;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22595,7 +22595,7 @@ define('LiveDevelopment/Agents/ConsoleAgent',['require','exports','module','Live
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22675,7 +22675,7 @@ define('LiveDevelopment/Agents/NetworkAgent',['require','exports','module','Live
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22888,7 +22888,7 @@ define('LiveDevelopment/Agents/GotoAgent',['require','exports','module','LiveDev
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -23000,7 +23000,7 @@ define('LiveDevelopment/Agents/EditAgent',['require','exports','module','LiveDev
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -23519,7 +23519,7 @@ define('LiveDevelopment/LiveDevelopment',['require','exports','module','document
     exports.init = init;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -23700,7 +23700,7 @@ define('LiveDevelopment/main',['require','exports','module','document/DocumentMa
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -24109,7 +24109,7 @@ define('project/FileIndexManager',['require','exports','module','file/NativeFile
 
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -24667,7 +24667,7 @@ define('language/CSSUtils',['require','exports','module','utils/Async','document
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -25188,7 +25188,7 @@ define('editor/MultiRangeInlineEditor',['require','exports','module','document/T
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -25323,7 +25323,7 @@ define('editor/CSSInlineEditor',['require','exports','module','language/CSSUtils
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -25452,7 +25452,7 @@ define('document/ChangedDocumentTracker',['require','exports','module','document
     module.exports = ChangedDocumentTracker;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -25880,7 +25880,7 @@ define('language/JSUtils',['require','exports','module','utils/Async','document/
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -26253,7 +26253,7 @@ define('project/WorkingSetView',['require','exports','module','document/Document
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -27072,7 +27072,7 @@ define('document/DocumentCommandHandlers',['require','exports','module','thirdpa
 
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -27489,7 +27489,7 @@ define('project/FileSyncManager',['require','exports','module','project/ProjectM
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -34503,7 +34503,7 @@ klass:              do {
 define("thirdparty/jslint/jslint", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -34718,7 +34718,7 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -35601,10 +35601,10 @@ define('search/QuickOpen',['require','exports','module','project/FileIndexManage
     });
 }());
 
-define('text!htmlContent/main-view.html',[],function () { return '<!-- \n  Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.\n   \n  Permission is hereby granted, free of charge, to any person obtaining a\n  copy of this software and associated documentation files (the "Software"), \n  to deal in the Software without restriction, including without limitation \n  the rights to use, copy, modify, merge, publish, distribute, sublicense, \n  and/or sell copies of the Software, and to permit persons to whom the \n  Software is furnished to do so, subject to the following conditions:\n   \n  The above copyright notice and this permission notice shall be included in\n  all copies or substantial portions of the Software.\n   \n  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, \n  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER \n  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING \n  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER \n  DEALINGS IN THE SOFTWARE.\n-->\n\n\n<!--\n    This is the HTML for the body tag of index.html. It is loaded dynamically by the \n    htmlContentLoad module and localized using a combination of mustache.js and i18n.js.\n\n    LOCALIZATION NOTE:\n    All display text for this file must use templating so the text can be localized.\n    \n    English text goes in src/nls/root/strings.js. All other translations go in the strings.js file for\n    the specific local in the nls folder. If a translation is missing for a specific key English\n    is used as a fallback\n\n    Strings should be referenced using the double brackets syntax.\n    Example: {{keyname}}. Note, all strings are HTML escaped unless the form \n    {{&keyname}} is used.\n\n-->\n\n<!-- Main UI -->\n    <div class="main-view">\n        <div id="sidebar-resizer"></div>\n        <div id="sidebar" class="sidebar quiet-scrollbars">\n            <!-- Left-hand \'Project panel\' -->\n            <div id="projects" class="panel">\n                <div id="project-header"></div>\n                <div id="file-section">\n                    <div id="open-files-container">\n                        <!-- This will contain a dynamically generated <ul> at runtime -->\n                        <ul>\n                        </ul>\n                    </div>\n                \n                    <div id="project-files-header" class="project-file-header-area">\n                        <span id="project-title" class="title"></span>\n                    </div>\n                    <div id="project-files-container">\n                    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->\n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <!-- Right-hand content: toolbar, editor, bottom panels -->\n        <div class="content">\n            <!-- Toolbar containing menus, filename, and icons -->\n            <div id="main-toolbar" class="toolbar">\n                <!-- Menu bar -->\n                <ul class="nav" data-dropdown="dropdown">\n                </ul>\n                \n                <!-- Toolbar -->\n                <div class="buttons">\n                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>\n\n                    <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>\n                    \n                    <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->\n                    \n                    <span id="gold-star" title="No JSLint errors - good job!">\n                        &#9733;\n                    </span>\n                </div>\n                \n                <!-- Filename label -->\n                <div class="title-wrapper">\n                    <span class="title"></span>&nbsp;<span class=\'dirty-dot\' style="visibility:hidden;">•</span>\n                </div>\n            </div>\n            \n            <div id="editor-holder">\n                <div id="not-editor">\n                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>\n                </div>\n            </div>\n            \n            <div id="jslint-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{JSLINT_ERRORS}}</div>\n                </div>\n                <div class="table-container"></div>\n            </div>\n            <div id="search-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{SEARCH_RESULTS}}</div>\n                    <div class="title" id="search-result-summary"></div>\n                    <a href="#" class="close">&times;</a>\n                </div>\n                <div class="table-container"></div>\n            </div>\n        </div>\n    </div>\n\n    <!-- Modal Windows -->\n    <div class="error-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">Error</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>\n        </div>\n    </div>\n    <div class="save-close-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">{{SAVE_CHANGES}}</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{SAVE}}</a>\n            <a href="#" class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</a>\n        </div>\n    </div>\n    <div class="ext-changed-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{RELOAD_FROM_DISK}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="ext-deleted-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{CLOSE_DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="live-development-error-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{RELAUNCH_CHROME}}</a>\n        </div>\n    </div>\n    <div class="about-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{ABOUT}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="about-icon" src="styles/images/brackets_icon.svg">\n            <div class="about-text">\n                <h2>{{BRACKETS}}</h2>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE1}} <span id="about-build-number"><!-- populated programmatically --></span></p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE2}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE3}}<span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span>{{ABOUT_TEXT_LINE4}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE5}}<span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{CLOSE}}</a>\n        </div>\n    </div>\n    <div class="update-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{UPDATE_AVAILABLE_TITLE}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="update-icon" src="styles/images/update_large_icon.svg">\n            <div class="update-text">\n                <p class="dialog-message">{{UPDATE_MESSAGE}}</p>\n                <div class="update-info">\n                </div>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="download">{{GET_IT_NOW}}</a>\n        </div>\n    </div>\n    <div id="context-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>\n    <div id="codehint-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>';});
+define('text!htmlContent/main-view.html',[],function () { return '<!-- \n  Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.\n   \n  Permission is hereby granted, free of charge, to any person obtaining a\n  copy of this software and associated documentation files (the "Software"), \n  to deal in the Software without restriction, including without limitation \n  the rights to use, copy, modify, merge, publish, distribute, sublicense, \n  and/or sell copies of the Software, and to permit persons to whom the \n  Software is furnished to do so, subject to the following conditions:\n   \n  The above copyright notice and this permission notice shall be included in\n  all copies or substantial portions of the Software.\n   \n  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, \n  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER \n  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING \n  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER \n  DEALINGS IN THE SOFTWARE.\n-->\n\n\n<!--\n    This is the HTML for the body tag of index.html. It is loaded dynamically by the \n    htmlContentLoad module and localized using a combination of mustache.js and i18n.js.\n\n    LOCALIZATION NOTE:\n    All display text for this file must use templating so the text can be localized.\n    \n    English text goes in src/nls/root/strings.js. All other translations go in the strings.js file for\n    the specific local in the nls folder. If a translation is missing for a specific key English\n    is used as a fallback\n\n    Strings should be referenced using the double brackets syntax.\n    Example: {{keyname}}. Note, all strings are HTML escaped unless the form \n    {{&keyname}} is used.\n\n-->\n\n<!-- Main UI -->\n    <div class="main-view">\n        <div id="sidebar-resizer"></div>\n        <div id="sidebar" class="sidebar quiet-scrollbars">\n            <!-- Left-hand \'Project panel\' -->\n            <div id="projects" class="panel">\n                <div id="project-header"></div>\n                <div id="file-section">\n                    <div id="open-files-container">\n                        <!-- This will contain a dynamically generated <ul> at runtime -->\n                        <ul>\n                        </ul>\n                    </div>\n                \n                    <div id="project-files-header" class="project-file-header-area">\n                        <span id="project-title" class="title"></span>\n                    </div>\n                    <div id="project-files-container">\n                    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->\n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <!-- Right-hand content: toolbar, editor, bottom panels -->\n        <div class="content">\n            <!-- Toolbar containing menus, filename, and icons -->\n            <div id="main-toolbar" class="toolbar">\n                <!-- Menu bar -->\n                <ul class="nav" data-dropdown="dropdown">\n                </ul>\n                \n                <!-- Toolbar -->\n                <div class="buttons">\n                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>\n\n                    <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>\n                    \n                    <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->\n                    \n                    <span id="gold-star" title="No JSLint errors - good job!">\n                        &#9733;\n                    </span>\n                </div>\n                \n                <!-- Filename label -->\n                <div class="title-wrapper">\n                    <span class="title"></span>&nbsp;<span class=\'dirty-dot\' style="visibility:hidden;">•</span>\n                </div>\n            </div>\n            \n            <div id="editor-holder">\n                <div id="not-editor">\n                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>\n                </div>\n            </div>\n            \n            <div id="jslint-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{JSLINT_ERRORS}}</div>\n                </div>\n                <div class="table-container"></div>\n            </div>\n            <div id="search-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{SEARCH_RESULTS}}</div>\n                    <div class="title" id="search-result-summary"></div>\n                    <a href="#" class="close">&times;</a>\n                </div>\n                <div class="table-container"></div>\n            </div>\n        </div>\n    </div>\n\n    <!-- Modal Windows -->\n    <div class="error-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">Error</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>\n        </div>\n    </div>\n    <div class="save-close-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">{{SAVE_CHANGES}}</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{SAVE}}</a>\n            <a href="#" class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</a>\n        </div>\n    </div>\n    <div class="ext-changed-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{RELOAD_FROM_DISK}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="ext-deleted-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{CLOSE_DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="live-development-error-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{RELAUNCH_CHROME}}</a>\n        </div>\n    </div>\n    <div class="about-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{ABOUT}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="about-icon" src="styles/images/brackets_icon.svg">\n            <div class="about-text">\n                <h2>{{BRACKETS}}</h2>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE1}} <span id="about-build-number"><!-- populated programmatically --></span></p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE2}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE3}}<span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span>{{ABOUT_TEXT_LINE4}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE5}}<span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{CLOSE}}</a>\n        </div>\n    </div>\n    <div class="update-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{UPDATE_AVAILABLE_TITLE}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="update-icon" src="styles/images/update_large_icon.svg">\n            <div class="update-text">\n                <p class="dialog-message">{{UPDATE_MESSAGE}}</p>\n                <div class="update-info">\n                </div>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="download">{{GET_IT_NOW}}</a>\n        </div>\n    </div>\n    <div id="context-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>\n    <div id="codehint-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>';});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -35824,7 +35824,7 @@ define('utils/ExtensionLoader',['require','exports','module','file/NativeFileSys
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -36079,7 +36079,7 @@ define('project/SidebarView',['require','exports','module','project/ProjectManag
 define('text!buildNumber.json',[],function () { return '{\n    "buildNumber": 100\n}\n';});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -36423,7 +36423,7 @@ define('utils/UpdateNotification',['require','exports','module','widgets/Dialogs
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -36515,7 +36515,7 @@ define('utils/UrlParams',['require','exports','module'],function (require, expor
     exports.UrlParams = UrlParams;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -36789,7 +36789,7 @@ define('editor/EditorCommandHandlers',['require','exports','module','command/Com
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -37056,7 +37056,7 @@ define('debug/DebugCommandHandlers',['require','exports','module','command/Comma
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -37189,7 +37189,7 @@ define('view/ViewCommandHandlers',['require','exports','module','command/Command
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -37515,7 +37515,7 @@ define('search/FindInFiles',['require','exports','module','utils/Async','command
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -37768,7 +37768,7 @@ define('search/FindReplace',['require','exports','module','command/CommandManage
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -37837,7 +37837,7 @@ define('utils/ExtensionUtils',['require','exports','module'],function (require, 
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -37889,7 +37889,7 @@ define('utils/ShellAPI',['require','exports','module','command/CommandManager'],
     exports.executeCommand = executeCommand;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -39150,7 +39150,7 @@ define("thirdparty/path-utils/path-utils.min", function(){});
 define("thirdparty/smart-auto-complete/jquery.smart_autocomplete", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -39477,7 +39477,7 @@ define('utils/Async',['require','exports','module'],function (require, exports, 
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -44918,7 +44918,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 define("thirdparty/jstree_pre1.0_fix_1/jquery.jstree", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -45094,7 +45094,7 @@ define('preferences/PreferenceStorage',['require','exports','module','preference
     exports.PreferenceStorage = PreferenceStorage;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -45221,7 +45221,7 @@ define('preferences/PreferencesManager',['require','exports','module','preferenc
     exports._reset                  = _reset;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -45463,7 +45463,7 @@ define('command/CommandManager',['require','exports','module'],function (require
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -45566,7 +45566,7 @@ define('command/Commands',['require','exports','module'],function (require, expo
 
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -46058,7 +46058,7 @@ define('command/KeyBindingManager',['require','exports','module','command/Comman
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -46286,7 +46286,7 @@ define('widgets/Dialogs',['require','exports','module','command/KeyBindingManage
     exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -46807,7 +46807,7 @@ define('utils/PerfUtils',['require','exports','module'],function (require, expor
 }());
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -46851,7 +46851,7 @@ define('nls/strings',['require','exports','module'],function (require, exports, 
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -47062,7 +47062,7 @@ define('nls/root/strings',{
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -47100,7 +47100,7 @@ define('strings',['require','exports','module','i18n!nls/strings'],function (req
 
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -47230,7 +47230,7 @@ define('utils/StringUtils',['require','exports','module'],function (require, exp
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -47494,7 +47494,7 @@ define('file/FileUtils',['require','exports','module','file/NativeFileSystem','u
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -47983,7 +47983,7 @@ define('language/HTMLUtils',['require','exports','module'],function (require, ex
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -48108,7 +48108,7 @@ define('widgets/PopUpManager',['require','exports','module','editor/EditorManage
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -48440,7 +48440,7 @@ define('utils/ViewUtils',['require','exports','module'],function (require, expor
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -48879,7 +48879,7 @@ define('editor/CodeHintManager',['require','exports','module','language/HTMLUtil
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -49059,7 +49059,7 @@ define('document/TextRange',['require','exports','module'],function (require, ex
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -50122,7 +50122,7 @@ define('editor/Editor',['require','exports','module','editor/EditorManager','edi
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -50233,7 +50233,7 @@ define('editor/InlineWidget',['require','exports','module','editor/EditorManager
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -54181,7 +54181,7 @@ CodeMirror.defineMIME("text/x-markdown", "markdown");
 define("thirdparty/CodeMirror2/mode/markdown/markdown", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -54332,7 +54332,7 @@ define('editor/EditorUtils',['require','exports','module','thirdparty/path-utils
     exports.getModeFromFileExtension = getModeFromFileExtension;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -54899,7 +54899,7 @@ define('editor/EditorManager',['require','exports','module','file/FileUtils','co
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -55949,7 +55949,7 @@ define('command/Menus',['require','exports','module','command/Commands','command
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -56169,7 +56169,7 @@ define('project/FileViewController',['require','exports','module','document/Docu
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -57134,7 +57134,7 @@ define('project/ProjectManager',['require','exports','module','thirdparty/jstree
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -58222,7 +58222,7 @@ define('document/DocumentManager',['require','exports','module','file/NativeFile
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -58352,7 +58352,7 @@ define('utils/NativeApp',['require','exports','module','utils/Async'],function (
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -58678,7 +58678,7 @@ define('LiveDevelopment/Inspector/Inspector',['require','exports','module'],func
     exports.init = init;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -58802,7 +58802,7 @@ define('LiveDevelopment/Agents/RemoteAgent',['require','exports','module','LiveD
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -59062,7 +59062,7 @@ define('LiveDevelopment/Agents/DOMHelpers',['require','exports','module'],functi
     exports.eachNode = eachNode;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -59585,7 +59585,7 @@ define('LiveDevelopment/Agents/DOMNode',['require','exports','module','LiveDevel
     return DOMNode;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -59907,7 +59907,7 @@ define('LiveDevelopment/Agents/DOMAgent',['require','exports','module','LiveDeve
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60029,7 +60029,7 @@ define('LiveDevelopment/Agents/HighlightAgent',['require','exports','module','Li
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60154,7 +60154,7 @@ define('LiveDevelopment/Documents/HTMLDocument',['require','exports','module','L
     module.exports = HTMLDocument;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60275,7 +60275,7 @@ define('LiveDevelopment/Agents/CSSAgent',['require','exports','module','thirdpar
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60490,7 +60490,7 @@ define('LiveDevelopment/Documents/CSSDocument',['require','exports','module','Li
     module.exports = CSSDocument;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60638,7 +60638,7 @@ define('LiveDevelopment/Agents/ScriptAgent',['require','exports','module','LiveD
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60757,7 +60757,7 @@ define('LiveDevelopment/Documents/JSDocument',['require','exports','module','Liv
     module.exports = JSDocument;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60849,7 +60849,7 @@ define('LiveDevelopment/Agents/ConsoleAgent',['require','exports','module','Live
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -60929,7 +60929,7 @@ define('LiveDevelopment/Agents/NetworkAgent',['require','exports','module','Live
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -61142,7 +61142,7 @@ define('LiveDevelopment/Agents/GotoAgent',['require','exports','module','LiveDev
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -61254,7 +61254,7 @@ define('LiveDevelopment/Agents/EditAgent',['require','exports','module','LiveDev
     exports.unload = unload;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -61773,7 +61773,7 @@ define('LiveDevelopment/LiveDevelopment',['require','exports','module','document
     exports.init = init;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -61954,7 +61954,7 @@ define('LiveDevelopment/main',['require','exports','module','document/DocumentMa
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -62363,7 +62363,7 @@ define('project/FileIndexManager',['require','exports','module','file/NativeFile
 
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -62921,7 +62921,7 @@ define('language/CSSUtils',['require','exports','module','utils/Async','document
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -63442,7 +63442,7 @@ define('editor/MultiRangeInlineEditor',['require','exports','module','document/T
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -63577,7 +63577,7 @@ define('editor/CSSInlineEditor',['require','exports','module','language/CSSUtils
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -63706,7 +63706,7 @@ define('document/ChangedDocumentTracker',['require','exports','module','document
     module.exports = ChangedDocumentTracker;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -64134,7 +64134,7 @@ define('language/JSUtils',['require','exports','module','utils/Async','document/
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -64507,7 +64507,7 @@ define('project/WorkingSetView',['require','exports','module','document/Document
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -65326,7 +65326,7 @@ define('document/DocumentCommandHandlers',['require','exports','module','thirdpa
 
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -65743,7 +65743,7 @@ define('project/FileSyncManager',['require','exports','module','project/ProjectM
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -72757,7 +72757,7 @@ klass:              do {
 define("thirdparty/jslint/jslint", function(){});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -72972,7 +72972,7 @@ define('language/JSLintUtils',['require','exports','module','thirdparty/path-uti
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -73855,10 +73855,10 @@ define('search/QuickOpen',['require','exports','module','project/FileIndexManage
     });
 }());
 
-define('text!htmlContent/main-view.html',[],function () { return '<!-- \n  Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.\n   \n  Permission is hereby granted, free of charge, to any person obtaining a\n  copy of this software and associated documentation files (the "Software"), \n  to deal in the Software without restriction, including without limitation \n  the rights to use, copy, modify, merge, publish, distribute, sublicense, \n  and/or sell copies of the Software, and to permit persons to whom the \n  Software is furnished to do so, subject to the following conditions:\n   \n  The above copyright notice and this permission notice shall be included in\n  all copies or substantial portions of the Software.\n   \n  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, \n  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER \n  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING \n  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER \n  DEALINGS IN THE SOFTWARE.\n-->\n\n\n<!--\n    This is the HTML for the body tag of index.html. It is loaded dynamically by the \n    htmlContentLoad module and localized using a combination of mustache.js and i18n.js.\n\n    LOCALIZATION NOTE:\n    All display text for this file must use templating so the text can be localized.\n    \n    English text goes in src/nls/root/strings.js. All other translations go in the strings.js file for\n    the specific local in the nls folder. If a translation is missing for a specific key English\n    is used as a fallback\n\n    Strings should be referenced using the double brackets syntax.\n    Example: {{keyname}}. Note, all strings are HTML escaped unless the form \n    {{&keyname}} is used.\n\n-->\n\n<!-- Main UI -->\n    <div class="main-view">\n        <div id="sidebar-resizer"></div>\n        <div id="sidebar" class="sidebar quiet-scrollbars">\n            <!-- Left-hand \'Project panel\' -->\n            <div id="projects" class="panel">\n                <div id="project-header"></div>\n                <div id="file-section">\n                    <div id="open-files-container">\n                        <!-- This will contain a dynamically generated <ul> at runtime -->\n                        <ul>\n                        </ul>\n                    </div>\n                \n                    <div id="project-files-header" class="project-file-header-area">\n                        <span id="project-title" class="title"></span>\n                    </div>\n                    <div id="project-files-container">\n                    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->\n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <!-- Right-hand content: toolbar, editor, bottom panels -->\n        <div class="content">\n            <!-- Toolbar containing menus, filename, and icons -->\n            <div id="main-toolbar" class="toolbar">\n                <!-- Menu bar -->\n                <ul class="nav" data-dropdown="dropdown">\n                </ul>\n                \n                <!-- Toolbar -->\n                <div class="buttons">\n                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>\n\n                    <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>\n                    \n                    <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->\n                    \n                    <span id="gold-star" title="No JSLint errors - good job!">\n                        &#9733;\n                    </span>\n                </div>\n                \n                <!-- Filename label -->\n                <div class="title-wrapper">\n                    <span class="title"></span>&nbsp;<span class=\'dirty-dot\' style="visibility:hidden;">•</span>\n                </div>\n            </div>\n            \n            <div id="editor-holder">\n                <div id="not-editor">\n                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>\n                </div>\n            </div>\n            \n            <div id="jslint-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{JSLINT_ERRORS}}</div>\n                </div>\n                <div class="table-container"></div>\n            </div>\n            <div id="search-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{SEARCH_RESULTS}}</div>\n                    <div class="title" id="search-result-summary"></div>\n                    <a href="#" class="close">&times;</a>\n                </div>\n                <div class="table-container"></div>\n            </div>\n        </div>\n    </div>\n\n    <!-- Modal Windows -->\n    <div class="error-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">Error</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>\n        </div>\n    </div>\n    <div class="save-close-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">{{SAVE_CHANGES}}</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{SAVE}}</a>\n            <a href="#" class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</a>\n        </div>\n    </div>\n    <div class="ext-changed-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{RELOAD_FROM_DISK}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="ext-deleted-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{CLOSE_DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="live-development-error-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{RELAUNCH_CHROME}}</a>\n        </div>\n    </div>\n    <div class="about-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{ABOUT}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="about-icon" src="styles/images/brackets_icon.svg">\n            <div class="about-text">\n                <h2>{{BRACKETS}}</h2>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE1}} <span id="about-build-number"><!-- populated programmatically --></span></p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE2}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE3}}<span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span>{{ABOUT_TEXT_LINE4}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE5}}<span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{CLOSE}}</a>\n        </div>\n    </div>\n    <div class="update-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{UPDATE_AVAILABLE_TITLE}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="update-icon" src="styles/images/update_large_icon.svg">\n            <div class="update-text">\n                <p class="dialog-message">{{UPDATE_MESSAGE}}</p>\n                <div class="update-info">\n                </div>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="download">{{GET_IT_NOW}}</a>\n        </div>\n    </div>\n    <div id="context-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>\n    <div id="codehint-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>';});
+define('text!htmlContent/main-view.html',[],function () { return '<!-- \n  Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.\n   \n  Permission is hereby granted, free of charge, to any person obtaining a\n  copy of this software and associated documentation files (the "Software"), \n  to deal in the Software without restriction, including without limitation \n  the rights to use, copy, modify, merge, publish, distribute, sublicense, \n  and/or sell copies of the Software, and to permit persons to whom the \n  Software is furnished to do so, subject to the following conditions:\n   \n  The above copyright notice and this permission notice shall be included in\n  all copies or substantial portions of the Software.\n   \n  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, \n  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER \n  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING \n  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER \n  DEALINGS IN THE SOFTWARE.\n-->\n\n\n<!--\n    This is the HTML for the body tag of index.html. It is loaded dynamically by the \n    htmlContentLoad module and localized using a combination of mustache.js and i18n.js.\n\n    LOCALIZATION NOTE:\n    All display text for this file must use templating so the text can be localized.\n    \n    English text goes in src/nls/root/strings.js. All other translations go in the strings.js file for\n    the specific local in the nls folder. If a translation is missing for a specific key English\n    is used as a fallback\n\n    Strings should be referenced using the double brackets syntax.\n    Example: {{keyname}}. Note, all strings are HTML escaped unless the form \n    {{&keyname}} is used.\n\n-->\n\n<!-- Main UI -->\n    <div class="main-view">\n        <div id="sidebar-resizer"></div>\n        <div id="sidebar" class="sidebar quiet-scrollbars">\n            <!-- Left-hand \'Project panel\' -->\n            <div id="projects" class="panel">\n                <div id="project-header"></div>\n                <div id="file-section">\n                    <div id="open-files-container">\n                        <!-- This will contain a dynamically generated <ul> at runtime -->\n                        <ul>\n                        </ul>\n                    </div>\n                \n                    <div id="project-files-header" class="project-file-header-area">\n                        <span id="project-title" class="title"></span>\n                    </div>\n                    <div id="project-files-container">\n                    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->\n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <!-- Right-hand content: toolbar, editor, bottom panels -->\n        <div class="content">\n            <!-- Toolbar containing menus, filename, and icons -->\n            <div id="main-toolbar" class="toolbar">\n                <!-- Menu bar -->\n                <ul class="nav" data-dropdown="dropdown">\n                </ul>\n                \n                <!-- Toolbar -->\n                <div class="buttons">\n                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>\n\n                    <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>\n                    \n                    <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->\n                    \n                    <span id="gold-star" title="No JSLint errors - good job!">\n                        &#9733;\n                    </span>\n                </div>\n                \n                <!-- Filename label -->\n                <div class="title-wrapper">\n                    <span class="title"></span>&nbsp;<span class=\'dirty-dot\' style="visibility:hidden;">•</span>\n                </div>\n            </div>\n            \n            <div id="editor-holder">\n                <div id="not-editor">\n                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>\n                </div>\n            </div>\n            \n            <div id="jslint-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{JSLINT_ERRORS}}</div>\n                </div>\n                <div class="table-container"></div>\n            </div>\n            <div id="search-results" class="bottom-panel">\n                <div class="toolbar simple-toolbar-layout">\n                    <div class="title">{{SEARCH_RESULTS}}</div>\n                    <div class="title" id="search-result-summary"></div>\n                    <a href="#" class="close">&times;</a>\n                </div>\n                <div class="table-container"></div>\n            </div>\n        </div>\n    </div>\n\n    <!-- Modal Windows -->\n    <div class="error-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">Error</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>\n        </div>\n    </div>\n    <div class="save-close-dialog template modal hide">\n        <div class="modal-header">\n            <a href="#" class="close">&times;</a>\n            <h1 class="dialog-title">{{SAVE_CHANGES}}</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{SAVE}}</a>\n            <a href="#" class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</a>\n        </div>\n    </div>\n    <div class="ext-changed-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{RELOAD_FROM_DISK}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="ext-deleted-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{CLOSE_DONT_SAVE}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>\n        </div>\n    </div>\n    <div class="live-development-error-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">Title goes here</h1>\n        </div>\n        <div class="modal-body">\n            <p class="dialog-message">Message goes here</p>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{RELAUNCH_CHROME}}</a>\n        </div>\n    </div>\n    <div class="about-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{ABOUT}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="about-icon" src="styles/images/brackets_icon.svg">\n            <div class="about-text">\n                <h2>{{BRACKETS}}</h2>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE1}} <span id="about-build-number"><!-- populated programmatically --></span></p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE2}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE3}}<span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span>{{ABOUT_TEXT_LINE4}}</p>\n                <p class="dialog-message">{{ABOUT_TEXT_LINE5}}<span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{CLOSE}}</a>\n        </div>\n    </div>\n    <div class="update-dialog template modal hide">\n        <div class="modal-header">\n            <h1 class="dialog-title">{{UPDATE_AVAILABLE_TITLE}}</h1>\n        </div>\n        <div class="modal-body">\n            <img class="update-icon" src="styles/images/update_large_icon.svg">\n            <div class="update-text">\n                <p class="dialog-message">{{UPDATE_MESSAGE}}</p>\n                <div class="update-info">\n                </div>\n            </div>\n        </div>\n        <div class="modal-footer">\n            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>\n            <a href="#" class="dialog-button btn primary" data-button-id="download">{{GET_IT_NOW}}</a>\n        </div>\n    </div>\n    <div id="context-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>\n    <div id="codehint-menu-bar">\n        <ul data-dropdown="dropdown"></ul>\n    </div>';});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -74078,7 +74078,7 @@ define('utils/ExtensionLoader',['require','exports','module','file/NativeFileSys
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -74333,7 +74333,7 @@ define('project/SidebarView',['require','exports','module','project/ProjectManag
 define('text!buildNumber.json',[],function () { return '{\n    "buildNumber": 100\n}\n';});
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -74677,7 +74677,7 @@ define('utils/UpdateNotification',['require','exports','module','widgets/Dialogs
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -74769,7 +74769,7 @@ define('utils/UrlParams',['require','exports','module'],function (require, expor
     exports.UrlParams = UrlParams;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -75043,7 +75043,7 @@ define('editor/EditorCommandHandlers',['require','exports','module','command/Com
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -75310,7 +75310,7 @@ define('debug/DebugCommandHandlers',['require','exports','module','command/Comma
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -75443,7 +75443,7 @@ define('view/ViewCommandHandlers',['require','exports','module','command/Command
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -75769,7 +75769,7 @@ define('search/FindInFiles',['require','exports','module','utils/Async','command
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -76022,7 +76022,7 @@ define('search/FindReplace',['require','exports','module','command/CommandManage
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -76091,7 +76091,7 @@ define('utils/ExtensionUtils',['require','exports','module'],function (require, 
 });
 
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -76143,7 +76143,7 @@ define('utils/ShellAPI',['require','exports','module','command/CommandManager'],
     exports.executeCommand = executeCommand;
 });
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $ */
+/*jslint regexp: true */
 
 /**
  * Set of utilities for simple parsing of CSS text.
@@ -92,7 +90,7 @@ define(function (require, exports, module) {
             return null;
         }
         var state = ctx.token.state.localState || ctx.token.state;
-        if (!state.context && ctx.token.state.html.localState) {
+        if (!state.context && ctx.token.state.html && ctx.token.state.html.localState) {
             state = ctx.token.state.html.localState;
         }
         return state;
@@ -156,7 +154,7 @@ define(function (require, exports, module) {
         if (!state || !state.context) {
             return false;
         }
-        return (state.context.type === "at");
+        return (state.context.type === "atBlock_parens");
     }
 
     /**
@@ -559,7 +557,7 @@ define(function (require, exports, module) {
                 break;
             }
 
-            if (backwardCtx.token.type && backwardCtx.token.type !== "tag" && backwardCtx.token.string !== "url") {
+            if (backwardCtx.token.type && backwardCtx.token.type !== "atom" && backwardCtx.token.string !== "url") {
                 // Previous token may be white-space
                 // Otherwise, previous token may only be "url("
                 break;

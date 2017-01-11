@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -65,6 +62,7 @@ define({
     "ERROR_SAVING_FILE"                 : "尝试保存文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "重命名文件 {0} 失败",
     "ERROR_RENAMING_FILE"               : "尝试重命名文件 {2} <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "文件或目录不是已打开项目的一部分。当前只允许重命名项目中的文件。",
     "ERROR_DELETING_FILE_TITLE"         : "删除文件 {0} 失败",
     "ERROR_DELETING_FILE"               : "尝试删除文件 {2} <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
     "INVALID_FILENAME_TITLE"            : "无效文件名: {0}",
@@ -130,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "保存 <span class='dialog-filename'>{0}</span> 文件中所做的修改？",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改？",
     "EXT_MODIFIED_TITLE"                : "外部文件发生变化",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "删除确认",
+    "CONFIRM_DELETE_TITLE"              : "删除确认",
     "CONFIRM_FOLDER_DELETE"             : "确认要删除目录 <span class='dialog-filename'>{0}</span>？",
     "FILE_DELETED_TITLE"                : "文件已删除",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> 已产生了外部修改，<br /><br />是否保存并覆盖外部修改？",
@@ -312,6 +310,7 @@ define({
     "CMD_FILE_NEW"                        : "新建文件",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "打开最近",
     "CMD_ADD_TO_WORKING_SET"              : "添加至工作集合",
     "CMD_OPEN_DROPPED_FILES"              : "打开拖放的文件",
     "CMD_OPEN_FOLDER"                     : "打开目录\u2026",
@@ -380,6 +379,9 @@ define({
     "VIEW_MENU"                           : "视图",
     "CMD_HIDE_SIDEBAR"                    : "隐藏边栏",
     "CMD_SHOW_SIDEBAR"                    : "显示边栏",
+    "CMD_TOGGLE_SIDEBAR"                  : "显示/隐藏边栏",
+    "CMD_TOGGLE_PANELS"                   : "显示/隐藏面板",
+    "CMD_TOGGLE_PURE_CODE"                : "无干扰模式",
     "CMD_INCREASE_FONT_SIZE"              : "放大编辑器字体",
     "CMD_DECREASE_FONT_SIZE"              : "缩小编辑器字体",
     "CMD_RESTORE_FONT_SIZE"               : "恢复编辑器默认字体",
@@ -461,7 +463,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含哈希如 \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "地址解析错误, 请确认地址格式",
+
+    // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>保持此窗格的焦点，打开文件</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "将此视图翻转到 {0} 面板",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "当前主题",
@@ -665,6 +670,11 @@ define({
     "COLLAPSE_CURRENT"              : "收起当前",
     "EXPAND_CURRENT"                : "展开当前",
 
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "最近打开的文件",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "清除",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "清除不在工作区的文件",
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "值为真时，自动闭合括号",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "值为假时，从工作区右键菜单中移除 \"关闭上面的其他文件\" 项",
@@ -685,6 +695,7 @@ define({
     "DESCRIPTION_ATTR_HINTS"                         : "开启/关闭 HTML 属性提示",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "开启/关闭 CSS/LESS/SCSS 属性名提示",
     "DESCRIPTION_JS_HINTS"                           : "开启/关闭 JavaScript 代码提示",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "开启/关闭 JavaScript 代码的数据类型提示",
     "DESCRIPTION_PREF_HINTS"                         : "开启/关闭配置文件选项提示",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "开启/关闭 HTML 实体提示",
     "DESCRIPTION_SVG_HINTS"                          : "开启/关闭 SVG 代码提示",
@@ -767,8 +778,13 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "仅Mac: \"subpixel-antialiased\" 开启次像素防锯齿或者 \"antialiased\" 开启灰阶防锯齿",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "值为假时，不再划分一个窗口打开用户配置",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "值为假时，在左边/顶部窗格中打开用户设置",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "值为真时，折叠面板头部关闭后最后一个文件之后的面板",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "切换头部显示关闭或者翻转视图的按钮。",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "默认"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "默认",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "值为真时，开启纯代码模式，隐藏 {APP_NAME} 的其他 UI 元素",
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "值为真时，开启行注释缩进",
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "开启/关闭最近文件导航"
 });
 
-/* Last translated for 1eba0ae1cb21e73752c8359132b972ec7e5997ab */
+/* Last translated for 0e7d6bc04c6f9d3035fec72bed72e393635b234c */

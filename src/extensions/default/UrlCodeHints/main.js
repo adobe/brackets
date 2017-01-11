@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
-
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -37,6 +33,7 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
+        PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils"),
         Strings             = brackets.getModule("strings"),
         Data                = require("text!data.json"),
 
@@ -80,7 +77,7 @@ define(function (require, exports, module) {
         docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
 
         // get relative path from query string
-        queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }
@@ -751,8 +748,6 @@ define(function (require, exports, module) {
                 } else if (tagInfo.position.offset === 0) {
                     completion = "\"" + completion + "\"";
                 }
-            } else if (completion === tagInfo.attr.value) {
-                shouldReplace = false;
             }
 
             if (shouldReplace) {

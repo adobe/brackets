@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 /**
  * Manages the workingSetList sort methods.
@@ -382,7 +378,6 @@ define(function (require, exports, module) {
      * Initialize default values for sorting preferences
      */
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
-    PreferencesManager.convertPreferences(module, {_LEGACY_SORT_PREF: "user", "automaticSort": "user"}, true);
 
     /**
      * Define a default sort method that's empty so that we

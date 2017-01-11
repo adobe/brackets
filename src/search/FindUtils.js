@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -311,8 +308,6 @@ define(function (require, exports, module) {
     function parseQueryInfo(queryInfo) {
         var queryExpr;
 
-        // TODO: only major difference between this one and the one in FindReplace is that
-        // this always returns a regexp even for simple strings. Reconcile.
         if (!queryInfo || !queryInfo.query) {
             return {empty: true};
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
 
 /**
  * Resizer is a Module utility to inject resizing capabilities to any element
@@ -225,7 +222,8 @@ define(function (require, exports, module) {
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 
-        if (PreferencesManager.get(PREFS_PURE_CODE)) {
+        if (PreferencesManager.get(PREFS_PURE_CODE) &&
+                ($element.hasClass("bottom-panel") || $element.hasClass("sidebar"))) {
             elementPrefs.visible = false;
         }
 
@@ -539,24 +537,6 @@ define(function (require, exports, module) {
             ViewUtils.hideMainToolBar();
         }
     });
-
-    /**
-     * @private
-     * Examine each preference key for migration of any panel state.
-     *
-     * @param {string} key The key of the preference to be examined
-     *      for migration of panel states.
-     * @return {?string} - the scope to which the preference is to be migrated
-     */
-    function _isPanelPreferences(key) {
-        if (key) {
-            return "user";
-        }
-
-        return null;
-    }
-
-    PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
 
     EventDispatcher.makeEventDispatcher(exports);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Vill du spara de ändringar i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vill du spara ändringarna du gjort följande filer?",
     "EXT_MODIFIED_TITLE"                : "Externa ändringar",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekräfta borttagning",
+    "CONFIRM_DELETE_TITLE"              : "Bekräfta borttagning",
     "CONFIRM_FOLDER_DELETE"             : "Är du säker att du vill radera mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Filen raderades",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> har ändrats.<br /><br />Vill du spara filen och skriva över dessa ändringar?",

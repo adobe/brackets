@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, event */
 
 /**
  * Responsible for coordinating file selection between views by permitting only one view
@@ -152,14 +149,14 @@ define(function (require, exports, module) {
         function _getDerivedPaneContext() {
 
             function _secondPaneContext() {
-                return (event.ctrlKey || event.metaKey) && event.altKey ? MainViewManager.SECOND_PANE : null;
+                return (window.event.ctrlKey || window.event.metaKey) && window.event.altKey ? MainViewManager.SECOND_PANE : null;
             }
 
             function _firstPaneContext() {
-                return (event.ctrlKey || event.metaKey) ? MainViewManager.FIRST_PANE : null;
+                return (window.event.ctrlKey || window.event.metaKey) ? MainViewManager.FIRST_PANE : null;
             }
 
-            return _secondPaneContext() || _firstPaneContext();
+            return window.event && (_secondPaneContext() || _firstPaneContext());
         }
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {

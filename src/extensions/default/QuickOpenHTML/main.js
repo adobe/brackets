@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,16 +21,14 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
-
-
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
 
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         QuickOpen           = brackets.getModule("search/QuickOpen"),
+        QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         StringMatch         = brackets.getModule("utils/StringMatch");
 
@@ -113,46 +111,14 @@ define(function (require, exports, module) {
         return filteredList;
     }
 
-    /**
-     * @param {string} query what the user is searching for
-     * @param {boolean} returns true if this plug-in wants to provide results for this query
-     */
-    function match(query) {
-        return (query[0] === "@");
-    }
-
-
-    /**
-     * Scroll to the selected item in the current document (unless no query string entered yet,
-     * in which case the topmost list item is irrelevant)
-     * @param {?SearchResult} selectedItem
-     * @param {string} query
-     * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
-     */
-    function itemFocus(selectedItem, query, explicit) {
-        if (!selectedItem || (query.length < 2 && !explicit)) {
-            return;
-        }
-        var fileLocation = selectedItem.fileLocation;
-
-        var from = {line: fileLocation.line, ch: fileLocation.chFrom};
-        var to = {line: fileLocation.line, ch: fileLocation.chTo};
-        EditorManager.getCurrentFullEditor().setSelection(from, to, true);
-    }
-
-    function itemSelect(selectedItem, query) {
-        itemFocus(selectedItem, query, true);
-    }
-
-
     QuickOpen.addQuickOpenPlugin(
         {
             name: "html ids",
             languageIds: ["html"],
             search: search,
-            match: match,
-            itemFocus: itemFocus,
-            itemSelect: itemSelect
+            match: QuickOpenHelper.match,
+            itemFocus: QuickOpenHelper.itemFocus,
+            itemSelect: QuickOpenHelper.itemSelect
         }
     );
 

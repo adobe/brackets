@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -79,14 +75,11 @@ define(function (require, exports, module) {
         this.file = file;
         this._updateLanguage();
         this.refreshText(rawText, initialTimestamp, true);
+        // List of full editors which are initialized as master editors for this doc.
+        this._associatedFullEditors = [];
     }
 
     EventDispatcher.makeEventDispatcher(Document.prototype);
-
-    /**
-     * List of editors which were initialized as master editors for this doc.
-     */
-    Document.prototype._associatedFullEditors = [];
 
     /**
      * Number of clients who want this Document to stay alive. The Document is listed in
@@ -200,12 +193,6 @@ define(function (require, exports, module) {
      * @param {!Editor} masterEditor
      */
     Document.prototype._makeEditable = function (masterEditor) {
-        if (this._masterEditor) {
-            //Already a master editor is associated , so preserve the old editor in list of full editors
-            if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
-                this._associatedFullEditors.push(this._masterEditor);
-            }
-        }
 
         this._text = null;
         this._masterEditor = masterEditor;
@@ -241,15 +228,27 @@ define(function (require, exports, module) {
      */
     Document.prototype._toggleMasterEditor = function (masterEditor) {
         // Do a check before processing the request to ensure inline editors are not being set as master editor
-        if (this._associatedFullEditors.indexOf(masterEditor) >= 0) {
-            if (this._masterEditor) {
-                // Already a master editor is associated , so preserve the old editor in list of editors
-                if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
-                    this._associatedFullEditors.push(this._masterEditor);
-                }
-            }
+        if (this.file === masterEditor.document.file && this._associatedFullEditors.indexOf(masterEditor) >= 0) {
             this._masterEditor = masterEditor;
         }
+    };
+
+
+    /**
+     * Checks and returns if a full editor exists for the provided pane attached to this document
+     * @param {String} paneId
+     * @return {Editor} Attached editor bound to the provided pane id
+     */
+    Document.prototype._checkAssociatedEditorForPane = function (paneId) {
+        var editorCount, editorForPane;
+        for (editorCount = 0; editorCount < this._associatedFullEditors.length; ++editorCount) {
+            if (this._associatedFullEditors[editorCount]._paneId === paneId) {
+                editorForPane = this._associatedFullEditors[editorCount];
+                break;
+            }
+        }
+
+        return editorForPane;
     };
 
     /**
@@ -260,6 +259,17 @@ define(function (require, exports, module) {
         // Do a check before processing the request to ensure inline editors are not being handled
         if (this._associatedFullEditors.indexOf(editor) >= 0) {
             this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(editor), 1);
+        }
+    };
+
+    /**
+     * Aassociates a full editor to this document
+     * To be used internally by Editor only when pane marking happens
+     */
+    Document.prototype._associateEditor = function (editor) {
+        // Do a check before processing the request to ensure inline editors are not being handled
+        if (this._associatedFullEditors.indexOf(editor) === -1) {
+            this._associatedFullEditors.push(editor);
         }
     };
 

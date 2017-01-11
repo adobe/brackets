@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, Mustache */
-
 /**
  * A status bar with support for file information and busy and status indicators. This is a semi-generic
  * container; for the code that decides what content appears in the status bar, see client modules like
@@ -37,7 +33,8 @@ define(function (require, exports, module) {
     var AppInit          = require("utils/AppInit"),
         StatusBarHTML    = require("text!widgets/StatusBar.html"),
         Strings          = require("strings"),
-        WorkspaceManager = require("view/WorkspaceManager");
+        WorkspaceManager = require("view/WorkspaceManager"),
+        Mustache         = require("thirdparty/mustache/mustache");
 
     var _init = false;
 
@@ -108,7 +105,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        indicator = indicator || document.createElement("div");
+        indicator = indicator || window.document.createElement("div");
         tooltip = tooltip || "";
         style = style || "";
         id = id.replace(_indicatorIDRegexp, "-") || "";

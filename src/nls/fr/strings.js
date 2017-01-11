@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -65,6 +62,7 @@ define({
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du {0}",
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de changement de nom du {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_RENAMING_NOT_IN_PROJECT": "Le fichier ou le répertoire ne fait pas partie du projet actuellement ouvert. Or, seuls les fichiers appartenant au projet peuvent être renommés à ce stade.",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du {0}",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
@@ -130,7 +128,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_FILE_DELETE": "Voulez-vous vraiment supprimer le fichier <span class='dialog-filename'>{0}</span> ?",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
@@ -312,6 +311,7 @@ define({
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
+	"CMD_RECENT_FILES_OPEN": "Ouvrir les fichiers récents\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ouvrir dans l’ensemble de travail",
 	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
@@ -380,6 +380,9 @@ define({
 	"VIEW_MENU": "Affichage",
 	"CMD_HIDE_SIDEBAR": "Masquer la barre latérale",
 	"CMD_SHOW_SIDEBAR": "Afficher la barre latérale",
+	"CMD_TOGGLE_SIDEBAR": "Afficher/Masquer la barre latérale",
+	"CMD_TOGGLE_PANELS": "Afficher/Masquer les panneaux",
+	"CMD_TOGGLE_PURE_CODE": "Aucune distraction",
 	"CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
 	"CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
@@ -461,7 +464,10 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
+
+    // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>Ouvrir un fichier quand ce panneau est actif</em>",
+	"FLIPVIEW_BTN_TOOLTIP": "Transférer cette vue dans le volet de {0}",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
@@ -497,6 +503,7 @@ define({
 	"VIEW_TRUNCATED_DESCRIPTION": "Voir la description tronquée",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
+	"MISSING_PACKAGE_JSON": "Le pack ne contient pas de fichier package.json.",
 	"INVALID_PACKAGE_JSON": "Le fichier package.json n’est pas valide (erreur : {0}).",
 	"MISSING_PACKAGE_NAME": "Le fichier package.json n’indique pas le nom du pack.",
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
@@ -665,6 +672,11 @@ define({
 	"COLLAPSE_CURRENT": "Réduire l’élément actif",
 	"EXPAND_CURRENT": "Développer l’élément actif",
 
+    // extensions/default/NavigationAndHistory
+	"RECENT_FILES_DLG_HEADER": "Fichiers récents",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "Effacer",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Effacer les fichiers non présents dans l’ensemble de travail",
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "vrai pour fermer automatiquement les accolades, les crochets et les parenthèses",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "faux pour supprimer l’option « Fermer les autres au-dessus » du menu contextuel Fichiers de travail",
@@ -685,6 +697,7 @@ define({
 	"DESCRIPTION_ATTR_HINTS": "Activer/désactiver les indicateurs d’attribut HTML",
 	"DESCRIPTION_CSS_PROP_HINTS": "Activer/désactiver les indicateurs de propriété CSS/LESS/SCSS",
 	"DESCRIPTION_JS_HINTS": "Activer/désactiver les indicateurs de code JavaScript",
+	"DESCRIPTION_JS_HINTS_TYPE_DETAILS": "Activer/désactiver les détails sur le type de données dans les indicateurs de code JavaScript",
 	"DESCRIPTION_PREF_HINTS": "Activer/désactiver les indicateurs de code Préférences",
 	"DESCRIPTION_SPECIAL_CHAR_HINTS": "Activer/désactiver les indicateurs d’entité HTML",
 	"DESCRIPTION_SVG_HINTS": "Activer/désactiver les indicateurs de code SVG",
@@ -730,6 +743,7 @@ define({
 	"DESCRIPTION_LANGUAGE": "Paramètres spécifiques à la langue",
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "Mappages supplémentaires entre extension de fichier et nom de langue",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "Mappages supplémentaires entre nom de fichier et nom de langue",
+	"DESCRIPTION_LINEWISE_COPY_CUT": "Si vous coupez ou copiez sans rien avoir sélectionné, la ligne sur laquelle se trouve le curseur est coupée ou copiée dans son intégralité.",
 	"DESCRIPTION_LINTING_ENABLED": "vrai pour activer l’inspection de code",
 	"DESCRIPTION_ASYNC_TIMEOUT": "Durée, en millisecondes, après laquelle les utilitaires lint asynchrones échouent",
 	"DESCRIPTION_LINTING_PREFER": "Ensemble d’utilitaires lint à exécuter en premier",
@@ -767,6 +781,11 @@ define({
 	"DESCRIPTION_FONT_SMOOTHING": "Mac uniquement : « subpixel-antialiased » pour activer l’anticrénelage (lissage) des sous-pixels ou « antialiased » pour l’anticrénelage des niveaux de gris",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "faux pour désactiver l’ouverture du fichier de préférences en mode fractionné",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "faux pour ouvrir le fichier de préférences de l’utilisateur dans le volet gauche/supérieur",
+	"DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED": "vrai pour réduire les volets une fois que le dernier fichier du volet est fermé à l’aide du bouton situé dans l’en-tête",
+	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "Permet de choisir quand afficher les boutons Fermer et Transférer la vue dans l’en-tête.",
 	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * Fichier en lecture seule contenant les préférences prises\n * en charge par {APP_NAME}.\n * Utilisez ce fichier en référence pour modifier\n * votre fichier de préférences « brackets.json » ouvert dans l’autre volet.\n * Pour savoir comment utiliser les préférences dans\n * {APP_NAME}, reportez-vous à la page https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences.\n */",
-	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut"
+	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut",
+	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}",
+	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
+	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents"
 });

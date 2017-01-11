@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets, Mustache  */
-
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
@@ -45,7 +41,8 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         paneListTemplate      = require("text!htmlContent/working-set.html"),
         Strings               = require("strings"),
-        _                     = require("thirdparty/lodash");
+        _                     = require("thirdparty/lodash"),
+        Mustache              = require("thirdparty/mustache/mustache");
 
     /**
      * Open view dictionary
@@ -788,22 +785,27 @@ define(function (require, exports, module) {
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
                     postDropCleanup();
                 } else {
-                    // item was dragged to another working set
-                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sourceFile, $el.index())
-                        .always(function () {
-                            // if the current document was dragged to another working set
-                            //  then reopen it to make it the currently selected file
-                            if (draggingCurrentFile) {
-                                CommandManager
-                                    .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
-                                                                   paneId: currentView.paneId})
-                                    .always(function () {
-                                        postDropCleanup();
-                                    });
-                            } else {
-                                postDropCleanup();
-                            }
-                        });
+                    // If the same doc view is present in the destination pane prevent drop
+                    if (!MainViewManager._getPane(currentView.paneId).getViewForPath(sourceFile.fullPath)) {
+                        // item was dragged to another working set
+                        MainViewManager._moveView(sourceView.paneId, currentView.paneId, sourceFile, $el.index())
+                            .always(function () {
+                                // if the current document was dragged to another working set
+                                //  then reopen it to make it the currently selected file
+                                if (draggingCurrentFile) {
+                                    CommandManager
+                                        .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
+                                                                       paneId: currentView.paneId})
+                                        .always(function () {
+                                            postDropCleanup();
+                                        });
+                                } else {
+                                    postDropCleanup();
+                                }
+                            });
+                    } else {
+                        postDropCleanup();
+                    }
                 }
             }
 
@@ -1464,12 +1466,40 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $workingFilesContainer =  $("#working-set-list-container");
     });
+    
+    /*
+     * To be used by other modules/deafult-extensions which needs to borrow working set entry icons
+     * @param {!object} data - contains file info {fullPath, name, isFile}
+     * @param {!jQuery} $element - jquery fn wrap for the list item
+     */
+    function useIconProviders(data, $element) {
+        _iconProviders.forEach(function (provider) {
+            var icon = provider(data);
+            if (icon) {
+                $element.prepend($(icon));
+            }
+        });
+    }
 
-
+    /*
+     * To be used by other modules/default-extensions which needs to borrow working set entry custom classes
+     * @param {!object} data - contains file info {fullPath, name, isFile}
+     * @param {!jQuery} $element - jquery fn wrap for the list item
+     */
+    function useClassProviders(data, $element) {
+        _classProviders.forEach(function (provider) {
+            $element.addClass(provider(data));
+        });
+    }
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
+    
+    // API to be used only by default extensions
+    exports.useIconProviders              = useIconProviders;
+    exports.useClassProviders               = useClassProviders;
 });

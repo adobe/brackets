@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define */
 
 /**
  * HTMLDocument manages a single HTML source document
@@ -104,8 +100,13 @@ define(function HTMLDocumentModule(require, exports, module) {
      */
     HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
         var body;
-        if (this._instrumentationEnabled && this.editor) {
-            body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
+        if (this._instrumentationEnabled) {
+            if (this.editor) {
+                body = HTMLInstrumentation.generateInstrumentedHTML(this.editor);
+            } else {
+                this.doc._ensureMasterEditor();
+                body = HTMLInstrumentation.generateInstrumentedHTML(this.doc._masterEditor);
+            }
         }
 
         return {

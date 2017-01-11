@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true,
-indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*jslint regexp: true */
 
 /**
  * Functions for working with extension packages
@@ -39,7 +36,8 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         ExtensionLoader      = require("utils/ExtensionLoader"),
         NodeConnection       = require("utils/NodeConnection"),
-        PreferencesManager   = require("preferences/PreferencesManager");
+        PreferencesManager   = require("preferences/PreferencesManager"),
+        PathUtils            = require("thirdparty/path-utils/path-utils");
 
     PreferencesManager.definePreference("proxy", "string", undefined, {
         description: Strings.DESCRIPTION_PROXY

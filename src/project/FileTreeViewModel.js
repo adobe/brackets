@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
  *
  */
 
-/*global define */
 /*unittests: FileTreeViewModel*/
 
 /**
@@ -738,7 +737,7 @@ define(function (require, exports, module) {
                 } else {
 
                     // The directory is there, but the directory hasn't been loaded.
-                    // Update the directory to be a `notFullyLoaded` directory
+                    // Update the directory to be a `notFullyLoaded` directory.
                     treeData = treeData.updateIn(objectPath, _createNotFullyLoadedDirectory);
                     objectPath.push("children");
                     treePointer = treeData.getIn(objectPath);
