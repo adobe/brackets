@@ -137,7 +137,7 @@ define(function (require, exports, module) {
         }
 
         while (nextToken()) {
-            if (style !== "comment" && style !== "regexp" && style !== "string") {
+            if (style !== "comment" && style !== "regexp" && style !== "string" && style !== "string-2") {
                 if (token === "{") {
                     foundStartBrace = true;
                     blockCount++;
