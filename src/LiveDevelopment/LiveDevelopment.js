@@ -94,7 +94,8 @@ define(function LiveDevelopment(require, exports, module) {
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
         StringUtils          = require("utils/StringUtils"),
-        UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer;
+        UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer,
+        WebSocketTransport   = require("LiveDevelopment/transports/WebSocketTransport");
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");

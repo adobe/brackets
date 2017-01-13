@@ -319,6 +319,10 @@ function RemoteFunctions(experimental) {
             if (this.trigger) {
                 _trigger(element, "highlight", 1);
             }
+            
+            if (!window.event) {
+                element.scrollIntoViewIfNeeded();
+            }
             this.elements.push(element);
 
             this._makeHighlightDiv(element, doAnimation);
@@ -824,7 +828,39 @@ function RemoteFunctions(experimental) {
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
+    
+    var _ws = null;
 
+    function onDocumentClick(event) {
+        var element = event.target,
+            currentDataId,
+            newDataId;
+        if (element && element.hasAttribute('data-brackets-id')) {
+            _ws.send(JSON.stringify({
+                type: "message",
+                message: element.getAttribute('data-brackets-id')
+            }));
+        }
+    }
+
+    window.document.addEventListener("click", onDocumentClick);
+    
+    
+    function createWebSocket() {
+        _ws = new WebSocket("ws://localhost:8125");
+        _ws.onopen = function () {
+        };
+				
+        _ws.onmessage = function (evt) {
+            var received_msg = evt.data;
+        };
+				
+        _ws.onclose = function () {
+            // websocket is closed.
+        };
+    }
+    
+    createWebSocket();
     return {
         "DOMEditHandler"        : DOMEditHandler,
         "keepAlive"             : keepAlive,
