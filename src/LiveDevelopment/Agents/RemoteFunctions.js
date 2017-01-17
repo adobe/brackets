@@ -30,7 +30,7 @@
  * modules should define a single function that returns an object of all
  * exported functions.
  */
-function RemoteFunctions(experimental) {
+function RemoteFunctions(experimental, remoteWSPort) {
     "use strict";
 
     var lastKeepAliveTime = Date.now();
@@ -847,7 +847,7 @@ function RemoteFunctions(experimental) {
     
     
     function createWebSocket() {
-        _ws = new WebSocket("ws://localhost:8125");
+        _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
         };
 				

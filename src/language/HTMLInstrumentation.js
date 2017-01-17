@@ -87,7 +87,7 @@ define(function (require, exports, module) {
         return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
     }
 
-    function getPositionFromTagid(editor, tagId) {
+    function getPositionFromTagId(editor, tagId) {
         var marks = editor._codeMirror.getAllMarks(),
             i,
             markFound,
@@ -821,7 +821,7 @@ define(function (require, exports, module) {
     exports._markText                   = _markText;
     exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
     exports._getTagIDAtDocumentPos      = _getTagIDAtDocumentPos;
-    exports.getPositionFromTagid        = getPositionFromTagid;
+    exports.getPositionFromTagId        = getPositionFromTagId;
     exports._markTextFromDOM            = _markTextFromDOM;
     exports._updateDOM                  = _updateDOM;
     exports._allowIncremental           = allowIncremental;

@@ -45,9 +45,20 @@ define(function (require, exports, module) {
     WebSocketTransportDomain.on("message", function (obj, message) {
         console.log("WebSocketTransport - event - message" + " - " + message);
         var editor = EditorManager.getActiveEditor(), position;
-        position = HTMLInstrumentation.getPositionFromTagid(editor, parseInt(message, 10));
+        position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
         if (position) {
             editor.setCursorPos(position.line, position.ch, true);
         }
     });
+    
+    function createWebSocketServer(port) {
+        WebSocketTransportDomain.exec("start", parseInt(port, 10));
+    }
+    
+    function closeWebSocketServer() {
+        WebSocketTransportDomain.exec("close");
+    }
+    
+    exports.createWebSocketServer = createWebSocketServer;
+    exports.closeWebSocketServer  = closeWebSocketServer;
 });

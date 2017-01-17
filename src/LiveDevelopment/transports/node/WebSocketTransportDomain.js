@@ -41,18 +41,14 @@ var _wsServer;
  */
 var _domainManager;
 
-// This must match the port declared in RemoteFunctions.js:createWebSocket
-// TODO: randomize this?
-var SOCKET_PORT = 8125;
-
 /**
  * @private
  * Creates the WebSocketServer and handles incoming connections.
  */
-function _createServer() {
+function _createServer(socketPort) {
     if (!_wsServer) {
         // TODO: make port configurable, or use random port
-        _wsServer = new WebSocketServer({port: SOCKET_PORT});
+        _wsServer = new WebSocketServer({port: socketPort});
         _wsServer.on("connection", function (ws) {
             ws.on("message", function (msg) {
                 console.log("WebSocketServer - received - " + msg);
@@ -81,6 +77,24 @@ function _createServer() {
 }
 
 /**
+ * Initializes the socket server.
+ * @param {number} port
+ */
+function _cmdStart(port) {
+    _createServer(port);
+}
+
+/**
+ * Kill the WebSocketServer
+ */
+function _cmdClose() {
+    if (_wsServer) {
+        _wsServer.close();
+        _wsServer = null;
+    }
+}
+
+/**
  * Initializes the domain and registers commands.
  * @param {DomainManager} domainManager The DomainManager for the server
  */
@@ -96,7 +110,25 @@ function init(domainManager) {
             {name: "msg", type: "string", description: "JSON message from client page"}
         ]
     );
-    _createServer();
+    domainManager.registerCommand(
+        "webSocketTransport",       // domain name
+        "start",                    // command name
+        _cmdStart,                  // command handler function
+        false,                      // this command is synchronous in Node
+        "Creates the WS server",
+        [
+            {name: "port", type: "number", description: "Port on which server needs to listen"}
+        ],
+        []
+    );
+    domainManager.registerCommand(
+        "webSocketTransport",       // domain name
+        "close",                    // command name
+        _cmdClose,                  // command handler function
+        false,                      // this command is synchronous in Node
+        "Kills the websocket server",
+        []
+    );
 }
 
 exports.init = init;
