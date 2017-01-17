@@ -416,6 +416,11 @@ define(function (require, exports, module) {
 
                 // respect max size if one provided (e.g. by WorkspaceManager)
                 var maxSize = $element.data("maxsize");
+                
+                if (maxSize.indexOf('%') > -1 ) {
+                    maxSize = parseFloat(maxSize.replace('%', '')) * ($(window).width() / 100);
+                }
+
                 if (maxSize !== undefined) {
                     newSize = Math.min(newSize, maxSize);
                 }
