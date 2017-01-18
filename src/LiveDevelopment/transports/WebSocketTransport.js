@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,12 @@
  *
  */
 
-// This transport provides a WebSocket connection between Brackets and a live browser preview.
-// This is just a thin wrapper around the Node extension (WebSocketTransportDomain) that actually
-// provides the WebSocket server and handles the communication. We also rely on an injected script in
-// the browser for the other end of the transport.
+/** 
+ * This transport provides a WebSocket connection between Brackets and a live browser preview.
+ * This is just a thin wrapper around the Node extension (WebSocketTransportDomain) that actually
+ * provides the WebSocket server and handles the communication. We also rely on an injected script in
+ * the browser for the other end of the transport.
+ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -44,8 +46,8 @@ define(function (require, exports, module) {
 
     WebSocketTransportDomain.on("message", function (obj, message) {
         console.log("WebSocketTransport - event - message" + " - " + message);
-        var editor = EditorManager.getActiveEditor(), position;
-        position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
+        var editor = EditorManager.getActiveEditor(),
+            position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
         if (position) {
             editor.setCursorPos(position.line, position.ch, true);
         }

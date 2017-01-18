@@ -90,8 +90,7 @@ define(function (require, exports, module) {
     function getPositionFromTagId(editor, tagId) {
         var marks = editor._codeMirror.getAllMarks(),
             i,
-            markFound,
-            position;
+            markFound;
         
         for (i = 0; i < marks.length; i++) {
             if (marks[i].tagID === tagId) {
@@ -100,6 +99,8 @@ define(function (require, exports, module) {
         }
         if (markFound) {
             return markFound.find().from;
+        } else {
+            return null;
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -103,13 +103,19 @@ function init(domainManager) {
     if (!domainManager.hasDomain("webSocketTransport")) {
         domainManager.registerDomain("webSocketTransport", {major: 0, minor: 1});
     }
+    
     domainManager.registerEvent(
         "webSocketTransport",
         "message",
         [
-            {name: "msg", type: "string", description: "JSON message from client page"}
+            {
+                name: "msg",
+                type: "string",
+                description: "JSON message from client page"
+            }
         ]
     );
+    
     domainManager.registerCommand(
         "webSocketTransport",       // domain name
         "start",                    // command name
@@ -117,10 +123,15 @@ function init(domainManager) {
         false,                      // this command is synchronous in Node
         "Creates the WS server",
         [
-            {name: "port", type: "number", description: "Port on which server needs to listen"}
+            {
+                name: "port",
+                type: "number",
+                description: "Port on which server needs to listen"
+            }
         ],
         []
     );
+    
     domainManager.registerCommand(
         "webSocketTransport",       // domain name
         "close",                    // command name
