@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /*
  * The core search functionality used by Find in Files and single-file Replace Batch.
  */
@@ -76,12 +73,24 @@ define(function (require, exports, module) {
     var searchModel = new SearchModel();
 
     /* Forward declarations */
-    var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler, clearSearch;
+    var _documentChangeHandler,
+        _fileSystemChangeHandler,
+        _processCachedFileSystemEvents,
+        _debouncedFileSystemChangeHandler,
+        _fileNameChangeHandler,
+        clearSearch;
+    
+    /**
+     * Waits for FS changes to stack up until processing them
+     * (scripts like npm install can do a lot of movements on the disk)
+     * @const
+     */
+    var FILE_SYSTEM_EVENT_DEBOUNCE_TIME = 100;
 
     /** Remove the listeners that were tracking potential search result changes */
     function _removeListeners() {
         DocumentModule.off("documentChange", _documentChangeHandler);
-        FileSystem.off("change", _fileSystemChangeHandler);
+        FileSystem.off("change", _debouncedFileSystemChangeHandler);
         DocumentManager.off("fileNameChange", _fileNameChangeHandler);
     }
 
@@ -91,12 +100,24 @@ define(function (require, exports, module) {
         _removeListeners();
 
         DocumentModule.on("documentChange", _documentChangeHandler);
-        FileSystem.on("change", _fileSystemChangeHandler);
+        FileSystem.on("change", _debouncedFileSystemChangeHandler);
         DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
     }
 
     function nodeFileCacheComplete(event, numFiles, cacheSize) {
-        var projectName = ProjectManager.getProjectRoot().name || "noName00";
+        if (/\/test\/SpecRunner\.html$/.test(window.location.pathname)) {
+            // Ignore the event in the SpecRunner window
+            return;
+        }
+
+        var projectRoot = ProjectManager.getProjectRoot(),
+            projectName = projectRoot ? projectRoot.name : null;
+
+        if (!projectName) {
+            console.error("'File cache complete' event received, but no project root found");
+            projectName = "noName00";
+        }
+
         FindUtils.setInstantSearchDisabled(false);
         // Node search could be disabled if some error has happened in node. But upon
         // project change, if we get this message, then it means that node search is working,
@@ -649,7 +670,7 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that changed.
      */
     function filesChanged(fileList) {
-        if (FindUtils.isNodeSearchDisabled()) {
+        if (FindUtils.isNodeSearchDisabled() || !fileList || fileList.length === 0) {
             return;
         }
         var updateObject = {
@@ -667,7 +688,7 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that was removed.
      */
     function filesRemoved(fileList) {
-        if (FindUtils.isNodeSearchDisabled()) {
+        if (FindUtils.isNodeSearchDisabled() || !fileList || fileList.length === 0) {
             return;
         }
         var updateObject = {
@@ -723,69 +744,83 @@ define(function (require, exports, module) {
 
         /*
          * Remove existing search results that match the given entry's path
-         * @param {(File|Directory)} entry
+         * @param {Array.<(File|Directory)>} entries
          */
-        function _removeSearchResultsForEntry(entry) {
-            Object.keys(searchModel.results).forEach(function (fullPath) {
-                if (fullPath === entry.fullPath ||
-                        (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
-                    // node search : inform node that the file is removed
-                    filesRemoved([fullPath]);
-                    if (findOrReplaceInProgress) {
-                        searchModel.removeResults(fullPath);
-                        resultsChanged = true;
+        function _removeSearchResultsForEntries(entries) {
+            var fullPaths = [];
+            entries.forEach(function (entry) {
+                Object.keys(searchModel.results).forEach(function (fullPath) {
+                    if (fullPath === entry.fullPath ||
+                            (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
+                        // node search : inform node that the file is removed
+                        fullPaths.push(fullPath);
+                        if (findOrReplaceInProgress) {
+                            searchModel.removeResults(fullPath);
+                            resultsChanged = true;
+                        }
                     }
-                }
+                });
             });
+            // this should be called once with a large array instead of numerous calls with single items
+            filesRemoved(fullPaths);
         }
 
         /*
-         * Add new search results for this entry and all of its children
-         * @param {(File|Directory)} entry
+         * Add new search results for these entries and all of its children
+         * @param {Array.<(File|Directory)>} entries
          * @return {jQuery.Promise} Resolves when the results have been added
          */
-        function _addSearchResultsForEntry(entry) {
-            var addedFiles = [],
-                addedFilePaths = [],
-                deferred = new $.Deferred();
+        function _addSearchResultsForEntries(entries) {
+            var fullPaths = [];
+            return Async.doInParallel(entries, function (entry) {
+                var addedFiles = [],
+                    addedFilePaths = [],
+                    deferred = new $.Deferred();
 
-            // gather up added files
-            var visitor = function (child) {
-                // Replicate filtering that getAllFiles() does
-                if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile && _isReadableText(child.name)) {
-                        // Re-check the filtering that the initial search applied
-                        if (_inSearchScope(child)) {
-                            addedFiles.push(child);
-                            addedFilePaths.push(child.fullPath);
+                // gather up added files
+                var visitor = function (child) {
+                    // Replicate filtering that getAllFiles() does
+                    if (ProjectManager.shouldShow(child)) {
+                        if (child.isFile && _isReadableText(child.name)) {
+                            // Re-check the filtering that the initial search applied
+                            if (_inSearchScope(child)) {
+                                addedFiles.push(child);
+                                addedFilePaths.push(child.fullPath);
+                            }
                         }
+                        return true;
                     }
-                    return true;
-                }
-                return false;
-            };
+                    return false;
+                };
 
-            entry.visit(visitor, function (err) {
-                if (err) {
-                    deferred.reject(err);
-                    return;
-                }
+                entry.visit(visitor, function (err) {
+                    if (err) {
+                        deferred.reject(err);
+                        return;
+                    }
 
-                //node Search : inform node about the file changes
-                filesChanged(addedFilePaths);
+                    //node Search : inform node about the file changes
+                    //filesChanged(addedFilePaths);
+                    fullPaths = fullPaths.concat(addedFilePaths);
 
-                if (findOrReplaceInProgress) {
-                    // find additional matches in all added files
-                    Async.doInParallel(addedFiles, function (file) {
-                        return _doSearchInOneFile(file)
-                            .done(function (foundMatches) {
-                                resultsChanged = resultsChanged || foundMatches;
-                            });
-                    }).always(deferred.resolve);
-                }
+                    if (findOrReplaceInProgress) {
+                        // find additional matches in all added files
+                        Async.doInParallel(addedFiles, function (file) {
+                            return _doSearchInOneFile(file)
+                                .done(function (foundMatches) {
+                                    resultsChanged = resultsChanged || foundMatches;
+                                });
+                        }).always(deferred.resolve);
+                    } else {
+                        deferred.resolve();
+                    }
+                });
+
+                return deferred.promise();
+            }).always(function () {
+                // this should be called once with a large array instead of numerous calls with single items
+                filesChanged(fullPaths);
             });
-
-            return deferred.promise();
         }
 
         if (!entry) {
@@ -795,23 +830,23 @@ define(function (require, exports, module) {
 
         var addPromise;
         if (entry.isDirectory) {
-            if (!added || !removed) {
+            if (added.length === 0 && removed.length === 0) {
                 // If the added or removed sets are null, must redo the search for the entire subtree - we
                 // don't know which child files/folders may have been added or removed.
-                _removeSearchResultsForEntry(entry);
+                _removeSearchResultsForEntries([ entry ]);
 
                 var deferred = $.Deferred();
                 addPromise = deferred.promise();
                 entry.getContents(function (err, entries) {
-                    Async.doInParallel(entries, _addSearchResultsForEntry).always(deferred.resolve);
+                    _addSearchResultsForEntries(entries).always(deferred.resolve);
                 });
             } else {
-                removed.forEach(_removeSearchResultsForEntry);
-                addPromise = Async.doInParallel(added, _addSearchResultsForEntry);
+                _removeSearchResultsForEntries(removed);
+                addPromise = _addSearchResultsForEntries(added);
             }
         } else { // entry.isFile
-            _removeSearchResultsForEntry(entry);
-            addPromise = _addSearchResultsForEntry(entry);
+            _removeSearchResultsForEntries([ entry ]);
+            addPromise = _addSearchResultsForEntries([ entry ]);
         }
 
         addPromise.always(function () {
@@ -820,6 +855,56 @@ define(function (require, exports, module) {
                 searchModel.fireChanged();
             }
         });
+    };
+    
+    /**
+     * This stores file system events emitted by watchers that were not yet processed
+     */
+    var _cachedFileSystemEvents = [];
+    
+    /**
+     * Debounced function to process emitted file system events
+     * for cases when there's a lot of fs events emitted in a very short period of time
+     */
+    _processCachedFileSystemEvents = _.debounce(function () {
+        // we need to reduce _cachedFileSystemEvents not to contain duplicates!
+        _cachedFileSystemEvents = _cachedFileSystemEvents.reduce(function (result, obj) {
+            var fullPath = obj.entry ? obj.entry.fullPath : null;
+            // merge added & removed
+            if (result[fullPath] && obj.isDirectory) {
+                obj.added = obj.added.concat(result[fullPath].added);
+                obj.removed = obj.removed.concat(result[fullPath].removed);
+            }
+            // use the latest event as base
+            result[fullPath] = obj;
+            return result;
+        }, {});
+        _.forEach(_cachedFileSystemEvents, function (obj) {
+            _fileSystemChangeHandler(obj.event, obj.entry, obj.added, obj.removed);
+        });
+        _cachedFileSystemEvents = [];
+    }, FILE_SYSTEM_EVENT_DEBOUNCE_TIME);
+    
+    /**
+     * Wrapper function for _fileSystemChangeHandler which handles all incoming fs events
+     * putting them to cache and executing a debounced function
+     */
+    _debouncedFileSystemChangeHandler = function (event, entry, added, removed) {
+        // normalize this here so we don't need to handle null later
+        var isDirectory = false;
+        if (entry && entry.isDirectory) {
+            isDirectory = true;
+            added = added || [];
+            removed = removed || [];
+        }
+        _cachedFileSystemEvents.push({
+            event: event,
+            entry: entry,
+            isDirectory: isDirectory,
+            added: added,
+            removed: removed
+        });
+        _processCachedFileSystemEvents();
     };
 
     /**

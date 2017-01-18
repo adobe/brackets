@@ -21,8 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -35,7 +33,16 @@ define(function (require, exports, module) {
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
+        LanguageManager           = require("language/LanguageManager"),
+        Mustache                  = require("thirdparty/mustache/mustache"),
+        PathUtils                 = require("thirdparty/path-utils/path-utils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        
+
+    /**
+     * Create a detached link element, so that we can use it later to extract url details like 'protocol'
+     */
+    var _tmpLink = window.document.createElement('a');
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
@@ -335,6 +342,24 @@ define(function (require, exports, module) {
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
             context[helper] = registry_utils[helper];
         });
+
+        // Do some extra validation on homepage url to make sure we don't end up executing local binary
+        if (context.metadata.homepage) {
+            var parsed = PathUtils.parseUrl(context.metadata.homepage);
+
+            // We can't rely on path-utils because of known problems with protocol identification
+            // Falling back to Browsers protocol identification mechanism
+            _tmpLink.href = context.metadata.homepage;
+
+            // Check if the homepage refers to a local resource
+            if (_tmpLink.protocol === "file:") {
+                var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ''));
+                // If identified language for the local resource is binary, don't list it
+                if (language && language.isBinary()) {
+                    delete context.metadata.homepage;
+                }
+            }
+        }
 
         return $(this._itemTemplate(context));
     };

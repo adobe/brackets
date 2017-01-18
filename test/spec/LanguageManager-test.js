@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, spyOn */
+/*global describe, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, spyOn */
 /*unittests: LanguageManager */
 
 define(function (require, exports, module) {
@@ -850,6 +848,22 @@ define(function (require, exports, module) {
                 PreferencesManager.set(LanguageManager._NAME_MAP_PREF, { });
                 language = LanguageManager.getLanguageForPath("Gemfile");
                 expect(language.getId()).toBe("ruby");
+            });
+
+            it("should manage preferences for non-default languages", function() {
+                var language,
+                    def = { id: "test", name: "Test", mode: ["null", "text/plain"] };
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    extension: "test"
+                });
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, {
+                    filename: "test"
+                });
+                defineLanguage(def);
+                language = LanguageManager.getLanguageForExtension("extension");
+                expect(language.getId()).toBe("test");
+                language = LanguageManager.getLanguageForPath("filename");
+                expect(language.getId()).toBe("test");
             });
         });
 

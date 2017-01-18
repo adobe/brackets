@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, runs, $, beforeFirst, afterLast */
+/*global describe, it, expect, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -734,6 +732,38 @@ define(function (require, exports, module) {
 
                     menu.removeMenuItem();
                     expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should add then remove new menu item ensuring event listeners have also been detached", function () {
+                runs(function () {
+                    var menuItemId = "menu-test-removeMenuItem4";
+                    var commandId = "Menu-test.removeMenuItem.command4";
+                    CommandManager.register("Brackets Test Command Custom", commandId, function () {});
+                    var menu = Menus.addMenu("Custom", menuItemId);
+
+                    var command = CommandManager.get(commandId);
+                    command.on("nameChange", function () {});
+                    expect(Object.keys(command._eventHandlers).length).toBe(1);
+                    expect(command._eventHandlers.nameChange.length).toBe(1);                    
+                    
+                    var menuItem = menu.addMenuItem(commandId);
+                    expect(Object.keys(command._eventHandlers).length).toBe(5);
+                    expect(command._eventHandlers.nameChange.length).toBe(2);
+                    expect(command._eventHandlers.enabledStateChange.length).toBe(1);
+                    expect(command._eventHandlers.checkedStateChange.length).toBe(1);                    
+                    expect(command._eventHandlers.keyBindingAdded.length).toBe(1);
+                    expect(command._eventHandlers.keyBindingRemoved.length).toBe(1);
+
+                    // Check if attached events have been removed
+                    menu.removeMenuItem(command);
+                    expect(Object.keys(command._eventHandlers).length).toBe(1);
+                    expect(command._eventHandlers.nameChange.length).toBe(1);  
+                    expect(command._eventHandlers.enabledStateChange).toBeUndefined();
+                    expect(command._eventHandlers.checkedStateChange).toBeUndefined();
+                    expect(command._eventHandlers.keyBindingAdded).toBeUndefined();
+                    expect(command._eventHandlers.keyBindingRemoved).toBeUndefined();                    
+
                 });
             });
         });

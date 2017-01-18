@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * Represents a file that will never exist on disk - a placeholder backing file for untitled Documents. NO ONE
  * other than DocumentManager should create instances of InMemoryFile. It is valid to test for one (`instanceof

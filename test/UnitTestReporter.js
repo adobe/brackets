@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, forin: true */
-/*global $, define, brackets */
-
 /**
  * A Jasmine reporter that summarizes test results data:
  *  - summarizes the results for each top-level suite (instead of flattening out all suites)

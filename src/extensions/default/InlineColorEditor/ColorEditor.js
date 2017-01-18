@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window, Mustache */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,6 +30,7 @@ define(function (require, exports, module) {
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         StringUtils        = brackets.getModule("utils/StringUtils"),
         Strings            = brackets.getModule("strings"),
+        Mustache           = brackets.getModule("thirdparty/mustache/mustache"),
         tinycolor          = require("thirdparty/tinycolor-min");
 
     /** Mustache template that forms the bare DOM structure of the UI */
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
 
         // Update gradients in color square & opacity slider
         this.$selectionBase.css("background-color", colorObject.toHexString());
-        this.$opacityGradient.css("background-image", "-webkit-gradient(linear, 0% 0%, 0% 100%, from(" + hueColor + "), to(transparent))");
+        this.$opacityGradient.css("background-image", "linear-gradient(" + hueColor + ", transparent)");
 
         // Update slider thumb positions
         this.$hueSelector.css("bottom", (this._hsv.h / 360 * 100) + "%");

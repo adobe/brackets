@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
+/*global describe, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -434,7 +432,7 @@ define(function (require, exports, module) {
                     checkCloseBraces(editor, {line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];");
 
                     runs(function () {
-                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}, reversed: false});
+                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 17}, end: {line: 0, ch: 35}, reversed: false});
                     });
                 });
             });

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
-
 /**
  * Utilities for managing file-set filters, as used in Find in Files.
  * Includes both UI for selecting/editing filters, as well as the actual file-filtering implementation.
@@ -32,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                  = require("thirdparty/lodash"),
+        Mustache           = require("thirdparty/mustache/mustache"),
         Dialogs            = require("widgets/Dialogs"),
         DropdownButton     = require("widgets/DropdownButton").DropdownButton,
         StringUtils        = require("utils/StringUtils"),

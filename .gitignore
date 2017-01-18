@@ -7,6 +7,13 @@ Thumbs.db
 /node_modules
 /npm-debug.log
 
+# ignore node_modules inside src
+/src/node_modules
+
+# ignore files copied from node_modules to src/thirdparty
+/src/thirdparty/CodeMirror
+/src/thirdparty/less.min.js
+
 # ignore compiled files
 /dist
 /src/.index.html
@@ -28,6 +35,7 @@ Thumbs.db
 
 # unit test working directory
 /test/results
+/test/temp
 
 # Netbeans
 /nbproject

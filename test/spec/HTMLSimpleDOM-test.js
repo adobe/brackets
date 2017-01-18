@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50, evil: true */
-/*global define, describe, it, expect, jasmine */
+/*global describe, it, expect, jasmine */
 /*unittests: HTML SimpleDOM*/
 
 define(function (require, exports, module) {
@@ -71,6 +69,21 @@ define(function (require, exports, module) {
                 expect(result.tag).toBe("div");
                 expect(result.children[0].tag).toBe("p");
                 expect(result.children[1].tag).toBe("h1");
+            });
+
+            it("should parse a document with an implied-close tag followed by an actual close tag", function () {
+                var result = build("<div><p>unclosed para</div>", true);
+                expect(result).toBeTruthy();
+                expect(result.tag).toBe("div");
+                expect(result.children[0].tag).toBe("p");
+            });
+
+            it("should parse a document with an implied-close tag at the end of the document", function () {
+                var result = build("<body><p>hello", true);
+                expect(result).toBeTruthy();
+                expect(result.tag).toBe("body");
+                expect(result.children[0].tag).toBe("p");
+                expect(result.children[0].children[0].content).toBe("hello");
             });
 
             it("should return null for an unclosed non-void/non-implied-close tag", function () {

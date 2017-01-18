@@ -21,7 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global self, importScripts, require */
 
 importScripts("thirdparty/requirejs/require.js");
@@ -36,7 +35,7 @@ var config = {};
     require(["./MessageIds", "./HintUtils2"], function (messageIds, hintUtils2) {
         MessageIds = messageIds;
         HintUtils2 = hintUtils2;
-        var ternRequire = require.config({baseUrl: "./thirdparty"});
+        var ternRequire = require.config({baseUrl: "./node_modules"});
         ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment", "tern/plugin/angular"], function (tern, infer, requirejs, docComment) {
             Tern = tern;
             Infer = infer;
@@ -111,7 +110,7 @@ var config = {};
              * Create a new tern server.
              *
              * @param {Object} env - an Object with the environment, as read in from
-             *  the json files in thirdparty/tern/defs
+             *  the json files in node_modules/tern/defs
              * @param {Array.<string>} files - a list of filenames tern should be aware of
              */
             function initTernServer(env, files) {
@@ -122,6 +121,14 @@ var config = {};
                     plugins: {requirejs: {}, doc_comment: true, angular: true}
                 };
                 ternServer = new Tern.Server(ternOptions);
+
+                // Since we don't specify projectDir, Tern will "normalize" file names by
+                // removing any leading "/" (the default projectDir, which cannot be changed to "").
+                // This is not a problem on Windows, but on Mac and Linux, it will break
+                // absolute paths ("/home/" to "home/", for example)
+                ternServer.normalizeFilename = function (name) {
+                    return name;
+                };
 
                 files.forEach(function (file) {
                     ternServer.addFile(file);

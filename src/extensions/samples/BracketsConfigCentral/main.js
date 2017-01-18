@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, Mustache */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -32,6 +29,7 @@ define(function (require, exports, module) {
         ExtensionUtils              = brackets.getModule("utils/ExtensionUtils"),
         DocumentManager             = brackets.getModule("document/DocumentManager"),
         MainViewFactory             = brackets.getModule("view/MainViewFactory"),
+        Mustache                    = brackets.getModule("thirdparty/mustache/mustache"),
         ConfigViewContent           = require("text!htmlContent/Config.html");
 
     /* our module object */

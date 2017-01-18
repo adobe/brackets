@@ -25,8 +25,8 @@
    @CC wiki attribution: esmiralha
 */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50, bitwise: true */
-/*global define, brackets */
+/*eslint no-bitwise: off */
+/*jslint bitwise: true */
 
 /**
  *  Utilities functions related to string manipulation

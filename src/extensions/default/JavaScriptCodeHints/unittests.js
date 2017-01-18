@@ -21,8 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, brackets, waitsForDone, beforeFirst, afterLast */
+/*jslint regexp: true */
+/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -1152,8 +1152,8 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("help.", start, start);
                 testEditor.setCursorPos(end);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                // check we have a properties from "Function", "Array", and "Date"
-                hintsPresentOrdered(hintObj, ["apply", "concat", "getSeconds"]);
+                // check we have a properties from "Function", "String", and "Array"
+                hintsPresentOrdered(hintObj, ["apply", "charCodeAt", "concat"]);
             });
 
             it("should switch to guesses after typing a query that does not match any hints", function () {

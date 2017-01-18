@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -33,7 +30,7 @@ define({
     // General file io error strings
     "GENERIC_ERROR"                     : "(virhe {0})",
     "NOT_FOUND_ERR"                     : "Tiedostoa tai hakemistoa ei löytynyt.",
-    "NOT_READABLE_ERR"                  : "Tiedostoa tai hakemistoa ei voi lukea.",
+    "NOT_READABLE_ERR"                  : "Tiedostoa tai hakemistoa ei voitu lukea.",
     "EXCEEDS_MAX_FILE_SIZE"             : "Yli {0} Mt:n tiedostoja ei voi voi avata {APP_NAME}issa.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Kohdehakemistoa ei voi muuttaa.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
@@ -50,13 +47,13 @@ define({
     "DIRECTORY_NAME"                    : "hakemiston nimi",
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "Virhe ladattaessa projektia",
-    "OPEN_DIALOG_ERROR"                 : "Tapahtui virhe avattaessa tiedostovalintaikkunaa. (virhe {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Tapahtui virhe yritettäessä avata hakemistoa <span class='dialog-filename'>{0}</span>. (virhe {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "Tapahtui virhe luettaessa hakemiston <span class='dialog-filename'>{0}</span> sisältöä. (virhe {1})",
+    "ERROR_LOADING_PROJECT"             : "Virhe projektia ladattaessa",
+    "OPEN_DIALOG_ERROR"                 : "Tapahtui virhe avattaessa tiedostonvalintaikkunaa. (Virhe {0}.)",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Tapahtui virhe yritettäessä avata hakemistoa <span class='dialog-filename'>{0}</span>. (Virhe {1}.)",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "Tapahtui virhe luettaessa hakemiston <span class='dialog-filename'>{0}</span> sisältöä. (Virhe {1}.)",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "Virhe avattaessa tiedostoa",
+    "ERROR_OPENING_FILE_TITLE"          : "Virhe tiedostoa avattaessa",
     "ERROR_OPENING_FILE"                : "Tapahtui virhe yritettäessä avata tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "Tapahtui virhe yritettäessä avata seuraavia tiedostoja:",
     "ERROR_RELOADING_FILE_TITLE"        : "Virhe päivitettäessä muutoksia levyltä",
@@ -65,8 +62,9 @@ define({
     "ERROR_SAVING_FILE"                 : "Tapahtui virhe yritettäessä tallentaa tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Virhe nimettäessä {0}a uudelleen",
     "ERROR_RENAMING_FILE"               : "Tapahtui virhe yritettäessä nimetä uudelleen {2}a <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Tiedosto tai hakemisto ei kuulu avoinna olevaan projektiin. Valitettavasti vain projektin tiedostoja voi nimetä uudelleen tällä hetkellä.",
     "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa {0}a",
-    "ERROR_DELETING_FILE"               : "Tapahtui virhe yritettäessä poistaa {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE"               : "Tapahtui virhe yritettäessä poistaa {2}a <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Virheellinen {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} ei voi käyttää mitään järjestelmän varaamia sanoja, päättyä pisteeseen (.) tai käyttää mitään seuraavista merkeistä: <code class='emphasized'>{1}</code>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Tiedosto tai hakemisto nimellä <span class='dialog-filename'>{0}</span> on jo olemassa.",
@@ -75,64 +73,65 @@ define({
     "ERROR_MIXED_DRAGDROP"              : "Kansiota ei voi avata samaan aikaan muiden tiedostojen kanssa.",
 
     // User key map error strings
-    "ERROR_KEYMAP_TITLE"                : "Virhe luettaessa käyttäjän näppäinkarttaa",
-    "ERROR_KEYMAP_CORRUPT"              : "Näppäinkarttatiedostosi ei ole kelvollista JSON:ia. Tiedosto avautuu, jotta voi korjata sen muodon.",
-    "ERROR_LOADING_KEYMAP"              : "Näppäinkarttatiedostosi ei ole kelvollinen UTF-8-koodattu tekstitiedosto, ja sitä ei voi ladata.",
-    "ERROR_RESTRICTED_COMMANDS"         : "Et voi määrittää uudelleen seuraavien komentojen pikanäppäimiä: {0}",
-    "ERROR_RESTRICTED_SHORTCUTS"        : "Et voi määrittää uudelleen seuraavia pikanäppäimiä: {0}",
-    "ERROR_MULTIPLE_SHORTCUTS"          : "Olet määrittämässä useita pikanäppäimiä seuraaville komennoille: {0}",
-    "ERROR_DUPLICATE_SHORTCUTS"         : "Sinulla on useita seuraavien pikanäppäinten sidontoja: {0}",
-    "ERROR_INVALID_SHORTCUTS"           : "Seuraavat pikanäppäimet ovat virheellisiä: {0}",
-    "ERROR_NONEXISTENT_COMMANDS"        : "Olet määrittämässä pikanäppäimiä olemattomille komennoille: {0}",
+    "ERROR_KEYMAP_TITLE"                : "Virhe käyttäjän näppäinkarttaa luettaessa",
+    "ERROR_KEYMAP_CORRUPT"              : "Näppäinkarttatiedostossasi on virheellistä JSON-koodia. Tiedosto aukeaa, niin voit korjata sen muodon.",
+    "ERROR_LOADING_KEYMAP"              : "Näppäinkarttatiedostosi ei ole UTF-8-koodattu tai tekstimuotoinen, joten sitä ei voi ladata.",
+    "ERROR_RESTRICTED_COMMANDS"         : "Seuraavien komentojen näppäinyhdistelmiä ei voi määrittää uudelleen: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Seuraavia näppäinyhdistelmiä ei voi määrittää uudelleen: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Olet määrittämässä seuraaville komennoille useita näppäinyhdistelmiä: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Seuraaviin näppäinyhdistelmiin on useita liitoksia: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Seuraavat näppäinyhdistelmät ovat virheellisiä: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Olet määrittämässä näppäinyhdistelmiä olemattomille komennoille: {0}",
 
     // Application preferences corrupt error strings
-    "ERROR_PREFS_CORRUPT_TITLE"         : "Virhe luettaessa asetuksia",
-    "ERROR_PREFS_CORRUPT"               : "Asetustiedostossa on virheellistä JSON-koodia. Tiedosto avataan, jotta voit korjata sen muodon. {APP_NAME} tulee käynnistää uudelleen, jotta muutokset tulevat voimaan.",
-    "ERROR_PROJ_PREFS_CORRUPT"          : "Projektin asetustiedostossa on virheellistä JSON-koodia. Tiedosto avataan, jotta voit korjata sen muodon. Projekti tulee ladata uudelleen, jotta muutokset tulevat voimaan.",
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Virhe asetuksia luettaessa",
+    "ERROR_PREFS_CORRUPT"               : "Asetustiedostossa on virheellistä JSON-koodia. Tiedosto avataan, niin voit korjata sen muodon. {APP_NAME} tulee käynnistää uudelleen, jotta muutokset tulevat voimaan.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Projektin asetustiedostossa on virheellistä JSON-koodia. Tiedosto avataan, niin voit korjata sen muodon. Projekti tulee ladata uudelleen, jotta muutokset tulevat voimaan.",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} ei toimi vielä selaimissa.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} on rakennettu HTML:llä, mutta juuri nyt se toimii kuten työpöydän sovellus, jotta voit käyttää sitä paikallisten tiedostojen muokkaamiseen. Suorita {APP_NAME} käyttämällä osoitteen <b>github.com/adobe/brackets-shell</b> arkiston sovellusliittymää.",
+    "ERROR_IN_BROWSER_TITLE"            : "Hups! {APP_NAME} ei toimi vielä selaimessa.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} on tehty HTML:llä, mutta juuri nyt se toimii työpöytäsovelluksena, joten voit muokata sillä paikallisia tiedostoja. Käytä ohjelmistolähteen <b>github.com/adobe/brackets-shell</b> sovellusliittymää, niin voit suorittaa {APP_NAME}in.",
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Virhe tiedostojen indeksoinnissa",
-    "ERROR_MAX_FILES"                   : "Tämä projekti sisältää yli 30&nbsp;000 tiedostoa. Useiden tiedostojen välillä toimivat ominaisuudet poistetaan käytöstä, tai ne toimivat niin kuin projekti olisi tyhjä. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lue lisää suurten projektien kanssa työskentelemisestä</a>.",
+    "ERROR_MAX_FILES"                   : "Tässä projektissa on yli 30&nbsp;000 tiedostoa. Useiden tiedostojen väliset ominaisuudet poistetaan käytöstä, tai ne toimivat niin kuin projekti olisi tyhjä. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lue lisää suurten projektien parissa työskentelystä</a>.",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistettäessä selainta",
-    "ERROR_CANT_FIND_CHROME"            : "Google Chrome \u2011selainta ei löydy. Varmista, että se on asennettu.",
-    "ERROR_LAUNCHING_BROWSER"           : "Tapahtui virhe käynnistettäessä selainta. (virhe {0})",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe selaimen avaamisessa",
+    "ERROR_CANT_FIND_CHROME"            : "Google Chrome \u2011selainta ei löytynyt. Varmista, että se on asennettu.",
+    "ERROR_LAUNCHING_BROWSER"           : "Selaimen avaaminen epäonnistui. (Virhe {0}.)",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Esikatselun virhe",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Yhdistetään selaimeen",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi muodostaa yhteyden, on Chromen käynnistyttävä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?<br /><br />",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Esikatselun sivua ei kyetty lataamaan.",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Käynnistä esikatselu avaamalla HTML-tiedosto tai varmistamalla, että projektissa on tiedosto index.html.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Jotta voit käynnistää esikatselun palvelimella sijaitsevalla tiedostolla, tämän projektin URL-osoite täytyy määrittää.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistettäessä HTTP-palvelinta esikatselun tiedostoille. Yritäthän uudelleen.",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi muodostaa yhteyden, pitää Chromen käynnistyä uudelleen etävirheenjäljitys käytössä.<br /><br />Käynnistetäänkö Chrome uudelleen ja aktivoidaan etävirheenjäljitys?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Esikatselun sivua ei voitu ladata.",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Avaa HTML-tiedosto tai varmista, että projektissa on tiedosto index.html, niin voit aloittaa esikatselun.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Jotta voit käynnistää esikatselun palvelimen tiedostolla, täytyy tämän projektin URL-osoite määrittää.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistettäessä HTTP-palvelinta esikatselun tiedostoille. Yritä uudelleen.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Tervetuloa esikatseluun!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa selaimessa HTML-tiedoston esikatselun, joka päivittyy välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chrome</strong> \u2011selaimella ja päivittyy reaaliaikaisesti muokatessasi <strong>CSS- tai HTML-tiedostoja</strong>. Muutokset JavaScript-tiedostoihin päivittyvät tallentaessasi ne.<br /><br />(Näet tämän viestin vain kerran.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa selaimessa HTML-tiedoston esikatselun, joka päivittyy välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chromella</strong> ja päivittyy heti, kun muokkaat <strong>CSS- tai HTML-tiedostoja</strong>. JavaScript-tiedostojen muutokset päivittyvät, kun ne tallennetaan.<br /><br />(Tämä viesti näkyy vain kerran.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saat lisätietoja tutustumalla ohjeeseen <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Esikatselu",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Esikatselu: yhdistetään\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Esikatselu: valmistellaan\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Katkaise esikatselun yhteys",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Esikatselu (tallenna tiedosto päivittämiseksi)",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Esikatselu: alustetaan\u2026",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Lopeta esikatselu",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Esikatselu (päivitä tallentamalla tiedosto)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Esikatselu (ei päivity syntaksivirheen takia)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Esikatselu peruutettiin, koska selaimen kehitystyökalut avattiin",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Esikatselu peruutettiin, koska sivu suljettiin selaimessa",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Esikatselu peruutettiin, koska selain siirtyi sivulle, joka ei ole osa nykyistä projektia",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Esikatselu peruutettiin, koska selain siirtyi sivulle, joka ei kuulu nykyiseen projektiin",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Esikatselu peruutettiin tuntemattomasta syystä ({0})",
 
     "SAVE_CLOSE_TITLE"                  : "Tallenna muutokset",
-    "SAVE_CLOSE_MESSAGE"                : "Haluatko tallentaa tekemäsi muutokset dokumenttiin <span class='dialog-filename'>{0}</span>?",
-    "SAVE_CLOSE_MULTI_MESSAGE"          : "Haluatko tallentaa muutokset seuraaviin tiedostoihin?",
-    "EXT_MODIFIED_TITLE"                : "Ulkoiset muutokset",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Vahvista poisto",
+    "SAVE_CLOSE_MESSAGE"                : "Haluatko tallentaa dokumenttiin <span class='dialog-filename'>{0}</span> tehdyt muutokset?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "Haluatko tallentaa seuraavien tiedostojen muutokset?",
+    "EXT_MODIFIED_TITLE"                : "Ulkoisia muutoksia",
+    "CONFIRM_DELETE_TITLE"              : "Vahvista poisto",
+    "CONFIRM_FILE_DELETE"               : "Haluatko varmasti poistaa tiedoston <span class='dialog-filename'>{0}</span>?",
     "CONFIRM_FOLDER_DELETE"             : "Haluatko varmasti poistaa kansion <span class='dialog-filename'>{0}</span>?",
-    "FILE_DELETED_TITLE"                : "Tiedosto poistettu",
+    "FILE_DELETED_TITLE"                : "Poistettu tiedosto",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä {APP_NAME}in ulkopuolella.<br /><br />Haluatko tallentaa tiedoston ja korvata kyseiset muutokset?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä {APP_NAME}in ulkopuolella, mutta sillä on tallentamattomia muutoksia myös {APP_NAME}issa.<br /><br />Kumman version haluat säilyttää?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> on poistettu levyltä {APP_NAME}in ulkopuolella, mutta sillä on tallentamattomia muutoksia {APP_NAME}issa.<br /><br />Haluatko säilyttää muutoksesi?",
@@ -164,7 +163,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Huomioi kirjainkoko",
     "BUTTON_REGEXP_HINT"                : "Säännöllinen lauseke",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Korvaa kumoamatta",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Koska yli {0} tiedoston on muututtava, {APP_NAME} muokkaa avaamattomia tiedostoja levyllä.<br />Et voi perua korvauksia näissä tiedostoissa.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Koska yli {0} tiedoston pitää muuttua, {APP_NAME} muokkaa avaamattomia tiedostoja levyllä.<br />Et voi perua korvauksia näissä tiedostoissa.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Korvaa kumoamatta",
 
     "OPEN_FILE"                         : "Avaa tiedosto",
@@ -195,11 +194,11 @@ define({
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Laajenna tai pienennä kaikki painamalla Ctrl/Cmd",
     "FIND_IN_FILES_INDEXING"            : "Indeksoidaan pikahakua varten\u2026",
-    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Korvausvirheet",
-    "REPLACE_IN_FILES_ERRORS"           : "Seuraavia tiedostoja ei muokattu, koska ne muuttuivat haun jälkeen tai niihin ei voitu kirjoittaa.",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Korvausvirheitä",
+    "REPLACE_IN_FILES_ERRORS"           : "Seuraavia tiedostoja ei muokattu, koska ne olivat muuttuneet haun jälkeen tai niihin ei voitu kirjoittaa.",
 
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Virhe noudettaessa päivitystietoja",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Viimeisimpien päivitystietojen noutamisessa palvelimelta oli ongelma. Varmista olevasi yhteydessä verkkoon ja yritä uudelleen.",
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Virhe päivitystietojen haussa",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Uusimpien päivitystietojen haussa palvelimelta oli ongelmia. Varmista, että olet yhteydessä verkkoon, ja yritä uudelleen.",
 
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Uusi ohitusjoukko\u2026",
@@ -208,8 +207,8 @@ define({
     "EXCLUDE_FILE_FILTER"               : "Ohita {0}",
     "EDIT_FILE_FILTER"                  : "Muokkaa\u2026",
     "FILE_FILTER_DIALOG"                : "Muokkaa ohitusjoukkoa",
-    "FILE_FILTER_INSTRUCTIONS"          : "Ohita tiedostoja ja kansioita, jotka vastaavat mitä tahansa seuraavista merkkijonoista tai alimerkkijonoista. Voit käyttää myös <a href='{0}' title='{0}'>jokerimerkkiä</a>. Syötä kukin merkkijono uudelle riville.",
-    "FILTER_NAME_PLACEHOLDER"           : "Tämän ohitusjoukon nimi (valinnainen)",
+    "FILE_FILTER_INSTRUCTIONS"          : "Ohita tiedostoja ja kansioita, jotka sopivat mihin tahansa seuraavista merkkijonoista tai alimerkkijonoista. Voit käyttää myös <a href='{0}' title='{0}'>jokerimerkkiä</a>. Kirjoita kukin merkkijono uudelle riville.",
+    "FILTER_NAME_PLACEHOLDER"           : "Nimeä tämä ohitusjoukko (valinnainen)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
     "FILTER_COUNTING_FILES"             : "Lasketaan tiedostoja\u2026",
     "FILTER_FILE_COUNT"                 : "Sallii {0} yhteensä {1} tiedostosta {2}",
@@ -217,11 +216,11 @@ define({
 
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Pikamuokkaus ei ole saatavilla kohdistimen nykyiselle sijainnille",
-    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS-pikamuokkaus: sijoita kohdistin yksittäiseen class-nimeen",
-    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS-pikamuokkaus: puutteellinen class-attribuutti",
-    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS-pikamuokkaus: puutteellinen id-attribuutti",
-    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-pikamuokkaus: sijoita kohdistin tägiin, class- tai id-attribuuttiin",
-    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS-aikafunktion pikamuokkaus: virheellinen syntaksi",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS-pikamuokkaus: sijoita kohdistin yksittäiseen luokan nimeen",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS-pikamuokkaus: puutteellinen class-määrite",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS-pikamuokkaus: puutteellinen id-määrite",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-pikamuokkaus: sijoita kohdistin tägiin taikka class- tai id-attribuuttiin",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS:n aikafunktion pikamuokkaus: virheellinen syntaksi",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS-pikamuokkaus: sijoita kohdistin funktion nimeen",
 
     // Quick Docs
@@ -237,10 +236,10 @@ define({
     /**
      * MainViewManager
      */
-    "TOP"               : "Ylä",
-    "BOTTOM"            : "Ala",
-    "LEFT"              : "Vasen",
-    "RIGHT"             : "Oikea",
+    "TOP"               : "ylä",
+    "BOTTOM"            : "ala",
+    "LEFT"              : "vasempaan ",
+    "RIGHT"             : "oikeaan ",
 
     "CMD_SPLITVIEW_NONE"        : "Ei jakoa",
     "CMD_SPLITVIEW_VERTICAL"    : "Pystyjako",
@@ -249,7 +248,7 @@ define({
     "GEAR_MENU_TOOLTIP"         : "Määritä työlista",
 
     "SPLITVIEW_INFO_TITLE"              : "Jo avoinna",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "Tiedosto on jo auki toisessa ruudussa. {APP_NAME} tukee pian saman tiedoston avaamista useammassa kuin yhdessä ruudussa. Siihen asti tiedosto näytetään ruudussa, jossa se on jo auki.<br /><br />(Näet tämän viestin vain kerran.)",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Tiedosto on jo auki toisessa ruudussa. {APP_NAME} tukee pian saman tiedoston avaamista useammassa ruudussa. Siihen asti tiedosto näytetään ruudussa, jossa se on jo auki.<br /><br />(Tämä viesti näkyy vain kerran.)",
 
     /**
      * Keyboard modifiers and special key names
@@ -277,7 +276,7 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Muuta sisennys sarkainmerkeiksi napsauttamalla",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Muuta sisennyksenä käytettävien välilyöntien määrää napsauttamalla",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Muuta sarkainmerkin leveyttä napsauttamalla",
-    "STATUSBAR_SPACES"                      : "Välilyönnit:",
+    "STATUSBAR_SPACES"                      : "Välilyöntejä:",
     "STATUSBAR_TAB_SIZE"                    : "Sarkaimen koko:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rivi",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} riviä",
@@ -298,7 +297,7 @@ define({
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Ongelmia ei löytynyt \u2013 hyvää työtä!",
     "LINT_DISABLED"                         : "Tarkistus on pois käytöstä",
     "NO_LINT_AVAILABLE"                     : "Tarkistinta ei saatavilla kohteelle {0}",
-    "NOTHING_TO_LINT"                       : "Ei mitään tarkistettavaa",
+    "NOTHING_TO_LINT"                       : "Ei tarkistettavaa",
     "LINTER_TIMED_OUT"                      : "{0} on aikakatkaistu {1} ms:n odotuksen jälkeen",
     "LINTER_FAILED"                         : "{0} keskeytyi virheeseen: {1}",
 
@@ -312,12 +311,13 @@ define({
     "CMD_FILE_NEW"                        : "Uusi tiedosto",
     "CMD_FILE_NEW_FOLDER"                 : "Uusi kansio",
     "CMD_FILE_OPEN"                       : "Avaa\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Avaa työlistassa",
+    "CMD_RECENT_FILES_OPEN"               : "Avaa viimeaikainen\u2026",
+    "CMD_ADD_TO_WORKING_SET"              : "Avaa työlistaan",
     "CMD_OPEN_DROPPED_FILES"              : "Avaa pudotetut tiedostot",
     "CMD_OPEN_FOLDER"                     : "Avaa kansio\u2026",
     "CMD_FILE_CLOSE"                      : "Sulje",
     "CMD_FILE_CLOSE_ALL"                  : "Sulje kaikki",
-    "CMD_FILE_CLOSE_LIST"                 : "Sulje luettelo",
+    "CMD_FILE_CLOSE_LIST"                 : "Sulje lista",
     "CMD_FILE_CLOSE_OTHERS"               : "Sulje muut",
     "CMD_FILE_CLOSE_ABOVE"                : "Sulje muut yläpuolelta",
     "CMD_FILE_CLOSE_BELOW"                : "Sulje muut alapuolelta",
@@ -326,7 +326,7 @@ define({
     "CMD_FILE_SAVE_AS"                    : "Tallenna nimellä\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Esikatselu",
     "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Ota kokeellinen esikatselu käyttöön",
-    "CMD_RELOAD_LIVE_PREVIEW"             : "Pakota esikatselun päivitys",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Pakota esikatselu päivittymään",
     "CMD_PROJECT_SETTINGS"                : "Projektin asetukset\u2026",
     "CMD_FILE_RENAME"                     : "Nimeä uudelleen",
     "CMD_FILE_DELETE"                     : "Poista",
@@ -346,7 +346,7 @@ define({
     "CMD_PASTE"                           : "Liitä",
     "CMD_SELECT_ALL"                      : "Valitse kaikki",
     "CMD_SELECT_LINE"                     : "Valitse rivi",
-    "CMD_SPLIT_SEL_INTO_LINES"            : "Jaa valinta riveihin",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Jaa valinta riveille",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Lisää kohdistin seuraavalle riville",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Lisää kohdistin edelliselle riville",
     "CMD_INDENT"                          : "Sisennä",
@@ -383,13 +383,13 @@ define({
     "CMD_TOGGLE_SIDEBAR"                  : "Näytä tai piilota sivupalkki",
     "CMD_TOGGLE_PANELS"                   : "Näytä tai piilota paneelit",
     "CMD_TOGGLE_PURE_CODE"                : "Ei häiriötekijöitä",
-    "CMD_INCREASE_FONT_SIZE"              : "Suurenna tekstikokoa",
-    "CMD_DECREASE_FONT_SIZE"              : "Pienennä tekstikokoa",
-    "CMD_RESTORE_FONT_SIZE"               : "Palauta tekstikoko",
+    "CMD_INCREASE_FONT_SIZE"              : "Suurenna fonttikokoa",
+    "CMD_DECREASE_FONT_SIZE"              : "Pienennä fonttikokoa",
+    "CMD_RESTORE_FONT_SIZE"               : "Palauta fonttikoko",
     "CMD_SCROLL_LINE_UP"                  : "Vieritä rivi ylös",
     "CMD_SCROLL_LINE_DOWN"                : "Vieritä rivi alas",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Rivinumerot",
-    "CMD_TOGGLE_ACTIVE_LINE"              : "Korosta aktiivinen rivi",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Korosta valittu rivi",
     "CMD_TOGGLE_WORD_WRAP"                : "Automaattinen rivitys",
     "CMD_LIVE_HIGHLIGHT"                  : "Esikatselun korostus",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Tarkista tiedostot tallennettaessa",
@@ -422,7 +422,7 @@ define({
     // Help menu commands
     "HELP_MENU"                           : "Ohje",
     "CMD_CHECK_FOR_UPDATE"                : "Tarkista päivitykset",
-    "CMD_HOW_TO_USE_BRACKETS"             : "Miten käyttää {APP_NAME}ia",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Kuinka käyttää {APP_NAME}iä",
     "CMD_SUPPORT"                         : "{APP_NAME}-tuki",
     "CMD_SUGGEST"                         : "Ehdota ominaisuutta",
     "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
@@ -431,7 +431,7 @@ define({
     "CMD_HEALTH_DATA_STATISTICS"          : "Terveydentilaraportti",
     "CMD_HOMEPAGE"                        : "{APP_TITLE}in kotisivut",
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
-    "CMD_ABOUT"                           : "Tietoja {APP_TITLE}ista",
+    "CMD_ABOUT"                           : "Tietoja {APP_TITLE}istä",
     "CMD_OPEN_PREFERENCES"                : "Avaa asetustiedosto",
     "CMD_OPEN_KEYMAP"                     : "Avaa käyttäjän näppäinkartta",
 
@@ -459,15 +459,15 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun perus-URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikall. palvelinta antamalla URL, kuten http://localhost:8000/",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: \u2011muotoa.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkkkien, kuten ’{0}’, täytyy olla %-koodattu.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten ”{0}”, täytyy %-koodata.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
 
     // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Avaa tiedosto tämän ruudun ollessa valittuna</em>",
-    "FLIPVIEW_BTN_TOOLTIP"                 : "Heitä tämä näkymä {0} paneeliin",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Heitä tämä näkymä {0}paneeliin",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nykyinen teema",
@@ -488,7 +488,7 @@ define({
     "OVERWRITE"                            : "Korvaa",
     "CANT_REMOVE_DEV"                      : "Kansion ”dev” laajennukset on poistettava käsin.",
     "CANT_UPDATE"                          : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa.",
-    "CANT_UPDATE_DEV"                      : "Kansion ”dev” laajennuksia ei voida päivittää automaattisesti.",
+    "CANT_UPDATE_DEV"                      : "Kansion ”dev” laajennuksia ei voi päivittää automaattisesti.",
     "INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
     "UPDATE_EXTENSION_TITLE"               : "Päivitä laajennus",
     "INSTALL_EXTENSION_LABEL"              : "Laajennuksen URL-osoite",
@@ -497,31 +497,32 @@ define({
     "INSTALL_SUCCEEDED"                    : "Asennus on valmis!",
     "INSTALL_FAILED"                       : "Asennus epäonnistui.",
     "CANCELING_INSTALL"                    : "Peruutetaan\u2026",
-    "CANCELING_HUNG"                       : "Asennuksen peruutus kestää pitkään. On saattanut tapahtua sisäinen virhe.",
+    "CANCELING_HUNG"                       : "Asennuksen peruuttaminen kestää pitkään. On saattanut tapahtua sisäinen virhe.",
     "INSTALL_CANCELED"                     : "Asennus on peruutettu.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Näytä täysi kuvaus",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Näytä katkaistu kuvaus",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
-    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json on virheellinen. (virhe: {0}).",
-    "MISSING_PACKAGE_NAME"                 : "Tiedostolle package.json ei ole määritelty paketin nimeä.",
+    "MISSING_PACKAGE_JSON"                 : "Paketissa ei ole tiedostoa package.json.",
+    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json on virheellinen. (Virhe {0}.)",
+    "MISSING_PACKAGE_NAME"                 : "Tiedostoon package.json ei ole merkitty paketin nimeä.",
     "BAD_PACKAGE_NAME"                     : "{0} on virheellinen paketin nimi.",
-    "MISSING_PACKAGE_VERSION"              : "Tiedostolle package.json ei ole määritelty paketin versiota.",
+    "MISSING_PACKAGE_VERSION"              : "Tiedostoon package.json ei ole merkitty paketin versiota.",
     "INVALID_VERSION_NUMBER"               : "Paketin versionumero ({0}) on virheellinen.",
     "INVALID_BRACKETS_VERSION"             : "{APP_NAME}in yhteensopivuuden merkkijono ({0}) on virheellinen.",
-    "DISALLOWED_WORDS"                     : "Sanat ({1}) eivät ole sallittuja {0} kentässä.",
-    "API_NOT_COMPATIBLE"                   : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa. Se on asennettu kelpaamattomien laajennusten kansioon.",
-    "MISSING_MAIN"                         : "Paketissa ei ole main.js-tiedostoa.",
+    "DISALLOWED_WORDS"                     : "Sanat ({1}) eivät ole sallittuja kentässä {0}.",
+    "API_NOT_COMPATIBLE"                   : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa. Se asennettiin käytöstä poistettujen laajennusten kansioon.",
+    "MISSING_MAIN"                         : "Paketissa ei ole tiedostoa main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Tämän paketin asennus korvaa aiemmin asennetun laajennuksen. Korvataanko vanha laajennus?",
-    "EXTENSION_SAME_VERSION"               : "Tämä paketti on sama kuin jo asennettu versio. Korvataanko nykyinen asennus?",
-    "EXTENSION_OLDER_VERSION"              : "Tämän paketin versio on {0}, joka on vanhempi kuin nykyinen asennettu ({1}). Korvataanko nykyinen asennus?",
+    "EXTENSION_SAME_VERSION"               : "Tämän paketin versio on sama kuin jo asennetun. Korvataanko nykyinen asennus?",
+    "EXTENSION_OLDER_VERSION"              : "Tämän paketin versio on {0}, joka on vanhempi kuin jo asennetun ({1}). Korvataanko nykyinen asennus?",
     "DOWNLOAD_ID_IN_USE"                   : "Sisäinen virhe: lataustunnus on jo käytössä.",
     "NO_SERVER_RESPONSE"                   : "Palvelimeen ei voida yhdistää.",
     "BAD_HTTP_STATUS"                      : "Tiedostoa ei löydy palvelimelta (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Latausta ei kyetty tallentamaan tilapäistiedostoon.",
-    "ERROR_LOADING"                        : "Laajennus kohtasi virheen käynnistyessä.",
-    "MALFORMED_URL"                        : "URL-osoite on virheellinen. Tarkista, että annoit sen oikein.",
-    "UNSUPPORTED_PROTOCOL"                 : "URL-osoitteen on oltava http- tai https-URL.",
+    "ERROR_LOADING"                        : "Laajennuksen käynnistyksessä tapahtui virhe.",
+    "MALFORMED_URL"                        : "URL-osoite on virheellinen. Tarkista, että kirjoitit sen oikein.",
+    "UNSUPPORTED_PROTOCOL"                 : "URL-osoitteen on oltava http- tai https-muotoinen.",
     "UNKNOWN_ERROR"                        : "Tuntematon sisäinen virhe.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Laajennusten hallinta",
@@ -541,20 +542,20 @@ define({
     "EXTENSION_MORE_INFO"                  : "Lisätietoja\u2026",
     "EXTENSION_ERROR"                      : "Laajennusvirhe",
     "EXTENSION_KEYWORDS"                   : "Avainsanat",
-    "EXTENSION_TRANSLATED_USER_LANG"       : "Käännetty {0} kielelle, sisältäen kielesi",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Käännetty {0} kielelle, myös sinun",
     "EXTENSION_TRANSLATED_GENERAL"         : "Käännetty {0} kielelle",
     "EXTENSION_TRANSLATED_LANGS"           : "Tämä laajennus on käännetty näille kielille: {0}",
     "EXTENSION_INSTALLED"                  : "Asennettu",
-    "EXTENSION_UPDATE_INSTALLED"           : "Tämä laajennuksen päivitys on ladattu ja asennetaan {APP_NAME}in latauduttua uudelleen.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Tämä laajennuspäivitys on ladattu ja asennetaan {APP_NAME}in latauduttua uudelleen.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Haku",
     "EXTENSION_MORE_INFO_LINK"             : "Lisää",
     "BROWSE_EXTENSIONS"                    : "Selaa laajennuksia",
     "EXTENSION_MANAGER_REMOVE"             : "Poista laajennus",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Ei voitu poistaa yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Ei voitu poistaa ainakaan yhtä laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
     "EXTENSION_MANAGER_UPDATE"             : "Päivitä laajennus",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Ei voitu päivittää yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Ei voitu päivittää ainakaan yhtä laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
     "EXTENSION_MANAGER_DISABLE"            : "Poista laajennus käytöstä",
-    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Ei voitu poistaa käytöstä yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Ei voitu poistaa käytöstä ainakaan yhtä laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
     "MARKED_FOR_REMOVAL"                   : "Merkitty poistettavaksi",
     "UNDO_REMOVE"                          : "Kumoa",
     "MARKED_FOR_UPDATE"                    : "Merkitty päivitettäväksi",
@@ -569,16 +570,16 @@ define({
     "DISABLE_AND_RELOAD"                   : "Poista laajennukset käytöstä ja lataa uudelleen",
     "PROCESSING_EXTENSIONS"                : "Käsitellään laajennusten muutoksia\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Laajennusta {0} ei voida poistaa, koska sitä ei ole asennettu.",
-    "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Aloita napsauttamalla Saatavilla-välilehteä yläpuolelta.",
+    "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Aloita napsauttamalla Saatavilla-välilehteä yltä.",
     "NO_EXTENSION_MATCHES"                 : "Ei hakuasi vastaavia laajennuksia.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "HUOMAUTUS: Nämä laajennukset voivat olla peräisin eri lähteistä kuin {APP_NAME} itse. Laajennuksia ei ole tarkastettu, ja niillä on täydet paikalliset oikeudet. Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "HUOMAA: Nämä laajennukset voivat olla peräisin eri lähteistä kuin {APP_NAME} itse. Laajennuksia ei ole tarkastettu, ja niillä on täydet paikalliset oikeudet. Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Asennettu",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Saatavilla",
     "EXTENSIONS_THEMES_TITLE"              : "Teemat",
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Vastineita ei saatavilla.",
-    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Kaikki vastineet on pienennetty. Näytä vastineet laajentamalla oikealla listatut tiedostot.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Kaikki vastineet on pienennetty. Laajenna oikealla listatut tiedostot, niin näet vastineet.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Luo sellainen napsauttamalla ”Uusi sääntö”.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projektissa ei ole tyylitiedostoja.<br>Lisää CSS-sääntöjä luomalla sellainen.",
 
@@ -607,14 +608,14 @@ define({
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Näytä virheet tilapalkissa",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Avaa {APP_NAME}in lähdekoodi",
 
-    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME}-komentorivin oikotie",
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME}in komentorivin oikotie",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Tapahtui virhe asennettaessa komentorivin oikotietä. Kokeile <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>näitä vianmääritysohjeita</a>.<br/><br/>Syy: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Olemassa olevaa symbolista linkkiä <code>/usr/local/bin/brackets</code> ei voitu poistaa.",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "Hakemistoa <code>/usr/local/bin</code> ei voitu luoda.",
     "ERROR_CLTOOLS_LNFAILED"                    : "Symbolista linkkiä <code>/usr/local/bin/brackets</code> ei voitu luoda.",
     "ERROR_CLTOOLS_SERVFAILED"                  : "Sisäinen virhe.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "Komentorivin oikotie ei ole tuettu tässä käyttöjärjestelmässä.",
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Onnistui! Voit nyt helposti käynnistää {APP_NAME}in komentoriviltä: avaa tiedosto komennolla <code>brackets tiedosto.txt</code> tai vaihda projektia komennolla <code>brackets kansio</code>. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Lue lisää</a> {APP_NAME}in käyttämisestä komentoriviltä.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Onnistui! Voit nyt avata {APP_NAME}in helposti komentoriviltä: avaa tiedosto komennolla <code>brackets tiedosto.txt</code> tai vaihda projektia komennolla <code>brackets kansio</code>. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Lue lisää</a> {APP_NAME}in käyttämisestä komentoriviltä.",
 
     "LANGUAGE_TITLE"                            : "Vaihda kieltä",
     "LANGUAGE_MESSAGE"                          : "Kieli:",
@@ -628,12 +629,12 @@ define({
     "HEALTH_DATA_DO_TRACK"                      : "Jaa nimettömiä tietoja {APP_NAME}in käytöstäni",
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia.<br><br>Voit nähdä tietosi tai valita, ettei tietoja jaeta, valitsemalla <strong>Ohje > Terveydentilaraportti</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME}in terveydentilaraportti",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a> ja siitä, kuinka se hyödyttää {APP_NAME}-yhteisöä yksityisyyttäsi suojellen.</p><p>Alla on esikatselu tiedoista, jotka lähetetään seuraavassa terveydentilaraportissasi <em>jos</em> se on otettu käyttöön.</p>",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Jotta voimme parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a> ja siitä, kuinka se hyödyttää {APP_NAME}-yhteisöä samalla, kun suojelemme yksityisyyttäsi.</p><p>Alla on esikatselu tiedoista, jotka lähetetään seuraavassa terveydentilaraportissasi <em>jos</em> se on otettu käyttöön.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Edistyminen",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Siirrä valittua pistettä<br><kbd class='text'>Vaihto</kbd> Siirrä kymmenen yksikköä<br><kbd class='text'>Tab</kbd> Vaihda pistettä",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Siirrä valittua pistettä<br><kbd class='text'>Vaihto</kbd> Siirrä kymmenen yksikköä<br><kbd class='text'>Tab</kbd> Vaihda pisteitä",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Lisää tai vähennä askelmia<br><kbd>←</kbd><kbd>→</kbd> ”Start” tai ”end”",
     "INLINE_TIMING_EDITOR_INVALID"              : "Vanha arvo <code>{0}</code> on virheellinen, joten näytetty funktio muutettiin muotoon <code>{1}</code>. Dokumentti päivitetään ensimmäisellä muokkauksella.",
 
@@ -651,7 +652,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Näytä parametrivihje",
     "NO_ARGUMENTS"                              : "<ei parametreja>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript-tiedoston päättelyongelma",
-    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} kohtasi vaikeuksia tiedoston <span class='dialog-filename'>{0}</span> käsittelyssä.<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeet-, hyppää määrittelyyn- tai pikamuokkaus-toimintoja varten. Ota tämä tiedosto uudelleen käyttöön avaamalla projektisi tiedosto <code>.brackets.json</code> ja muokkaamalla kohtaa <code>jscodehints.detectedExclusions</code>.<br><br>Tämä on todennäköisesti {APP_NAME}in bugi. Jos voit tarjota kopion tästä tiedostosta, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>ilmoitathan virheestä</a> tässä nimettyyn tiedostoon osoittavin linkein.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} kohtasi vaikeuksia tiedoston <span class='dialog-filename'>{0}</span> käsittelyssä.<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeitä, määrittelyyn siirtymistä tai pikamuokkausta varten. Avaa projektin tiedosto <code>.brackets.json</code> ja muokkaa kohtaa <code>jscodehints.detectedExclusions</code>, niin saat tiedoston takaisin käyttöön.<br><br>Tämä on todennäköisesti {APP_NAME}in bugi. Jos voit luovuttaa kopion tästä tiedostosta, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>ilmoita virheestä</a> ja laita mukaan linkki kyseiseen tiedostoon, kiitos!",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -660,7 +661,7 @@ define({
     "CMD_ENABLE_QUICK_VIEW"                     : "Pikanäkymä osoitettaessa",
 
     // extensions/default/RecentProjects
-    "CMD_TOGGLE_RECENT_PROJECTS"                : "Viimeisimmät projektit",
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Viimeaikaiset projektit",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Lue lisää",
@@ -671,11 +672,16 @@ define({
     "COLLAPSE_CURRENT"              : "Pienennä nykyinen",
     "EXPAND_CURRENT"                : "Laajenna nykyinen",
 
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Viimeaikaiset tiedostot",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Tyhjennä",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Tyhjennä työlistassa olemattomat tiedostot",
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true: sulje aalto-, haka- ja kaarisulkeet automaattisesti",
-    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false: poista ”Sulje muut yläpuolelta” \u2011valinta työtiedostojen kontekstivalikosta",
-    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "false: poista ”Sulje muut alapuolelta” \u2011valinta työtiedostojen kontekstivalikosta",
-    "DESCRIPTION_CLOSE_OTHERS"                       : "false: poista ”Sulje muut” \u2011valinta työtiedostojen kontekstivalikosta",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false: poista Sulje muut yläpuolelta -valinta työtiedostojen kontekstivalikosta",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "false: poista Sulje muut alapuolelta -valinta työtiedostojen kontekstivalikosta",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "false: poista Sulje muut -valinta työtiedostojen kontekstivalikosta",
     "DESCRIPTION_CLOSE_TAGS"                         : "Asettaa tägien sulkemisvalinnat",
     "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Taulukko tägeistä, joita ei pidä sulkea automaattisesti",
     "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Sulje, kun avaustägin > kirjoitetaan",
@@ -684,7 +690,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "true: luo aina pienennettävän osion merkit, kun sisennyksen taso muuttuu",
     "DESCRIPTION_CODE_FOLDING_ENABLED"               : "true: ota koodin laskostus käyttöön",
     "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "true: näytä osion pienennyksen merkit vain, kun osoitin siirretään vasemman marginaalin päälle",
-    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Rajoittaa sitä, kuinka monta tasoa syvälle Pienennä kaikki \u2011valinta vaikuttaa",
+    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Rajoittaa sitä, kuinka monta tasoa syvälle Pienennä kaikki -valinta vaikuttaa",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Rivejä vähintään ennen kuin pienennettävän osion kuvake tulee esiin",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true: muista pienennetyt osiot, jos tiedosto tai projekti suljetaan ja avataan sitten uudelleen",
     "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true: ota valitun tekstin koodin laskostus käyttöön editorissa",
@@ -697,7 +703,7 @@ define({
     "DESCRIPTION_SVG_HINTS"                          : "Näytä tai piilota SVG-koodin vihjeet",
     "DESCRIPTION_HTML_TAG_HINTS"                     : "Näytä tai piilota HTML-tägien vihjeet",
     "DESCRIPTION_URL_CODE_HINTS"                     : "Näytä tai piilota URL-vihjeet HTML- ja CSS/LESS/SCSS-tiedostoissa",
-    "DESCRIPTION_DRAG_DROP_TEXT"                     : "Ota vedä ja pudota \u2011toiminto käyttöön tai poista se käytöstä",
+    "DESCRIPTION_DRAG_DROP_TEXT"                     : "Ota vedä ja pudota -toiminto käyttöön tai poista se käytöstä",
     "DESCRIPTION_HEALTH_DATA_TRACKING"               : "Ota terveydentilan seuranta käyttöön",
     "DESCRIPTION_HIGHLIGHT_MATCHES"                  : "Ottaa käyttöön vastaavien merkkijonojen automaattisen korostuksen koko dokumentissa",
     "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "Korosta kaikki merkkijonot, jotka vastaavat ilmausta, jossa kohdistin parhaillaan on (valintaa ei tarvita)",
@@ -708,15 +714,15 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "true: salli sijoituslausekkeet",
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "true: salli bittioperaattorit",
     "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "true, jos tavalliset selaimen globaalit pitää määritellä ennalta",
-    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "true: salli Google Closure \u2011idiomit",
-    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "true: salli ”continue”-komento",
+    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "true: salli Google Closure -idiomit",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "true: salli continue-komento",
     "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "true, jos CouchDB:n globaalit pitää määritellä ennalta",
     "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "true: salli debugger-komennot",
     "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "true, jos kehityksessä hyödylliset selaimen globaalit pitää määritellä ennalta",
     "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "true: salli == ja !=",
     "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "true, jos ES6:n globaalit pitää määritellä ennalta",
     "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "true: salli eval",
-    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "true: salli suodattamaton ”for \u2026 in”",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "true: salli suodattamaton ”for ... in”",
     "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "Aseta tietty sarkainmerkin leveys",
     "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "Raportoitavien varoitusten enimmäismäärä",
     "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "Merkkien enimmäismäärä rivillä",
@@ -725,10 +731,10 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "true: salli tunnisteiden alkaa alaviivalla",
     "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "true: pysähdy ensimmäiseen virheeseen",
     "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "true: salli ++ ja --",
-    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "true: salli . ja [^\u2026]. säännöllisissä lausekkeissa",
+    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "true: salli . ja [^...]. säännöllisissä lausekkeissa",
     "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "true, jos Rhinon globaalit pitää määritellä ennalta",
-    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "true: salli puuttuva `use strict` \u2011-toimintaohje",
-    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "true, jos blokkaavia (”\u2026Sync”) metodeja voi käyttää",
+    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "true: salli puuttuva `use strict` -toimintaohje",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "true, jos blokkaavia (”...Sync”) metodeja voi käyttää",
     "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "true: salli tehoton hakasuljemerkintä",
     "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "true: salli TODO-kommentit",
     "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "true: salli käyttämättömät parametrit",
@@ -737,6 +743,7 @@ define({
     "DESCRIPTION_LANGUAGE"                           : "Kielikohtaiset asetukset",
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Ylimääräiset liitokset tiedostopäätteestä kielen nimeen",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Ylimääräiset liitokset tiedostonimestä kielen nimeen",
+    "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Kopiointi ja leikkaaminen ilman valintaa kopioi tai leikkaa kokonaan rivit, joilla on kohdistin",
     "DESCRIPTION_LINTING_ENABLED"                    : "true: ota koodin tarkistus käyttööön",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "Aika, jonka jälkeen asynkroniset tarkistimet aikakatkaistaan, millisekunteina",
     "DESCRIPTION_LINTING_PREFER"                     : "Taulukko tarkistimista, jotka suoritetaan ensin",
@@ -750,7 +757,7 @@ define({
     "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "Pitää vilkkuvan kohdistimen esillä, kun tekstiä on valittu",
     "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "true: näytä rivinumerot vasemman reunan marginaalissa",
     "DESCRIPTION_SMART_INDENT"                       : "Sisennä automaattisesti, kun luodaan uusi lohko",
-    "DESCRIPTION_SOFT_TABS"                          : "false: poista pehmeät sarkaimet \u2011toiminto käytöstä",
+    "DESCRIPTION_SOFT_TABS"                          : "false: poista pehmeät sarkaimet -toiminto käytöstä",
     "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "true: järjestä hakemistot ensin projektipuussa",
     "DESCRIPTION_SPACE_UNITS"                        : "Väleihin perustuvassa sisennyksessä käytettävien välilyöntien määrä",
     "DESCRIPTION_STATIC_SERVER_PORT"                 : "Portin numero, jota sisäänrakennetun palvelimen pitäisi käyttää esikatselussa",
@@ -775,10 +782,12 @@ define({
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false: poista asetustiedoston avaaminen käytöstä jaetussa näkymässä",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false: avaa käyttäjän asetustiedosto vasemmassa tai ylemmässä ruudussa",
     "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true: yhdistä ruudut sen jälkeen, kun ruudun viimeinen tiedosto on suljettu ruudun yläosassa olevalla sulkupaikkeella",
-    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Valitse, milloin sulku- ja flip view \u2011painikkeet näkyvät paneelin yläosassa",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Valitse, milloin sulku- ja flip view -painikkeet näkyvät paneelin yläosassa",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Tämä on vain luku -tiedosto {APP_NAME}in tukemista\n * asetuksista.\n * Käytä tätä apuna, kun muutat asetustiedostoasi\n * ”brackets.json”, joka on avattu toiseen ruutuun.\n * Lisätietoa siitä, kuinka käyttää asetuksia {APP_NAME}issa,\n * löydät verkkosivulta osoitteessa https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus",
-    "DESCRIPTION_PURE_CODING_SURFACE"                : "true: ota vain koodi \u2011näkymä käyttöön ja piilota muut {APP_NAME}in käyttöliittymäelementit"
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true: ota vain koodi -näkymä käyttöön ja piilota muut {APP_NAME}in käyttöliittymäelementit",
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "true: ota rivikommenttien sisennys käyttöön",
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Ota viimeaikaisiin tiedostoihin siirtyminen käyttöön tai poista se käytöstä"
 });
 
-/* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */
+/* Last translated for 4be34b641c5f0209c596c7b03eb03b464d4a53c4 */

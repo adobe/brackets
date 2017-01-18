@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
-/*global define, $, Mustache, brackets */
-
 /**
  * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for
  * the resulting errors/warnings.
@@ -58,7 +54,8 @@ define(function (require, exports, module) {
         StatusBar               = require("widgets/StatusBar"),
         Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
-        ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
+        ResultsTemplate         = require("text!htmlContent/problems-panel-table.html"),
+        Mustache                = require("thirdparty/mustache/mustache");
 
     var INDICATOR_ID = "status-inspection";
 
@@ -82,11 +79,6 @@ define(function (require, exports, module) {
         PREF_PREFERRED_ONLY     = "usePreferredOnly";
 
     var prefs = PreferencesManager.getExtensionPrefs("linting");
-
-    PreferencesManager.convertPreferences(module, {
-        "enabled": "user linting.enabled",
-        "collapsed": "user linting.collapsed"
-    });
 
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.

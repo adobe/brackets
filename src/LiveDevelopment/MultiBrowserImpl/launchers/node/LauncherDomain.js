@@ -21,53 +21,50 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true */
+/*eslint-env node */
+/*jslint node: true */
+"use strict";
 
-(function () {
-    "use strict";
+var open = require("opn");
 
-    var open = require("open");
+/**
+ * @private
+ * The Brackets domain manager for registering node extensions.
+ * @type {?DomainManager}
+ */
+var _domainManager;
 
-    /**
-     * @private
-     * The Brackets domain manager for registering node extensions.
-     * @type {?DomainManager}
-     */
-    var _domainManager;
+/**
+ * Launch the given URL in the system default browser.
+    * TODO: it now launching just on default browser, add launchers for specific browsers.
+ * @param {string} url
+ */
+function _cmdLaunch(url) {
+    open(url);
+}
 
-    /**
-     * Launch the given URL in the system default browser.
-	 * TODO: it now launching just on default browser, add launchers for specific browsers.
-     * @param {string} url
-     */
-    function _cmdLaunch(url) {
-        open(url);
+
+/**
+ * Initializes the domain and registers commands.
+ * @param {DomainManager} domainManager The DomainManager for the server
+ */
+function init(domainManager) {
+    _domainManager = domainManager;
+    if (!domainManager.hasDomain("launcher")) {
+        domainManager.registerDomain("launcher", {major: 0, minor: 1});
     }
+    domainManager.registerCommand(
+        "launcher",      // domain name
+        "launch",       // command name
+        _cmdLaunch,     // command handler function
+        false,          // this command is synchronous in Node
+        "Launches a given HTML file in the browser for live development",
+        [
+            { name: "url", type: "string", description: "file:// url to the HTML file" },
+            { name: "browser", type: "string", description: "browser name"}
+        ],
+        []
+    );
+}
 
-
-    /**
-     * Initializes the domain and registers commands.
-     * @param {DomainManager} domainManager The DomainManager for the server
-     */
-    function init(domainManager) {
-        _domainManager = domainManager;
-        if (!domainManager.hasDomain("launcher")) {
-            domainManager.registerDomain("launcher", {major: 0, minor: 1});
-        }
-        domainManager.registerCommand(
-            "launcher",      // domain name
-            "launch",       // command name
-            _cmdLaunch,     // command handler function
-            false,          // this command is synchronous in Node
-            "Launches a given HTML file in the browser for live development",
-            [
-                { name: "url", type: "string", description: "file:// url to the HTML file" },
-                { name: "browser", type: "string", description: "browser name"}
-            ],
-            []
-        );
-    }
-
-    exports.init = init;
-
-}());
+exports.init = init;

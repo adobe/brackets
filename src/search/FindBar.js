@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
-
 /*
  * UI for the Find/Replace and Find in Files modal bar.
  */
@@ -31,6 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                  = require("thirdparty/lodash"),
+        Mustache           = require("thirdparty/mustache/mustache"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Commands           = require("command/Commands"),
         KeyBindingManager  = require("command/KeyBindingManager"),
@@ -70,7 +68,8 @@ define(function (require, exports, module) {
      *      Parameters are:
      *          shiftKey - boolean, false for Find Next, true for Find Previous
      * - doReplace - when the user chooses to do a single replace. Use getReplaceText() to get the current replacement text.
-     * - doReplaceAll - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
+     * - doReplaceBatch - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
+     * - doReplaceAll - when the user chooses to perform a Replace All. Use getReplaceText() to get the current replacement text.
      *-  close - when the find bar is closed
      *
      * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
@@ -246,7 +245,8 @@ define(function (require, exports, module) {
 
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
-        templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
+        templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
+        templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
 
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
 
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
                             }
                         } else {
                             HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
-                            self.trigger("doReplaceAll");
+                            self.trigger("doReplaceBatch");
                         }
                     } else {
                         // In the single file case, we just want to trigger a Find Next (or Find Previous
@@ -353,6 +353,9 @@ define(function (require, exports, module) {
             $root
                 .on("click", "#replace-yes", function (e) {
                     self.trigger("doReplace");
+                })
+                .on("click", "#replace-batch", function (e) {
+                    self.trigger("doReplaceBatch");
                 })
                 .on("click", "#replace-all", function (e) {
                     self.trigger("doReplaceAll");
@@ -517,7 +520,7 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.enableReplace = function (enable) {
         if (this.isEnabled) {
-            this.$("#replace-yes, #replace-all").prop("disabled", !enable);
+            this.$("#replace-yes, #replace-batch, #replace-all").prop("disabled", !enable);
         }
     };
 
@@ -613,7 +616,6 @@ define(function (require, exports, module) {
 
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
-    PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
 
     exports.FindBar = FindBar;
 });

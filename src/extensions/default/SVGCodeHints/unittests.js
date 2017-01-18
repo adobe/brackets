@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, describe, beforeEach, afterEach, it, expect */
+/*global describe, beforeEach, afterEach, it, expect */
 
 define(function (require, exports, module) {
     "use strict";
@@ -460,7 +459,9 @@ define(function (require, exports, module) {
                 var hints = expectHints(SVGCodeHints.hintProvider);
                 verifyHints(hints, "aliceblue"); // first hint should be aliceblue
                 expect(hints[0].find(".color-swatch").length).toBe(1);
-                expect(hints[0].find(".color-swatch").css("backgroundColor")).toBe("rgb(240, 248, 255)");
+                // CEF 2623 will output "aliceblue" whereas earlier versions give "rgb(240, 248, 255)",
+                // so we need this ugly hack to make sure this test passes on both
+                expect(hints[0].find(".color-swatch").css("backgroundColor")).toMatch(/^rgb\(240, 248, 255\)$|aliceblue/);
             });
 
             it("should always include transparent and currentColor and they should not have a swatch, but class no-swatch-margin", function () {

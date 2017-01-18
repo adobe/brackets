@@ -21,8 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
+/*jslint regexp: true */
+/*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -785,6 +785,8 @@ define(function (require, exports, module) {
                 gotChange = false;
                 oldResults = null;
                 wasQuickChange = false;
+
+                FindInFiles.clearSearch(); // calls FindInFiles.searchModel.clear internally
                 FindInFiles.searchModel.on("change.FindInFilesTest", function (event, quickChange) {
                     gotChange = true;
                     wasQuickChange = quickChange;
@@ -1714,7 +1716,7 @@ define(function (require, exports, module) {
                         if (fromKeyboard) {
                             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#replace-with").get(0));
                         } else {
-                            $("#replace-all").click();
+                            $("#replace-batch").click();
                         }
                     });
                 }
@@ -1738,7 +1740,7 @@ define(function (require, exports, module) {
                         openSearchBar(null, true);
                         runs(function () {
                             expect($("#replace-yes").length).toBe(0);
-                            expect($("#replace-all").length).toBe(1);
+                            expect($("#replace-batch").length).toBe(1);
                         });
                     });
 
@@ -1746,7 +1748,8 @@ define(function (require, exports, module) {
                         openTestProjectCopy(defaultSourcePath);
                         openSearchBar(null, true);
                         runs(function () {
-                            expect($("#replace-all").is(":disabled")).toBe(true);
+                            $("#find-what").val("").trigger("input");
+                            expect($("#replace-batch").is(":disabled")).toBe(true);
                         });
                     });
 
@@ -1755,7 +1758,7 @@ define(function (require, exports, module) {
                         openSearchBar(null, true);
                         runs(function () {
                             $("#find-what").val("my query").trigger("input");
-                            expect($("#replace-all").is(":disabled")).toBe(false);
+                            expect($("#replace-batch").is(":disabled")).toBe(false);
                         });
                     });
 
@@ -1765,7 +1768,7 @@ define(function (require, exports, module) {
                         runs(function () {
                             $("#find-regexp").click();
                             $("#find-what").val("[invalid").trigger("input");
-                            expect($("#replace-all").is(":disabled")).toBe(true);
+                            expect($("#replace-batch").is(":disabled")).toBe(true);
                         });
                     });
 
@@ -1775,7 +1778,7 @@ define(function (require, exports, module) {
                         runs(function () {
                             $("#find-regexp").click();
                             $("#find-what").val("[valid]").trigger("input");
-                            expect($("#replace-all").is(":disabled")).toBe(false);
+                            expect($("#replace-batch").is(":disabled")).toBe(false);
                         });
                     });
 
@@ -2279,6 +2282,24 @@ define(function (require, exports, module) {
                         });
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(false);
+                        });
+                    });
+                });
+                
+                describe("Disclosure Arrows", function () {
+               
+                    it("should expand/collapse items when clicked", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            $(".disclosure-triangle").click();
+                            expect($(".disclosure-triangle").hasClass("expanded")).toBeFalsy();
+                            // Check that all results are hidden
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:hidden").length).toEqual(7);
+                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:hidden").length).toEqual(4);
+                            $(".disclosure-triangle").click();
+                            expect($(".disclosure-triangle").hasClass("expanded")).toBeTruthy();
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:visible").length).toEqual(7);
+                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:visible").length).toEqual(4);
                         });
                     });
                 });

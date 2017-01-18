@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
-
  /**
   * Pane objects host views of files, editors, etc... Clients cannot access
   * Pane objects directly. Instead the implementation is protected by the
@@ -156,6 +152,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
+        Mustache            = require("thirdparty/mustache/mustache"),
         EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         InMemoryFile        = require("document/InMemoryFile"),

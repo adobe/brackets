@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
-
 /**
  * A "modal bar" component. This is a lightweight replacement for modal dialogs that
  * appears at the top of the editor area for operations like Find and Quick Open.

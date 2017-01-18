@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, brackets, $ */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,8 +32,8 @@ define(function (require, exports, module) {
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
-        Acorn           = require("thirdparty/acorn/acorn"),
-        Acorn_Loose     = require("thirdparty/acorn/acorn_loose");
+        Acorn           = require("node_modules/acorn/dist/acorn"),
+        Acorn_Loose     = require("node_modules/acorn/dist/acorn_loose");
 
     /**
      * Session objects encapsulate state associated with a hinting session
@@ -670,7 +669,9 @@ define(function (require, exports, module) {
         var ast;
         try {
             ast = Acorn.parse(fragment);
-        } catch (e) { ast = Acorn_Loose.parse_dammit(fragment); }
+        } catch (e) {
+            ast = Acorn_Loose.parse_dammit(fragment, {});
+        }
 
         // find argument as cursor location and bold it.
         var startOffset = this.getOffsetFromCursor(start),

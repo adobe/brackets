@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE": "문서 <span class='dialog-filename'>{0}</span> 변경 내용을 저장 하시겠습니까?",
     "SAVE_CLOSE_MULTI_MESSAGE": "다음 파일에 대한 변경 사항을 저장 하시겠습니까?",
     "EXT_MODIFIED_TITLE": "외부 변경 감지",
-    "CONFIRM_FOLDER_DELETE_TITLE": "삭제 확인",
+    "CONFIRM_DELETE_TITLE": "삭제 확인",
     "CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> 폴더를 삭제 하시겠습니까?",
     "FILE_DELETED_TITLE": "파일이 삭제되었습니다",
     "EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span>파일이 변경되었습니다.<br /><br />파일을 저장하여 이 변경 사항을 덮어씌우겠습니까?",

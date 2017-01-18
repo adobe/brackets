@@ -135,10 +135,10 @@
     float: left;
 }
 .color-editor section .color-selection-field .saturation-gradient {
-    background-image: -webkit-gradient(linear, 0% 50%, 100% 50%, from(#fff), to(rgba(255,255,255,0)));
+    background-image: linear-gradient(to left, hsla(0,0%,100%,0), #fff);
 }
 .color-editor section .color-selection-field .luminosity-gradient {
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(transparent), to(#000));
+    background-image: linear-gradient(hsla(0,0%,100%,0), #000);
 }
 .color-editor section .color-selection-field .selector-base {
     width: 12px;
@@ -200,7 +200,7 @@
     margin-right: 0px;  
 }
 .color-editor section .hue-slider {
-    background-image: -webkit-linear-gradient(top, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
+    background-image: linear-gradient(#f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
 }
 .color-editor section footer {
     font-size: 100%;

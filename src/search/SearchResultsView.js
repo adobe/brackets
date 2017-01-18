@@ -21,8 +21,6 @@
  *
  */
 
-/*global define, $, window, Mustache */
-
 /*
  * Panel showing search results for a Find/Replace in Files operation.
  */
@@ -43,6 +41,7 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         HealthLogger          = require("utils/HealthLogger"),
         _                     = require("thirdparty/lodash"),
+        Mustache              = require("thirdparty/mustache/mustache"),
 
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),
@@ -67,7 +66,7 @@ define(function (require, exports, module) {
      * @constructor
      * Handles the search results panel.
      * Dispatches the following events:
-     *      replaceAll - when the "Replace" button is clicked.
+     *      replaceBatch - when the "Replace" button is clicked.
      *      close - when the panel is closed.
      *
      * @param {SearchModel} model The model that this view is showing.
@@ -329,7 +328,7 @@ define(function (require, exports, module) {
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    self.trigger("replaceAll");
+                    self.trigger("replaceBatch");
                 });
         }
     };

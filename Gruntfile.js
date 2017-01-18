@@ -20,12 +20,21 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global module, require*/
-module.exports = function (grunt) {
-    'use strict';
 
+/*eslint-env node */
+/*jslint node: true */
+'use strict';
+
+module.exports = function (grunt) {
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-eslint']});
+    require('load-grunt-tasks')(grunt, {
+        pattern: [
+            'grunt-*',
+            '!grunt-cli',
+            '!grunt-lib-phantomjs',
+            '!grunt-template-jasmine-requirejs'
+        ]
+    });
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -94,13 +103,7 @@ module.exports = function (grunt) {
                             '!extensions/default/*/thirdparty/**/*.htm{,l}',
                             'extensions/dev/*',
                             'extensions/samples/**/*',
-                            'thirdparty/CodeMirror/addon/{,*/}*',
-                            'thirdparty/CodeMirror/keymap/{,*/}*',
-                            'thirdparty/CodeMirror/lib/{,*/}*',
-                            'thirdparty/CodeMirror/mode/{,*/}*',
-                            '!thirdparty/CodeMirror/mode/**/*.html',
-                            '!thirdparty/CodeMirror/**/*test.js',
-                            'thirdparty/CodeMirror/theme/{,*/}*',
+                            'thirdparty/CodeMirror/**',
                             'thirdparty/i18n/*.js',
                             'thirdparty/text/*.js'
                         ]
@@ -111,6 +114,31 @@ module.exports = function (grunt) {
                         dest: 'dist/styles',
                         cwd: 'src/styles',
                         src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*', 'brackets.min.css*']
+                    }
+                ]
+            },
+            thirdparty: {
+                files: [
+                    {
+                        expand: true,
+                        dest: 'src/thirdparty/CodeMirror',
+                        cwd: 'src/node_modules/codemirror',
+                        src: [
+                            'addon/{,*/}*',
+                            'keymap/{,*/}*',
+                            'lib/{,*/}*',
+                            'mode/{,*/}*',
+                            'theme/{,*/}*',
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty',
+                        cwd: 'src/node_modules',
+                        src: [
+                            'less/dist/less.min.js'
+                        ]
                     }
                 ]
             }
@@ -267,16 +295,12 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
+                    // For reference to why this polyfill is needed see Issue #7951.
+                    // The need for this should go away once the version of phantomjs gets upgraded to 2.0
+                    'test/polyfills.js',
+
                     'src/thirdparty/jquery-2.1.3.min.js',
-                    'src/thirdparty/CodeMirror/lib/codemirror.js',
-                    'src/thirdparty/CodeMirror/lib/util/dialog.js',
-                    'src/thirdparty/CodeMirror/lib/util/searchcursor.js',
-                    'src/thirdparty/CodeMirror/addon/edit/closetag.js',
-                    'src/thirdparty/CodeMirror/addon/selection/active-line.js',
-                    'src/thirdparty/mustache/mustache.js',
-                    'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-2.5.1.min.js'
+                    'src/thirdparty/less.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -316,7 +340,7 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config', 'less']);
+    grunt.registerTask('install', ['write-config', 'less', 'npm-install-source']);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
@@ -339,7 +363,8 @@ module.exports = function (grunt) {
         'concat',
         /*'cssmin',*/
         /*'uglify',*/
-        'copy',
+        'copy:dist',
+        'npm-install',
         'cleanempty',
         'usemin',
         'build-config'

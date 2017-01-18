@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
-
 /**
  * Initializes the default brackets menu items.
  */
@@ -255,6 +251,12 @@ define(function (require, exports, module) {
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
+        editor_cmenu.addMenuDivider();
+        editor_cmenu.addMenuItem(Commands.EDIT_CUT);
+        editor_cmenu.addMenuItem(Commands.EDIT_COPY);
+        editor_cmenu.addMenuItem(Commands.EDIT_PASTE);
+
+        editor_cmenu.addMenuDivider();
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
         var inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
@@ -283,17 +285,13 @@ define(function (require, exports, module) {
                     inlineWidget = EditorManager.getFocusedInlineWidget();
 
                 if (editor) {
-                    // If there's just an insertion point select the word token at the cursor pos so
-                    // it's more clear what the context menu applies to.
-                    if (!editor.hasSelection()) {
-                        editor.selectWordAt(editor.getCursorPos());
-
+                    //if (!editor.hasSelection()) {
                         // Prevent menu from overlapping text by moving it down a little
                         // Temporarily backout this change for now to help mitigate issue #1111,
                         // which only happens if mouse is not over context menu. Better fix
                         // requires change to bootstrap, which is too risky for now.
                         //e.pageY += 6;
-                    }
+                    //}
 
                     // Inline text editors have a different context menu (safe to assume it's not some other
                     // type of inline widget since we already know an Editor has focus)
