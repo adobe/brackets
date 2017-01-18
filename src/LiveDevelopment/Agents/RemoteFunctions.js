@@ -22,7 +22,7 @@
  */
 
 /*jslint forin: true */
-/*global Node, document */
+/*global Node */
 /*theseus instrument: false */
 
 /**
@@ -102,7 +102,7 @@ function RemoteFunctions(experimental, remoteWSPort) {
     // Checks if the element is in Viewport in the client browser
     function isInViewport(element) {
         var rect = element.getBoundingClientRect();
-        var html = document.documentElement;
+        var html = window.document.documentElement;
         return (
             rect.top >= 0 &&
             rect.left >= 0 &&
@@ -864,20 +864,20 @@ function RemoteFunctions(experimental, remoteWSPort) {
             }));
         }
     }
-
-    window.document.addEventListener("click", onDocumentClick);
     
     
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
+            window.document.addEventListener("click", onDocumentClick);
         };
 				
         _ws.onmessage = function (evt) {
         };
 				
         _ws.onclose = function () {
-            // websocket is closed.
+            // websocket is closed
+            window.document.removeEventListener("click", onDocumentClick);
         };
     }
     
