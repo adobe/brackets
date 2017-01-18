@@ -1,6 +1,0 @@
-{
-  "name": "brackets-livedev-server",
-  "dependencies": {
-    "ws": "~0.4.31"
-  }
-}

@@ -20,7 +20,7 @@
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
         "build_timestamp": "",
-        "healthDataServerURL": "https://healthdev.brackets.io/healthDataLog"
+        "healthDataServerURL": "https://health.brackets.io/healthDataLog"
     },
     "name": "Brackets",
     "version": "1.9.0-0",
@@ -38,7 +38,8 @@
     "dependencies": {
         "anymatch": "1.3.0",
         "chokidar": "1.6.0",
-        "lodash": "4.15.0"
+        "lodash": "4.15.0",
+        "ws": "~0.4.31"
     },
     "devDependencies": {
         "glob": "7.0.6",
