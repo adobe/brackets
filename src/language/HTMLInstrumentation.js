@@ -53,7 +53,8 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
-        HTMLDOMDiff     = require("./HTMLDOMDiff");
+        HTMLDOMDiff     = require("./HTMLDOMDiff"),
+        _               = require("thirdparty/lodash");
 
     var allowIncremental = true;
 
@@ -92,11 +93,9 @@ define(function (require, exports, module) {
             i,
             markFound;
         
-        for (i = 0; i < marks.length; i++) {
-            if (marks[i].tagID === tagId) {
-                markFound = marks[i];
-            }
-        }
+        markFound = _.find(marks, function (mark) {
+            return (mark.tagID === tagId);
+        });
         if (markFound) {
             return markFound.find().from;
         } else {

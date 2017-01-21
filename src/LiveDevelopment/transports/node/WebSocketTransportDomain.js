@@ -21,6 +21,13 @@
  *
  */
 
+/**
+ * WebSocketTransportDomain creates a websocket server for Live Preview
+ * It receives the message containing tagID from the Remote Client(onClick)
+ * and emits an event which is listened by WebSocketTransport which 
+ * brings the cursor to the tag corresponding to that particular tagID
+ */
+
 /*eslint-env node */
 /*jslint node: true */
 "use strict";
