@@ -49,7 +49,7 @@
     "devDependencies": {
         "bluebird": "3.2.2",
         "gunzip-maybe": "^1.3.1",
-        "http-server": "^0.8.0",
+        "http-server": "^0.9.0",
         "mkdirp": "0.5.1",
         "nunjucks": "2.3.0",
         "properties-parser": "0.3.1",
