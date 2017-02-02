@@ -16,9 +16,3 @@
 [submodule "src/extensions/default/JSLint/thirdparty/jslint"]
 	path = src/extensions/default/JSLint/thirdparty/jslint
 	url = https://github.com/peterflynn/JSLint.git
-[submodule "src/extensions/default/JavaScriptCodeHints/node/node_modules/acorn"]
-	path = src/extensions/default/JavaScriptCodeHints/node/node_modules/acorn
-	url = https://github.com/marijnh/acorn.git
-[submodule "src/extensions/default/JavaScriptCodeHints/node/node_modules/tern"]
-	path = src/extensions/default/JavaScriptCodeHints/node/node_modules/tern
-	url = https://github.com/ternjs/tern.git
