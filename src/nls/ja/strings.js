@@ -153,7 +153,8 @@ define({
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
-	"BUTTON_REPLACE_ALL": "バッチ\u2026",
+	"BUTTON_REPLACE_ALL": "すべて置換",
+	"BUTTON_REPLACE_BATCH": "バッチ\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
 	"BUTTON_REPLACE": "置換",
 	"BUTTON_NEXT": "\u25B6",
@@ -418,6 +419,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "エクスプローラーで表示",
 	"CMD_SHOW_IN_FINDER": "Finder で表示",
 	"CMD_SHOW_IN_OS": "OS で表示",
+	"CMD_SWITCH_PANE_FOCUS": "Switch Pane Focus",
 
     // Help menu commands
 	"HELP_MENU": "ヘルプ",

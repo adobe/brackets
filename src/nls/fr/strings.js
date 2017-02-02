@@ -153,7 +153,8 @@ define({
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
-	"BUTTON_REPLACE_ALL": "Traiter par lots\u2026",
+	"BUTTON_REPLACE_ALL": "Remplacer tout",
+	"BUTTON_REPLACE_BATCH": "Traiter par lots\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "Remplacer\u2026",
 	"BUTTON_REPLACE": "Remplacer",
 	"BUTTON_NEXT": "\u25B6",
@@ -418,6 +419,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "Afficher dans l’Explorateur",
 	"CMD_SHOW_IN_FINDER": "Afficher dans le Finder",
 	"CMD_SHOW_IN_OS": "Afficher dans le SE",
+	"CMD_SWITCH_PANE_FOCUS": "Switch Pane Focus",
 
     // Help menu commands
 	"HELP_MENU": "Aide",
