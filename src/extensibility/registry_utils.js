@@ -31,8 +31,6 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
-    var PreferencesManager  = require("preferences/PreferencesManager");
 
     // From Brackets StringUtils
     function htmlEscape(str) {
@@ -122,7 +120,7 @@ define(function (require, exports, module) {
      *     we should look at the top level of the object.
      * @return {Array} Sorted array of registry entries.
      */
-    exports.sortRegistry = function (registry, subkey) {
+    exports.sortRegistry = function (registry, subkey, sortBy) {
         function getPublishTime(entry) {
             if (entry.versions) {
                 return new Date(entry.versions[entry.versions.length - 1].published).getTime();
@@ -138,7 +136,7 @@ define(function (require, exports, module) {
             sortedEntries.push(registry[key]);
         });
         sortedEntries.sort(function (entry1, entry2) {
-            if (PreferencesManager.get("extensions.sort") !== "publishedDate") {
+            if (sortBy !== "publishedDate") {
                 if (entry1.registryInfo && entry2.registryInfo) {
                     return entry2.registryInfo.totalDownloads - entry1.registryInfo.totalDownloads;
                 } else {
