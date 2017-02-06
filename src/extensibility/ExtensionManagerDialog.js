@@ -41,7 +41,8 @@ define(function (require, exports, module) {
         KeyEvent                    = require("utils/KeyEvent"),
         ExtensionManager            = require("extensibility/ExtensionManager"),
         ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
+        ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel"),
+        PreferencesManager          = require("preferences/PreferencesManager");
 
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
@@ -372,6 +373,11 @@ define(function (require, exports, module) {
             if (models[_activeTabIndex]) {
                 $modalDlg.scrollTop(models[_activeTabIndex].scrollPos || 0);
                 clearSearch();
+                if (_activeTabIndex === 2) {
+                    $(".ext-sort-group").hide();
+                } else {
+                    $(".ext-sort-group").show();
+                }
             }
         }
 
@@ -460,6 +466,18 @@ define(function (require, exports, module) {
                     $modalDlg.scrollTop(0);
                 });
             }).on("click", ".search-clear", clearSearch);
+            
+            // Sort the extension list based on the current selected sorting criteria
+            $dlg.on("change", ".sort-extensions", function (e) {
+                var sortBy = $(this).val();
+                PreferencesManager.set("extensions.sort", sortBy);
+                models.forEach(function (model, index) {
+                    if (index <= 1) {
+                        model._setSortedExtensionList(ExtensionManager.extensions, index === 1);
+                        views[index].filter($(".search").val());
+                    }
+                });
+            });
 
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {

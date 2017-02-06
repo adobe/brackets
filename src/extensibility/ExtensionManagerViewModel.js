@@ -30,7 +30,7 @@ define(function (require, exports, module) {
 
     var ExtensionManager = require("extensibility/ExtensionManager"),
         registry_utils   = require("extensibility/registry_utils"),
-        EventDispatcher = require("utils/EventDispatcher"),
+        EventDispatcher  = require("utils/EventDispatcher"),
         Strings          = require("strings");
 
     /**
@@ -292,6 +292,20 @@ define(function (require, exports, module) {
             });
     };
 
+    ExtensionManagerViewModel.prototype._setSortedExtensionList = function (extensions, isTheme) {
+        this.filterSet = this.sortedFullSet = registry_utils.sortRegistry(extensions, "registryInfo")
+            .filter(function (entry) {
+                if (!isTheme) {
+                    return entry.registryInfo !== undefined && !isTheme && entry.registryInfo.metadata.theme === undefined;
+                } else {
+                    return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
+                }
+            })
+            .map(function (entry) {
+                return entry.registryInfo.metadata.name;
+            });
+    };
+
     /**
      * The model for the ExtensionManagerView that is responsible for handling registry-based extensions.
      * This extends ExtensionManagerViewModel.
@@ -329,13 +343,7 @@ define(function (require, exports, module) {
                 self.extensions = ExtensionManager.extensions;
 
                 // Sort the registry by last published date and store the sorted list of IDs.
-                self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
-                    .filter(function (entry) {
-                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme === undefined;
-                    })
-                    .map(function (entry) {
-                        return entry.registryInfo.metadata.name;
-                    });
+                self._setSortedExtensionList(ExtensionManager.extensions, false);
                 self._setInitialFilter();
             })
             .fail(function () {
@@ -536,13 +544,7 @@ define(function (require, exports, module) {
                 self.extensions = ExtensionManager.extensions;
 
                 // Sort the registry by last published date and store the sorted list of IDs.
-                self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
-                    .filter(function (entry) {
-                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
-                    })
-                    .map(function (entry) {
-                        return entry.registryInfo.metadata.name;
-                    });
+                self._setSortedExtensionList(ExtensionManager.extensions, true);
                 self._setInitialFilter();
             })
             .fail(function () {

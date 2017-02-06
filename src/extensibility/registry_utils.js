@@ -31,6 +31,8 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var PreferencesManager  = require("preferences/PreferencesManager");
 
     // From Brackets StringUtils
     function htmlEscape(str) {
@@ -136,8 +138,16 @@ define(function (require, exports, module) {
             sortedEntries.push(registry[key]);
         });
         sortedEntries.sort(function (entry1, entry2) {
-            return getPublishTime((subkey && entry2[subkey]) || entry2) -
-                getPublishTime((subkey && entry1[subkey]) || entry1);
+            if (PreferencesManager.get("extensions.sort") !== "publishedDate") {
+                if (entry1.registryInfo && entry2.registryInfo) {
+                    return entry2.registryInfo.totalDownloads - entry1.registryInfo.totalDownloads;
+                } else {
+                    return Number.NEGATIVE_INFINITY;
+                }
+            } else {
+                return getPublishTime((subkey && entry2[subkey]) || entry2) -
+                    getPublishTime((subkey && entry1[subkey]) || entry1);
+            }
         });
 
         return sortedEntries;
