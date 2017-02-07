@@ -46,6 +46,10 @@ li.jstree-leaf>a>span.extension {
 	background-color: #333333;
 	border: none;
 }
+.filetree-context-extension {
+	background-color: #00FF00;
+    left: auto;
+}
 
 li.jstree-leaf>a.jstree-clicked>span {
 	color: white;
