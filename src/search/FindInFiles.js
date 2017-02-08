@@ -452,11 +452,13 @@ define(function (require, exports, module) {
      */
     function _updateDocumentInNode(docPath) {
         DocumentManager.getDocumentForPath(docPath).done(function (doc) {
-            var updateObject = {
+            if (doc) {
+                var updateObject = {
                     "filePath": docPath,
                     "docContents": doc.getText()
                 };
-            searchDomain.exec("documentChanged", updateObject);
+                searchDomain.exec("documentChanged", updateObject);
+            }
         });
     }
 
