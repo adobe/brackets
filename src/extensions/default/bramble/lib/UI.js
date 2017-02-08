@@ -70,26 +70,11 @@ define(function (require, exports, module) {
         // the ExtensionLoader logic (avoids circular dependencies)
         Theme.init(BrambleStartupState.ui("theme"));
 
-        var previewMode = BrambleStartupState.ui("previewMode");
-        if(previewMode) {
-            switch(previewMode) {
-            case "desktop":
-                showDesktopView(true);
-                break;
-            case "mobile":
-                showMobileView(true);
-                break;
-            default:
-                console.warn("[Bramble] unknown preview mode: `" + previewMode + "`");
-            }
-        }
-
         var wordWrap = BrambleStartupState.ui("wordWrap");
         if(typeof wordWrap === "boolean") {
             PreferencesManager.set("wordWrap", wordWrap);
         }
-
-        var sidebarWidth = BrambleStartupState.ui("sidebarWidth");
+     var sidebarWidth = BrambleStartupState.ui("sidebarWidth");
         if(sidebarWidth) {
             SidebarView.resize(sidebarWidth);
         }
@@ -103,9 +88,24 @@ define(function (require, exports, module) {
             }
         }
 
-        var firstPaneWidth = BrambleStartupState.ui("firstPaneWidth");
+   /*
+    var firstPaneWidth = BrambleStartupState.ui("firstPaneWidth");
         if(firstPaneWidth) {
             $("#first-pane").width(firstPaneWidth);
+        }*/    
+        
+        var previewMode = BrambleStartupState.ui("previewMode");
+        if(previewMode) {
+            switch(previewMode) {
+            case "desktop":
+                showDesktopView(true);
+                break;
+            case "mobile":
+                showMobileView(true);
+                break;
+            default:
+                console.warn("[Bramble] unknown preview mode: `" + previewMode + "`");
+            }
         }
 
         var fontSize = BrambleStartupState.ui("fontSize");
