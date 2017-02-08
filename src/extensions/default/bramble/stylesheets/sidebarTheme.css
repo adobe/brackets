@@ -34,6 +34,10 @@ li.jstree-leaf>a>span.extension {
 	color: #666666;
 }
 
+.menu-name {
+    font-size: 15px;
+}
+
 .filetree-selection {
 	background-color: #333333;
 	border: none;
@@ -46,9 +50,12 @@ li.jstree-leaf>a>span.extension {
 	background-color: #333333;
 	border: none;
 }
+.filetree-context {
+    color: white;
+    background-color: #2d9961;
+}
 .filetree-context-extension {
-	background-color: #00FF00;
-    left: auto;
+    opacity: 0.0;
 }
 
 li.jstree-leaf>a.jstree-clicked>span {
