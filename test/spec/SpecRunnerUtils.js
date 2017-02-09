@@ -1,32 +1,31 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
+/*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn, KeyboardEvent */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 define(function (require, exports, module) {
     'use strict';
-    
+
     var Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
@@ -40,7 +39,7 @@ define(function (require, exports, module) {
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         LanguageManager     = require("language/LanguageManager");
-    
+
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         EDITOR_USE_TABS         = false,
         EDITOR_SPACE_UNITS      = 4,
@@ -52,13 +51,13 @@ define(function (require, exports, module) {
         _doLoadExtensions,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
-    
+
     MainViewManager._initialize($("#mock-main-view"));
-    
+
     function _getFileSystem() {
         return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
     }
-    
+
     /**
      * Delete a path
      * @param {string} fullPath
@@ -92,8 +91,8 @@ define(function (require, exports, module) {
         });
         return result.promise();
     }
-    
-    
+
+
     /**
      * Set permissions on a path
      * @param {!string} path Path to change permissions on
@@ -102,7 +101,7 @@ define(function (require, exports, module) {
      */
     function chmod(path, mode) {
         var deferred = new $.Deferred();
-        
+
         brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
             if (err) {
                 deferred.reject(err);
@@ -113,11 +112,11 @@ define(function (require, exports, module) {
 
         return deferred.promise();
     }
-    
+
     function testDomain() {
         return brackets.testing.nodeConnection.domains.testing;
     }
-    
+
     /**
      * Remove a directory (recursively) or file
      *
@@ -127,7 +126,7 @@ define(function (require, exports, module) {
     function remove(path) {
         return testDomain().remove(path);
     }
-    
+
     /**
      * Copy a directory (recursively) or file
      *
@@ -138,7 +137,15 @@ define(function (require, exports, module) {
     function copy(src, dest) {
         return testDomain().copy(src, dest);
     }
-    
+
+    /**
+     * Rename a directory or file.
+     * @return {$.Promise} Resolved when the path is rename, rejected if there was a problem
+     */
+    function rename(src, dest) {
+        return testDomain().rename(src, dest);
+    }
+
     /**
      * Resolves a path string to a File or Directory
      * @param {!string} path Path to a file or directory
@@ -147,7 +154,7 @@ define(function (require, exports, module) {
      */
     function resolveNativeFileSystemPath(path) {
         var result = new $.Deferred();
-        
+
         _getFileSystem().resolve(path, function (err, item) {
             if (!err) {
                 result.resolve(item);
@@ -155,11 +162,11 @@ define(function (require, exports, module) {
                 result.reject(err);
             }
         });
-        
+
         return result.promise();
     }
-    
-    
+
+
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
      * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
@@ -195,19 +202,19 @@ define(function (require, exports, module) {
             return promise.state() === "rejected";
         }, "failure " + operationName, timeout);
     };
-    
+
     /**
      * Get or create a NativeFileSystem rooted at the system root.
      * @return {$.Promise} A promise resolved when the native file system is found or rejected when an error occurs.
      */
     function getRoot() {
         var deferred = new $.Deferred();
-        
+
         resolveNativeFileSystemPath("/").then(deferred.resolve, deferred.reject);
-        
+
         return deferred.promise();
     }
-    
+
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
         var path = window.location.pathname;
@@ -215,7 +222,7 @@ define(function (require, exports, module) {
         path = FileUtils.convertToNativePath(path);
         return path;
     }
-    
+
     function getTestPath(path) {
         return getTestRoot() + path;
     }
@@ -246,45 +253,65 @@ define(function (require, exports, module) {
 
         waitsForDone(deferred, "Create temp directory", 500);
     }
-    
+
     function _resetPermissionsOnSpecialTempFolders() {
-        var folders = [],
-            baseDir = getTempDirectory(),
-            promise;
-        
-        folders.push(baseDir + "/cant_read_here");
-        folders.push(baseDir + "/cant_write_here");
-        
-        promise = Async.doSequentially(folders, function (folder) {
-            var deferred = new $.Deferred();
-            
-            _getFileSystem().resolve(folder, function (err, entry) {
-                if (!err) {
-                    // Change permissions if the directory exists
-                    chmod(folder, "777").then(deferred.resolve, deferred.reject);
+        var entries = [],
+            result = new $.Deferred(),
+            promise,
+            entryPromise = new $.Deferred(),
+            tempDir;
+
+        function visitor(entry) {
+            entries.push(entry.fullPath);
+            return true;
+        }
+        tempDir = FileSystem.getDirectoryForPath(getTempDirectory());
+        tempDir.visit(visitor, function(err){
+            if (!err) {
+                entryPromise.resolve(entries);
+            } else {
+                if (err === FileSystemError.NOT_FOUND) {
+                    entryPromise.resolve(entries);
                 } else {
-                    if (err === FileSystemError.NOT_FOUND) {
-                        // Resolve the promise since the folder to reset doesn't exist
-                        deferred.resolve();
-                    } else {
-                        deferred.reject();
-                    }
+                    entryPromise.reject();
                 }
-            });
-            
-            return deferred.promise();
-        }, true);
+            }
+        });
+        entryPromise.done(function(entries){
+            promise = Async.doSequentially(entries, function (entry) {
+                var deferred = new $.Deferred();
+
+                FileSystem.resolve(entry, function (err, item) {
+                    if (!err) {
+                        // Change permissions if the directory exists
+                        chmod(entry, "777").then(deferred.resolve, deferred.reject);
+                    } else {
+                        if (err === FileSystemError.NOT_FOUND) {
+                            // Resolve the promise since the folder to reset doesn't exist
+                            deferred.resolve();
+                        } else {
+                            deferred.reject();
+                        }
+                    }
+                });
+
+                return deferred.promise();
+            }, true);
+            promise.then(result.resolve, result.reject);
+        }).fail(function() {
+            result.reject();
+        });
         
-        return promise;
+        return result.promise();
     }
-    
+
     /**
      * Remove temp folder used for temporary unit tests files
      */
     function removeTempDirectory() {
         var deferred    = new $.Deferred(),
             baseDir     = getTempDirectory();
-        
+
         runs(function () {
             _resetPermissionsOnSpecialTempFolders().done(function () {
                 deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
@@ -295,11 +322,11 @@ define(function (require, exports, module) {
             deferred.fail(function (err) {
                 console.log("boo");
             });
-        
+
             waitsForDone(deferred.promise(), "removeTempDirectory", 2000);
         });
     }
-    
+
     function getBracketsSourceRoot() {
         var path = window.location.pathname;
         path = path.split("/");
@@ -311,9 +338,9 @@ define(function (require, exports, module) {
     /**
      * Returns a Document suitable for use with an Editor in isolation, but that can be registered with
      * DocumentManager via addRef() so it is maintained for global updates like name and language changes.
-     * 
+     *
      * Like a normal Document, if you cause an addRef() on this you MUST call releaseRef() later.
-     * 
+     *
      * @param {!{language:?string, filename:?string, content:?string }} options
      * Language defaults to JavaScript, filename defaults to a placeholder name, and
      * content defaults to "".
@@ -322,11 +349,11 @@ define(function (require, exports, module) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
             filename    = options.filename || (absPathPrefix + "_unitTestDummyPath_/_dummyFile_" + Date.now() + "." + language._fileExtensions[0]),
             content     = options.content || "";
-        
+
         // Use unique filename to avoid collissions in open documents list
         var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
-        
+
         // Prevent adding doc to working set by not dispatching "dirtyFlagChange".
         // TODO: Other functionality here needs to be kept in sync with Document._handleEditorChange(). In the
         // future, we should fix things so that we either don't need mock documents or that this
@@ -338,16 +365,16 @@ define(function (require, exports, module) {
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
         };
-        
+
         return docToShim;
     }
-    
+
     /**
      * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
      * never be set as the currentDocument or added to the working set.
-     * 
+     *
      * Unlike a real Document, does NOT need to be explicitly cleaned up.
-     * 
+     *
      * @param {?string} initialContent  Defaults to ""
      * @param {?string} languageId      Defaults to JavaScript
      * @param {?string} filename        Defaults to an auto-generated filename with the language's extension
@@ -356,7 +383,7 @@ define(function (require, exports, module) {
         var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
             options     = { language: language, content: initialContent, filename: filename },
             docToShim   = createMockActiveDocument(options);
-        
+
         // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
         // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
         docToShim.addRef = function () {};
@@ -367,10 +394,10 @@ define(function (require, exports, module) {
                 throw new Error("Use create/destroyMockEditor() to test edit operations");
             }
         };
-        
+
         return docToShim;
     }
-    
+
     /**
      * Returns a mock element (in the test runner window) that's offscreen, for
      * parenting UI you want to unit-test. When done, make sure to delete it with
@@ -387,23 +414,30 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
-    function createEditorInstance(doc, $editorHolder, visibleRange) {
+    function createEditorInstance(doc, pane, visibleRange) {
+        var $editorHolder = pane.$el || pane; // To handle actual pane mock or a fake container
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
-        
+
         Editor.setUseTabChar(EDITOR_USE_TABS);
         Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+
+        if (pane.addView) {
+            pane.addView(editor);
+            editor._paneId = pane.id;
+        }
+
         EditorManager._notifyActiveEditorChanged(editor);
-        
+
         return editor;
     }
-    
+
     /**
      * Returns an Editor tied to the given Document, but suitable for use in isolation
      * (without being placed inside the surrounding Brackets UI). The Editor *will* be
      * reported as the "active editor" by EditorManager.
-     * 
+     *
      * Must be cleaned up by calling destroyMockEditor(document) later.
-     * 
+     *
      * @param {!Document} doc
      * @param {{startLine: number, endLine: number}=} visibleRange
      * @return {!Editor}
@@ -413,19 +447,19 @@ define(function (require, exports, module) {
         // (".content" may not exist, but that's ok for headless tests where editor height doesn't matter)
         var $editorHolder = createMockElement().css("width", "1000px").attr("id", "hidden-editors");
         WorkspaceManager._setMockDOM($(".content"), $editorHolder);
-        
+
         // create Editor instance
         return createEditorInstance(doc, $editorHolder, visibleRange);
     }
-    
+
     /**
      * Returns a Document and Editor suitable for use in isolation: the Document
      * will never be set as the currentDocument or added to the working set and the
      * Editor does not live inside a full-blown Brackets UI layout. The Editor *will* be
      * reported as the "active editor" by EditorManager, however.
-     * 
+     *
      * Must be cleaned up by calling destroyMockEditor(document) later.
-     * 
+     *
      * @param {string=} initialContent
      * @param {string=} languageId
      * @param {{startLine: number, endLine: number}=} visibleRange
@@ -436,25 +470,27 @@ define(function (require, exports, module) {
         var doc = createMockDocument(initialContent, languageId);
         return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
-    
-    function createMockPane($el) {
+
+    function createMockPane($el, paneId) {
         createMockElement()
             .attr("class", "pane-header")
             .appendTo($el);
         var $fakeContent = createMockElement()
             .attr("class", "pane-content")
             .appendTo($el);
-        
+
         return {
             $el: $el,
+            id: paneId || 'first-pane',
             $content: $fakeContent,
-            addView: function (path, editor) {
+            addView: function (editor) {
+                this.$content.append(editor.$el);
             },
             showView: function (editor) {
             }
         };
     }
-    
+
     /**
      * Destroy the Editor instance for a given mock Document.
      * @param {!Document} doc  Document whose master editor to destroy
@@ -466,7 +502,7 @@ define(function (require, exports, module) {
         // Clear editor holder so EditorManager doesn't try to resize destroyed object
         $("#hidden-editors").remove();
     }
-    
+
     /**
      * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
      * asynchronously; after calling this, you need to start a new runs() block before testing the
@@ -479,25 +515,25 @@ define(function (require, exports, module) {
         // Make sure there's one and only one dialog open
         var $dlg = _testWindow.$(".modal.instance"),
             promise = $dlg.data("promise");
-        
+
         expect($dlg.length).toBe(1);
-        
+
         // Make sure desired button exists
         var $dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
         expect($dismissButton.length).toBe(1);
-        
+
         if (enableFirst) {
             // Remove the disabled prop.
             $dismissButton.prop("disabled", false);
         }
-        
+
         // Click the button
         $dismissButton.click();
 
         // Dialog should resolve/reject the promise
         waitsForDone(promise, "dismiss dialog");
     }
-    
+
     function createTestWindowAndRun(spec, callback, options) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
@@ -507,23 +543,23 @@ define(function (require, exports, module) {
                 testWindowY   = window.screen.availHeight - testWindowHt,
                 optionsStr    = "left=" + testWindowX + ",top=" + testWindowY +
                                 ",width=" + testWindowWid + ",height=" + testWindowHt;
-            
+
             var params = new UrlParams();
-            
+
             // setup extension loading in the test window
             params.put("extensions", _doLoadExtensions ?
                         "default,dev," + ExtensionLoader.getUserExtensionPath() :
                         "default");
-            
+
             // disable update check in test windows
             params.put("skipUpdateCheck", true);
-            
+
             // disable loading of sample project
             params.put("skipSampleProjectLoad", true);
-            
+
             // disable initial dialog for live development
             params.put("skipLiveDevelopmentInfo", true);
-            
+
             // signals that main.js should configure RequireJS for tests
             params.put("testEnvironment", true);
 
@@ -538,15 +574,15 @@ define(function (require, exports, module) {
                         }
                     }
                 }
-            
+
                 // option to launch test window with either native or HTML menus
                 if (options.hasOwnProperty("hasNativeMenus")) {
                     params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
                 }
             }
-            
+
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
-            
+
             // Displays the primary console messages from the test window in the the
             // test runner's console as well.
             ["debug", "log", "info", "warn", "error"].forEach(function (method) {
@@ -557,17 +593,17 @@ define(function (require, exports, module) {
                     originalMethod.apply(_testWindow.console, arguments);
                 };
             });
-            
+
             _testWindow.isBracketsTestWindow = true;
-            
+
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
-            
+
             _testWindow.closeAllFiles = function closeAllFiles() {
                 runs(function () {
                     var promise = _testWindow.executeCommand(_testWindow.brackets.test.Commands.FILE_CLOSE_ALL);
-                    
+
                     _testWindow.brackets.test.Dialogs.cancelModalDialogIfOpen(
                         _testWindow.brackets.test.DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                         _testWindow.brackets.test.DefaultDialogs.DIALOG_BTN_DONTSAVE
@@ -577,7 +613,7 @@ define(function (require, exports, module) {
                 });
             };
         });
-        
+
         // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
             function isBracketsDoneLoading() {
@@ -613,22 +649,22 @@ define(function (require, exports, module) {
             _testWindow = null;
         });
     }
-    
-    
+
+
     function loadProjectInTestWindow(path) {
         runs(function () {
             // begin loading project path
             var result = _testWindow.brackets.test.ProjectManager.openProject(path);
-            
+
             // wait for file system to finish loading
             waitsForDone(result, "ProjectManager.openProject()", 10000);
         });
     }
-    
+
     /**
      * Parses offsets from text offset markup (e.g. "{{1}}" for offset 1).
      * @param {!string} text Text to parse
-     * @return {!{offsets:!Array.<{line:number, ch:number}>, text:!string, original:!string}} 
+     * @return {!{offsets:!Array.<{line:number, ch:number}>, text:!string, original:!string}}
      */
     function parseOffsetsFromText(text) {
         var offsets = [],
@@ -640,43 +676,43 @@ define(function (require, exports, module) {
             length  = text.length,
             exec    = null,
             found   = false;
-        
+
         while (i < length) {
             found = false;
-            
+
             if (text.slice(i, i + OPEN_TAG.length) === OPEN_TAG) {
                 // find "{{[0-9]+}}"
                 RE_MARKER.lastIndex = i;
                 exec = RE_MARKER.exec(text);
                 found = (exec !== null && exec.index === i);
-                
+
                 if (found) {
                     // record offset info
                     offsets[exec[1]] = {line: line, ch: ch};
-                    
+
                     // advance
                     i += exec[0].length;
                 }
             }
-            
+
             if (!found) {
                 charAt = text.substr(i, 1);
                 output.push(charAt);
-                
+
                 if (charAt === '\n') {
                     line++;
                     ch = 0;
                 } else {
                     ch++;
                 }
-                
+
                 i++;
             }
         }
-        
+
         return {offsets: offsets, text: output.join(""), original: text};
     }
-    
+
     /**
      * Creates absolute paths based on the test window's current project
      * @param {!Array.<string>|string} paths Project relative file path(s) to convert. May pass a single string path or array.
@@ -684,22 +720,22 @@ define(function (require, exports, module) {
      */
     function makeAbsolute(paths) {
         var fullPath = _testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath;
-        
+
         function prefixProjectPath(path) {
             if (path.indexOf(fullPath) === 0) {
                 return path;
             }
-            
+
             return fullPath + path;
         }
-        
+
         if (Array.isArray(paths)) {
             return paths.map(prefixProjectPath);
         } else {
             return prefixProjectPath(paths);
         }
     }
-    
+
     /**
      * Creates relative paths based on the test window's current project. Any paths,
      * outside the project are included in the result, but left as absolute paths.
@@ -709,30 +745,30 @@ define(function (require, exports, module) {
     function makeRelative(paths) {
         var fullPath = _testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath,
             fullPathLength = fullPath.length;
-        
+
         function removeProjectPath(path) {
             if (path.indexOf(fullPath) === 0) {
                 return path.substring(fullPathLength);
             }
-            
+
             return path;
         }
-        
+
         if (Array.isArray(paths)) {
             return paths.map(removeProjectPath);
         } else {
             return removeProjectPath(paths);
         }
     }
-    
+
     function makeArray(arg) {
         if (!Array.isArray(arg)) {
             return [arg];
         }
-        
+
         return arg;
     }
-    
+
     /**
      * Opens project relative file paths in the test window
      * @param {!(Array.<string>|string)} paths Project relative file path(s) to open
@@ -746,17 +782,17 @@ define(function (require, exports, module) {
             docs = {},
             FileViewController = _testWindow.brackets.test.FileViewController,
             DocumentManager = _testWindow.brackets.test.DocumentManager;
-        
+
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
-            
+
             FileViewController.openFileAndAddToWorkingSet(path).done(function (file) {
                 docs[keys[i]] = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 one.resolve();
             }).fail(function (err) {
                 one.reject(err);
             });
-            
+
             return one.promise();
         }, false).done(function () {
             result.resolve(docs);
@@ -766,7 +802,7 @@ define(function (require, exports, module) {
             docs = null;
             FileViewController = null;
         });
-        
+
         return result.promise();
     }
 
@@ -784,7 +820,7 @@ define(function (require, exports, module) {
             options = {
                 blind: true // overwriting previous files is OK
             };
-        
+
         file.write(text, options, function (err) {
             if (!err) {
                 deferred.resolve(file);
@@ -795,7 +831,7 @@ define(function (require, exports, module) {
 
         return deferred.promise();
     }
-    
+
     /**
      * Copy a file source path to a destination
      * @param {!File} source Entry for the source file to copy
@@ -809,21 +845,21 @@ define(function (require, exports, module) {
      */
     function copyFileEntry(source, destination, options) {
         options = options || {};
-        
+
         var deferred = new $.Deferred();
-        
+
         // read the source file
         FileUtils.readAsText(source).done(function (text, modificationTime) {
             getRoot().done(function (nfs) {
                 var offsets;
-                
+
                 // optionally parse offsets
                 if (options.parseOffsets) {
                     var parseInfo = parseOffsetsFromText(text);
                     text = parseInfo.text;
                     offsets = parseInfo.offsets;
                 }
-                
+
                 // create the new File
                 createTextFile(destination, text, _getFileSystem()).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
@@ -834,10 +870,10 @@ define(function (require, exports, module) {
         }).fail(function (err) {
             deferred.reject(err);
         });
-        
+
         return deferred.promise();
     }
-    
+
     /**
      * Copy a directory source to a destination
      * @param {!Directory} source Directory to copy
@@ -858,19 +894,19 @@ define(function (require, exports, module) {
     function copyDirectoryEntry(source, destination, options) {
         options = options || {};
         options.infos = options.infos || {};
-        
+
         var parseOffsets    = options.parseOffsets || false,
             removePrefix    = options.removePrefix || true,
             deferred        = new $.Deferred(),
             destDir         = _getFileSystem().getDirectoryForPath(destination);
-        
+
         // create the destination folder
         destDir.create(function (err) {
             if (err && err !== FileSystemError.ALREADY_EXISTS) {
                 deferred.reject();
                 return;
             }
-            
+
             source.getContents(function (err, contents) {
                 if (!err) {
                     // copy all children of this directory
@@ -879,12 +915,12 @@ define(function (require, exports, module) {
                         function copyChild(child) {
                             var childDestination = destination + "/" + child.name,
                                 promise;
-                            
+
                             if (child.isDirectory) {
                                 promise = copyDirectoryEntry(child, childDestination, options);
                             } else {
                                 promise = copyFileEntry(child, childDestination, options);
-                                
+
                                 if (parseOffsets) {
                                     // save offset data for each file path
                                     promise.done(function (destinationEntry, offsets, text) {
@@ -896,18 +932,18 @@ define(function (require, exports, module) {
                                     });
                                 }
                             }
-                            
+
                             return promise;
                         }
                     );
-                    
+
                     copyChildrenPromise.then(deferred.resolve, deferred.reject);
                 } else {
                     deferred.reject(err);
                 }
             });
         });
-        
+
         deferred.always(function () {
             // remove destination path prefix
             if (removePrefix && options.infos) {
@@ -918,10 +954,10 @@ define(function (require, exports, module) {
                 });
             }
         });
-        
+
         return deferred.promise();
     }
-    
+
     /**
      * Copy a file or directory source path to a destination
      * @param {!string} source Path for the source file or directory to copy
@@ -941,16 +977,16 @@ define(function (require, exports, module) {
      */
     function copyPath(source, destination, options) {
         var deferred = new $.Deferred();
-        
+
         resolveNativeFileSystemPath(source).done(function (entry) {
             var promise;
-            
+
             if (entry.isDirectory) {
                 promise = copyDirectoryEntry(entry, destination, options);
             } else {
                 promise = copyFileEntry(entry, destination, options);
             }
-            
+
             promise.then(deferred.resolve, function (err) {
                 console.error(destination);
                 deferred.reject();
@@ -958,36 +994,47 @@ define(function (require, exports, module) {
         }).fail(function () {
             deferred.reject();
         });
-        
+
         return deferred.promise();
     }
-    
+
     /**
      * Set editor cursor position to the given offset then activate an inline editor.
      * @param {!Editor} editor
      * @param {!{line:number, ch:number}} offset
-     * @return {$.Promise} a promise that will be resolved when an inline 
+     * @return {$.Promise} a promise that will be resolved when an inline
      *  editor is created or rejected when no inline editors are available.
      */
     function toggleQuickEditAtOffset(editor, offset) {
         editor.setCursorPos(offset.line, offset.ch);
-        
+
         return _testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
     }
 
     /**
-     * Simulate key event. Found this code here:
-     * http://stackoverflow.com/questions/10455626/keydown-simulation-in-chrome-fires-normally-but-not-the-correct-key
-     *
-     * TODO: need parameter(s) for modifier keys
-     *
+     * Simulate a key event.
      * @param {Number} key Key code
      * @param (String) event Key event to simulate
      * @param {HTMLElement} element Element to receive event
+     * @param {KeyboardEventInit} options Optional arguments for key event
      */
-    function simulateKeyEvent(key, event, element) {
-        var doc = element.ownerDocument,
-            oEvent = doc.createEvent('KeyboardEvent');
+    function simulateKeyEvent(key, event, element, options) {
+        var doc = element.ownerDocument;
+
+        if(typeof options === 'undefined') {
+            options = {
+                view: doc.defaultView,
+                bubbles: true,
+                cancelable: true,
+                keyIdentifer: key
+            };
+        } else {
+            options.view = doc.defaultView;
+            options.bubbles = true;
+            options.cancelable = true;
+            options.keyIdentifier = key;
+        }
+        var oEvent = new KeyboardEvent(event, options);
 
         if (event !== "keydown" && event !== "keyup" && event !== "keypress") {
             console.log("SpecRunnerUtils.simulateKeyEvent() - unsupported keyevent: " + event);
@@ -1013,15 +1060,9 @@ define(function (require, exports, module) {
             }
         });
 
-        if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
-        } else {
-            oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
-        }
-
         oEvent.keyCodeVal = key;
         if (oEvent.keyCode !== key) {
-            console.log("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
+            console.log("SpecRunnerUtils.simulateKeyEvent() - keyCode mismatch: " + oEvent.keyCode);
         }
 
         element.dispatchEvent(oEvent);
@@ -1030,7 +1071,7 @@ define(function (require, exports, module) {
     function getTestWindow() {
         return _testWindow;
     }
-    
+
     function setLoadExtensionsInTestWindow(doLoadExtensions) {
         _doLoadExtensions = doLoadExtensions;
     }
@@ -1085,14 +1126,14 @@ define(function (require, exports, module) {
             message = result.toString();
         } else if (result.type === 'expect' && result.passed && !result.passed()) {
             message = result.message;
-            
+
             if (result.trace.stack) {
                 message = result.trace.stack;
             }
         }
         return message;
     }
-    
+
     /**
      * Searches the DOM tree for text containing the given content. Useful for verifying
      * that data you expect to show up in the UI somewhere is actually there.
@@ -1128,7 +1169,7 @@ define(function (require, exports, module) {
         }
     }
 
-    
+
     /**
      * Patches ProjectManager.getAllFiles() in the given test window (for just the current it() block) so that it
      * includes one extra file in its results. The file need not actually exist on disk.
@@ -1139,7 +1180,7 @@ define(function (require, exports, module) {
         var ProjectManager  = testWindow.brackets.test.ProjectManager,
             FileSystem      = testWindow.brackets.test.FileSystem,
             origGetAllFiles = ProjectManager.getAllFiles;
-        
+
         spyOn(ProjectManager, "getAllFiles").andCallFake(function () {
             var testResult = new testWindow.$.Deferred();
             origGetAllFiles.apply(ProjectManager, arguments).done(function (result) {
@@ -1152,8 +1193,8 @@ define(function (require, exports, module) {
             return testResult;
         });
     }
-    
-    
+
+
     /**
      * Counts the number of active specs in the current suite. Includes all
      * descendants.
@@ -1179,8 +1220,8 @@ define(function (require, exports, module) {
 
         return 0;
     }
-    
-    
+
+
     /**
      * @private
      * Adds a new before all or after all function to the current suite. If requires it creates a new
@@ -1199,7 +1240,7 @@ define(function (require, exports, module) {
         }
         _testSuites[suiteId][type].push(func);
     }
-    
+
     /**
      * Utility for tests that need to open a window or do something before every test in a suite
      * @param {function} func
@@ -1207,7 +1248,7 @@ define(function (require, exports, module) {
     window.beforeFirst = function (func) {
         _addSuiteFunction("beforeFirst", func);
     };
-    
+
     /**
      * Utility for tests that need to close a window or do something after every test in a suite
      * @param {function} func
@@ -1215,7 +1256,7 @@ define(function (require, exports, module) {
     window.afterLast = function (func) {
         _addSuiteFunction("afterLast", func);
     };
-    
+
     /**
      * @private
      * Returns an array with the parent suites of the current spec with the top most suite last
@@ -1224,12 +1265,12 @@ define(function (require, exports, module) {
     function _getParentSuites() {
         var suite  = jasmine.getEnv().currentSpec.suite,
             suites = [];
-        
+
         while (suite) {
             suites.push(suite);
             suite = suite.parentSuite;
         }
-        
+
         return suites;
     }
 
@@ -1244,19 +1285,19 @@ define(function (require, exports, module) {
             func.apply(spec);
         });
     }
-    
+
     /**
      * Calls the before first functions for the parent suites of the current spec when is the first spec of the suite.
      */
     function runBeforeFirst() {
         var suites = _getParentSuites().reverse();
-        
+
         // SpecRunner-scoped beforeFirst
         if (_testSuites[_rootSuite.id].beforeFirst) {
             _callFunctions(_testSuites[_rootSuite.id].beforeFirst);
             _testSuites[_rootSuite.id].beforeFirst = null;
         }
-        
+
         // Iterate through all the parent suites of the current spec
         suites.forEach(function (suite) {
             // If we have functions for this suite and it was never called, initialize the spec counter
@@ -1266,7 +1307,7 @@ define(function (require, exports, module) {
             }
         });
     }
-    
+
     /**
      * @private
      * @return {boolean} True if the current spect is the last spec to be run
@@ -1274,19 +1315,19 @@ define(function (require, exports, module) {
     function _isLastSpec() {
         return _unitTestReporter.activeSpecCompleteCount === _unitTestReporter.activeSpecCount - 1;
     }
-    
+
     /**
      * Calls the after last functions for the parent suites of the current spec when is the last spec of the suite.
      */
     function runAfterLast() {
         var suites = _getParentSuites();
-        
+
         // Iterate throught all the parent suites of the current spec
         suites.forEach(function (suite) {
             // If we have functions for this suite, reduce the spec counter
             if (_testSuites[suite.id] && _testSuites[suite.id].specCounter > 0) {
                 _testSuites[suite.id].specCounter--;
-                
+
                 // If this was the last spec of the suite run the after last functions and remove it
                 if (_testSuites[suite.id].specCounter === 0) {
                     _callFunctions(_testSuites[suite.id].afterLast);
@@ -1294,14 +1335,14 @@ define(function (require, exports, module) {
                 }
             }
         });
-        
+
         // SpecRunner-scoped afterLast
         if (_testSuites[_rootSuite.id].afterLast && _isLastSpec()) {
             _callFunctions(_testSuites[_rootSuite.id].afterLast);
             _testSuites[_rootSuite.id].afterLast = null;
         }
     }
-    
+
     // "global" custom matchers
     beforeEach(function () {
         this.addMatchers({
@@ -1312,11 +1353,11 @@ define(function (require, exports, module) {
                 var editor = this.actual;
                 var selection = editor.getSelection();
                 var notString = this.isNot ? "not " : "";
-                
+
                 var start = selection.start;
                 var end = selection.end;
                 var selectionMoreThanOneCharacter = start.line !== end.line || start.ch !== end.ch;
-                
+
                 this.message = function () {
                     var message = "Expected the cursor to " + notString + "be at (" + line + ", " + ch +
                         ") but it was actually at (" + start.line + ", " + start.ch + ")";
@@ -1325,9 +1366,9 @@ define(function (require, exports, module) {
                     }
                     return message;
                 };
-                
+
                 var positionsMatch = start.line === line && start.ch === ch;
-                
+
                 // when adding the not operator, it's confusing to check both the size of the
                 // selection and the position. We just check the position in that case.
                 if (this.isNot) {
@@ -1338,11 +1379,11 @@ define(function (require, exports, module) {
             }
         });
     });
-    
+
     function setUnitTestReporter(reporter) {
         _unitTestReporter = reporter;
     }
-    
+
     exports.TEST_PREFERENCES_KEY            = TEST_PREFERENCES_KEY;
     exports.EDITOR_USE_TABS                 = EDITOR_USE_TABS;
     exports.EDITOR_SPACE_UNITS              = EDITOR_SPACE_UNITS;
@@ -1350,6 +1391,7 @@ define(function (require, exports, module) {
     exports.chmod                           = chmod;
     exports.remove                          = remove;
     exports.copy                            = copy;
+    exports.rename                          = rename;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;

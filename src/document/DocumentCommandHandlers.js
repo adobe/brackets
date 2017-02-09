@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, WebSocket */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -44,6 +42,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
+        HealthLogger        = require("utils/HealthLogger"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
@@ -97,7 +96,7 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var _osDash = brackets.platform === "mac" ? "\u2014" : "-";
-    
+
     /**
      * String template for window title when no file is open.
      * @type {string}
@@ -137,7 +136,9 @@ define(function (require, exports, module) {
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
 
-    PreferencesManager.definePreference("defaultExtension", "string", "");
+    PreferencesManager.definePreference("defaultExtension", "string", "", {
+        excludeFromHints: true
+    });
 
     /**
      * JSLint workaround for circular dependency
@@ -256,7 +257,7 @@ define(function (require, exports, module) {
             _updateTitle();
         }
     }
-    
+
     /**
      * Shows an error dialog indicating that the given file could not be opened due to the given error
      * @param {!FileSystemError} name
@@ -279,7 +280,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE. 
+     * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE.
      * @param {{*}=} options, command options
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a file for the specified file path or
@@ -293,8 +294,8 @@ define(function (require, exports, module) {
         // TODO should be removed once bug is closed.
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
-        if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE) === fullPath) {
-            result.resolve(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
+        if (MainViewManager.getCurrentlyViewedPath(paneId || MainViewManager.ACTIVE_PANE) === fullPath) {
+            result.resolve(MainViewManager.getCurrentlyViewedFile(paneId || MainViewManager.ACTIVE_PANE));
             return result.promise();
         }
 
@@ -352,8 +353,8 @@ define(function (require, exports, module) {
      * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE
      * @param {{*}=} options - options to pass to MainViewManager._open
-     * @return {$.Promise} a jQuery promise resolved with a Document object or 
-     *                      rejected with an err 
+     * @return {$.Promise} a jQuery promise resolved with a Document object or
+     *                      rejected with an err
      */
     function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
         var result;
@@ -378,7 +379,7 @@ define(function (require, exports, module) {
                             filesToOpen.push(FileSystem.getFileForPath(path));
                         });
                         MainViewManager.addListToWorkingSet(paneId, filesToOpen);
-                        
+
                         _doOpen(paths[paths.length - 1], silent, paneId, options)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath =
@@ -451,9 +452,10 @@ define(function (require, exports, module) {
             silent = (commandData && commandData.silent) || false,
             paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
             result = new $.Deferred();
-        
+
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
+                HealthLogger.fileOpened(fileInfo.path);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
@@ -531,6 +533,7 @@ define(function (require, exports, module) {
         return handleFileOpen(commandData).done(function (file) {
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
             MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
+            HealthLogger.fileOpened(file.fullPath, true);
         });
     }
 
@@ -1179,6 +1182,7 @@ define(function (require, exports, module) {
         var file,
             promptOnly,
             _forceClose,
+            _spawnedRequest,
             paneId = MainViewManager.ACTIVE_PANE;
 
         if (commandData) {
@@ -1186,6 +1190,7 @@ define(function (require, exports, module) {
             promptOnly  = commandData.promptOnly;
             _forceClose = commandData._forceClose;
             paneId      = commandData.paneId || paneId;
+            _spawnedRequest = commandData.spawnedRequest || false;
         }
 
         // utility function for handleFileClose: closes document & removes from workingset
@@ -1210,8 +1215,9 @@ define(function (require, exports, module) {
 
         var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
 
-        if (doc && doc.isDirty && !_forceClose) {
-            // Document is dirty: prompt to save changes before closing
+        if (doc && doc.isDirty && !_forceClose && (MainViewManager.isExclusiveToPane(doc.file, paneId) || _spawnedRequest)) {
+            // Document is dirty: prompt to save changes before closing if only the document is exclusively
+            // listed in the requested pane or this is part of a list close request
             var filename = FileUtils.getBaseName(doc.file.fullPath);
 
             Dialogs.showModalDialog(
@@ -1309,7 +1315,7 @@ define(function (require, exports, module) {
 
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
+            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly, spawnedRequest: true };
 
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents
@@ -1438,8 +1444,6 @@ define(function (require, exports, module) {
                     console.error(ex);
                 }
 
-                PreferencesManager.savePreferences();
-
                 postCloseHandler();
             })
             .fail(function () {
@@ -1529,9 +1533,19 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
-    function goNextPrevDoc(inc) {
-        var result = MainViewManager.traverseToNextViewByMRU(inc);
+    /**
+     * Navigate to the next/previous (MRU or list order) document. Don't update MRU order yet
+     * @param {!number} inc Delta indicating in which direction we're going
+     * @param {?boolean} listOrder Whether to navigate using MRU or list order. Defaults to MRU order
+     */
+    function goNextPrevDoc(inc, listOrder) {
+        var result;
+        if (listOrder) {
+            result = MainViewManager.traverseToNextViewInListOrder(inc);
+        } else {
+            result = MainViewManager.traverseToNextViewByMRU(inc);
+        }
+
         if (result) {
             var file = result.file,
                 paneId = result.paneId;
@@ -1548,14 +1562,24 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Next Doc command handler **/
+    /** Next Doc command handler (MRU order) **/
     function handleGoNextDoc() {
         goNextPrevDoc(+1);
-
     }
-    /** Previous Doc command handler **/
+
+    /** Previous Doc command handler (MRU order) **/
     function handleGoPrevDoc() {
         goNextPrevDoc(-1);
+    }
+
+    /** Next Doc command handler (list order) **/
+    function handleGoNextDocListOrder() {
+        goNextPrevDoc(+1, true);
+    }
+
+    /** Previous Doc command handler (list order) **/
+    function handleGoPrevDocListOrder() {
+        goNextPrevDoc(-1, true);
     }
 
     /** Show in File Tree command handler **/
@@ -1566,6 +1590,7 @@ define(function (require, exports, module) {
     /** Delete file command handler  **/
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem();
+
         // XXXBramble: always prompt, needs updated l10n
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_EXT_DELETED,
@@ -1676,7 +1701,10 @@ define(function (require, exports, module) {
                     href = href.substr(0, fragment);
                 }
 
-                window.location.href = href;
+                // Defer for a more successful reload - issue #11539
+                setTimeout(function () {
+                    window.location.href = href;
+                }, 1000);
             });
         }).fail(function () {
             _isReloading = false;
@@ -1758,7 +1786,7 @@ define(function (require, exports, module) {
     } else if (brackets.platform === "mac") {
         showInOS    = Strings.CMD_SHOW_IN_FINDER;
     }
-    
+
     // Define public API
     exports.showFileOpenError = showFileOpenError;
 
@@ -1788,6 +1816,9 @@ define(function (require, exports, module) {
     // Traversal
     CommandManager.register(Strings.CMD_NEXT_DOC,                    Commands.NAVIGATE_NEXT_DOC,              handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,                    Commands.NAVIGATE_PREV_DOC,              handleGoPrevDoc);
+
+    CommandManager.register(Strings.CMD_NEXT_DOC_LIST_ORDER,         Commands.NAVIGATE_NEXT_DOC_LIST_ORDER,   handleGoNextDocListOrder);
+    CommandManager.register(Strings.CMD_PREV_DOC_LIST_ORDER,         Commands.NAVIGATE_PREV_DOC_LIST_ORDER,   handleGoPrevDocListOrder);
 
     // Special Commands
     CommandManager.register(showInOS,                                Commands.NAVIGATE_SHOW_IN_OS,            handleShowInOS);

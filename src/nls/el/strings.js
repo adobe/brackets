@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,11 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
-    
+
     /**
      * Errors
      */
@@ -34,11 +31,18 @@ define({
     "GENERIC_ERROR"                     : "(error {0})",
     "NOT_FOUND_ERR"                     : "Το αρχείο δεν βρέθηκε.",
     "NOT_READABLE_ERR"                  : "Το αρχείο δεν μπορεί να διαβαστεί.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Αρχεία που ξεπερνούν τα {0} MB δεν μπορούν να ανοίξουν στο {APP_NAME}.",
+    "CONTENTS_MODIFIED_ERR"             : "Το αρχείο έχει τροποποιηθεί εκτός του {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Ο φάκελος δεν μπορεί να τροποποιηθεί.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Δεν επιτρέπεται να κάνεις τροποποιήσεις.",
     "FILE_EXISTS_ERR"                   : "Αυτό το αρχείο ή ο φάκελος υπάρχουν ήδη.",
     "FILE"                              : "αρχείο",
+    "FILE_TITLE"                        : "Αρχείο",
     "DIRECTORY"                         : "φάκελος",
+    "DIRECTORY_TITLE"                   : "Φάκελος",
+    "FILENAMES_LEDE"                    : "Ονόματα αρχείων",
+    "FILENAME"                          : "Όνομα αρχείου",
+    "DIRECTORY_NAME"                    : "Όνομα φακέλου",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Σφάλμα φόρτωσης project",
@@ -60,7 +64,6 @@ define({
     "ERROR_DELETING_FILE"               : "Σφάλμα προέκυψε κατά τη διαδικασία διαγραφής του αρχείου <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Μη έγκυρο {0} όνομα",
     "INVALID_FILENAME_MESSAGE"          : "Τα όνομα αρχείων δεν μπορούν να περιέχουν τους ακόλουθους χαρακτήρες: {0} ή οποιεσδήποτε system reserved λέξεις.",
-    "FILE_ALREADY_EXISTS"               : "Το {0} <span class='dialog-filename'>{1}</span> υπάρχει ήδη.",
     "ERROR_CREATING_FILE_TITLE"         : "Σφάλμα δημιουργίας {0}",
     "ERROR_CREATING_FILE"               : "Σφάλμα προέκυψε κατά τη διαδικασία δημιουργίας του {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -76,7 +79,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Σφάλμα ανοίγματος browser",
     "ERROR_CANT_FIND_CHROME"            : "Ο Google Chrome browser δεν βρέθηκε. Παρακαλούμε σιγουρευτείτε ότι είναι εγκατεστημένος.",
     "ERROR_LAUNCHING_BROWSER"           : "Σφάλμα προέκυψε κατά τη διαδικασία ανοίγματος του browser. (error {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Σφάλμα Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Σύνδεση στον Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Για να συνδεθεί το Live Preview, ο Chrome πρέπει να επανεκκινηθεί με το remote debugging (απομακρυσμένη αποσφαλμάτωση) ενεργοποιημένο.<br /><br />Θέλετε να επανεκκινήσετε τον Chrome και να ενεργοποιήσετε το remote debugging;",
@@ -87,7 +90,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Καλώς ήρθατε στο Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Το Live Preview συνδέει το {APP_NAME} με τον browser σας. Ανοίγει μια προεπισκόπηση του HTML αρχείου σας στον browser, και την ανανεώνει στιγμιαία ενώ επεξεργάζεστε τον κώδικα.<br /><br />Σε τούτη την πρώιμη έκδοση του {APP_NAME}, το Live Preview δουλεύει μόνο με <strong>Google Chrome</strong> και ανανεώνει άμεσα την σελίδα ενώ επεξεργάζεστε <strong>αρχεία CSS ή HTML</strong>. Αλλαγές σε αρχεία JavaScript ανανεώνονται αυτόματα όταν κάνετε αποθήκευση.<br /><br />(Το μήνυμα αυτό θα αυτοκαταστραφεί μετά την πρώτη εμφάνιση του.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Για περισσότερες πληροφορίες δείτε εδώ: <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Σύνδεση\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Εκκίνηση\u2026",
@@ -99,29 +102,29 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Το Live Preview ακυρώθηκε επειδή η σελίδα στον browser έκλεισε",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Το Live Preview ακυρώθηκε επειδή ο browser πήγε σε μια σελίδα που δεν είναι μέρος του τρέχων project",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Το Live Preview ακυρώθηκε. Δεν ξέρουμε γιατί. ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Αποθήκευση Αλλαγών",
     "SAVE_CLOSE_MESSAGE"                : "Θέλετε να αποθηκεύσετε τις αλλαγές που κάνατε στο έγγραφο <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Θέλετε να αποθηκεύσετε τις αλλαγές σας στα παρακάτω αρχεία;",
     "EXT_MODIFIED_TITLE"                : "Εξωτερικές Αλλαγές",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Επιβεβαίωση Διαγραφής",
+    "CONFIRM_DELETE_TITLE"              : "Επιβεβαίωση Διαγραφής",
+    "CONFIRM_FILE_DELETE"               : "Είστε σίγουρος ότι θέλετε να διαγράψε το αρχείο <span class='dialog-filename'>{0}</span>?",
     "CONFIRM_FOLDER_DELETE"             : "Είστε σίγουρος ότι θέλετε να διαγράψετε τον φάκελο <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Το Αρχείο Διαγράφηκε",
     "EXT_MODIFIED_MESSAGE"              : "Το <span class='dialog-filename'>{0}</span> έχει τροποποιηθεί στο δίσκο, αλλά υπάρχουν και μη αποθηκευμένες αλλαγές στο {APP_NAME}.<br /><br />Ποια έκδοση θέλετε να κρατήσετε;",
     "EXT_DELETED_MESSAGE"               : "Το <span class='dialog-filename'>{0}</span> έχει διαγραφεί στον δίσκο, αλλά έχει μη αποθηκευμένες αλλαγές στο {APP_NAME}.<br /><br />Θέλετε να κρατήσετε τις αλλαγές σας;",
-    
+
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Χρησιμοποιήστε την σύνταξη /re/ για αναζήτηση regexp",
-    "FIND_RESULT_COUNT"                 : "{0} αποτελέσματα",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 αποτέλεσμα",
+    "FIND_MATCH_INDEX"                  : "{0} από {1}",
     "FIND_NO_RESULTS"                   : "Δεν βρέθηκαν αποτελέσματα",
-    "WITH"                              : "Με",
+    "FIND_QUERY_PLACEHOLDER"            : "Εύρεση\u2026",
+    "REPLACE_PLACEHOLDER"               : "Αντικατάσταση με\u2026",
     "BUTTON_YES"                        : "Ναι",
     "BUTTON_NO"                         : "Όχι",
     "BUTTON_REPLACE_ALL"                : "Όλα\u2026",
-    "BUTTON_STOP"                       : "Διακοπή",
     "BUTTON_REPLACE"                    : "Αντικατάσταση",
-            
+    "BUTTON_REGEXP_HINT"                : "Κανονική έκφραση",
+
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Επόμενη Αντιστοιχία",
@@ -134,14 +137,11 @@ define({
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "Έχετε την τελευταία έκδοση!",
     "NO_UPDATE_MESSAGE"                 : "Τρέχετε την τελευταία έκδοση του {APP_NAME}.",
+    
+    //Find and replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Αντικατάσταση",
+    "FIND_REPLACE_TITLE_WITH"           : "με",
 
-    "FIND_REPLACE_TITLE_PART1"          : "Αντικατάσταση \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" με \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
-
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" βρέθηκε",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "στο <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "στο project",
     "FIND_IN_FILES_FILE"                : "αρχείο",
@@ -151,6 +151,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Πάνω από ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Αντικατάσταση λαθών",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Σφάλμα λήψης πληροφοριών αναβάθμισης",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Προέκυψε σφάλμα κατά τη διαδικασία λήψης πληροφοριών της τελευταίας αναβάθμισης από τον server. Παρακαλούμε βεβαιωθείτε ότι είστε συνδεδεμένος στο internet και προσπαθήστε ξανά.",
 
@@ -161,13 +162,14 @@ define({
     "UNTITLED"          : "Άτιτλο",
     "WORKING_FILES"     : "Αρχεία Εργασίας",
 
+   
     /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -176,6 +178,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 επιλεγμένες {0} στήλες",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 επιλεγμένη {0} γραμμή",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 επιλεγμένες {0} γραμμές",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} επιλογές",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Κάντε κλικ για να αλλάξετε τις εσοχές (indentation) σε κενά",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Κάντε κλικ για να αλλάξετε τις εσοχές (indentation) σε tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Κάντε κλικ για να αλλάξετε τον αριθμό των κενών στις εσοχές",
@@ -184,19 +187,19 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Μέγεθος Tab:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Γραμμή",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Γραμμές",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Οι επεκτάσεις απενεργοποιήθηκαν",
+    "STATUSBAR_LANG_TOOLTIP"                : "Κάνε κλικ για να αλλάξεις τον τύπο του αρχείου",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Ορισμός ως προεπιλογή για .{0} αρχεία",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} Σφάλματα",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Προβλήματα",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Lint Προβλήματα",
     "SINGLE_ERROR"                          : "1 {0} Σφάλμα",
     "MULTIPLE_ERRORS"                       : "{1} {0} Σφάλματα",
     "NO_ERRORS"                             : "Καθόλου {0} σφάλματα - καλή δουλειά!",
     "LINT_DISABLED"                         : "Το Linting είναι απενεργοποιημένο",
     "NO_LINT_AVAILABLE"                     : "Δεν υπάρχει linter διαθέσιμος για {0}",
     "NOTHING_TO_LINT"                       : "Δεν υπάρχει κάτι για να γίνει lint",
-    
-    
+    "LINTER_FAILED"                         : "{0} τερμάτισε με σφάλμα: {1}",
+
     /**
      * Command Name Constants
      */
@@ -207,7 +210,7 @@ define({
     "CMD_FILE_NEW"                        : "Νέο Αρχείο",
     "CMD_FILE_NEW_FOLDER"                 : "Νέος Φάκελος",
     "CMD_FILE_OPEN"                       : "Άνοιγμα\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Πρόσθεση στα Αρχεία Εργασίας",
+    "CMD_ADD_TO_WORKING_SET"              : "Προσθήκη στα Αρχεία Εργασίας",
     "CMD_OPEN_DROPPED_FILES"              : "Άνοιγμα Αρχείων που ρίχτηκαν",
     "CMD_OPEN_FOLDER"                     : "Άνοιγμα Φακέλου\u2026",
     "CMD_FILE_CLOSE"                      : "Κλείσιμο",
@@ -239,6 +242,8 @@ define({
     "CMD_PASTE"                           : "Επικόλληση",
     "CMD_SELECT_ALL"                      : "Επιλογή Όλων",
     "CMD_SELECT_LINE"                     : "Επιλογή Γραμμής",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Προσθήκη κέρσοσα στην επόμενη γραμμή",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Προσθήκη κέρσοσα στην προηγούμενη γραμμή",
     "CMD_FIND"                            : "Εύρεση",
     "CMD_FIND_IN_FILES"                   : "Εύρεση σε Αρχεία",
     "CMD_FIND_IN_SUBTREE"                 : "Εύρεση σε\u2026",
@@ -257,7 +262,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Δημιουργία Γραμμής από κάτω",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Αυτόματο Κλείσιμο Αγκίστρων",
     "CMD_SHOW_CODE_HINTS"                 : "Προβολή Υποδείξεων Κώδικα",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Προβολή",
     "CMD_HIDE_SIDEBAR"                    : "Απόκρυψη Πλευρικής Εργαλειοθήκης",
@@ -272,10 +277,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Αναδίπλωση Λέξης",
     "CMD_LIVE_HIGHLIGHT"                  : "Επισήμανση Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Αρχείων κατά την Αποθήκευση",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Αυτόματη Ταξινόμηση",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Αυτόματη Ταξινόμηση",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Πλοήγηση",
@@ -290,19 +295,23 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Νέος Κανόνας",
     "CMD_NEXT_DOC"                        : "Επόμενο Έγγραφο",
     "CMD_PREV_DOC"                        : "Προηγούμενο Έγγραφο",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Επόμενο έγγραφο στην λίστα",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Προηγούμενο έγγραφο στην λίστα",
     "CMD_SHOW_IN_TREE"                    : "Προβολή στο Δέντρο Αρχείων",
     "CMD_SHOW_IN_OS"                      : "Προβολή στο Λειτουργικό Σύστημα",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Βοήθεια",
     "CMD_CHECK_FOR_UPDATE"                : "Έλεγχος για Αναβαθμίσεις",
     "CMD_HOW_TO_USE_BRACKETS"             : "Πώς να Χρησιμοποιήσετε το {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_SUPPORT"                         : "Υποστήριξη {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_REPORT_AN_ISSUE"                 : "Αναφορά Προβλήματος",
+    "CMD_SUGGEST"                         : "Πρότεινε Feature",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} Αρχική σελίδα",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Προβολή Φακέλου Επεκτάσεων",
     "CMD_TWITTER"                         : "{TWITTER_NAME} στο Twitter",
     "CMD_ABOUT"                           : "Σχετικά με το {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Άνοιξε το αρχείο προτιμήσεων",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
@@ -336,25 +345,28 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Η διεύθυνση URL δεν μπορεί να περιέχει hashes σαν και αυτά \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Οι ειδικοί χαρακτήρες όπως '{0}' πρέπει να είναι %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Άγνωστο σφάλμα κατά την προσπέλαση της διεύθυνσης URL",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Νέος Κανόνας",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Εγκατάσταση",
     "UPDATE"                               : "Αναβάθμιση",
     "REMOVE"                               : "Κατάργηση",
     "OVERWRITE"                            : "Αντικατάσταση",
+    "DISABLE"                              : "Απενεργοποίηση",
     "CANT_REMOVE_DEV"                      : "Οι επεκτάσεις στο φάκελο \"dev\" πρέπει να διαγραφούν χειροκίνητα.",
     "CANT_UPDATE"                          : "Η αναβάθμιση δεν είναι συμβατή με αυτήν την έκδοση του {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Οι επεκτάσεις στον φάκελο \"dev\" δεν μπορούν να αναβαθμιστούν αυτόματα.",
     "INSTALL_EXTENSION_TITLE"              : "Εγκατάσταση Επέκτασης",
     "UPDATE_EXTENSION_TITLE"               : "Αναβάθμιση Επέκτασης",
     "INSTALL_EXTENSION_LABEL"              : "URL Επέκτασης",
     "INSTALL_EXTENSION_HINT"               : "URL αρχείου zip ή GitHub repo της επέκτασης",
     "INSTALLING_FROM"                      : "Εγκατάσταση επέκτασης από {0}\u2026",
-    "INSTALL_SUCCEEDED"                    : "Εγκατάσταση επιτυχής!",
-    "INSTALL_FAILED"                       : "Εγκατάσταση ανεπιτυχής.",
+    "INSTALL_SUCCEEDED"                    : "Επιτυχής Εγκατάσταση!",
+    "INSTALL_FAILED"                       : "Ανεπιτυχής Εγκατάσταση .",
     "CANCELING_INSTALL"                    : "Ακύρωση\u2026",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Προβολή αναλυτικής περιγραφής",
     "CANCELING_HUNG"                       : "Η ακύρωση της εγκατάστασης παίρνει πολύ ώρα. Κάποιο εσωτερικό σφάλμα μπορεί να έχει προκληθεί.",
     "INSTALL_CANCELED"                     : "Η εγκατάσταση ακυρώθηκε.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
@@ -406,11 +418,6 @@ define({
     "UNDO_REMOVE"                          : "Αναίρεση",
     "MARKED_FOR_UPDATE"                    : "Επιλεγμένο για αναβάθμιση",
     "UNDO_UPDATE"                          : "Αναίρεση",
-    "CHANGE_AND_QUIT_TITLE"                : "Αλλαγή Επεκτάσεων",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Για να αναβαθμίσετε ή να καταργήσετε τις επιλεγμένες επεκτάσεις, πρέπει να κλείσετε και να επανεκκινήσετε το {APP_NAME}. Θα ερωτηθείτε για την αποθήκευση των αλλαγών.",
-    "REMOVE_AND_QUIT"                      : "Κατάργηση Επεκτάσεων και Κλείσιμο",
-    "CHANGE_AND_QUIT"                      : "Αλλαγή Επεκτάσεων και Κλείσιμο",
-    "UPDATE_AND_QUIT"                      : "Αναβάθμιση Επεκτάσεων και Κλείσιμο",
     "EXTENSION_NOT_INSTALLED"              : "Αδυναμία κατάργησης της επέκτασης {0} αφού δεν ήταν εγκατεστημένη.",
     "NO_EXTENSIONS"                        : "Δεν υπάρχουν επεκτάσεις εγκατεστημένες ακόμα.<br>Κάντε κλικ στην καρτέλα Διαθέσιμα για να ξεκινήσετε.",
     "NO_EXTENSION_MATCHES"                 : "Δεν βρέθηκαν επεκτάσεις που να ικανοποιούν τα κριτήρια αναζήτησης σας.",
@@ -418,7 +425,7 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Εγκατεστημένες",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Διαθέσιμες",
     "EXTENSIONS_UPDATES_TITLE"             : "Αναβαθμίσεις",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Δεν υπάρχουν διαθέσιμες αντιστοιχίες.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Δεν υπάρχουν κανόνες CSS που να ταιριάζουν με την επιλογή σας.<br> Κάντε κλικ στο \"Νέος Κανόνας\" για να δημιουργήσετε ένα νέο.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Δεν υπάρχουν stylesheets στο project σας.<br>Δημιουργήστε ένα για να προσθέσετε κανόνες CSS.",
@@ -428,29 +435,49 @@ define({
      */
 
     "UNIT_PIXELS"                          : "pixels",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Προβολή Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Επαναφόρτωση {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Επαναφόρτωση χωρίς τις επεκτάσεις",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Νέο Παράθυρο {APP_NAME}",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Εγκατάσταση συντόμευσης για την γραμμή εντολών",
     "CMD_SWITCH_LANGUAGE"                       : "Αλλαγή Γλώσσας",
     "CMD_RUN_UNIT_TESTS"                        : "Τρέξε Tests",
     "CMD_SHOW_PERF_DATA"                        : "Προβολή Δεδομένων Επίδοσης",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Ενεργοποίηση του Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Καταγραφή Node State στη Console",
     "CMD_RESTART_NODE"                          : "Επανεκκίνηση του Node",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Άνοιξε τον κώδικα του {APP_NAME}",
     
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Συντόμευση γραμμής εντολών",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Ένα σφάλμα προέκυψε κατά την εγκατάσταση της συντόμευσης για την γραμμή εντολών. Παρακαλώ δοκίμασε <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>αυτές τις προτείνομενες λύσεις</a>.<br/><br/>Αιτιολογία: {0}",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Αποτυχία δημιουργίας φακέλου του <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Εσωτερικό σφάλμα.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "Η συντόμευση για την γραμμή εντολών δεν υποστηρίζεται στο συγκεκριμένο λειτουργικό σύστημα.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Επιτυχία! Τώρα μπορείς εύκολα να τρέξεις το {APP_NAME} από την γραμμή εντολών: <code>brackets myFile.txt</code> για να ανοίξεις ένα αρχείο ή <code>brackets myFolder</code> για να αλλάξεις project. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Μάθε περισσότερα</a>για το πώς να χρησιμοποιήσεις το {APP_NAME} από την γραμμή εντολών.",
+
     "LANGUAGE_TITLE"                            : "Αλλαγή Γλώσσας",
     "LANGUAGE_MESSAGE"                          : "Γλώσσες:",
     "LANGUAGE_SUBMIT"                           : "Επανεκκίνηση του {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Ακύρωση",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Προεπιλογή Συστήματος",
+
     
-    // extensions/default/InlineTimingFunctionEditor
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Προτιμήσεις Health Report",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} Health Report",
+    "HEALTH_DATA_DO_TRACK"                      : "Κοινοποίηση ανώνυμων πληροφοριών σχετικά με το πώς χρησιμοποιώ το {APP_NAME}",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Προκειμένου να βελτιώσουμε το {APP_NAME}, στέλνουμε περιοδικά περιορισμένα, <strong>ανώνυμα</strong> στατιστικά στοιχεία στην Adobe σχετικά με το πώς χρησιμοποιείς το {APP_NAME}. Αυτές οι πληροφορίες βοηθάνε στην καταχώρηση προτεραιοτήτων στα χαρακτηριστικά,στην εύρεση σφαλμάτων και στον εντοπισμό προβλημάτων χρηστικότητας.<br><br>Μπορείς να δεις τα δεδομένα σου ή να επιλέξεις να μην μοιραστείς κάποια επιλέγοντας <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Μάθε περισσότερα για το {APP_NAME} Health Report</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} Health Report",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Προκειμένου να βελτιώσουμε το {APP_NAME}, στέλνουμε περιοδικά περιορισμένα, <strong>ανώνυμα</strong> στατιστικά στοιχεία στην Adobe σχετικά με το πώς χρησιμοποιείς το {APP_NAME}. Αυτές οι πληροφορίες βοηθάνε στην καταχώρηση προτεραιοτήτων στα χαρακτηριστικά,στην εύρεση σφαλμάτων και στον εντοπισμό προβλημάτων χρηστικότητας. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Μάθε περισσότερα για το {APP_NAME} Health Report</a> και πόσο ωφελεί την κοινότητα του {APP_NAME} προστατεύοντας παράλληλα την ιδιωτικότητα σου..</p><p>Παρακάτω βλέπεις μια προεπισκόπηση των δεδομένων που θα σταλούν στο επόμενο Health Report <em>εφόσον</em> είναι ενεργοποιημένο.</p>",
+    
+    
+     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Χρόνος",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Πρόοδος",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Τρέχων Χρώμα",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Αρχικό Χρώμα",
@@ -459,21 +486,23 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Μορφή HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Χρησιμοποιήθηκε {1} φορά)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Χρησιμοποιήθηκε {1} φορές)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Πήγαινε στον Ορισμό",
     "CMD_SHOW_PARAMETER_HINT"                   : "Προβολή Υποδείξεων Παραμέτρων",
     "NO_ARGUMENTS"                              : "<χωρίς παραμέτρους>",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Γρήγορη Προβολή στο Hover",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Πρόσφατα Project",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Διαβάστε Περισσότερα"
 });
+
+/* Last translated for c16e34f867a027aa9b321f7ef1f4da106ce83edf */

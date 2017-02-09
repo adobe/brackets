@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- * 
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,10 +19,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
 
 /**
  * Button that opens a dropdown list when clicked. More akin to a popup menu than a combobox. Compared to a
@@ -34,13 +30,13 @@
  * Events
  *  - listRendered -- This event is dispatched after the entire list is rendered so that custom event handlers can be
  *                    set up for any custom UI in the list.
- * 
+ *
  * TODO: merge DropdownEventHandler into this? Are there any other widgets that might want to use it separately?
  *
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EventDispatcher         = require("utils/EventDispatcher"),
@@ -52,10 +48,10 @@ define(function (require, exports, module) {
     /**
      * Creates a single dropdown-button instance. The DOM node is created but not attached to
      * the document anywhere - clients should append this.$button to the appropriate location.
-     * 
+     *
      * DropdownButton dispatches the following events:
      *  - "select" - when an option in the dropdown is clicked. Passed item object and index.
-     * 
+     *
      * @param {!string} label  Label to display on the button
      * @param {!Array.<*>} items  Items in the dropdown list. It generally doesn't matter what type/value the
      *          items have, except that any item === "---" will be treated as a divider. Such items are not
@@ -66,58 +62,58 @@ define(function (require, exports, module) {
      */
     function DropdownButton(label, items, itemRenderer) {
         this.items = items;
-        
+
         this.itemRenderer = itemRenderer || this.itemRenderer;
-        
+
         this._onClick        = this._onClick.bind(this);
         this.closeDropdown   = this.closeDropdown.bind(this);
         this._onClickOutside = this._onClickOutside.bind(this);
-        
+
         this.$button = $("<button class='btn btn-dropdown'/>")
             .text(label)
             .on("click", this._onClick);
     }
     EventDispatcher.makeEventDispatcher(DropdownButton.prototype);
-    
+
     /**
      * Items in dropdown list - may be changed any time dropdown isn't open
      * @type {!Array.<*>}
      */
     DropdownButton.prototype.items = null;
-    
+
     /**
      * The clickable button. Available as soon as the DropdownButton is constructed.
      * @type {!jQueryObject}
      */
     DropdownButton.prototype.$button = null;
-    
+
     /**
      * The dropdown element. Only non-null while open.
      * @type {?jQueryObject}
      */
     DropdownButton.prototype.$dropdown = null;
-    
+
     /**
      * Extra CSS class(es) to apply to $dropdown
      * @type {?string}
      */
     DropdownButton.prototype.dropdownExtraClasses = null;
-    
+
     /**
      * @private
      * Where to restore focus when dropdown closed
      * @type {?HTMLElement}
      */
     DropdownButton.prototype._lastFocus = null;
-    
+
     /**
      * @private
      * Helper object for dropdown. Only non-null while open.
      * @type {?DropdownEventHandler}
      */
     DropdownButton.prototype._dropdownEventHandler = null;
-    
-    
+
+
     /**
      * @private
      * Handle clicking button
@@ -129,10 +125,10 @@ define(function (require, exports, module) {
         // Indicate click was handled (e.g. to shield from MultiRangeInlineEditor._onClick())
         event.stopPropagation();
     };
-    
+
     /**
      * Update the button label.
-     * @param {string} label 
+     * @param {string} label
      */
     DropdownButton.prototype.setButtonLabel = function (label) {
         if (!this.$button) {
@@ -140,7 +136,7 @@ define(function (require, exports, module) {
         }
         $(this.$button).text(label);
     };
-    
+
     /**
      * Called for each item when rendering the dropdown.
      * @param {*} item from items array
@@ -152,7 +148,7 @@ define(function (require, exports, module) {
     DropdownButton.prototype.itemRenderer = function (item, index) {
         return _.escape(String(item));
     };
-    
+
     /**
      * Converts the list of item objects into HTML list items in format required by DropdownEventHandler
      * @param {!jQueryObject} parent The dropdown element
@@ -162,7 +158,7 @@ define(function (require, exports, module) {
         if (!parent) {
             return null;
         }
-        
+
         var html = "";
         this.items.forEach(function (item, i) {
             if (item === "---") {
@@ -171,27 +167,27 @@ define(function (require, exports, module) {
                 var rendered = this.itemRenderer(item, i),
                     itemHtml = rendered.html || rendered,
                     disabledClass = (rendered.html && !rendered.enabled) ? "disabled" : "";
-                
+
                 html += "<li><a class='stylesheet-link " + disabledClass + "' data-index='" + i + "'>";
                 html += itemHtml;
                 html += "</a></li>";
             }
         }.bind(this));
-        
+
         parent.append(html);
-        
+
         // Also trigger listRendered handler so that custom event handlers can be
         // set up for any custom UI in the list.
         this.trigger("listRendered", parent);
-        
+
         // Also need to re-register mouse event handlers with the updated list.
         if (this._dropdownEventHandler) {
             this._dropdownEventHandler.reRegisterMouseHandlers(parent);
         }
-        
+
         return parent;
     };
-    
+
     /**
      * Refresh the dropdown list by removing and re-creating all list items.
      * Call this after deleting/adding any item in the dropdown list.
@@ -200,12 +196,12 @@ define(function (require, exports, module) {
         if (!this.$dropdown) {
             return;
         }
-        
+
         // Remove all list items and then re-create them from this.items.
         $("li", this.$dropdown).remove();
         this._renderList(this.$dropdown);
     };
-    
+
     /**
      * Check/Uncheck the list item of the given index.
      * @param {number} index The index of the list item to be checked or unchecked
@@ -216,7 +212,7 @@ define(function (require, exports, module) {
         if (!this.$dropdown) {
             return;
         }
-        
+
         var listItems = $("li", this.$dropdown),
             count     = listItems.length;
 
@@ -224,24 +220,24 @@ define(function (require, exports, module) {
             $("a", listItems[index]).toggleClass("checked", checked);
         }
     };
-        
+
     /** Pops open the dropdown if currently closed. Does nothing if items.length == 0 */
     DropdownButton.prototype.showDropdown = function () {
         // Act like a plain old button if no items to show
         if (!this.items.length) {
             return;
         }
-        
+
         if (this.$dropdown) {
             return;
         }
-        
+
         Menus.closeAll();
-        
+
         var $dropdown = $("<ul class='dropdown-menu dropdownbutton-popup' tabindex='-1'>")
             .addClass(this.dropdownExtraClasses)  // (no-op if unspecified)
             .css("min-width", this.$button.outerWidth());  // do this before the clipping calcs below
-        
+
         this.$dropdown = $dropdown;
         this._renderList(this.$dropdown)
             .appendTo($("body"))
@@ -264,14 +260,19 @@ define(function (require, exports, module) {
             posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
         }
 
+        // Take in consideration the scrollbar to prevent unexpected behaviours (see #10963).
+        var dropdownElement = this.$dropdown[0];
+        var scrollWidth = dropdownElement.offsetWidth - dropdownElement.clientWidth + 1;
+
         if (clip.right > 0) {
-            // Right is clipped, so adjust left to fit menu in editor
-            posLeft = Math.max(0, posLeft - clip.right);
+            // Right is clipped, so adjust left to fit menu in editor.
+            posLeft = Math.max(0, posLeft - clip.right - scrollWidth);
         }
 
         $dropdown.css({
             left: posLeft,
-            top: posTop
+            top: posTop,
+            width: $dropdown.width() + scrollWidth
         });
 
         // Attach event handlers
@@ -280,12 +281,12 @@ define(function (require, exports, module) {
 
         window.document.body.addEventListener("mousedown", this._onClickOutside, true);
         WorkspaceManager.on("workspaceUpdateLayout", this.closeDropdown);
-        
+
         // Manage focus
         this._lastFocus = window.document.activeElement;
         $dropdown.focus();
     };
-    
+
     /**
      * @private
      * Clean up event handlers after dropdown closed & dispose old dropdown DOM. Called regardless of how the dropdown
@@ -294,7 +295,7 @@ define(function (require, exports, module) {
     DropdownButton.prototype._onDropdownClose = function () {
         window.document.body.removeEventListener("mousedown", this._onClickOutside, true);
         WorkspaceManager.off("workspaceUpdateLayout", this.closeDropdown);
-        
+
         // Restore focus to old pos, unless "select" handler changed it
         if (window.document.activeElement === this.$dropdown[0]) {
             this._lastFocus.focus();
@@ -303,14 +304,14 @@ define(function (require, exports, module) {
         this._dropdownEventHandler = null;
         this.$dropdown = null;  // already remvoed from DOM automatically by PopUpManager
     };
-    
+
     /** Closes the dropdown if currently open */
     DropdownButton.prototype.closeDropdown = function () {
         if (this._dropdownEventHandler) {
             this._dropdownEventHandler.close();
         }
     };
-    
+
     /**
      * @private
      * Clicking outside the dropdown closes it
@@ -326,7 +327,7 @@ define(function (require, exports, module) {
             event.preventDefault();
         }
     };
-    
+
     /** Opens the dropdown if closed; closes it if open */
     DropdownButton.prototype.toggleDropdown = function () {
         if (this.$dropdown) {
@@ -335,7 +336,7 @@ define(function (require, exports, module) {
             this.showDropdown();
         }
     };
-    
+
     /**
      * @private
      * Callback from DropdownEventHandler when item in dropdown list is selected (via mouse or keyboard)
@@ -345,7 +346,7 @@ define(function (require, exports, module) {
         var itemIndex = Number($link.data("index"));
         this.trigger("select", this.items[itemIndex], itemIndex);
     };
-    
-    
+
+
     exports.DropdownButton = DropdownButton;
 });

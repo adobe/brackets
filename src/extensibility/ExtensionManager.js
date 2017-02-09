@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*jslint regexp: true */
 /*unittests: ExtensionManager*/
 
 /**
@@ -67,6 +66,7 @@ define(function (require, exports, module) {
      * Extension status constants.
      */
     var ENABLED      = "enabled",
+        DISABLED     = "disabled",
         START_FAILED = "startFailed";
 
     /**
@@ -103,8 +103,9 @@ define(function (require, exports, module) {
     /**
      * Requested changes to the installed extensions.
      */
-    var _idsToRemove = [],
-        _idsToUpdate = [];
+    var _idsToRemove = {},
+        _idsToUpdate = {},
+        _idsToDisable = {};
 
     PreferencesManager.stateManager.definePreference(FOLDER_AUTOINSTALL, "object", undefined);
 
@@ -139,7 +140,7 @@ define(function (require, exports, module) {
             entry.installInfo.updateAvailable   = true;
             // Calculate updateCompatible to check if there's an update for current version of Brackets
             var lastCompatibleVersionInfo = _.findLast(entry.registryInfo.versions, function (versionInfo) {
-                return semver.satisfies(brackets.metadata.apiVersion, versionInfo.brackets);
+                return !versionInfo.brackets || semver.satisfies(brackets.metadata.apiVersion, versionInfo.brackets);
             });
             if (lastCompatibleVersionInfo && lastCompatibleVersionInfo.version && semver.lt(currentVersion, lastCompatibleVersionInfo.version)) {
                 entry.installInfo.updateCompatible        = true;
@@ -186,8 +187,9 @@ define(function (require, exports, module) {
      */
     function _reset() {
         exports.extensions = extensions = {};
-        _idsToRemove = [];
-        _idsToUpdate = [];
+        _idsToRemove = {};
+        _idsToUpdate = {};
+        _idsToDisable = {};
     }
 
     /**
@@ -240,8 +242,9 @@ define(function (require, exports, module) {
      * @param {string} path The local path of the loaded extension's folder.
      */
     function _handleExtensionLoad(e, path) {
-        function setData(id, metadata) {
+        function setData(metadata) {
             var locationType,
+                id = metadata.name,
                 userExtensionPath = ExtensionLoader.getUserExtensionPath();
             if (path.indexOf(userExtensionPath) === 0) {
                 locationType = LOCATION_USER;
@@ -265,7 +268,7 @@ define(function (require, exports, module) {
                 metadata: metadata,
                 path: path,
                 locationType: locationType,
-                status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
+                status: (e.type === "loadFailed" ? START_FAILED : (e.type === "disabled" ? DISABLED : ENABLED))
             };
 
             synchronizeEntry(id);
@@ -273,19 +276,25 @@ define(function (require, exports, module) {
             exports.trigger("statusChange", id);
         }
 
-        ExtensionUtils.loadPackageJson(path)
+        function deduceMetadata() {
+            var match = path.match(/\/([^\/]+)$/),
+                name = (match && match[1]) || path,
+                metadata = { name: name, title: name };
+            return metadata;
+        }
+
+        ExtensionUtils.loadMetadata(path)
             .done(function (metadata) {
-                setData(metadata.name, metadata);
+                setData(metadata);
             })
-            .fail(function () {
+            .fail(function (disabled) {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
                 // but we don't have an official ID or metadata for it, so we just create an id and
                 // "title" for it (which is the last segment of its pathname)
                 // and record that it's enabled.
-                var match = path.match(/\/([^\/]+)$/),
-                    name = (match && match[1]) || path,
-                    metadata = { name: name, title: name };
-                setData(name, metadata);
+                var metadata = deduceMetadata();
+                metadata.disabled = disabled;
+                setData(metadata);
             });
     }
 
@@ -400,6 +409,58 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
+     * Disables or enables the installed extensions.
+     *
+     * @param {string} id The id of the extension to disable or enable.
+     * @param {boolean} enable A boolean indicating whether to enable or disable.
+     * @return {$.Promise} A promise that's resolved when the extension action is
+     *      completed or rejected with an error that prevents the action from completion.
+     */
+    function _enableOrDisable(id, enable) {
+        var result = new $.Deferred(),
+            extension = extensions[id];
+        if (extension && extension.installInfo) {
+            Package[(enable ? "enable" : "disable")](extension.installInfo.path)
+                .done(function () {
+                    extension.installInfo.status = enable ? ENABLED : DISABLED;
+                    extension.installInfo.metadata.disabled = !enable;
+                    result.resolve();
+                    exports.trigger("statusChange", id);
+                })
+                .fail(function (err) {
+                    result.reject(err);
+                });
+        } else {
+            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
+        }
+        return result.promise();
+    }
+
+    /**
+     * Disables the installed extension with the given id.
+     *
+     * @param {string} id The id of the extension to disable.
+     * @return {$.Promise} A promise that's resolved when the extenion is disabled or
+     *      rejected with an error that prevented the disabling.
+     */
+    function disable(id) {
+        return _enableOrDisable(id, false);
+    }
+
+    /**
+     * Enables the installed extension with the given id.
+     *
+     * @param {string} id The id of the extension to enable.
+     * @return {$.Promise} A promise that's resolved when the extenion is enabled or
+     *      rejected with an error that prevented the enabling.
+     */
+    function enable(id) {
+        return _enableOrDisable(id, true);
+    }
+
+    /**
      * Updates an installed extension with the given package file.
      * @param {string} id of the extension
      * @param {string} packagePath path to the package file
@@ -471,6 +532,46 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Marks an extension for disabling later, or unmarks an extension previously marked.
+     *
+     * @param {string} id The id of the extension
+     * @param {boolean} mark Whether to mark or unmark the extension.
+     */
+    function markForDisabling(id, mark) {
+        if (mark) {
+            _idsToDisable[id] = true;
+        } else {
+            delete _idsToDisable[id];
+        }
+        exports.trigger("statusChange", id);
+    }
+
+    /**
+     * Returns true if an extension is mark for disabling.
+     *
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been mark for disabling, false otherwise.
+     */
+    function isMarkedForDisabling(id) {
+        return !!(_idsToDisable[id]);
+    }
+
+    /**
+     * Returns true if there are any extensions marked for disabling.
+     * @return {boolean} true if there are extensions to disable
+     */
+    function hasExtensionsToDisable() {
+        return Object.keys(_idsToDisable).length > 0;
+    }
+
+    /**
+     * Unmarks all the extensions that have been marked for disabling.
+     */
+    function unmarkAllForDisabling() {
+        _idsToDisable = {};
+    }
+
+    /**
      * If a downloaded package appears to be an update, mark the extension for update.
      * If an extension was previously marked for removal, marking for update will
      * turn off the removal mark.
@@ -539,6 +640,25 @@ define(function (require, exports, module) {
             Object.keys(_idsToRemove),
             function (id) {
                 return remove(id);
+            }
+        );
+    }
+
+    /**
+     * Disables extensions marked for disabling.
+     *
+     * If the return promise is rejected, the argument will contain an array of objects. Each
+     * element is an object identifying the extension failed with "item" property set to the
+     * extension id which has failed to be disabled and "error" property set to the error.
+     *
+     * @return {$.Promise} A promise that's resolved when all extensions marked for disabling are
+     *      disabled or rejected if one or more extensions can't be disabled.
+     */
+    function disableMarkedExtensions() {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(_idsToDisable),
+            function (id) {
+                return disable(id);
             }
         );
     }
@@ -764,9 +884,10 @@ define(function (require, exports, module) {
     // Listen to extension load and loadFailed events
     ExtensionLoader
         .on("load", _handleExtensionLoad)
-        .on("loadFailed", _handleExtensionLoad);
-    
-    
+        .on("loadFailed", _handleExtensionLoad)
+        .on("disabled", _handleExtensionLoad);
+
+
     EventDispatcher.makeEventDispatcher(exports);
 
     // Public exports
@@ -775,31 +896,39 @@ define(function (require, exports, module) {
     exports.getExtensionURL         = getExtensionURL;
     exports.remove                  = remove;
     exports.update                  = update;
+    exports.disable                 = disable;
+    exports.enable                  = enable;
     exports.extensions              = extensions;
     exports.cleanupUpdates          = cleanupUpdates;
     exports.markForRemoval          = markForRemoval;
     exports.isMarkedForRemoval      = isMarkedForRemoval;
     exports.unmarkAllForRemoval     = unmarkAllForRemoval;
     exports.hasExtensionsToRemove   = hasExtensionsToRemove;
+    exports.markForDisabling        = markForDisabling;
+    exports.isMarkedForDisabling    = isMarkedForDisabling;
+    exports.unmarkAllForDisabling   = unmarkAllForDisabling;
+    exports.hasExtensionsToDisable  = hasExtensionsToDisable;
     exports.updateFromDownload      = updateFromDownload;
     exports.removeUpdate            = removeUpdate;
     exports.isMarkedForUpdate       = isMarkedForUpdate;
     exports.hasExtensionsToUpdate   = hasExtensionsToUpdate;
     exports.removeMarkedExtensions  = removeMarkedExtensions;
+    exports.disableMarkedExtensions = disableMarkedExtensions;
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
-    
+
     exports.hasDownloadedRegistry   = false;
-    
+
     exports.ENABLED       = ENABLED;
+    exports.DISABLED      = DISABLED;
     exports.START_FAILED  = START_FAILED;
 
     exports.LOCATION_DEFAULT  = LOCATION_DEFAULT;
     exports.LOCATION_DEV      = LOCATION_DEV;
     exports.LOCATION_USER     = LOCATION_USER;
     exports.LOCATION_UNKNOWN  = LOCATION_UNKNOWN;
-    
+
     // For unit testing only
     exports._getAutoInstallFiles    = _getAutoInstallFiles;
     exports._reset                  = _reset;

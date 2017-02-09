@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global module, require*/
+
+/*eslint-env node */
+/*jslint node: true */
+'use strict';
 
 // Brackets specific config vars
 var habitat = require('habitat');
@@ -33,13 +36,27 @@ var GIT_BRANCH = env.get("BRAMBLE_MAIN_BRANCH") || "bramble";
 var GIT_REMOTE = env.get("BRAMBLE_MAIN_REMOTE") || "upstream";
 
 module.exports = function (grunt) {
-    'use strict';
-
     var autoprefixer = require('autoprefixer-core');
     var swPrecache = require('sw-precache');
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-npm', 'grunt-git', 'grunt-update-submodules', 'grunt-exec']});
+    require('load-grunt-tasks')(grunt, {
+        pattern: [
+            'grunt-*',
+            '!grunt-cli',
+            '!grunt-lib-phantomjs',
+            '!grunt-template-jasmine-requirejs',
+            'grunt-contrib-*',
+            'grunt-targethtml',
+            'grunt-usemin',
+            'grunt-cleanempty',
+            'grunt-npm',
+            'grunt-git',
+            'grunt-update-submodules',
+            'grunt-exec'
+        ]
+    });
+
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -76,13 +93,10 @@ module.exports = function (grunt) {
 
                         /* extensions and CodeMirror modes */
                         '!extensions/default/*/unittests.js',
-                        'extensions/default/*/**/*.js',
+                        'extensions/default/*/**/*.*',
                         '!extensions/extra/*/unittests.js',
-                        'extensions/extra/*/**/*.js',
+                        'extensions/extra/*/**/*.*',
                         '!**/unittest-files/**',
-                        '!extensions/default/JavaScriptCodeHints/thirdparty/*/test/**/*',
-                        '!extensions/default/**/node_modules/**/*',
-                        '!extensions/extra/**/node_modules/**/*',
                         'thirdparty/CodeMirror/addon/{,*/}*.js',
                         'thirdparty/CodeMirror/keymap/{,*/}*.js',
                         'thirdparty/CodeMirror/lib/{,*/}*.js',
@@ -171,6 +185,31 @@ module.exports = function (grunt) {
                         dest: 'dist/styles',
                         cwd: 'src/styles',
                         src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*', 'brackets.min.css*', 'bramble_overrides.css']
+                    }
+                ]
+            },
+            thirdparty: {
+                files: [
+                    {
+                        expand: true,
+                        dest: 'src/thirdparty/CodeMirror',
+                        cwd: 'src/node_modules/codemirror',
+                        src: [
+                            'addon/{,*/}*',
+                            'keymap/{,*/}*',
+                            'lib/{,*/}*',
+                            'mode/{,*/}*',
+                            'theme/{,*/}*',
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty',
+                        cwd: 'src/node_modules',
+                        src: [
+                            'less/dist/less.min.js'
+                        ]
                     }
                 ]
             }
@@ -333,19 +372,19 @@ module.exports = function (grunt) {
         watch: {
             all : {
                 files: ['**/*', '!**/node_modules/**'],
-                tasks: ['jshint']
+                tasks: ['eslint']
             },
             grunt : {
                 files: ['<%= meta.grunt %>', 'tasks/**/*'],
-                tasks: ['jshint:grunt']
+                tasks: ['eslint:grunt']
             },
             src : {
                 files: ['<%= meta.src %>', 'src/**/*'],
-                tasks: ['jshint:src']
+                tasks: ['eslint:src']
             },
             test : {
                 files: ['<%= meta.test %>', 'test/**/*'],
-                tasks: ['jshint:test']
+                tasks: ['eslint:test']
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -359,16 +398,12 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
+                    // For reference to why this polyfill is needed see Issue #7951.
+                    // The need for this should go away once the version of phantomjs gets upgraded to 2.0
+                    'test/polyfills.js',
+
                     'src/thirdparty/jquery-2.1.3.min.js',
-                    'src/thirdparty/CodeMirror/lib/codemirror.js',
-                    'src/thirdparty/CodeMirror/lib/util/dialog.js',
-                    'src/thirdparty/CodeMirror/lib/util/searchcursor.js',
-                    'src/thirdparty/CodeMirror/addon/edit/closetag.js',
-                    'src/thirdparty/CodeMirror/addon/selection/active-line.js',
-                    'src/thirdparty/mustache/mustache.js',
-                    'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.7.5.min.js'
+                    'src/thirdparty/less.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -391,29 +426,12 @@ module.exports = function (grunt) {
         'jasmine_node': {
             projectRoot: 'src/extensibility/node/spec/'
         },
-        jshint: {
-            all: [
-                '<%= meta.grunt %>',
-                '<%= meta.src %>',
-                '<%= meta.test %>',
-                '!src/extensions/extra/**',
-                '!src/bramble/thirdparty/**',
-                '!src/nls/**'
-            ],
+        eslint: {
             grunt:  '<%= meta.grunt %>',
-            src:    [
-                '<%= meta.src %>',
-                // These modules include lots of third-party code, so we skip them
-                '!src/extensions/default/HTMLHinter/slowparse/**',
-                '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
-                '!src/extensions/extra/**',
-                '!src/bramble/thirdparty/**',
-                '!src/nls/**'
-            ],
+            src:    '<%= meta.src %>',
             test:   '<%= meta.test %>',
-            /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
             options: {
-                jshintrc: '.jshintrc'
+                quiet: true
             }
         },
         shell: {
@@ -511,8 +529,8 @@ module.exports = function (grunt) {
         // }
         replace: {
             ternDefs: {
-                src: ['src/extensions/default/JavaScriptCodeHints/thirdparty/tern/defs/*.json'],
-                dest: 'dist/extensions/default/JavaScriptCodeHints/thirdparty/tern/defs/',
+                src: ['src/extensions/default/JavaScriptCodeHints/bramble-tern-defs/*.json'],
+                dest: 'dist/extensions/default/JavaScriptCodeHints/bramble-tern-defs/',
                 replacements: [{
                     from: /,?\n\s*"!url":[^\n]+\n(\s*"!doc":[^\n]+\n)?/g,
                     to: ''
@@ -610,11 +628,11 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config', 'less']);
+    grunt.registerTask('install', ['write-config', 'less', 'npm-install-source']);
 
     // task: test
-    grunt.registerTask('test', ['jshint:all', 'jasmine']);
-//    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
+    grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
+//    grunt.registerTask('test', ['eslint', 'jasmine', 'jasmine_node', 'nls-check']);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
@@ -622,7 +640,7 @@ module.exports = function (grunt) {
 
     // task: build
     grunt.registerTask('build', [
-        'jshint:src',
+        'eslint:src',
         'clean',
         'less',
         'postcss',
@@ -634,7 +652,8 @@ module.exports = function (grunt) {
         'concat',
         /*'cssmin',*/
         /*'uglify',*/
-        'copy',
+        'copy:dist',
+        'npm-install',
         'cleanempty',
         'usemin',
         'build-config'

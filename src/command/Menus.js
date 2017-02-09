@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -94,11 +90,11 @@ define(function (require, exports, module) {
         EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
         EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
         EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
-        
+
         FIND_FIND_COMMANDS:                 {sectionMarker: Commands.CMD_FIND},
         FIND_FIND_IN_COMMANDS:              {sectionMarker: Commands.CMD_FIND_IN_FILES},
         FIND_REPLACE_COMMANDS:              {sectionMarker: Commands.CMD_REPLACE},
-        
+
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
         VIEW_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},
@@ -180,6 +176,19 @@ define(function (require, exports, module) {
      */
     function getContextMenu(id) {
         return contextMenuMap[id];
+    }
+
+    /**
+    * Removes the attached event listeners from the corresponding object.
+    * @param {ManuItem} menuItem
+    */
+    function removeMenuItemEventListeners(menuItem) {
+        menuItem._command
+            .off("enabledStateChange", menuItem._enabledChanged)
+            .off("checkedStateChange", menuItem._checkedChanged)
+            .off("nameChange", menuItem._nameChanged)
+            .off("keyBindingAdded", menuItem._keyBindingAdded)
+            .off("keyBindingRemoved", menuItem._keyBindingRemoved);
     }
 
     /**
@@ -367,7 +376,7 @@ define(function (require, exports, module) {
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement;
-        
+
         if (relativeID) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
                 if (!relativeID.hasOwnProperty("sectionMarker")) {
@@ -448,12 +457,14 @@ define(function (require, exports, module) {
                 console.error("removeMenuItem(): command not found: " + command);
                 return;
             }
-
             commandID = command;
         } else {
             commandID = command.getID();
         }
         menuItemID = this._getMenuItemId(commandID);
+
+        var menuItem = getMenuItem(menuItemID);
+        removeMenuItemEventListeners(menuItem);
 
         if (_isHTMLMenu(this.id)) {
             // Targeting parent to get the menu item <a> and the <li> that contains it
@@ -554,7 +565,7 @@ define(function (require, exports, module) {
             menuItem,
             name,
             commandID;
-        
+
         if (!command) {
             console.error("addMenuItem(): missing required parameters: command");
             return null;
@@ -955,9 +966,9 @@ define(function (require, exports, module) {
 
         // Remove all of the menu items in the menu
         menu = getMenu(id);
-        
+
         _.forEach(menuItemMap, function (value, key) {
-            if (key.substring(0, id.length) === id) {
+            if (_.startsWith(key, id)) {
                 if (value.isDivider) {
                     menu.removeMenuDivider(key);
                 } else {
@@ -1067,7 +1078,7 @@ define(function (require, exports, module) {
                 width:  $menuWindow.width()
             },
             clip = ViewUtils.getElementClipSize($window, elementRect);
-        
+
         if (clip.bottom > 0) {
             posTop = Math.max(0, posTop - clip.bottom);
         }
@@ -1082,11 +1093,11 @@ define(function (require, exports, module) {
          */
         posLeft += 2;
 
-        
+
         if (clip.right > 0) {
             posLeft = Math.max(0, posLeft - clip.right);
         }
-        
+
         // open the context menu at final location
         $menuAnchor.addClass("open")
                    .css({"left": posLeft, "top": posTop});
@@ -1180,7 +1191,7 @@ define(function (require, exports, module) {
     // Deprecated menu ids
     DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_MENU", "WORKING_SET_CONTEXT_MENU");
     DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_SETTINGS_MENU", "WORKING_SET_CONFIG_MENU");
-    
+
     // Define public API
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;

@@ -1,7 +1,7 @@
 {
     "documentation": "https://github.com/adobe/brackets/wiki/Key-Bindings",
     "overrides": {
-        "ctrl-2": "view.hideSidebar",
+        "ctrl-2": "view.toggleSidebar",
         "ctrl-l": "navigate.gotoDefinition",
         "Alt-Cmd-L": null
     } 
