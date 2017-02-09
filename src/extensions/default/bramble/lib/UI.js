@@ -103,11 +103,6 @@ define(function (require, exports, module) {
             }
         }
 
-        var firstPaneWidth = BrambleStartupState.ui("firstPaneWidth");
-        if(firstPaneWidth) {
-            $("#first-pane").width(firstPaneWidth);
-        }
-
         var fontSize = BrambleStartupState.ui("fontSize");
         if(fontSize && /\d+px/.test(fontSize)) {
             ViewCommandHandlers.setFontSize(fontSize);
