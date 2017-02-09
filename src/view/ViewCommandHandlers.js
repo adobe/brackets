@@ -66,6 +66,12 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var DYNAMIC_FONT_STYLE_ID = "codemirror-dynamic-fonts";
+    
+    /**
+     * @const
+     * @type {string}
+     */
+    var DYNAMIC_CODEHINT_FONT_STYLE_ID = "codehint-dynamic-fonts";
 
     /**
      * @const
@@ -122,10 +128,10 @@ define(function (require, exports, module) {
      * @param {string} value Is the value of the style
      * @param {boolean} important Is a flag to make the style property !important
      */
-    function _addDynamicProperty(propertyID, name, value, important, cssRule) {
+    function _addDynamicProperty(propertyID, name, value, important, cssRule, cssText) {
         cssRule = cssRule || ".CodeMirror";
         var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
-        var styleStr = StringUtils.format("{0}: {1}{2}", name, value, important ? " !important" : "");
+        var styleStr = cssText || StringUtils.format("{0}: {1} {2}", name, value, important ? " !important" : "");
         $style.html(cssRule + "{ " + styleStr + " }");
 
         // Let's make sure we remove the already existing item from the DOM.
@@ -139,6 +145,18 @@ define(function (require, exports, module) {
      */
     function _removeDynamicFontSize() {
         _removeDynamicProperty(DYNAMIC_FONT_STYLE_ID);
+        _removeDynamicProperty(DYNAMIC_CODEHINT_FONT_STYLE_ID);
+    }
+
+    /**
+     * @private
+     * Adds a new embeded style top sync code-hint font size with codeview font size
+     */
+    function _addDynamicFontSizeForCodeHints(fontSize) {
+        var styleStr = "";
+        styleStr = styleStr + StringUtils.format("{0}: {1} {2};", "font-size", fontSize, " !important");
+        styleStr = styleStr + StringUtils.format("{0}: {1} {2};", "line-height", (parseInt(fontSize, 10) + 2) + fontSize.replace(parseInt(fontSize, 10), ""), " !important");
+        _addDynamicProperty(DYNAMIC_CODEHINT_FONT_STYLE_ID, "font-size", fontSize, true, ".codehint-menu .dropdown-menu li a", styleStr);
     }
 
     /**
@@ -148,6 +166,9 @@ define(function (require, exports, module) {
      */
     function _addDynamicFontSize(fontSize) {
         _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSize, true);
+
+        // Sync code-hint font size
+        _addDynamicFontSizeForCodeHints(fontSize);
     }
 
     /**
