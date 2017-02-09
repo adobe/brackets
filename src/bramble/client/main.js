@@ -943,6 +943,14 @@ define([
     BrambleProxy.prototype.export = function(callback) {
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_EXPORT"}, callback);
     };
+	
+    BrambleProxy.prototype.addCodeSnippet = function(options, callback) {
+        this._executeRemoteCommand({
+            commandCategory: "bramble",
+            command: "BRAMBLE_ADD_CODE_SNIPPET",
+            args: [options]
+        }, callback);
+    };
 
     return Bramble;
 });

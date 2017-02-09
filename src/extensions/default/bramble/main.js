@@ -23,6 +23,7 @@ define(function (require, exports, module) {
         UI                   = require("lib/UI"),
         Launcher             = require("lib/launcher"),
         NoHost               = require("nohost/main"),
+        BrambleCodeSnippets  = require("lib/BrambleCodeSnippets"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         PostMessageTransport = require("lib/PostMessageTransport"),
         Path                 = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path,
@@ -155,6 +156,8 @@ define(function (require, exports, module) {
                     // Setup the iframe browser and Blob URL live dev servers and
                     // load the initial document into the preview.
                     startLiveDev();
+		
+                    BrambleCodeSnippets.init();
 
                     UI.initUI(finishStartup);
                 });

@@ -152,6 +152,10 @@ define(function (require, exports, module) {
             WorkspaceManager.recomputeLayout(true);
             BrambleEvents.triggerUpdateLayoutEnd();
             break;
+        case "BRAMBLE_ADD_CODE_SNIPPET":
+            skipCallback = true;
+            CommandManager.execute("bramble.addCodeSnippet", args[0]).always(callback);
+            break;
         default:
             console.log('[Bramble] unknown command:', command);
             skipCallback = true;
