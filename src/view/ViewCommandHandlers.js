@@ -67,7 +67,7 @@ define(function (require, exports, module) {
      * The smallest font size in pixels
      * @type {number}
      */
-    var MIN_FONT_SIZE = 1;
+    var MIN_FONT_SIZE = 8;
 
     /**
      * @const
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      * The largest font size in pixels
      * @type {number}
      */
-    var MAX_FONT_SIZE = 72;
+    var MAX_FONT_SIZE = 32;
 
     /**
      * @const
