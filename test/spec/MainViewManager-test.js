@@ -448,6 +448,37 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
                 });
             });
+            it("should show the file instead of flipping if file is already open", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerFlipViewBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
+                });
+            });
             it("should merge two panes to the right", function () {
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
