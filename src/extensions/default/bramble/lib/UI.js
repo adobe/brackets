@@ -102,7 +102,10 @@ define(function (require, exports, module) {
                 SidebarView.hide();
             }
         }
+<<<<<<< HEAD
        
+=======
+>>>>>>> b987dfb7934bc6282b63912afcdb9d5a6fd8832a
         var secondPaneWidth = BrambleStartupState.ui("secondPaneWidth");
         var firstPaneWidth = BrambleStartupState.ui("firstPaneWidth");
                          
@@ -111,9 +114,15 @@ define(function (require, exports, module) {
                          ((sidebarWidth)? sidebarWidth : 0) +
                          ((secondPaneWidth)? secondPaneWidth : 0)); // calculate width in %
         
+<<<<<<< HEAD
         if(firstPaneWidth) {
             $("#first-pane").width((firstPaneWidth + "%"));
         }
+=======
+        if(firstPaneWidth)
+            $("#first-pane").width(firstPaneWidth + "%");
+        
+>>>>>>> b987dfb7934bc6282b63912afcdb9d5a6fd8832a
 
         var fontSize = BrambleStartupState.ui("fontSize");
         if(fontSize && /\d+px/.test(fontSize)) {
