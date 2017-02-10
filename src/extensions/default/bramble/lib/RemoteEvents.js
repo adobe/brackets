@@ -132,8 +132,14 @@ define(function (require, exports, module) {
      */
     function loaded() {
         var initialFile = MainViewManager.getCurrentlyViewedFile();
-        var fullPath = initialFile.fullPath;
-        var filename = Path.basename(fullPath);
+        var fullPath = "";
+        var filename = "";
+
+        // avoid exception when the editor is not viewing any file
+        if (initialFile) {
+            fullPath = initialFile.fullPath;
+            filename = Path.basename(fullPath);
+        }
 
         var $firstPane = $("#first-pane");
         var $secondPane = $("#second-pane");
