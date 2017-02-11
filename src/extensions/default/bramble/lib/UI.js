@@ -108,7 +108,6 @@ define(function (require, exports, module) {
                          
         firstPaneWidth = firstPaneWidth * 100 / (
                          ((firstPaneWidth)? firstPaneWidth : 0) +
-                         ((sidebarWidth)? sidebarWidth : 0) +
                          ((secondPaneWidth)? secondPaneWidth : 0)); // calculate width in %
         
         if(firstPaneWidth) {
