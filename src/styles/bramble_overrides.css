@@ -76,3 +76,35 @@ li.jstree-leaf > a {
 .bramble-inspector-highlight {
     background: rgba(0, 135, 207, .3) !important;
 }
+
+/* Right-click File Menu */
+
+.context-menu .dropdown-menu  {
+  padding: 0;
+  border-radius: 0;
+  border: none;
+}
+
+.context-menu .dropdown-menu li a {
+  padding: 10px 12px;
+  line-height: 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.context-menu .dropdown-menu li a:before {
+  display: none;
+}
+
+.context-menu .dropdown-menu li a:hover {
+  background: rgba(0,0,0,.1);
+}
+
+.dark .context-menu .dropdown-menu li a {
+  color: rgba(255,255,255,.8);
+}
+
+.dark .context-menu .dropdown-menu li a:hover {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,1);
+}
