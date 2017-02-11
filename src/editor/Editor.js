@@ -96,7 +96,8 @@ define(function (require, exports, module) {
         TAB_SIZE            = "tabSize",
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
-        WORD_WRAP           = "wordWrap";
+        WORD_WRAP           = "wordWrap",
+        ALLOW_JAVASCRIPT    = "allowJavaScript";
     
     var cmOptions         = {};
     
@@ -125,7 +126,8 @@ define(function (require, exports, module) {
     cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
-    
+    cmOptions[ALLOW_JAVASCRIPT]   = "allowJavaScript";
+
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
     PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
     PreferencesManager.definePreference(DRAG_DROP,          "boolean", false);
@@ -145,7 +147,8 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(UPPERCASE_COLORS,   "boolean", false);
     PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true);
-    
+    PreferencesManager.definePreference(ALLOW_JAVASCRIPT,   "boolean", true);
+
     var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
@@ -321,6 +324,7 @@ define(function (require, exports, module) {
             inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWrapping                : currentOptions[WORD_WRAP],
+            allowJavaScript             : currentOptions[ALLOW_JAVASCRIPT],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
@@ -2406,6 +2410,15 @@ define(function (require, exports, module) {
         return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
     };
     
+    Editor.setAllowJavaScript = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(ALLOW_JAVASCRIPT, value, options);
+    };
+
+    Editor.getAllowJavaScript = function (fullPath) {
+        return PreferencesManager.get(ALLOW_JAVASCRIPT, _buildPreferencesContext(fullPath));
+    };
+
     /**
      * Runs callback for every Editor instance that currently exists
      * @param {!function(!Editor)} callback

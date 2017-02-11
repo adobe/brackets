@@ -190,7 +190,8 @@ define(function (require, exports, module) {
             firstPaneWidth: data.state.firstPaneWidth,
             secondPaneWidth: data.state.secondPaneWidth,
             previewMode: data.state.previewMode,
-            wordWrap: data.state.wordWrap
+            wordWrap: data.state.wordWrap,
+            allowJavaScript: data.state.allowJavaScript
         });
 
         RemoteEvents.start();

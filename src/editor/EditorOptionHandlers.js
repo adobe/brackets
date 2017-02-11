@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     var SHOW_LINE_NUMBERS = "showLineNumbers",
         STYLE_ACTIVE_LINE = "styleActiveLine",
         WORD_WRAP         = "wordWrap",
+        ALLOW_JAVASCRIPT  = "allowJavaScript",
         CLOSE_BRACKETS    = "closeBrackets";
     
     /**
@@ -50,6 +51,7 @@ define(function (require, exports, module) {
     _optionMapping[SHOW_LINE_NUMBERS] = Commands.TOGGLE_LINE_NUMBERS;
     _optionMapping[STYLE_ACTIVE_LINE] = Commands.TOGGLE_ACTIVE_LINE;
     _optionMapping[WORD_WRAP] = Commands.TOGGLE_WORD_WRAP;
+    _optionMapping[ALLOW_JAVASCRIPT] = Commands.TOGGLE_ALLOW_JAVASCRIPT;
     _optionMapping[CLOSE_BRACKETS] = Commands.TOGGLE_CLOSE_BRACKETS;
     
     /**
@@ -99,6 +101,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_TOGGLE_LINE_NUMBERS, Commands.TOGGLE_LINE_NUMBERS, _getToggler(SHOW_LINE_NUMBERS));
     CommandManager.register(Strings.CMD_TOGGLE_ACTIVE_LINE, Commands.TOGGLE_ACTIVE_LINE, _getToggler(STYLE_ACTIVE_LINE));
     CommandManager.register(Strings.CMD_TOGGLE_WORD_WRAP, Commands.TOGGLE_WORD_WRAP, _getToggler(WORD_WRAP));
+    CommandManager.register(Strings.CMD_TOGGLE_ALLOW_JAVASCRIPT, Commands.TOGGLE_ALLOW_JAVASCRIPT, _getToggler(ALLOW_JAVASCRIPT));
     CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _getToggler(CLOSE_BRACKETS));
 
     AppInit.htmlReady(_init);

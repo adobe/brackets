@@ -204,6 +204,7 @@ define([
         self.getSidebarVisible = function() { return _state.sidebarVisible; };
         self.getRootDir = function() { return _root; };
         self.getWordWrap = function() { return _state.wordWrap; };
+        self.getAllowJavaScript = function() { return _state.allowJavaScript; };
         self.getTutorialExists = function() { return _tutorialExists; };
         self.getTutorialVisible = function() { return _tutorialVisible; };
         self.getLayout = function() {
@@ -262,6 +263,7 @@ define([
                     _state.previewMode = data.previewMode;
                     _state.theme = data.theme;
                     _state.wordWrap = data.wordWrap;
+                    _state.allowJavaScript = data.allowJavaScript;
 
                     setReadyState(Bramble.READY);
                 }
@@ -297,6 +299,8 @@ define([
                         _state.sidebarVisible = data.visible;
                     } else if (eventName === "wordWrapChange") {
                         _state.wordWrap = data.wordWrap;
+                    } else if (eventName === "allowJavaScriptChange") {
+                        _state.allowJavaScript = data.allowJavaScript;
                     } else if (eventName === "tutorialVisibilityChange") {
                         _tutorialVisible = data.visible;
                     }
@@ -412,7 +416,8 @@ define([
                                     firstPaneWidth: _state.firstPaneWidth,
                                     secondPaneWidth: _state.secondPaneWidth,
                                     previewMode: _state.previewMode,
-                                    wordWrap: _state.wordWrap
+                                    wordWrap: _state.wordWrap,
+                                    allowJavaScript: _state.allowJavaScript
                                 }
                             };
                             _brambleWindow.postMessage(JSON.stringify(initMessage), _iframe.src);
