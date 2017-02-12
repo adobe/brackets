@@ -38,7 +38,6 @@ li.jstree-leaf span.extension {
   color: rgba(255,255,255,.5);
 }
 
-
 li.jstree-closed > a span,
 li.jstree-open > a span {
   font-size: 15px;
@@ -179,19 +178,30 @@ li.jstree-leaf a.selected-node:hover {
 /* File renaming UI */
 
 #project-files-container .jstree-brackets .jstree-rename-input {
-  padding: 17px 5px 18px 5px;
-  font-size: 16px;
-  line-height: 16px;
+  padding: 18px 5px 19px 5px;
+  font-size: 15px;
+  line-height: 15px;
   margin-left: 22px;
   background: white;
+  font-family: inherit;
   color: black;
   border-radius: 0px;
   position: static;
-  top: 0;
-  left: 0;
   border: none !important;
   width: calc(100% - 40px) !important;
   box-sizing: border-box;
+}
+
+/* Overrides for Folder rename UI */
+
+#project-files-container .jstree-brackets .jstree-closed .jstree-rename-input,
+#project-files-container .jstree-brackets .jstree-open .jstree-rename-input {
+  margin-left: 30px;
+}
+
+#project-files-container .jstree-brackets .jstree-closed .jstree-rename-input + a,
+#project-files-container .jstree-brackets .jstree-open .jstree-rename-input + a {
+  display: none;
 }
 
 
