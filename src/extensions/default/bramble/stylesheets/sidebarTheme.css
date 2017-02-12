@@ -105,6 +105,17 @@ li.jstree-closed > a span,
 }
 
 
+/* Message for when there are no files in a folder */
+
+li.jstree-open > ul:empty:after {
+  content: "This folder is empty";
+  color: rgba(255,255,255,.4);
+  padding: 10px 10px 10px 30px;
+  font-style: italic;
+  display: block;
+}
+
+
 /* Right-clicked file */
 
 li.jstree-closed a.context-node,
