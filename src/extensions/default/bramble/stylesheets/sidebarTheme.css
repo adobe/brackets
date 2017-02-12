@@ -1,68 +1,229 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,600');
+
 /* Components to hide */
 #working-set-list-container {
-	display: none !important;
+  display: none !important;
 }
 span#project-title.title {
-	display: none;
+  display: none;
 }
 div.working-set-option-btn[style] {
-	display: none !important;
+  display: none !important;
 }
 
-/* Recoloring */
+/* Dark Theme Color */
+/* TODO - move this to the dark theme CSS later */
+
 #sidebar {
-	background-color: black;
-	text-shadow: none;
-	color: #333333;
+  background-color: black;
+  text-shadow: none;
 }
-li.jstree-leaf>a {
-	padding: 5px;
+
+#project-files-container {
+  padding-left: 0px;
+  font-weight: 400;
+  font-family: "Open Sans", "Helvetica Neue";
 }
-li.jstree-leaf>a>span {
-	font-size: 15px;
-	color: #666666;
+
+#project-files-container ul {
+  padding: 0;
 }
-li.jstree-open>a>span {
-	font-size: 15px;
-	color: #666666;
+
+
+/* File tree basic styles */
+
+li.jstree-leaf a span,
+li.jstree-leaf span.extension {
+  font-size: 15px;
+  color: rgba(255,255,255,.5);
 }
-li.jstree-closed>a>span {
-	font-size: 15px;
-	color: #666666;
+
+
+li.jstree-closed > a span,
+li.jstree-open > a span {
+  font-size: 15px;
+  color: rgba(255,255,255,.7);
 }
-li.jstree-leaf>a>span.extension {
-	color: #666666;
+
+
+/* Overrides not needed margin */
+
+.jstree-brackets li.jstree-leaf,
+.jstree-brackets li.jstree-closed,
+.jstree-brackets li.jstree-open {
+  margin-left: 0;
 }
-.filetree-selection {
-	background-color: #333333;
-	border: none;
-	color: white;
-	font-weight: bolder;
-	padding: 13px;
-	width: 100% !important;
+
+
+/* Basic formatting of all items in file menu */
+
+li.jstree-open a,
+li.jstree-closed a,
+li.jstree-leaf a {
+  padding: 10px 10px 10px 30px;
+  cursor: pointer !important;
 }
-.filetree-selection-extension {
-	opacity: 0;
+
+
+/* Folders get bold text treatment */
+
+li.jstree-open > a,
+li.jstree-closed > a {
+  font-weight: 600;
 }
-.filetree-context {
-	background-color: rgba(255,255,255,0.12);
-	height: 27px;
+
+
+/* Selected Item */
+
+li.jstree-leaf a.selected-node,
+li.jstree-leaf a.selected-node span,
+li.jstree-leaf a.selected-node .extension {
+  color: white !important;
 }
+
+
+/* Hover state for all items */
+
+li.jstree-leaf a:not(.selected-node):hover,
+li.jstree-open a:first-of-type:hover,
+li.jstree-closed a:first-of-type:hover
+{
+  background: rgba(255,255,255,.08);
+}
+
+
+/* Hover state item text */
+
+li.jstree-leaf a:not(.selected-node):hover > span
+{
+  color: rgba(255,255,255,.6);
+}
+
+li.jstree-open > a span
+li.jstree-closed > a span,
+{
+  color: rgba(255,255,255,.7);
+}
+
+
+/* Right-clicked file */
+
+li.jstree-closed a.context-node,
+li.jstree-open a.context-node,
+li.jstree-leaf a.context-node {
+  background: rgba(255,255,255,0.08);
+}
+
+
+/* Currently selected (edited) file */
+
+li.jstree-leaf a.selected-node,
+li.jstree-leaf a.selected-node:hover {
+  background: #222;
+}
+
+
+/* Adds icon for folders only icon */
+
+.jstree-brackets li.jstree-closed > .jstree-icon,
+.jstree-brackets li.jstree-open > .jstree-icon {
+  transition: transform .15s ease-out !important;
+  top: 9px;
+  left: 7px !important;
+  margin: 0;
+  background-image: url(/src/styles/images/folder-icon.svg);
+  background-position: center;
+  background-size: 14px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  opacity: .8;
+}
+
+
+/* Opened folder gets a lighter icon */
+
+.jstree-brackets li.jstree-open > .jstree-icon {
+  opacity: 1;
+}
+
+
+/* Hides file icon for non-folders */
+
+.jstree-brackets li.jstree-leaf > .jstree-icon {
+  display: none;
+}
+
+
+/* Indents files within a folder */
+
+.jstree-open > ul {
+  margin-left: 15px;
+  border-left: solid 2px rgba(255,255,255,.1);
+}
+
+
+/* Hides selected (and right-clicked) file overlay, not needed */
+/* Still keeping the DOM element in case it has a functional purpose */
+
+.filetree-selection, .filetree-context {
+  background: transparent;
+  border: none;
+  height: 37px;
+}
+
+.filetree-selection-extension,
 .filetree-context-extension {
-	opacity: 0;
+  opacity: 0;
 }
-.menu-name {
-	font-size: 15px;
+
+/* File renaming UI */
+
+#project-files-container .jstree-brackets .jstree-rename-input {
+  padding: 17px 5px 18px 5px;
+  font-size: 16px;
+  line-height: 16px;
+  margin-left: 22px;
+  background: white;
+  color: black;
+  border-radius: 0px;
+  position: static;
+  top: 0;
+  left: 0;
+  border: none !important;
+  width: calc(100% - 40px) !important;
+  box-sizing: border-box;
 }
-.context {
-	color: rgba(255,255,255,0.6); 
+
+
+/* Right-click File Menu */
+/* TODO - separate dark and light styles into separate theme CSS files. */
+
+.context-menu .dropdown-menu  {
+  padding: 0;
+  border-radius: 0;
+  border: none;
 }
-li.jstree-leaf>a.jstree-clicked>span {
-	color: white;
+
+.context-menu .dropdown-menu li a {
+  padding: 10px 12px;
+  line-height: 16px;
+  font-size: 16px;
+  cursor: pointer;
 }
-li.jstree-leaf>a.jstree-clicked>span.extension {
-	color: white;
+
+.context-menu .dropdown-menu li a:before {
+  display: none;
 }
-a.jstree-clicked .extension {
-	color: white !important;
+
+.context-menu .dropdown-menu li a:hover {
+  background: rgba(0,0,0,.1);
+}
+
+.dark .context-menu .dropdown-menu li a {
+  color: rgba(255,255,255,.5);
+}
+
+.dark .context-menu .dropdown-menu li a:hover {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.8);
 }
