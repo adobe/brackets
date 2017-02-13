@@ -498,6 +498,11 @@ define(function (require, exports, module) {
             } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
+            if ($activeTab.hasClass("installed")) {
+                $(".ext-sort-group").hide();
+            } else {
+                $(".ext-sort-group").show();
+            }
         });
 
         // Handle the 'Install from URL' button.

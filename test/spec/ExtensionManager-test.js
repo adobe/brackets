@@ -1297,7 +1297,8 @@ define(function (require, exports, module) {
 
                             // Simple fields
                             [item.metadata.version,
-                                item.metadata.author && item.metadata.author.name]
+                                item.metadata.author && item.metadata.author.name,
+                                item.totalDownloads]
                                 .forEach(function (value) {
                                     if (value) {
                                         expect(view).toHaveText(value);
