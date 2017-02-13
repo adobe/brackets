@@ -380,9 +380,14 @@ define(function (require, exports, module) {
         _changeCallback = changeCallback;
     }
 
-    function watchPath(path, callback) {
+    function watchPath(path, filterGlobs, callback) {
         path = decodePath(path);
         path = Path.normalize(path);
+
+        // Brackets now allows passing globs for filtering watch paths.  We ignore.
+        if(typeof filterGlobs === 'function') {
+            callback = filterGlobs;
+        }
 
         if(watchers[path]) {
             return;
