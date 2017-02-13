@@ -99,7 +99,7 @@ define(function (require, exports, module) {
                 i = sr.to.line + 1;
             } else {
                 range = cm._lineFolds[i] || (func && func(cm, pos));
-             
+
                 if (!fade || (fade && $gutter.is(":hover"))) {
                     if (cm.isFolded(i)) {
                         // expand fold if invalid
@@ -138,22 +138,6 @@ define(function (require, exports, module) {
         });
         state.from = from;
         state.to = to;
-    }
-
-    /**
-      * Clears the code folding gutter
-      * @param {!CodeMirror} cm the CodeMirror instance for the active  editor
-      */
-    function clearGutter(cm) {
-        var opts = cm.state.foldGutter.options;
-        cm.clearGutter(opts.gutter);
-        var blank = marker("CodeMirror-foldgutter-blank");
-        var vp = cm.getViewport();
-        cm.operation(function () {
-            cm.eachLine(vp.from, vp.to, function (line) {
-                cm.setGutterMarker(line.lineNo(), opts.gutter, blank);
-            });
-        });
     }
 
     /**
@@ -407,7 +391,6 @@ define(function (require, exports, module) {
     }
 
     exports.init = init;
-    exports.clearGutter = clearGutter;
     exports.updateInViewport = updateInViewport;
 
 });
