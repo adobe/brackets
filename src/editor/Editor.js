@@ -96,7 +96,8 @@ define(function (require, exports, module) {
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
-        INDENT_LINE_COMMENT   = "indentLineComment";
+        INDENT_LINE_COMMENT  = "indentLineComment",
+        ALLOW_JAVASCRIPT    = "allowJavaScript";
     
 
     var cmOptions         = {};
@@ -127,6 +128,7 @@ define(function (require, exports, module) {
     cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
+    cmOptions[ALLOW_JAVASCRIPT]   = "allowJavaScript";
 
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
@@ -214,8 +216,12 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
-    
-    
+
+    PreferencesManager.definePreference(ALLOW_JAVASCRIPT,     "boolean", true, {
+        description: Strings.DESCRIPTION_ALLOW_JAVASCRIPT
+    });
+
+
     var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
@@ -404,6 +410,7 @@ define(function (require, exports, module) {
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
             lineWrapping                : currentOptions[WORD_WRAP],
+            allowJavaScript             : currentOptions[ALLOW_JAVASCRIPT],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
@@ -2559,6 +2566,15 @@ define(function (require, exports, module) {
         return PreferencesManager.get(INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
     };
     
+    Editor.setAllowJavaScript = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(ALLOW_JAVASCRIPT, value, options);
+    };
+
+    Editor.getAllowJavaScript = function (fullPath) {
+        return PreferencesManager.get(ALLOW_JAVASCRIPT, _buildPreferencesContext(fullPath));
+    };
+
     /**
      * Runs callback for every Editor instance that currently exists
      * @param {!function(!Editor)} callback

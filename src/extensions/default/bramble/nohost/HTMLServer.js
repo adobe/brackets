@@ -148,23 +148,25 @@ define(function (require, exports, module) {
                     return callback(err);
                 }
 
-                // Since we're not instrumenting this doc fully for some reason,
-                // at least inject the scroll manager so we can track scroll position.
-                var scripts = MouseManager.getRemoteScript(path) + LinkManager.getRemoteScript();
-                var scriptsWithEndTag = scripts + "$&";
-                var headRegex = new RegExp(/<\/\s*head>/);
-                var htmlRegex = new RegExp(/<\/\s*html>/);
+                if (_isHTML(path)) {
+                    // Since we're not instrumenting this doc fully for some reason,
+                    // at least inject the scroll manager so we can track scroll position.
+                    var scripts = MouseManager.getRemoteScript(path) + LinkManager.getRemoteScript();
+                    var scriptsWithEndTag = scripts + "$&";
+                    var headRegex = new RegExp(/<\/\s*head>/);
+                    var htmlRegex = new RegExp(/<\/\s*html>/);
 
-                // Try to inject the scripts at the end of the <head> element
-                // if it is present
-                if(headRegex.test(content)) {
-                    content = content.replace(headRegex, scriptsWithEndTag);
-                } else if(htmlRegex.test(content)) {
-                // Otherwise add them at the end of the <html> element
-                    content = content.replace(htmlRegex, scriptsWithEndTag);
-                } else {
-                // Otherwise just add it at the end of the content
-                    content += scripts;
+                    // Try to inject the scripts at the end of the <head> element
+                    // if it is present
+                    if(headRegex.test(content)) {
+                        content = content.replace(headRegex, scriptsWithEndTag);
+                    } else if(htmlRegex.test(content)) {
+                        // Otherwise add them at the end of the <html> element
+                        content = content.replace(htmlRegex, scriptsWithEndTag);
+                    } else {
+                        // Otherwise just add it at the end of the content
+                        content += scripts;
+                    }
                 }
 
                 serve(content);

@@ -275,10 +275,10 @@
     ],
     "navigate.toggleQuickEdit":  [
         {
-            "key": "Ctrl-E"
+            "key": "Alt-E"
         },
         {
-            "key": "Alt-E"
+            "key": "Ctrl-E"
         }
     ],
     "navigate.toggleQuickDocs":  [

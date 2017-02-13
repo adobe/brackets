@@ -90,6 +90,11 @@ define(function (require, exports, module) {
             PreferencesManager.set("wordWrap", wordWrap);
         }
 
+        var allowJavaScript = BrambleStartupState.ui("allowJavaScript");
+        if(typeof allowJavaScript === "boolean") {
+            PreferencesManager.set("allowJavaScript", allowJavaScript);
+        }
+
         var sidebarWidth = BrambleStartupState.ui("sidebarWidth");
         if(sidebarWidth) {
             SidebarView.resize(sidebarWidth);

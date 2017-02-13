@@ -33,7 +33,6 @@ li.jstree-closed>a>span {
 li.jstree-leaf>a>span.extension {
 	color: #666666;
 }
-
 .filetree-selection {
 	background-color: #333333;
 	border: none;
@@ -43,10 +42,21 @@ li.jstree-leaf>a>span.extension {
 	width: 100% !important;
 }
 .filetree-selection-extension {
-	background-color: #333333;
-	border: none;
+	opacity: 0;
 }
-
+.filetree-context {
+	background-color: rgba(255,255,255,0.12);
+	height: 27px;
+}
+.filetree-context-extension {
+	opacity: 0;
+}
+.menu-name {
+	font-size: 15px;
+}
+.context {
+	color: rgba(255,255,255,0.6); 
+}
 li.jstree-leaf>a.jstree-clicked>span {
 	color: white;
 }
