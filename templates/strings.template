@@ -4,6 +4,6 @@
 
 define({
 {% for key, string in localizedStrings %}
-    "{{ key }}": "{{ string }}"{{ "" if loop.last else "," }}
+    "{{ key }}": "{{ string | dump }}"{{ "" if loop.last else "," }}
 {%- endfor %}
 });

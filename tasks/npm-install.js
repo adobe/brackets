@@ -47,8 +47,9 @@ module.exports = function (grunt) {
     }
 
     grunt.registerTask("npm-install", "Install node_modules to the dist folder so it gets bundled with release", function () {
-        var npmShrinkwrapJSON = grunt.file.readJSON("npm-shrinkwrap.json");
-        common.writeJSON(grunt, "dist/npm-shrinkwrap.json", npmShrinkwrapJSON);
+        // XXXBramble: skip shrinkwrap
+        //var npmShrinkwrapJSON = grunt.file.readJSON("npm-shrinkwrap.json");
+        //common.writeJSON(grunt, "dist/npm-shrinkwrap.json", npmShrinkwrapJSON);
 
         var packageJSON = grunt.file.readJSON("package.json");
         delete packageJSON.devDependencies;
