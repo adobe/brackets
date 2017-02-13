@@ -107,7 +107,7 @@
 
         Bramble.once("error", function(err) {
             console.error("Bramble error", err);
-            alert("Fatal Error: " + err.message + ". If you're in Private Browsing mode, data can't be written.");
+            window.alert("Fatal Error: " + err.message + ". If you're in Private Browsing mode, data can't be written.");
         });
 
         Bramble.on("readyStateChange", function(previous, current) {

@@ -126,7 +126,7 @@ define(function (require, exports, module) {
 
     // Return reference to iframe element or null if not available.
     function getBrowserIframe() {
-        return document.getElementById("bramble-iframe-browser");
+        return window.document.getElementById("bramble-iframe-browser");
     }
 
     /**

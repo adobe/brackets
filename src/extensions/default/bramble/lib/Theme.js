@@ -11,6 +11,7 @@ define(function (require, exports, module) {
                             .getExtensionPrefs("themes");
 
     var Path             = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path;
+    var PathUtils        = brackets.getModule("thirdparty/path-utils/path-utils");
     var basePath         = PathUtils.directory(window.location.href);
     var themePath        = Path.join(basePath, 'extensions/default/bramble/stylesheets');
     var BrambleEvents    = brackets.getModule("bramble/BrambleEvents");

@@ -1,4 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*eslint no-fallthrough: "error"*/
 /*global define */
 define(function (require, exports, module) {
     "use strict";
@@ -37,11 +38,15 @@ define(function (require, exports, module) {
 
             switch(ext) {
             case '.html':
+            // fallsthrough
             case '.htmls':
+            // fallsthrough
             case '.htm':
+            // fallsthrough
             case '.htx':
-            // We transform Markdown into HTML
+            // fallsthrough            
             case '.md':
+            // fallsthrough
             case '.markdown':
                 return 'text/html';
             case '.ico':

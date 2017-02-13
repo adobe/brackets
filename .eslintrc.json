@@ -1,6 +1,6 @@
 {
     "rules": {
-        "no-bitwise": 2,
+        "no-bitwise": 0,
         "curly": 2,
         "eqeqeq": 2,
         "guard-for-in": 0,
@@ -65,5 +65,8 @@
         "XMLHttpRequest": false,
         "Uint32Array": false,
         "WebSocket": false
+    },
+    "env": {
+        "browser": true
     }
 }
