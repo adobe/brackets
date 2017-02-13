@@ -93,9 +93,11 @@ module.exports = function (grunt) {
 
                         /* extensions and CodeMirror modes */
                         '!extensions/default/*/unittests.js',
-                        'extensions/default/*/**/*.*',
+                        'extensions/default/*/**/*.js',
                         '!extensions/extra/*/unittests.js',
-                        'extensions/extra/*/**/*.*',
+                        'extensions/extra/*/**/*.js',
+                        '!extensions/**/node_modules/**/*.js',
+                        '!extensions/**/test/**/*.js',
                         '!**/unittest-files/**',
                         'thirdparty/CodeMirror/addon/{,*/}*.js',
                         'thirdparty/CodeMirror/keymap/{,*/}*.js',
