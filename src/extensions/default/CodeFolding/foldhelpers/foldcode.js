@@ -35,7 +35,7 @@ define(function (require, exports, module) {
                 lastMark,
                 foldMarks;
             for (i = 0; i < marks.length; ++i) {
-                if (marks[i].__isFold) {
+                if (marks[i].__isFold && force !== "fold") {
                     if (!allowFolded) {
                         return null;
                     }
