@@ -660,7 +660,7 @@ module.exports = function (grunt) {
         /*'cssmin',*/
         /*'uglify',*/
         'copy:dist',
-        'npm-install',
+        // 'npm-install',
         'cleanempty',
         'usemin',
         'build-config'
