@@ -98,8 +98,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_TOGGLE_LINE_NUMBERS, Commands.TOGGLE_LINE_NUMBERS, _getToggler(SHOW_LINE_NUMBERS));
     CommandManager.register(Strings.CMD_TOGGLE_ACTIVE_LINE, Commands.TOGGLE_ACTIVE_LINE, _getToggler(STYLE_ACTIVE_LINE));
     CommandManager.register(Strings.CMD_TOGGLE_WORD_WRAP, Commands.TOGGLE_WORD_WRAP, _getToggler(WORD_WRAP));
-    CommandManager.register(Strings.CMD_TOGGLE_ALLOW_JAVASCRIPT, Commands.TOGGLE_ALLOW_JAVASCRIPT, _getToggler(ALLOW_JAVASCRIPT));
     CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _getToggler(CLOSE_BRACKETS));
+
+    // XXXBramble
+    CommandManager.registerInternal(Commands.TOGGLE_ALLOW_JAVASCRIPT, _getToggler(ALLOW_JAVASCRIPT));
 
     AppInit.htmlReady(_init);
 });
