@@ -2,31 +2,33 @@
 
 /* Components to hide */
 #working-set-list-container {
-  display: none !important;
+    display: none !important;
 }
+
 span#project-title.title {
-  display: none;
+    display: none;
 }
+
 div.working-set-option-btn[style] {
-  display: none !important;
+    display: none !important;
 }
 
 /* Dark Theme Color */
 /* TODO - move this to the dark theme CSS later */
 
 #sidebar {
-  background-color: black;
-  text-shadow: none;
+    background-color: black;
+    text-shadow: none;
 }
 
 #project-files-container {
-  padding-left: 0px;
-  font-weight: 400;
-  font-family: "Open Sans", "Helvetica Neue";
+    padding-left: 0;
+    font-weight: 400;
+    font-family: "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 #project-files-container ul {
-  padding: 0;
+    padding: 0;
 }
 
 
@@ -34,14 +36,14 @@ div.working-set-option-btn[style] {
 
 li.jstree-leaf a span,
 li.jstree-leaf span.extension {
-  font-size: 15px;
-  color: rgba(255,255,255,.5);
+    font-size: 15px;
+    color: rgba(255,255,255,.5);
 }
 
 li.jstree-closed > a span,
 li.jstree-open > a span {
-  font-size: 15px;
-  color: rgba(255,255,255,.7);
+    font-size: 15px;
+    color: rgba(255,255,255,.7);
 }
 
 
@@ -50,7 +52,7 @@ li.jstree-open > a span {
 .jstree-brackets li.jstree-leaf,
 .jstree-brackets li.jstree-closed,
 .jstree-brackets li.jstree-open {
-  margin-left: 0;
+    margin-left: 0;
 }
 
 
@@ -59,8 +61,8 @@ li.jstree-open > a span {
 li.jstree-open a,
 li.jstree-closed a,
 li.jstree-leaf a {
-  padding: 10px 10px 10px 30px;
-  cursor: pointer !important;
+    padding: 10px 10px 10px 30px;
+    cursor: pointer !important;
 }
 
 
@@ -68,7 +70,7 @@ li.jstree-leaf a {
 
 li.jstree-open > a,
 li.jstree-closed > a {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 
@@ -77,7 +79,7 @@ li.jstree-closed > a {
 li.jstree-leaf a.selected-node,
 li.jstree-leaf a.selected-node span,
 li.jstree-leaf a.selected-node .extension {
-  color: white !important;
+    color: white !important;
 }
 
 
@@ -85,34 +87,31 @@ li.jstree-leaf a.selected-node .extension {
 
 li.jstree-leaf a:not(.selected-node):hover,
 li.jstree-open a:first-of-type:hover,
-li.jstree-closed a:first-of-type:hover
-{
-  background: rgba(255,255,255,.08);
+li.jstree-closed a:first-of-type:hover {
+    background: rgba(255,255,255,.08);
 }
 
 
 /* Hover state item text */
 
-li.jstree-leaf a:not(.selected-node):hover > span
-{
-  color: rgba(255,255,255,.6);
+li.jstree-leaf a:not(.selected-node):hover > span {
+    color: rgba(255,255,255,.6);
 }
 
-li.jstree-open > a span
-li.jstree-closed > a span,
-{
-  color: rgba(255,255,255,.7);
+li.jstree-open > a span,
+li.jstree-closed > a span {
+    color: rgba(255,255,255,.7);
 }
 
 
 /* Message for when there are no files in a folder */
 
 li.jstree-open > ul:empty:after {
-  content: "This folder is empty";
-  color: rgba(255,255,255,.4);
-  padding: 10px 10px 10px 30px;
-  font-style: italic;
-  display: block;
+    content: "This folder is empty";
+    color: rgba(255,255,255,.4);
+    padding: 10px 10px 10px 30px;
+    font-style: italic;
+    display: block;
 }
 
 
@@ -121,7 +120,7 @@ li.jstree-open > ul:empty:after {
 li.jstree-closed a.context-node,
 li.jstree-open a.context-node,
 li.jstree-leaf a.context-node {
-  background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.08);
 }
 
 
@@ -129,7 +128,7 @@ li.jstree-leaf a.context-node {
 
 li.jstree-leaf a.selected-node,
 li.jstree-leaf a.selected-node:hover {
-  background: #222;
+    background: #222;
 }
 
 
@@ -137,38 +136,38 @@ li.jstree-leaf a.selected-node:hover {
 
 .jstree-brackets li.jstree-closed > .jstree-icon,
 .jstree-brackets li.jstree-open > .jstree-icon {
-  transition: transform .15s ease-out !important;
-  top: 9px;
-  left: 7px !important;
-  margin: 0;
-  background-image: url(/src/styles/images/folder-icon.svg);
-  background-position: center;
-  background-size: 14px;
-  background-repeat: no-repeat;
-  cursor: pointer;
-  opacity: .8;
+    transition: transform .15s ease-out !important;
+    top: 9px;
+    left: 7px !important;
+    margin: 0;
+    background-image: url(../images/folder-arrow.svg);
+    background-position: center;
+    background-size: 7px;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    opacity: .8;
 }
 
 
 /* Opened folder gets a lighter icon */
 
 .jstree-brackets li.jstree-open > .jstree-icon {
-  opacity: 1;
+    opacity: 1;
 }
 
 
 /* Hides file icon for non-folders */
 
 .jstree-brackets li.jstree-leaf > .jstree-icon {
-  display: none;
+    display: none;
 }
 
 
 /* Indents files within a folder */
 
 .jstree-open > ul {
-  margin-left: 15px;
-  border-left: solid 2px rgba(255,255,255,.1);
+    margin-left: 15px;
+    border-left: solid 2px rgba(255,255,255,.1);
 }
 
 
@@ -176,75 +175,75 @@ li.jstree-leaf a.selected-node:hover {
 /* Still keeping the DOM element in case it has a functional purpose */
 
 .filetree-selection, .filetree-context {
-  background: transparent;
-  border: none;
-  height: 37px;
+    background: transparent;
+    border: none;
+    height: 37px;
 }
 
 .filetree-selection-extension,
 .filetree-context-extension {
-  opacity: 0;
+    opacity: 0;
 }
 
 /* File renaming UI */
 
 #project-files-container .jstree-brackets .jstree-rename-input {
-  padding: 18px 5px 19px 5px;
-  font-size: 15px;
-  line-height: 15px;
-  margin-left: 22px;
-  background: white;
-  font-family: inherit;
-  color: black;
-  border-radius: 0px;
-  position: static;
-  border: none !important;
-  width: calc(100% - 40px) !important;
-  box-sizing: border-box;
+    padding: 18px 5px 19px 5px;
+    font-size: 15px;
+    line-height: 15px;
+    margin-left: 22px;
+    background: white;
+    font-family: inherit;
+    color: black;
+    border-radius: 0;
+    position: static;
+    border: none !important;
+    width: calc(100% - 40px) !important;
+    box-sizing: border-box;
 }
 
 /* Overrides for Folder rename UI */
 
 #project-files-container .jstree-brackets .jstree-closed .jstree-rename-input,
 #project-files-container .jstree-brackets .jstree-open .jstree-rename-input {
-  margin-left: 30px;
+    margin-left: 30px;
 }
 
 #project-files-container .jstree-brackets .jstree-closed .jstree-rename-input + a,
 #project-files-container .jstree-brackets .jstree-open .jstree-rename-input + a {
-  display: none;
+    display: none;
 }
 
 
 /* Right-click File Menu */
 /* TODO - separate dark and light styles into separate theme CSS files. */
 
-.context-menu .dropdown-menu  {
-  padding: 0;
-  border-radius: 0;
-  border: none;
+.context-menu .dropdown-menu    {
+    padding: 0;
+    border-radius: 0;
+    border: none;
 }
 
 .context-menu .dropdown-menu li a {
-  padding: 10px 12px;
-  line-height: 16px;
-  font-size: 16px;
-  cursor: pointer;
+    padding: 10px 12px;
+    line-height: 16px;
+    font-size: 16px;
+    cursor: pointer;
 }
 
 .context-menu .dropdown-menu li a:before {
-  display: none;
+    display: none;
 }
 
 .context-menu .dropdown-menu li a:hover {
-  background: rgba(0,0,0,.1);
+    background: rgba(0,0,0,.1);
 }
 
 .dark .context-menu .dropdown-menu li a {
-  color: rgba(255,255,255,.5);
+    color: rgba(255,255,255,.5);
 }
 
 .dark .context-menu .dropdown-menu li a:hover {
-  background: rgba(255,255,255,.1);
-  color: rgba(255,255,255,.8);
+    background: rgba(255,255,255,.1);
+    color: rgba(255,255,255,.8);
 }
