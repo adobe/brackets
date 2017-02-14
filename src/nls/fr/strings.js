@@ -789,5 +789,6 @@ define({
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut",
 	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}",
 	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
-	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents"
+	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
+	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port on which WebSocket Server runs for Live Preview"
 });
