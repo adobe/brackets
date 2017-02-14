@@ -33,10 +33,11 @@
 define(function RemoteAgent(require, exports, module) {
     "use strict";
 
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
-        EventDispatcher = require("utils/EventDispatcher"),
-        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
+    var LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        EventDispatcher     = require("utils/EventDispatcher"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
+        PreferencesManager  = require("preferences/PreferencesManager");
 
     var _load; // deferred load
     var _objectId; // the object id of the remote object
@@ -130,7 +131,7 @@ define(function RemoteAgent(require, exports, module) {
         _stopKeepAliveInterval();
 
         // inject RemoteFunctions
-        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
+        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + "," + PreferencesManager.get("livedev.wsPort") + ");";
 
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
