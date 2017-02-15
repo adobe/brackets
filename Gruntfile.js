@@ -69,6 +69,7 @@ module.exports = function (grunt) {
                             'dependencies.js',
                             'thirdparty/requirejs/require.js',
                             'LiveDevelopment/launch.html',
+                            'LiveDevelopment/transports/**',
                             'LiveDevelopment/MultiBrowserImpl/transports/**',
                             'LiveDevelopment/MultiBrowserImpl/launchers/**'
                         ]

@@ -30,7 +30,7 @@
  * modules should define a single function that returns an object of all
  * exported functions.
  */
-function RemoteFunctions(experimental) {
+function RemoteFunctions(experimental, remoteWSPort) {
     "use strict";
 
     var lastKeepAliveTime = Date.now();
@@ -97,6 +97,23 @@ function RemoteFunctions(experimental) {
         } else {
             element.removeAttribute(key);
         }
+    }
+    
+    // Checks if the element is in Viewport in the client browser
+    function isInViewport(element) {
+        var rect = element.getBoundingClientRect();
+        var html = window.document.documentElement;
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || html.clientHeight) &&
+            rect.right <= (window.innerWidth || html.clientWidth)
+        );
+    }
+    
+    // returns the distance from the top of the closest relatively positioned parent element
+    function getDocumentOffsetTop(element) {
+        return element.offsetTop + (element.offsetParent ? getDocumentOffsetTop(element.offsetParent) : 0);
     }
 
     // construct the info menu
@@ -318,6 +335,14 @@ function RemoteFunctions(experimental) {
             }
             if (this.trigger) {
                 _trigger(element, "highlight", 1);
+            }
+            
+            if (!window.event && !isInViewport(element)) {
+                var top = getDocumentOffsetTop(element);
+                if (top) {
+                    top -= (window.innerHeight / 2);
+                    window.scrollTo(0, top);
+                }
             }
             this.elements.push(element);
 
@@ -824,7 +849,42 @@ function RemoteFunctions(experimental) {
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
+    
+    var _ws = null;
 
+    function onDocumentClick(event) {
+        var element = event.target,
+            currentDataId,
+            newDataId;
+        
+        if (_ws && element && element.hasAttribute('data-brackets-id')) {
+            _ws.send(JSON.stringify({
+                type: "message",
+                message: element.getAttribute('data-brackets-id')
+            }));
+        }
+    }
+    
+    
+    function createWebSocket() {
+        _ws = new WebSocket("ws://localhost:" + remoteWSPort);
+        _ws.onopen = function () {
+            window.document.addEventListener("click", onDocumentClick);
+        };
+				
+        _ws.onmessage = function (evt) {
+        };
+				
+        _ws.onclose = function () {
+            // websocket is closed
+            window.document.removeEventListener("click", onDocumentClick);
+        };
+    }
+    
+    if (remoteWSPort) {
+        createWebSocket();
+    }
+    
     return {
         "DOMEditHandler"        : DOMEditHandler,
         "keepAlive"             : keepAlive,
