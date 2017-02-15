@@ -11,14 +11,6 @@
         "blockComment": ["/*", "*/"]
     },
 
-    "stylus": {
-        "name": "Stylus",
-        "mode": ["stylus", "text/x-styl"],
-        "fileExtensions": ["styl"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
