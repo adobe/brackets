@@ -513,6 +513,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
     "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string ({0}) is invalid.",
     "DISALLOWED_WORDS"                     : "The words ({1}) are not allowed in the {0} field.",
+    "NPM_INSTALL_FAILED"                   : "npm install command failed: {0}",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "EXTENSION_ALREADY_INSTALLED"          : "Installing this package will overwrite a previously installed extension. Overwrite the old extension?",
