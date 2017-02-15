@@ -89,10 +89,9 @@ define(function (require, exports, module) {
             ternEnvironment.push(library);
         }
 
-        // XXXBramble: we use our own pre-processed versions of tern def files.
         require([
-            "text!bramble-tern-defs/ecmascript.json",
-            "text!bramble-tern-defs/browser.json"
+            "text!node_modules/tern/defs/ecmascript.json",
+            "text!node_modules/tern/defs/browser.json"
         ],
         function(ecmascript, browser) {
             loadDef(ecmascript);
