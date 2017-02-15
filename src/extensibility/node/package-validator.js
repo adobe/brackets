@@ -296,6 +296,9 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                 }
 
                 performNpmInstallIfRequired({
+                    production: true,
+                    proxy: options.proxy
+                }, {
                     errors: errors,
                     metadata: metadata,
                     commonPrefix: commonPrefix,
@@ -329,7 +332,7 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
  * read successfully from package.json in the zip file.
  *
  * @param {string} path Absolute path to the package zip file
- * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} options for validation
+ * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>, proxy: ?<string>}} options for validation
  * @param {function} callback (err, result)
  */
 function validate(path, options, callback) {

@@ -39,7 +39,7 @@
         "anymatch": "1.3.0",
         "chokidar": "1.6.0",
         "lodash": "4.15.0",
-        "npm": "3.10.8"
+        "npm": "3.10.9"
     },
     "devDependencies": {
         "glob": "7.0.6",

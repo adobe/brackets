@@ -39,11 +39,21 @@ var Errors = {
  * @param {string} installDirectory Directory to remove
  * @param {function} callback NodeJS style callback to call after finish
  */
-function _performNpmInstall(installDirectory, callback) {
+function _performNpmInstall(installDirectory, npmOptions, callback) {
     var npmPath = path.resolve(path.dirname(require.resolve("npm")), "..", "bin", "npm-cli.js");
-    var args = [npmPath, "install", "--production"];
-
-    console.log("running npm install --production in " + installDirectory);
+    var args = [npmPath, "install"];
+    
+    // npmOptions can contain additional args like { "production": true, "proxy": "http://127.0.0.1:8888" }
+    Object.keys(npmOptions).forEach(function (key) {
+        var value = npmOptions[key];
+        if (value === true) {
+            args.push("--" + key);
+        } else if (typeof value === "string" && value.length > 0) {
+            args.push("--" + key, value);
+        }
+    });
+    
+    console.log("running npm " + args.slice(1).join(" ") + " in " + installDirectory);
 
     var child = spawn(process.execPath, args, { cwd: installDirectory });
 
@@ -89,7 +99,7 @@ function _performNpmInstall(installDirectory, callback) {
  * @param {Object} validationResult return value of the validation procedure
  * @param {Function} callback function to be called after the end of validation procedure
  */
-function performNpmInstallIfRequired(validationResult, callback) {
+function performNpmInstallIfRequired(npmOptions, validationResult, callback) {
 
     function finish() {
         callback(null, validationResult);
@@ -108,7 +118,7 @@ function performNpmInstallIfRequired(validationResult, callback) {
         return finish();
     }
 
-    _performNpmInstall(installDirectory, function (err) {
+    _performNpmInstall(installDirectory, npmOptions, function (err) {
         if (err) {
             validationResult.errors.push([Errors.NPM_INSTALL_FAILED, err.toString()]);
         }

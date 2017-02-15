@@ -309,7 +309,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, pCall
         }
     }
 
-    validate(packagePath, {}, validateCallback);
+    validate(packagePath, options, validateCallback);
 }
 
 /**
@@ -503,7 +503,7 @@ function init(domainManager) {
             description: "absolute filesystem path where this extension should be installed"
         }, {
             name: "options",
-            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemExtensionDirectory: !string}",
+            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemExtensionDirectory: !string, proxy: ?string}",
             description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
         [{
