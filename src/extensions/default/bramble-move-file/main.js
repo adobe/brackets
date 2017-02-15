@@ -13,7 +13,7 @@ define(function (require, exports, module) {
 
     var MOVE_FILE = "bramble-move-file.moveFile";
 
-    CommandManager.registerInternal(MOVE_FILE, MoveToDialog.open);
+    CommandManager.register(Strings.CMD_MOVE_FILE, MOVE_FILE, MoveToDialog.open);
     var menu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
     menu.addMenuItem(MOVE_FILE, null, Menus.AFTER, Commands.FILE_RENAME);
 
