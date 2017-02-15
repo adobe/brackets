@@ -386,6 +386,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     
                     // Applies to every visualisationElement (padding or margin div)
                     arr[i]["box-sizing"] = "border-box";
+                    arr[i]["transform"] = "none";
                     var el = window.document.createElement("div"),
                         styles = Object.assign(
                         {},
@@ -433,8 +434,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 "border-width": "1px",
                 "border-color": "#00a2ff",
                 "box-shadow": "0 0 1px #fff",
-                "box-sizing": "border-box",
-				"transform": elementStyling.getPropertyValue('transform')
+                "box-sizing": "border-box"
             };
             
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
