@@ -52,7 +52,7 @@
         "rewire": "1.1.2",
         "xmldoc": "^0.1.2",
         "grunt-cleanempty": "1.0.3",
-        "webpack": "1.13.3"
+        "webpack": "2.2.1"
     },
     "scripts": {
         "postinstall": "grunt install",
