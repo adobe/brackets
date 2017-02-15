@@ -105,7 +105,12 @@ define(function (require, exports, module) {
     function validate(path, options) {
         return _extensionManagerCall(function (extensionManager) {
             var d = new $.Deferred();
-
+            
+            // make sure proxy is attached to options before calling validate
+            // so npm can use it in the domain
+            options = options || {};
+            options.proxy = PreferencesManager.get("proxy");
+            
             extensionManager.validate(path, options)
                 .done(function (result) {
                     d.resolve({
@@ -157,7 +162,8 @@ define(function (require, exports, module) {
                 disabledDirectory: disabledDirectory,
                 systemExtensionDirectory: systemDirectory,
                 apiVersion: brackets.metadata.apiVersion,
-                nameHint: nameHint
+                nameHint: nameHint,
+                proxy: PreferencesManager.get("proxy")
             })
                 .done(function (result) {
                     result.keepFile = false;
