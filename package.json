@@ -41,7 +41,7 @@
         "grunt-postcss": "0.3.0",
         "grunt-contrib-less": "1.4.0",
         "grunt-contrib-requirejs": "0.4.1",
-        "grunt-contrib-uglify": "0.2.0",
+        "grunt-contrib-uglify": "2.1.0",
         "grunt-git": "^0.3.4",
         "grunt-npm": "git://github.com/sedge/grunt-npm.git#branchcheck",
         "grunt-shell": "^1.1.2",
