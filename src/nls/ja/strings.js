@@ -513,6 +513,7 @@ define({
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
 	"INVALID_BRACKETS_VERSION": "{APP_NAME} 互換文字列 {0} は無効です。",
 	"DISALLOWED_WORDS": "{1} は {0} フィールドでは使用できません。",
+	"NPM_INSTALL_FAILED": "npm install command failed: {0}",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"EXTENSION_ALREADY_INSTALLED": "このパッケージをインストールすると以前にインストールした拡張機能が上書きされます。古い拡張機能を上書きしますか？",

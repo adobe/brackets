@@ -513,6 +513,7 @@ define({
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
 	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité {APP_NAME} ({0}) n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {0} ne peut pas contenir les mots ({1}).",
+	"NPM_INSTALL_FAILED": "npm install command failed: {0}",
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"EXTENSION_ALREADY_INSTALLED": "L’installation de ce pack remplacera une extension installée précédemment. Voulez-vous remplacer l’extension installée ?",
