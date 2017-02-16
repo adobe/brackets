@@ -5,79 +5,124 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>PRIMEIROS PASSOS COM BRACKETS</title>
-        <meta name="description" content="Um guia interativo de primeiros passos para Brackets.">
+        <meta name="description" content="Um guia interativo de primeiros passos para o Brackets.">
         <link rel="stylesheet" href="main.css">
     </head>
     <body>
 
-    <h1>PRIMEIROS PASSOS COM BRACKETS</h1>
+    <h1>PRIMEIROS PASSOS COM O BRACKETS</h1>
     <h2>Este é o seu guia!</h2>
     
     <!--
-    MADE WITH <3 AND JAVASCRIPT
+        FEITO COM <3 E JAVASCRIPT
     -->
     
     <p>
-        Bem-vindo a uma superprecoce pré-visualização de Brackets, um novo editor open-source para a próxima geração da web. Nós somos grandes fãs dos padrões e queremos construir melhores ferramentas para JavaScript, HTML e CSS
-        e relacionadas tecnologias abertas da web. Este é o nosso humilde começo.
+        Bem-vindo ao Brackets, um moderno editor de código open-source que entende de web design. Leve, mas poderoso, ele combina ferramentas visuais no editor para que você obtenha a quantidade certa de ajuda quando precisar.
     </p>
     
     <!--
-    O QUE É BRACKETS?
+        O QUE É O BRACKETS?
     -->
+        
     <p>
-        <em>Você está olhando para uma versão precoce de Brackets.</em>
-        De muitas maneiras, Brackets é um tipo diferente de editor. Uma diferença notável é que este editor é escrito em JavaScript. Assim, enquanto Brackets poderia não estar pronto para seu uso no dia-a-dia ainda, estamos usando-o todos os dias para criar Brackets.
+        <em>O Brackets é um editor diferente.</em>
+        O Brackets tem algumas características únicas, como a Edição Rápida (Quick Edit), Visualização ao vivo (Live Preview) e muitas outras que você não encontrará em outros editores. E o Brackets é escrito em JavaScript, HTML e CSS. Isso significa que a maioria de vocês que utilizam o Brackets possuem as habilidades necessárias para modificar e estender o editor. Na verdade, usamos o Brackets todos os dias para desenvolver o Brackets. Para saber mais sobre como utilizar os principais recursos, continue lendo.
     </p>
     
     
-    <h2>Nós estamos tentando algumas coisas novas</h2>
+    <!--
+        COMECE COM SEUS PRÓPRIOS ARQUIVOS
+    -->
+    
+    <h3>Projetos no Brackets</h3>
+    <p>
+        Para editar seu próprio código utilizando o Brackets, basta abrir a pasta contendo seus arquivos. O Brackets trata a pasta atualmente aberta como um "Projeto", recursos como Code Hints, Live Preview e Quick Edit usam apenas os arquivos da pasta atualmente aberta.
+    </p>
+        
+    <samp>
+        Assim que você estiver pronto para sair desse projeto exemplo e editar seu próprio código, você pode usar o menu na barra lateral para trocar de pasta. Nesse momento, o menu diz "Primeiros Passos" - que é a pasta que possui o arquivo que você está olhando agora mesmo. Clique no menu e escolha "Abrir pasta..." para abrir sua própria pasta.
+        Também é possível utilizar o menu para voltar a pastas que você abriu anteriormente, incluindo esse projeto de exemplo.
+    </samp>
     
     <!--
         A RELAÇÃO ENTRE HTML, CSS E JAVASCRIPT
     -->
-    <h3>Edição Rápida de CSS e JavaScript</h3>
+        
+    <h3>Quick Edit (Edição Rápida) de CSS e JavaScript</h3>
     <p>
-        Ao editar HTML, use o atalho <kbd>Cmd/Ctrl + E</kbd> para abrir um editor rápido embutido que exibe todos os CSS relacionados. Faça um ajuste ao seu CSS, pressione <kbd>ESC</kbd> e você estará de volta editando HTML. Ou simplesmente deixe as regras CSS abertas e elas se tornarão parte de seu editor HTML.
-        Se você pressionar <kbd>ESC</kbd> fora de um editor rápido, todos eles vão recolher. Sem mais comutação entre documentos perdendo seu contexto.
+        Sem mais necessidade de ficar trocando entre seus arquivos e perder o contexto. Quando estiver editando HTML, use o atalho <kbd>Cmd/Ctrl + E</kbd> para abrir um rápido editor em linha (quick inline editor) que mostra todo o CSS relacionado.
+        Faça uma modificação no seu CSS, aperte <kbd>ESC</kbd> e você está de volta a edição do HTML, ou apenas deixe as regras CSS abertas e elas se tornarão parte do seu editor HTML. Se você apertar <kbd>ESC</kbd> fora do quick inline editor, todos eles irão se recolher. Quick Edit também encontrará regras definidas em arquivos LESS e SCSS, incluindo regras aninhadas.
     </p>
     
     <samp>
-        Quer vê-lo em ação? Coloque o cursor sobre o tag <!-- <samp> --> acima e pressione <kbd>Cmd/Ctrl + E</kbd>. Você deverá ver um editor rápido de CSS aparecer acima. À direita, você verá uma lista de regras CSS que estão relacionadas com esta tag.Simplesmente role as regras com <kbd>Alt + Up/Down</kbd> para encontrar o que deseja editar.
+        Quer vê-lo em ação? Coloque o cursor sobre a tag <!-- <samp> --> acima e pressione <kbd>Cmd/Ctrl + E</kbd>. Você deverá ver um editor rápido de CSS aparecer acima, mostrando as regras CSS que estão aplicadas a ele. Quick Edit funciona em classes e atributos id também. Você pode usá-lo com seus arquivos LESS e SCSS também.
+        
+        Você pode criar novas regras da mesma maneira. Clique em uma das tags <!-- <p> --> acima e aperte <kbd>Cmd/Ctrl + E</kbd>. Não existem regras para ele nesse momento, mas você pode clicar no botão Nova Regra e adicionar uma nova regra para <!-- <p> -->.
     </samp>
     
     <a href="screenshots/quick-edit.png">
         <img alt="Um screenshot mostrando o editor rápido de CSS" src="screenshots/quick-edit.png" />
     </a>
-    
-    <!--
-    VISUALIZAÇÃO AO VIVO (LIVE PREVIEW)
-    -->
-    <h3>Visualizar as alterações CSS ao vivo no navegador</h3>
+        
     <p>
-        Você sabe aquela "dança salvar/recarregar" que temos feito há anos? Aquela onde você faz mudanças no seu editor, clica em salvar, alterna para o navegador e então recarrega a pagina para finalmente ver o resultado Com Brackets, você não precisa fazer essa dança.
+        Você também pode usar o mesmo atalho para editar outras coisas - como funções em JavaScript, cores e funções de tempo de animação - e nós estamos adicionando mais e mais o tempo todo.
     </p>
     <p>
-        Brackets vai abrir uma <em>conexão ao vivo</em> com o seu navegador local e vai empurrar atualizações CSS enquanto você digita! Você já deve estar fazendo alguma coisa como esta hoje com ferramentas baseadas em navegador, mas com Brackets
+        Por enquanto inline editors não podem ser aninhados, então você só pode usar Quick Edit enquanto o cursor estiver em um editor de tamanho máximo.
+    </p>
+    
+    <!--
+        VISUALIZAÇÃO AO VIVO (LIVE PREVIEW)
+    -->
+        
+    <h3>Visualize alterações no HTML e CSS ao vivo no navegador</h3>
+    <p>
+        Você sabe aquela "dança salvar/recarregar" que temos feito há anos? Aquela onde você faz mudanças no seu editor, clica em salvar, alterna para o navegador e então recarrega a página para finalmente ver o resultado? Com o Brackets, você não precisa fazer essa dança.
+    </p>
+    <p>
+        O Brackets vai abrir uma <em>conexão ao vivo</em> com o seu navegador local e vai enviar as atualizações no CSS enquanto você digita! Você já deve estar fazendo alguma coisa como esta hoje com ferramentas baseadas em navegador, mas com o Brackets
         não há necessidade de copiar e colar o CSS final de volta para o editor. Seu código é executado no navegador, mas vive em seu editor!
+    </p>
+        
+    <h3>Destaque ao vivo de elementos HTML e regras CSS</h3>
+    <p>
+        O Brackets facilita ver como as mudanças no seu HTML e CSS irão afetar a página.
+        Quando seu cursor está em uma regra CSS, o Brackets irá destacar todos os elementos afetados no navegador. Similarmente, quando estiver editando um arquivo HTML, o Brackets irá destacar o elemento HTML correspondente no navegador.
     </p>
     
     <samp>
-        Se você tem o Google Chrome instalado, você pode tentar fazer isso sozinho. Clique no ícone em forma de raio no canto superior direito ou pressione <kbd>Cmd/Ctrl + Alt + P</kbd>. Quando a Visualização ao Vivo (Live Preview) é habilitada em um documento HTML, todos os documentos CSS vinculados podem ser editados em tempo real. O ícone vai mudar de cinza para ouro quando Brackets estabelecer uma conexão com o seu navegador.
+        Se você tem o Google Chrome instalado, você pode tentar fazer isso sozinho. Clique no ícone em forma de raio no canto superior direito ou pressione <kbd>Cmd/Ctrl + Alt + P</kbd>. Quando a Visualização ao Vivo (Live Preview) é habilitada em um documento HTML, todos os documentos CSS vinculados podem ser editados em tempo real. O ícone vai mudar de cinza para ouro quando o Brackets estabelecer uma conexão com o seu navegador.
         
-        Agora, coloque o cursor sobre o tag <!-- <img> --> acima e use <kbd>Cmd/Ctrl + E</kbd> para abrir as regras CSS definidas. Tente mudar o tamanho da borda de 10px para 20px ou alterar a cor de fundo de "transparent" para "hotpink". Se você tem Brackets e seu navegador rodando lado a lado, você vai ver as alterações refletidas instantaneamente no seu navegador. Legal, certo?
+        Agora, coloque o cursor sobre a tag <!-- <img> --> acima e use <kbd>Cmd/Ctrl + E</kbd> para abrir as regras CSS definidas. Tente mudar o tamanho da borda de 10px para 20px ou alterar a cor de fundo de "transparent" para "hotpink". Se você tem o Brackets e seu navegador rodando lado a lado, você vai ver as alterações refletidas instantaneamente no seu navegador. Legal, certo?
     </samp>
     
     <p class="note">
-        Atualmente, Brackets suporta Visualização ao Vivo (Live Preview) apenas para CSS. Iremos adicionar suporte à Visualização ao Vivo (Live Preview) para HTML e JavaScript em uma versão futura. Visualizações ao vivo atualmente só são possíveis com Google Chrome. Nós queremos trazer esta funcionalidade para todos os principais navegadores, e estamos ansiosos para trabalhar com os fornecedores.
+        Atualmente, o Brackets suporta Visualização ao Vivo (Live Preview) apenas para HTML e CSS. Entretanto, na versão atual, mudanças nos arquivos JavaScript são automaticamente carregadas quando você salva. Estamos trabalhando no suporte à Visualização ao Vivo para JavaScript. Visualizações ao vivo atualmente só são possíveis com Google Chrome, mas nós esperamos trazer essa funcionalidade para os principais navegadores no futuro.
     </p>
     
+    <h3>Quick View</h3>
+    <p>
+        Para aqueles de nós que ainda não memorizaram os códigos de cores equivalentes para HEX e RGB, o Brackets facilita ver exatamente qual cor está sendo utilizada. Tanto no CSS quanto no HTML, basta passar o mouse por cima de qualquer valor de cor ou gradiente que o Brackets irá mostrar uma pré-visualização da cor/gradiente. O mesmo vale para imagens: passe o mouse por cima do link da imagem no Brackets  e ele irá mostrar uma pré-visualização dessa imagem.
+    </p>
+        
+    <samp>
+        Tente o Quick View você mesmo, passe o cursor na tag <!-- <body> --> no topo desse documento e aperte <kbd>Cmd/Ctrl + E</kbd> para abrir o editor rápido de CSS. Agora simplesmente passe o mouse por cima de qualquer um dos valores de cor no CSS. Você também pode ver isso em ação em gradientes abrindo um editor rápido de CSS na tag <!-- <html> --> e passando o mouse por qualquer um dos dos valores de background-image. Tente também a pré-visualização de imagens, coloque o mouse sobre o link de screenshot incluído anteriormente nesse documento.
+    </samp>
+        
+    <h3>Precisa de algo mais? Tente uma extensão!</h3>
+    <p>
+        Além de todas as coisas boas construídas no Brackets, nossa grande comunidade de desenvolvedores de extensões tem construído centenas de extensões que adicionam funcionalidades uteis ao editor. Se tem algo que você precisa que o Brackets não oferece, mais do que provavelmente alguém já construiu uma extensão para isso. Para pesquisar na lista de extensões disponíveis, escolha <strong>Arquivo > Gerenciador de Extensões...</strong> e clique na aba "Disponíveis". Quando encontrar uma extensão que você quer, apenas clique no botão "Instalar" ao lado.
+    </p>
+        
     <!--
-        DEIXE-NOS CONHECER O QUE VOCÊ PENSA
+        DEIXE-NOS SABER O QUE VOCÊ PENSA
     -->
+        
     <h2>Envolva-se</h2>
     <p>
-        Brackets é um projeto open-source. Desenvolvedores web de todo o mundo estão a contribuir para criar um editor de código melhor. Diga-nos o que você pensa, partilhe as suas ideias ou contribua diretamente para o projeto.
+        O Brackets é um projeto open-source. Desenvolvedores web de todo o mundo estão a contribuir para criar um editor de código melhor. Muitos outros estão desenvolvendo extensões que espandem as capacidades do Brackets. 
+        Diga-nos o que você pensa, compartilhe as suas ideias ou contribua diretamente para o projeto.
     </p>
     <ul>
         <li><a href="http://brackets.io">Brackets.io</a></li>
@@ -85,12 +130,13 @@
         <li><a href="http://github.com/adobe/brackets">Brackets no GitHub</a></li>
         <li><a href="http://github.com/adobe/brackets/wiki">Brackets Wiki</a></li>
         <li><a href="http://groups.google.com/group/brackets-dev">Mailing List Desenvolvedores Brackets</a></li>
-        <li><a href="https://twitter.com/#!/brackets">@Brackets no Twitter</a></li>
+        <li><a href="https://twitter.com/brackets">@Brackets no Twitter</a></li>
         <li>Fale com os desenvolvedores no canal IRC #brackets no Freenode</li>
     </ul>
 
     </body>
 </html>
+
 <!--
 
     [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]

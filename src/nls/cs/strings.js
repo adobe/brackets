@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -118,7 +115,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Živý náhled: Spouštění\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Zrušit živý náhled",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled (uložte soubor)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled (uložte soubor k obnovení)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Živý náhled (neaktualizováno kvůli chybě v syntaxi)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Živý náhled byl zrušen, protože byly otevřeny vývojářské nástroje prohlížeče",
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložit změny v souboru <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložit změny v následujících souborech?",
     "EXT_MODIFIED_TITLE"                : "Externí změny",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdit smazání",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdit smazání",
     "CONFIRM_FOLDER_DELETE"             : "Opravdu chcete smazat složku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Soubor smazán",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> byl změněn mimo {APP_NAME}.<br /><br />Chcete uložit soubor a přepsat tyto změny?",
@@ -194,6 +191,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor <span class='dialog-filename'>{0}</span> ve složce <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/sbalení všeho",
+    "FIND_IN_FILES_INDEXING"            : "Indexování pro okamžité vyhledávání\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Nahradit chyby",
     "REPLACE_IN_FILES_ERRORS"           : "Následující soubory nebyly změněny, protože se změnily po hledání nebo do nich nelze zapisovat.",
 
@@ -216,12 +214,12 @@ define({
 
     // Rychlá úprava
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Rychlá úprava není dostupná pro aktuální pozici kurzoru",
-    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Rychlá úprava: umístěte kurzor do jména třídy",
-    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Rychlá úprava: nekompletní class atribut",
-    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Rychlá úprava: nekompletní id atribut",
-    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Rychlá úprava: umístěte kurzor do elementu, třídy nebo id",
-    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Rychlá úprava časování: neplatná syntaxe",
-    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Rychlá úprava: umístěte kurzor do jména funkce",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Rychlá úprava CSS: umístěte kurzor do jména třídy",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "Rychlá úprava CSS: nekompletní class atribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "Rychlá úprava CSS: nekompletní id atribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Rychlá úprava CSS: umístěte kurzor do elementu, třídy nebo id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Rychlá úprava CSS časování: neplatná syntaxe",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Rychlá úprava JS: umístěte kurzor do jména funkce",
 
     // Rychlá dokumentace
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Rychlá dokumentace není dostupná pro aktuální pozici kurzoru",
@@ -253,9 +251,15 @@ define({
     /**
      * Názvy kláves
      */
-    "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_CTRL"         : "Ctrl",
+    "KEYBOARD_SHIFT"        : "Shift",
+    "KEYBOARD_SPACE"        : "Mezerník",
+    "KEYBOARD_PAGE_UP"      : "Page Up",
+    "KEYBOARD_PAGE_DOWN"    : "Page Down",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "Insert",
+    "KEYBOARD_DELETE"       : "Delete",
 
     /**
      * Řetězce stavového řádku
@@ -353,7 +357,7 @@ define({
     "CMD_OPEN_LINE_ABOVE"                 : "O řádek výše",
     "CMD_OPEN_LINE_BELOW"                 : "O řádek níže",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",
-    "CMD_SHOW_CODE_HINTS"                 : "Zobrazit nápovědy",
+    "CMD_SHOW_CODE_HINTS"                 : "Zobrazit nápovědy kódu",
 
     // Příkazy menu Najít
     "FIND_MENU"                           : "Najít",
@@ -373,6 +377,9 @@ define({
     "VIEW_MENU"                           : "Zobrazit",
     "CMD_HIDE_SIDEBAR"                    : "Skrýt boční menu",
     "CMD_SHOW_SIDEBAR"                    : "Zobrazit boční menu",
+    "CMD_TOGGLE_SIDEBAR"                  : "Zobrazit/skrýt boční menu",
+    "CMD_TOGGLE_PANELS"                   : "Zobrazit/skrýt panely",
+    "CMD_TOGGLE_PURE_CODE"                : "Žádné rozptylování",
     "CMD_INCREASE_FONT_SIZE"              : "Zvětšit velikost písma",
     "CMD_DECREASE_FONT_SIZE"              : "Zmenšit velikost písma",
     "CMD_RESTORE_FONT_SIZE"               : "Obnovit velikost písma",
@@ -399,9 +406,11 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Rychlá dokumentace",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Další shoda",
-    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nové pravidlo",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nový předpis",
     "CMD_NEXT_DOC"                        : "Další dokument",
     "CMD_PREV_DOC"                        : "Předchozí dokument",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Další dokument v seznamu",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Předchozí dokument v seznamu",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     "CMD_SHOW_IN_EXPLORER"                : "Zobrazit v průzkumníkovi",
     "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
@@ -447,12 +456,15 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Nastavení projektu: {0}",
     "PROJECT_SETTING_BASE_URL"             : "URL Živého náhledu",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(nechte prázdné pro URL souboru)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "{0} protokol není podporován živým náhledem&mdash;prosím, použijte http: nebo https: .",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "{0} protokol není podporován živým náhledem &mdash; prosím, použijte http: nebo https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL nemůže obsahovat výrazy pro hledání jako \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být zakódovány %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
-    "EMPTY_VIEW_HEADER"                    : "<em>Otevřete soubor, zatímco tento panel má fokus</em>",
+
+    // Řetězce pro Pane.js
+    "EMPTY_VIEW_HEADER"                    : "<em>Otevřete soubor, zatímco tento panel je aktivní</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Přepnout toto zobrazení na panel {0}",
 
     // Řetězce pro themes-settings.html a themes-general.html
     "CURRENT_THEME"                        : "Aktuální motiv",
@@ -461,13 +473,15 @@ define({
     "FONT_FAMILY"                          : "Rodina písma",
     "THEMES_SETTINGS"                      : "Nastavení motivů",
 
-    // CSS Rychlá úprava
-    "BUTTON_NEW_RULE"                      : "Nové pravidlo",
+    // Rychlá úprava CSS
+    "BUTTON_NEW_RULE"                      : "Nový předpis",
 
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
     "UPDATE"                               : "Aktualizovat",
     "REMOVE"                               : "Odstranit",
+    "DISABLE"                              : "Deaktivovat",
+    "ENABLE"                               : "Aktivovat",
     "OVERWRITE"                            : "Přepsat",
     "CANT_REMOVE_DEV"                      : "Doplněk ve složce \"dev\" musí být smazán manuálně.",
     "CANT_UPDATE"                          : "Aktualizace není kompatibilní s touto verzí {APP_NAME}.",
@@ -521,7 +535,7 @@ define({
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Verze {0} tohoto doplňku vyžaduje novější verzi {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Verze {0} tohoto doplňku funguje pouze se starší verzí {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Bez popisu",
-    "EXTENSION_MORE_INFO"                  : "Více informací...",
+    "EXTENSION_MORE_INFO"                  : "Více informací\u2026",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
     "EXTENSION_KEYWORDS"                   : "Klíčová slova",
     "EXTENSION_TRANSLATED_USER_LANG"       : "Přeloženo do {0} jazyků, včetně vašeho",
@@ -533,18 +547,23 @@ define({
     "EXTENSION_MORE_INFO_LINK"             : "Více",
     "BROWSE_EXTENSIONS"                    : "Procházet doplňky",
     "EXTENSION_MANAGER_REMOVE"             : "Odstranit doplněk",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Chyba při odstraňování jednoho nebo více doplňků: {0}. {APP_NAME} bude stále ukončen.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Nelze odstranit jeden nebo více doplňků: {0}. Aplikace {APP_NAME} se i přesto restartuje.",
     "EXTENSION_MANAGER_UPDATE"             : "Aktualizovat doplněk",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Nelze aktualizovat jeden nebo více doplňků: {0}. Aplikace {APP_NAME} bude ukončena.",
-    "MARKED_FOR_REMOVAL"                   : "Označeno pro odstranění",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Nelze aktualizovat jeden nebo více doplňků: {0}. Aplikace {APP_NAME} se i přesto restartuje.",
+    "EXTENSION_MANAGER_DISABLE"            : "Deaktivovat doplněk",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Nelze deaktivovat jeden nebo více doplňků: {0}. Aplikace {APP_NAME} se i přesto restartuje.",
+    "MARKED_FOR_REMOVAL"                   : "Označeno k odstranění",
     "UNDO_REMOVE"                          : "Zpět",
-    "MARKED_FOR_UPDATE"                    : "Označeno pro aktualizaci",
+    "MARKED_FOR_UPDATE"                    : "Označeno k aktualizaci",
     "UNDO_UPDATE"                          : "Zpět",
+    "MARKED_FOR_DISABLING"                 : "Označeno k deaktivaci",
+    "UNDO_DISABLE"                         : "Zpět",
     "CHANGE_AND_RELOAD_TITLE"              : "Změnit doplňky",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Pro aktualizaci nebo odstranění označených doplňků je třeba restartovat aplikaci {APP_NAME}. Budete vyzváni k uložení změn.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "K aktualizaci, odstranění nebo deaktivaci označených doplňků je třeba restartovat aplikaci {APP_NAME}. Budete vyzváni k uložení změn.",
     "REMOVE_AND_RELOAD"                    : "Odstranit doplňky a restartovat",
     "CHANGE_AND_RELOAD"                    : "Změnit doplňky a restartovat",
     "UPDATE_AND_RELOAD"                    : "Aktualizovat doplňky a restartovat",
+    "DISABLE_AND_RELOAD"                   : "Deaktivovat doplňky a restartovat",
     "PROCESSING_EXTENSIONS"                : "Zpracování změn doplňku\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Doplněk {0} nemohl být odstraněn, protože nebyl nainstalován.",
     "NO_EXTENSIONS"                        : "Žádný doplněk ještě nebyl nainstalován.<br>Klikněte na tlačítko Instalovat z URL pro zahájení instalace.",
@@ -557,8 +576,8 @@ define({
 
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Všechny shody jsou sbalené. Pro prohlédnutí shod rozbalte soubory zobrazené vpravo.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br>Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
-    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádné CSS předpisy odpovídající vašemu výběru.<br>Pro vytvoření předpisu klikněte na \"Nový předpis\".",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS předpisů.",
 
     // Prohlížeče obrázků
     "IMAGE_VIEWER_LARGEST_ICON"            : "největší",
@@ -584,7 +603,7 @@ define({
     "CMD_RESTART_NODE"                          : "Restartovat Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zobrazit chyby ve stavovém řádku",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Otevřít zdroj {APP_NAME}",
-    
+
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Zástupce {APP_NAME} v příkazové řádce",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Při instalaci zástupce do příkazové řádky se vyskytla chyba. Prosím vyzkoušejte řešení <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>na této stránce</a>.<br/><br/>Důvod: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Nelze odstranit existující symbolický odkaz na <code>/usr/local/bin/brackets</code>.",
@@ -601,7 +620,7 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Výchozí",
 
     // extensions/default/HealthData
-    "HEALTH_DATA_NOTIFICATION"                  : "Nastavení Hlášení o zdraví",
+    "HEALTH_DATA_NOTIFICATION"                  : "Nastavení hlášení o zdraví",
     "HEALTH_FIRST_POPUP_TITLE"                  : "Hlášení o zdraví {APP_NAME}",
     "HEALTH_DATA_DO_TRACK"                      : "Sdílejte anonymní informace o používání {APP_NAME}",
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Kvůli vylepšování {APP_NAME} odesíláme společnosti Adobe pravidelně omezené <strong>anonymní</strong> statistiky o používání {APP_NAME}. Tyto informace pomáhají upřednostnit některé funkce, předcházet chybám a všimnout si nedostatků v použitelnosti.<br><br>Vaše data si můžete prohlédnout nebo zakázat jejich sdílení výběrem <strong>Nápověda > Hlášení o zdraví</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Zjistěte více ke hlášení o zdraví {APP_NAME}</a>",
@@ -629,7 +648,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
     "NO_ARGUMENTS"                              : "<žádné parametry>",
     "DETECTED_EXCLUSION_TITLE"                  : "Inferenční problém JavaScript souboru",
-    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} narazil na problémy při zpracování <span class='dialog-filename'>{0}</span>.<br><br>Tento soubor nebude nadále používat nápovědy, funkci Přejít na definici a funkci Rychlá úprava. Pro opětovné zapnutí těchto funkcí, otevřete <code>.brackets.json</code> ve vašem projektu a upravte <code>jscodehints.detectedExclusions</code>.<br><br>Pravděpodobně je to chyba {APP_NAME}. Pokud můžete poskytnout kopii tohoto souboru, prosíme <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>nahlaste tuto chybu</a> s odkazem na daný soubor.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} narazil na problémy při zpracování <span class='dialog-filename'>{0}</span>.<br><br>Tento soubor nebude nadále používat nápovědy kódu, přechod na definici nebo rychlou úpravu. Pro opětovné zapnutí těchto funkcí, otevřete <code>.brackets.json</code> ve vašem projektu a upravte <code>jscodehints.detectedExclusions</code>.<br><br>Pravděpodobně je to chyba {APP_NAME}. Pokud můžete poskytnout kopii tohoto souboru, prosíme <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>nahlaste tuto chybu</a> s odkazem na daný soubor.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -647,7 +666,116 @@ define({
     "COLLAPSE_ALL"                  : "Skrýt vše",
     "EXPAND_ALL"                    : "Zobrazit vše",
     "COLLAPSE_CURRENT"              : "Skrýt aktuální",
-    "EXPAND_CURRENT"                : "Zobrazit aktuální"
+    "EXPAND_CURRENT"                : "Zobrazit aktuální",
+
+    // Popis základních preferencí
+    "DESCRIPTION_CLOSE_BRACKETS"                     : "true k automatickému uzavírání závorek",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false k odebrání \"Zavřít ostatní výše\" z kontextového menu pracovních souborů",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "false k odebrání \"Zavřít ostatní níže\" z kontextového menu pracovních souborů",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "false k odebrání \"Zavřít ostatní\" z kontextového menu pracovních souborů",
+    "DESCRIPTION_CLOSE_TAGS"                         : "Nastavit možnosti uzavírání značek",
+    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Pole značek, které by neměly být automaticky uzavírány",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Zavřít, pokud je napsán > otevírací značky",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "Zavřít, pokud je napsán / uzavírací značky",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Pole značek, do kterých je po jejich otevření vložen prázdný řádek",
+    "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "true k vygenerování záložek skrývajících kód vždy, když se změní úroveň odsazení",
+    "DESCRIPTION_CODE_FOLDING_ENABLED"               : "true k povolení skrývání kódu",
+    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "true k zobrazení záložek skrývajících kód pouze pokud přejedete myší nad okrajem",
+    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limity, kolik úrovní do hloubky platí Skrýt vše",
+    "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Nejmenší počet řádků, pro které se objeví ikona pro skrytí kódu",
+    "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true k zapamatování skrytých částí pokud zavřete a znovu otevřete soubor nebo projekt",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true k povolení skrývání kódu při výběru textu v editoru",
+    "DESCRIPTION_ATTR_HINTS"                         : "Povolit/zakázat nápovědy HTML vlastností",
+    "DESCRIPTION_CSS_PROP_HINTS"                     : "Povolit/zakázat nápovědy CSS/LESS/SCSS hodnot",
+    "DESCRIPTION_JS_HINTS"                           : "Povolit/zakázat nápovědy v JavaScriptu",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Povolit/zakázat detaily o datových typech v nápovědách kódu u JavaScriptu",
+    "DESCRIPTION_PREF_HINTS"                         : "Povolit/zakázat nápovědy v preferencích",
+    "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Povolit/zakázat nápovědy HTML entit",
+    "DESCRIPTION_SVG_HINTS"                          : "Povolit/zakázat nápovědy v SVG",
+    "DESCRIPTION_HTML_TAG_HINTS"                     : "Povolit/zakázat nápovědy HTML značek",
+    "DESCRIPTION_URL_CODE_HINTS"                     : "Povolit/zakázat nápovědy adres URL v HTML & CSS/LESS/SCSS",
+    "DESCRIPTION_DRAG_DROP_TEXT"                     : "Povolit/zakázat funkci Drag & Drop",
+    "DESCRIPTION_HEALTH_DATA_TRACKING"               : "Povolit sledování hlášení o zdraví",
+    "DESCRIPTION_HIGHLIGHT_MATCHES"                  : "Povolit automatické zvýrazňování shodujících se výrazů v celém dokumentu",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "Zvýraznit všechny výrazy shodující se s výrazem, na kterém je aktuálně kurzor (není nutný výběr výrazu)",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Zvýraznit pouze pokud je výběr kompletním výrazem",
+    "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "true k vložení aktuálně vybrané nápovědy při tabulátoru",
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "true k zamezení automatického zobrazení nápověd JS kódu, jestliže je napsaná .",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Objekt s výchozími možnostmi pro JSLint",
+    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "true k povolení přiřazených výrazů",
+    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "true k povolení bitových operátorů",
+    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "true pokud by globální proměnné standardního prohlížeče měly být předdefinované",
+    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "true k povolení idiomů Google Closure",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "true k povolení příkazu \"continue\"",
+    "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "true pokud by globální proměnné CouchDB měly být předdefinované",
+    "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "true k povolení příkazů debuggeru",
+    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "true pokud by globální proměnné prohlížeče užitečné při vývoji měly být předdefinované",
+    "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "true k povolení == a !=",
+    "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "true pokud by globální proměnné ES6 měly být předdefinované",
+    "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "true k povolení eval",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "true k povolení nefiltrovaných \"for ... in\"",
+    "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "Nastavit vlastní šířku tabulátoru",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "Maximální počet hlášených varování",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "Maximální počet znaků na řádku",
+    "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "true k povolení nevyužitých konstruktorů",
+    "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "true pokud by globální proměnné Node.js měly být předdefinované",
+    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "true k povolení přebývajících podtržítek v identifikátorech",
+    "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "true k zastavení na první chybě",
+    "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "true k povolení ++ a --",
+    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "true k povolení . a [^...]. v RegExpu",
+    "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "true pokud by globální proměnné Rhino měly být předdefinované",
+    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "true k povolení chybějících `use strict`",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "true pokud může být použito blokování ('...Sync') metod.",
+    "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "true k povolení neefektivního indexování",
+    "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "true k povolení TODO komentářů",
+    "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "true k povolení nepoužitých parametrů",
+    "DESCRIPTION_JSLINT_OPTIONS_VARS"                : "true k povolení více než 1 proměnné ve funkci",
+    "DESCRIPTION_JSLINT_OPTIONS_WHITE"               : "true k ignorování pravidel ohledně prázdných znaků",
+    "DESCRIPTION_LANGUAGE"                           : "Vlastní nastavení jazyků",
+    "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Dodatečná mapování z přípony souboru na jméno jazyka",
+    "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Dodatečná mapování z názvu souboru na jméno jazyka",
+    "DESCRIPTION_LINTING_ENABLED"                    : "true k povolení panelu zpráv",
+    "DESCRIPTION_ASYNC_TIMEOUT"                      : "Čas v milisekundách, po kterém vyprší asynchronní lintery",
+    "DESCRIPTION_LINTING_PREFER"                     : "Pole linterů spouštěných nejdříve",
+    "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "true k povolení experimentálního živého náhledu",
+    "DESCRIPTION_USE_PREFERED_ONLY"                  : "true ke spuštění poskytovatelů určených pouze v linting.prefer",
+    "DESCRIPTION_MAX_CODE_HINTS"                     : "Maximální počet současně zobrazených nápověd kódu",
+    "DESCRIPTION_PATH"                               : "Vlastní nastavení cest",
+    "DESCRIPTION_PROXY"                              : "URL proxy serveru použitého k instalaci doplňků",
+    "DESCRIPTION_SCROLL_PAST_END"                    : "true k povolení rolování za konec dokumentu",
+    "DESCRIPTION_SHOW_CODE_HINTS"                    : "false k zakázání všech nápověd kódu",
+    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "Při výběru textu nechat zobrazený blikající kurzor",
+    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "true ke zobrazení čísel řádků na okraji vlevo od kódu",
+    "DESCRIPTION_SMART_INDENT"                       : "Automaticky odsadit při vytvoření nového bloku",
+    "DESCRIPTION_SOFT_TABS"                          : "false k zamezení nahrazování tabulátorů mezerami",
+    "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "true k řazení složek nahoru ve stromu souborů projektu",
+    "DESCRIPTION_SPACE_UNITS"                        : "Počet mezer použitých v odsazení mezerami",
+    "DESCRIPTION_STATIC_SERVER_PORT"                 : "Síťový port, který by zabudovaný server měl použít pro živý náhled",
+    "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "true ke zvýraznění řádku, na kterém se nachází kurzor, barvou na pozadí",
+    "DESCRIPTION_TAB_SIZE"                           : "Počet zobrazených mezer místo tabulátoru",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "true k používání tabulátorů místo mezer",
+    "DESCRIPTION_UPPERCASE_COLORS"                   : "true k vygenerování hex barev velkými písmeny v Inline Color Editor",
+    "DESCRIPTION_WORD_WRAP"                          : "Zalomit řádky přesahující šířku viewportu",
+    "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Seznam souborů, u kterých bylo zjištěno, že způsobují, že se Tern vymkne kontrole",
+    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "Doba, po jejímž uplynutí Tern při snaze porozumět souborům vyprší",
+    "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true ke zobrazení chyb ve stavovém řádku",
+    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "true k povolení rychlého náhledu",
+    "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "true ke zobrazení náhledů obrázků pro chybějící přípony URL",
+    "DESCRIPTION_THEME"                              : "Vybrat motiv {APP_NAME}",
+    "DESCRIPTION_USE_THEME_SCROLLBARS"               : "true k povolení vlastních posuvníků",
+    "DESCRIPTION_LINTING_COLLAPSED"                  : "true ke skrytí panelu linteru",
+    "DESCRIPTION_FONT_FAMILY"                        : "Změnit písmo",
+    "DESCRIPTION_FONT_SIZE"                          : "Změnit velikost písma, např. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true k povolení vyhledávání založeného na Node",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true k povolení okamžitého vyhledávání",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "Pouze pro Mac: \"subpixel-antialiased\" k povolení sub-pixel vyhlazování nebo \"antialiased\" k vyhlazování v odstínech šedi",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false k zamezení otevírání souboru s preferencemi v rozděleném editoru",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false k otevření souboru s preferencemi v levém/horním panelu",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true ke skrytí panelů po zavření posledního souboru z panelu pomocí tlačítka na hlavičce panelu",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Změňte ke zobrazení tlačítek zavřít a rozdělit ve hlavičce.",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Toto je soubor pouze ke čtení s preferencemi podporovanými\n * v {APP_NAME}.\n * Použijte tento soubor jako doporučení pro úpravu vašeho souboru s preferencemi\n * \"brackets.json\" otevřeném ve druhém panelu.\n * Pro více informací o úpravě preferencí\n * v {APP_NAME} se podívejte na webovou stránku https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Výchozí",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true k povolení módu pouze s kódem a ke skrytí Všech dalších UI prvků v {APP_NAME}"
 });
 
-/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
+/* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */

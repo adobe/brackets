@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
  *
  */
 
-
 /*global define, console */
 /*unittests: Preferences Manager */
 
@@ -32,199 +31,15 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
-        AppInit                 = require("utils/AppInit"),
+    var AppInit                 = require("utils/AppInit"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        DeprecationWarning      = require("utils/DeprecationWarning"),
         FileUtils               = require("file/FileUtils"),
-        ExtensionLoader         = require("utils/ExtensionLoader"),
         PreferencesBase         = require("preferences/PreferencesBase"),
         FileSystem              = require("filesystem/FileSystem"),
         Strings                 = require("strings"),
         PreferencesImpl         = require("preferences/PreferencesImpl"),
-        _                       = require("thirdparty/lodash"),
-        Compatibility           = require("utils/Compatibility");
-
-    /**
-     * The local storage ID
-     * @const
-     * @type {string}
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.preferences";
-
-    /**
-     * The prefix used in the generated client ID
-     * @const
-     * @type {string}
-     */
-    var CLIENT_ID_PREFIX = "com.adobe.brackets.";
-
-    // Private Properties
-    var preferencesKey,
-        prefStorage,
-        persistentStorage,
-        extensionPaths,
-        doLoadPreferences   = false;
-
-    var localStorage = Compatibility.localStorage;
-
-    /**
-     * @private
-     * Returns an array with the extension paths used in Brackets. The result is stored on a
-     * private variable on the first call and used to return the value on the next calls.
-     * @return {Array.<string>}
-     */
-    function _getExtensionPaths() {
-        if (!extensionPaths) {
-            var dirPath = FileUtils.getNativeBracketsDirectoryPath();
-
-            extensionPaths = [
-                dirPath + "/extensions/default/",
-                dirPath + "/extensions/dev/",
-                ExtensionLoader.getUserExtensionPath() + "/"
-            ];
-        }
-        return extensionPaths;
-    }
-
-    /**
-     * This method returns a standardized ClientID for a given requireJS module object
-     * @param {!{id: string, uri: string}} module - A requireJS module object
-     * @return {string} The ClientID
-     */
-    function getClientID(module) {
-        var paths = exports._getExtensionPaths();
-        var pathUrl, clientID;
-
-        paths.some(function (path) {
-            if (module.uri.toLocaleLowerCase().indexOf(path.toLocaleLowerCase()) === 0) {
-                pathUrl = path;
-                return true;
-            }
-        });
-
-        if (pathUrl) {
-            clientID = CLIENT_ID_PREFIX + module.uri.replace(pathUrl, "");
-        } else {
-            clientID = CLIENT_ID_PREFIX + module.id;
-        }
-        return clientID;
-    }
-
-    /**
-     * Retreive the preferences data for the given clientID.
-     * @param {string|{id: string, uri: string}} clientID - A unique identifier or a requireJS module object
-     * @param {string=} defaults - Default preferences stored as JSON
-     * @param {boolean=} _doNotCreate Do not create the storage if it does not already exist. Used for conversion.
-     * @return {PreferenceStorage}
-     */
-    function getPreferenceStorage(clientID, defaults, _doNotCreate) {
-        // No one should be calling this to access the old preference storage except for
-        // migrating the old preferences to the new model. So if this is called without
-        // having _doNotCreate set to true, then the caller is using the old preferences model.
-        if (!_doNotCreate) {
-            var clientString = typeof clientID === "object" ? clientID.uri : clientID;
-            DeprecationWarning.deprecationWarning("getPreferenceStorage is called with client ID '" + clientString + ",' use PreferencesManager.definePreference instead.");
-        }
-        if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
-            console.error("Invalid clientID");
-            return;
-        }
-        if (typeof clientID === "object") {
-            clientID = getClientID(clientID);
-        }
-
-        var prefs = prefStorage[clientID];
-
-        if (prefs === undefined) {
-            if (_doNotCreate) {
-                return;
-            }
-            // create a new empty preferences object
-            prefs = (defaults && JSON.stringify(defaults)) ? defaults : {};
-            prefStorage[clientID] = prefs;
-        } else if (defaults) {
-            // add new defaults
-            _.forEach(defaults, function (value, key) {
-                if (prefs[key] === undefined) {
-                    prefs[key] = value;
-                }
-            });
-        }
-
-        return new OldPreferenceStorage(clientID, prefs);
-    }
-
-    /**
-     * Save all preference clients.
-     */
-    function savePreferences() {
-        // save all preferences
-        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
-    }
-
-    /**
-     * @private
-     * Reset preferences and callbacks
-     */
-    function _reset() {
-        prefStorage = {};
-
-        // Note that storage.clear() is not used. Production and unit test code
-        // both rely on the same backing storage but unique item keys.
-        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
-    }
-
-    /**
-     * @private
-     * Initialize persistent storage implementation
-     */
-    function _initStorage(storage) {
-        persistentStorage = storage;
-
-        if (doLoadPreferences) {
-            try {
-                prefStorage = JSON.parse(persistentStorage.getItem(preferencesKey));
-            } catch(e) {
-            }
-        }
-
-        // initialize empty preferences if none were found in storage
-        if (!prefStorage) {
-            _reset();
-        }
-    }
-
-    // Check localStorage for a preferencesKey. Production and unit test keys
-    // are used to keep preferences separate within the same storage implementation.
-    preferencesKey = localStorage.getItem("preferencesKey");
-
-    if (!preferencesKey) {
-        // use default key if none is found
-        preferencesKey = PREFERENCES_CLIENT_ID;
-        doLoadPreferences = true;
-    } else {
-        // using a non-default key, check for additional settings
-        doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
-    }
-
-    // Use localStorage by default
-    _initStorage(localStorage);
-
-
-    // Public API
-    exports.getPreferenceStorage    = getPreferenceStorage;
-    exports.savePreferences         = savePreferences;
-    exports.getClientID             = getClientID;
-
-
-    // Unit test use only
-    exports._reset                  = _reset;
-    exports._getExtensionPaths      = _getExtensionPaths;
-
-    // New code follows. The code above (with the exception of the imports) is
-    // deprecated.
+        _                       = require("thirdparty/lodash");
 
     var currentFilename         = null, // the filename currently being edited
         currentLanguageId       = null, // the language id of the file currently being edited
@@ -302,58 +117,6 @@ define(function (require, exports, module) {
         return PreferencesImpl.manager.getPrefixedSystem(prefix);
     }
 
-    /**
-     * Converts from the old localStorage-based preferences to the new-style
-     * preferences according to the "rules" given.
-     *
-     * `rules` is an object, the keys of which refer to the preference names.
-     * The value tells the converter what to do. The following values are available:
-     *
-     * * `user`: convert to a user-level preference
-     * * `user newkey`: convert to a user-level preference, changing the key to newkey
-     *
-     * Once a key has been converted, it will not be converted again.
-     *
-     * @param {string|Object} clientID ClientID used in the old preferences
-     * @param {Object} rules Rules for conversion (as defined above)
-     * @param {boolean=} isViewState If it is undefined or false, then the preferences
-     *      listed in 'rules' are those normal user-editable preferences. Otherwise,
-     *      they are view state settings.
-     * @param {function(string)=} prefCheckCallback Optional callback function that
-     *      examines each preference key for migration.
-     */
-    function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
-        PreferencesImpl.smUserScopeLoading.done(function () {
-            PreferencesImpl.userScopeLoading.done(function () {
-                if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
-                    console.error("Invalid clientID");
-                    return;
-                }
-                var prefs = getPreferenceStorage(clientID, null, true);
-
-                if (!prefs) {
-                    return;
-                }
-
-                var prefsID = typeof clientID === "object" ? getClientID(clientID) : clientID;
-                if (prefStorage.convertedKeysMap === undefined) {
-                    prefStorage.convertedKeysMap = {};
-                }
-                var convertedKeysMap = prefStorage.convertedKeysMap;
-
-                prefs.convert(rules, convertedKeysMap[prefsID], isViewState, prefCheckCallback)
-                    .done(function (complete, convertedKeys) {
-                        prefStorage.convertedKeysMap[prefsID] = convertedKeys;
-                        savePreferences();
-                    });
-            }).fail(function (error) {
-                console.error("Error while converting ", typeof clientID === "object" ? getClientID(clientID) : clientID);
-                console.error(error);
-            });
-        });
-    }
-
-
     // Constants for preference lookup contexts.
 
     /**
@@ -405,9 +168,9 @@ define(function (require, exports, module) {
             if (before === -1) {
                 before = scopeOrder.length - 2;
             }
-            newScopeOrder = _.first(scopeOrder, before);
+            newScopeOrder = _.take(scopeOrder, before);
             newScopeOrder.push("project");
-            newScopeOrder.push.apply(newScopeOrder, _.rest(scopeOrder, before));
+            newScopeOrder.push.apply(newScopeOrder, _.drop(scopeOrder, before));
         } else {
             newScopeOrder = _.without(scopeOrder, "project");
         }
@@ -523,23 +286,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
 
     /**
-     * Convenience function that sets a preference and then saves the file, mimicking the
-     * old behavior a bit more closely.
-     * @deprecated Use set instead.
-     *
-     * @param {string} id preference to set
-     * @param {*} value new value for the preference
-     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
-     * @return {boolean} true if a value was set
-     */
-    function setValueAndSave(id, value, options) {
-        DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
-        var changed = exports.set(id, value, options).stored;
-        PreferencesImpl.manager.save();
-        return changed;
-    }
-
-    /**
      * Convenience function that gets a view state
      *
      * @param {string} id preference to get
@@ -595,8 +341,8 @@ define(function (require, exports, module) {
     exports.on                  = PreferencesImpl.manager.on.bind(PreferencesImpl.manager);
     exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);
     exports.getPreference       = PreferencesImpl.manager.getPreference.bind(PreferencesImpl.manager);
+    exports.getAllPreferences   = PreferencesImpl.manager.getAllPreferences.bind(PreferencesImpl.manager);
     exports.getExtensionPrefs   = getExtensionPrefs;
-    exports.setValueAndSave     = setValueAndSave;
     exports.getViewState        = getViewState;
     exports.setViewState        = setViewState;
     exports.addScope            = PreferencesImpl.manager.addScope.bind(PreferencesImpl.manager);
@@ -605,5 +351,4 @@ define(function (require, exports, module) {
     exports.SETTINGS_FILENAME   = PreferencesImpl.SETTINGS_FILENAME;
     exports.definePreference    = PreferencesImpl.manager.definePreference.bind(PreferencesImpl.manager);
     exports.fileChanged         = PreferencesImpl.manager.fileChanged.bind(PreferencesImpl.manager);
-    exports.convertPreferences  = convertPreferences;
 });

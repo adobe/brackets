@@ -1,33 +1,31 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, $, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _                           = require("thirdparty/lodash"),
+        Mustache                    = require("thirdparty/mustache/mustache"),
         Dialogs                     = require("widgets/Dialogs"),
         DefaultDialogs              = require("widgets/DefaultDialogs"),
         FileSystem                  = require("filesystem/FileSystem"),
@@ -44,12 +42,12 @@ define(function (require, exports, module) {
         ExtensionManager            = require("extensibility/ExtensionManager"),
         ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
-    
+
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
-    
+
     // bootstrap tabs component
     require("widgets/bootstrap-tab");
-    
+
     var _activeTabIndex;
 
     function _stopEvent(event) {
@@ -63,19 +61,22 @@ define(function (require, exports, module) {
      */
     function _performChanges() {
         // If an extension was removed or updated, prompt the user to quit Brackets.
-        var hasRemovedExtensions = ExtensionManager.hasExtensionsToRemove(),
-            hasUpdatedExtensions = ExtensionManager.hasExtensionsToUpdate();
-        if (!hasRemovedExtensions && !hasUpdatedExtensions) {
+        var hasRemovedExtensions    = ExtensionManager.hasExtensionsToRemove(),
+            hasUpdatedExtensions    = ExtensionManager.hasExtensionsToUpdate(),
+            hasDisabledExtensions   = ExtensionManager.hasExtensionsToDisable();
+        if (!hasRemovedExtensions && !hasUpdatedExtensions && !hasDisabledExtensions) {
             return;
         }
-        
+
         var buttonLabel = Strings.CHANGE_AND_RELOAD;
-        if (hasRemovedExtensions && !hasUpdatedExtensions) {
+        if (hasRemovedExtensions && !hasUpdatedExtensions && !hasDisabledExtensions) {
             buttonLabel = Strings.REMOVE_AND_RELOAD;
-        } else if (hasUpdatedExtensions && !hasRemovedExtensions) {
+        } else if (hasUpdatedExtensions && !hasRemovedExtensions && !hasDisabledExtensions) {
             buttonLabel = Strings.UPDATE_AND_RELOAD;
+        } else if (hasDisabledExtensions && !hasRemovedExtensions && !hasUpdatedExtensions) {
+            buttonLabel = Strings.DISABLE_AND_RELOAD;
         }
-        
+
         var dlg = Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_CHANGE_EXTENSIONS,
             Strings.CHANGE_AND_RELOAD_TITLE,
@@ -95,7 +96,7 @@ define(function (require, exports, module) {
             false
         ),
             $dlg = dlg.getElement();
-        
+
         $dlg.one("buttonClick", function (e, buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Disable the dialog buttons so the user can't dismiss it,
@@ -106,68 +107,107 @@ define(function (require, exports, module) {
                 $dlg.find(".dialog-message")
                     .text(Strings.PROCESSING_EXTENSIONS)
                     .append("<span class='spinner inline spin'/>");
-                
-                ExtensionManager.removeMarkedExtensions()
-                    .done(function () {
-                        ExtensionManager.updateExtensions()
-                            .done(function () {
-                                dlg.close();
-                                CommandManager.execute(Commands.APP_RELOAD);
-                            })
-                            .fail(function (errorArray) {
-                                dlg.close();
-                                
-                                // This error case should be very uncommon.
-                                // Just let the user know that we couldn't update
-                                // this extension and log the errors to the console.
-                                var ids = [];
-                                errorArray.forEach(function (errorObj) {
-                                    ids.push(errorObj.item);
-                                    if (errorObj.error && errorObj.error.forEach) {
-                                        console.error("Errors for", errorObj.item);
-                                        errorObj.error.forEach(function (error) {
-                                            console.error(Package.formatError(error));
-                                        });
-                                    } else {
-                                        console.error("Error for", errorObj.item, errorObj);
-                                    }
-                                });
-                                Dialogs.showModalDialog(
-                                    DefaultDialogs.DIALOG_ID_ERROR,
-                                    Strings.EXTENSION_MANAGER_UPDATE,
-                                    StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
-                                ).done(function () {
-                                    // We still have to reload even if some of the removals failed.
-                                    CommandManager.execute(Commands.APP_RELOAD);
-                                });
-                            });
-                    })
+
+                var removeExtensionsPromise,
+                    updateExtensionsPromise,
+                    disableExtensionsPromise,
+                    removeErrors,
+                    updateErrors,
+                    disableErrors;
+
+                removeExtensionsPromise = ExtensionManager.removeMarkedExtensions()
                     .fail(function (errorArray) {
+                        removeErrors = errorArray;
+                    });
+                updateExtensionsPromise = ExtensionManager.updateExtensions()
+                    .fail(function (errorArray) {
+                        updateErrors = errorArray;
+                    });
+                disableExtensionsPromise = ExtensionManager.disableMarkedExtensions()
+                    .fail(function (errorArray) {
+                        disableErrors = errorArray;
+                    });
+
+                Async.waitForAll([removeExtensionsPromise, updateExtensionsPromise, disableExtensionsPromise], true)
+                    .always(function () {
                         dlg.close();
-                        ExtensionManager.cleanupUpdates();
-                        
-                        var ids = [];
-                        errorArray.forEach(function (errorObj) {
-                            ids.push(errorObj.item);
-                        });
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.EXTENSION_MANAGER_REMOVE,
-                            StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
-                        ).done(function () {
-                            // We still have to reload even if some of the removals failed.
-                            CommandManager.execute(Commands.APP_RELOAD);
-                        });
+                    })
+                    .done(function () {
+                        CommandManager.execute(Commands.APP_RELOAD);
+                    })
+                    .fail(function () {
+                        var ids = [],
+                            dialogs = [];
+
+                        function nextDialog() {
+                            var dialog = dialogs.shift();
+                            if (dialog) {
+                                Dialogs.showModalDialog(dialog.dialog, dialog.title, dialog.message)
+                                    .done(nextDialog);
+                            } else {
+                                // Even in case of error condition, we still have to reload
+                                CommandManager.execute(Commands.APP_RELOAD);
+                            }
+                        }
+
+                        if (removeErrors) {
+                            removeErrors.forEach(function (errorObj) {
+                                ids.push(errorObj.item);
+                            });
+                            dialogs.push({
+                                dialog: DefaultDialogs.DIALOG_ID_ERROR,
+                                title: Strings.EXTENSION_MANAGER_REMOVE,
+                                message: StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
+                            });
+                        }
+
+                        if (updateErrors) {
+                            // This error case should be very uncommon.
+                            // Just let the user know that we couldn't update
+                            // this extension and log the errors to the console.
+                            ids.length = 0;
+                            updateErrors.forEach(function (errorObj) {
+                                ids.push(errorObj.item);
+                                if (errorObj.error && errorObj.error.forEach) {
+                                    console.error("Errors for", errorObj.item);
+                                    errorObj.error.forEach(function (error) {
+                                        console.error(Package.formatError(error));
+                                    });
+                                } else {
+                                    console.error("Error for", errorObj.item, errorObj);
+                                }
+                            });
+                            dialogs.push({
+                                dialog: DefaultDialogs.DIALOG_ID_ERROR,
+                                title: Strings.EXTENSION_MANAGER_UPDATE,
+                                message: StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
+                            });
+                        }
+
+                        if (disableErrors) {
+                            ids.length = 0;
+                            disableErrors.forEach(function (errorObj) {
+                                ids.push(errorObj.item);
+                            });
+                            dialogs.push({
+                                dialog: DefaultDialogs.DIALOG_ID_ERROR,
+                                title: Strings.EXTENSION_MANAGER_DISABLE,
+                                message: StringUtils.format(Strings.EXTENSION_MANAGER_DISABLE_ERROR, ids.join(", "))
+                            });
+                        }
+
+                        nextDialog();
                     });
             } else {
                 dlg.close();
                 ExtensionManager.cleanupUpdates();
                 ExtensionManager.unmarkAllForRemoval();
+                ExtensionManager.unmarkAllForDisabling();
             }
         });
     }
-    
-    
+
+
     /**
      * @private
      * Install extensions from the local file system using the install dialog.
@@ -190,12 +230,12 @@ define(function (require, exports, module) {
             // Parse zip files and separate new installs vs. updates
             validatePromise = Async.doInParallel_aggregateErrors(paths, function (path) {
                 var result = new $.Deferred();
-                
+
                 FileSystem.resolve(path, function (err, file) {
                     var extension = FileUtils.getFileExtension(path),
                         isZip = file.isFile && (extension === "zip"),
                         errStr;
-                    
+
                     if (err) {
                         errStr = FileUtils.getFileErrorString(err);
                     } else if (!isZip) {
@@ -206,13 +246,13 @@ define(function (require, exports, module) {
                         result.reject(errStr);
                         return;
                     }
-                    
+
                     // Call validate() so that we open the local zip file and parse the
                     // package.json. We need the name to detect if this zip will be a
                     // new install or an update.
                     Package.validate(path, { requirePackageJSON: true }).done(function (info) {
                         if (info.errors.length) {
-                            result.reject(Package.formatError(info.errors));
+                            result.reject(info.errors.map(Package.formatError).join(" "));
                             return;
                         }
 
@@ -231,7 +271,7 @@ define(function (require, exports, module) {
                         result.reject(Package.formatError(err));
                     });
                 });
-                
+
                 return result.promise();
             });
 
@@ -247,7 +287,7 @@ define(function (require, exports, module) {
                         });
                     });
                 });
-                
+
                 // InstallExtensionDialog displays it's own errors, always
                 // resolve the outer promise
                 updatePromise.always(deferred.resolve);
@@ -255,10 +295,10 @@ define(function (require, exports, module) {
                 deferred.reject(errorArray);
             });
         });
-        
+
         return deferred.promise();
     }
-    
+
     /**
      * @private
      * Show a dialog that allows the user to browse and manage extensions.
@@ -269,32 +309,34 @@ define(function (require, exports, module) {
             views   = [],
             $search,
             $searchClear,
+            $modalDlg,
             context = { Strings: Strings, showRegistry: !!brackets.config.extension_registry },
             models  = [];
-        
+
         // Load registry only if the registry URL exists
         if (context.showRegistry) {
             models.push(new ExtensionManagerViewModel.RegistryViewModel());
             models.push(new ExtensionManagerViewModel.ThemesViewModel());
         }
-        
+
         models.push(new ExtensionManagerViewModel.InstalledViewModel());
-        
+
         function updateSearchDisabled() {
             var model           = models[_activeTabIndex],
                 searchDisabled  = ($search.val() === "") &&
                                   (!model.filterSet || model.filterSet.length === 0);
-            
+
             $search.prop("disabled", searchDisabled);
             $searchClear.prop("disabled", searchDisabled);
-            
+
             return searchDisabled;
         }
-        
+
         function clearSearch() {
             $search.val("");
             views.forEach(function (view, index) {
                 view.filter("");
+                $modalDlg.scrollTop(0);
             });
 
             if (!updateSearchDisabled()) {
@@ -304,30 +346,31 @@ define(function (require, exports, module) {
 
         // Open the dialog
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogTemplate, context));
-        
+
         // On dialog close: clean up listeners & models, and commit changes
         dialog.done(function () {
             $(window.document).off(".extensionManager");
-            
+
             models.forEach(function (model) {
                 model.dispose();
             });
-            
+
             _performChanges();
         });
-        
+
         // Create the view.
         $dlg = dialog.getElement();
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
+        $modalDlg = $(".modal-body", $dlg);
 
         function setActiveTab($tab) {
             if (models[_activeTabIndex]) {
-                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+                models[_activeTabIndex].scrollPos = $modalDlg.scrollTop();
             }
             $tab.tab("show");
             if (models[_activeTabIndex]) {
-                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+                $modalDlg.scrollTop(models[_activeTabIndex].scrollPos || 0);
                 clearSearch();
             }
         }
@@ -366,57 +409,58 @@ define(function (require, exports, module) {
                 $notificationIcon.hide();
             }
         }
-        
+
         // Initialize models and create a view for each model
         var modelInitPromise = Async.doInParallel(models, function (model, index) {
             var view    = new ExtensionManagerView(),
                 promise = view.initialize(model),
                 lastNotifyCount;
-            
+
             promise.always(function () {
                 views[index] = view;
-                
+
                 lastNotifyCount = model.notifyCount;
                 updateNotificationIcon(index);
             });
-            
+
             model.on("change", function () {
                 if (lastNotifyCount !== model.notifyCount) {
                     lastNotifyCount = model.notifyCount;
                     updateNotificationIcon(index);
                 }
             });
-            
+
             return promise;
         }, true);
-        
+
         modelInitPromise.always(function () {
             $(".spinner", $dlg).remove();
-            
+
             views.forEach(function (view) {
-                view.$el.appendTo($(".modal-body", $dlg));
+                view.$el.appendTo($modalDlg);
             });
-            
+
             // Update search UI before new tab is shown
             $("a[data-toggle='tab']", $dlg).each(function (index, tabElement) {
                 $(tabElement).on("show", function (event) {
                     _activeTabIndex = index;
-                    
+
                     // Focus the search input
                     if (!updateSearchDisabled()) {
                         $dlg.find(".search").focus();
                     }
                 });
             });
-            
+
             // Filter the views when the user types in the search field.
             $dlg.on("input", ".search", function (e) {
                 var query = $(this).val();
                 views.forEach(function (view) {
                     view.filter(query);
+                    $modalDlg.scrollTop(0);
                 });
             }).on("click", ".search-clear", clearSearch);
-            
+
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {
                 model.on("change", function () {
@@ -425,7 +469,7 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
+
             var $activeTab = $dlg.find(".nav-tabs li.active a");
             if ($activeTab.length) { // If there's already a tab selected, show it
                 $activeTab.parent().removeClass("active"); // workaround for bootstrap-tab
@@ -437,17 +481,17 @@ define(function (require, exports, module) {
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
         });
-    
+
         // Handle the 'Install from URL' button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
             });
-        
+
         // Handle the drag/drop zone
         var $dropzone = $("#install-drop-zone"),
             $dropmask = $("#install-drop-zone-mask");
-        
+
         $dropzone
             .on("dragover", function (event) {
                 _stopEvent(event);
@@ -482,7 +526,7 @@ define(function (require, exports, module) {
                 }
             })
             .on("drop", _stopEvent);
-        
+
         $dropmask
             .on("dragover", function (event) {
                 _stopEvent(event);
@@ -494,7 +538,7 @@ define(function (require, exports, module) {
             })
             .on("drop", function (event) {
                 _stopEvent(event);
-                
+
                 if (event.originalEvent.dataTransfer.files) {
                     // Attempt install
                     _installUsingDragAndDrop().fail(function (errorArray) {
@@ -517,22 +561,22 @@ define(function (require, exports, module) {
                         $dropzone.removeClass("validating");
                         $dropzone.addClass("drag");
                     });
-                    
+
                     // While installing, show validating message
                     $dropzone.removeClass("drop");
                     $dropzone.addClass("validating");
                 }
             });
-        
+
         return new $.Deferred().resolve(dialog).promise();
     }
-    
+
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
 
     AppInit.appReady(function () {
         $("#toolbar-extension-manager").click(_showDialog);
     });
-    
+
     // Unit tests
     exports._performChanges = _performChanges;
 });

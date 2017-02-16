@@ -1,7 +1,7 @@
 language: node_js
+sudo: false # use container-based Travis infrastructure
 node_js:
-- '4.3'
-sudo: false
+  - "6"
 before_script:
 - npm install -g grunt-cli
 script: grunt build-browser-compressed

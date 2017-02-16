@@ -16,7 +16,8 @@ define(function (require, exports, module) {
         ViewCommandHandlers = brackets.getModule("view/ViewCommandHandlers"),
         SidebarView         = brackets.getModule("project/SidebarView"),
         WorkspaceManager    = brackets.getModule("view/WorkspaceManager"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        Mustache            = brackets.getModule("thirdparty/mustache/mustache");
 
     var PhonePreview  = require("text!lib/Mobile.html");
     var PostMessageTransport = require("lib/PostMessageTransport");

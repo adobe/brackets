@@ -1,0 +1,11 @@
+.inline-image-viewer .filename {
+    text-align: right;
+    padding-right: 1.5em;
+    line-height: 32px;
+}
+
+.inline-image-viewer .image {
+    display: block;
+    margin: 0 auto;
+    opacity: 0;
+}

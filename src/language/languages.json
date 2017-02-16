@@ -14,14 +14,22 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
+        "fileExtensions": ["js", "js.erb", "jsm", "_js"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
+    "jsx": {
+        "name": "JSX",
+        "mode": "jsx",
+        "fileExtensions": ["jsx"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -33,7 +41,14 @@
         "fileNames": [".jshintrc", ".bowerrc"]
     },
 
-     "svg": {
+    "xml": {
+        "name": "XML",
+        "mode": "xml",
+        "fileExtensions": ["xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xsd", "xbl", "mathml", "config", "plist", "xaml"],
+        "blockComment": ["<!--", "-->"]
+    },
+
+    "svg": {
         "name": "SVG",
         "mode": ["xml", "image/svg+xml"],
         "fileExtensions": ["svg"],

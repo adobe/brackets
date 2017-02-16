@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -65,6 +62,7 @@ define({
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen von {0}", // TODO: depends on {0} gender
     "ERROR_RENAMING_FILE"               : "Beim Umbenennen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}", // TODO: depends on {2} gender
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Die Datei oder der Ordner ist nicht Teil des geöffneten Projekts. Leider können derzeit nur Dateien im Projekt umbenannt werden.",
     "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen von {0}", // TODO: depends on {0} gender
     "ERROR_DELETING_FILE"               : "Beim Löschen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}", // TODO: depends on {2} gender
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}",
@@ -130,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
+    "CONFIRM_DELETE_TITLE"              : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
@@ -194,6 +192,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&ndash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
+    "FIND_IN_FILES_INDEXING"            : "Index für Sofortsuche wird erstellt\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Fehler beim Ersetzen",
     "REPLACE_IN_FILES_ERRORS"           : "Die folgenden Dateien wurden nicht verändert, weil sie nach der Suche geändert wurden oder nicht geschrieben werden konnten.",
 
@@ -251,11 +250,17 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Diese Datei ist bereits in einer anderen Ansicht geöffnet. Das Öffnen einer Datei in mehreren Ansichten wird {APP_NAME} bald unterstützen. Bis dahin wird die Datei in der Ansicht angezeigt, in der sie bereits geöffnet ist.<br /><br />(Sie sehen diese Nachricht nur einmal.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
-    "KEYBOARD_CTRL"   : "Strg",
-    "KEYBOARD_SHIFT"  : "Umschalt",
-    "KEYBOARD_SPACE"  : "Leer",
+    "KEYBOARD_CTRL"         : "Strg",
+    "KEYBOARD_SHIFT"        : "Umschalt",
+    "KEYBOARD_SPACE"        : "Leer",
+    "KEYBOARD_PAGE_UP"      : "Bild\u2191",
+    "KEYBOARD_PAGE_DOWN"    : "Bild\u2193",
+    "KEYBOARD_HOME"         : "Pos 1",
+    "KEYBOARD_END"          : "Ende",
+    "KEYBOARD_INSERT"       : "Einfg",
+    "KEYBOARD_DELETE"       : "Entf",
 
     /**
      * StatusBar strings
@@ -305,6 +310,7 @@ define({
     "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "Zuletzt verwendete Dateien öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Im Projekt öffnen",
     "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
@@ -353,7 +359,7 @@ define({
     "CMD_OPEN_LINE_ABOVE"                 : "Zeile darüber öffnen",
     "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
-    "CMD_SHOW_CODE_HINTS"                 : "Code-Vervollständigung anzeigen",
+    "CMD_SHOW_CODE_HINTS"                 : "Code Hints anzeigen",
 
     // Search menu commands
     "FIND_MENU"                           : "Suchen",
@@ -373,6 +379,9 @@ define({
     "VIEW_MENU"                           : "Ansicht",
     "CMD_HIDE_SIDEBAR"                    : "Seitenleiste verbergen",
     "CMD_SHOW_SIDEBAR"                    : "Seitenleiste zeigen",
+    "CMD_TOGGLE_SIDEBAR"                  : "Seitenleiste anzeigen/verbergen",
+    "CMD_TOGGLE_PANELS"                   : "Panels anzeigen/verbergen",
+    "CMD_TOGGLE_PURE_CODE"                : "Ablenkungsfreier Modus",
     "CMD_INCREASE_FONT_SIZE"              : "Schrift vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schrift verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftgröße zurücksetzen",
@@ -389,7 +398,7 @@ define({
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisch sortieren",
     "CMD_THEMES"                          : "Designs\u2026",
 
-    // Navigate menu Commands
+    // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
@@ -402,6 +411,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Neue Regel",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Nächstes Dokument in der Liste",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Vorheriges Dokument in der Liste",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
     "CMD_SHOW_IN_EXPLORER"                : "Im Explorer anzeigen",
     "CMD_SHOW_IN_FINDER"                  : "Im Finder anzeigen",
@@ -443,16 +454,19 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier sind einige der neuen Funktionen:",
-    "GET_IT_NOW"                           : "Jetzt updaten!",
+    "GET_IT_NOW"                           : "Jetzt aktualisieren!",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(URL angeben, um einen lokalen Server zu verwenden)",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Das Protokoll {0} wird von der Live-Vorschau nicht unterstützt &ndash; bitte http: oder https: verwenden.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+
+    // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Öffnen Sie eine Datei, während diese Ansicht fokussiert ist</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Diese Ansicht nach {0} verschieben",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Aktuelles Design",
@@ -466,14 +480,16 @@ define({
 
     // Extension Management strings
     "INSTALL"                              : "Installieren",
-    "UPDATE"                               : "Updaten",
+    "UPDATE"                               : "Aktualisieren",
     "REMOVE"                               : "Entfernen",
+    "DISABLE"                              : "Deaktivieren",
+    "ENABLE"                               : "Aktivieren",
     "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
     "CANT_UPDATE"                          : "Das Update ist nicht kompatibel mit dieser Version von {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Erweiterungen im \"dev\"-Ordner können nicht automatisch aktualisiert werden.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
-    "UPDATE_EXTENSION_TITLE"               : "Erweiterung updaten",
+    "UPDATE_EXTENSION_TITLE"               : "Erweiterung aktualisieren",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
     "INSTALL_EXTENSION_HINT"               : "URL der Erweiterungs-ZIP-Datei oder GitHub-Repo",
     "INSTALLING_FROM"                      : "Erweiterung installieren von {0}\u2026",
@@ -534,17 +550,22 @@ define({
     "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
     "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {0}. {APP_NAME} wird trotzdem neu geladen.",
-    "EXTENSION_MANAGER_UPDATE"             : "Erweiterung updaten",
+    "EXTENSION_MANAGER_UPDATE"             : "Erweiterung aktualisieren",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Fehler beim Update einer oder mehrerer Erweiterung(en): {0}. {APP_NAME} wird trotzdem neu geladen.",
+    "EXTENSION_MANAGER_DISABLE"            : "Erweiterung deaktivieren",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Fehler beim Deaktivieren einer oder mehrerer Erweiterung(en): {0}. {APP_NAME} wird trotzdem neu geladen.",
     "MARKED_FOR_REMOVAL"                   : "Zur Entfernung markiert",
     "UNDO_REMOVE"                          : "Rückgängig",
     "MARKED_FOR_UPDATE"                    : "Zum Update markiert",
     "UNDO_UPDATE"                          : "Rückgängig",
+    "MARKED_FOR_DISABLING"                 : "Zum Deaktivieren markiert",
+    "UNDO_DISABLE"                         : "Rückgängig",
     "CHANGE_AND_RELOAD_TITLE"              : "Erweiterungen ändern",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Um die markierten Erweiterungen zu updaten oder zu entfernen, muss {APP_NAME} neu geladen werden. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Um die markierten Erweiterungen zu aktualisieren, entfernen oder deaktivieren, muss {APP_NAME} neu geladen werden. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
     "REMOVE_AND_RELOAD"                    : "Erweiterungen entfernen und neu laden",
     "CHANGE_AND_RELOAD"                    : "Erweiterungen ändern und neu laden",
-    "UPDATE_AND_RELOAD"                    : "Erweiterungen updaten und neu laden",
+    "UPDATE_AND_RELOAD"                    : "Erweiterungen aktualisieren und neu laden",
+    "DISABLE_AND_RELOAD"                   : "Erweiterungen deaktivieren und neu laden",
     "PROCESSING_EXTENSIONS"                : "Erweiterungs-Änderungen werden verarbeitet\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie oben auf den Tab \"Verfügbar\", um zu beginnen.",
@@ -629,7 +650,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
     "NO_ARGUMENTS"                              : "<keine Parameter>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problem mit einer JavaScript-Datei",
-    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} hat Probleme damit, <span class='dialog-filename'>{0}</span> zu verarbeiten.<br><br>Code-Vervollständigung, Springen zur Definition und Schnelles Bearbeiten werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von <code>jscodehints.detectedExclusions</code>, um diese Datei wieder einzuschließen.<br><br>Das ist wahrscheinlich ein Bug in {APP_NAME}. <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>Melden Sie den Fehler</a> bitte, falls Sie eine Kopie dieser Datei bereitstellen können. Verlinken Sie in diesem Fall die oben genannte Datei.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} hat Probleme damit, <span class='dialog-filename'>{0}</span> zu verarbeiten.<br><br>Code Hints, Springen zur Definition und Schnelles Bearbeiten werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von <code>jscodehints.detectedExclusions</code>, um diese Datei wieder einzuschließen.<br><br>Das ist wahrscheinlich ein Bug in {APP_NAME}. <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>Melden Sie den Fehler</a> bitte, falls Sie eine Kopie dieser Datei bereitstellen können. Verlinken Sie in diesem Fall die oben genannte Datei.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -647,7 +668,125 @@ define({
     "COLLAPSE_ALL"                  : "Alle einklappen",
     "EXPAND_ALL"                    : "Alle ausklappen",
     "COLLAPSE_CURRENT"              : "Aktuelle einklappen",
-    "EXPAND_CURRENT"                : "Aktuelle ausklappen"
+    "EXPAND_CURRENT"                : "Aktuelle ausklappen",
+    
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Kürzlich verwendete Dateien",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Leeren",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Entferne alle Dateien aus der Liste, die nicht im Projekt geöffnet sind",
+    
+
+    // Descriptions of core preferences
+    "DESCRIPTION_CLOSE_BRACKETS"                     : "Aktiviert das automatische Schließen von runden, eckigen und geschweiften Klammern",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "Aktiviert den Eintrag \"Alle darüber schließen\" im Kontextmenü der Offenen Dateien",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "Aktiviert den Eintrag \"Alle darunter schließen\" im Kontextmenü der Offenen Dateien",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "Aktiviert den Eintrag \"Alle anderen schließen\" im Kontextmenü der Offenen Dateien",
+    "DESCRIPTION_CLOSE_TAGS"                         : "Optionen für die \"Tags automatisch schließen\"-Funktion",
+    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Ein Array von Tags, die nicht automatisch geschlossen werden sollen",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Tag beim Eingeben von > vom öffnenden Tag schließen",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "Tag beim Eingeben von / vom schließenden Tag schließen",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Ein Array von Tags, die einen Zeilenumbruch auslösen",
+    "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "Immer einklappbare Folding-Markierungen anzeigen, wenn sich der Zeileneinzug ändert",
+    "DESCRIPTION_CODE_FOLDING_ENABLED"               : "Aktiviert Code Folding",
+    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "Einklappbare Folding-Markierungen nur anzeigen, wenn sich die Maus über dem linken Zeilenrand befindet",
+    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limitiert die maximale Anzahl von \"Alle Einklappen\"-Markierungen",
+    "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mindestzahl an Zeilen, bevor eine einklappbare Folding-Markierung erscheint",
+    "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "Aktiviert das Speichern der eingeklappten Abschnitte",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "Aktiviert das Einklappen von ausgewähltem Text",
+    "DESCRIPTION_ATTR_HINTS"                         : "Aktiviert Code Hints für HTML-Attribute",
+    "DESCRIPTION_CSS_PROP_HINTS"                     : "Aktiviert Code Hints für CSS/LESS/SCSS",
+    "DESCRIPTION_JS_HINTS"                           : "Aktiviert Code Hints für JavaScript",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Zeigt Details zum Datentyp in den Code Hints für JavaScript",
+    "DESCRIPTION_PREF_HINTS"                         : "Aktiviert Code Hints für Einstellungen",
+    "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Aktiviert Code Hints für HTML Entities",
+    "DESCRIPTION_SVG_HINTS"                          : "Aktiviert Code Hints für SVG",
+    "DESCRIPTION_HTML_TAG_HINTS"                     : "Aktiviert Code Hints für HTML-Tags",
+    "DESCRIPTION_URL_CODE_HINTS"                     : "Aktiviert Code Hints für URLs in HTML & CSS/LESS/SCSS",
+    "DESCRIPTION_DRAG_DROP_TEXT"                     : "Aktiviert Drag & Drop",
+    "DESCRIPTION_HEALTH_DATA_TRACKING"               : "Aktiviert das Übermitteln des {APP_NAME}-Statusberichts",
+    "DESCRIPTION_HIGHLIGHT_MATCHES"                  : "Aktiviert die Hervorhebung von Vorkommnissen des markierten Worts im Dokument",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "Hervorheben aller Vorkommnisse des Wortes, auf dem sich der Cursor befindet (keine Auswahl benötigt)",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Nur hervorheben, wenn die Auswahl ein komplettes Wort umfasst",
+    "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "Aktiviert das Akzeptieren eines Code Hints mithilfe der Tab-Taste",
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "Deaktiviert das automatische Anzeigen der JavaScript Code Hints, sobald . eingegeben wird",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Ein Objekt, das die Standardeinstellungen für JSLint festlegt",
+    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "Ausdrücke mit Zuweisungen erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "Bitweise Operatoren erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "Die Verwendung von globalen Variablen, die im Browser standardmäßig verfügbar sind, erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "Google Closure-Anmerkungen erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "\"continue\"-Anweisungen erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "Die Verwendung von globalen Variablen, die in Verbindung mit CouchDB verfügbar sind, erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "\"debugger\"-Anweisungen erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "Die Verwendung von globalen Variablen, die bei der Entwicklung hilfreich sind, erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "== und != erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "Die Verwendung von globalen Variablen, die Bestandteil von ES6 sind, erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "eval erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "\"for ... in\" ohne weitere Prüfung erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "Festlegen einer bestimmten Tab-Schrittweite bzw. Anzahl an Leerzeichen",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "Maximale Anzahl an Warnungen",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "Maximale Anzahl an Zeichen in einer Zeile",
+    "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "Kleingeschriebene Konstruktoren erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "Die Verwendung von globalen Variablen, die in Node.js standardmäßig verfügbar sind, erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "Unterstrich am Beginn oder Ende eines Bezeichners erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "Beim ersten Fehler stoppen",
+    "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "++ und -- erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : ". und [^...] in regulären Ausdrücken erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "Die Verwendung von globalen Variablen, die in Rhino standardmäßig verfügbar sind, erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "Fehlen von `use strict` erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "Die Nutzung blockierender Funktionen ('...Sync') erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "Ineffizientes Subscripting erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "TODO-Kommentare erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "Unbenutzte Funktionsparameter erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_VARS"                : "Mehr als 1 Variable in Funktionen erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_WHITE"               : "Regeln für Whitespace ignorieren",
+    "DESCRIPTION_LANGUAGE"                           : "Sprachspezifische Einstellungen",
+    "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Zusätzliche Zuordnungen von Dateierweiterung zu Programmiersprache",
+    "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Zusätzliche Zuordnungen von Dateiname zu Programmiersprache",
+    "DESCRIPTION_LINTING_ENABLED"                    : "Aktiviert Linten beim Speichern",
+    "DESCRIPTION_ASYNC_TIMEOUT"                      : "Die Zeitbegrenzung in Millisekunden, nach der asynchrone Linter gestoppt werden",
+    "DESCRIPTION_LINTING_PREFER"                     : "Array der Linter, die als erstes ausgeführt werden",
+    "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "Aktiviert die experimentelle Live-Vorschau",
+    "DESCRIPTION_USE_PREFERED_ONLY"                  : "Nur die in linting.prefer angegebenen Linter ausführen",
+    "DESCRIPTION_MAX_CODE_HINTS"                     : "Maximale Anzahl an Code Hints, die gleichzeitig angezeigt werden",
+    "DESCRIPTION_PATH"                               : "Pfadspezifische Einstellungen",
+    "DESCRIPTION_PROXY"                              : "URL des Proxyservers, der bei der Installation von Erweiterungen verwendet wird",
+    "DESCRIPTION_SCROLL_PAST_END"                    : "Aktiviert Scrollen über das Ende des Dokuments hinaus",
+    "DESCRIPTION_SHOW_CODE_HINTS"                    : "Aktiviert Code Hints",
+    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "Der Cursor wird auch angezeigt, wenn eine Auswahl besteht",
+    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "Zeigt Zeilennummern am linken Zeilenrand an",
+    "DESCRIPTION_SMART_INDENT"                       : "Aktiviert das automatische Einrücken von neuen Blocks",
+    "DESCRIPTION_SOFT_TABS"                          : "Aktiviert die \"Soft Tabs\"-Navigation",
+    "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "Aktiviert, dass Ordner im Dateibaum vor Dateien aufgelistet werden",
+    "DESCRIPTION_SPACE_UNITS"                        : "Anzahl der Leerzeichen beim Einrücken, wenn Leerzeichen verwendet werden",
+    "DESCRIPTION_STATIC_SERVER_PORT"                 : "Port, der vom internen Server für die Live-Vorschau verwendet wird",
+    "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "Aktiviert das Hervorheben der aktiven Zeile",
+    "DESCRIPTION_TAB_SIZE"                           : "Anzahl der Leerzeichen, die für Tabs angezeigt werden",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "Tabs anstelle von Leerzeichen verwenden",
+    "DESCRIPTION_UPPERCASE_COLORS"                   : "Erzeugt großgeschriebene Hex-Werte im Farbeditor",
+    "DESCRIPTION_WORD_WRAP"                          : "Aktiviert Zeilenumbruch für lange Zeilen",
+    "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Ein Array von Dateien, für die erkannt wurde, dass Tern durch sie außer Kontrolle gerät",
+    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "Das Zeitlimit, nach dem Tern stoppt zu versuchen, Dateien zu verstehen",
+    "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "Aktiviert die Anzeige von Fehlern in der Statusleiste",
+    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "Aktiviert die Schnelle Farbansicht",
+    "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "Aktiviert die Bildvorschau auch bei URLs, die keine Dateierweiterung haben",
+    "DESCRIPTION_THEME"                              : "Wählen eines {APP_NAME}-Designs",
+    "DESCRIPTION_USE_THEME_SCROLLBARS"               : "Erlaubt die Verwendung der Scrollbars vom Design",
+    "DESCRIPTION_LINTING_COLLAPSED"                  : "Das Linter-Panel einklappen",
+    "DESCRIPTION_FONT_FAMILY"                        : "Schriftart ändern",
+    "DESCRIPTION_FONT_SIZE"                          : "Schriftgröße ändern; z. B. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "Aktiviert die Node-basierte Suche",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "Aktiviert die Sofortsuche",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "Nur Mac: \"subpixel-antialiased\", um Subpixel-Antialiasing zu aktivieren, oder \"antialiased\" für Graustufen-Antialiasing",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "Aktiviert das Öffnen der Einstellungsdatei in einer geteilten Ansicht",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "Öffnet die Einstellungsdatei in der rechten bzw. unteren Ansicht",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "Eine Ansicht einer geteilten Ansicht wird automatisch geschlossen, wenn ihre letzte Datei mit dem Schließen-Button oben rechts geschlossen wird",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Zeigt bei der geteilten Ansicht die Schließen- und Umschalten-Buttons in der Kopfzeile",
+
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Dies ist ein schreibgeschütztes Dokument, das alle von\n * {APP_NAME} unterstützten Einstellungen auflistet.\n * Nutzen Sie dieses Dokument als Referenz, um die\n * Einstellungsdatei \"brackets.json\", die in der anderen\n * Ansicht geöffnet ist, anzupassen.\n * Besuchen Sie auch https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences,\n * um mehr über den Umgang mit Einstellungen in {APP_NAME}\n * zu erfahren.\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "Aktiviert den Ablenkungsfreien Modus, bei dem alle UI-Elemente außer dem Code ausgeblendet werden",
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "Aktiviert das Einrücken von Zeilenkommentaren",
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Aktiviert das Navigieren durch kürzlich verwendete Dateien"
 });
 
-/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
+/* Last translated for 96f34a04b0cb3226fff29ae43bc3bc07bedc2d16 */

@@ -3,7 +3,7 @@
     "overrides": {
         "ctrl-2": "file.openFolder",
         "Ctrl-2": "file.openFolder",
-        "Ctrl-Alt-4": "view.hideSidebar",
-        "Alt-Ctrl-4": "view.hideSidebar"
+        "Ctrl-Alt-4": "view.toggleSidebar",
+        "Alt-Ctrl-4": "view.toggleSidebar"
     } 
 }

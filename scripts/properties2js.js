@@ -94,7 +94,7 @@ function localizeBrackets(locale) {
             return Promise.resolve();
         }
 
-        if(isNewLocale) {
+        if(isNewLocale && (destLocales.indexOf(localeDir) === -1)) {
             destLocales.push(localeDir);
         }
 

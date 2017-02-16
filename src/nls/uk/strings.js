@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                        : "Чи бажаєте ви зберегти зміни внесені у файл <span class=\'dialog-filename\'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"                  : "Чи бажаєте ви зберегти зміни до наступних файлів?",
     "EXT_MODIFIED_TITLE"                        : "Зовнішні зміни",
-    "CONFIRM_FOLDER_DELETE_TITLE"               : "Підтвердження видалення",
+    "CONFIRM_DELETE_TITLE"                      : "Підтвердження видалення",
     "CONFIRM_FOLDER_DELETE"                     : "Ви дійсно хочете видалити теку <span class=\'dialog-filename\'>{0}</span>?",
     "FILE_DELETED_TITLE"                        : "Файл видалено",
     "EXT_MODIFIED_WARNING"                      : "<span class=\'dialog-filename\'>{0}</span> змінено на диску.<br /><br />Чи ви хочете зберегти файл і перезаписати ці зміни?",
@@ -362,11 +359,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                        : "Додати наступний збіг до виділення",
     "CMD_SKIP_CURRENT_MATCH"                    : "Пропустити поточний збіг",
     "CMD_FIND_IN_FILES"                         : "Знайти у файлах",
-    "CMD_FIND_IN_SELECTED"                      : "Знайти в обраному файлі/теці",
     "CMD_FIND_IN_SUBTREE"                       : "Знайти у\u2026",
     "CMD_REPLACE"                               : "Замінити",
     "CMD_REPLACE_IN_FILES"                      : "Замінити у файлах",
-    "CMD_REPLACE_IN_SELECTED"                   : "Замінити у вибраному файлі/теці",
     "CMD_REPLACE_IN_SUBTREE"                    : "Замінити\u2026",
 
     // View menu commands

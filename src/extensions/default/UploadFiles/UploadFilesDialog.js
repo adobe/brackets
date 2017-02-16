@@ -12,6 +12,7 @@ define(function (require, exports, module) {
     var DragAndDrop    = brackets.getModule("utils/DragAndDrop");
     var KeyEvent       = brackets.getModule("utils/KeyEvent");
     var Strings        = brackets.getModule("strings");
+    var Mustache       = brackets.getModule("thirdparty/mustache/mustache");
 
     var dialogHTML     = require("text!htmlContent/upload-files-dialog.html");
 

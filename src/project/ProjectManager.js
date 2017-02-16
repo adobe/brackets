@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
 
 /**
  * ProjectManager glues together the project model and file tree view and integrates as needed with other parts
@@ -756,7 +753,7 @@ define(function (require, exports, module) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), ProjectModel._shouldShowName, function (err) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), ProjectModel._shouldShowName, ProjectModel.defaultIgnoreGlobs, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
                 if (!_projectWarnedForTooManyFiles) {
                     _showErrorDialog(ERR_TYPE_MAX_FILES);
@@ -1179,7 +1176,7 @@ define(function (require, exports, module) {
      */
     function _setFileTreeSelectionWidth(width) {
         model.setSelectionWidth(width);
-        _renderTree();
+        _renderTreeSync();
     }
 
     // Initialize variables and listeners that depend on the HTML DOM
@@ -1238,49 +1235,10 @@ define(function (require, exports, module) {
         ViewUtils.addScrollerShadow($projectTreeContainer[0]);
     });
 
-    /**
-     * @private
-     * Examine each preference key for migration of project tree states.
-     * If the key has a prefix of "projectTreeState_/", then it is a project tree states
-     * preference from old preference model.
-     *
-     * @param {string} key The key of the preference to be examined
-     *      for migration of project tree states.
-     * @return {?string} - the scope to which the preference is to be migrated
-     */
-    function _checkPreferencePrefix(key) {
-        var pathPrefix = "projectTreeState_",
-            projectPath;
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "projectTreeState_".
-            projectPath = key.substr(pathPrefix.length);
-            return "user project.treeState " + projectPath;
-        }
-
-        pathPrefix = "projectBaseUrl_";
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "projectBaseUrl_[Directory "
-            // and "]".
-            projectPath = key.substr(key.indexOf(" ") + 1);
-            projectPath = projectPath.substr(0, projectPath.length - 1);
-            return "user project.baseUrl " + projectPath;
-        }
-
-        return null;
-    }
-
-
     EventDispatcher.makeEventDispatcher(exports);
 
     // Init default project path to welcome project
     PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
-
-    PreferencesManager.convertPreferences(module, {
-        "projectPath": "user",
-        "projectTreeState_": "user",
-        "welcomeProjects": "user",
-        "projectBaseUrl_": "user"
-    }, true, _checkPreferencePrefix);
 
     exports.on("projectOpen", _reloadProjectPreferencesScope);
     exports.on("projectOpen", _saveProjectPath);
@@ -1297,7 +1255,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
 
     // Define the preference to decide how to sort the Project Tree files
-    PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
+    PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac", {
+        description: Strings.DESCRIPTION_SORT_DIRECTORIES_FIRST
+    })
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
@@ -1331,14 +1291,18 @@ define(function (require, exports, module) {
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    if (errorInfo.type === ProjectModel.ERROR_INVALID_FILENAME) {
+                    switch (errorInfo.type) {
+                    case ProjectModel.ERROR_INVALID_FILENAME:
                         _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
-                    } else {
-                        var errString = errorInfo.type === FileSystemError.ALREADY_EXISTS ?
-                                Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(errorInfo.type);
-
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, errString, errorInfo.fullPath);
+                        break;
+                    case FileSystemError.ALREADY_EXISTS:
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                        break;
+                    case ProjectModel.ERROR_NOT_IN_PROJECT:
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
+                        break;
+                    default:
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
                     }
                 }, 10);
                 d.reject(errorInfo);
@@ -1350,16 +1314,17 @@ define(function (require, exports, module) {
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files are
      * filtered first by ProjectModel.shouldShow(), then by the custom filter
-     * argument (if one was provided). The list is unsorted.
+     * argument (if one was provided).
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
      * @param {boolean=} includeWorkingSet If true, include files in the working set
      *          that are not under the project root (*except* for untitled documents).
+     * @param {boolean=} sort If true, The files will be sorted by their paths
      *
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
-    function getAllFiles(filter, includeWorkingSet) {
+    function getAllFiles(filter, includeWorkingSet, sort) {
         var viewFiles, deferred;
 
         // The filter and includeWorkingSet params are both optional.
@@ -1375,7 +1340,7 @@ define(function (require, exports, module) {
         }
 
         deferred = new $.Deferred();
-        model.getAllFiles(filter, viewFiles)
+        model.getAllFiles(filter, viewFiles, sort)
             .done(function (fileList) {
                 deferred.resolve(fileList);
             })

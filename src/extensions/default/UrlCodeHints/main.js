@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,30 +20,33 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
-
-
 define(function (require, exports, module) {
     "use strict";
-    
-    // Brackets modules
-    var AppInit         = brackets.getModule("utils/AppInit"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils        = brackets.getModule("language/CSSUtils"),
-        FileSystem      = brackets.getModule("filesystem/FileSystem"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
-        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
-        ProjectManager  = brackets.getModule("project/ProjectManager"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
 
-        Data            = require("text!data.json"),
+    // Brackets modules
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
+        StringUtils         = brackets.getModule("utils/StringUtils"),
+        PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils"),
+        Strings             = brackets.getModule("strings"),
+        Data                = require("text!data.json"),
 
         urlHints,
         data,
         htmlAttrs,
         styleModes      = ["css", "text/x-less", "text/x-scss"];
-    
+
+
+    PreferencesManager.definePreference("codehint.UrlCodeHints", "boolean", true, {
+        description: Strings.DESCRIPTION_URL_CODE_HINTS
+    });
+
     /**
      * @constructor
      */
@@ -72,9 +75,9 @@ define(function (require, exports, module) {
         }
 
         docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
-        
+
         // get relative path from query string
-        queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }
@@ -159,7 +162,7 @@ define(function (require, exports, module) {
                     self.cachedHints.query      = query;
                     self.cachedHints.queryDir   = queryDir;
                     self.cachedHints.docDir     = docDir;
-                    
+
                     if (self.cachedHints.deferred.state() !== "rejected") {
                         currentDeferred = self.cachedHints.deferred;
 
@@ -173,7 +176,7 @@ define(function (require, exports, module) {
                             if (currentDeferred && currentDeferred.state() === "pending") {
                                 currentDeferred.reject();
                             }
-                            
+
                             if (self.cachedHints.deferred &&
                                     self.cachedHints.deferred.state() === "pending") {
                                 self.cachedHints.deferred.reject();
@@ -225,16 +228,16 @@ define(function (require, exports, module) {
 
         // Do not show hints after "?" in url
         if (query.queryStr.indexOf("?") === -1) {
-            
+
             // Default behavior for url hints is do not close on select.
             this.closeOnSelect = false;
             hints = this._getUrlList(query);
             sortFunc = StringUtils.urlSort;
         }
-        
+
         return { hints: hints, sortFunc: sortFunc };
     };
-    
+
     /**
      * Determines whether url hints are available in the current editor
      * context.
@@ -300,7 +303,7 @@ define(function (require, exports, module) {
                 val += this.info.values[i].substring(0, this.info.offset);
             }
         }
-        
+
         // starts with "url(" ?
         if (val.match(/^\s*url\(/i)) {
             return true;
@@ -331,16 +334,16 @@ define(function (require, exports, module) {
             tokenType;
 
         this.editor = editor;
-        
+
         tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
         query = null;
         tokenType = tagInfo.position.tokenType;
-        
+
         if (tokenType === HTMLUtils.ATTR_VALUE) {
-                
+
             // Verify that attribute name has hintable values
             if (htmlAttrs[tagInfo.attr.name]) {
-                
+
                 if (tagInfo.position.offset >= 0) {
                     query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
                 } else {
@@ -349,7 +352,7 @@ define(function (require, exports, module) {
                     // So just set the queryStr to an empty string.
                     query = "";
                 }
-                
+
                 var hintsAndSortFunc = this._getUrlHints({queryStr: query}),
                     hints = hintsAndSortFunc.hints;
 
@@ -409,7 +412,7 @@ define(function (require, exports, module) {
             if (tokenType !== HTMLUtils.ATTR_VALUE || !htmlAttrs[tagInfo.attr.name]) {
                 return null;
             }
-            
+
             if (tagInfo.position.offset >= 0) {
                 query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
             }
@@ -447,7 +450,7 @@ define(function (require, exports, module) {
                 } else {
                     this.info.leadingWhitespace = null;
                 }
-                
+
                 // Keep track of opening quote and strip it
                 if (val.match(/^["']/)) {
                     this.info.openingQuote = val[0];
@@ -525,10 +528,10 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.insertHint = function (completion) {
         var mode = this.editor.getModeForSelection();
-        
+
         // Encode the string just prior to inserting the hint into the editor
         completion = encodeURI(completion);
-        
+
         if (mode === "html") {
             return this.insertHtmlHint(completion);
         } else if (styleModes.indexOf(mode) > -1) {
@@ -555,14 +558,14 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.getCharOffset = function (array, pos1, pos2) {
         var i, count = 0;
-        
+
         if (pos1.index === pos2.index) {
             return (pos2.offset >= pos1.offset) ? (pos2.offset - pos1.offset) : 0;
         } else if (pos1.index < pos2.index) {
             if (pos1.index < 0 || pos1.index >= array.length || pos2.index < 0 || pos2.index >= array.length) {
                 return 0;
             }
-            
+
             for (i = pos1.index; i <= pos2.index; i++) {
                 if (i === pos1.index) {
                     count += (array[i].length - pos1.offset);
@@ -573,7 +576,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         return count;
     };
 
@@ -596,7 +599,7 @@ define(function (require, exports, module) {
             // Only use offset on index, then offset of 0 after that
             searchOffset = (i === pos.index) ? pos.offset : 0;
             o = array[i].indexOf(ch, searchOffset);
-            
+
             if (o !== -1) {
                 return { index: i, offset: o };
             }
@@ -737,7 +740,7 @@ define(function (require, exports, module) {
                 // Insert folder names, but replace file names
                 shouldReplace = true;
             }
-            
+
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
                 if (endQuote) {
@@ -745,8 +748,6 @@ define(function (require, exports, module) {
                 } else if (tagInfo.position.offset === 0) {
                     completion = "\"" + completion + "\"";
                 }
-            } else if (completion === tagInfo.attr.value) {
-                shouldReplace = false;
             }
 
             if (shouldReplace) {
@@ -777,12 +778,12 @@ define(function (require, exports, module) {
             }
             return true;
         }
-        
+
         if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
             // Move the cursor to the right of the existing end quote after value insertion.
             this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }
-        
+
         return false;
     };
 
@@ -797,14 +798,14 @@ define(function (require, exports, module) {
             urlHints.cachedHints = null;
         }
     }
-        
+
     AppInit.appReady(function () {
         data            = JSON.parse(Data);
         htmlAttrs       = data.htmlAttrs;
 
         urlHints        = new UrlCodeHints();
         CodeHintManager.registerHintProvider(urlHints, ["css", "html", "less", "scss"], 5);
-        
+
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);
 

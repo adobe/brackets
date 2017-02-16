@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, runs, brackets, waitsForDone */
+/*global describe, it, expect, beforeEach, runs, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -249,7 +248,7 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient4, 90, 36);   // test parameters with 2 levels of nested parens
                 });
             });
-            
+
             it("Should show linear gradient preview for those with colon or space before", function () {
                 runs(function () {
                     var expectedGradient = "linear-gradient(to bottom, black 0%, white 100%)";
@@ -259,7 +258,7 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient, 172, 25);   // colon
                 });
             });
-            
+
             it("Should show radial gradient preview for those with colon or space before", function () {
                 runs(function () {
                     var expectedGradient = "radial-gradient(red, white 50%, blue 100%)";
@@ -269,7 +268,7 @@ define(function (require, exports, module) {
                     checkGradientAtPos(expectedGradient, 179, 25);   // colon
                 });
             });
-            
+
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
                     checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
@@ -330,7 +329,7 @@ define(function (require, exports, module) {
                     checkGradientAtPos("linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
                 });
             });
-            
+
             it("Should convert gradients arguments from pixel to percent", function () {
                 runs(function () {
                     // linear gradient in px
@@ -341,7 +340,7 @@ define(function (require, exports, module) {
                     checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 165, 40);
                 });
             });
-            
+
             it("Should not go into infinite loop on unbalanced parens", function () {
                 runs(function () {
                     // no preview, and no infinite loop
@@ -372,7 +371,7 @@ define(function (require, exports, module) {
             function boundsInsideWindow(object) {
                 // For the popover, we can't use offset(), because jQuery gets confused by the
                 // scale factor and transform origin that the animation uses. Instead, we rely
-                // on the fact that its offset parent is body, and just test its explicit left/top 
+                // on the fact that its offset parent is body, and just test its explicit left/top
                 // values.
                 var bounds = getBounds(object, false),
                     editorBounds = getBounds(testWindow.$("#editor-holder"), true);
@@ -475,7 +474,7 @@ define(function (require, exports, module) {
                 checkImageDataAtPos("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>", 185, 26);  // data url("") containing '
             });
 
-            it("Should show image preview for URLs with known image extensions", function() {
+            it("Should show image preview for URLs with known image extensions", function () {
                 checkImageDataAtPos("http://example.com/image.gif", 194, 20);
                 checkImageDataAtPos("http://example.com/image.png", 195, 20);
                 checkImageDataAtPos("http://example.com/image.jpe", 196, 20);
@@ -486,7 +485,7 @@ define(function (require, exports, module) {
                 checkImageDataAtPos("http://example.com/image.svg", 201, 20);
             });
 
-            it("Should show image preview for extensionless URLs (with protocol) with pref set", function() {
+            it("Should show image preview for extensionless URLs (with protocol) with pref set", function () {
                 // Flip the pref on and restore when done
                 var original = prefs.get("extensionlessImagePreview");
                 prefs.set("extensionlessImagePreview", true);
@@ -498,7 +497,7 @@ define(function (require, exports, module) {
                 prefs.set("extensionlessImagePreview", original);
             });
 
-            it("Should not show image preview for extensionless URLs (with protocol) without pref set", function() {
+            it("Should not show image preview for extensionless URLs (with protocol) without pref set", function () {
                 // Flip the pref off and restore when done
                 var original = prefs.get("extensionlessImagePreview");
                 prefs.set("extensionlessImagePreview", false);
@@ -510,7 +509,7 @@ define(function (require, exports, module) {
                 prefs.set("extensionlessImagePreview", original);
             });
 
-            it("Should ignore URLs for common non-image extensions", function() {
+            it("Should ignore URLs for common non-image extensions", function () {
                 expectNoPreviewAtPos(209, 20); // .html
                 expectNoPreviewAtPos(210, 20); // .css
                 expectNoPreviewAtPos(211, 20); // .js
@@ -525,7 +524,7 @@ define(function (require, exports, module) {
                 expectNoPreviewAtPos(220, 20); // .zip
                 expectNoPreviewAtPos(221, 20); // .tgz
             });
-            
+
             it("Should show image preview for a data URI inside url()", function () {
                 runs(function () {
                     checkImageDataAtPos("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAABq0lEQVQoU11RPUgcURD+Zt/unnrcCf4QIugRMcS7a2xjmmArRlRIFRBFgrVtGgmBRFCwTBoLsQiBGMxiJ4iksLRSFEzQRC2EAwm5g727feP3LpyFy1tm5s33zcz7RnDvG4x0zFgMJRY/jiewhy/w8FKSJkyaTuG7Fumvi+ARbQiLpcMDvH/Qj1S6Bf6vI5SxKPUG4fGm5kMf6wr08MKHILCKldoZlk0OIeuHjNuDBBcNAqvvENTLwKii1ZFoF/7G2PQDpNo8dFUt1AcSGfymz42PVfI8ghxht1bHh9MpucCiegMFdJoUOtSD+MxLPtI5T/GaHWhg+NjRk3G5utPikwb5bjzhq40JSChs6Sx1eOYAojg/fCFv7yvnBLGCLPMqxS2dZrtXnDthhySuYebnpFw3ST2RtmUVIx5z1sIKdX9qgDcOTJAj7WsNa8eTUhrY0Gwqg2FldeZiduH5r9JHvqEDigzDS/4VJvYJfMh9VLmbNO9+s9hNg5D/qjkJ8I6uW0yFtkrwHydCg+AhVgsp/8Pnu00XI+0jYJ7gjANRiEsmQ3aNOXuJhG035i1QA6g+uONCrgAAAABJRU5ErkJggg==",  159, 26);

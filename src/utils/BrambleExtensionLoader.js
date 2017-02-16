@@ -9,6 +9,8 @@
 define(function (require, exports, module) {
     "use strict";
 
+    var PathUtils = require("thirdparty/path-utils/path-utils");
+
     var basePath = PathUtils.directory(window.location.href);
 
     /**

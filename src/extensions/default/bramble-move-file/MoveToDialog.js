@@ -18,6 +18,7 @@ define(function (require, exports, module) {
     var Path                   = BracketsFiler.Path;
     var Strings                = brackets.getModule("strings");
     var StringUtils            = brackets.getModule("utils/StringUtils");
+    var Mustache               = brackets.getModule("thirdparty/mustache/mustache");
 
     var MoveUtils              = require("MoveUtils");
     var dialogTemplate         = require("text!htmlContent/move-to-dialog.html");

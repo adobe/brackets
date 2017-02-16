@@ -201,5 +201,5 @@ define(function (require, exports, module) {
     // Signal to the hosting app that we're ready to mount a filesystem, and listen for
     // a mount request.
     window.addEventListener("message", init, false);
-    parent.postMessage(JSON.stringify({type: "bramble:readyToMount"}), "*");
+    window.parent.postMessage(JSON.stringify({type: "bramble:readyToMount"}), "*");
 });
