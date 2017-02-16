@@ -1,7 +1,4 @@
 {
-    "file.close":  [
-        "Alt-W"
-    ],
     "file.close_all":  [
         "Ctrl-Shift-W"
     ],
