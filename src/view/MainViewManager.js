@@ -1273,11 +1273,15 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc, $.extend({}, options, {
-                        noPaneActivate: true
-                    }));
-                    doPostOpenActivation();
-                    result.resolve(doc.file);
+                    if (doc) {
+                        _edit(paneId, doc, $.extend({}, options, {
+                            noPaneActivate: true
+                        }));
+                        doPostOpenActivation();
+                        result.resolve(doc.file);
+                    } else {
+                        result.resolve(null);
+                    }
                 })
                 .fail(function (fileError) {
                     result.reject(fileError);
