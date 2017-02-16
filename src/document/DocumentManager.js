@@ -332,11 +332,13 @@ define(function (require, exports, module) {
             // use existing document
             return new $.Deferred().resolve(doc).promise();
         } else {
+            var result = new $.Deferred(),
+                promise = result.promise();
 
-            // Should never get here if the fullPath refers to an Untitled document
+            // return null in case of untitled documents
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
-                return new $.Deferred().reject().promise();
+                result.resolve(null);
+                return promise;
             }
 
             var file            = FileSystem.getFileForPath(fullPath),
@@ -346,9 +348,6 @@ define(function (require, exports, module) {
                 // wait for the result of a previous request
                 return pendingPromise;
             } else {
-                var result = new $.Deferred(),
-                    promise = result.promise();
-
                 // log this document's Promise as pending
                 getDocumentForPath._pendingDocumentPromises[file.id] = promise;
 
