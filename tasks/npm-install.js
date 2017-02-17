@@ -21,6 +21,7 @@
  *
  */
 
+/*global Promise */
 /*eslint-env node */
 /*jslint node: true */
 "use strict";
@@ -28,11 +29,18 @@
 module.exports = function (grunt) {
 
     var _       = require("lodash"),
-        common  = require("./lib/common")(grunt),
         build   = require("./build")(grunt),
+        common  = require("./lib/common")(grunt),        
+        exec    = require("child_process").exec,
+        fs      = require("fs-extra"),
         glob    = require("glob"),
+        https   = require("https"),
         path    = require("path"),
-        exec    = require("child_process").exec;
+        tar     = require("tar"),
+        temp    = require("temp"),        
+        zlib    = require("zlib");
+    
+    temp.track();
     
     function runNpmInstall(where, callback) {
         grunt.log.writeln("running npm install --production in " + where);
@@ -93,5 +101,108 @@ module.exports = function (grunt) {
         "Install node_modules for src folder and default extensions which have package.json defined",
         ["npm-install-src", "copy:thirdparty", "npm-install-extensions"]
     );
+    
+    function getNodeModulePackageUrl(extensionName) {
+        return new Promise(function (resolve, reject) {
+            exec("npm view " + extensionName + " dist.tarball", {}, function (err, stdout, stderr) {
+                if (err) {
+                    grunt.log.error(stderr);
+                }
+                return err ? reject(stderr) : resolve(stdout.toString("utf8").trim());
+            });
+        });
+    }
+    
+    function getTempDirectory(tempName) {
+        return new Promise(function (resolve, reject) {
+            temp.mkdir(tempName, function(err, dirPath) {
+                return err ? reject(err) : resolve(dirPath);
+            });
+        });
+    }
+    
+    function downloadUrlToFolder(url, dirPath) {
+        return new Promise(function (resolve, reject) {
+            grunt.log.writeln(url + " downloading...");            
+            https.get(url, function (res) {
+                
+                if (res.statusCode !== 200) {
+                    return reject(new Error("Request failed: " + res.statusCode));
+                }
+                
+                var unzipStream = zlib.createGunzip();
+                res.pipe(unzipStream);
+                
+                var extractStream = tar.Extract({ path: dirPath, strip: 0 });
+                unzipStream.pipe(extractStream);
+                
+                extractStream.on('finish', function() {
+                    grunt.log.writeln(url + " successfully downloaded");
+                    resolve(path.resolve(dirPath, "package"));
+                });
+                
+            }).on('error', function(err) {
+                reject(err);
+            });
+        });
+    }
+    
+    function move(from, to) {
+        return new Promise(function (resolve, reject) {
+            fs.remove(to, function (err) {
+                if (err) {
+                    return reject(err);
+                }
+                fs.move(from, to, function (err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve();
+                });
+            });
+        });
+    }
+    
+    function downloadAndInstallExtensionFromNpm(obj) {
+        var extensionName = obj.name;            
+        var extensionVersion = obj.version ? "@" + obj.version : "";
+        var data = {};
+        return getNodeModulePackageUrl(extensionName + extensionVersion)
+            .then(function (urlToDownload) {
+                data.urlToDownload = urlToDownload;
+                return getTempDirectory(extensionName);
+            })
+            .then(function (tempDirPath) {
+                data.tempDirPath = tempDirPath;                
+                return downloadUrlToFolder(data.urlToDownload, data.tempDirPath);
+            })
+            .then(function (extensionPath) {
+                var target = path.resolve(__dirname, '..', 'src', 'extensions', 'default', extensionName);
+                return move(extensionPath, target);
+            });
+    }
+    
+    grunt.registerTask("npm-download-default-extensions",
+                       "Downloads extensions from npm and puts them to the src/extensions/default folder",
+                       function () {
+        
+        var extensionsToDownload = [
+            {
+                name: "brackets-eslint",
+                version: "3.0.5"
+            }
+        ];
+        
+        var done = this.async();
+        Promise.all(extensionsToDownload.map(function (extension) {
+            return downloadAndInstallExtensionFromNpm(extension);
+        })).then(function () {
+            return done();
+        }).catch(function (err) {
+            grunt.log.error(err);
+            return done(false);
+        });
+        
+    });
 
 };

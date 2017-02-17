@@ -24,6 +24,7 @@ Thumbs.db
 # (so that the directory is non-empty and can be in git)
 /src/extensions/dev/*
 !/src/extensions/dev/README.*
+/src/extensions/default/brackets-eslint
 
 /src/extensions/disabled
 
