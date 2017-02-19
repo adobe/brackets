@@ -23,7 +23,7 @@ Thumbs.db
 # ignore everything in the dev extension directory EXCEPT the README
 # (so that the directory is non-empty and can be in git)
 /src/extensions/dev/*
-!/src/extensions/dev/README
+!/src/extensions/dev/README.*
 
 /src/extensions/disabled
 
