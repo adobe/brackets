@@ -333,9 +333,9 @@ define(function (require, exports, module) {
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !hasPendingAction;
-        context.disablingAllowed = this.model.source === "installed" &&
+        context.disablingAllowed = (this.model.source === "installed" || this.model.source === "installed-default") &&
             !context.disabled && !hasPendingAction;
-        context.enablingAllowed = this.model.source === "installed" &&
+        context.enablingAllowed = (this.model.source === "installed" || this.model.source === "installed-default") &&
             context.disabled && !hasPendingAction;
 
         // Copy over helper functions that we share with the registry app.
