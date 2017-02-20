@@ -309,5 +309,13 @@
         "mode": "turtle",
         "fileExtensions": ["ttl"],
         "lineComment": ["#"]
+    },
+    
+    "go": {
+        "name": "Go",
+        "mode": "go",
+        "fileExtensions": ["go"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     }
 }
