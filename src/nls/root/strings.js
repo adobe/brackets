@@ -503,6 +503,7 @@ define({
     "INSTALL_CANCELED"                     : "Installation canceled.",
     "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
     "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
+    "SORT_EXTENSION_METHOD"                : "Sort Extensions using downloadCount or publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
     "MISSING_PACKAGE_JSON"                 : "The package has no package.json file.",
@@ -580,6 +581,9 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+    "EXTENSIONS_SORT_BY"                   : "Sort By",
+    "EXTENSIONS_LAST_UPDATED"              : "Last Updated",
+    "EXTENSIONS_DOWNLOADS"                 : "Downloads",
 
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
