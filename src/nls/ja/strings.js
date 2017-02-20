@@ -503,6 +503,7 @@ define({
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
 	"VIEW_COMPLETE_DESCRIPTION": "詳細な説明を表示",
 	"VIEW_TRUNCATED_DESCRIPTION": "省略された説明を表示",
+	"SORT_EXTENSION_METHOD": "Sort Extensions using downloadCount or publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
 	"MISSING_PACKAGE_JSON": "パッケージに package.json ファイルがありません。",
@@ -580,6 +581,9 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_THEMES_TITLE": "テーマ",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
+	"EXTENSIONS_SORT_BY": "並べ替え",
+	"EXTENSIONS_LAST_UPDATED": "最終更新日",
+	"EXTENSIONS_DOWNLOADS": "ダウンロード",
 
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
 	"INLINE_EDITOR_HIDDEN_MATCHES": "一致項目はすべて縮小されています。一致項目を表示するには、右側にリストされているファイルを展開してください。",
