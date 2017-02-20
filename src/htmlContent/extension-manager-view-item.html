@@ -8,6 +8,9 @@
         {{#hasVersionInfo}}
             <span class="muted ext-date"> &mdash; {{lastVersionDate}}</span>
         {{/hasVersionInfo}}
+        {{#downloadCount}}
+            <p title="{{downloadCount}} {{Strings.EXTENSIONS_DOWNLOADS}}"><img src="styles/images/download-icon.svg"/> {{downloadCount}}</p>
+        {{/downloadCount}}
     </td>
     <td class="ext-desc">
         {{#showInstallButton}}
