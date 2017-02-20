@@ -2,9 +2,9 @@
   "name": "brackets-src",
   "dependencies": {
     "ansi-regex": {
-      "version": "2.0.0",
+      "version": "2.1.1",
       "from": "ansi-regex@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-2.0.0.tgz"
+      "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-2.1.1.tgz"
     },
     "ansi-styles": {
       "version": "2.2.1",
@@ -43,15 +43,15 @@
       "optional": true
     },
     "aws4": {
-      "version": "1.5.0",
+      "version": "1.6.0",
       "from": "aws4@>=1.2.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/aws4/-/aws4-1.5.0.tgz",
+      "resolved": "https://registry.npmjs.org/aws4/-/aws4-1.6.0.tgz",
       "optional": true
     },
     "bcrypt-pbkdf": {
-      "version": "1.0.0",
+      "version": "1.0.1",
       "from": "bcrypt-pbkdf@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.0.tgz",
+      "resolved": "https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.1.tgz",
       "optional": true
     },
     "boom": {
@@ -72,9 +72,9 @@
       "optional": true
     },
     "codemirror": {
-      "version": "5.21.0",
-      "from": "codemirror@5.21.0",
-      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.21.0.tgz"
+      "version": "5.24.0",
+      "from": "codemirror@5.24.0",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.24.0.tgz"
     },
     "combined-stream": {
       "version": "1.0.5",
@@ -257,9 +257,9 @@
       "optional": true
     },
     "jsbn": {
-      "version": "0.1.0",
+      "version": "0.1.1",
       "from": "jsbn@>=0.1.0 <0.2.0",
-      "resolved": "https://registry.npmjs.org/jsbn/-/jsbn-0.1.0.tgz",
+      "resolved": "https://registry.npmjs.org/jsbn/-/jsbn-0.1.1.tgz",
       "optional": true
     },
     "json-schema": {
@@ -288,7 +288,7 @@
     },
     "less": {
       "version": "2.7.2",
-      "from": "less@latest",
+      "from": "less@2.7.2",
       "resolved": "https://registry.npmjs.org/less/-/less-2.7.2.tgz"
     },
     "mime": {
@@ -298,14 +298,14 @@
       "optional": true
     },
     "mime-db": {
-      "version": "1.25.0",
-      "from": "mime-db@>=1.25.0 <1.26.0",
-      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.25.0.tgz"
+      "version": "1.26.0",
+      "from": "mime-db@>=1.26.0 <1.27.0",
+      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.26.0.tgz"
     },
     "mime-types": {
-      "version": "2.1.13",
+      "version": "2.1.14",
       "from": "mime-types@>=2.1.7 <2.2.0",
-      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.13.tgz"
+      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.14.tgz"
     },
     "minimist": {
       "version": "0.0.8",
@@ -356,9 +356,9 @@
       "optional": true
     },
     "qs": {
-      "version": "6.3.0",
+      "version": "6.3.1",
       "from": "qs@>=6.3.0 <6.4.0",
-      "resolved": "https://registry.npmjs.org/qs/-/qs-6.3.0.tgz",
+      "resolved": "https://registry.npmjs.org/qs/-/qs-6.3.1.tgz",
       "optional": true
     },
     "request": {
@@ -380,9 +380,9 @@
       "optional": true
     },
     "sshpk": {
-      "version": "1.10.1",
+      "version": "1.10.2",
       "from": "sshpk@>=1.7.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/sshpk/-/sshpk-1.10.1.tgz",
+      "resolved": "https://registry.npmjs.org/sshpk/-/sshpk-1.10.2.tgz",
       "optional": true,
       "dependencies": {
         "assert-plus": {
