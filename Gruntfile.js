@@ -632,6 +632,7 @@ module.exports = function (grunt) {
         /* XXXBramble: we skip this, since we don't use any of the node_modules in Bramble.
          'npm-install', */
         'cleanempty',
+        'exec:clean-nls',
         'usemin',
         'build-config'
     ]);
