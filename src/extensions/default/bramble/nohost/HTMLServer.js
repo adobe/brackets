@@ -108,6 +108,15 @@ define(function (require, exports, module) {
         var liveDocument = this.get(path);
 
         function serveCSS(path, css, callback) {
+            // If we already have a cached Blob URL for this path, use it,
+            // otherwise generate a new one. This can happen if a file is included
+            // more than once in the same HTML file (e.g., multiple <link>s with same `src`).
+            var existingURL = BlobUtils.getUrl(path);
+            if(existingURL !== path) {
+                callback(null, existingURL);
+                return;
+            }
+
             CSSRewriter.rewrite(path, css, function(err, css) {
                 if(err) {
                     callback(err);
