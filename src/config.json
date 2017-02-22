@@ -40,9 +40,11 @@
         "chokidar": "1.6.0",
         "lodash": "4.15.0",
         "npm": "3.10.9",
+        "opn": "4.0.2",
         "ws": "~0.4.31"
     },
     "devDependencies": {
+        "fs-extra": "0.5.0",
         "glob": "7.0.6",
         "grunt": "0.4.5",
         "jasmine-node": "1.11.0",
