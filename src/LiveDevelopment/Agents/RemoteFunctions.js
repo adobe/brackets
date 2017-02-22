@@ -22,7 +22,7 @@
  */
 
 /*jslint forin: true */
-/*global Node */
+/*global Node, MessageEvent */
 /*theseus instrument: false */
 
 /**
@@ -337,7 +337,7 @@ function RemoteFunctions(experimental, remoteWSPort) {
                 _trigger(element, "highlight", 1);
             }
             
-            if (!window.event && !isInViewport(element)) {
+            if ((!window.event || window.event instanceof MessageEvent) && !isInViewport(element)) {
                 var top = getDocumentOffsetTop(element);
                 if (top) {
                     top -= (window.innerHeight / 2);
