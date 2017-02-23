@@ -72,9 +72,9 @@
       "optional": true
     },
     "codemirror": {
-      "version": "5.24.0",
-      "from": "codemirror@5.24.0",
-      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.24.0.tgz"
+      "version": "5.24.2",
+      "from": "codemirror@5.24.2",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.24.2.tgz"
     },
     "combined-stream": {
       "version": "1.0.5",

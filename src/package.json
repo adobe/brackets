@@ -1,7 +1,7 @@
 {
   "name": "brackets-src",
   "dependencies": {
-    "codemirror": "5.24.0",
+    "codemirror": "5.24.2",
     "less": "2.7.2"
   }
 }
