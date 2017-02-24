@@ -731,7 +731,7 @@ define([
                 });
 
                 break;
-            case "rm":
+             case "rm":
                 path = args[0];
                 options = args[1];
 
@@ -740,7 +740,14 @@ define([
                         // If the path was a file, immediately unlink
                         // trigger the event, and call the callback
                         if(err.code === "ENOTDIR") {
-                            return shell.rm(path, genericFileEventFn("fileDelete", path, callback));
+                            return shell.rm(path, genericFileEventFn("fileDelete", path, function(err){
+                                var wrappedCallback = callback;
+                                if(!err && path === self.tutorialPath) {
+                                   wrappedCallback = genericFileEventFn("tutorialRemoved", path, wrappedCallback);
+                                    _tutorialExists = false;
+                                }
+                                wrappedCallback(err);
+                            }));
                         }
 
                         return callback(err);
@@ -755,7 +762,7 @@ define([
 
                     deleteDirectoryRecursively(path, callback);
                 });
-
+           
                 break;
             default:
                 if(data.shell) {
@@ -958,4 +965,4 @@ define([
     };
 
     return Bramble;
-});
+}); 
