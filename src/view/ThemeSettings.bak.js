@@ -100,24 +100,7 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("input", "#font-size-input", function () {
-                var $target = $(this);
-                var $input = $target.val();
-                var validInput = /^[\d\.]+(p|px|e|em){0,1}$/g;
-                var btn = document.getElementById("done");
-
-                // Make sure that the font size is expressed in terms we can handle (px or em). If not, 'done' button disabled until input corrected.
-
-                if ($input.search(validInput) === -1) {
-                    ($input.length === 0) ? btn.disabled=false : btn.disabled=true;
-                    return false;
-                }else{
-                    if(btn.disabled) btn.disabled = false;
-                    var attr = $target.attr("data-target");
-                    newSettings[attr] = $input;
-                }
-            })
-            .on("input", "#font-family-input", function () {
+            .on("input", "[data-target]:text", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
@@ -143,7 +126,7 @@ define(function (require, exports, module) {
                         // Figure out if the setting is in the ViewCommandHandlers, which means it is
                         // a font setting
                         setterFn = "set" + setting[0].toLocaleUpperCase() + setting.substr(1);
-                        if (typeof ViewCommandHandlers[setterFn] === "function") {
+                        if (typeof ViewCommandHandlers[setterFn] === 'function') {
                             ViewCommandHandlers[setterFn](newSettings[setting]);
                         }
                     }
