@@ -89,7 +89,7 @@ define(function (require, exports, module) {
             $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
         }
         $currentThemeOption.attr("selected", "selected");
-        
+
         $template
             .find("[data-toggle=tab].default")
             .tab("show");
