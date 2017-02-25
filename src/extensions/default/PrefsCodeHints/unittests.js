@@ -145,20 +145,6 @@ define(function (require, exports, module) {
             }
             return pos;
         }
-        function fixSel(sel) {
-            fixPos(sel.start);
-            fixPos(sel.end);
-            if (!("reversed" in sel)) {
-                sel.reversed = false;
-            }
-            return sel;
-        }
-        function fixSels(sels) {
-            sels.forEach(function (sel) {
-                fixSel(sel);
-            });
-            return sels;
-        }
 
         // Determines the position of the cursor.
         function expectCursorAt(pos) {
