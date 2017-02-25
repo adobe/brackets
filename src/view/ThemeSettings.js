@@ -90,6 +90,11 @@ define(function (require, exports, module) {
         }
         $currentThemeOption.attr("selected", "selected");
 
+        
+        
+        
+        
+        
         $template
             .find("[data-toggle=tab].default")
             .tab("show");
@@ -100,24 +105,25 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("input", "#font-size-input", function () {
+            .on("input", "[data-target=fontSize]", function () { 
                 var $target = $(this);
-                var $input = $target.val();
+                var targetValue = $target.val();
                 var validInput = /^[\d\.]+(p|px|e|em){0,1}$/g;
-                var btn = document.getElementById("done");
+                var btn = document.getElementById("theme-settings-done-btn");
 
                 // Make sure that the font size is expressed in terms we can handle (px or em). If not, 'done' button disabled until input corrected.
 
-                if ($input.search(validInput) === -1) {
-                    ($input.length === 0) ? btn.disabled=false : btn.disabled=true;
-                    return false;
+                if (targetValue.search(validInput) === -1) {
+                    btn.disabled = targetValue.length !== 0;
                 }else{
-                    if(btn.disabled) btn.disabled = false;
+                    if(btn.disabled) { 
+                        btn.disabled = false;
+                    }
                     var attr = $target.attr("data-target");
-                    newSettings[attr] = $input;
+                    newSettings[attr] = targetValue;
                 }
             })
-            .on("input", "#font-family-input", function () {
+            .on("input", "[data-target=fontFamily]", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();

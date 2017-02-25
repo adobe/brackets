@@ -55,8 +55,9 @@
         "require": false,
         "define": false,
         "$": false,
-
+        
         "window": false,
+        "document": false,
         "console": false,
         "setTimeout": false,
         "clearTimeout": false,
