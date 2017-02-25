@@ -55,7 +55,7 @@
         "require": false,
         "define": false,
         "$": false,
-        
+
         "window": false,
         "document": false,
         "console": false,
