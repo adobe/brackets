@@ -100,7 +100,7 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("input", "[data-target=fontSize]", function () { 
+            .on("input", "[data-target='fontSize']", function () { 
                 var $target = $(this);
                 var targetValue = $target.val();
                 var validInput = /^[\d\.]+(p|px|e|em){0,1}$/g;
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
                     newSettings[attr] = targetValue;
                 }
             })
-            .on("input", "[data-target=fontFamily]", function () {
+            .on("input", "[data-target='fontFamily']", function () {
                 var $target = $(this);
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
