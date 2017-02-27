@@ -90,12 +90,10 @@ define(function (require, exports, module) {
             PostMessageTransport.setAutoUpdate(false);
             break;
         case "BRAMBLE_ENABLE_SCRIPTS":
-            HTMLRewriter.enableScripts();
             PreferencesManager.set("allowJavaScript", true);
             PostMessageTransport.reload();
             break;
         case "BRAMBLE_DISABLE_SCRIPTS":
-            HTMLRewriter.disableScripts();
             PreferencesManager.set("allowJavaScript", false);
             PostMessageTransport.reload();
             break;
