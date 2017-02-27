@@ -115,9 +115,8 @@ define(function (require, exports, module) {
                 }
             })
             .on("input", "[data-target='fontFamily']", function () {
-                var $target = $(this);
-                var attr = $target.attr("data-target");
-                newSettings[attr] = $target.val();
+                var targetValue = $(this).val();
+                newSettings["fontFamily"] = targetValue;
             })
             .on("change", "select", function () {
                 var $target = $(":selected", this);
