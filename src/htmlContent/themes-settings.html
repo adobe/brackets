@@ -30,7 +30,7 @@
             <div class="control-group">
                 <label class="control-label">{{Strings.FONT_SIZE}}:</label>
                 <div class="controls">
-                    <input type="text" data-target="fontSize" value="{{settings.fontSize}}">
+                    <input type="text" pattern="^[\d\.]+(p|px|e|em){0,1}$" data-target="fontSize" value="{{settings.fontSize}}">
                 </div>
             </div>
 

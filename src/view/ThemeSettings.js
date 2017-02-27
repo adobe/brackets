@@ -101,21 +101,17 @@ define(function (require, exports, module) {
                 newSettings[attr] = $target.is(":checked");
             })
             .on("input", "[data-target='fontSize']", function () { 
-                var $target = $(this);
-                var targetValue = $target.val();
-                var validInput = /^[\d\.]+(p|px|e|em){0,1}$/g;
-                var btn = document.getElementById("theme-settings-done-btn");
-
-                // Make sure that the font size is expressed in terms we can handle (px or em). If not, 'done' button disabled until input corrected.
-
-                if (targetValue.search(validInput) === -1) {
-                    btn.disabled = targetValue.length !== 0;
-                }else{
-                    if(btn.disabled) { 
-                        btn.disabled = false;
-                    }
-                    var attr = $target.attr("data-target");
-                    newSettings[attr] = targetValue;
+                var target = this;
+                var targetValue = $(this).val();
+                var $btn = $("#theme-settings-done-btn")[0];
+            
+                // Make sure that the font size is expressed in terms we can handle (px or em). If not, 'done' button is disabled until input has been corrected.
+            
+                if (target.checkValidity() === true) {
+                    $btn.disabled = false;
+                    newSettings["fontSize"] = targetValue;
+                } else {
+                    $btn.disabled = true;
                 }
             })
             .on("input", "[data-target='fontFamily']", function () {
