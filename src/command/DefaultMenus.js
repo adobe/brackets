@@ -28,9 +28,11 @@ define(function (require, exports, module) {
     "use strict";
 
     var AppInit         = require("utils/AppInit"),
+        TokenUtils      = require("utils/TokenUtils"),
         Commands        = require("command/Commands"),
         Menus           = require("command/Menus"),
-        Strings         = require("strings");
+        Strings         = require("strings"),
+        CommandManager  = require("command/CommandManager");
 
     AppInit.htmlReady(function () {
         /*
@@ -295,11 +297,20 @@ define(function (require, exports, module) {
 
                     // Inline text editors have a different context menu (safe to assume it's not some other
                     // type of inline widget since we already know an Editor has focus)
+                    var cmenu;
                     if (inlineWidget) {
-                        inline_editor_cmenu.open(e);
+                        cmenu = inline_editor_cmenu;
                     } else {
-                        editor_cmenu.open(e);
+                        cmenu = editor_cmenu;
                     }
+                    var cm = editor._codeMirror;
+                    var tokenType = TokenUtils.getTokenAt(cm, cm.getCursor()).type;
+                    if (editor.getModeForSelection() === "javascript" && (tokenType === "variable-2" || tokenType === "variable" || tokenType === "property" || tokenType === "def")) {
+                        cmenu.addMenuItem(Commands.REFACTOR_RENAME);
+                    } else {
+                        cmenu.removeMenuItem(Commands.REFACTOR_RENAME);
+                    }
+                    cmenu.open(e);
                 }
             });
         });

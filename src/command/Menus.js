@@ -464,6 +464,10 @@ define(function (require, exports, module) {
         menuItemID = this._getMenuItemId(commandID);
 
         var menuItem = getMenuItem(menuItemID);
+        if (!menuItem) {
+            console.log("MenuItem with id: " + menuItemID + " not found");
+            return;
+        }
         removeMenuItemEventListeners(menuItem);
 
         if (_isHTMLMenu(this.id)) {
