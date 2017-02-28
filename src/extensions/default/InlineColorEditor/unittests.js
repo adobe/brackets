@@ -37,6 +37,28 @@ define(function (require, exports, module) {
         ColorEditor        = require("ColorEditor").ColorEditor,
         tinycolor          = require("thirdparty/tinycolor-min");
 
+    // Helper functions for testing cursor position / selection range
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
+    }
+    function fixSel(sel) {
+        fixPos(sel.start);
+        fixPos(sel.end);
+        if (!("reversed" in sel)) {
+            sel.reversed = false;
+        }
+        return sel;
+    }
+    function fixSels(sels) {
+        sels.forEach(function (sel) {
+            fixSel(sel);
+        });
+        return sels;
+    }
+
     describe("Inline Color Editor - unit", function () {
 
         var testDocument, testEditor, inline;
@@ -217,7 +239,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
                         inline.colorEditor.setColorFromString("#c0c0c0");
-                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
+                        expect(fixSel(inline.getCurrentRange())).toEqual(fixSel({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}}));
                         expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#c0c0c0");
                     });
                 });
@@ -236,7 +258,7 @@ define(function (require, exports, module) {
                         // TODO (#2201): this assumes getColor() is a tinycolor, but sometimes it's a string
                         expect(inline.colorEditor.getColor().toHexString().toLowerCase()).toBe("#a0cdef");
                         expect(inline.close).not.toHaveBeenCalled();
-                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
+                        expect(fixSel(inline.getCurrentRange())).toEqual(fixSel({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}}));
                     });
                 });
 
@@ -260,7 +282,7 @@ define(function (require, exports, module) {
                         testDocument.replaceRange("0", {line: 1, ch: 22}, {line: 1, ch: 22});
                         expect(inline._color).toBe("#abcde0");
                         expect(inline.close).not.toHaveBeenCalled();
-                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
+                        expect(fixSel(inline.getCurrentRange())).toEqual(fixSel({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}}));
                     });
                 });
 
@@ -269,7 +291,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
                         expect(inline._color).toBe("#abcdef");
-                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
+                        expect(fixSel(inline.getCurrentRange())).toEqual(fixSel({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}}));
                     });
                 });
 
@@ -278,7 +300,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
                         expect(inline._color).toBe("#abcdef");
-                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
+                        expect(fixSel(inline.getCurrentRange())).toEqual(fixSel({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}}));
                     });
                 });
 

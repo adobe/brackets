@@ -31,6 +31,14 @@ define(function (require, exports, module) {
         HTMLEntityHints = require("main").SpecialCharHints,
         defaultContent  = require("text!unittest-files/default.html");
 
+    // Helper function for testing cursor position
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
+    }
+
     describe("HTML Entity Hinting", function () {
 
         var testEditorAndDoc,
@@ -150,7 +158,7 @@ define(function (require, exports, module) {
 
                 var hints = expectHints(hintProvider);
                 hintProvider.insertHint(hints[0]);
-                expect(testEditorAndDoc.editor.getCursorPos()).toEqual({line: 17, ch: 23});
+                expect(fixPos(testEditorAndDoc.editor.getCursorPos())).toEqual(fixPos({line: 17, ch: 23}));
             });
         });
     });
