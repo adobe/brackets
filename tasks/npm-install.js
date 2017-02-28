@@ -186,12 +186,13 @@ module.exports = function (grunt) {
                        "Downloads extensions from npm and puts them to the src/extensions/default folder",
                        function () {
         
-        var extensionsToDownload = [
-            {
-                name: "brackets-eslint",
-                version: "3.0.5"
-            }
-        ];
+        var packageJSON = grunt.file.readJSON("package.json");
+        var extensionsToDownload = Object.keys(packageJSON.defaultExtensions).map(function (name) {
+            return {
+                name: name,
+                version: packageJSON.defaultExtensions[name]
+            };
+        });
         
         var done = this.async();
         Promise.all(extensionsToDownload.map(function (extension) {
