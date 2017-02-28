@@ -96,8 +96,9 @@ define(function (require, exports, module) {
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
-        INDENT_LINE_COMMENT  = "indentLineComment",
-        ALLOW_JAVASCRIPT    = "allowJavaScript";
+        INDENT_LINE_COMMENT = "indentLineComment",
+        ALLOW_JAVASCRIPT    = "allowJavaScript",
+        AUTO_UPDATE         = "autoUpdate";
     
 
     var cmOptions         = {};
@@ -219,6 +220,10 @@ define(function (require, exports, module) {
 
     PreferencesManager.definePreference(ALLOW_JAVASCRIPT,     "boolean", true, {
         description: Strings.DESCRIPTION_ALLOW_JAVASCRIPT
+    });
+
+    PreferencesManager.definePreference(AUTO_UPDATE,         "boolean", true, {
+        description: Strings.DESCRIPTION_AUTO_UPDATE
     });
 
 

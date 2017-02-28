@@ -16,7 +16,8 @@ define(function (require, exports, module) {
         LiveDevMultiBrowser = brackets.getModule("LiveDevelopment/LiveDevMultiBrowser"),
         BlobUtils           = brackets.getModule("filesystem/impls/filer/BlobUtils"),
         BrambleEvents       = brackets.getModule("bramble/BrambleEvents"),
-        Path                = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path;
+        Path                = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path,
+        BrambleStartupState = brackets.getModule("bramble/StartupState");
 
     // The script that will be injected into the previewed HTML to handle the other side of the post message connection.
     var PostMessageTransportRemote = require("text!lib/PostMessageTransportRemote.js");
@@ -104,6 +105,11 @@ define(function (require, exports, module) {
     */
     function start(){
         window.addEventListener("message", _listener);
+
+        var autoUpdate = BrambleStartupState.ui("autoUpdate");
+        if(typeof autoUpdate === "boolean") {
+            setAutoUpdate(autoUpdate);
+        }
 
         // Reload whenever files are removed or renamed
         BrambleEvents.on("fileRemoved", reload);

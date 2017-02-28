@@ -133,6 +133,14 @@ define(function (require, exports, module) {
                 allowJavaScript: PreferencesManager.get("allowJavaScript")
             });
         });
+
+        //Listen for changes to auto update
+        PreferencesManager.on("change", "autoUpdate", function () {
+            sendEvent({
+                type: "bramble:autoUpdateChange",
+                autoUpdate: PreferencesManager.get("autoUpdate")
+            });
+        });
     }
 
     /**
@@ -165,7 +173,8 @@ define(function (require, exports, module) {
             fontSize: ViewCommandHandlers.getFontSize(),
             theme: Theme.getTheme(),
             wordWrap: PreferencesManager.get("wordWrap"),
-            allowJavaScript: PreferencesManager.get("allowJavaScript")
+            allowJavaScript: PreferencesManager.get("allowJavaScript"),
+            autoUpdate: PreferencesManager.get("autoUpdate")
         });
     }
 

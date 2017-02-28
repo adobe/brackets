@@ -191,7 +191,8 @@ define(function (require, exports, module) {
             secondPaneWidth: data.state.secondPaneWidth,
             previewMode: data.state.previewMode,
             wordWrap: data.state.wordWrap,
-            allowJavaScript: data.state.allowJavaScript
+            allowJavaScript: data.state.allowJavaScript,
+            autoUpdate: data.state.autoUpdate
         });
 
         RemoteEvents.start();

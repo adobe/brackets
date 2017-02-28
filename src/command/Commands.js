@@ -111,6 +111,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_ALLOW_JAVASCRIPT     = "cmd.toggleAllowJavaScript";  // EditorOptionsHandlers.js     _getToggler()
+    exports.TOGGLE_AUTO_UPDATE          = "cmd.toggleAutoUpdate";       // EditorOptionsHandlers.js     _getToggler()
 
     exports.CMD_OPEN                        = "cmd.open";
     exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()

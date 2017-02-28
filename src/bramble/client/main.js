@@ -205,6 +205,7 @@ define([
         self.getRootDir = function() { return _root; };
         self.getWordWrap = function() { return _state.wordWrap; };
         self.getAllowJavaScript = function() { return _state.allowJavaScript; };
+        self.getAutoUpdate = function() { return _state.autoUpdate; };
         self.getTutorialExists = function() { return _tutorialExists; };
         self.getTutorialVisible = function() { return _tutorialVisible; };
         self.getLayout = function() {
@@ -264,6 +265,7 @@ define([
                     _state.theme = data.theme;
                     _state.wordWrap = data.wordWrap;
                     _state.allowJavaScript = data.allowJavaScript;
+                    _state.autoUpdate = data.autoUpdate;
 
                     setReadyState(Bramble.READY);
                 }
@@ -303,6 +305,8 @@ define([
                         _state.allowJavaScript = data.allowJavaScript;
                     } else if (eventName === "tutorialVisibilityChange") {
                         _tutorialVisible = data.visible;
+                    } else if (eventName === "autoUpdateChange") {
+                        _state.autoUpdate = data.autoUpdate;
                     }
 
                     debug("triggering remote event", eventName, data);
@@ -417,7 +421,8 @@ define([
                                     secondPaneWidth: _state.secondPaneWidth,
                                     previewMode: _state.previewMode,
                                     wordWrap: _state.wordWrap,
-                                    allowJavaScript: _state.allowJavaScript
+                                    allowJavaScript: _state.allowJavaScript,
+                                    autoUpdate: _state.autoUpdate
                                 }
                             };
                             _brambleWindow.postMessage(JSON.stringify(initMessage), _iframe.src);

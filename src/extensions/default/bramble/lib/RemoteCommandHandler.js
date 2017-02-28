@@ -84,9 +84,11 @@ define(function (require, exports, module) {
             UI.disableFullscreenPreview();
             break;
         case "BRAMBLE_ENABLE_AUTO_UPDATE":
+            PreferencesManager.set("autoUpdate", true);
             PostMessageTransport.setAutoUpdate(true);
             break;
         case "BRAMBLE_DISABLE_AUTO_UPDATE":
+            PreferencesManager.set("autoUpdate", false);
             PostMessageTransport.setAutoUpdate(false);
             break;
         case "BRAMBLE_ENABLE_SCRIPTS":

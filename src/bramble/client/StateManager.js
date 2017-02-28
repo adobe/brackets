@@ -105,6 +105,10 @@ define(function() {
             allowJavaScript: {
                 get: function()  { return getBool(storage, "allowJavaScript"); },
                 set: function(v) { storage.setItem(prefix("allowJavaScript"), v); }
+            },
+            autoUpdate: {
+                get: function()  { return getBool(storage, "autoUpdate"); },
+                set: function(v) { storage.setItem(prefix("autoUpdate"), v); }
             }
         });
     }
