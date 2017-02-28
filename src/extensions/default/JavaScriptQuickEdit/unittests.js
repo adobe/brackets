@@ -61,6 +61,14 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    // Helper function for testing cursor position
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
+    }
+
     /**
      * Performs setup for an inline editor test. Parses offsets (saved to Spec.offsets) for all files in
      * the test project (testPath) and saves files back to disk without offset markup.
@@ -237,7 +245,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(this.infos["test1inline.js"].offsets[0]));
                 });
             });
 
@@ -249,7 +257,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[1]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(this.infos["test1inline.js"].offsets[1]));
                 });
             });
 
@@ -261,7 +269,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[2]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(this.infos["test1inline.js"].offsets[2]));
                 });
             });
 
