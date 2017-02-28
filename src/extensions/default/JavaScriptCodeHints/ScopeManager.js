@@ -1169,65 +1169,68 @@ define(function (require, exports, module) {
 
             ensurePreferences();
             deferredPreferences.done(function () {
-                if (!file instanceof InMemoryFile) {
-                    FileSystem.resolve(dir, function (err, directory) {
+                if (file instanceof InMemoryFile) {
+                    initTernServer(pr, []);
+                    var hintsPromise = primePump(path);
+                    hintsPromise.done(function () {
+                        addFilesDeferred.resolveWith(null, [_ternWorker]);
+                    });
+                    return;
+                }
+
+                FileSystem.resolve(dir, function (err, directory) {
+                    if (err) {
+                        console.error("Error resolving", dir);
+                        addFilesDeferred.resolveWith(null);
+                        return;
+                    }
+
+                    directory.getContents(function (err, contents) {
                         if (err) {
-                            console.error("Error resolving", dir);
+                            console.error("Error getting contents for", directory);
                             addFilesDeferred.resolveWith(null);
                             return;
                         }
 
-                        directory.getContents(function (err, contents) {
-                            if (err) {
-                                console.error("Error getting contents for", directory);
-                                addFilesDeferred.resolveWith(null);
-                                return;
-                            }
-
-                            var files = contents
-                                .filter(function (entry) {
-                                    return entry.isFile && !isFileExcluded(entry);
-                                })
-                                .map(function (entry) {
-                                    return entry.fullPath;
-                                });
-
-                            initTernServer(dir, files);
-
-                            var hintsPromise = primePump(path);
-                            hintsPromise.done(function () {
-                                if (!usingModules()) {
-                                    // Read the subdirectories of the new file's directory.
-                                    // Read them first in case there are too many files to
-                                    // read in the project.
-                                    addAllFilesAndSubdirectories(dir, function () {
-                                        // If the file is in the project root, then read
-                                        // all the files under the project root.
-                                        var currentDir = (dir + "/");
-                                        if (projectRoot && currentDir !== projectRoot &&
-                                                currentDir.indexOf(projectRoot) === 0) {
-                                            addAllFilesAndSubdirectories(projectRoot, function () {
-                                                // prime the pump again but this time don't wait
-                                                // for completion.
-                                                primePump(path);
-
-                                                addFilesDeferred.resolveWith(null, [_ternWorker]);
-                                            });
-                                        } else {
-                                            addFilesDeferred.resolveWith(null, [_ternWorker]);
-                                        }
-                                    });
-                                } else {
-                                    addFilesDeferred.resolveWith(null, [_ternWorker]);
-                                }
+                        var files = contents
+                            .filter(function (entry) {
+                                return entry.isFile && !isFileExcluded(entry);
+                            })
+                            .map(function (entry) {
+                                return entry.fullPath;
                             });
+
+                        initTernServer(dir, files);
+
+                        var hintsPromise = primePump(path);
+                        hintsPromise.done(function () {
+                            if (!usingModules()) {
+                                // Read the subdirectories of the new file's directory.
+                                // Read them first in case there are too many files to
+                                // read in the project.
+                                addAllFilesAndSubdirectories(dir, function () {
+                                    // If the file is in the project root, then read
+                                    // all the files under the project root.
+                                    var currentDir = (dir + "/");
+                                    if (projectRoot && currentDir !== projectRoot &&
+                                            currentDir.indexOf(projectRoot) === 0) {
+                                        addAllFilesAndSubdirectories(projectRoot, function () {
+                                            // prime the pump again but this time don't wait
+                                            // for completion.
+                                            primePump(path);
+
+                                            addFilesDeferred.resolveWith(null, [_ternWorker]);
+                                        });
+                                    } else {
+                                        addFilesDeferred.resolveWith(null, [_ternWorker]);
+                                    }
+                                });
+                            } else {
+                                addFilesDeferred.resolveWith(null, [_ternWorker]);
+                            }
                         });
                     });
-                } else {
-                    initTernServer(pr, []);
-                    primePump(path);
-                    addFilesDeferred.resolveWith(null, [_ternWorker]);
-                }
+                });
             });
         }
 
