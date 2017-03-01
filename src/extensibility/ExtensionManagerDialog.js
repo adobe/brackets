@@ -459,12 +459,14 @@ define(function (require, exports, module) {
             });
 
             // Filter the views when the user types in the search field.
+            var searchTimeOut = 0;
             $dlg.on("input", ".search", function (e) {
+                clearTimeout(searchTimeOut);
                 var query = $(this).val();
-                views.forEach(function (view) {
-                    view.filter(query);
+                searchTimeOut = setTimeout(function () {
+                    views[_activeTabIndex].filter(query);
                     $modalDlg.scrollTop(0);
-                });
+                }, 200);
             }).on("click", ".search-clear", clearSearch);
             
             // Sort the extension list based on the current selected sorting criteria
