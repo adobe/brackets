@@ -859,6 +859,62 @@ define(function (require, exports, module) {
         }
 
         /*
+         * Handle Rename menu/keyboard command.
+         */
+        function handleRename() {
+            var offset,
+                handleFindRefs;
+
+
+            // Only provide rename when cursor is in JavaScript content
+            if (!session || session.editor.getModeForSelection() !== "javascript") {
+                return null;
+            }
+
+            var result = new $.Deferred();
+
+            /**
+             * Make a find ref request.
+             * @param {Session} session - the session
+             * @param {number} offset - the offset of where to jump from
+             */
+            function requestFindRefs(session, offset) {
+                var response = ScopeManager.requestFindRefs(session, session.editor.document, offset);
+
+                if (response.hasOwnProperty("promise")) {
+                    response.promise.done(handleFindRefs).fail(function () {
+                        result.reject();
+                    });
+                }
+            }
+
+            /**
+             * handle processing of the completed jump-to-def request.
+             * will open the appropriate file, and set the selection based
+             * on the response.
+             */
+            handleFindRefs = function (refsResp) {
+                function isInSameFile(obj) {
+                    if (obj && obj.file === refsResp.file) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                
+                if (refsResp && refsResp.refs && refsResp.refs.refs) {
+                    EditorManager.getActiveEditor().setSelections(refsResp.refs.refs.filter(isInSameFile));
+                }
+            };
+
+            offset = session.getOffset();
+            // request a jump-to-def
+            requestFindRefs(session, offset);
+
+            return result.promise();
+        }
+        
+        /*
          * Helper for QuickEdit jump-to-definition request.
          */
         function quickEditHelper() {
@@ -867,6 +923,8 @@ define(function (require, exports, module) {
 
             return response;
         }
+        
+        CommandManager.register("Rename", "refactor.rename", handleRename);
 
         // Register quickEditHelper.
         brackets._jsCodeHintsHelper = quickEditHelper;

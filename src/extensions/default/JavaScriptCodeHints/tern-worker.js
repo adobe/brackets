@@ -231,6 +231,27 @@ var config = {};
                     _reportError(e, fileInfo.name);
                 }
             }
+    
+            function getRefs(fileInfo, offset) {
+                var request = buildRequest(fileInfo, "refs", offset);
+                try {
+                    ternServer.request(request, function (error, data) {
+                        if (error) {
+                            _log("Error returned from Tern 'definition' request: " + error);
+                            return;
+                        }
+                        var response = {type: MessageIds.TERN_REFS,
+                                              file: fileInfo.name,
+                                              offset: offset,
+                                              refs: data
+                                             };
+                        // Post a message back to the main thread with the results
+                        self.postMessage(response);
+                    });
+                } catch (e) {
+                    _reportError(e, fileInfo.name);
+                }
+            }
 
             /**
              * Get all the known properties for guessing.
@@ -640,6 +661,9 @@ var config = {};
                 } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
                     offset  = request.offset;
                     getJumptoDef(request.fileInfo, offset);
+                } else if (type === MessageIds.TERN_REFS) {
+                    offset  = request.offset;
+                    getRefs(request.fileInfo, offset);
                 } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
                     handleAddFiles(request.files);
                 } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {

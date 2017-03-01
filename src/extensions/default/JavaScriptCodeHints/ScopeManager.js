@@ -393,6 +393,40 @@ define(function (require, exports, module) {
 
         return {promise: ternPromise};
     }
+    
+    function getRefs(fileInfo, offset) {
+        postMessage({
+            type: MessageIds.TERN_REFS,
+            fileInfo: fileInfo,
+            offset: offset
+        });
+
+        return addPendingRequest(fileInfo.name, offset, MessageIds.TERN_REFS);
+    }
+    
+    function requestFindRefs(session, document, offset) {
+        var path    = document.file.fullPath,
+            fileInfo = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
+                name: path,
+                offsetLines: 0,
+                text: filterText(session.getJavascriptText())};
+
+        var ternPromise = getRefs(fileInfo, offset);
+
+        return {promise: ternPromise};
+    }
+    
+    function handleRename(response) {
+
+        var file = response.file,
+            offset = response.offset;
+
+        var $deferredFindRefs = getPendingRequest(file, offset, MessageIds.TERN_REFS);
+
+        if ($deferredFindRefs) {
+            $deferredFindRefs.resolveWith(null, [response]);
+        }
+    }
 
     /**
      * Handle the response from the tern web worker when
@@ -1059,6 +1093,8 @@ define(function (require, exports, module) {
                     handleTernGetFile(response);
                 } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
                     handleJumptoDef(response);
+                } else if (type === MessageIds.TERN_REFS) {
+                    handleRename(response);
                 } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
                     handlePrimePumpCompletion(response);
                 } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
@@ -1539,6 +1575,7 @@ define(function (require, exports, module) {
     exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
+    exports.requestFindRefs = requestFindRefs;
     exports.requestParameterHint = requestParameterHint;
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;

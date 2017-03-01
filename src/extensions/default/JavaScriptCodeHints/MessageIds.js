@@ -28,6 +28,7 @@ define(function (require, exports, module) {
         TERN_UPDATE_FILE_MSG        = "UpdateFile",
         TERN_INIT_MSG               = "Init",
         TERN_JUMPTODEF_MSG          = "JumptoDef",
+        TERN_REFS                   = "getRefs",
         TERN_COMPLETIONS_MSG        = "Completions",
         TERN_GET_FILE_MSG           = "GetFile",
         TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
@@ -35,7 +36,9 @@ define(function (require, exports, module) {
         TERN_GET_GUESSES_MSG        = "GetGuesses",
         TERN_WORKER_READY           = "WorkerReady",
         TERN_INFERENCE_TIMEDOUT     = "InferenceTimedOut",
-        SET_CONFIG                  = "SetConfig";
+        SET_CONFIG                  = "SetConfig",
+        TERN_UPDATE_DIRTY_FILE      = "UpdateDirtyFileEntry",
+        TERN_CLEAR_DIRTY_FILES_LIST = "ClearDirtyFilesList";
 
     // Message parameter constants
     var TERN_FILE_INFO_TYPE_PART    = "part",
@@ -58,6 +61,9 @@ define(function (require, exports, module) {
     exports.TERN_FILE_INFO_TYPE_EMPTY   = TERN_FILE_INFO_TYPE_EMPTY;
     exports.TERN_INFERENCE_TIMEDOUT     = TERN_INFERENCE_TIMEDOUT;
     exports.SET_CONFIG                  = SET_CONFIG;
+    exports.TERN_REFS                   = TERN_REFS;
+    exports.TERN_UPDATE_DIRTY_FILE      = TERN_UPDATE_DIRTY_FILE;
+    exports.TERN_CLEAR_DIRTY_FILES_LIST = TERN_CLEAR_DIRTY_FILES_LIST;
 });
 
 
