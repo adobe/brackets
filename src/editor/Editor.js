@@ -141,7 +141,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
-    PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [] }, {
+    PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [], dontCloseTags: [] }, {
         description: Strings.DESCRIPTION_CLOSE_TAGS,
         keys: {
             dontCloseTags: {
