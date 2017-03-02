@@ -459,11 +459,11 @@ define(function (require, exports, module) {
             });
 
             // Filter the views when the user types in the search field.
-            var searchTimeOut = 0;
+            var searchTimeoutID;
             $dlg.on("input", ".search", function (e) {
-                clearTimeout(searchTimeOut);
+                clearTimeout(searchTimeoutID);
                 var query = $(this).val();
-                searchTimeOut = setTimeout(function () {
+                searchTimeoutID = setTimeout(function () {
                     views[_activeTabIndex].filter(query);
                     $modalDlg.scrollTop(0);
                 }, 200);
