@@ -336,10 +336,9 @@ define(function (require, exports, module) {
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !hasPendingAction;
-        context.disablingAllowed = this.model.source === "installed" &&
-            !context.disabled && !hasPendingAction;
-        context.enablingAllowed = this.model.source === "installed" &&
-            context.disabled && !hasPendingAction;
+        var isDefaultOrInstalled = this.model.source === "default" || this.model.source === "installed";
+        context.disablingAllowed = isDefaultOrInstalled && !context.disabled && !hasPendingAction;
+        context.enablingAllowed = isDefaultOrInstalled && context.disabled && !hasPendingAction;
 
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {

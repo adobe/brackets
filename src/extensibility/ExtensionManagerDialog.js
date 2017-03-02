@@ -321,6 +321,7 @@ define(function (require, exports, module) {
         }
 
         models.push(new ExtensionManagerViewModel.InstalledViewModel());
+        models.push(new ExtensionManagerViewModel.DefaultViewModel());
 
         function updateSearchDisabled() {
             var model           = models[_activeTabIndex],

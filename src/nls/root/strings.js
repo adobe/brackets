@@ -578,6 +578,7 @@ define({
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_DEFAULT_TITLE"             : "Default",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
