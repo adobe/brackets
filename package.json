@@ -51,7 +51,8 @@
     },
     "scripts": {
         "postinstall": "grunt install",
-        "test": "grunt cla-check-pull test"
+        "test": "grunt cla-check-pull test",
+        "eslint": "grunt eslint"
     },
     "licenses": [
         {
