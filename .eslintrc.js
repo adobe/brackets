@@ -47,7 +47,11 @@ module.exports = {
 
         "no-trailing-spaces": 0,
         "eol-last": 0,
-        "max-len": [1, 120]
+        "max-len": [1, 120],
+
+        // the rules below should be sorted in a same way they are sorted on http://eslint.org/docs/rules page
+        // http://eslint.org/docs/rules/#best-practices
+        "no-else-return": 1
     },
     "globals": {
         "brackets": false,
