@@ -71,11 +71,9 @@
                 {{#showUpdateButton}}
                 </div><div>
                 {{/showUpdateButton}}
-                {{^metadata.theme}}
-                    <button class="btn btn-mini disable" data-extension-id="{{metadata.name}}">
-                        {{Strings.DISABLE}}
-                    </button>
-                {{/metadata.theme}}
+                <button class="btn btn-mini disable" data-extension-id="{{metadata.name}}">
+                    {{Strings.DISABLE}}
+                </button>
             {{/disablingAllowed}}
             {{#enablingAllowed}}
                 <button class="btn btn-mini enable" data-extension-id="{{metadata.name}}">
