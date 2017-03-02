@@ -702,6 +702,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Minimum lines before a collapsible section icon appears",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true to remember collapsed sections if you close and reopen a file or project",
     "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true to enable code folding on selected text in the editor",
+    "DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS"        : "Default extensions that are disabled",
     "DESCRIPTION_ATTR_HINTS"                         : "Enable/disable HTML attribute hints",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Enable/disable CSS/LESS/SCSS property hints",
     "DESCRIPTION_JS_HINTS"                           : "Enable/disable JavaScript code hints",
