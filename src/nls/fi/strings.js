@@ -31,7 +31,7 @@ define({
     "GENERIC_ERROR"                     : "(virhe {0})",
     "NOT_FOUND_ERR"                     : "Tiedostoa tai hakemistoa ei löytynyt.",
     "NOT_READABLE_ERR"                  : "Tiedostoa tai hakemistoa ei voitu lukea.",
-    "EXCEEDS_MAX_FILE_SIZE"             : "Yli {0} Mt:n tiedostoja ei voi voi avata {APP_NAME}issa.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Yli {0} Mt:n tiedostoja ei voi avata {APP_NAME}issa.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Kohdehakemistoa ei voi muuttaa.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
     "CONTENTS_MODIFIED_ERR"             : "Tiedostoa on muokattu {APP_NAME}in ulkopuolella.",
@@ -154,6 +154,7 @@ define({
     "FIND_QUERY_PLACEHOLDER"            : "Etsi\u2026",
     "REPLACE_PLACEHOLDER"               : "Korvaa merkkijonolla\u2026",
     "BUTTON_REPLACE_ALL"                : "Kaikki\u2026",
+    "BUTTON_REPLACE_BATCH"              : "Sarja\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Korvaa\u2026",
     "BUTTON_REPLACE"                    : "Korvaa",
     "BUTTON_NEXT"                       : "\u25B6",
@@ -418,6 +419,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Näytä Resurssienhallinnassa",
     "CMD_SHOW_IN_FINDER"                  : "Näytä Finderissä",
     "CMD_SHOW_IN_OS"                      : "Näytä käyttöjärjestelmässä",
+    "CMD_SWITCH_PANE_FOCUS"               : "Vaihda aktiivinen paneeli",
 
     // Help menu commands
     "HELP_MENU"                           : "Ohje",
@@ -501,6 +503,7 @@ define({
     "INSTALL_CANCELED"                     : "Asennus on peruutettu.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Näytä täysi kuvaus",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Näytä katkaistu kuvaus",
+    "SORT_EXTENSION_METHOD"                : "Lajittele laajennukset käyttäen latausmäärää tai päivityspäivämäärää",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
     "MISSING_PACKAGE_JSON"                 : "Paketissa ei ole tiedostoa package.json.",
@@ -511,6 +514,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Paketin versionumero ({0}) on virheellinen.",
     "INVALID_BRACKETS_VERSION"             : "{APP_NAME}in yhteensopivuuden merkkijono ({0}) on virheellinen.",
     "DISALLOWED_WORDS"                     : "Sanat ({1}) eivät ole sallittuja kentässä {0}.",
+    "NPM_INSTALL_FAILED"                   : "npm install -komento epäonnistui: {0}",    
     "API_NOT_COMPATIBLE"                   : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa. Se asennettiin käytöstä poistettujen laajennusten kansioon.",
     "MISSING_MAIN"                         : "Paketissa ei ole tiedostoa main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Tämän paketin asennus korvaa aiemmin asennetun laajennuksen. Korvataanko vanha laajennus?",
@@ -577,6 +581,9 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Saatavilla",
     "EXTENSIONS_THEMES_TITLE"              : "Teemat",
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
+    "EXTENSIONS_SORT_BY"                   : "Lajittele",
+    "EXTENSIONS_LAST_UPDATED"              : "Päivitetty",
+    "EXTENSIONS_DOWNLOADS"                 : "Latausmäärä",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Vastineita ei saatavilla.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Kaikki vastineet on pienennetty. Laajenna oikealla listatut tiedostot, niin näet vastineet.",
@@ -788,6 +795,7 @@ define({
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true: ota vain koodi -näkymä käyttöön ja piilota muut {APP_NAME}in käyttöliittymäelementit",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true: ota rivikommenttien sisennys käyttöön",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Ota viimeaikaisiin tiedostoihin siirtyminen käyttöön tai poista se käytöstä"
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "WebSocket-palvelimen käyttämä portti esikatselua varten"
 });
 
-/* Last translated for 4be34b641c5f0209c596c7b03eb03b464d4a53c4 */
+/* Last translated for 2954858128883a7bbd2a0488be4ee88fc8a07981 */
