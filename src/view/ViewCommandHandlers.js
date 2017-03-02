@@ -301,6 +301,7 @@ define(function (require, exports, module) {
 
         // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
         if (fsStyle.search(validFont) === -1) {
+        	prefs.set("fontSize", DEFAULT_FONT_SIZE + "px");
             return false;
         }
 
