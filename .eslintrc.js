@@ -1,4 +1,4 @@
-{
+module.exports = {
     "rules": {
         "no-bitwise": 2,
         "curly": 2,
@@ -66,4 +66,4 @@
         "Uint32Array": false,
         "WebSocket": false
     }
-}
+};
