@@ -32,6 +32,13 @@ define(function (require, exports, module) {
         settingsTemplate    = require("text!htmlContent/themes-settings.html"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         prefs               = PreferencesManager.getExtensionPrefs("themes");
+    
+    
+    /**
+     * RegExp used to ensure Font Size is of valid format
+     */
+    var validFontSizeRegExp = ViewCommandHandlers.validFontSizeRegExp;
+
 
     /**
      * @type {Object}
@@ -71,7 +78,7 @@ define(function (require, exports, module) {
         result.validFontSizeRegExp = ViewCommandHandlers.validFontSizeRegExp;
         return result;
     }
-    var validFontSizeRegExp = ViewCommandHandlers.validFontSizeRegExp;
+
     /**
      * Opens the settings dialog
      */
@@ -82,7 +89,7 @@ define(function (require, exports, module) {
         var template        = $("<div>").append($settings).html();
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
-// Select the correct theme.
+        // Select the correct theme.
         var $currentThemeOption = $template
             .find("[value='" + currentSettings.theme + "']");
 

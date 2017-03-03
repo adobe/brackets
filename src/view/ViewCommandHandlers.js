@@ -45,7 +45,13 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash");
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
-
+    
+    
+    /**
+     * Font sizes should be validated by this regexp
+     */
+    var validFontSizeRegExpStr = "^[0-9.]+(px|em)$"; 
+    // Need RegExp as a string to be exported for use with HTML5 pattern attribute
 
     /**
      * @private
@@ -295,7 +301,6 @@ define(function (require, exports, module) {
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur
      */
-     var validFontSizeRegExpStr = "^[0-9.]+(px|em)$"; // Need RegExp string to be exported for compatibility with HTML5 pattern attribute.
      function _adjustFontSize(adjustment) {
         var fsStyle    = prefs.get("fontSize");
         var validFontSizeRegExp = new RegExp(validFontSizeRegExpStr);
