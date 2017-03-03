@@ -582,7 +582,7 @@ define({
 	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
 	"EXTENSIONS_SORT_BY": "Trier par",
-	"EXTENSIONS_LAST_UPDATED": "Last Updated",
+	"EXTENSIONS_LAST_UPDATED": "Dernières mises à jour",
 	"EXTENSIONS_DOWNLOADS": "Téléchargements",
 
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
