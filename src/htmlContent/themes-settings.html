@@ -30,7 +30,7 @@
             <div class="control-group">
                 <label class="control-label">{{Strings.FONT_SIZE}}:</label>
                 <div class="controls">
-                    <input type="text" data-target="fontSize" value="{{settings.fontSize}}">
+                    <input type="text" pattern="{{settings.validFontSizeRegExp}}" data-target="fontSize" value="{{settings.fontSize}}">
                 </div>
             </div>
 
@@ -44,6 +44,6 @@
     </div>
     <div class="modal-footer">
         <button class="dialog-button btn" data-button-id="cancel">{{Strings.CANCEL}}</button>
-        <button class="dialog-button btn primary" data-button-id="save">{{Strings.DONE}}</button>
+        <button class="dialog-button btn primary" id="theme-settings-done-btn" data-button-id="save">{{Strings.DONE}}</button>
     </div>
 </div>
