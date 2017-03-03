@@ -32,13 +32,6 @@ define(function (require, exports, module) {
         settingsTemplate    = require("text!htmlContent/themes-settings.html"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         prefs               = PreferencesManager.getExtensionPrefs("themes");
-    
-    
-    /**
-     * RegExp used to ensure Font Size is of valid format
-     */
-    var validFontSizeRegExp = ViewCommandHandlers.validFontSizeRegExp;
-
 
     /**
      * @type {Object}
