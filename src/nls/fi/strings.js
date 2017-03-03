@@ -154,7 +154,7 @@ define({
     "FIND_QUERY_PLACEHOLDER"            : "Etsi\u2026",
     "REPLACE_PLACEHOLDER"               : "Korvaa merkkijonolla\u2026",
     "BUTTON_REPLACE_ALL"                : "Kaikki\u2026",
-    "BUTTON_REPLACE_BATCH"              : "Sarja\u2026",
+    "BUTTON_REPLACE_BATCH"              : "Korvaa erissä\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Korvaa\u2026",
     "BUTTON_REPLACE"                    : "Korvaa",
     "BUTTON_NEXT"                       : "\u25B6",
@@ -419,7 +419,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Näytä Resurssienhallinnassa",
     "CMD_SHOW_IN_FINDER"                  : "Näytä Finderissä",
     "CMD_SHOW_IN_OS"                      : "Näytä käyttöjärjestelmässä",
-    "CMD_SWITCH_PANE_FOCUS"               : "Vaihda aktiivinen paneeli",
+    "CMD_SWITCH_PANE_FOCUS"               : "Vaihda ruudun valinta",
 
     // Help menu commands
     "HELP_MENU"                           : "Ohje",
@@ -503,7 +503,7 @@ define({
     "INSTALL_CANCELED"                     : "Asennus on peruutettu.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Näytä täysi kuvaus",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Näytä katkaistu kuvaus",
-    "SORT_EXTENSION_METHOD"                : "Lajittele laajennukset käyttäen latausmäärää tai päivityspäivämäärää",
+    "SORT_EXTENSION_METHOD"                : "Lajittele laajennukset latausmäärän tai päivitysajankohdan mukaan",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
     "MISSING_PACKAGE_JSON"                 : "Paketissa ei ole tiedostoa package.json.",
@@ -514,7 +514,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Paketin versionumero ({0}) on virheellinen.",
     "INVALID_BRACKETS_VERSION"             : "{APP_NAME}in yhteensopivuuden merkkijono ({0}) on virheellinen.",
     "DISALLOWED_WORDS"                     : "Sanat ({1}) eivät ole sallittuja kentässä {0}.",
-    "NPM_INSTALL_FAILED"                   : "npm install -komento epäonnistui: {0}",    
+    "NPM_INSTALL_FAILED"                   : "npm install \u2011komento epäonnistui: {0}",    
     "API_NOT_COMPATIBLE"                   : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa. Se asennettiin käytöstä poistettujen laajennusten kansioon.",
     "MISSING_MAIN"                         : "Paketissa ei ole tiedostoa main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Tämän paketin asennus korvaa aiemmin asennetun laajennuksen. Korvataanko vanha laajennus?",
@@ -583,7 +583,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
     "EXTENSIONS_SORT_BY"                   : "Lajittele",
     "EXTENSIONS_LAST_UPDATED"              : "Päivitetty",
-    "EXTENSIONS_DOWNLOADS"                 : "Latausmäärä",
+    "EXTENSIONS_DOWNLOADS"                 : "Lataukset",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Vastineita ei saatavilla.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Kaikki vastineet on pienennetty. Laajenna oikealla listatut tiedostot, niin näet vastineet.",
@@ -789,7 +789,7 @@ define({
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false: poista asetustiedoston avaaminen käytöstä jaetussa näkymässä",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false: avaa käyttäjän asetustiedosto vasemmassa tai ylemmässä ruudussa",
     "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true: yhdistä ruudut sen jälkeen, kun ruudun viimeinen tiedosto on suljettu ruudun yläosassa olevalla sulkupaikkeella",
-    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Valitse, milloin sulku- ja flip view -painikkeet näkyvät paneelin yläosassa",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Valitse, milloin sulku- ja flip view -painikkeet näkyvät ruudun yläosassa",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Tämä on vain luku -tiedosto {APP_NAME}in tukemista\n * asetuksista.\n * Käytä tätä apuna, kun muutat asetustiedostoasi\n * ”brackets.json”, joka on avattu toiseen ruutuun.\n * Lisätietoa siitä, kuinka käyttää asetuksia {APP_NAME}issa,\n * löydät verkkosivulta osoitteessa https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true: ota vain koodi -näkymä käyttöön ja piilota muut {APP_NAME}in käyttöliittymäelementit",
