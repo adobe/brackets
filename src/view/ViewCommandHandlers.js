@@ -50,7 +50,7 @@ define(function (require, exports, module) {
     /**
      * Font sizes should be validated by this regexp
      */
-    var validFontSizeRegExpStr = "^[0-9.]+(px|em)$"; 
+    var validFontSizeRegExpStr = "^([0-9]+)?(.[0-9]+)*(px|em)$";
     // Need RegExp as a string to be exported for use with HTML5 pattern attribute
 
     /**
