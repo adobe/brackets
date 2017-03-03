@@ -794,7 +794,7 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true: ota vain koodi -näkymä käyttöön ja piilota muut {APP_NAME}in käyttöliittymäelementit",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true: ota rivikommenttien sisennys käyttöön",
-    "DESCRIPTION_RECENT_FILES_NAV"                   : "Ota viimeaikaisiin tiedostoihin siirtyminen käyttöön tai poista se käytöstä"
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Ota viimeaikaisiin tiedostoihin siirtyminen käyttöön tai poista se käytöstä",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "WebSocket-palvelimen käyttämä portti esikatselua varten"
 });
 
