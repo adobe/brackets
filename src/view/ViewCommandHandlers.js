@@ -295,16 +295,19 @@ define(function (require, exports, module) {
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur
      */
-    function _adjustFontSize(adjustment) {
-        var fsStyle   = prefs.get("fontSize"),
-            validFont = /^[\d\.]+(px|em)$/;
-
-        // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
-        if (fsStyle.search(validFont) === -1) {
+     var validFontSizeRegExpStr = "^[0-9.]+(px|em)$"; // Need RegExp string to be exported for compatibility with HTML5 pattern attribute.
+     function _adjustFontSize(adjustment) {
+        var fsStyle    = prefs.get("fontSize");
+        var validFontSizeRegExp = new RegExp(validFontSizeRegExpStr);
+        
+        // Make sure that the font size is expressed in terms we can
+        // handle (px or em). If not, simply bail.
+        
+         if (fsStyle.search(validFontSizeRegExp) === -1) {
             return false;
         }
 
-        // Guaranteed to work by the validation above.
+        // Guaranteed to work by validation above.
         var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length),
             delta   = fsUnits === "px" ? 1 : 0.1,
             fsOld   = parseFloat(fsStyle.substring(0, fsStyle.length - 2)),
@@ -532,7 +535,6 @@ define(function (require, exports, module) {
     // Update UI when Brackets finishes loading
     AppInit.appReady(init);
 
-
     EventDispatcher.makeEventDispatcher(exports);
 
     exports.restoreFontSize = restoreFontSize;
@@ -541,4 +543,5 @@ define(function (require, exports, module) {
     exports.setFontSize     = setFontSize;
     exports.getFontFamily   = getFontFamily;
     exports.setFontFamily   = setFontFamily;
-});
+    exports.validFontSizeRegExp = validFontSizeRegExpStr;
+}); 

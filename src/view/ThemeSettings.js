@@ -68,9 +68,10 @@ define(function (require, exports, module) {
 
         result.fontFamily = ViewCommandHandlers.getFontFamily();
         result.fontSize   = ViewCommandHandlers.getFontSize();
+        result.validFontSizeRegExp = ViewCommandHandlers.validFontSizeRegExp;
         return result;
     }
-
+    var validFontSizeRegExp = ViewCommandHandlers.validFontSizeRegExp;
     /**
      * Opens the settings dialog
      */
@@ -81,7 +82,7 @@ define(function (require, exports, module) {
         var template        = $("<div>").append($settings).html();
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
-        // Select the correct theme.
+// Select the correct theme.
         var $currentThemeOption = $template
             .find("[value='" + currentSettings.theme + "']");
 
@@ -100,13 +101,15 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("input", "[data-target='fontSize']", function () { 
+            .on("input", "[data-target='fontSize']", function () {
                 var target = this;
                 var targetValue = $(this).val();
                 var $btn = $("#theme-settings-done-btn")[0];
-            
-                // Make sure that the font size is expressed in terms we can handle (px or em). If not, 'done' button is disabled until input has been corrected.
-            
+
+                // Make sure that the font size is expressed in terms
+                // we can handle (px or em). If not, 'done' button is
+                // disabled until input has been corrected.
+
                 if (target.checkValidity() === true) {
                     $btn.disabled = false;
                     newSettings["fontSize"] = targetValue;
