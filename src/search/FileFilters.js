@@ -337,6 +337,12 @@ define(function (require, exports, module) {
             });
         }
 
+        $nameField.bind('input', function () {
+            if ($(this).val().length > 30) {
+              console.log("Too long!");
+            }
+        });
+
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
