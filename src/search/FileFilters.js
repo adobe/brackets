@@ -323,7 +323,8 @@ define(function (require, exports, module) {
             };
         var dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(EditFilterTemplate, templateVars)),
             $nameField = dialog.getElement().find(".exclusions-name"),
-            $editField = dialog.getElement().find(".exclusions-editor");
+            $editField = dialog.getElement().find(".exclusions-editor"),
+            $remainingField = dialog.getElement().find(".exclusions-name-characters-remaining");
 
         $nameField.val(filter.name);
         $editField.val(filter.patterns.join("\n")).focus();
@@ -338,6 +339,13 @@ define(function (require, exports, module) {
         }
 
         $nameField.bind('input', function () {
+            var textLength = $(this).val().length;
+            $remainingField.text(StringUtils.format(
+              "Characters Remaining: {0}",
+              30-textLength
+            ));
+
+            Mustache.render(EditFilterTemplate, {charactersRemaining: 30 - textLength})
             if ($(this).val().length > 30) {
               console.log("Too long!");
             }
