@@ -339,15 +339,16 @@ define(function (require, exports, module) {
         }
 
         $nameField.bind('input', function () {
-            var textLength = $(this).val().length;
+            var remainingCharacters = 10 - $(this).val().length;
             $remainingField.text(StringUtils.format(
-              "Characters Remaining: {0}",
-              30-textLength
+                "{0} characters remaining",
+                remainingCharacters
             ));
 
-            Mustache.render(EditFilterTemplate, {charactersRemaining: 30 - textLength})
-            if ($(this).val().length > 30) {
-              console.log("Too long!");
+            if (remainingCharacters < 0) {
+               $remainingField.addClass("exclusions-name-characters-limit-reached");
+            } else {
+               $remainingField.removeClass("exclusions-name-characters-limit-reached");
             }
         });
 
