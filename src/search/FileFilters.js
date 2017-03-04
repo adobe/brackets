@@ -341,7 +341,7 @@ define(function (require, exports, module) {
         $nameField.bind('input', function () {
             var remainingCharacters = 10 - $(this).val().length;
             $remainingField.text(StringUtils.format(
-                "{0} characters remaining",
+                Strings.FILTER_NAME_REMAINING,
                 remainingCharacters
             ));
 
