@@ -355,7 +355,7 @@ define(function (require, exports, module) {
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
-                setActiveFilter({ name: $nameField.val(), patterns: getValue() }, index);
+                setActiveFilter({ name: $nameField.val().substr(0, 10), patterns: getValue() }, index);
                 _updatePicker();
                 _doPopulate();
             }
