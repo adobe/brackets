@@ -46,6 +46,12 @@ define(function (require, exports, module) {
     var FIRST_FILTER_INDEX = 3;
 
     /**
+     * Constant: max number of characters for the filter name
+     * @type {number}
+     */
+    var FILTER_NAME_CHARACTER_MAX = 20;
+
+    /**
      * Context Info on which files the filter will be applied to.
      * It will be initialized when createFilterPicker is called and if specified, editing UI will
      * indicate how many files are excluded by the filter. Label should be of the form "in ..."
@@ -339,7 +345,7 @@ define(function (require, exports, module) {
         }
 
         $nameField.bind('input', function () {
-            var remainingCharacters = 10 - $(this).val().length;
+            var remainingCharacters = FILTER_NAME_CHARACTER_MAX - $(this).val().length;
             $remainingField.text(StringUtils.format(
                 Strings.FILTER_NAME_REMAINING,
                 remainingCharacters
@@ -355,7 +361,7 @@ define(function (require, exports, module) {
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
-                setActiveFilter({ name: $nameField.val().substr(0, 10), patterns: getValue() }, index);
+                setActiveFilter({ name: $nameField.val().substr(0, FILTER_NAME_CHARACTER_MAX), patterns: getValue() }, index);
                 _updatePicker();
                 _doPopulate();
             }
