@@ -64,8 +64,31 @@ define(function (require, exports, module) {
         this._handleHueDrag = this._handleHueDrag.bind(this);
         this._handleSelectionFieldDrag = this._handleSelectionFieldDrag.bind(this);
 
-        this._color = tinycolor(color);
+        //
+        //STYLING IS MESSY AND OUT OF ORDER ONLY UNTIL I GET THE BELOW WORKING:
+        var that = this;
+        //MUST CONVERT 0X TO HEX6 NOTATION AND BACK IN ORDER TO BE ABLE TO USE COLOR W/ TINYCOLOR(COLOR). TINYCOLOR DOESN'T SUPPORT 0x NOTATION!
+        function checkIf0xNotation(color,that){
+            if((/0x/).test(color)){ //Is input in 0x Notation?
+                //IF YES, THEN CHANGE/UPDATE SETTINGS:
+                var thatColor = color.replace("0x","#") //CONVERT 0x TO HEX6, ie 0xFFAACC => #FFAACC
+                var that_Color = tinycolor(thatColor); //SWAPPED COLOR OUT TO RETURN RGBA VALUES INSTEAD OF _r=0, _g=0, etc.
+                that_Color._originalInput = that._originalColor; //RESTORE HEX6 TO 0x NOTATION INPUT FOR O.G. COLOR INPUT
+                that_Color._format = "0x"; //CHANGE _FORMAT TO '0x' SO THAT RESULT WORKS WITH .getFormat() et al;
+                return that_Color; //EXIT
+            }else{
+                return tinycolor(color); //SIMPLY RETURN AS USUAL IF NOT
+            }
+            
+        }
+        
         this._originalColor = color;
+        this._color = checkIf0xNotation(color,this);
+        //console.log(this._color);
+        //output => tinycolor {_originalInput: "#e282a8", _r: 255, _g: 170, _b: 204, _a: 1…} -- THIS WORKS NOW, EXCEPT STILL DOES NOT CHANGE COLOR SWATCH OR MOVE COLOR SELECTOR BECAUSE SWATCHES ARE 0x NOTATION
+        //
+        //
+        
         this._redoColor = null;
         this._isUpperCase = PreferencesManager.get("uppercaseColors");
         PreferencesManager.on("change", "uppercaseColors", function () {
@@ -77,6 +100,7 @@ define(function (require, exports, module) {
         this.$rgbaButton = this.$element.find(".rgba");
         this.$hexButton = this.$element.find(".hex");
         this.$hslButton = this.$element.find(".hsla");
+        this.$0xButton = this.$element.find(".0x");
         this.$currentColor = this.$element.find(".current-color");
         this.$originalColor = this.$element.find(".original-color");
         this.$selection = this.$element.find(".color-selection-field");
@@ -88,9 +112,15 @@ define(function (require, exports, module) {
         this.$opacitySlider = this.$element.find(".opacity-slider");
         this.$opacitySelector = this.$element.find(".opacity-slider .selector-base");
         this.$swatches = this.$element.find(".swatches");
+        console.log(this.$swatches);
+        console.log("-------------")
+        //ERROR: INNERHTML OF SWATCH FOR '0xFFAACC" = "<div class="swatch" style="background-color: 0xFFAACC;" title="0xFFAACC (Used 1 time)"></div>"
+        //SHOULD CONVERT TO HEX
 
         // Create quick-access color swatches
         this._addSwatches(swatches);
+        console.log(swatches)
+        console.log("------")
 
         // Attach event listeners to main UI elements
         this._addListeners();
@@ -137,6 +167,7 @@ define(function (require, exports, module) {
         this._bindColorFormatToRadioButton("rgba");
         this._bindColorFormatToRadioButton("hex");
         this._bindColorFormatToRadioButton("hsla");
+        this._bindColorFormatToRadioButton("0x");
 
         this._bindInputHandlers();
 
@@ -228,6 +259,9 @@ define(function (require, exports, module) {
         case "hsl":
             this.$buttonList.find(".hsla").parent().addClass("selected");
             break;
+        case "0x":
+            this.$buttonList.find(".0x").parent().addClass("selected");
+            break;
         }
     };
 
@@ -254,6 +288,9 @@ define(function (require, exports, module) {
                 newColor = colorObject.toHexString();
                 self._hsv.a = 1;
                 break;
+            case "0x":
+                newColor = colorObject.toHexString();
+                newColor.replace("#","0x");
             }
 
             // We need to run this again whenever RGB/HSL/Hex conversions
@@ -407,8 +444,9 @@ define(function (require, exports, module) {
      */
     ColorEditor.prototype.setColorAsHsv = function (hsv) {
         var colorVal, newColor,
-            oldFormat = tinycolor(this.getColor()).getFormat();
-
+            oldFormat = tinycolor(this.getColor()).getFormat() || "0x";
+            //IF UNDETECTABLE VIA TINYCOLORS .getFormat(), THEN FORMAT IS OF '0x' NOTATION
+        
         // Set our state to the new color
         $.extend(this._hsv, hsv);
         newColor = tinycolor(this._hsv);
@@ -427,6 +465,9 @@ define(function (require, exports, module) {
         case "name":
             colorVal = this._hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
             break;
+        case "0x":
+            colorVal = newColor.toHexString().to0xString();
+                //NEED TO IMPLEMENT .to0xString() method
         }
         colorVal = this._isUpperCase ? colorVal.toUpperCase() : colorVal;
         this._commitColor(colorVal, false);

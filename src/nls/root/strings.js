@@ -651,6 +651,7 @@ define({
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
+    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex (0x) Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
 
