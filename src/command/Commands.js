@@ -154,6 +154,7 @@ define(function (require, exports, module) {
     exports.CMD_SPLITVIEW_VERTICAL      = "cmd.splitViewVertical";      // SidebarView.js               _handleSplitVertical()
     exports.CMD_SPLITVIEW_HORIZONTAL    = "cmd.splitViewHorizontal";    // SidebarView.js               _handleSplitHorizontal()
     exports.CMD_SWITCH_PANE_FOCUS       = "cmd.switchPaneFocus";        // MainViewManager.js           _switchPaneFocus()
+    exports.CMD_SWAP_PANE_CONTENT       = "mainView.swapPaneContent";   // MainViewManager.js           _swapPaneContent()
 
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()

@@ -266,6 +266,15 @@
             "platform": "mac"
         }
     ],
+    "mainView.swapPaneContent":  [
+        {
+            "key" : "Ctrl-Alt-F"
+        },
+        {
+            "key": "Cmd-Shift-F",
+            "platform": "mac"
+        }
+    ],
     "navigate.quickOpen":  [
         "Ctrl-Shift-O"
     ],

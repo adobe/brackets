@@ -420,6 +420,7 @@ define({
     "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
     "CMD_SHOW_IN_OS"                      : "Show in OS",
     "CMD_SWITCH_PANE_FOCUS"               : "Switch Pane Focus",
+    "CMD_SWAP_PANE_CONTENT"               : "Swap Visible Content Between Split Panes",
 
     // Help menu commands
     "HELP_MENU"                           : "Help",

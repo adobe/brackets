@@ -479,6 +479,101 @@ define(function (require, exports, module) {
                     expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
                 });
             });
+            it("should swap views between panes", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                        paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.css",
+                        paneId: "second-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.css")).toEqual("second-pane");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile("first-pane").name).toEqual("test.js");
+                    expect(MainViewManager.getCurrentlyViewedFile("second-pane").name).toEqual("test.css");
+                });
+                runs(function () {
+                    MainViewManager.swapPaneContent();
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.css");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+                runs(function () {
+                    MainViewManager.swapPaneContent();
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.css");
+                });
+            });
+            it("should show a file instead of swapping if file is already open", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
+                        paneId: "first-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.css",
+                        paneId: "second-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
+                        paneId: "second-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function(){
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+                runs(function () {
+                    MainViewManager.swapPaneContent();
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
+                });
+            });
+            it("should move file if one pane is empty", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
+                        paneId: "first-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.swapPaneContent();
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+            });
             it("should merge two panes to the right", function () {
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
