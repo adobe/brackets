@@ -770,9 +770,9 @@ define(function (require, exports, module) {
     Document.prototype.setLineEndings = function (lineEndings) {
         this._lineEndings = lineEndings;
         this._lineEndingsDirty = true;
-        this.isDirty = true;
+        this._handleEditorChange("setLineEndings", this._masterEditor, []);
     };
-    
+
     /**
      * Get the current document LineEnding.
      *
