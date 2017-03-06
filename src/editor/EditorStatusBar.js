@@ -49,7 +49,8 @@ define(function (require, exports, module) {
         $indentType,
         $indentWidthLabel,
         $indentWidthInput,
-        $statusOverwrite;
+        $statusOverwrite,
+        $statusLineEndings;
 
     /** Special list item for the 'set as default' gesture in language switcher dropdown */
     var LANGUAGE_SET_AS_DEFAULT = {};
@@ -216,7 +217,7 @@ define(function (require, exports, module) {
         if (!doNotAnimate) {
             AnimationUtils.animateUsingClass($statusOverwrite[0], "flash", 1500);
         }
-    }
+    }    
 
     /**
      * Update insert/overwrite indicator
@@ -232,6 +233,29 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Update LineEndings indicator
+     * @param {Event} event (unused)
+     */
+    function _updateLineEndings(event) {
+        var editor = EditorManager.getActiveEditor(),
+            document = editor.document,
+            currentLineEndings;
+
+        // update label
+        if($statusLineEndings.text() === Strings.STATUSBAR_LINE_ENDINGS_CRLF) {
+            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_LF);
+            currentLineEndings = FileUtils.LINE_ENDINGS_LF;
+        } else {
+            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_CRLF);
+            currentLineEndings = FileUtils.LINE_ENDINGS_CRLF;
+        }
+        // Update the line ending in the document if needed.
+        if(document.getLineEndings() !== currentLineEndings) {
+            document.setLineEndings(currentLineEndings);
+        }
+    }
+
+    /**
      * Initialize insert/overwrite indicator
      * @param {Editor} currentEditor Current editor
      */
@@ -240,6 +264,15 @@ define(function (require, exports, module) {
         $statusOverwrite.attr("title", Strings.STATUSBAR_INSOVR_TOOLTIP);
     }
 
+    /**
+     * Initialize line endings indicator
+     *  @param {Editor} currentEditor Current editor
+     */
+    function _initLineEndings(currentEditor) {
+        $statusLineEndings.text(currentEditor.document.getLineEndings());
+        $statusLineEndings.attr("title", Strings.STATUSBAR_LINE_ENDINGS_TOOLTIP);
+    }
+    
     /**
      * Handle active editor change event
      * @param {Event} event (unused)
@@ -279,6 +312,7 @@ define(function (require, exports, module) {
             _updateLanguageInfo(current);
             _updateFileInfo(current);
             _initOverwriteMode(current);
+            _initLineEndings(current);
             _updateIndentType(fullPath);
             _updateIndentSize(fullPath);
         }
@@ -316,7 +350,8 @@ define(function (require, exports, module) {
         $indentWidthLabel   = $("#indent-width-label");
         $indentWidthInput   = $("#indent-width-input");
         $statusOverwrite    = $("#status-overwrite");
-
+        $statusLineEndings  = $("#status-line-endings");
+        
         languageSelect      = new DropdownButton("", [], function (item, index) {
             var document = EditorManager.getActiveEditor().document,
                 defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true);
@@ -388,6 +423,8 @@ define(function (require, exports, module) {
                 LanguageManager.setLanguageOverrideForPath(fullPath, lang === defaultLang ? null : lang);
             }
         });
+
+        $statusLineEndings.on("click", _updateLineEndings);
 
         $statusOverwrite.on("click", _updateEditorOverwriteMode);
     }

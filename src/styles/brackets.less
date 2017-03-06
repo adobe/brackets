@@ -274,7 +274,7 @@ a, img {
     margin-right: 3px;
 }
 
-#status-overwrite:hover, #indent-type:hover, #indent-width-label:hover {
+#status-overwrite:hover, #indent-type:hover, #indent-width-label:hover, #status-line-endings:hover {
     text-decoration: underline;
 }
 
@@ -323,6 +323,21 @@ a, img {
     background-color: rgb(120, 178, 242);
 }
 
+#status-line-endings {
+    transition: background-color 3s;
+    background-color: rgba(255, 255, 255, 0);
+    color: @bc-text;
+    cursor: pointer;
+    
+    .dark & {
+        color: @dark-bc-text;
+    }
+}
+
+#status-line-endings.flash {
+    transition: background-color 1s;
+    background-color: rgb(120, 178, 242);
+}
 
 #editor-holder {
     position: relative;
