@@ -768,6 +768,9 @@ define(function (require, exports, module) {
      * Set lineEnding of the document. Change Text in the process.
      */
     Document.prototype.setLineEndings = function (lineEndings) {
+        if (this._lineEndings === lineEndings) {
+            return;
+        }
         this._lineEndings = lineEndings;
         this._lineEndingsDirty = true;
         this._handleEditorChange("setLineEndings", this._masterEditor, []);
