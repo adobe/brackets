@@ -238,15 +238,14 @@ define(function (require, exports, module) {
      * @param {Event} event (unused)
      */
     function _toggleLineEndings(event) {
-        var editor = EditorManager.getActiveEditor(),
-            document = editor.document,
-            oldLineEndings = document.getLineEndings(),
-            newLineEndings = oldLineEndings === FileUtils.LINE_ENDINGS_LF ?
-                FileUtils.LINE_ENDINGS_CRLF :
-                FileUtils.LINE_ENDINGS_LF;
+        var doc = EditorManager.getActiveEditor().document;
+        var oldLineEndings = doc.getLineEndings();
+        var newLineEndings = oldLineEndings === FileUtils.LINE_ENDINGS_LF ?
+            FileUtils.LINE_ENDINGS_CRLF :
+            FileUtils.LINE_ENDINGS_LF;
 
         // update the line endings in document & status bar
-        document.setLineEndings(newLineEndings);
+        doc.setLineEndings(newLineEndings);
         $statusLineEndings.text(newLineEndings);
     }
 
