@@ -113,6 +113,13 @@ var config = {};
                 return fileName;
             }
 
+            function _getDenormalizedFilename(fileName) {
+                if (ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === 0) {
+                    fileName = fileName.slice(ternServer.projectDir.length);
+                }
+                return fileName;
+            }
+
             /**
              * Create a new tern server.
              *
@@ -588,10 +595,7 @@ var config = {};
              * @param {string} path     - the path of the file
              */
             function handlePrimePump(path) {
-                var fileName = path;
-                if (ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === 0) {
-                    fileName = fileName.slice(ternServer.projectDir.length);
-                }
+                var fileName = _getDenormalizedFilename(path);
                 var fileInfo = createEmptyUpdate(fileName),
                     request = buildRequest(fileInfo, "completions", {line: 0, ch: 0});
 
