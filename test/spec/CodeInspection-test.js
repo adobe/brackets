@@ -490,6 +490,30 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should support universal providers", function () {
+                var codeInspector1 = createCodeInspector("javascript linter", successfulLintResult());
+                var codeInspector2 = createCodeInspector("css linter", successfulLintResult());
+                var codeInspector3 = createCodeInspector("universal linter", successfulLintResult());
+
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("css", codeInspector2);
+                CodeInspection.register("*", codeInspector3);
+
+                var providers = CodeInspection.getProvidersForPath("test.js");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector1);
+                expect(providers[1]).toBe(codeInspector3);
+
+                providers = CodeInspection.getProvidersForPath("test.css");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector2);
+                expect(providers[1]).toBe(codeInspector3);
+
+                providers = CodeInspection.getProvidersForPath("test.other");
+                expect(providers.length).toBe(1);
+                expect(providers[0]).toBe(codeInspector3);
+            });
+
         });
 
         describe("Code Inspection UI", function () {
