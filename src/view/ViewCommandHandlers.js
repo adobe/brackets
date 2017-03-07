@@ -109,7 +109,7 @@ define(function (require, exports, module) {
      * The default font family
      * @type {string}
      */
-    var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
+    var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', 'DroidSansMono', ＭＳ ゴシック, 'MS Gothic', monospace";
 
     /**
      * @private
