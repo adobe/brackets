@@ -405,7 +405,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Handle the response from the tern node when
+     * Handle the response from the tern node domain when
      * it responds with the definition
      *
      * @param response - the response from the node domain
@@ -645,7 +645,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Handle the response from the tern node when
+     * Handle the response from the tern node domain when
      * it responds with the list of completions
      *
      * @param {{file: string, offset: {line: number, ch: number}, completions:Array.<string>,
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Handle the response from the tern node when
+     * Handle the response from the tern node domain when
      * it responds to the get guesses message.
      *
      * @param {{file: string, type: string, offset: {line: number, ch: number},
@@ -696,7 +696,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Handle the response from the tern node when
+     * Handle the response from the tern node domain when
      * it responds to the update file message.
      *
      * @param {{path: string, type: string}} response - the response from node domain
@@ -810,7 +810,7 @@ define(function (require, exports, module) {
         }
 
         /**
-         * Send a message to the tern node - if the module is being initialized,
+         * Send a message to the tern node domain - if the module is being initialized,
          * the message will not be posted until initialization is complete
          */
         function postMessage(msg) {
@@ -828,7 +828,7 @@ define(function (require, exports, module) {
         }
 
         /**
-         * Send a message to the tern node - this is only for messages that
+         * Send a message to the tern node domain - this is only for messages that
          * need to be sent before and while the addFilesPromise is being resolved.
          */
         function _postMessageByPass(msg) {
@@ -859,9 +859,9 @@ define(function (require, exports, module) {
         }
 
         /**
-         * Handle a request from the tern node for text of a file
+         * Handle a request from the tern node domain for text of a file
          *
-         * @param {{file:string}} request - the request from the tern node.  Should be an Object containing the name
+         * @param {{file:string}} request - the request from the tern node domain.  Should be an Object containing the name
          *      of the file tern wants the contents of 
          */
         function handleTernGetFile(request) {
@@ -878,7 +878,7 @@ define(function (require, exports, module) {
 
             /**
              * Helper function to get the text of a given document and send it to tern.
-             * If DocumentManager successfully gets the file's text then we'll send it to the tern node.
+             * If DocumentManager successfully gets the file's text then we'll send it to the tern node domain.
              * The Promise for getDocumentText() is returned so that custom fail functions can be used.
              *
              * @param {string} filePath - the path of the file to get the text of
@@ -964,7 +964,7 @@ define(function (require, exports, module) {
         }
 
         /**
-         * Handle the response from the tern node when
+         * Handle the response from the tern node domain when
          * it responds to the prime pump message.
          *
          * @param {{path: string, type: string}} response - the response from node domain
@@ -1530,7 +1530,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * 
-     * Update the configuration in the tern node.
+     * Update the configuration in the tern node domain.
      */
     function _setConfig(configUpdate) {
         config = brackets._configureJSCodeHints.config;

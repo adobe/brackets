@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -23,6 +23,7 @@
 
 /*eslint-env node */
 /*jslint node: true */
+/*global setImmediate */
 
 
 
@@ -37,8 +38,8 @@ var self = {
     }
 };
 
-var Tern = require("./node_modules/tern/lib/tern"),
-    Infer = require("./node_modules/tern/lib/infer");
+var Tern = require("tern"),
+    Infer = require("tern/lib/infer");
 
 var ExtractContent = require("./ExtractFileContent");
 
@@ -234,13 +235,14 @@ function getJumptoDef(fileInfo, offset) {
                 self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
                 return;
             }
-            var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
-                                  file: fileInfo.name,
-                                  resultFile: data.file,
-                                  offset: offset,
-                                  start: data.start,
-                                  end: data.end
-                                 };
+            var response = {
+                type: MessageIds.TERN_JUMPTODEF_MSG,
+                file: fileInfo.name,
+                resultFile: data.file,
+                offset: offset,
+                start: data.start,
+                end: data.end
+            };
 
             request = buildRequest(fileInfo, "type", offset);
             // See if we can tell if the reference is to a Function type
@@ -283,10 +285,9 @@ function getTernProperties(fileInfo, offset, type) {
                 _log("Error returned from Tern 'properties' request: " + error);
             } else {
                 //_log("tern properties: completions = " + data.completions.length);
-                for (i = 0; i < data.completions.length; ++i) {
-                    var property = data.completions[i];
-                    properties.push({value: property, type: property.type, guess: true});
-                }
+                properties = data.completion.map(function (completion) {
+                    return {value: completion, type: completion.type, guess: true};
+                });
             }
 
             // Post a message back to the main thread with the completions
@@ -330,6 +331,10 @@ function getTernHints(fileInfo, offset, isProperty) {
                     completions.push({value: completion.name, type: completion.type, depth: completion.depth,
                         guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url});
                 }
+                completions = data.completion.map(function (completion) {
+                    return {value: completion.name, type: completion.type, depth: completion.depth,
+                        guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url};
+                });
             }
 
             if (completions.length > 0 || !isProperty) {
@@ -376,12 +381,7 @@ function getParameters(inferFnType) {
     function inferArrTypeToString(inferArrType) {
         var result = "Array.<";
 
-        inferArrType.props["<i>"].types.forEach(function (value, i) {
-            if (i > 0) {
-                result += ", ";
-            }
-            result += inferTypeToString(value);
-        });
+        result += inferArrType.props["<i>"].types.types.map(inferTypeToString).join(", ");
 
         // workaround case where types is zero length
         if (inferArrType.props["<i>"].types.length === 0) {
@@ -403,16 +403,9 @@ function getParameters(inferFnType) {
             first = true,
             prop;
 
-        for (prop in props) {
-            if (Object.prototype.hasOwnProperty.call(props, prop)) {
-                if (!first) {
-                    result += ", ";
-                }
-
-                first = false;
-                result += prop + ": " + inferTypeToString(props[prop]);
-            }
-        }
+        result += Object.keys(props).map(function (key) {
+            return key + ": " + inferTypeToString(props[key]);
+        }).join(", ");
 
         result += "}";
 
