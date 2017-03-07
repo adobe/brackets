@@ -73,7 +73,7 @@ define(function (require, exports, module) {
                 //IF YES, THEN CHANGE/UPDATE SETTINGS:
                 var thatColor = color.replace("0x","#"); //CONVERT 0x TO HEX6, ie 0xFFAACC => #FFAACC
                 var that_Color = tinycolor(thatColor); //SWAPPED COLOR OUT TO RETURN RGBA VALUES INSTEAD OF _r=0, _g=0, etc.
-                that_Color._originalInput = that._originalColor; //RESTORE HEX6 TO 0x NOTATION INPUT FOR O.G. COLOR INPUT
+                that_Color._originalInput = that._originalColor; //RESTORE HEX6 FORMAT TO 0x NOTATION FORMAT INPUT FOR ORIGINAL INPUT
                 that_Color._format = "0x"; //CHANGE _FORMAT TO '0x' SO THAT RESULT WORKS WITH .getFormat() et al;
                 return that_Color; //EXIT
             }else{
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         this._originalColor = color;
         this._color = checkIf0xNotation(color,this);
         //console.log(this._color);
-        //output => tinycolor {_originalInput: "#e282a8", _r: 255, _g: 170, _b: 204, _a: 1…} -- THIS WORKS NOW, EXCEPT STILL DOES NOT CHANGE COLOR SWATCH OR MOVE COLOR SELECTOR BECAUSE SWATCHES ARE 0x NOTATION
+        //output => tinycolor {_originalInput: "0xE282A8", _r: 255, _g: 170, _b: 204, _a: 1…} -- THIS WORKS NOW, EXCEPT STILL DOES NOT CHANGE COLOR SWATCH OR MOVE COLOR SELECTOR BECAUSE SWATCHES ARE 0x NOTATION
         //
         //
         
