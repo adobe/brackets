@@ -1,0 +1,24 @@
+@defaultfontsize : 12px;
+@maxvisibleitems: 8;
+@lineheightoffset: 7px;
+@defaultmenuwidth: 300px;
+
+@fontsize : {font-size-param};
+@lineheight: @fontsize + @lineheightoffset; 
+
+.CodeMirror { 
+    font-size: @fontsize !important 
+}
+
+.codehint-menu .dropdown-menu li a { 
+    font-size: @fontsize !important;
+    line-height: @lineheight  !important; 
+}
+
+span.brackets-js-hints-with-type-details { 
+    width: @defaultmenuwidth * (@fontsize / @defaultfontsize) !important; 
+}
+
+.codehint-menu .dropdown-menu { 
+    max-height: @maxvisibleitems * @lineheight !important; 
+}

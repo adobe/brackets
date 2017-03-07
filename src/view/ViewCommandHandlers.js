@@ -42,7 +42,8 @@ define(function (require, exports, module) {
         ThemeSettings       = require("view/ThemeSettings"),
         MainViewManager     = require("view/MainViewManager"),
         AppInit             = require("utils/AppInit"),
-        _                   = require("thirdparty/lodash");
+        _                   = require("thirdparty/lodash"),
+        FontRuleTemplate    = require("text!view/fontrules/font-based-rules.less");
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
 
@@ -66,24 +67,6 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var DYNAMIC_FONT_STYLE_ID = "codemirror-dynamic-fonts";
-    
-    /**
-     * @const
-     * @type {string}
-     */
-    var DYNAMIC_CODEHINT_FONT_STYLE_ID = "codehint-dynamic-fonts";
-    
-    /**
-     * @const
-     * @type {string}
-     */
-    var DYNAMIC_CODEHINT_WITH_TYPE_STYLE_ID = "codehint-with-type-dynamic-width";
-    
-    /**
-     * @const
-     * @type {string}
-     */
-    var DYNAMIC_CODEHINT_HEIGHT_STYLE_ID = "codehint-dynamic-height";
 
     /**
      * @const
@@ -124,38 +107,6 @@ define(function (require, exports, module) {
     var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
     
     /**
-     * @const
-     * @private
-     * The default hint span width for hints with annotated type details
-     * @type {number}
-     */
-    var DEFAULT_TYPED_HINT_SPAN_WIDTH = 300;
-    
-    /**
-     * @const
-     * @private
-     * The default hint menu max-height
-     * @type {number}
-     */
-    var DEFAULT_HINT_MENU_HEIGHT = 160;
-    
-    /**
-     * @const
-     * @private
-     * The default hint menu item line height offset
-     * @type {number}
-     */
-    var DEFAULT_HINT_MENU_LINE_HEIGHT_OFFSET = 7;
-    
-    /**
-     * @const
-     * @private
-     * The default number of visible menu items
-     * @type {number}
-     */
-    var DEFAULT_VISIBLE_HINT_MENU_ITEMS_COUNT = 8;
-
-    /**
      * @private
      * Removes style property from the DOM
      * @param {string} propertyID is the id of the property to be removed
@@ -176,10 +127,14 @@ define(function (require, exports, module) {
      * @param {string} ruleCfg.ruleText Optional selector definition text
      */
     function _addDynamicProperty(propertyID, ruleCfg) {
-        var cssRule = ruleCfg.ruleName || ".CodeMirror";
         var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
-        var styleStr = ruleCfg.ruleText || StringUtils.format("{0}: {1} {2}", ruleCfg.propName, ruleCfg.propValue, ruleCfg.priorityFlag ? "!important" : "");
-        $style.html(cssRule + "{ " + styleStr + " }");
+        if (ruleCfg.ruleText) {
+            $style.html(ruleCfg.ruleText);
+        } else {
+            var cssRule = ruleCfg.ruleName || ".CodeMirror";
+            var styleStr = ruleCfg.ruleText || StringUtils.format("{0}: {1} {2}", ruleCfg.propName, ruleCfg.propValue, ruleCfg.priorityFlag ? "!important" : "");
+            $style.html(cssRule + "{ " + styleStr + " }");
+        }
 
         // Let's make sure we remove the already existing item from the DOM.
         _removeDynamicProperty(propertyID);
@@ -192,44 +147,6 @@ define(function (require, exports, module) {
      */
     function _removeDynamicFontSize() {
         _removeDynamicProperty(DYNAMIC_FONT_STYLE_ID);
-        _removeDynamicProperty(DYNAMIC_CODEHINT_FONT_STYLE_ID);
-        _removeDynamicProperty(DYNAMIC_CODEHINT_WITH_TYPE_STYLE_ID);
-        _removeDynamicProperty(DYNAMIC_CODEHINT_HEIGHT_STYLE_ID);
-    }
-
-    /**
-     * @private
-     * Adds a new embeded style top sync code-hint font size with codeview font size
-     * @param {string} fontSize  A string with the font size and the size unit
-     */
-    function _addDynamicFontSizeForCodeHints(fontSize) {
-        var styleStr = "";
-        styleStr = styleStr + StringUtils.format("{0}: {1} {2};", "font-size", fontSize, " !important");
-        styleStr = styleStr + StringUtils.format("{0}: {1} {2};", "line-height", (parseInt(fontSize, 10) + 5) + fontSize.replace(parseInt(fontSize, 10), ""), " !important");
-        
-        _addDynamicProperty(DYNAMIC_CODEHINT_FONT_STYLE_ID, {
-            propName: "font-size",
-            propValue: fontSize,
-            priorityFlag: true,
-            ruleName: ".codehint-menu .dropdown-menu li a",
-            ruleText: styleStr
-        });
-
-        _addDynamicProperty(DYNAMIC_CODEHINT_WITH_TYPE_STYLE_ID, {
-            propName: "width",
-            propValue: DEFAULT_TYPED_HINT_SPAN_WIDTH * (parseInt(fontSize, 10) / DEFAULT_FONT_SIZE) + "px",
-            priorityFlag: true,
-            ruleName: "span.brackets-js-hints-with-type-details",
-            ruleText: ""
-        });
-        
-        _addDynamicProperty(DYNAMIC_CODEHINT_HEIGHT_STYLE_ID, {
-            propName: "max-height",
-            propValue: DEFAULT_VISIBLE_HINT_MENU_ITEMS_COUNT * (parseInt(fontSize, 10) + DEFAULT_HINT_MENU_LINE_HEIGHT_OFFSET) + "px",
-            priorityFlag: true,
-            ruleName: ".codehint-menu .dropdown-menu",
-            ruleText: ""
-        });
     }
 
     /**
@@ -238,14 +155,16 @@ define(function (require, exports, module) {
      * @param {string} fontSize  A string with the font size and the size unit
      */
     function _addDynamicFontSize(fontSize) {
-        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
-            propName: "font-size",
-            propValue: fontSize,
-            priorityFlag: true
+        var template = FontRuleTemplate.split("{font-size-param}").join(fontSize);
+        less.render(template, null, function onParse(err, tree) {
+            if (err) {
+                console.error(err);
+            } else {
+                _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
+                    ruleText: tree.css
+                });
+            }
         });
-
-        // Sync code-hint font size
-        _addDynamicFontSizeForCodeHints(fontSize);
     }
 
     /**
