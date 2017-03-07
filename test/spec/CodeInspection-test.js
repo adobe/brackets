@@ -104,6 +104,13 @@ define(function (require, exports, module) {
             };
         }
 
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+        }
+
         beforeFirst(function () {
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -925,8 +932,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
-
-                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(fixPos(EditorManager.getActiveEditor().getCursorPos())).toEqual(fixPos({line: 1, ch: 3}));
                 });
             });
 
@@ -956,9 +962,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
-
                     // 'first' error is in order of linter registration, not in line number order
-                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(fixPos(EditorManager.getActiveEditor().getCursorPos())).toEqual(fixPos({line: 1, ch: 3}));
                 });
             });
 

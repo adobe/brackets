@@ -55,7 +55,8 @@ var basicValidExtension       = path.join(testFilesDirectory, "basic-valid-exten
     missingPackageJSON        = path.join(testFilesDirectory, "missing-package-json.zip"),
     missingPackageJSONUpdate  = path.join(testFilesDirectory, "missing-package-json-update.zip"),
     missingPackageJSONRenamed = path.join(testFilesDirectory, "added-package-json-test", "missing-package-json.zip"),
-    withSymlink               = path.join(testFilesDirectory, "with-symlink.zip");
+    withSymlink               = path.join(testFilesDirectory, "with-symlink.zip"),
+    withNpmDependencies       = path.join(testFilesDirectory, "with-npm-dependencies.zip");
 
 
 describe("Package Installation", function () {
@@ -321,6 +322,32 @@ describe("Package Installation", function () {
             expect(result.errors.length).toEqual(0);
             expect(fs.existsSync(result.installedTo)).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "bin", "foo"))).toBe(false);
+            done();
+        });
+    });
+    
+    it("should download npm dependencies when present", function (done) {
+        ExtensionsDomain._cmdInstall(withNpmDependencies, installDirectory, standardOptions, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(0);
+            expect(fs.existsSync(result.installedTo)).toBe(true);
+            expect(fs.existsSync(path.join(result.installedTo, "node_modules"))).toBe(true);
+            
+            expect(fs.existsSync(path.join(result.installedTo, "node_modules", "lodash"))).toBe(true);
+            expect(fs.existsSync(path.join(result.installedTo, "node_modules", "lodash", "package.json"))).toBe(true);
+            var packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "lodash", "package.json")));
+            expect(packageInfo.version.slice(0,2)).toBe("3.");
+            
+            expect(fs.existsSync(path.join(result.installedTo, "node_modules", "moment"))).toBe(true);
+            expect(fs.existsSync(path.join(result.installedTo, "node_modules", "moment", "package.json"))).toBe(true);
+            packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "moment", "package.json")));
+            expect(packageInfo.version.slice(0,4)).toBe("2.5.");
+            
+            expect(fs.existsSync(path.join(result.installedTo, "node_modules", "underscore"))).toBe(true);
+            expect(fs.existsSync(path.join(result.installedTo, "node_modules", "underscore", "package.json"))).toBe(true);
+            packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "underscore", "package.json")));
+            expect(packageInfo.version).toBe("1.0.4");
+            
             done();
         });
     });

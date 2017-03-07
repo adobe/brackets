@@ -72,8 +72,10 @@ define(function (require, exports, module) {
                 initialContentLines[2] = "new content";
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(1);
-                expect(result[0].start).toEqual({line: 2, ch: 11}); // end of "new content"
-                expect(result[0].end).toEqual({line: 2, ch: 11});
+                expect(result[0].start.line).toEqual(2);
+                expect(result[0].start.ch).toEqual(11); // end of "new content"
+                expect(result[0].end.line).toEqual(2);
+                expect(result[0].end.ch).toEqual(11);
                 expect(result[0].reversed).toBe(true);
             });
 
@@ -83,8 +85,10 @@ define(function (require, exports, module) {
                 initialContentLines[2] = "new content";
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(1);
-                expect(result[0].start).toEqual({line: 2, ch: 4});
-                expect(result[0].end).toEqual({line: 2, ch: 4});
+                expect(result[0].start.line).toEqual(2);
+                expect(result[0].start.ch).toEqual(4);
+                expect(result[0].end.line).toEqual(2);
+                expect(result[0].end.ch).toEqual(4);
                 expect(result[0].reversed).toBe(true);
             });
 
@@ -101,11 +105,15 @@ define(function (require, exports, module) {
                 initialContentLines.splice(3, 0, "");
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(2);
-                expect(result[0].start).toEqual({line: 3, ch: 0}); // pushed to end of modified text
-                expect(result[0].end).toEqual({line: 3, ch: 0});
+                expect(result[0].start.line).toEqual(3);
+                expect(result[0].start.ch).toEqual(0); // pushed to end of modified text
+                expect(result[0].end.line).toEqual(3);
+                expect(result[0].end.ch).toEqual(0);
                 expect(result[0].primary).toBe(true);
-                expect(result[1].start).toEqual({line: 6, ch: 0}); // pushed to end of modified text and updated for both edits
-                expect(result[1].end).toEqual({line: 6, ch: 0});
+                expect(result[1].start.line).toEqual(6);
+                expect(result[1].start.ch).toEqual(0); // pushed to end of modified text and updated for both edits
+                expect(result[1].end.line).toEqual(6);
+                expect(result[1].end.ch).toEqual(0);
                 expect(result[1].reversed).toBe(true);
             });
 
@@ -122,11 +130,15 @@ define(function (require, exports, module) {
                 initialContentLines.splice(3, 0, "");
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(2);
-                expect(result[0].start).toEqual({line: 2, ch: 4}); // not modified since it's above the other edit
-                expect(result[0].end).toEqual({line: 2, ch: 4});
+                expect(result[0].start.line).toEqual(2);
+                expect(result[0].start.ch).toEqual(4); // not modified since it's above the other edit
+                expect(result[0].end.line).toEqual(2);
+                expect(result[0].end.ch).toEqual(4);
                 expect(result[0].primary).toBe(true);
-                expect(result[1].start).toEqual({line: 5, ch: 4}); // not pushed to end of modified text, but updated for previous edit
-                expect(result[1].end).toEqual({line: 5, ch: 4});
+                expect(result[1].start.line).toEqual(5);
+                expect(result[1].start.ch).toEqual(4); // not pushed to end of modified text, but updated for previous edit
+                expect(result[1].end.line).toEqual(5);
+                expect(result[1].end.ch).toEqual(4);
                 expect(result[1].reversed).toBe(true);
             });
 
@@ -146,14 +158,20 @@ define(function (require, exports, module) {
                 initialContentLines.splice(3, 0, "");
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(3);
-                expect(result[0].start).toEqual({line: 1, ch: 15}); // pushed to end of first modified text
-                expect(result[0].end).toEqual({line: 1, ch: 15});
+                expect(result[0].start.line).toEqual(1);
+                expect(result[0].start.ch).toEqual(15); // pushed to end of first modified text
+                expect(result[0].end.line).toEqual(1);
+                expect(result[0].end.ch).toEqual(15);
                 expect(result[0].primary).toBeFalsy();
-                expect(result[1].start).toEqual({line: 3, ch: 0}); // pushed to end of second modified text
-                expect(result[1].end).toEqual({line: 3, ch: 0});
+                expect(result[1].start.line).toEqual(3);
+                expect(result[1].start.ch).toEqual(0); // pushed to end of second modified text
+                expect(result[1].end.line).toEqual(3);
+                expect(result[1].end.ch).toEqual(0);
                 expect(result[1].primary).toBe(true);
-                expect(result[2].start).toEqual({line: 6, ch: 0}); // pushed to end of third modified text and updated for both edits
-                expect(result[2].end).toEqual({line: 6, ch: 0});
+                expect(result[2].start.line).toEqual(6);
+                expect(result[2].start.ch).toEqual(0); // pushed to end of third modified text and updated for both edits
+                expect(result[2].end.line).toEqual(6);
+                expect(result[2].end.ch).toEqual(0);
                 expect(result[2].reversed).toBe(true);
             });
 
@@ -173,14 +191,20 @@ define(function (require, exports, module) {
                 initialContentLines.splice(3, 0, "");
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(3);
-                expect(result[0].start).toEqual({line: 1, ch: 4}); // not fixed up
-                expect(result[0].end).toEqual({line: 1, ch: 4});
+                expect(result[0].start.line).toEqual(1);
+                expect(result[0].start.ch).toEqual(4); // not fixed up
+                expect(result[0].end.line).toEqual(1);
+                expect(result[0].end.ch).toEqual(4);
                 expect(result[0].primary).toBeFalsy();
-                expect(result[1].start).toEqual({line: 2, ch: 4}); // not fixed up, no need to adjust for first edit
-                expect(result[1].end).toEqual({line: 2, ch: 4});
+                expect(result[1].start.line).toEqual(2);
+                expect(result[1].start.ch).toEqual(4); // not fixed up, no need to adjust for first edit
+                expect(result[1].end.line).toEqual(2);
+                expect(result[1].end.ch).toEqual(4);
                 expect(result[1].primary).toBe(true);
-                expect(result[2].start).toEqual({line: 5, ch: 4}); // not pushed to end of modified text, but updated for previous edit
-                expect(result[2].end).toEqual({line: 5, ch: 4});
+                expect(result[2].start.line).toEqual(5);
+                expect(result[2].start.ch).toEqual(4); // not pushed to end of modified text, but updated for previous edit
+                expect(result[2].end.line).toEqual(5);
+                expect(result[2].end.ch).toEqual(4);
                 expect(result[2].reversed).toBe(true);
             });
 

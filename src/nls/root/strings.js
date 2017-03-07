@@ -503,6 +503,7 @@ define({
     "INSTALL_CANCELED"                     : "Installation canceled.",
     "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
     "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
+    "SORT_EXTENSION_METHOD"                : "Sort Extensions using downloadCount or publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
     "MISSING_PACKAGE_JSON"                 : "The package has no package.json file.",
@@ -513,6 +514,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
     "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string ({0}) is invalid.",
     "DISALLOWED_WORDS"                     : "The words ({1}) are not allowed in the {0} field.",
+    "NPM_INSTALL_FAILED"                   : "npm install command failed: {0}",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "EXTENSION_ALREADY_INSTALLED"          : "Installing this package will overwrite a previously installed extension. Overwrite the old extension?",
@@ -579,6 +581,9 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+    "EXTENSIONS_SORT_BY"                   : "Sort By",
+    "EXTENSIONS_LAST_UPDATED"              : "Last Updated",
+    "EXTENSIONS_DOWNLOADS"                 : "Downloads",
 
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
@@ -789,5 +794,6 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
-    "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files"
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview"
 });

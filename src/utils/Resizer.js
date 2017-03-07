@@ -62,9 +62,11 @@ define(function (require, exports, module) {
         ViewUtils               = require("utils/ViewUtils"),
         PreferencesManager      = require("preferences/PreferencesManager");
 
-    var $mainView;
+    var $mainView,
+        $sideBar;
 
-    var isResizing = false;
+    var isResizing = false,
+        isWindowResizing = false;
 
     /**
      * Shows a resizable element.
@@ -131,6 +133,25 @@ define(function (require, exports, module) {
      */
     function isVisible(element) {
         return $(element).is(":visible");
+    }
+
+    function _isPercentage(value) {
+        return !$.isNumeric(value) && value.indexOf('%') > -1;
+    }
+
+    function _percentageToPixels(value, total) {
+        return parseFloat(value.replace('%', '')) * (total / 100);
+    }
+
+    function _sideBarMaxSize() {
+        var siblingsWidth = 0;
+        $sideBar.siblings().not(".content").each(function (i, elem) {
+            var $elem = $(elem);
+            if ($elem.css("display") !== "none") {
+                siblingsWidth += $elem.outerWidth();
+            }
+        });
+        return $(".main-view").width() - siblingsWidth - 1;
     }
 
     /**
@@ -417,6 +438,10 @@ define(function (require, exports, module) {
                 // respect max size if one provided (e.g. by WorkspaceManager)
                 var maxSize = $element.data("maxsize");
                 if (maxSize !== undefined) {
+                    // if provided as percentage size convert it to a pixel size
+                    if (_isPercentage(maxSize)) {
+                        maxSize = _percentageToPixels(maxSize, _sideBarMaxSize());
+                    }
                     newSize = Math.min(newSize, maxSize);
                 }
 
@@ -496,11 +521,52 @@ define(function (require, exports, module) {
         }
     }
 
+    function updateResizeLimits() {
+        var sideBarMaxSize = _sideBarMaxSize(),
+            maxSize = $sideBar.data("maxsize"),
+            width = false;
+
+        if (maxSize !== undefined && _isPercentage(maxSize)) {
+            sideBarMaxSize = _percentageToPixels(maxSize, sideBarMaxSize);
+        }
+
+        if ($sideBar.width() > sideBarMaxSize) {
+            // Adjust the sideBar's width in case it exceeds the window's width when resizing the window.
+            $sideBar.width(sideBarMaxSize);
+            resyncSizer($sideBar);
+            $(".content").css("left", $sideBar.width());
+            $sideBar.trigger("panelResizeStart", $sideBar.width());
+            $sideBar.trigger("panelResizeUpdate", [$sideBar.width()]);
+            $sideBar.trigger("panelResizeEnd", [$sideBar.width()]);
+        }
+    }
+
+    function onWindowResize(e) {
+        if ($sideBar.css("display") === "none") {
+            return;
+        }
+
+        if (!isWindowResizing) {
+            isWindowResizing = true;
+
+            // We don't need any fancy debouncing here - we just need to react before the user can start
+            // resizing any panels at the new window size. So just listen for first mousemove once the
+            // window resize releases mouse capture.
+            $(window.document).one("mousemove", function () {
+                isWindowResizing = false;
+                updateResizeLimits();
+            });
+        }
+    }
+
+    window.addEventListener("resize", onWindowResize, true);
+
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
 
         $mainView = $(".main-view");
+        $sideBar = $("#sidebar");
 
         $(".vert-resizable").each(function (index, element) {
 

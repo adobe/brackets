@@ -108,6 +108,9 @@ define(function (require, exports, module) {
         _idsToDisable = {};
 
     PreferencesManager.stateManager.definePreference(FOLDER_AUTOINSTALL, "object", undefined);
+    PreferencesManager.definePreference("extensions.sort", "string", "publishedDate", {
+        description: Strings.SORT_EXTENSION_METHOD
+    });
 
     /**
      * @private

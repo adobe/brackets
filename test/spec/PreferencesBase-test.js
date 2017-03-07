@@ -878,6 +878,32 @@ define(function (require, exports, module) {
                 expect(pm.get("useTabChar")).toBe(true);
                 expect(pm.get("tabSize")).toBe(8);
             });
+            
+            it("should extend Preference Objects from base", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                pm.definePreference("closeTags", "object", {
+                    "dontCloseTags": [],
+                    "indentTags": [],
+                    "whenClosing": true,
+                    "whenOpening": true
+                });
+                var userScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage());
+                pm.addScope("user", userScope);
+
+                var userLocation = {
+                    location: {
+                        scope: "user"
+                    }
+                };
+                pm.set("closeTags", { "whenOpening": false }, userLocation);
+
+                expect(pm.get("closeTags")).toEqual({
+                    "dontCloseTags": [],
+                    "indentTags": [],
+                    "whenClosing": true,
+                    "whenOpening": false,
+                });
+            });
 
             it("handles asynchronously loaded scopes", function () {
                 var storage1 = new PreferencesBase.MemoryStorage({
