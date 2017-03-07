@@ -72,6 +72,12 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var DYNAMIC_CODEHINT_FONT_STYLE_ID = "codehint-dynamic-fonts";
+    
+    /**
+     * @const
+     * @type {string}
+     */
+    var DYNAMIC_CODEHINT_WITH_TYPE_STYLE_ID = "codehint-with-type-dynamic-width";
 
     /**
      * @const
@@ -110,6 +116,14 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
+    
+    /**
+     * @const
+     * @private
+     * The default hint span width for hints with annotated type details
+     * @type {number}
+     */
+    var DEFAULT_TYPED_HINT_SPAN_WIDTH = 300;
 
     /**
      * @private
@@ -119,19 +133,22 @@ define(function (require, exports, module) {
     function _removeDynamicProperty(propertyID) {
         $("#" + propertyID).remove();
     }
-
+    
     /**
      * @private
      * Add the style property to the DOM
      * @param {string} propertyID Is the property ID to be added
-     * @param {string} name Is the name of the style property
-     * @param {string} value Is the value of the style
-     * @param {boolean} important Is a flag to make the style property !important
+     * @param {object} ruleCfg Is the CSS Rule configuration object
+     * @param {string} ruleCfg.propName Is the name of the style property
+     * @param {string} ruleCfg.propValue Is the value of the style property
+     * @param {boolean} ruleCfg.priorityFlag Is a flag to make the style property !important
+     * @param {string} ruleCfg.ruleName Optional Selctor name to be used for the rule
+     * @param {string} ruleCfg.ruleText Optional selector definition text
      */
-    function _addDynamicProperty(propertyID, name, value, important, cssRule, cssText) {
-        cssRule = cssRule || ".CodeMirror";
+    function _addDynamicProperty(propertyID, ruleCfg) {
+        var cssRule = ruleCfg.ruleName || ".CodeMirror";
         var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
-        var styleStr = cssText || StringUtils.format("{0}: {1} {2}", name, value, important ? " !important" : "");
+        var styleStr = ruleCfg.ruleText || StringUtils.format("{0}: {1} {2}", ruleCfg.propName, ruleCfg.propValue, ruleCfg.priorityFlag ? "!important" : "");
         $style.html(cssRule + "{ " + styleStr + " }");
 
         // Let's make sure we remove the already existing item from the DOM.
@@ -146,6 +163,7 @@ define(function (require, exports, module) {
     function _removeDynamicFontSize() {
         _removeDynamicProperty(DYNAMIC_FONT_STYLE_ID);
         _removeDynamicProperty(DYNAMIC_CODEHINT_FONT_STYLE_ID);
+        _removeDynamicProperty(DYNAMIC_CODEHINT_WITH_TYPE_STYLE_ID);
     }
 
     /**
@@ -156,7 +174,22 @@ define(function (require, exports, module) {
         var styleStr = "";
         styleStr = styleStr + StringUtils.format("{0}: {1} {2};", "font-size", fontSize, " !important");
         styleStr = styleStr + StringUtils.format("{0}: {1} {2};", "line-height", (parseInt(fontSize, 10) + 2) + fontSize.replace(parseInt(fontSize, 10), ""), " !important");
-        _addDynamicProperty(DYNAMIC_CODEHINT_FONT_STYLE_ID, "font-size", fontSize, true, ".codehint-menu .dropdown-menu li a", styleStr);
+        
+        _addDynamicProperty(DYNAMIC_CODEHINT_FONT_STYLE_ID, {
+            propName: "font-size",
+            propValue: fontSize,
+            priorityFlag: true,
+            ruleName: ".codehint-menu .dropdown-menu li a",
+            ruleText: styleStr
+        });
+
+        _addDynamicProperty(DYNAMIC_CODEHINT_WITH_TYPE_STYLE_ID, {
+            propName: "width",
+            propValue: DEFAULT_TYPED_HINT_SPAN_WIDTH * (parseInt(fontSize, 10) / DEFAULT_FONT_SIZE) + "px",
+            priorityFlag: true,
+            ruleName: "span.brackets-js-hints-with-type-details",
+            ruleText: ""
+        });
     }
 
     /**
@@ -165,7 +198,11 @@ define(function (require, exports, module) {
      * @param {string} fontSize  A string with the font size and the size unit
      */
     function _addDynamicFontSize(fontSize) {
-        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSize, true);
+        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
+            propName: "font-size",
+            propValue: fontSize,
+            priorityFlag: true
+        });
 
         // Sync code-hint font size
         _addDynamicFontSizeForCodeHints(fontSize);
@@ -185,7 +222,10 @@ define(function (require, exports, module) {
      * @param {string} fontFamily  A string with the font family
      */
     function _addDynamicFontFamily(fontFamily) {
-        _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, "font-family", fontFamily);
+        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
+            propName: "font-family",
+            propValue: fontFamily
+        });
     }
 
     /**
