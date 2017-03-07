@@ -346,15 +346,22 @@ define(function (require, exports, module) {
 
         $nameField.bind('input', function () {
             var remainingCharacters = FILTER_NAME_CHARACTER_MAX - $(this).val().length;
-            $remainingField.text(StringUtils.format(
-                Strings.FILTER_NAME_REMAINING,
-                remainingCharacters
-            ));
+            if (remainingCharacters < 0.25*FILTER_NAME_CHARACTER_MAX) {
+                $remainingField.show();
 
-            if (remainingCharacters < 0) {
-               $remainingField.addClass("exclusions-name-characters-limit-reached");
-            } else {
-               $remainingField.removeClass("exclusions-name-characters-limit-reached");
+                $remainingField.text(StringUtils.format(
+                    Strings.FILTER_NAME_REMAINING,
+                    remainingCharacters
+                ));
+
+                if (remainingCharacters < 0) {
+                    $remainingField.addClass("exclusions-name-characters-limit-reached");
+                } else {
+                    $remainingField.removeClass("exclusions-name-characters-limit-reached");
+                }
+            }
+            else {
+                $remainingField.hide();
             }
         });
 
