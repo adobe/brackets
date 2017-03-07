@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         function checkIf0xNotation(color,that){
             if((/0x/).test(color)){ //Is input in 0x Notation?
                 //IF YES, THEN CHANGE/UPDATE SETTINGS:
-                var thatColor = color.replace("0x","#") //CONVERT 0x TO HEX6, ie 0xFFAACC => #FFAACC
+                var thatColor = color.replace("0x","#"); //CONVERT 0x TO HEX6, ie 0xFFAACC => #FFAACC
                 var that_Color = tinycolor(thatColor); //SWAPPED COLOR OUT TO RETURN RGBA VALUES INSTEAD OF _r=0, _g=0, etc.
                 that_Color._originalInput = that._originalColor; //RESTORE HEX6 TO 0x NOTATION INPUT FOR O.G. COLOR INPUT
                 that_Color._format = "0x"; //CHANGE _FORMAT TO '0x' SO THAT RESULT WORKS WITH .getFormat() et al;
@@ -113,14 +113,14 @@ define(function (require, exports, module) {
         this.$opacitySelector = this.$element.find(".opacity-slider .selector-base");
         this.$swatches = this.$element.find(".swatches");
         console.log(this.$swatches);
-        console.log("-------------")
+        console.log("-------------");
         //ERROR: INNERHTML OF SWATCH FOR '0xFFAACC" = "<div class="swatch" style="background-color: 0xFFAACC;" title="0xFFAACC (Used 1 time)"></div>"
         //SHOULD CONVERT TO HEX
 
         // Create quick-access color swatches
         this._addSwatches(swatches);
-        console.log(swatches)
-        console.log("------")
+        console.log(swatches);
+        console.log("------");
 
         // Attach event listeners to main UI elements
         this._addListeners();
@@ -444,8 +444,8 @@ define(function (require, exports, module) {
      */
     ColorEditor.prototype.setColorAsHsv = function (hsv) {
         var colorVal, newColor,
-            oldFormat = tinycolor(this.getColor()).getFormat() || "0x";
-            //IF UNDETECTABLE VIA TINYCOLORS .getFormat(), THEN FORMAT IS OF '0x' NOTATION
+            oldFormat = tinycolor(this.getColor()).getFormat(); //|| "0x";
+            //IF STILL UNDETECTABLE VIA TINYCOLOR .getFormat(), METHOD, THEN FORMAT IS SET TO '0x' NOTATION
         
         // Set our state to the new color
         $.extend(this._hsv, hsv);
