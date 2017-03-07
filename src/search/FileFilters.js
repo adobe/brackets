@@ -363,12 +363,13 @@ define(function (require, exports, module) {
             else {
                 $remainingField.hide();
             }
+            updatePrimaryButton();
         });
 
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
-                setActiveFilter({ name: $nameField.val().substr(0, FILTER_NAME_CHARACTER_MAX), patterns: getValue() }, index);
+                setActiveFilter({ name: $nameField.val(), patterns: getValue() }, index);
                 _updatePicker();
                 _doPopulate();
             }
@@ -395,8 +396,9 @@ define(function (require, exports, module) {
 
         function updatePrimaryButton() {
             var trimmedValue = $editField.val().trim();
+            var exclusionNameLength = $nameField.val().length;
 
-            $primaryBtn.prop("disabled", !trimmedValue.length);
+            $primaryBtn.prop("disabled", !trimmedValue.length || (exclusionNameLength > FILTER_NAME_CHARACTER_MAX));
         }
 
         $editField.on("input", updatePrimaryButton);
