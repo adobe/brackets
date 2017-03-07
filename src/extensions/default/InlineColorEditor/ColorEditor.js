@@ -115,7 +115,7 @@ define(function (require, exports, module) {
         console.log(this.$swatches);
         console.log("-------------");
         //ERROR: INNERHTML OF SWATCH FOR '0xFFAACC" = "<div class="swatch" style="background-color: 0xFFAACC;" title="0xFFAACC (Used 1 time)"></div>"
-        //SHOULD CONVERT TO HEX
+        //SHOULD CONVERT TO CSS COLOR SO SWATCH WORKS?
 
         // Create quick-access color swatches
         this._addSwatches(swatches);
