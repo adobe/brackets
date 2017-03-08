@@ -326,11 +326,6 @@ function getTernHints(fileInfo, offset, isProperty) {
                 _log("Error returned from Tern 'completions' request: " + error);
             } else {
                 //_log("found " + data.completions.length + " for " + file + "@" + offset);
-                for (i = 0; i < data.completions.length; ++i) {
-                    var completion = data.completions[i];
-                    completions.push({value: completion.name, type: completion.type, depth: completion.depth,
-                        guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url});
-                }
                 completions = data.completion.map(function (completion) {
                     return {value: completion.name, type: completion.type, depth: completion.depth,
                         guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url};
