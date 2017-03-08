@@ -21,6 +21,8 @@
  *
  */
 
+/*global less */
+
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
  *    - fontSizeChange -- Triggered when the font size is changed via the
