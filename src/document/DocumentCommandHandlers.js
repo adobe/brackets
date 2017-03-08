@@ -451,7 +451,7 @@ define(function (require, exports, module) {
 
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
-                HealthLogger.fileOpened(fileInfo.path);
+                HealthLogger.fileOpened(file._path);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
