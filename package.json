@@ -24,6 +24,7 @@
         "fs-extra": "0.5.0",
         "glob": "7.0.6",
         "grunt": "0.4.5",
+        "husky": "0.13.2",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
         "grunt-cli": "0.1.9",
@@ -50,6 +51,7 @@
         "grunt-cleanempty": "1.0.3"
     },
     "scripts": {
+        "prepush": "npm run eslint",
         "postinstall": "grunt install",
         "test": "grunt test cla-check-pull",
         "eslint": "grunt eslint"
