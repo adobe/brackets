@@ -1,5 +1,5 @@
 {
     "version": "1.9.0-0",
     "title" : "Brackets 1.9 <Pre-release>",
-    "description" : "This is a Brackets pre-release build"
+    "description" : "This is a Brackets 1.9 pre-release build. This release contains reverse inspect for live preview, extension sorting mechanism based on download count and much more."
 }
