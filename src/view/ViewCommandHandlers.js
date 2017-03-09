@@ -21,6 +21,8 @@
  *
  */
 
+/*global less */
+
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
  *    - fontSizeChange -- Triggered when the font size is changed via the
@@ -42,7 +44,8 @@ define(function (require, exports, module) {
         ThemeSettings       = require("view/ThemeSettings"),
         MainViewManager     = require("view/MainViewManager"),
         AppInit             = require("utils/AppInit"),
-        _                   = require("thirdparty/lodash");
+        _                   = require("thirdparty/lodash"),
+        FontRuleTemplate    = require("text!view/fontrules/font-based-rules.less");
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
     
@@ -110,7 +113,7 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
-
+    
     /**
      * @private
      * Removes style property from the DOM
@@ -119,26 +122,33 @@ define(function (require, exports, module) {
     function _removeDynamicProperty(propertyID) {
         $("#" + propertyID).remove();
     }
-
+    
     /**
      * @private
      * Add the style property to the DOM
      * @param {string} propertyID Is the property ID to be added
-     * @param {string} name Is the name of the style property
-     * @param {string} value Is the value of the style
-     * @param {boolean} important Is a flag to make the style property !important
+     * @param {object} ruleCfg Is the CSS Rule configuration object
+     * @param {string} ruleCfg.propName Is the name of the style property
+     * @param {string} ruleCfg.propValue Is the value of the style property
+     * @param {boolean} ruleCfg.priorityFlag Is a flag to make the style property !important
+     * @param {string} ruleCfg.ruleName Optional Selctor name to be used for the rule
+     * @param {string} ruleCfg.ruleText Optional selector definition text
      */
-    function _addDynamicProperty(propertyID, name, value, important, cssRule) {
-        cssRule = cssRule || ".CodeMirror";
+    function _addDynamicProperty(propertyID, ruleCfg) {
         var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
-        var styleStr = StringUtils.format("{0}: {1}{2}", name, value, important ? " !important" : "");
-        $style.html(cssRule + "{ " + styleStr + " }");
+        if (ruleCfg.ruleText) {
+            $style.html(ruleCfg.ruleText);
+        } else {
+            var cssRule = ruleCfg.ruleName || ".CodeMirror";
+            var styleStr = ruleCfg.ruleText || StringUtils.format("{0}: {1} {2}", ruleCfg.propName, ruleCfg.propValue, ruleCfg.priorityFlag ? "!important" : "");
+            $style.html(cssRule + "{ " + styleStr + " }");
+        }
 
         // Let's make sure we remove the already existing item from the DOM.
         _removeDynamicProperty(propertyID);
         $("head").append($style);
     }
-
+    
     /**
      * @private
      * Removes the styles used to update the font size
@@ -153,7 +163,16 @@ define(function (require, exports, module) {
      * @param {string} fontSize  A string with the font size and the size unit
      */
     function _addDynamicFontSize(fontSize) {
-        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, "font-size", fontSize, true);
+        var template = FontRuleTemplate.split("{font-size-param}").join(fontSize);
+        less.render(template, null, function onParse(err, tree) {
+            if (err) {
+                console.error(err);
+            } else {
+                _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
+                    ruleText: tree.css
+                });
+            }
+        });
     }
 
     /**
@@ -170,7 +189,10 @@ define(function (require, exports, module) {
      * @param {string} fontFamily  A string with the font family
      */
     function _addDynamicFontFamily(fontFamily) {
-        _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, "font-family", fontFamily);
+        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
+            propName: "font-family",
+            propValue: fontFamily
+        });
     }
 
     /**
