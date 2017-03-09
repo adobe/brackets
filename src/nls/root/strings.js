@@ -582,7 +582,6 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
-    "EXTENSIONS_SORT_BY"                   : "Sort By",
     "EXTENSIONS_LAST_UPDATED"              : "Last Updated",
     "EXTENSIONS_DOWNLOADS"                 : "Downloads",
 

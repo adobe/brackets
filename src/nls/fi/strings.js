@@ -514,7 +514,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Paketin versionumero ({0}) on virheellinen.",
     "INVALID_BRACKETS_VERSION"             : "{APP_NAME}in yhteensopivuuden merkkijono ({0}) on virheellinen.",
     "DISALLOWED_WORDS"                     : "Sanat ({1}) eivät ole sallittuja kentässä {0}.",
-    "NPM_INSTALL_FAILED"                   : "npm install \u2011komento epäonnistui: {0}",    
+    "NPM_INSTALL_FAILED"                   : "npm install \u2011komento epäonnistui: {0}",
     "API_NOT_COMPATIBLE"                   : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa. Se asennettiin käytöstä poistettujen laajennusten kansioon.",
     "MISSING_MAIN"                         : "Paketissa ei ole tiedostoa main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Tämän paketin asennus korvaa aiemmin asennetun laajennuksen. Korvataanko vanha laajennus?",
@@ -581,7 +581,6 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Saatavilla",
     "EXTENSIONS_THEMES_TITLE"              : "Teemat",
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
-    "EXTENSIONS_SORT_BY"                   : "Lajittele",
     "EXTENSIONS_LAST_UPDATED"              : "Päivitetty",
     "EXTENSIONS_DOWNLOADS"                 : "Lataukset",
 
