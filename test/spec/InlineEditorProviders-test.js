@@ -40,6 +40,14 @@ define(function (require, exports, module) {
         SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         Strings          = require("strings");
 
+    // Helper functions for testing cursor position / selection range
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
+    }
+
     describe("InlineEditorProviders", function () {
 
         this.category = "integration";
@@ -314,7 +322,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position and displayed range in inline editor
-                    expect(inlinePos).toEqual(infos["test1.php"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.php"].offsets[0]));
                     expect(inlineWidget.editor).toHaveInlineEditorRange(toRange(4, 8));
 
                     inlineWidget = null;
@@ -329,7 +337,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[0]));
 
                     inlineWidget = null;
                 });
@@ -343,7 +351,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[0]));
 
                     inlineWidget = null;
                 });
@@ -357,7 +365,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[1]));
 
                     inlineWidget = null;
                 });
@@ -371,7 +379,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[1]));
 
                     inlineWidget = null;
                 });
@@ -385,7 +393,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.html"].offsets[11]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.html"].offsets[11]));
 
                     inlineWidget = null;
                 });
@@ -399,7 +407,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[2]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[2]));
 
                     inlineWidget = null;
                 });
@@ -444,7 +452,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[8]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[8]));
 
                     inlineWidget = null;
                 });

@@ -53,7 +53,8 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
-        HTMLDOMDiff     = require("./HTMLDOMDiff");
+        HTMLDOMDiff     = require("./HTMLDOMDiff"),
+        _               = require("thirdparty/lodash");
 
     var allowIncremental = true;
 
@@ -85,6 +86,21 @@ define(function (require, exports, module) {
      */
     function _posEq(pos1, pos2) {
         return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
+    }
+
+    function getPositionFromTagId(editor, tagId) {
+        var marks = editor._codeMirror.getAllMarks(),
+            i,
+            markFound;
+        
+        markFound = _.find(marks, function (mark) {
+            return (mark.tagID === tagId);
+        });
+        if (markFound) {
+            return markFound.find().from;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -805,6 +821,7 @@ define(function (require, exports, module) {
     exports._markText                   = _markText;
     exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
     exports._getTagIDAtDocumentPos      = _getTagIDAtDocumentPos;
+    exports.getPositionFromTagId        = getPositionFromTagId;
     exports._markTextFromDOM            = _markTextFromDOM;
     exports._updateDOM                  = _updateDOM;
     exports._allowIncremental           = allowIncremental;

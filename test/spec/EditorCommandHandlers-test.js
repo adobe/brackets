@@ -91,21 +91,37 @@ define(function (require, exports, module) {
             }
         });
 
-
         // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+        function fixSel(sel) {
+            fixPos(sel.start);
+            fixPos(sel.end);
+            if (!("reversed" in sel)) {
+                sel.reversed = false;
+            }
+            return sel;
+        }
+        function fixSels(sels) {
+            sels.forEach(function (sel) {
+                fixSel(sel);
+            });
+            return sels;
+        }
         function expectCursorAt(pos) {
             var selection = myEditor.getSelection();
             expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
+            expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
         function expectSelection(sel) {
-            if (!sel.reversed) {
-                sel.reversed = false;
-            }
-            expect(myEditor.getSelection()).toEqual(sel);
+            expect(fixSel(myEditor.getSelection())).toEqual(fixSel(sel));
         }
         function expectSelections(sels) {
-            expect(myEditor.getSelections()).toEqual(sels);
+            expect(fixSels(myEditor.getSelections())).toEqual(fixSels(sels));
         }
         function contentWithDeletedLines(lineNums) {
             var lines = defaultContent.split("\n");
@@ -1022,8 +1038,10 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 expect(myDocument.getText()).toEqual(defaultContent);
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: false},
-                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: true}]);
+                expectSelections([
+                    {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                    {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: true}
+                ]);
             });
 
             it("should properly restore the range selections", function () {
@@ -1033,8 +1051,10 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 expect(myDocument.getText()).toEqual(defaultContent);
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}, reversed: false, primary: false},
-                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, reversed: false, primary: true}]);
+                expectSelections([
+                    {start: {line: 1, ch: 4}, end: {line: 1, ch: 6}, reversed: false, primary: false},
+                    {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, reversed: false, primary: true}
+                ]);
             });
 
             it("should properly restore primary/reversed range selections", function () {
@@ -1044,8 +1064,10 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 expect(myDocument.getText()).toEqual(defaultContent);
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: true},
-                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true, primary: false}]);
+                expectSelections([
+                    {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: true},
+                    {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true, primary: false}
+                ]);
             });
         });
 
@@ -1460,8 +1482,10 @@ define(function (require, exports, module) {
                     lines.splice(1, 0, "*/");
                     lines.splice(0, 0, "/*");
                     expect(myDocument.getText()).toEqual(lines.join("\n"));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
-                                                              {start: {line: 6, ch: 0}, end: {line: 6, ch: 18}, primary: true, reversed: true}]);
+                    expectSelections([
+                        {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 18}, primary: true, reversed: true}
+                    ]);
                 });
             });
         });
@@ -3381,9 +3405,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should delete lines containing any range in a multiple selection", function () {
@@ -3393,9 +3419,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should handle multiple cursors/selections on the same line (only deleting the line once)", function () {
@@ -3406,9 +3434,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should handle multiple selections that span multiple lines", function () {
@@ -3417,8 +3447,10 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 3, 4]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should delete the rest of a selection that starts on a line previously deleted", function () {
@@ -3427,7 +3459,9 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 2, 3]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should merge the primary selection into another selection on the same line", function () {
@@ -3438,9 +3472,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: false, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: false, reversed: false}
+                    ]);
                 });
             });
         });
@@ -3503,9 +3539,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                 expect(myDocument.getText()).toEqual(contentWithDeletedLines([1, 3, 6]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 3, ch: 5}, end: {line: 3, ch: 5}, primary: true, reversed: false}]);
+                expectSelections([
+                    {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 5}, end: {line: 3, ch: 5}, primary: true, reversed: false}
+                ]);
             });
         });
 
@@ -4212,9 +4250,10 @@ define(function (require, exports, module) {
                     });
                     runs(function () {
                         selection = myEditor.getSelection();
-                        expect(selection).toEqual({start: {line: 0, ch: 9},
-                                                   end: {line: 0, ch: 15},
-                                                   reversed: false});
+                        expect(fixSel(selection)).toEqual(fixSel({
+                            start: {line: 0, ch: 9},
+                            end: {line: 0, ch: 15}
+                        }));
                     });
                 });
             });

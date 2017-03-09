@@ -1,7 +1,0 @@
-{
-    "name": "brackets-testing",
-    "version": "0.22.0",
-    "dependencies": {
-        "fs-extra": "0.5.x"
-    }
-}

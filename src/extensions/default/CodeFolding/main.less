@@ -49,6 +49,24 @@
     padding-right: 5px;
 }
 
+// If line numbers are not shown and codefolding is enabled we remove the left padding.
+// We add the same padding below to the fold gutter
+.show-line-padding {
+    .folding-enabled.linenumber-disabled pre {
+        padding-left: 0;
+    }
+}
+
+.CodeMirror.linenumber-disabled {
+    // When there are no line numbers, .show-line-padding class adds 15px left padding to line numbers.
+    // Here we compensate for that gap by adding the same padding to the folding gutter.
+    .CodeMirror-foldgutter,
+    .CodeMirror-foldgutter-open,
+    .CodeMirror-foldgutter-folded,
+    .CodeMirror-foldgutter-blank {
+        padding-left: 15px;
+    }
+}
 
 .CodeMirror-foldmarker {
     // Re-enabling the pointer events for the fold marker. As pointer events are disabled for "CodeMirror-lines"
@@ -63,7 +81,7 @@
     border: 1px solid @color-marker-border;
     color: @color-marker-text;
     background-color: @color-marker-bg;
-    
+
     &:after {
         content: "...";
         font-size: 1em;
