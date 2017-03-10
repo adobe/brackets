@@ -317,5 +317,13 @@
         "fileExtensions": ["go"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
+    },
+
+    "pug": {
+        "name": "Pug",
+        "mode": "pug",
+        "fileExtensions": ["pug", "jade"],
+        "lineComment": ["//"]
     }
+
 }
