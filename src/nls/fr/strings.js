@@ -581,6 +581,7 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
+	"EXTENSIONS_SORT_BY": "Trier par",
 	"EXTENSIONS_LAST_UPDATED": "Dernières mises à jour",
 	"EXTENSIONS_DOWNLOADS": "Téléchargements",
 
