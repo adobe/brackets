@@ -400,15 +400,18 @@ define(function (require, exports, module) {
                 }
             } else if (pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
-                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
+                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]); 
+                
+                if((/^0x/).test(previewCSS)){
+                   previewCSS = previewCSS.replace("0x","#");
+                   };
 
                 // normalize the arguments to something that we can display to the user
                 // NOTE: we need both the div and the popover's _previewCSS member
                 //          (used by unit tests) to match so normalize the css for both
                 previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
 
-                var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
-                              "</div>";
+                var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" + "</div>";
                 var startPos = {line: pos.line, ch: match.index},
                     endPos = {line: pos.line, ch: match.index + match[0].length},
                     startCoords = cm.charCoords(startPos),

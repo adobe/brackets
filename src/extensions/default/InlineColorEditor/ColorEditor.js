@@ -40,6 +40,29 @@ define(function (require, exports, module) {
      * @const @type {number}
      */
     var STEP_MULTIPLIER = 5;
+    
+    /**
+     * Convert 0x notation into hex6 format: ("0xFFAACC" => "#FFAACC")
+     */
+    function color0xToHex(color,str){
+        var format0xToHexColor = color.replace("0x","#");
+        var hexColor = tinycolor(format0xToHexColor);
+        hexColor._format = "0x";
+        
+        if(str){
+            hexColor.toString();
+        }
+        return hexColor;
+    }
+    
+    function checkSetFormat(color,str){
+        if((/^0x/).test(color)){
+            var colorRes = color0xToHex(color,str);
+            return colorRes;
+        }else{
+            return tinycolor(color);
+            }
+        }
 
     /**
      * Color picker control; may be used standalone or within an InlineColorEditor inline widget.
@@ -64,30 +87,8 @@ define(function (require, exports, module) {
         this._handleHueDrag = this._handleHueDrag.bind(this);
         this._handleSelectionFieldDrag = this._handleSelectionFieldDrag.bind(this);
 
-        //
-        //STYLING IS MESSY AND OUT OF ORDER ONLY UNTIL I GET THE BELOW WORKING:
-        var that = this;
-        //MUST CONVERT 0X TO HEX6 NOTATION AND BACK IN ORDER TO BE ABLE TO USE COLOR W/ TINYCOLOR(COLOR). TINYCOLOR DOESN'T SUPPORT 0x NOTATION!
-        function checkIf0xNotation(color,that){
-            if((/0x/).test(color)){ //Is input in 0x Notation?
-                //IF YES, THEN CHANGE/UPDATE SETTINGS:
-                var thatColor = color.replace("0x","#"); //CONVERT 0x TO HEX6, ie 0xFFAACC => #FFAACC
-                var that_Color = tinycolor(thatColor); //SWAPPED COLOR OUT TO RETURN RGBA VALUES INSTEAD OF _r=0, _g=0, etc.
-                that_Color._originalInput = that._originalColor; //RESTORE HEX6 FORMAT TO 0x NOTATION FORMAT INPUT FOR ORIGINAL INPUT
-                that_Color._format = "0x"; //CHANGE _FORMAT TO '0x' SO THAT RESULT WORKS WITH .getFormat() et al;
-                return that_Color; //EXIT
-            }else{
-                return tinycolor(color); //SIMPLY RETURN AS USUAL IF NOT
-            }
-            
-        }
-        
         this._originalColor = color;
-        this._color = checkIf0xNotation(color,this);
-        //console.log(this._color);
-        //output => tinycolor {_originalInput: "0xE282A8", _r: 255, _g: 170, _b: 204, _a: 1…} -- THIS WORKS NOW, EXCEPT STILL DOES NOT CHANGE COLOR SWATCH OR MOVE COLOR SELECTOR BECAUSE SWATCHES ARE 0x NOTATION
-        //
-        //
+        this._color = checkSetFormat(color);
         
         this._redoColor = null;
         this._isUpperCase = PreferencesManager.get("uppercaseColors");
@@ -112,22 +113,15 @@ define(function (require, exports, module) {
         this.$opacitySlider = this.$element.find(".opacity-slider");
         this.$opacitySelector = this.$element.find(".opacity-slider .selector-base");
         this.$swatches = this.$element.find(".swatches");
-        console.log(this.$swatches);
-        console.log("-------------");
-        //ERROR: INNERHTML OF SWATCH FOR '0xFFAACC" = "<div class="swatch" style="background-color: 0xFFAACC;" title="0xFFAACC (Used 1 time)"></div>"
-        //SHOULD CONVERT TO CSS COLOR SO SWATCH WORKS?
-
+        
         // Create quick-access color swatches
         this._addSwatches(swatches);
-        console.log(swatches);
-        console.log("------");
 
         // Attach event listeners to main UI elements
         this._addListeners();
-
-        // Initially selected color
-        this.$originalColor.css("background-color", this._originalColor);
+ 
         this._commitColor(color);
+        this.$originalColor.css("background-color", checkSetFormat(this._originalColor));
     }
 
     /**
@@ -189,14 +183,14 @@ define(function (require, exports, module) {
      * Update all UI elements to reflect the selected color (_color and _hsv). It is usually
      * incorrect to call this directly; use _commitColor() or setColorAsHsv() instead.
      */
-    ColorEditor.prototype._synchronize = function () {
-        var colorValue  = this.getColor().getOriginalInput(),
-            colorObject = tinycolor(colorValue),
-            hueColor    = "hsl(" + this._hsv.h + ", 100%, 50%)";
 
+    ColorEditor.prototype._synchronize = function () {
+        var colorValue  = this.getColor().getOriginalInput();
+        var colorObject = checkSetFormat(colorValue); 
+        var hueColor    = "hsl(" + this._hsv.h + ", 100%, 50%)";
         this._updateColorTypeRadioButtons(colorObject.getFormat());
         this.$colorValue.val(colorValue);
-        this.$currentColor.css("background-color", colorValue);
+        this.$currentColor.css("background-color", checkSetFormat(colorValue,"toStr"));
         this.$selection.css("background-color", hueColor);
         this.$hueBase.css("background-color", hueColor);
 
@@ -271,8 +265,9 @@ define(function (require, exports, module) {
             self = this;
         handler = function (event) {
             var newFormat   = $(event.currentTarget).html().toLowerCase().replace("%", "p"),
-                newColor    = self.getColor().toString(),
-                colorObject = tinycolor(newColor);
+                newColor    = self.getColor().toString();
+            
+            var colorObject = checkSetFormat(newColor);
 
             switch (newFormat) {
             case "hsla":
@@ -289,8 +284,10 @@ define(function (require, exports, module) {
                 self._hsv.a = 1;
                 break;
             case "0x":
-                newColor = colorObject.toHexString();
-                newColor.replace("#","0x");
+                newColor = colorObject.toHexString().replace("#","0x");
+                self._hsv.a = 1;
+                self._format = "0x";
+                break;
             }
 
             // We need to run this again whenever RGB/HSL/Hex conversions
@@ -354,9 +351,9 @@ define(function (require, exports, module) {
     /** Handle changes in text field */
     ColorEditor.prototype._handleTextFieldInput = function (losingFocus) {
         var newColor    = $.trim(this.$colorValue.val()),
-            newColorObj = tinycolor(newColor),
+            newColorObj = checkSetFormat(newColor),
             newColorOk  = newColorObj.isValid();
-
+        
         // TinyColor will auto correct an incomplete rgb or hsl value into a valid color value.
         // eg. rgb(0,0,0 -> rgb(0, 0, 0)
         // We want to avoid having TinyColor do this, because we don't want to sync the color
@@ -365,7 +362,8 @@ define(function (require, exports, module) {
         // TinyColor actually generates to see if it's different. If so, then we assume the color
         // was incomplete to begin with.
         if (newColorOk) {
-            newColorOk = (newColorObj.toString() === this._normalizeColorString(newColor));
+            var colorStr = newColor.replace("0x","#") || newColor;
+            newColorOk = (newColorObj.toString() === this._normalizeColorString(colorStr));
         }
 
         // Restore to the previous valid color if the new color is invalid or incomplete.
@@ -400,10 +398,12 @@ define(function (require, exports, module) {
 
         // Create swatches
         swatches.forEach(function (swatch) {
+            var swatchValue = swatch.value.replace("0x","#") || swatch.value;
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
+          
             self.$swatches.append("<li tabindex='0'><div class='swatch-bg'><div class='swatch' style='background-color: " +
-                    swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
+                    swatchValue + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
         });
 
@@ -413,6 +413,7 @@ define(function (require, exports, module) {
                     event.keyCode === KeyEvent.DOM_VK_ENTER ||
                     event.keyCode === KeyEvent.DOM_VK_SPACE) {
                 // Enter/Space is same as clicking on swatch
+
                 self._commitColor($(event.currentTarget).find(".value").html());
             } else if (event.keyCode === KeyEvent.DOM_VK_TAB) {
                 // Tab on last swatch loops back to color square
@@ -444,9 +445,8 @@ define(function (require, exports, module) {
      */
     ColorEditor.prototype.setColorAsHsv = function (hsv) {
         var colorVal, newColor,
-            oldFormat = tinycolor(this.getColor()).getFormat(); //|| "0x";
-            //IF STILL UNDETECTABLE VIA TINYCOLOR .getFormat(), METHOD, THEN FORMAT IS SET TO '0x' NOTATION
-        
+            oldFormat = tinycolor(this.getColor()).getFormat();
+
         // Set our state to the new color
         $.extend(this._hsv, hsv);
         newColor = tinycolor(this._hsv);
@@ -466,8 +466,8 @@ define(function (require, exports, module) {
             colorVal = this._hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
             break;
         case "0x":
-            colorVal = newColor.toHexString().to0xString();
-                //NEED TO IMPLEMENT .to0xString() method
+            colorVal = newColor.toHexString().replace("#","0x");
+            break;
         }
         colorVal = this._isUpperCase ? colorVal.toUpperCase() : colorVal;
         this._commitColor(colorVal, false);
@@ -480,11 +480,19 @@ define(function (require, exports, module) {
      * @param {boolean=} resetHsv  Pass false ONLY if hsv set already been modified to match colorVal. Default: true.
      */
     ColorEditor.prototype._commitColor = function (colorVal, resetHsv) {
+    //
+    //
+    //TO-DO: WORKS. NEED TO ADD EXPORTED FUNCTION TO CHECK IF 0x 
+    //
+    //
         if (resetHsv === undefined) {
             resetHsv = true;
-        }
+        } 
         this._callback(colorVal);
-        this._color = tinycolor(colorVal);
+        
+        var colorObj = checkSetFormat(colorVal);
+        colorObj._originalInput = colorVal;
+        this._color = colorObj;
 
         if (resetHsv) {
             this._hsv = this._color.toHsv();
@@ -499,7 +507,7 @@ define(function (require, exports, module) {
      * format determines the new selected color's format.
      * @param {!string} colorVal
      */
-    ColorEditor.prototype.setColorFromString = function (colorVal) {
+    ColorEditor.prototype.setColorFromString = function (colorVal) {  
         this._commitColor(colorVal, true);  // TODO (#2204): make this less entangled with setColorAsHsv()
     };
 
