@@ -210,6 +210,7 @@ define({
 	"FILE_FILTER_DIALOG": "Modifier le jeu d’exclusion",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
 	"FILTER_NAME_PLACEHOLDER": "Nommer ce jeu d’exclusion (facultatif)",
+	"FILTER_NAME_REMAINING": "{0} characters remaining",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
@@ -581,7 +582,6 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
-	"EXTENSIONS_SORT_BY": "Trier par",
 	"EXTENSIONS_LAST_UPDATED": "Dernières mises à jour",
 	"EXTENSIONS_DOWNLOADS": "Téléchargements",
 
