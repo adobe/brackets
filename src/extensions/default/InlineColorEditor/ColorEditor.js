@@ -94,6 +94,7 @@ define(function (require, exports, module) {
 
         this._originalColor = color;
         this._color = checkSetFormat(color);
+        
         this._redoColor = null;
         this._isUpperCase = PreferencesManager.get("uppercaseColors");
         PreferencesManager.on("change", "uppercaseColors", function () {
