@@ -40,29 +40,34 @@ define(function (require, exports, module) {
      * @const @type {number}
      */
     var STEP_MULTIPLIER = 5;
-    
+
     /**
-     * Convert 0x notation into hex6 format: ("0xFFAACC" => "#FFAACC")
+     * Convert 0x notation into hex6 format for tinycolor
+     * compatibility: ("0xFFAACC" => "#FFFFFF")
      */
-    function color0xToHex(color,str){
+    function color0xToHex(color,toStr){
         var format0xToHexColor = color.replace("0x","#");
         var hexColor = tinycolor(format0xToHexColor);
         hexColor._format = "0x";
-        
-        if(str){
+
+        if(toStr !== null){
             hexColor.toString();
         }
         return hexColor;
     }
-    
-    function checkSetFormat(color,str){
+
+    function as0xString(color){
+        return color.toHexString().replace("#","0x");
+    }
+
+    function checkSetFormat(color,toStr){
         if((/^0x/).test(color)){
-            var colorRes = color0xToHex(color,str);
+            var colorRes = color0xToHex(color,toStr);
             return colorRes;
         }else{
             return tinycolor(color);
-            }
         }
+    }
 
     /**
      * Color picker control; may be used standalone or within an InlineColorEditor inline widget.
@@ -89,7 +94,6 @@ define(function (require, exports, module) {
 
         this._originalColor = color;
         this._color = checkSetFormat(color);
-        
         this._redoColor = null;
         this._isUpperCase = PreferencesManager.get("uppercaseColors");
         PreferencesManager.on("change", "uppercaseColors", function () {
@@ -113,13 +117,13 @@ define(function (require, exports, module) {
         this.$opacitySlider = this.$element.find(".opacity-slider");
         this.$opacitySelector = this.$element.find(".opacity-slider .selector-base");
         this.$swatches = this.$element.find(".swatches");
-        
+
         // Create quick-access color swatches
         this._addSwatches(swatches);
 
         // Attach event listeners to main UI elements
         this._addListeners();
- 
+
         this._commitColor(color);
         this.$originalColor.css("background-color", checkSetFormat(this._originalColor));
     }
@@ -186,7 +190,7 @@ define(function (require, exports, module) {
 
     ColorEditor.prototype._synchronize = function () {
         var colorValue  = this.getColor().getOriginalInput();
-        var colorObject = checkSetFormat(colorValue); 
+        var colorObject = checkSetFormat(colorValue);
         var hueColor    = "hsl(" + this._hsv.h + ", 100%, 50%)";
         this._updateColorTypeRadioButtons(colorObject.getFormat());
         this.$colorValue.val(colorValue);
@@ -266,7 +270,7 @@ define(function (require, exports, module) {
         handler = function (event) {
             var newFormat   = $(event.currentTarget).html().toLowerCase().replace("%", "p"),
                 newColor    = self.getColor().toString();
-            
+
             var colorObject = checkSetFormat(newColor);
 
             switch (newFormat) {
@@ -284,7 +288,7 @@ define(function (require, exports, module) {
                 self._hsv.a = 1;
                 break;
             case "0x":
-                newColor = colorObject.toHexString().replace("#","0x");
+                newColor = as0xString(colorObject);
                 self._hsv.a = 1;
                 self._format = "0x";
                 break;
@@ -353,7 +357,7 @@ define(function (require, exports, module) {
         var newColor    = $.trim(this.$colorValue.val()),
             newColorObj = checkSetFormat(newColor),
             newColorOk  = newColorObj.isValid();
-        
+
         // TinyColor will auto correct an incomplete rgb or hsl value into a valid color value.
         // eg. rgb(0,0,0 -> rgb(0, 0, 0)
         // We want to avoid having TinyColor do this, because we don't want to sync the color
@@ -401,7 +405,7 @@ define(function (require, exports, module) {
             var swatchValue = swatch.value.replace("0x","#") || swatch.value;
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
-          
+
             self.$swatches.append("<li tabindex='0'><div class='swatch-bg'><div class='swatch' style='background-color: " +
                     swatchValue + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
@@ -466,7 +470,7 @@ define(function (require, exports, module) {
             colorVal = this._hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
             break;
         case "0x":
-            colorVal = newColor.toHexString().replace("#","0x");
+            colorVal = as0xString(newColor);
             break;
         }
         colorVal = this._isUpperCase ? colorVal.toUpperCase() : colorVal;
@@ -480,16 +484,12 @@ define(function (require, exports, module) {
      * @param {boolean=} resetHsv  Pass false ONLY if hsv set already been modified to match colorVal. Default: true.
      */
     ColorEditor.prototype._commitColor = function (colorVal, resetHsv) {
-    //
-    //
-    //TO-DO: WORKS. NEED TO ADD EXPORTED FUNCTION TO CHECK IF 0x 
-    //
-    //
+
         if (resetHsv === undefined) {
             resetHsv = true;
-        } 
+        }
         this._callback(colorVal);
-        
+
         var colorObj = checkSetFormat(colorVal);
         colorObj._originalInput = colorVal;
         this._color = colorObj;
@@ -507,7 +507,7 @@ define(function (require, exports, module) {
      * format determines the new selected color's format.
      * @param {!string} colorVal
      */
-    ColorEditor.prototype.setColorFromString = function (colorVal) {  
+    ColorEditor.prototype.setColorFromString = function (colorVal) {
         this._commitColor(colorVal, true);  // TODO (#2204): make this less entangled with setColorAsHsv()
     };
 
