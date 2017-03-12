@@ -210,6 +210,7 @@ define({
 	"FILE_FILTER_DIALOG": "除外セットを編集",
 	"FILE_FILTER_INSTRUCTIONS": "次の文字列やサブストリング、または<a href='{0}' title='{0}'>ワイルドカード</a>のいずれかに一致するファイルおよびフォルダーを除外します。各文字列を新しい行に入力してください。",
 	"FILTER_NAME_PLACEHOLDER": "この除外セットに名前を付ける (オプション)",
+	"FILTER_NAME_REMAINING": "{0} characters remaining",
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
 	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
