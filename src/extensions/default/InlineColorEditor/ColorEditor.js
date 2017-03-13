@@ -68,7 +68,7 @@ define(function (require, exports, module) {
             return _0xColorToHex(color, convertToStr);
         }
         if (convertToStr) {
-            return tinycolor(color).toString(); //HAD NO .TOSTRING() BEFORE. WITHOUT IT BLOCKS HEX3.
+            return tinycolor(color).toString();
         }
         return tinycolor(color);
     }
