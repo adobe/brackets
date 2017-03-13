@@ -358,7 +358,7 @@ define(function (require, exports, module) {
     };
 
     /** Handle changes in text field */
-  ColorEditor.prototype._handleTextFieldInput = function (losingFocus) {
+    ColorEditor.prototype._handleTextFieldInput = function (losingFocus) {
         var newColor    = $.trim(this.$colorValue.val()),
             newColorObj = checkSetFormat(newColor),
             newColorOk  = newColorObj.isValid();
@@ -410,7 +410,7 @@ define(function (require, exports, module) {
             var swatchValue = checkSetFormat(swatch.value, true);
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
-//#f44fe4
+
             self.$swatches.append("<li tabindex='0'><div class='swatch-bg'><div class='swatch' style='background-color: " +
                     swatchValue + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
