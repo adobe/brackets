@@ -45,10 +45,14 @@ define(function (require, exports, module) {
      * Convert 0x notation into hex6 format for tinycolor
      * compatibility: ("0xFFAACC" => "#FFFFFF")
      */
+    function ensureHexFormat(str) {
+        return (/^0x/).test(str) ? str.replace("0x","#") : str;
+    }
+
     function as0xString(color) {
         return color.toHexString().replace("#", "0x");
     }
-    
+
     function _0xColorToHex(color, convertToStr) {
         var hexColor = tinycolor(color.replace("0x", "#"));
         hexColor._format = "0x";
@@ -62,6 +66,9 @@ define(function (require, exports, module) {
     function checkSetFormat(color, convertToStr) {
         if ((/^0x/).test(color)) {
             return _0xColorToHex(color, convertToStr);
+        }
+        if (convertToStr) {
+            return tinycolor(color).toString(); //HAD NO .TOSTRING() BEFORE. WITHOUT IT BLOCKS HEX3.
         }
         return tinycolor(color);
     }
@@ -351,10 +358,11 @@ define(function (require, exports, module) {
     };
 
     /** Handle changes in text field */
-    ColorEditor.prototype._handleTextFieldInput = function (losingFocus) {
+  ColorEditor.prototype._handleTextFieldInput = function (losingFocus) {
         var newColor    = $.trim(this.$colorValue.val()),
             newColorObj = checkSetFormat(newColor),
             newColorOk  = newColorObj.isValid();
+
 
         // TinyColor will auto correct an incomplete rgb or hsl value into a valid color value.
         // eg. rgb(0,0,0 -> rgb(0, 0, 0)
@@ -364,7 +372,7 @@ define(function (require, exports, module) {
         // TinyColor actually generates to see if it's different. If so, then we assume the color
         // was incomplete to begin with.
         if (newColorOk) {
-            newColorOk = (newColorObj.toString() === this._normalizeColorString(checkSetFormat(newColor, true)));
+            newColorOk = (newColorObj.toString() === this._normalizeColorString(ensureHexFormat(newColor)));
         }
 
         // Restore to the previous valid color if the new color is invalid or incomplete.
@@ -402,7 +410,7 @@ define(function (require, exports, module) {
             var swatchValue = checkSetFormat(swatch.value, true);
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
-
+//#f44fe4
             self.$swatches.append("<li tabindex='0'><div class='swatch-bg'><div class='swatch' style='background-color: " +
                     swatchValue + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
