@@ -1937,7 +1937,7 @@ define(function (require, exports, module) {
          */
         getPrefixedSystem: function (prefix) {
             return new PrefixedPreferencesSystem(this, prefix + ".");
-        },
+        }
 
     });
 

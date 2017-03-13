@@ -901,7 +901,7 @@ define(function (require, exports, module) {
                     "dontCloseTags": [],
                     "indentTags": [],
                     "whenClosing": true,
-                    "whenOpening": false,
+                    "whenOpening": false
                 });
             });
 
