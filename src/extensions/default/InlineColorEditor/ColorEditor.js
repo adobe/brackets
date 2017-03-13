@@ -92,7 +92,7 @@ define(function (require, exports, module) {
 
         this._originalColor = color;
         this._color = checkSetFormat(color);
-        
+
         this._redoColor = null;
         this._isUpperCase = PreferencesManager.get("uppercaseColors");
         PreferencesManager.on("change", "uppercaseColors", function () {
@@ -193,7 +193,7 @@ define(function (require, exports, module) {
         var hueColor    = "hsl(" + this._hsv.h + ", 100%, 50%)";
         this._updateColorTypeRadioButtons(colorObject.getFormat());
         this.$colorValue.val(colorValue);
-        this.$currentColor.css("background-color", checkSetFormat(colorValue,"toStr"));
+        this.$currentColor.css("background-color", checkSetFormat(colorValue,true));
         this.$selection.css("background-color", hueColor);
         this.$hueBase.css("background-color", hueColor);
 
@@ -339,6 +339,10 @@ define(function (require, exports, module) {
     ColorEditor.prototype._normalizeColorString = function (color) {
         var normalizedColor = color;
 
+        // Convert from 0x notation into hex format string
+        if (color.match(/^0x[0-9a-fA-F]{6}/)) {
+            return color.replace("0x","#") || color;
+        }
         // Convert 6-digit hex to 3-digit hex as TinyColor (#ffaacc -> #fac)
         if (color.match(/^#[0-9a-fA-F]{6}/)) {
             return tinycolor(color).toString();
@@ -365,8 +369,7 @@ define(function (require, exports, module) {
         // TinyColor actually generates to see if it's different. If so, then we assume the color
         // was incomplete to begin with.
         if (newColorOk) {
-            var colorStr = newColor.replace("0x","#") || newColor;
-            newColorOk = (newColorObj.toString() === this._normalizeColorString(colorStr));
+            newColorOk = (newColorObj.toString() === this._normalizeColorString(newColor));
         }
 
         // Restore to the previous valid color if the new color is invalid or incomplete.
