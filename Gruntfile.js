@@ -129,7 +129,7 @@ module.exports = function (grunt) {
                             'keymap/{,*/}*',
                             'lib/{,*/}*',
                             'mode/{,*/}*',
-                            'theme/{,*/}*',
+                            'theme/{,*/}*'
                         ]
                     },
                     {
@@ -149,7 +149,7 @@ module.exports = function (grunt) {
                 force: true,
                 files: false
             },
-            src: ['dist/**/*'],
+            src: ['dist/**/*']
         },
         less: {
             dist: {
