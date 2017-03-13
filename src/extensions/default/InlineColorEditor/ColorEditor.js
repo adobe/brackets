@@ -129,8 +129,10 @@ define(function (require, exports, module) {
         // Attach event listeners to main UI elements
         this._addListeners();
 
-        this._commitColor(color);
+        // Initially selected color
         this.$originalColor.css("background-color", checkSetFormat(this._originalColor));
+        
+        this._commitColor(color);   
     }
 
     /**
