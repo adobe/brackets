@@ -45,13 +45,13 @@ define(function (require, exports, module) {
      * Convert 0x notation into hex6 format for tinycolor
      * compatibility: ("0xFFAACC" => "#FFFFFF")
      */
-    function color0xToHex(color,toStr){
+    function color0xToHex(color,convertToStr){
         var format0xToHexColor = color.replace("0x","#");
         var hexColor = tinycolor(format0xToHexColor);
         hexColor._format = "0x";
 
-        if(toStr !== null){
-            hexColor.toString();
+        if(convertToStr){
+            return hexColor.toString();
         }
         return hexColor;
     }
@@ -60,13 +60,11 @@ define(function (require, exports, module) {
         return color.toHexString().replace("#","0x");
     }
 
-    function checkSetFormat(color,toStr){
-        if((/^0x/).test(color)){
-            var colorRes = color0xToHex(color,toStr);
-            return colorRes;
-        }else{
-            return tinycolor(color);
+    function checkSetFormat(color,convertToStr){
+        if ((/^0x/).test(color)) {
+            return color0xToHex(color,convertToStr);
         }
+        return tinycolor(color);
     }
 
     /**
