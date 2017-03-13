@@ -325,6 +325,11 @@ define(function (require, exports, module) {
         function hasLengthInPixels(args) {
             return (args.length > 1 && args[1].indexOf("px") > 0);
         }
+        
+        // Ensures that input is in usable hex format
+            function ensureHexFormat(str) {
+                return (/^0x/).test(str) ? str.replace("0x","#") : str;
+            }
 
         // Normalizes px color stops to %
         function normalizeGradientExpressionForQuickview(expression) {
@@ -401,15 +406,11 @@ define(function (require, exports, module) {
             } else if (pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
                 var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]); 
-                
-                if ((/^0x/).test(previewCSS)) {
-                   previewCSS = previewCSS.replace("0x","#");
-                };
 
                 // normalize the arguments to something that we can display to the user
                 // NOTE: we need both the div and the popover's _previewCSS member
                 //          (used by unit tests) to match so normalize the css for both
-                previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
+                previewCSS = normalizeGradientExpressionForQuickview(ensureHexFormat(previewCSS));
 
                 var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" + "</div>";
                 var startPos = {line: pos.line, ch: match.index},

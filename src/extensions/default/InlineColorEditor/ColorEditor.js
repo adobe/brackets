@@ -45,24 +45,23 @@ define(function (require, exports, module) {
      * Convert 0x notation into hex6 format for tinycolor
      * compatibility: ("0xFFAACC" => "#FFFFFF")
      */
-    function color0xToHex(color,convertToStr){
-        var format0xToHexColor = color.replace("0x","#");
-        var hexColor = tinycolor(format0xToHexColor);
+    function as0xString(color) {
+        return color.toHexString().replace("#", "0x");
+    }
+    
+    function _0xColorToHex(color, convertToStr) {
+        var hexColor = tinycolor(color.replace("0x", "#"));
         hexColor._format = "0x";
 
-        if(convertToStr){
+        if (convertToStr) {
             return hexColor.toString();
         }
         return hexColor;
     }
 
-    function as0xString(color){
-        return color.toHexString().replace("#","0x");
-    }
-
-    function checkSetFormat(color,convertToStr){
+    function checkSetFormat(color, convertToStr) {
         if ((/^0x/).test(color)) {
-            return color0xToHex(color,convertToStr);
+            return _0xColorToHex(color, convertToStr);
         }
         return tinycolor(color);
     }
@@ -193,7 +192,7 @@ define(function (require, exports, module) {
         var hueColor    = "hsl(" + this._hsv.h + ", 100%, 50%)";
         this._updateColorTypeRadioButtons(colorObject.getFormat());
         this.$colorValue.val(colorValue);
-        this.$currentColor.css("background-color", checkSetFormat(colorValue,true));
+        this.$currentColor.css("background-color", checkSetFormat(colorValue, true));
         this.$selection.css("background-color", hueColor);
         this.$hueBase.css("background-color", hueColor);
 
@@ -339,10 +338,6 @@ define(function (require, exports, module) {
     ColorEditor.prototype._normalizeColorString = function (color) {
         var normalizedColor = color;
 
-        // Convert from 0x notation into hex format string
-        if (color.match(/^0x[0-9a-fA-F]{6}/)) {
-            return color.replace("0x","#") || color;
-        }
         // Convert 6-digit hex to 3-digit hex as TinyColor (#ffaacc -> #fac)
         if (color.match(/^#[0-9a-fA-F]{6}/)) {
             return tinycolor(color).toString();
@@ -369,7 +364,7 @@ define(function (require, exports, module) {
         // TinyColor actually generates to see if it's different. If so, then we assume the color
         // was incomplete to begin with.
         if (newColorOk) {
-            newColorOk = (newColorObj.toString() === this._normalizeColorString(newColor));
+            newColorOk = (newColorObj.toString() === this._normalizeColorString(checkSetFormat(newColor, true)));
         }
 
         // Restore to the previous valid color if the new color is invalid or incomplete.
@@ -404,7 +399,7 @@ define(function (require, exports, module) {
 
         // Create swatches
         swatches.forEach(function (swatch) {
-            var swatchValue = swatch.value.replace("0x","#") || swatch.value;
+            var swatchValue = checkSetFormat(swatch.value, true);
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
 
@@ -582,9 +577,8 @@ define(function (require, exports, module) {
      */
     ColorEditor.prototype.undo = function () {
         if (this._originalColor.toString() !== this._color.toString()) {
-            var curColor = this._color.toString();
             this._commitColor(this._originalColor, true);
-            this._redoColor = curColor;
+            this._redoColor = this._color.toString();
         }
     };
 
