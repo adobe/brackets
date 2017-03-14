@@ -21,7 +21,7 @@
  *
  */
 
-/*global describe, it, expect, runs, beforeFirst, afterLast */
+/*global describe, it, expect, runs, beforeFirst, afterLast, waitsForDone*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -298,6 +298,26 @@ define(function (require, exports, module) {
                 // verify all dropdowns are closed
                 isOpen = cmenu.isOpen();
                 expect(isOpen).toBe(false);
+            });
+            
+            it("it should disable context menu items when file doesn't exist ", function () {
+                // runs create a new file
+                runs(function () {
+                    var promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+                
+                runs(function () {
+                    // opens context menu
+                    var cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+                    cmenu.open({pageX: 0, pageY: 0});
+                    // checks that all the items are disabled
+                    var notVisible = [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
+                    notVisible.forEach(function (item) {
+                       expect(CommandManager.get(item).getEnabled()).toBe(false); 
+                    });
+                });
+                
             });
         });
     });
