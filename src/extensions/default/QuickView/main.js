@@ -327,9 +327,9 @@ define(function (require, exports, module) {
         }
         
         // Ensures that input is in usable hex format
-            function ensureHexFormat(str) {
-                return (/^0x/).test(str) ? str.replace("0x","#") : str;
-            }
+        function ensureHexFormat(str) {
+            return (/^0x/).test(str) ? str.replace("0x","#") : str;
+        }
 
         // Normalizes px color stops to %
         function normalizeGradientExpressionForQuickview(expression) {
