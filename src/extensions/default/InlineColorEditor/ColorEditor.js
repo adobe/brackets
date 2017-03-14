@@ -44,15 +44,30 @@ define(function (require, exports, module) {
     /**
      * Convert 0x notation into hex6 format for tinycolor
      * compatibility: ("0xFFAACC" => "#FFFFFF")
+     * @param {string} str - String to ensure hex format for
+     * @returns {string} - str in hex format
      */
     function ensureHexFormat(str) {
         return (/^0x/).test(str) ? str.replace("0x","#") : str;
     }
 
+    /**
+     * Converts a color to a 0x-prefixed string
+     * @param {tinycolor} color - color to convert
+     * @returns {string} - color as 0x-prefixed string
+     */
     function as0xString(color) {
         return color.toHexString().replace("#", "0x");
     }
 
+    /**
+     * Converts 0x-prefixed color to hex
+     * @param {string} color - Color to convert
+     * @param {boolean} convertToString - true if color should 
+     *                                    be returned as string
+     * @returns {tinycolor|string} - Hex color as a Tinycolor object
+     *                               or a hex string
+     */
     function _0xColorToHex(color, convertToStr) {
         var hexColor = tinycolor(color.replace("0x", "#"));
         hexColor._format = "0x";
@@ -63,6 +78,14 @@ define(function (require, exports, module) {
         return hexColor;
     }
 
+    /**
+     * Ensures that a string is in Tinycolor supported format
+     * @param {string} color - Color to check the format for
+     * @param {boolean} convertToString - true if color should 
+     *                                    be returned as string
+     * @returns {tinycolor|string} - Color as a Tinycolor object
+     *                               or a hex string
+     */
     function checkSetFormat(color, convertToStr) {
         if ((/^0x/).test(color)) {
             return _0xColorToHex(color, convertToStr);
