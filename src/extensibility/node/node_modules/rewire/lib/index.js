@@ -11,11 +11,6 @@ function rewire(filename) {
     return rewireModule(module.parent, filename);
 }
 
-rewire.bundlers = {
-    browserify: require("./bundlers/browserify/browserifyMiddleware.js"),
-    webpack: require("./bundlers/webpack/configureWebpack.js")
-};
-
 module.exports = rewire;
 
 delete require.cache[__filename];   // deleting self from module cache so the parent module is always up to date

@@ -2,6 +2,12 @@
 
 For all your node touching needs.
 
+## Installing
+
+```bash
+npm install touch
+```
+
 ## CLI Usage:
 
 See `man touch`

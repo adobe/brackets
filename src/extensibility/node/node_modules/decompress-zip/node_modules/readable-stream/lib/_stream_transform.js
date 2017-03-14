@@ -65,13 +65,12 @@
 module.exports = Transform;
 
 var Duplex = require('./_stream_duplex');
-var util = require('util');
-if (!util.isUndefined) {
-  var utilIs = require('core-util-is');
-  for (var f in utilIs) {
-    util[f] = utilIs[f];
-  }
-}
+
+/*<replacement>*/
+var util = require('core-util-is');
+util.inherits = require('inherits');
+/*</replacement>*/
+
 util.inherits(Transform, Duplex);
 
 

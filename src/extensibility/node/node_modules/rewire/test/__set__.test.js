@@ -2,7 +2,6 @@ var expect = require("expect.js"),
     __set__ = require("../lib/__set__.js"),
     vm = require("vm"),
 
-    expectReferenceError = expectError(ReferenceError),
     expectTypeError = expectError(TypeError);
 
 function expectError(ErrConstructor) {
@@ -12,16 +11,21 @@ function expectError(ErrConstructor) {
 }
 
 describe("__set__", function () {
-    var moduleFake;
+    var moduleFake,
+        undo;
 
     beforeEach(function () {
         moduleFake = {
+            module: {
+                exports: {}
+            },
             myValue: 0,    // copy by value
             myReference: {}       // copy by reference
         };
 
         vm.runInNewContext(
-            "__set__ = " + __set__.toString() + "; " +
+            //__set__ requires __set__ to be present on module.exports
+            "__set__ = module.exports.__set__ = " + __set__.toString() + "; " +
             "getValue = function () { return myValue; }; " +
             "getReference = function () { return myReference; }; ",
             moduleFake
@@ -69,8 +73,31 @@ describe("__set__", function () {
         expect(moduleFake.getValue()).to.be(2);
         expect(moduleFake.getReference()).to.be(newObj);
     });
-    it("should return undefined", function () {
-        expect(moduleFake.__set__("myValue", 4)).to.be(undefined);
+    it("should return a function that when invoked reverts to the values before set was called", function () {
+        undo = moduleFake.__set__("myValue", 4);
+        expect(undo).to.be.a("function");
+        expect(moduleFake.getValue()).to.be(4);
+        undo();
+        expect(moduleFake.getValue()).to.be(0);
+    });
+    it("should be able to revert when calling with an env-obj", function () {
+        var newObj = { hello: "hello" };
+
+        expect(moduleFake.getValue()).to.be(0);
+        expect(moduleFake.getReference()).to.eql({});
+
+        undo = moduleFake.__set__({
+            myValue: 2,
+            myReference: newObj
+        });
+
+        expect(moduleFake.getValue()).to.be(2);
+        expect(moduleFake.getReference()).to.be(newObj);
+
+        undo();
+
+        expect(moduleFake.getValue()).to.be(0);
+        expect(moduleFake.getReference()).to.eql({});
     });
     it("should throw a TypeError when passing misfitting params", function () {
         expect(function () {

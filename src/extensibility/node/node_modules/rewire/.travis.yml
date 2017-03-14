@@ -2,6 +2,11 @@ language: node_js
 node_js:
   - "0.8"
   - "0.10"
+  - "0.11"
 
 script:
   - npm test
+after_success:
+  - npm install -g istanbul
+  - npm install coveralls
+  - istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage

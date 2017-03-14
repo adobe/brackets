@@ -1,3 +1,3 @@
-fs = require "fs"
+﻿fs = require "fs"
 
 exports.readFileSync = () -> fs.readFileSync()
