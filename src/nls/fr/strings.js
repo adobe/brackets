@@ -217,13 +217,13 @@ define({
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
 
     // Quick Edit
-	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "Fonction Édition rapide non disponible pour la position actuelle du curseur",
-	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "Édition rapide CSS : placez le curseur sur un seul nom de classe",
-	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "Édition rapide CSS : attribut de classe incomplet",
-	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "Édition rapide CSS : attribut d’ID incomplet",
-	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "Édition rapide CSS : placez le curseur dans la balise, la classe ou l’ID",
-	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "Édition rapide des fonctions de temporisation CSS : syntaxe incorrecte",
-	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "Édition rapide JS : placez le curseur dans le nom de fonction",
+	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "Fonction Edition rapide non disponible pour la position actuelle du curseur",
+	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "Edition rapide CSS : placez le curseur sur un seul nom de classe",
+	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "Edition rapide CSS : attribut de classe incomplet",
+	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "Edition rapide CSS : attribut d’ID incomplet",
+	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "Edition rapide CSS : placez le curseur dans la balise, la classe ou l’ID",
+	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "Edition rapide des fonctions de temporisation CSS : syntaxe incorrecte",
+	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "Edition rapide JS : placez le curseur dans le nom de fonction",
 
     // Quick Docs
 	"ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND": "Fonction Documentation rapide non disponible pour la position actuelle du curseur",
@@ -407,7 +407,7 @@ define({
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
 	"CMD_GOTO_FIRST_PROBLEM": "Accéder au premier problème",
-	"CMD_TOGGLE_QUICK_EDIT": "Édition rapide",
+	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
@@ -434,7 +434,7 @@ define({
 	"CMD_HEALTH_DATA_STATISTICS": "Rapport d’intégrité",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
-	"CMD_ABOUT": "À propos de {APP_TITLE}",
+	"CMD_ABOUT": "A propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
 	"CMD_OPEN_KEYMAP": "Ouvrir le mappage de touches utilisateur",
 
@@ -446,7 +446,7 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
-	"ABOUT": "À propos",
+	"ABOUT": "A propos",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Version {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_BUILD_TIMESTAMP": "Horodatage de la version : ",
@@ -660,7 +660,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
-	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Édition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
+	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
