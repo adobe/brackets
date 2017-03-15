@@ -1146,14 +1146,14 @@ a[href^="http"] {
             right: 15px;
         }
         .search {
-            background: @bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+            background: @bc-input-bg url("images/topcoat-search-20.svg") 2px 2px no-repeat;
             float: right;
             margin: 0;
             padding-left: 27px;
             padding-right: 20px;
 
             .dark & {
-                background: @dark-bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+                background: @dark-bc-input-bg url("images/topcoat-search-20.svg") 2px 2px no-repeat;
             }
         }
         .search-clear {
@@ -1181,6 +1181,34 @@ a[href^="http"] {
             opacity: 0.7;
             &:disabled {
                 opacity: 0.3;
+            }
+        }
+        .sort-extensions {
+            float: left;
+            margin-right: 10px;
+            width: auto;
+            padding-right: 18px;
+            border-bottom-left-radius: 0px;
+            border-top-left-radius: 0px;
+            border-color: #707070;
+            border-left: 0px;
+        }
+        .ext-sort-group {
+            float: left;
+        }
+        #sort-attributes-icon {
+            width: 15px;
+            height: 14px;
+            float:left;
+            padding: 6px;
+            border-bottom-left-radius: 3px;
+            border-top-left-radius: 3px;
+            border: 1px solid #707070;
+            box-shadow: inset 0 1px rgba(255, 255, 255, 0.12);
+            background: @bc-btn-bg url("images/sort-by-attributes.svg") no-repeat right 5px center;
+            .dark & {
+                box-shadow: inset 0 1px rgba(255, 255, 255, 0.06);
+                background-color: @dark-bc-btn-bg;
             }
         }
     }

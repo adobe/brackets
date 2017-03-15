@@ -153,7 +153,8 @@ define({
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
-	"BUTTON_REPLACE_ALL": "Traiter par lots\u2026",
+	"BUTTON_REPLACE_ALL": "Remplacer tout",
+	"BUTTON_REPLACE_BATCH": "Traiter par lots\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "Remplacer\u2026",
 	"BUTTON_REPLACE": "Remplacer",
 	"BUTTON_NEXT": "\u25B6",
@@ -209,6 +210,7 @@ define({
 	"FILE_FILTER_DIALOG": "Modifier le jeu d’exclusion",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
 	"FILTER_NAME_PLACEHOLDER": "Nommer ce jeu d’exclusion (facultatif)",
+	"FILTER_NAME_REMAINING": "{0} characters remaining",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
@@ -418,6 +420,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "Afficher dans l’Explorateur",
 	"CMD_SHOW_IN_FINDER": "Afficher dans le Finder",
 	"CMD_SHOW_IN_OS": "Afficher dans le SE",
+	"CMD_SWITCH_PANE_FOCUS": "Switch Pane Focus",
 
     // Help menu commands
 	"HELP_MENU": "Aide",
@@ -501,6 +504,7 @@ define({
 	"INSTALL_CANCELED": "Installation annulée.",
 	"VIEW_COMPLETE_DESCRIPTION": "Voir la description complète",
 	"VIEW_TRUNCATED_DESCRIPTION": "Voir la description tronquée",
+	"SORT_EXTENSION_METHOD": "Sort Extensions using downloadCount or publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
 	"MISSING_PACKAGE_JSON": "Le pack ne contient pas de fichier package.json.",
@@ -511,6 +515,7 @@ define({
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
 	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité {APP_NAME} ({0}) n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {0} ne peut pas contenir les mots ({1}).",
+	"NPM_INSTALL_FAILED": "npm install command failed: {0}",
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"EXTENSION_ALREADY_INSTALLED": "L’installation de ce pack remplacera une extension installée précédemment. Voulez-vous remplacer l’extension installée ?",
@@ -577,6 +582,8 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
+	"EXTENSIONS_LAST_UPDATED": "Dernières mises à jour",
+	"EXTENSIONS_DOWNLOADS": "Téléchargements",
 
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
 	"INLINE_EDITOR_HIDDEN_MATCHES": "Tous les résultats sont réduits. Développez les fichiers dans la liste de droite pour voir le détail.",
@@ -787,5 +794,6 @@ define({
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut",
 	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}",
 	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
-	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents"
+	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
+	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port on which WebSocket Server runs for Live Preview"
 });

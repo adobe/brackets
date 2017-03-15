@@ -188,7 +188,8 @@
         "version": "0.0.1",
         "published": "2014-08-31T04:05:47.778Z"
       }
-    ]
+    ],
+    "totalDownloads": 80
   },
   "theme-2": {
     "metadata": {
@@ -205,6 +206,7 @@
         "version": "1.0.1",
         "published": "2014-07-31T04:05:47.778Z"
       }
-    ]
+    ],
+    "totalDownloads": 99
   }
 }

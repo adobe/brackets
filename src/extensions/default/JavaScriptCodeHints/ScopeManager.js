@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         Strings             = brackets.getModule("strings"),
-        StringUtils         = brackets.getModule("utils/StringUtils");
+        StringUtils         = brackets.getModule("utils/StringUtils"),
+        InMemoryFile        = brackets.getModule("document/InMemoryFile");
 
     var HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
@@ -1168,6 +1169,15 @@ define(function (require, exports, module) {
 
             ensurePreferences();
             deferredPreferences.done(function () {
+                if (file instanceof InMemoryFile) {
+                    initTernServer(pr, []);
+                    var hintsPromise = primePump(path);
+                    hintsPromise.done(function () {
+                        addFilesDeferred.resolveWith(null, [_ternWorker]);
+                    });
+                    return;
+                }
+
                 FileSystem.resolve(dir, function (err, directory) {
                     if (err) {
                         console.error("Error resolving", dir);

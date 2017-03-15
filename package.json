@@ -20,6 +20,7 @@
         "fs-extra": "2.0.0",
         "lodash": "4.17.4",
         "npm": "3.10.9",
+        "opn": "4.0.2",
         "request": "2.79.0",
         "semver": "5.3.0",
         "temp": "0.8.3",
@@ -28,6 +29,7 @@
     "devDependencies": {
         "glob": "7.1.1",
         "grunt": "0.4.5",
+        "husky": "0.13.2",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
         "grunt-cli": "0.1.9",
@@ -55,8 +57,10 @@
         "webpack": "2.2.1"
     },
     "scripts": {
+        "prepush": "npm run eslint",
         "postinstall": "grunt install",
-        "test": "grunt cla-check-pull test"
+        "test": "grunt test cla-check-pull",
+        "eslint": "grunt eslint"
     },
     "licenses": [
         {

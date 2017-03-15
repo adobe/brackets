@@ -376,5 +376,18 @@
     window.addEventListener('load', function () {
         ProtocolManager.enable();
     });
+    
+    /**
+    * Sends the message containing tagID which is being clicked
+    * to the editor in order to change the cursor position to
+    * the HTML tag corresponding to the clicked element.
+    */
+    function onDocumentClick(event) {
+        var element = event.target;
+        if (element && element.hasAttribute('data-brackets-id')) {
+            MessageBroker.send({"tagId": element.getAttribute('data-brackets-id')});
+        }
+    }
+    window.document.addEventListener("click", onDocumentClick);
 
 }(this));

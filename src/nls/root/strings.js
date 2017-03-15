@@ -210,6 +210,7 @@ define({
     "FILE_FILTER_DIALOG"                : "Edit Exclusion Set",
     "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILTER_NAME_PLACEHOLDER"           : "Name this exclusion set (optional)",
+    "FILTER_NAME_REMAINING"             : "{0} characters remaining",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
     "FILTER_COUNTING_FILES"             : "Counting files\u2026",
     "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
@@ -503,6 +504,7 @@ define({
     "INSTALL_CANCELED"                     : "Installation canceled.",
     "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
     "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
+    "SORT_EXTENSION_METHOD"                : "Sort Extensions using downloadCount or publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
     "MISSING_PACKAGE_JSON"                 : "The package has no package.json file.",
@@ -580,6 +582,8 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+    "EXTENSIONS_LAST_UPDATED"              : "Last Updated",
+    "EXTENSIONS_DOWNLOADS"                 : "Downloads",
 
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
@@ -647,6 +651,7 @@ define({
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
+    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex (0x) Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
 
