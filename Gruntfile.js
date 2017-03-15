@@ -341,7 +341,7 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config', 'less', 'npm-install-source', 'pack-web-dependencies']);
+    grunt.registerTask('install', ['write-config:dev', 'less', 'npm-install-source', 'pack-web-dependencies']);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
@@ -349,10 +349,11 @@ module.exports = function (grunt) {
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
-    grunt.registerTask('set-release', ['update-release-number', 'write-config']);
+    grunt.registerTask('set-release', ['update-release-number', 'write-config:dev']);
 
     // task: build
     grunt.registerTask('build', [
+        'write-config:dist',
         'eslint:src',
         'jasmine',
         'clean',
