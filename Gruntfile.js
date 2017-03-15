@@ -341,7 +341,7 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config:dev', 'less', 'npm-install-source']);
+    grunt.registerTask('install', ['write-config:dev', 'less', 'npm-install-source', 'pack-web-dependencies']);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
