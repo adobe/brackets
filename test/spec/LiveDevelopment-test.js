@@ -1103,7 +1103,9 @@ define(function (require, exports, module) {
             it("should reload the page when editing a non-live document", function () {
                 var promise,
                     jsdoc,
-                    loadEventPromise;
+                    loadEventPromise,
+                    liveDoc,
+                    liveResponse;
 
                 runs(function () {
                     // Setup reload spy
@@ -1157,6 +1159,17 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(Inspector.Page.reload.callCount).toEqual(2);
+                });
+
+                waitForLiveDoc(tempDir + "/simple1.html", function (doc) {
+                    liveDoc = doc;
+                    liveResponse = doc.getResponseData();
+                });
+
+                runs(function () {
+                    // Make sure a reload without an editor still sends back instrumented HTML
+                    expect(liveDoc.editor).toBe(null);
+                    expect(liveResponse.body.indexOf("data-brackets-id")).not.toBe(-1);
                 });
             });
 

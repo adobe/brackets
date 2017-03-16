@@ -114,10 +114,16 @@ define(function (require, exports, module) {
         }
 
         // Helper function for testing cursor position
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
         function expectCursorAt(pos) {
             var selection = testEditor.getSelection();
-            expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
+            expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
+            expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
 
         // Helper function to

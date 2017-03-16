@@ -503,7 +503,7 @@ define(function (require, exports, module) {
                 },
                 DOM.ins({
                     className: "jstree-icon"
-                }),
+                })
             ];
 
             var thickness = _createThickness(this.props.depth);

@@ -153,7 +153,8 @@ define({
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
-	"BUTTON_REPLACE_ALL": "Traiter par lots\u2026",
+	"BUTTON_REPLACE_ALL": "Remplacer tout",
+	"BUTTON_REPLACE_BATCH": "Traiter par lots\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "Remplacer\u2026",
 	"BUTTON_REPLACE": "Remplacer",
 	"BUTTON_NEXT": "\u25B6",
@@ -209,19 +210,20 @@ define({
 	"FILE_FILTER_DIALOG": "Modifier le jeu d’exclusion",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
 	"FILTER_NAME_PLACEHOLDER": "Nommer ce jeu d’exclusion (facultatif)",
+	"FILTER_NAME_REMAINING": "{0} characters remaining",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
 
     // Quick Edit
-	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "Fonction Edition rapide non disponible pour la position actuelle du curseur",
-	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "Edition rapide CSS : placez le curseur sur un seul nom de classe",
-	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "Edition rapide CSS : attribut de classe incomplet",
-	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "Edition rapide CSS : attribut d’ID incomplet",
-	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "Edition rapide CSS : placez le curseur dans la balise, la classe ou l’ID",
-	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "Edition rapide des fonctions de temporisation CSS : syntaxe incorrecte",
-	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "Edition rapide JS : placez le curseur dans le nom de fonction",
+	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "Fonction Édition rapide non disponible pour la position actuelle du curseur",
+	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "Édition rapide CSS : placez le curseur sur un seul nom de classe",
+	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "Édition rapide CSS : attribut de classe incomplet",
+	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "Édition rapide CSS : attribut d’ID incomplet",
+	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "Édition rapide CSS : placez le curseur dans la balise, la classe ou l’ID",
+	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "Édition rapide des fonctions de temporisation CSS : syntaxe incorrecte",
+	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "Édition rapide JS : placez le curseur dans le nom de fonction",
 
     // Quick Docs
 	"ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND": "Fonction Documentation rapide non disponible pour la position actuelle du curseur",
@@ -405,7 +407,7 @@ define({
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
 	"CMD_GOTO_FIRST_PROBLEM": "Accéder au premier problème",
-	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
+	"CMD_TOGGLE_QUICK_EDIT": "Édition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
@@ -418,6 +420,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "Afficher dans l’Explorateur",
 	"CMD_SHOW_IN_FINDER": "Afficher dans le Finder",
 	"CMD_SHOW_IN_OS": "Afficher dans le SE",
+	"CMD_SWITCH_PANE_FOCUS": "Switch Pane Focus",
 
     // Help menu commands
 	"HELP_MENU": "Aide",
@@ -431,7 +434,7 @@ define({
 	"CMD_HEALTH_DATA_STATISTICS": "Rapport d’intégrité",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
-	"CMD_ABOUT": "A propos de {APP_TITLE}",
+	"CMD_ABOUT": "À propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
 	"CMD_OPEN_KEYMAP": "Ouvrir le mappage de touches utilisateur",
 
@@ -443,7 +446,7 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
-	"ABOUT": "A propos",
+	"ABOUT": "À propos",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Version {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_BUILD_TIMESTAMP": "Horodatage de la version : ",
@@ -501,6 +504,7 @@ define({
 	"INSTALL_CANCELED": "Installation annulée.",
 	"VIEW_COMPLETE_DESCRIPTION": "Voir la description complète",
 	"VIEW_TRUNCATED_DESCRIPTION": "Voir la description tronquée",
+	"SORT_EXTENSION_METHOD": "Sort Extensions using downloadCount or publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
 	"MISSING_PACKAGE_JSON": "Le pack ne contient pas de fichier package.json.",
@@ -511,6 +515,7 @@ define({
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
 	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité {APP_NAME} ({0}) n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {0} ne peut pas contenir les mots ({1}).",
+	"NPM_INSTALL_FAILED": "npm install command failed: {0}",
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"EXTENSION_ALREADY_INSTALLED": "L’installation de ce pack remplacera une extension installée précédemment. Voulez-vous remplacer l’extension installée ?",
@@ -577,6 +582,8 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
+	"EXTENSIONS_LAST_UPDATED": "Dernières mises à jour",
+	"EXTENSIONS_DOWNLOADS": "Téléchargements",
 
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
 	"INLINE_EDITOR_HIDDEN_MATCHES": "Tous les résultats sont réduits. Développez les fichiers dans la liste de droite pour voir le détail.",
@@ -652,7 +659,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
-	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
+	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Édition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
@@ -787,5 +794,6 @@ define({
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut",
 	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}",
 	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
-	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents"
+	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
+	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port on which WebSocket Server runs for Live Preview"
 });

@@ -41,7 +41,8 @@ define(function (require, exports, module) {
         KeyEvent                    = require("utils/KeyEvent"),
         ExtensionManager            = require("extensibility/ExtensionManager"),
         ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
+        ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel"),
+        PreferencesManager          = require("preferences/PreferencesManager");
 
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
@@ -372,6 +373,11 @@ define(function (require, exports, module) {
             if (models[_activeTabIndex]) {
                 $modalDlg.scrollTop(models[_activeTabIndex].scrollPos || 0);
                 clearSearch();
+                if (_activeTabIndex === 2) {
+                    $(".ext-sort-group").hide();
+                } else {
+                    $(".ext-sort-group").show();
+                }
             }
         }
 
@@ -453,13 +459,27 @@ define(function (require, exports, module) {
             });
 
             // Filter the views when the user types in the search field.
+            var searchTimeoutID;
             $dlg.on("input", ".search", function (e) {
+                clearTimeout(searchTimeoutID);
                 var query = $(this).val();
-                views.forEach(function (view) {
-                    view.filter(query);
+                searchTimeoutID = setTimeout(function () {
+                    views[_activeTabIndex].filter(query);
                     $modalDlg.scrollTop(0);
-                });
+                }, 200);
             }).on("click", ".search-clear", clearSearch);
+            
+            // Sort the extension list based on the current selected sorting criteria
+            $dlg.on("change", ".sort-extensions", function (e) {
+                var sortBy = $(this).val();
+                PreferencesManager.set("extensions.sort", sortBy);
+                models.forEach(function (model, index) {
+                    if (index <= 1) {
+                        model._setSortedExtensionList(ExtensionManager.extensions, index === 1);
+                        views[index].filter($(".search").val());
+                    }
+                });
+            });
 
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {
@@ -479,6 +499,15 @@ define(function (require, exports, module) {
                 $dlg.find(".nav-tabs a.installed").tab("show");
             } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
+            }
+            // If activeTab was explicitly selected by user,
+            // then check for the selection
+            // Or if there was an update available since activeTab.length would be 0,
+            // then check for updatesAvailable class in toolbar-extension-manager
+            if (($activeTab.length && $activeTab.hasClass("installed")) || (!$activeTab.length && $("#toolbar-extension-manager").hasClass('updatesAvailable'))) {
+                $(".ext-sort-group").hide();
+            } else {
+                $(".ext-sort-group").show();
             }
         });
 

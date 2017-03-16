@@ -38,7 +38,7 @@ require.config({
     map: {
         "*": {
             "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
-            "thirdparty/react":	"react"
+            "thirdparty/react":       "react"
         }
     }
 });

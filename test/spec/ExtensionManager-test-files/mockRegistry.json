@@ -20,7 +20,8 @@
         "published": "2013-04-10T18:21:27.058Z",
         "brackets": ">0.20.0"
       }
-    ]
+    ],
+    "totalDownloads": 10
   },
   "long-desc-extension": {
     "metadata": {
@@ -42,7 +43,8 @@
         "version": "1.0.0",
         "published": "2013-04-10T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 184
   },
   "mock-extension-1": {
     "metadata": {
@@ -65,7 +67,8 @@
         "version": "1.0.0",
         "published": "2013-04-11T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 190
   },
   "mock-extension-2": {
     "metadata": {
@@ -79,7 +82,8 @@
         "version": "1.0.0",
         "published": "2013-04-11T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 88
   },
   "mock-extension-3": {
     "metadata": {
@@ -93,7 +97,8 @@
         "version": "1.0.0",
         "published": "2013-04-11T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 34
   },
   "mock-extension-4": {
     "metadata": {
@@ -107,7 +112,8 @@
         "version": "1.0.0",
         "published": "2013-04-11T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 20
   },
   "malicious-script-extension": {
     "metadata": {
@@ -122,7 +128,8 @@
         "version": "1.0.0",
         "published": "2013-04-10T18:26:24.956Z"
       }
-    ]
+    ],
+    "totalDownloads": 781
   },
   "select-parent": {
     "metadata": {
@@ -147,7 +154,8 @@
         "published": "2013-04-10T18:26:47.580Z",
         "brackets": ">0.22.0"
       }
-    ]
+    ],
+    "totalDownloads": 101
   },
   "basic-valid-extension": {
     "metadata": {
@@ -165,7 +173,8 @@
         "version": "3.0.0",
         "published": "2013-04-10T18:29:11.907Z"
       }
-    ]
+    ],
+    "totalDownloads": 130
   },
   "everyscrub": {
     "metadata": {
@@ -179,6 +188,7 @@
         "version": "0.23.0",
         "published": "2013-04-11T17:22:38.033Z"
       }
-    ]
+    ],
+    "totalDownloads": 101
   }
 }

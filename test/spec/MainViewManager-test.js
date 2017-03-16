@@ -448,6 +448,37 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
                 });
             });
+            it("should show the file instead of flipping if file is already open", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerFlipViewBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.js");
+                });
+            });
             it("should merge two panes to the right", function () {
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
@@ -534,6 +565,34 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
+                });
+            });
+            it("should switch pane when Commands.CMD_SWITCH_PANE_FOCUS is called", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
+                });
+                runs(function () {
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setLayoutScheme(2, 1);
+                });
+                runs(function () {
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
+                });
+                runs(function () {
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
             });
             it("should activate pane when editor gains focus", function () {

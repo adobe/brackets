@@ -38,7 +38,7 @@ require.config({
     },
     map: {
         "*": {
-            "thirdparty/react":	"react"
+            "thirdparty/react": "react"
         }
     }
 });

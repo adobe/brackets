@@ -222,6 +222,7 @@
     "white-space":                 {"values": ["normal", "nowrap", "pre", "pre-line", "pre-wrap", "inherit"]},
     "widows":                      {"values": ["inherit"]},
     "width":                       {"values": ["auto", "inherit"]},
+    "will-change":                 {"values": ["auto", "contents", "opacity", "scroll-position", "transform", "inherit", "initial", "unset"]},
     "word-break":                  {"values": ["normal", "break-all", "keep-all"]},
     "word-spacing":                {"values": ["normal", "inherit"]},
     "word-wrap":                   {"values": ["break-word", "normal"]},

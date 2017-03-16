@@ -54,9 +54,17 @@ module.exports = function (grunt) {
         delete packageJSON.devDependencies;
         delete packageJSON.scripts; // we don't want to run post-install scripts in dist folder
         common.writeJSON(grunt, "dist/package.json", packageJSON);
+        var packageJSON = grunt.file.readJSON("dist/package.json");
 
         var done = this.async();
         runNpmInstall("dist", function (err) {
+            return err ? done(false) : done();
+        });
+    });
+
+    grunt.registerTask("npm-install-src", "Install node_modules to the src folder", function () {
+        var done = this.async();
+        runNpmInstall("src", function (err) {
             return err ? done(false) : done();
         });
     });
@@ -79,5 +87,11 @@ module.exports = function (grunt) {
             });
         });
     });
+
+    grunt.registerTask(
+        "npm-install-source",
+        "Install node_modules for src folder and default extensions which have package.json defined",
+        ["npm-install-src", "copy:thirdparty", "npm-install-extensions"]
+    );
 
 };
