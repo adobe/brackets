@@ -348,11 +348,11 @@ define(function (require, exports, module) {
                     }
                     currentIndex = 0;
                 } else if (e.keyCode === KeyEvent.DOM_VK_DOWN) {
-                    currentIndex = (currentIndex + 1) % Math.min(maxCount, searchHistory.length);
+                    currentIndex = (currentIndex - 1 + Math.min(maxCount, searchHistory.length)) % Math.min(maxCount, searchHistory.length);
                     $("#find-what").val(searchHistory[currentIndex]);
                     self.trigger("queryChange");
                 } else if (e.keyCode === KeyEvent.DOM_VK_UP) {
-                    currentIndex = (currentIndex - 1 + maxCount) % Math.min(maxCount, searchHistory.length);
+                    currentIndex = (currentIndex + 1 + Math.min(maxCount, searchHistory.length)) % Math.min(maxCount, searchHistory.length);
                     $("#find-what").val(searchHistory[currentIndex]);
                     self.trigger("queryChange");
                 }
