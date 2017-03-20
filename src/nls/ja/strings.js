@@ -128,7 +128,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
-	"CONFIRM_DELETE_TITLE": "削除の確認",
+	"CONFIRM_DELETE_TITLE": "削除を確認",
 	"CONFIRM_FILE_DELETE": "ファイル <span class='dialog-filename'>{0}</span> を削除してもよろしいですか？",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
@@ -154,7 +154,7 @@ define({
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
 	"BUTTON_REPLACE_ALL": "すべて置換",
-	"BUTTON_REPLACE_BATCH": "バッチ\u2026",
+	"BUTTON_REPLACE_BATCH": "バッチ¥u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
 	"BUTTON_REPLACE": "置換",
 	"BUTTON_NEXT": "\u25B6",
@@ -210,7 +210,7 @@ define({
 	"FILE_FILTER_DIALOG": "除外セットを編集",
 	"FILE_FILTER_INSTRUCTIONS": "次の文字列やサブストリング、または<a href='{0}' title='{0}'>ワイルドカード</a>のいずれかに一致するファイルおよびフォルダーを除外します。各文字列を新しい行に入力してください。",
 	"FILTER_NAME_PLACEHOLDER": "この除外セットに名前を付ける (オプション)",
-	"FILTER_NAME_REMAINING": "{0} characters remaining",
+	"FILTER_NAME_REMAINING": "残り {0} 文字",
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
 	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
@@ -420,7 +420,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "エクスプローラーで表示",
 	"CMD_SHOW_IN_FINDER": "Finder で表示",
 	"CMD_SHOW_IN_OS": "OS で表示",
-	"CMD_SWITCH_PANE_FOCUS": "Switch Pane Focus",
+	"CMD_SWITCH_PANE_FOCUS": "ペインフォーカスの切り替え",
 
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
@@ -504,7 +504,7 @@ define({
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
 	"VIEW_COMPLETE_DESCRIPTION": "詳細な説明を表示",
 	"VIEW_TRUNCATED_DESCRIPTION": "省略された説明を表示",
-	"SORT_EXTENSION_METHOD": "Sort Extensions using downloadCount or publishedDate",
+	"SORT_EXTENSION_METHOD": "downloadCount または publishedDate を使用してエクステンションをソート",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
 	"MISSING_PACKAGE_JSON": "パッケージに package.json ファイルがありません。",
@@ -515,7 +515,7 @@ define({
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
 	"INVALID_BRACKETS_VERSION": "{APP_NAME} 互換文字列 {0} は無効です。",
 	"DISALLOWED_WORDS": "{1} は {0} フィールドでは使用できません。",
-	"NPM_INSTALL_FAILED": "npm install command failed: {0}",
+	"NPM_INSTALL_FAILED": "npm install コマンドに失敗しました : {0}",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"EXTENSION_ALREADY_INSTALLED": "このパッケージをインストールすると以前にインストールした拡張機能が上書きされます。古い拡張機能を上書きしますか？",
@@ -651,6 +651,7 @@ define({
 	"COLOR_EDITOR_RGBA_BUTTON_TIP": "RGBa 形式",
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "16 進形式",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
+	"COLOR_EDITOR_0X_BUTTON_TIP": "16 進数 (0x) 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
 	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
 
@@ -795,5 +796,5 @@ define({
 	"DESCRIPTION_PURE_CODING_SURFACE": "{APP_NAME} でコードのみモードを有効にし、その他すべての UI エレメントを非表示にするには true",
 	"DESCRIPTION_INDENT_LINE_COMMENT": "行コメントのインデントを有効にするには true",
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
-	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port on which WebSocket Server runs for Live Preview"
+	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "WebSocket サーバーがライブプレビューで実行するポート"
 });
