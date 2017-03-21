@@ -704,7 +704,8 @@ define(function (require, exports, module) {
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
-     * @param {boolean=} force Ignore CONTENTS_MODIFIED errors from the FileSystem
+     * @param {boolean=} force Ignore CONTENTS_MODIFIED errors from the FileSystem.
+     *     Note: for release 36, we always ignore these errors regardless of this flag.
      * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
@@ -760,7 +761,12 @@ define(function (require, exports, module) {
 
         function trySave() {
             // We don't want normalized line endings, so it's important to pass true to getText()
-            FileUtils.writeText(file, docToSave.getText(true), force)
+            // For release 36, always allow "blind writes" as we did before file watchers, to avoid
+            // spurious overwrite dialogs (see #6437). This is the same as the pre-36 behavior,
+            // and in almost all cases we would have gotten a prior file watcher notification in
+            // any case; in the only cases we know about where the user would have hit this, the
+            // file hasn't actually changed on disk.
+            FileUtils.writeText(file, docToSave.getText(true), true)
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
