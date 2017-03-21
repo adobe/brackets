@@ -41,7 +41,8 @@ var config = {};
             Infer = infer;
 
             var ternServer  = null,
-                inferenceTimeout;
+                inferenceTimeout,
+                isUntitledDoc = false;
 
             // Save the tern callbacks for when we get the contents of the file
             var fileCallBacks = {};
@@ -107,14 +108,14 @@ var config = {};
             }
 
             function _getNormalizedFilename(fileName) {
-                if (ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === -1) {
+                if (!isUntitledDoc && ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === -1) {
                     fileName = ternServer.projectDir + fileName;
                 }
                 return fileName;
             }
 
             function _getDenormalizedFilename(fileName) {
-                if (ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === 0) {
+                if (!isUntitledDoc && ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === 0) {
                     fileName = fileName.slice(ternServer.projectDir.length);
                 }
                 return fileName;
@@ -659,6 +660,7 @@ var config = {};
                 } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
                     handleAddFiles(request.files);
                 } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
+                    isUntitledDoc = request.isUntitledDoc;
                     handlePrimePump(request.path);
                 } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
                     offset  = request.offset;
