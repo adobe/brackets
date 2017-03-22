@@ -34,6 +34,9 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager");
 
+	// semver.browser is an AMD-compatible module
+    var semver = require("thirdparty/semver.browser");
+
     /**
      * @private
      * @type {Array}
@@ -302,6 +305,9 @@ define(function (require, exports, module) {
                     return entry.registryInfo && entry.registryInfo.metadata.theme;
                 }
             })
+			.filter(function (entry) {
+				return entry.registryInfo.metadata.engines && semver.satisfies(brackets.metadata.apiVersion, entry.registryInfo.metadata.engines.brackets);
+			})
             .map(function (entry) {
                 return entry.registryInfo.metadata.name;
             });
