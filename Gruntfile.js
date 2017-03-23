@@ -268,21 +268,20 @@ module.exports = function (grunt) {
             ]
         },
         watch: {
-            all : {
-                files: ['**/*', '!**/node_modules/**'],
-                tasks: ['eslint']
-            },
-            grunt : {
-                files: ['<%= meta.grunt %>', 'tasks/**/*'],
+            grunt: {
+                files: ['<%= meta.grunt %>'],
                 tasks: ['eslint:grunt']
             },
-            src : {
-                files: ['<%= meta.src %>', 'src/**/*'],
+            src: {
+                files: ['<%= meta.src %>'],
                 tasks: ['eslint:src']
             },
-            test : {
-                files: ['<%= meta.test %>', 'test/**/*'],
+            test: {
+                files: ['<%= meta.test %>'],
                 tasks: ['eslint:test']
+            },
+            options: {
+                spawn: false
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
