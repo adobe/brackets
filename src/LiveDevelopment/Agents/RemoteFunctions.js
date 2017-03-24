@@ -40,19 +40,19 @@ function RemoteFunctions(config, remoteWSPort) {
         experimental = config.experimental;    
     }
     var lastKeepAliveTime = Date.now();
-	var req, timeout;
-	var animateHighlight = function (time) {
-		if(req) {
-			window.cancelAnimationFrame(req);	
-			window.clearTimeout(timeout);
-		}
-		req = window.requestAnimationFrame(redrawHighlights);
+    var req, timeout;
+    var animateHighlight = function (time) {
+        if(req) {
+            window.cancelAnimationFrame(req);	
+            window.clearTimeout(timeout);
+        }
+        req = window.requestAnimationFrame(redrawHighlights);
 
-		timeout = setTimeout(function () {
-			window.cancelAnimationFrame(req);	
-			req = null;
-		}, time * 1000);
-	};
+        timeout = setTimeout(function () {
+            window.cancelAnimationFrame(req);	
+            req = null;
+        }, time * 1000);
+    };
 
     /**
      * @type {DOMEditHandler}
@@ -290,23 +290,24 @@ function RemoteFunctions(config, remoteWSPort) {
             }
             
             var realElBorder = {
-              "right": elementStyling.getPropertyValue('border-right-width'),
-              "left": elementStyling.getPropertyValue('border-left-width'),
-              "top": elementStyling.getPropertyValue('border-top-width'),
-              "bottom": elementStyling.getPropertyValue('border-bottom-width'),
+              right: elementStyling.getPropertyValue('border-right-width'),
+              left: elementStyling.getPropertyValue('border-left-width'),
+              top: elementStyling.getPropertyValue('border-top-width'),
+              bottom: elementStyling.getPropertyValue('border-bottom-width')
             };
             
             var innerWidth = elementBounds.width - parseInt(realElBorder.left) - parseInt(realElBorder.right);
             var innerHeight = elementBounds.height - parseInt(realElBorder.top) - parseInt(realElBorder.bottom);
           
-            var visualisations = [];
-            visualisations['horizontal'] = "left, right";
-            visualisations['vertical'] = "top, bottom";  
+            var visualisations = {
+                horizontal: "left, right",
+                vertical: "top, bottom"
+            };
           
             var drawPaddingRect = function(side) {
               var elStyling = {};
               
-              if(visualisations['horizontal'].indexOf(side) >= 0) {
+              if (visualisations.horizontal.indexOf(side) >= 0) {
                 elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
                 elStyling['height'] = innerHeight  + "px";
                 elStyling['top'] = realElBorder.top;
@@ -326,7 +327,7 @@ function RemoteFunctions(config, remoteWSPort) {
           var drawMarginRect = function(side) {
             var elStyling = {};
             
-            var  margin = [];
+            var margin = [];
             margin['right'] = parseInt(elementStyling.getPropertyValue('margin-right'));
             margin['top'] = parseInt(elementStyling.getPropertyValue('margin-top'));
             margin['bottom'] = parseInt(elementStyling.getPropertyValue('margin-bottom'));
@@ -363,7 +364,7 @@ function RemoteFunctions(config, remoteWSPort) {
             };
             
             var mainBoxStyles = config.remoteHighlight.stylesToSet;
-                mainBoxStyles['border'] = 'none';
+            mainBoxStyles['border'] = 'none';
             
             var paddingVisualisations = [
               drawPaddingRect('top'),
@@ -394,10 +395,7 @@ function RemoteFunctions(config, remoteWSPort) {
                         arr[i]
                     );
 
-                    _setStyleValues(
-                        styles,
-                        el.style
-                    );
+                    _setStyleValues(styles, el.style);
 
                     highlight.appendChild(el);
                 }
