@@ -1160,8 +1160,11 @@ a[href^="http"] {
         }
 
         .search {
+            @media (max-width: (@extension-manager-min-width - 1px)) {
+                width: calc(~'100% - 27px - 20px'); // 100% minus padding etc.
+            }
+
             background: @bc-input-bg url("images/topcoat-search-20.svg") 2px 2px no-repeat;
-            width: calc(~'100% - 27px - 20px'); // 100% minus padding etc.
             margin: 0;
             padding-left: 27px;
             padding-right: 20px;
