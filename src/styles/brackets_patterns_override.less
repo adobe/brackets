@@ -1141,7 +1141,7 @@ a[href^="http"] {
 
         /* Search box */
         > :nth-child(2) {
-            @media (max-width: @extension-manager-min-width) {
+            @media (max-width: (@extension-manager-min-width - 1px)) {
                 overflow: hidden;
                 padding: 8px 1em;
             }
