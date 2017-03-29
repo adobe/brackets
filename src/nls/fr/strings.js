@@ -152,6 +152,7 @@ define({
 	"FIND_MATCH_INDEX": "{0} sur {1}",
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
+	"FIND_HISTORY_MAX_COUNT": "Maximum Number of Search Items in Search History",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
 	"BUTTON_REPLACE_ALL": "Tout remplacer",
 	"BUTTON_REPLACE_BATCH": "Traiter par lots\u2026",

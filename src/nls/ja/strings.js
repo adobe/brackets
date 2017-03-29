@@ -152,6 +152,7 @@ define({
 	"FIND_MATCH_INDEX": "{0} / {1}",
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
+	"FIND_HISTORY_MAX_COUNT": "Maximum Number of Search Items in Search History",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
 	"BUTTON_REPLACE_ALL": "すべて置換",
 	"BUTTON_REPLACE_BATCH": "バッチ¥u2026",
