@@ -1142,6 +1142,7 @@ a[href^="http"] {
         /* Search box */
         > :nth-child(2) {
             @media (max-width: (@extension-manager-min-width - 1px)) {
+                display: flex;
                 overflow: hidden;
                 padding: 8px 1em;
             }
@@ -1153,9 +1154,15 @@ a[href^="http"] {
             }
         }
 
+        .search-container {
+          float: right;
+          // flex-grow: 1;
+          .flex-item(1);
+        }
+
         .search {
             background: @bc-input-bg url("images/topcoat-search-20.svg") 2px 2px no-repeat;
-            float: right;
+            width: calc(~'100% - 27px - 20px'); // 100% minus padding etc.
             margin: 0;
             padding-left: 27px;
             padding-right: 20px;
