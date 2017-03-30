@@ -70,6 +70,14 @@
         "lineComment": ["//"]
     },
 
+    "typescript": {
+        "name": "TypeScript",
+        "mode": ["javascript", "application/typescript"],
+        "fileExtensions": ["ts"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "jsx": {
         "name": "JSX",
         "mode": "jsx",
