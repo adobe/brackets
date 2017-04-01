@@ -37,7 +37,8 @@ define(function (require, exports, module) {
 
     require("editor/EditorCommandHandlers");
 
-    var shouldIndentLineComment = Editor.getIndentLineComment();
+    var shouldIndentLineComment = Editor.getIndentLineComment(),
+        shouldIndentBlockComment = Editor.getIndentBlockComment();
 
     describe("EditorCommandHandlers", function () {
 
@@ -932,6 +933,181 @@ define(function (require, exports, module) {
                                                   {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
 
                 });
+            });
+        });
+
+        describe("Line comment/uncomment in languages with only block comments and with indentBlockComment enabled", function () {
+            var htmlContent = "<html>\n" +
+                              "    <body>\n" +
+                              "        <p>Hello</p>\n" +
+                              "    </body>\n" +
+                              "</html>";
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentBlockComment", true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentBlockComment", shouldIndentBlockComment);
+            });
+
+            it("should comment/uncomment a single line, cursor at start", function () {
+                myEditor.setCursorPos(2, 0);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "        <!--<p>Hello</p>-->";
+                var expectedText = lines.join("\n");
+
+                testToggleLine(expectedText, {line: 2, ch: 0});
+            });
+
+            it("should comment/uncomment a block", function () {
+                myEditor.setSelection({line: 1, ch: 7}, {line: 3, ch: 7});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var expectedText = "<html>\n" +
+                                   "    <!--\n" +
+                                   "    <body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "    </body>\n" +
+                                   "    -->\n" +
+                                   "</html>";
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 7}, end: {line: 4, ch: 7}});
+            });
+
+            it("should comment/uncomment a block with not closing tag ", function () {
+                myEditor.setSelection({line: 1, ch: 7}, {line: 2, ch: 7});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var expectedText = "<html>\n" +
+                                   "    <!--\n" +
+                                   "    <body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "        -->\n" +
+                                   "    </body>\n" +
+                                   "</html>";
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 7}, end: {line: 3, ch: 7}});
+            });
+
+            it("should comment/uncomment a block with not closing tag at end of file", function () {
+                myEditor.setSelection({line: 3, ch: 9}, {line: 4, ch: 5});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var expectedText = "<html>\n" +
+                                   "    <body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "    <!--\n" +
+                                   "    </body>\n" +
+                                   "</html>-->\n";
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 4, ch: 9}, end: {line: 5, ch: 5}});
+            });
+        });
+
+        describe("Comment/uncomment with mixed syntax modes with indentLineComment and indentBlockComment enabled", function () {
+            var htmlContent = "<html>\n" +
+                              "    <head>\n" +
+                              "        <style type='text/css'>\n" +
+                              "            body {\n" +
+                              "                font-size: 15px;\n" +
+                              "            }\n" +
+                              "        </style>\n" +
+                              "        <script type='text/javascript'>\n" +
+                              "            function foo() {\n" +
+                              "                function bar() {\n" +
+                              "                    a();\n" +
+                              "                }\n" +
+                              "            }\n" +
+                              "        </script>\n" +
+                              "    </head>\n" +
+                              "    <body>\n" +
+                              "        <p>Hello</p>\n" +
+                              "        <p>World</p>\n" +
+                              "    </body>\n" +
+                              "</html>";
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentLineComment", true);
+                PreferencesManager.set("indentBlockComment", true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                PreferencesManager.set("indentBlockComment", shouldIndentBlockComment);
+            });
+
+            it("should line comment/uncomment generic JS, CSS and HTML code with multiple cursors at start of line", function () {
+                myEditor.setSelections([
+                    {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}},
+                    {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}},
+                    {start: {line: 16, ch: 0}, end: {line: 16, ch: 0}}
+                ]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var lines = htmlContent.split("\n");
+                lines[4] = "                /*font-size: 15px;*/";
+                lines[10] = "                    //a();";
+                lines[16] = "        <!--<p>Hello</p>-->";
+                var expectedText = lines.join("\n");
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelections([
+                    {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
+                    {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}, reversed: false, primary: false},
+                    {start: {line: 16, ch: 0}, end: {line: 16, ch: 0}, reversed: false, primary: true}
+                ]);
+
+                // Uncomment
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                expect(myDocument.getText()).toEqual(htmlContent);
+                expectSelections([
+                    {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
+                    {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}, reversed: false, primary: false},
+                    {start: {line: 16, ch: 0}, end: {line: 16, ch: 0}, reversed: false, primary: true}
+                ]);
+            });
+
+            it("should line comment/uncomment generic JS, CSS and HTML code with multiple cursors at end of line", function () {
+                myEditor.setSelections([
+                    {start: {line: 4, ch: 32}, end: {line: 4, ch: 32}},
+                    {start: {line: 10, ch: 24}, end: {line: 10, ch: 24}},
+                    {start: {line: 16, ch: 20}, end: {line: 16, ch: 20}}
+                ]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var lines = htmlContent.split("\n");
+                lines[4] = "                /*font-size: 15px;*/";
+                lines[10] = "                    //a();";
+                lines[16] = "        <!--<p>Hello</p>-->";
+                var expectedText = lines.join("\n");
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelections([
+                    {start: {line: 4, ch: 32}, end: {line: 4, ch: 32}, reversed: false, primary: false},
+                    {start: {line: 10, ch: 26}, end: {line: 10, ch: 26}, reversed: false, primary: false},
+                    {start: {line: 16, ch: 20}, end: {line: 16, ch: 20}, reversed: false, primary: true}
+                ]);
+
+                // Uncomment
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                expect(myDocument.getText()).toEqual(htmlContent);
+                expectSelections([
+                    {start: {line: 4, ch: 30}, end: {line: 4, ch: 30}, reversed: false, primary: false},
+                    {start: {line: 10, ch: 24}, end: {line: 10, ch: 24}, reversed: false, primary: false},
+                    {start: {line: 16, ch: 16}, end: {line: 16, ch: 16}, reversed: false, primary: true}
+                ]);
             });
         });
 

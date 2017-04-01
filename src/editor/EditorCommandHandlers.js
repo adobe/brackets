@@ -297,6 +297,22 @@ define(function (require, exports, module) {
         return false;
     }
 
+    /**
+     * Return the column of the first non whitespace char in the given line.
+     *
+     * @private
+     * @param {!Document} doc
+     * @param {number} lineNum
+     * @returns {number} the column index or null
+     */
+    function _firstNotWs(doc, lineNum) {
+        var text = doc.getLine(lineNum);
+        if (text === null || text === undefined) {
+            return null;
+        }
+
+        return text.search(/\S|$/);
+    }
 
     /**
      * Generates an edit that adds or removes block-comment tokens to the selection, preserving selection
@@ -344,6 +360,8 @@ define(function (require, exports, module) {
             edit;
 
         var searchCtx, atSuffix, suffixEnd, initialPos, endLine;
+
+        var indentBlockComment = Editor.getIndentBlockComment();
 
         if (!selectionsToTrack) {
             // Track the original selection.
@@ -467,12 +485,29 @@ define(function (require, exports, module) {
             // Comment out - add the suffix to the start and the prefix to the end.
             if (canComment) {
                 var completeLineSel = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line < sel.end.line;
+                var startCh = _firstNotWs(doc, sel.start.line);
                 if (completeLineSel) {
-                    editGroup.push({text: suffix + "\n", start: sel.end});
-                    editGroup.push({text: prefix + "\n", start: sel.start});
+                    if (indentBlockComment) {
+                        var endCh = _firstNotWs(doc, sel.end.line - 1);
+                        editGroup.push({
+                            text: _.repeat(" ", endCh) + suffix + "\n",
+                            start: {line: sel.end.line, ch: 0}
+                        });
+                        editGroup.push({
+                            text: prefix + "\n" + _.repeat(" ", startCh),
+                            start: {line: sel.start.line, ch: startCh}
+                        });
+                    } else {
+                        editGroup.push({text: suffix + "\n", start: sel.end});
+                        editGroup.push({text: prefix + "\n", start: sel.start});
+                    }
                 } else {
                     editGroup.push({text: suffix, start: sel.end});
-                    editGroup.push({text: prefix, start: sel.start});
+                    if (indentBlockComment) {
+                        editGroup.push({text: prefix, start: { line: sel.start.line, ch: startCh }});
+                    } else {
+                        editGroup.push({text: prefix, start: sel.start});
+                    }
                 }
 
                 // Correct the tracked selections. We can't just use the default selection fixup,
@@ -497,7 +532,7 @@ define(function (require, exports, module) {
                             if (completeLineSel) {
                                 // Just move the line down.
                                 pos.line++;
-                            } else if (pos.line === sel.start.line) {
+                            } else if (!indentBlockComment && pos.line === sel.start.line) {
                                 pos.ch += prefix.length;
                             }
                         }
@@ -513,16 +548,21 @@ define(function (require, exports, module) {
                 // If both are found we assume that a complete line selection comment added new lines, so we remove them.
                 var line          = doc.getLine(prefixPos.line).trim(),
                     prefixAtStart = prefixPos.ch === 0 && prefix.length === line.length,
-                    suffixAtStart = false;
+                    prefixIndented = indentBlockComment && prefix.length === line.length,
+                    suffixAtStart = false,
+                    suffixIndented = false;
 
                 if (suffixPos) {
                     line = doc.getLine(suffixPos.line).trim();
                     suffixAtStart = suffixPos.ch === 0 && suffix.length === line.length;
+                    suffixIndented = indentBlockComment && suffix.length === line.length;
                 }
 
                 // Remove the suffix if there is one
                 if (suffixPos) {
-                    if (prefixAtStart && suffixAtStart) {
+                    if (prefixIndented) {
+                        editGroup.push({text: "", start: {line: suffixPos.line, ch: 0}, end: {line: suffixPos.line + 1, ch: 0}});
+                    } else if (prefixAtStart && suffixAtStart) {
                         editGroup.push({text: "", start: suffixPos, end: {line: suffixPos.line + 1, ch: 0}});
                     } else {
                         editGroup.push({text: "", start: suffixPos, end: {line: suffixPos.line, ch: suffixPos.ch + suffix.length}});
@@ -530,7 +570,9 @@ define(function (require, exports, module) {
                 }
 
                 // Remove the prefix
-                if (prefixAtStart && suffixAtStart) {
+                if (suffixIndented) {
+                    editGroup.push({text: "", start: {line: prefixPos.line, ch: 0}, end: {line: prefixPos.line + 1, ch: 0}});
+                } else if (prefixAtStart && suffixAtStart) {
                     editGroup.push({text: "", start: prefixPos, end: {line: prefixPos.line + 1, ch: 0}});
                 } else {
                     editGroup.push({text: "", start: prefixPos, end: {line: prefixPos.line, ch: prefixPos.ch + prefix.length}});

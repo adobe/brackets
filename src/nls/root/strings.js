@@ -797,6 +797,7 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
+    "DESCRIPTION_INDENT_BLOCK_COMMENT"               : "true to enable indenting of block comments",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview"
 });
