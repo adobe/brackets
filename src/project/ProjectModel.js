@@ -76,7 +76,7 @@ define(function (require, exports, module) {
      * also used to substitute the place holder of the error message.
      */
     var _invalidChars;
-    var _pattern = /([?\*\|\:\<\>\\]+|\/{2,}|\.{2,}|\.$)/i // TODO: This will replace _invalidChars
+    var _pattern = /([?\*\|\:\<\>\\]+|\/{2,}|\.{2,}|\.$)/i; // TODO: This will replace _invalidChars
     
     /**
      * @private
