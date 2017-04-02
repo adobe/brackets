@@ -76,7 +76,8 @@ define(function (require, exports, module) {
      * also used to substitute the place holder of the error message.
      */
     var _invalidChars;
-
+    var _pattern = /([?\*\|\:\<\>\\]+|\/{2,}|\.{2,}|\.$)/i // TODO: This will replace _invalidChars
+    
     /**
      * @private
      * RegEx to validate if a filename is not allowed even if the system allows it.
@@ -99,8 +100,7 @@ define(function (require, exports, module) {
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
         return !(
-            new RegExp("[" + invalidChars + "]+").test(filename) ||
-            _illegalFilenamesRegEx.test(filename)
+            filename.match(_pattern) || filename.match(_illegalFilenamesRegEx)
         );
     }
 
@@ -182,8 +182,8 @@ define(function (require, exports, module) {
     function doCreate(path, isFolder) {
         var d = new $.Deferred();
 
-        var name = FileUtils.getBaseName(path);
-        if (!isValidFilename(name, _invalidChars)) {
+        // Check if full path is valid
+        if (!isValidFilename(path, _invalidChars)) {
             return d.reject(ERROR_INVALID_FILENAME).promise();
         }
 
