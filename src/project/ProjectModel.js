@@ -75,8 +75,7 @@ define(function (require, exports, module) {
      * When a filename with one of these invalid characters are detected, then it is
      * also used to substitute the place holder of the error message.
      */
-    var _invalidChars;
-    var _pattern = /([?\*\|\:\<\>\\]+|\/{2,}|\.{2,}|\.$)/i; // TODO: This will replace _invalidChars
+    var _invalidChars = /([?\*\|\:\<\>\\\"]+|\/{2,}|\.{2,}|\.$)/i;
     
     /**
      * @private
@@ -88,6 +87,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns true if this matches valid filename specifications.
+     * See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
      *
      * TODO: This likely belongs in FileUtils.
      *
@@ -96,11 +96,10 @@ define(function (require, exports, module) {
      * @return {boolean} true if the filename is valid
      */
     function isValidFilename(filename, invalidChars) {
-        // Validate file name
-        // Checks for valid Windows filenames:
-        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+        // Fix issue adobe#13099
+        // See https://github.com/adobe/brackets/issues/13099
         return !(
-            filename.match(_pattern) || filename.match(_illegalFilenamesRegEx)
+            filename.match(invalidChars) || filename.match(_illegalFilenamesRegEx)
         );
     }
 
@@ -1345,21 +1344,12 @@ define(function (require, exports, module) {
         return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
 
-    // Init invalid characters string
-    if (brackets.platform === "mac") {
-        _invalidChars = "?*|:/";
-    } else if (brackets.platform === "linux") {
-        _invalidChars = "?*|/";
-    } else {
-        _invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
-    }
-
     exports._getWelcomeProjectPath  = _getWelcomeProjectPath;
     exports._addWelcomeProjectPath  = _addWelcomeProjectPath;
     exports._isWelcomeProjectPath   = _isWelcomeProjectPath;
     exports._ensureTrailingSlash    = _ensureTrailingSlash;
     exports._shouldShowName         = _shouldShowName;
-    exports._invalidChars           = _invalidChars;
+    exports._invalidChars           = "? * | : / < > \\ | \" ..";
 
     exports.shouldShow              = shouldShow;
     exports.defaultIgnoreGlobs      = defaultIgnoreGlobs;
