@@ -76,7 +76,7 @@ define(function (require, exports, module) {
      * also used to substitute the place holder of the error message.
      */
     var _invalidChars = /([?\*\|\:\<\>\\\"]+|\/{2,}|\.{2,}|\.$)/i;
-    
+
     /**
      * @private
      * RegEx to validate if a filename is not allowed even if the system allows it.
