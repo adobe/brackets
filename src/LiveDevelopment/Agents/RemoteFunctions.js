@@ -327,6 +327,12 @@ function RemoteFunctions(experimental, remoteWSPort) {
             }
 
             window.document.body.appendChild(highlight);
+            
+            if (_ws && element && element.hasAttribute('data-brackets-id')) {
+                setTimeout(function () {
+                    _sendLiveInspectionData(element);
+                }, 100);
+            }
         },
 
         add: function (element, doAnimation) {
@@ -851,6 +857,64 @@ function RemoteFunctions(experimental, remoteWSPort) {
     }
     
     var _ws = null;
+    
+    function _indexOfRule(rules, rule) {
+        var index;
+        for(index in rules) {
+            if(rules.hasOwnProperty(index)) {
+                if(rules[index] === rule) {
+                    return index;
+                }
+            }
+        }
+        return index;
+    }
+    
+    function _stringifyLiveData(element) {
+        var rulesets = window.getMatchedCSSRules(element) || [];
+        var counter = 0;
+        var ruleList = {};
+        var styleSheetPath, pathEntry, ruleIndex = -1;
+        
+        while (counter < rulesets.length) {
+            styleSheetPath = rulesets[counter].parentStyleSheet.href || "";
+            if (styleSheetPath) {
+                styleSheetPath = styleSheetPath.replace(window.location.origin, "");
+                ruleIndex = _indexOfRule(rulesets[counter].parentStyleSheet.cssRules, rulesets[counter]);
+            }
+            
+            pathEntry = ruleList[styleSheetPath] || [];
+            pathEntry.push({selectorText: rulesets[counter].selectorText, index: ruleIndex});
+            ruleList[styleSheetPath] = pathEntry;
+            
+            counter++;
+        }
+        return JSON.stringify(ruleList);
+    }
+    
+    function _stringyfyNodePath(lastselectedElement) {
+        var hrchy = [];
+        var element = lastselectedElement;
+        if (lastselectedElement) {
+            while (element !== null && element.hasAttribute('data-brackets-id')) {
+                hrchy.push({label: element.tagName, target: element.getAttribute('data-brackets-id')});
+                element = element.parentElement;
+            }
+        }
+        
+        return JSON.stringify(hrchy);
+    }
+    
+    function _sendLiveInspectionData(element) {
+        var livedata = _stringifyLiveData(element),
+            elmXPath = _stringyfyNodePath(element),
+            msg      = JSON.stringify({data: livedata, path: elmXPath});
+
+        _ws.send(JSON.stringify({
+            type: "livedata",
+            message: msg
+        }));
+    }
 
     function onDocumentClick(event) {
         var element = event.target,
@@ -862,6 +926,10 @@ function RemoteFunctions(experimental, remoteWSPort) {
                 type: "message",
                 message: element.getAttribute('data-brackets-id')
             }));
+            
+            setTimeout(function () {
+                _sendLiveInspectionData(element);
+            }, 0);
         }
     }
     

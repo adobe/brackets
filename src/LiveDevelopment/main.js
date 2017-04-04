@@ -34,20 +34,23 @@
 define(function main(require, exports, module) {
     "use strict";
 
-    var DocumentManager     = require("document/DocumentManager"),
-        Commands            = require("command/Commands"),
-        AppInit             = require("utils/AppInit"),
-        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
-        MultiBrowserLiveDev = require("LiveDevelopment/LiveDevMultiBrowser"),
-        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
-        CommandManager      = require("command/CommandManager"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
-        Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
-        UrlParams           = require("utils/UrlParams").UrlParams,
-        Strings             = require("strings"),
-        ExtensionUtils      = require("utils/ExtensionUtils"),
-        StringUtils         = require("utils/StringUtils");
+    var DocumentManager         = require("document/DocumentManager"),
+        Commands                = require("command/Commands"),
+        AppInit                 = require("utils/AppInit"),
+        LiveDevelopment         = require("LiveDevelopment/LiveDevelopment"),
+        MultiBrowserLiveDev     = require("LiveDevelopment/LiveDevMultiBrowser"),
+        Inspector               = require("LiveDevelopment/Inspector/Inspector"),
+        CommandManager          = require("command/CommandManager"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        Dialogs                 = require("widgets/Dialogs"),
+        DefaultDialogs          = require("widgets/DefaultDialogs"),
+        UrlParams               = require("utils/UrlParams").UrlParams,
+        Strings                 = require("strings"),
+        ExtensionUtils          = require("utils/ExtensionUtils"),
+        StringUtils             = require("utils/StringUtils"),
+        WorkspaceManager        = require("view/WorkspaceManager"),
+        Mustache                = require("thirdparty/mustache/mustache"),
+        ConnectedToolsTemplate  = require("text!htmlContent/connected-tools.html");
 
     var params = new UrlParams();
     var config = {
@@ -353,7 +356,13 @@ define(function main(require, exports, module) {
                     _setImplementation(prefs.get(PREF_MULTIBROWSER));
                 }
             });
-
+            
+        // Create bottom panel for connected tools
+        var livedataHtml = Mustache.render(ConnectedToolsTemplate, Strings);
+        var $livedataPanel = WorkspaceManager.createBottomPanel("livedata-tools", $(livedataHtml), 100);
+        $("#livedata-tools .close").on("click", function () {
+            $livedataPanel.hide();
+        });
     });
 
     // init prefs

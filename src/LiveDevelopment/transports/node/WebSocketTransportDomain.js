@@ -69,6 +69,23 @@ function _createServer(socketPort) {
 
                 if (msgObj.type === "message") {
                     _domainManager.emitEvent("webSocketTransport", "message", msgObj.message);
+                } else if (msgObj.type === "livedata") {
+                    _domainManager.emitEvent("webSocketTransport", "livedata", msgObj.message);
+                } else {
+                    console.error("webSocketTransport: Got bad socket message type: " + msg);
+                }
+            }).on("livedata", function (msg) {
+                console.log("WebSocketServer - received - " + msg);
+                var livedataObj;
+                try {
+                    livedataObj = JSON.parse(msg);
+                } catch (e) {
+                    console.error("webSocketTransport: Error parsing livedata: " + msg);
+                    return;
+                }
+
+                if (livedataObj.type === "livedata") {
+                    _domainManager.emitEvent("webSocketTransport", "livedata", livedataObj.message);
                 } else {
                     console.error("webSocketTransport: Got bad socket message type: " + msg);
                 }
@@ -114,6 +131,18 @@ function init(domainManager) {
     domainManager.registerEvent(
         "webSocketTransport",
         "message",
+        [
+            {
+                name: "msg",
+                type: "string",
+                description: "JSON message from client page"
+            }
+        ]
+    );
+    
+    domainManager.registerEvent(
+        "webSocketTransport",
+        "livedata",
         [
             {
                 name: "msg",
