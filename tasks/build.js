@@ -149,7 +149,7 @@ module.exports = function (grunt) {
         }
 
         options.host    = "api.github.com";
-        options.path    = "/repos/adobe/brackets/issues/" + pull;
+        options.path    = "/repos/adobe/brackets/issues/" + pull + "?access_token=" + process.env.BRACKETS_REPO_OAUTH_TOKEN;
         options.method  = "GET";
         options.headers = {
             "User-Agent" : "Node.js"
