@@ -399,6 +399,14 @@ define(function (require, exports, module) {
                             var marks = getEditorFoldMarks();
                             expect(marks.length).toEqual(0);
                         });
+                        
+                        runs(function () {
+                            var lineNumbers = foldableLines;
+                            var marks = getGutterFoldMarks();
+                            var gutterNumbers = marks.filter(filterOpen)
+                                .map(getLineNumber);
+                            expect(gutterNumbers).toEqual(toZeroIndex(lineNumbers));
+                        });
                     });
 
                     it("can set the minimum fold size", function () {
