@@ -620,7 +620,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "پروژه های اخیر",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "بیشتر بخوانید"
 });
 /* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */

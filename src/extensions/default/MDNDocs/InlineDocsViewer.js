@@ -22,7 +22,7 @@
  */
 
 /**
- * Inline widget to display WebPlatformDocs JSON data nicely formatted
+ * Inline widget to display MDNDocs JSON data nicely formatted
  */
 define(function (require, exports, module) {
     'use strict';
@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     var SCROLL_LINE_HEIGHT = 40;
 
     // Load CSS
-    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.less");
+    ExtensionUtils.loadStyleSheet(module, "MDNDocs.less");
 
 
     /**
