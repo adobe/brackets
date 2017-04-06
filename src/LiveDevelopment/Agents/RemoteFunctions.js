@@ -30,10 +30,29 @@
  * modules should define a single function that returns an object of all
  * exported functions.
  */
-function RemoteFunctions(experimental, remoteWSPort) {
+function RemoteFunctions(config, remoteWSPort) {
     "use strict";
 
+    var experimental;
+    if (!config) {
+        experimental = false;    
+    } else {
+        experimental = config.experimental;    
+    }
     var lastKeepAliveTime = Date.now();
+    var req, timeout;
+    var animateHighlight = function (time) {
+        if(req) {
+            window.cancelAnimationFrame(req);	
+            window.clearTimeout(timeout);
+        }
+        req = window.requestAnimationFrame(redrawHighlights);
+
+        timeout = setTimeout(function () {
+            window.cancelAnimationFrame(req);	
+            req = null;
+        }, time * 1000);
+    };
 
     /**
      * @type {DOMEditHandler}
@@ -250,17 +269,147 @@ function RemoteFunctions(experimental, remoteWSPort) {
             }
             return false;
         },
-
         _makeHighlightDiv: function (element, doAnimation) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
-                styles = window.getComputedStyle(element);
+                elementStyling = window.getComputedStyle(element),
+                transitionDuration = parseFloat(elementStyling.getPropertyValue('transition-duration')),
+                animationDuration = parseFloat(elementStyling.getPropertyValue('animation-duration'));
+			
+            if (transitionDuration) {
+                animateHighlight(transitionDuration);
+            }
+
+            if (animationDuration) {
+                animateHighlight(animationDuration);
+            }
 
             // Don't highlight elements with 0 width & height
             if (elementBounds.width === 0 && elementBounds.height === 0) {
                 return;
             }
+            
+            var realElBorder = {
+              right: elementStyling.getPropertyValue('border-right-width'),
+              left: elementStyling.getPropertyValue('border-left-width'),
+              top: elementStyling.getPropertyValue('border-top-width'),
+              bottom: elementStyling.getPropertyValue('border-bottom-width')
+            };
+            
+            var innerWidth = elementBounds.width - parseInt(realElBorder.left) - parseInt(realElBorder.right);
+            var innerHeight = elementBounds.height - parseInt(realElBorder.top) - parseInt(realElBorder.bottom);
+          
+            var visualisations = {
+                horizontal: "left, right",
+                vertical: "top, bottom"
+            };
+          
+            var drawPaddingRect = function(side) {
+              var elStyling = {};
+              
+              if (visualisations.horizontal.indexOf(side) >= 0) {
+                elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
+                elStyling['height'] = innerHeight  + "px";
+                elStyling['top'] = realElBorder.top;
+                
+              } else {
+                elStyling['height'] = elementStyling.getPropertyValue('padding-' + side);  
+                elStyling['width'] = innerWidth + "px";
+                elStyling['left'] = realElBorder.left;
+              }
+              
+              elStyling[side] = realElBorder[side];
+              elStyling['position'] = 'absolute';
+              
+              return elStyling;
+            };
+          
+          var drawMarginRect = function(side) {
+            var elStyling = {};
+            
+            var margin = [];
+            margin['right'] = parseInt(elementStyling.getPropertyValue('margin-right'));
+            margin['top'] = parseInt(elementStyling.getPropertyValue('margin-top'));
+            margin['bottom'] = parseInt(elementStyling.getPropertyValue('margin-bottom'));
+            margin['left'] = parseInt(elementStyling.getPropertyValue('margin-left'));
+          
+      
+            if(visualisations['horizontal'].indexOf(side) >= 0) {
+              elStyling['width'] =  elementStyling.getPropertyValue('margin-' + side);
+              elStyling['height'] = elementBounds.height + margin['top'] + margin['bottom'] + "px";
+              elStyling['top'] = "-" + margin['top'] + "px";
 
+            } else {
+              elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);  
+              elStyling['width'] = elementBounds.width + "px";
+              elStyling['left'] = 0;
+            }
+
+            elStyling[side] = "-" + margin[side] + "px";
+            elStyling['position'] = 'absolute';
+
+            return elStyling;
+          };
+
+            var setVisibility = function (el) {
+                if (
+                    !config.remoteHighlight.showPaddingMargin || 
+                    parseInt(el.height, 10) <= 0 || 
+                    parseInt(el.width, 10) <= 0 
+                ) {
+                    el.display = 'none';
+                } else {
+                    el.display = 'block';
+                }
+            };
+            
+            var mainBoxStyles = config.remoteHighlight.stylesToSet;
+            mainBoxStyles['border'] = 'none';
+            
+            var paddingVisualisations = [
+              drawPaddingRect('top'),
+              drawPaddingRect('right'),
+              drawPaddingRect('bottom'),
+              drawPaddingRect('left')  
+            ];
+                
+            var marginVisualisations = [
+              drawMarginRect('top'),
+              drawMarginRect('right'),
+              drawMarginRect('bottom'),
+              drawMarginRect('left')  
+            ];
+            
+            var setupVisualisations = function (arr, config) {
+                var i;
+                for (i = 0; i < arr.length; i++) {
+                    setVisibility(arr[i]);
+                    
+                    // Applies to every visualisationElement (padding or margin div)
+                    arr[i]["box-sizing"] = "border-box";
+                    arr[i]["transform"] = "none";
+                    var el = window.document.createElement("div"),
+                        styles = Object.assign(
+                        {},
+                        config,
+                        arr[i]
+                    );
+
+                    _setStyleValues(styles, el.style);
+
+                    highlight.appendChild(el);
+                }
+            };
+            
+            setupVisualisations(
+                marginVisualisations,
+                config.remoteHighlight.marginStyling
+            );
+            setupVisualisations(
+                paddingVisualisations,
+                config.remoteHighlight.paddingStyling
+            );
+            
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
@@ -275,31 +424,25 @@ function RemoteFunctions(experimental, remoteWSPort) {
                 "padding": 0,
                 "position": "absolute",
                 "pointer-events": "none",
-                "border-top-left-radius": styles.borderTopLeftRadius,
-                "border-top-right-radius": styles.borderTopRightRadius,
-                "border-bottom-left-radius": styles.borderBottomLeftRadius,
-                "border-bottom-right-radius": styles.borderBottomRightRadius,
+                "border-top-left-radius": elementStyling.borderTopLeftRadius,
+                "border-top-right-radius": elementStyling.borderTopRightRadius,
+                "border-bottom-left-radius": elementStyling.borderBottomLeftRadius,
+                "border-bottom-right-radius": elementStyling.borderBottomRightRadius,
                 "border-style": "solid",
                 "border-width": "1px",
                 "border-color": "#00a2ff",
                 "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box"
             };
+            
+            var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
 
-            var animateStartValues = {
-                "background-color": "rgba(0, 162, 255, 0.5)",
-                "opacity": 0
-            };
+            var animateStartValues = config.remoteHighlight.animateStartValue;
 
-            var animateEndValues = {
-                "background-color": "rgba(0, 162, 255, 0)",
-                "opacity": 1
-            };
+            var animateEndValues = config.remoteHighlight.animateEndValue;
 
             var transitionValues = {
-                "-webkit-transition-property": "opacity, background-color",
-                "-webkit-transition-duration": "300ms, 2.3s",
-                "transition-property": "opacity, background-color",
+                "transition-property": "opacity, background-color, transform",
                 "transition-duration": "300ms, 2.3s"
             };
 
@@ -311,7 +454,7 @@ function RemoteFunctions(experimental, remoteWSPort) {
                 }
             }
 
-            _setStyleValues(stylesToSet, highlight.style);
+            _setStyleValues(mergedStyles, highlight.style);
             _setStyleValues(
                 doAnimation ? animateStartValues : animateEndValues,
                 highlight.style
@@ -842,6 +985,11 @@ function RemoteFunctions(experimental, remoteWSPort) {
     function getSimpleDOM() {
         return JSON.stringify(_domElementToJSON(window.document.documentElement));
     }
+    
+    function updateConfig(newConfig) {
+        config = JSON.parse(newConfig);
+        return JSON.stringify(config);
+    }
 
     // init
     _editHandler = new DOMEditHandler(window.document);
@@ -894,6 +1042,7 @@ function RemoteFunctions(experimental, remoteWSPort) {
         "highlightRule"         : highlightRule,
         "redrawHighlights"      : redrawHighlights,
         "applyDOMEdits"         : applyDOMEdits,
-        "getSimpleDOM"          : getSimpleDOM
+        "getSimpleDOM"          : getSimpleDOM,
+        "updateConfig"          : updateConfig
     };
 }
