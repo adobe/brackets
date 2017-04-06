@@ -128,7 +128,6 @@ module.exports = function (grunt) {
             options     = {},
             travis      = process.env.TRAVIS === "true",
             pull        = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
-            oAuth_token = process.env.TRAVIS_PULL_REQUEST ? "" : "?access_token=" + process.env.BRACKETS_REPO_OAUTH_TOKEN,
             request;
 
         pull = parseInt(pull, 10);
