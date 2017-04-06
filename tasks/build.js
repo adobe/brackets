@@ -123,11 +123,12 @@ module.exports = function (grunt) {
 
     // task: cla-check-pull
     grunt.registerTask("cla-check-pull", "Check if a given GitHub user has signed the CLA", function () {
-        var done    = this.async(),
-            body    = "",
-            options = {},
-            travis  = process.env.TRAVIS === "true",
-            pull    = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
+        var done        = this.async(),
+            body        = "",
+            options     = {},
+            travis      = process.env.TRAVIS === "true",
+            pull        = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
+            oAuth_token = process.env.TRAVIS_PULL_REQUEST ? "" : "?access_token=" + process.env.BRACKETS_REPO_OAUTH_TOKEN,
             request;
 
         pull = parseInt(pull, 10);
@@ -149,11 +150,17 @@ module.exports = function (grunt) {
         }
 
         options.host    = "api.github.com";
-        options.path    = "/repos/adobe/brackets/issues/" + pull + "?access_token=" + process.env.BRACKETS_REPO_OAUTH_TOKEN;
+        options.path    = "/repos/adobe/brackets/issues/" + pull;
         options.method  = "GET";
         options.headers = {
             "User-Agent" : "Node.js"
         };
+        
+        // Append secret env var only when it's available 
+        // Refer to https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions
+        if (process.env.BRACKETS_REPO_OAUTH_TOKEN) {
+            options.path += "?access_token=" + process.env.BRACKETS_REPO_OAUTH_TOKEN;
+        }
 
         request = https.request(options, function (res) {
             res.on("data", function (chunk) {
