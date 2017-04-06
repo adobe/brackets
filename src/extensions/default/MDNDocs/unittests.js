@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         testCSS             = require("text!unittest-files/test1.css"),
         testHTML            = require("text!unittest-files/test1.html");
 
-    describe("WebPlatformDocs", function () {
+    describe("MDNDocs", function () {
 
         var testCSSInfo     = SpecRunnerUtils.parseOffsetsFromText(testCSS),
             testHTMLInfo    = SpecRunnerUtils.parseOffsetsFromText(testHTML),
@@ -64,10 +64,10 @@ define(function (require, exports, module) {
 
                     if (expectInline) {
                         // expecting a valid CSS property
-                        waitsForDone(promise, "WebPlatformDocs _inlineProvider", 1000);
+                        waitsForDone(promise, "MDNDocs _inlineProvider", 1000);
                     } else {
                         // expecting an invalid css property
-                        waitsForFail(promise, "WebPlatformDocs _inlineProvider", 1000);
+                        waitsForFail(promise, "MDNDocs _inlineProvider", 1000);
                     }
                 }
             });
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
                 var json;
 
                 runs(function () {
-                    main._getCSSDocs().done(function (result) {
+                    main._getDocs("css.json").done(function (result) {
                         json = result;
                     });
                 });
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return json !== undefined; }, "read css.json database", 5000);
 
                 runs(function () {
-                    expect(Object.keys(json.PROPERTIES).length).toBeGreaterThan(0);
+                    expect(Object.keys(json).length).toBeGreaterThan(0);
                 });
             });
 
@@ -165,8 +165,8 @@ define(function (require, exports, module) {
                 queryInlineAtPos(testHTMLInfo, 0, true, "border");
             });
 
-            it("should not open docs for inline style attributes", function () {
-                queryInlineAtPos(testHTMLInfo, 1, false);
+            it("should open docs for HTML", function () {
+                queryInlineAtPos(testHTMLInfo, 1, true, "<body>");
             });
 
         });
