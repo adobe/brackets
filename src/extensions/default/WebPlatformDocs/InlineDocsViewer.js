@@ -46,18 +46,19 @@ define(function (require, exports, module) {
 
 
     /**
-     * @param {!string} cssPropName
-     * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} cssPropDetails
+     * @param {!string} propName
+     * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} propDetails
      */
-    function InlineDocsViewer(cssPropName, cssPropDetails) {
+    function InlineDocsViewer(propName, propDetails) {
         InlineWidget.call(this);
 
         var templateVars = {
-            propName    : cssPropName,
-            summary     : cssPropDetails.SUMMARY,
-            propValues  : cssPropDetails.VALUES || [],
-            url         : cssPropDetails.URL,
-            Strings     : Strings
+            propName            : propName,
+            summary             : propDetails.SUMMARY,
+            fullscreenSummary   : !(propDetails.VALUES && propDetails.VALUES.length),
+            propValues          : propDetails.VALUES || [],
+            url                 : propDetails.URL,
+            Strings             : Strings
         };
 
         var html = Mustache.render(inlineEditorTemplate, templateVars);
