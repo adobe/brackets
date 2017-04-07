@@ -653,7 +653,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "最近開啟的專案",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "更多資訊",
+    "DOCS_MORE_LINK"                            : "閱讀更多",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "全部收合",

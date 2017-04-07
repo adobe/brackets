@@ -660,7 +660,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Více",
+    "DOCS_MORE_LINK"                            : "Další informace",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Skrýt vše",

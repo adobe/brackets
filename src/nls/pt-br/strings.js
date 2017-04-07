@@ -655,7 +655,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Projetos Recentes",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Leia mais",
+    "DOCS_MORE_LINK"                            : "Saiba mais",
 
     //extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Dobrar Tudo",

@@ -638,7 +638,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recente projecten",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Lees meer",
+    "DOCS_MORE_LINK"                            : "Meer lezen",
 
     //extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Alles inklappen",

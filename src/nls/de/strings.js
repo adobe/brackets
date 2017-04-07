@@ -662,7 +662,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Weiterlesen",
+    "DOCS_MORE_LINK"                            : "Mehr lesen",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Alle einklappen",
