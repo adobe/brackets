@@ -383,6 +383,6 @@ define({
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Gyors Nézet rámutatáskor",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Olvasd tovább"
 });

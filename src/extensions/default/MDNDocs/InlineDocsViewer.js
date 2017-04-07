@@ -22,7 +22,7 @@
  */
 
 /**
- * Inline widget to display WebPlatformDocs JSON data nicely formatted
+ * Inline widget to display MDNDocs JSON data nicely formatted
  */
 define(function (require, exports, module) {
     'use strict';
@@ -42,22 +42,23 @@ define(function (require, exports, module) {
     var SCROLL_LINE_HEIGHT = 40;
 
     // Load CSS
-    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.less");
+    ExtensionUtils.loadStyleSheet(module, "MDNDocs.less");
 
 
     /**
      * @param {!string} cssPropName
      * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} cssPropDetails
      */
-    function InlineDocsViewer(cssPropName, cssPropDetails) {
+    function InlineDocsViewer(PropName, PropDetails) {
         InlineWidget.call(this);
 
         var templateVars = {
-            propName    : cssPropName,
-            summary     : cssPropDetails.SUMMARY,
-            propValues  : cssPropDetails.VALUES || [],
-            url         : cssPropDetails.URL,
-            Strings     : Strings
+            propName            : PropName,
+            summary             : PropDetails.SUMMARY,
+            fullscreenSummary   : !(PropDetails.VALUES && PropDetails.VALUES.length),
+            propValues          : PropDetails.VALUES || [],
+            url                 : PropDetails.URL,
+            Strings             : Strings
         };
 
         var html = Mustache.render(inlineEditorTemplate, templateVars);

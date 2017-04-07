@@ -671,7 +671,7 @@ define({
     // extensions/default/RecentProjects
 	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
 	"DOCS_MORE_LINK": "En savoir plus",
 
     // extensions/default/CodeFolding
