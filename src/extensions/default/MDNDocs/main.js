@@ -27,6 +27,8 @@ define(function (require, exports, module) {
     // Core modules
     var _                    = brackets.getModule("thirdparty/lodash"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
+        FileSystem           = brackets.getModule("filesystem/FileSystem"),
+        FileUtils            = brackets.getModule("file/FileUtils"),
         CSSUtils             = brackets.getModule("language/CSSUtils"),
         HTMLUtils            = brackets.getModule("language/HTMLUtils"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils");
@@ -50,17 +52,24 @@ define(function (require, exports, module) {
         if (!promiseCache[fileName]) {
             var result = new $.Deferred();
 
-            // XXXBramble - load from server vs. fs
-            $.ajax({
-                url: ExtensionUtils.getModulePath(module, fileName),
-                dataType: "json"
-            }).done(function (data, status, jqXHR) {
-                result.resolve(data);
-            }).fail(function (jqXHR, status, err) {
-                console.error("Unable to load documentation database: ", err);
-                result.reject();
-            });
+            var path = ExtensionUtils.getModulePath(module, fileName),
+                file = FileSystem.getFileForPath(path);
 
+            FileUtils.readAsText(file)
+                .done(function (text) {
+                    var jsonData;
+                    try {
+                        jsonData = JSON.parse(text);
+                    } catch (ex) {
+                        console.error("Malformed documentation database: ", ex);
+                        result.reject();
+                    }
+                    result.resolve(jsonData);  // ignored if we already reject()ed above
+                })
+                .fail(function (err) {
+                    console.error("Unable to load documentation database: ", err);
+                    result.reject();
+                });
 
             promiseCache[fileName] = result.promise();
         }
