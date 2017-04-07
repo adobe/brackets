@@ -89,11 +89,16 @@ define(function (require, exports, module) {
         var jsonFile, propInfo,
             propQueue = [], // priority queue of propNames to try
             langId = hostEditor.getLanguageForSelection().getId(),
-            supportedLangs = ["css", "scss", "less", "html"],
-            langIndex = langId ? supportedLangs.indexOf(langId) : -1; // fail if langId is falsy
+            supportedLangs = {
+                "css": true,
+                "scss": true,
+                "less": true,
+                "html": true
+            },
+            isQuickDocAvailable = langId ? supportedLangs[langId] : -1; // fail if langId is falsy
 
         // Only provide docs when cursor is in supported language
-        if (langIndex < 0) {
+        if (!isQuickDocAvailable) {
             return null;
         }
 
@@ -103,15 +108,7 @@ define(function (require, exports, module) {
             return null;
         }
 
-        if (langIndex <= 2) { // CSS-like language
-            jsonFile = "css.json";
-            propInfo = CSSUtils.getInfoAtPos(hostEditor, sel.start);
-            if (propInfo.name) {
-                propQueue.push(propInfo.name);
-                // remove possible vendor prefixes
-                propQueue.push(propInfo.name.replace(/^-(?:webkit|moz|ms|o)-/, ""));
-            }
-        } else { // HTML
+        if (langId === "html") { // HTML
             jsonFile = "html.json";
             propInfo = HTMLUtils.getTagInfo(hostEditor, sel.start);
             if (propInfo.position.tokenType === HTMLUtils.ATTR_NAME && propInfo.attr && propInfo.attr.name) {
@@ -121,6 +118,14 @@ define(function (require, exports, module) {
             if (propInfo.tagName) { // we're somehow on an HTML tag (no matter where exactly)
                 propInfo = propInfo.tagName.toLowerCase();
                 propQueue.push("<" + propInfo + ">");
+            }
+        } else { // CSS-like language
+            jsonFile = "css.json";
+            propInfo = CSSUtils.getInfoAtPos(hostEditor, sel.start);
+            if (propInfo.name) {
+                propQueue.push(propInfo.name);
+                // remove possible vendor prefixes
+                propQueue.push(propInfo.name.replace(/^-(?:webkit|moz|ms|o)-/, ""));
             }
         }
 
