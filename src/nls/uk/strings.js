@@ -617,7 +617,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Останні проекти",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Докладніше"
 });
 /* Last translated for ed1b597f2c0e72fc11c9ec42d88d35f57cd6798b */

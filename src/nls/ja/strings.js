@@ -672,7 +672,7 @@ define({
     // extensions/default/RecentProjects
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
 	"DOCS_MORE_LINK": "詳細",
 
     // extensions/default/CodeFolding
