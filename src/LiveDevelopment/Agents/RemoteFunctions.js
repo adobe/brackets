@@ -425,11 +425,11 @@ function RemoteFunctions(config, remoteWSPort) {
             offsetTop  = 0;
             
             // Probably the easiest way to get elements position without including transform
-            do{
+            do {
                 offsetLeft += el.offsetLeft;
                 offsetTop  += el.offsetTop;
                 el = el.offsetParent;
-            } while( el );
+            } while(el);
 
             var stylesToSet = {
                 "left": offsetLeft + "px",
