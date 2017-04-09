@@ -753,6 +753,7 @@ define({
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "Mappages supplémentaires entre extension de fichier et nom de langue",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "Mappages supplémentaires entre nom de fichier et nom de langue",
 	"DESCRIPTION_LINEWISE_COPY_CUT": "En cas d’absence de sélection, un couper-copier coupe ou copie les lignes entières comportant des curseurs.",
+	"DESCRIPTION_INPUT_STYLE": "Selects the way CodeMirror handles input and focus. It cans be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
 	"DESCRIPTION_LINTING_ENABLED": "vrai pour activer l’inspection de code",
 	"DESCRIPTION_ASYNC_TIMEOUT": "Durée, en millisecondes, après laquelle les utilitaires lint asynchrones échouent",
 	"DESCRIPTION_LINTING_PREFER": "Ensemble d’utilitaires lint à exécuter en premier",

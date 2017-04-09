@@ -753,6 +753,7 @@ define({
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "ファイル拡張子から言語名への追加のマッピング",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "ファイル名から言語名への追加のマッピング",
 	"DESCRIPTION_LINEWISE_COPY_CUT": "何も選択せずにコピーやカットを行うと、カーソルのあるすべての行がコピーまたはカットされます。",
+	"DESCRIPTION_INPUT_STYLE": "Selects the way CodeMirror handles input and focus. It cans be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
 	"DESCRIPTION_LINTING_ENABLED": "コード検証を有効にするには true",
 	"DESCRIPTION_ASYNC_TIMEOUT": "非同期の構文チェックがタイムアウトするまでの時間 (ミリ秒)",
 	"DESCRIPTION_LINTING_PREFER": "最初に実行する構文チェックの配列",
