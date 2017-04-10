@@ -34,35 +34,37 @@
 /* Helpers for working with box layouts */
 .box {
     display: -webkit-box;
-    display: -moz-box;
-    display: box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
 }
 .hbox {
     .box;
     -webkit-box-orient: horizontal;
-    -moz-box-orient: horizontal;
-    box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
 }
 .vbox {
     .box;
     -webkit-box-orient: vertical;
-    -moz-box-orient: vertical;
-    box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
 }
 .box-flex(@ratio) {
-    -webkit-box-flex: @ratio;
-    -moz-box-flex: @ratio;
-    box-flex: @ratio;
+    -webkit-flex-grow: @ratio;
+    flex-grow: @ratio;
 }
 .box-pack(@pack) {
-    -webkit-box-pack: @pack;
-    -moz-box-pack: @pack;
-    box-pack: @pack;
+    -webkit-justify-content: @pack;
+    justify-content: @pack;
 }
 .box-align(@align) {
-    -webkit-box-align: @align;
-    -moz-box-align: @align;
-    box-align: @align;
+    -webkit-align-items:@align;
+    align-items: @align;
 }
 
 /* Helpful for percentage-sizing items that have border/padding */
