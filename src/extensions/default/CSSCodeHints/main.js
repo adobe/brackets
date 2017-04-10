@@ -39,6 +39,10 @@ define(function (require, exports, module) {
         Strings             = brackets.getModule("strings"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
+        
+    // Load additional CSS code hint modules
+    require("./AtRuleCodeHints");
+    require("./PseudoSelectorHints");
 
 
     PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {
@@ -468,7 +472,7 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
         var cssPropHints = new CssPropHints();
-        CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss", "less"], 0);
+        CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss", "less"], 1);
 
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-css-hints.css");
 

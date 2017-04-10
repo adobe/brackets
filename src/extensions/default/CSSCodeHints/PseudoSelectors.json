@@ -1,0 +1,44 @@
+{
+    "selectors" :
+    {
+        "active" : { "desc": "Selects the active link"},
+        "checked"	: {"desc":"Selects every checked <input> element"},
+        "disabled"		: {"desc":"Selects every disabled <input> element"},
+        "empty"		: {"desc":"Selects every element that has no children/text (including text nodes)"},
+        "enabled"		: {"desc":"Selects every enabled <input> element"},
+        "first-child"		: {"desc":"Selects every element that is the first child of its parent"},
+        "first-of-type"		: {"desc":"Selects every element that is the first element identified by 'type' of its parent"},
+        "focus"		: {"desc":"Selects the input element which has focus"},
+        "hover"		: {"desc":"Selects elements on mouse over"},
+        "in-range"		: {"desc":"Selects input elements with a value within a specified range"},
+        "invalid"		: {"desc":"Selects all input elements with an invalid value"},
+        "lang(language)"		: {"desc":"Selects every element with a lang attribute equal to 'language'","text":"lang()"},
+        "last-child"		: {"desc":"Selects every element that is the last child of its parent"},
+        "last-of-type"		: {"desc":"Selects every element that is the last element of its parent"},
+        "link"		: {"desc":"Selects all unvisited links"},
+        "not(selector)"		: {"desc":"Selects every element that is not an element identified by 'selector'","text":"not()"},
+        "nth-child(n)"		: {"desc":"Selects every element that is the second child of its parent","text":"nth-child()"},
+        "nth-last-child(n)"		: {"desc":"Selects every element that is the second child of its parent, counting from the last child","text":"nth-last-child()"},
+        "nth-last-of-type(n)"		: {"desc":"Selects every element that is the nth element of its parent, counting from the last child","text":"nth-last-of-type()"},
+        "nth-of-type(n)"		: {"desc":"Selects every element that is the nth element of its parent","text":"nth-of-type(n)"},
+        "only-of-type"		: {"desc":"Selects every element that is the only element of this type of its parent"},
+        "only-child"		: {"desc":"Selects every element that is the only child of its parent"},
+        "optional"		: {"desc":"Selects input elements with no 'required' attribute"},
+        "out-of-range"		: {"desc":"Selects input elements with a value outside a specified range"},
+        "read-only"		: {"desc":"Selects input elements with the 'readonly' attribute specified"},
+        "read-write"		: {"desc":"Selects input elements with the 'readonly' attribute NOT specified"},
+        "required"		: {"desc":"Selects input elements with the 'required' attribute specified"},
+        "root"		: {"desc":"Selects the document's root element"},
+        "target"		: {"desc":"Selects the current active element (clicked on a URL containing that anchor name)"},
+        "valid"		: {"desc":"Selects all input elements with a valid value"},
+        "visited"		: {"desc":"Selects all visited links"}
+    },
+    "elements" :
+    {
+        "after"		: {"desc": "Insert something after the content of each element identified by this selctor"},
+        "before"	: {"desc": "Insert something before the content of each element identified by this selctor"},
+        "first-letter"		: {"desc": "Selects the first letter of every element identified by this selctor"},
+        "first-line"		: {"desc": "Selects the first line of every element identified by this selctor"},
+        "selection"		: {"desc": "Selects the portion of an element identified by this selctor that is selected by a user"}
+    }
+}

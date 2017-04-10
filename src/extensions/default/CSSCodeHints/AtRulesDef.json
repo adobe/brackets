@@ -1,0 +1,10 @@
+{
+    "@charset" : "Defines the character set used by the style sheet.",
+    "@import" : "Tells the CSS engine to include an external style sheet.",
+    "@namespace" : "Tells the CSS engine that all its content must be considered prefixed with an XML namespace.",
+    "@media" : "A conditional group rule which will apply its content if the device meets the criteria of the condition defined using a media query.",
+    "@supports" : "A conditional group rule which will apply its content if the browser meets the criteria of the given condition.",
+    "@page" : "Describes the aspect of layout changes which will be applied when printing the document.",
+    "@font-face" : "Describes the aspect of an external font to be downloaded.",
+    "@keyframes"  : "Describes the aspect of intermediate steps in a CSS animation sequence."
+}
