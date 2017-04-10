@@ -96,7 +96,8 @@ define(function (require, exports, module) {
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
-        INDENT_LINE_COMMENT   = "indentLineComment";
+        INDENT_LINE_COMMENT = "indentLineComment",
+        INPUT_STYLE         = "inputStyle";
 
     /**
       * A list of gutter name and priorities currently registered for editors.
@@ -137,6 +138,7 @@ define(function (require, exports, module) {
     cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
+    cmOptions[INPUT_STYLE]        = "inputStyle";
 
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
@@ -226,6 +228,10 @@ define(function (require, exports, module) {
 
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
+    });
+
+    PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
+        description: Strings.DESCRIPTION_INPUT_STYLE
     });
 
     var editorOptions = Object.keys(cmOptions);
@@ -413,7 +419,7 @@ define(function (require, exports, module) {
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
-            inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
+            inputStyle                  : currentOptions[INPUT_STYLE],
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
             lineWrapping                : currentOptions[WORD_WRAP],

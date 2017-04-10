@@ -310,6 +310,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 parseInt(realElBorder.left),
                 outerHeight = innerHeight + parseInt(realElBorder.bottom) + parseInt(realElBorder.top);
             }
+
           
             var visualisations = {
                 horizontal: "left, right",
@@ -321,7 +322,6 @@ function RemoteFunctions(config, remoteWSPort) {
                 
               if (visualisations.horizontal.indexOf(side) >= 0) {
                 elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
-                  // get rid of px and remove borders
                 elStyling['height'] = innerHeight + "px";
                 elStyling['top'] = 0;
                   
@@ -355,6 +355,7 @@ function RemoteFunctions(config, remoteWSPort) {
             margin['left'] = parseInt(elementStyling.getPropertyValue('margin-left'));
           
             if(visualisations['horizontal'].indexOf(side) >= 0) {
+
               elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
               elStyling['height'] = outerHeight + margin['top'] + margin['bottom'] + "px";
               elStyling['top'] = "-" + (margin['top'] + parseInt(realElBorder.top))  + "px";
@@ -430,37 +431,19 @@ function RemoteFunctions(config, remoteWSPort) {
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
-            
-            var el = element,
-            offsetLeft = 0,
-            offsetTop  = 0;
-            
-            // Probably the easiest way to get elements position without including transform
-            do {
-                offsetLeft += el.offsetLeft;
-                offsetTop  += el.offsetTop;
-                el = el.offsetParent;
-            } while(el);
 
             var stylesToSet = {
-                "left": offsetLeft + "px",
-                "top": offsetTop + "px",
-                "width": innerWidth + "px",
-                "height": innerHeight + "px",
+                "left": offset.left + "px",
+                "top": offset.top + "px",
+                "width": elementBounds.width + "px",
+                "height": elementBounds.height + "px",
                 "z-index": 2000000,
                 "margin": 0,
                 "padding": 0,
                 "position": "absolute",
                 "pointer-events": "none",
                 "box-shadow": "0 0 1px #fff",
-                "box-sizing": elementStyling.getPropertyValue('box-sizing'),
-                "border-right": elementStyling.getPropertyValue('border-right'),
-                "border-left": elementStyling.getPropertyValue('border-left'),
-                "border-top": elementStyling.getPropertyValue('border-top'),
-                "border-bottom": elementStyling.getPropertyValue('border-bottom'),
-                "transform": elementStyling.getPropertyValue('transform'),
-                "transform-origin": elementStyling.getPropertyValue('transform-origin'),
-                "border-color": config.remoteHighlight.borderColor
+                "box-sizing": "border-box"
             };
             
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
