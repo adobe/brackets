@@ -296,15 +296,8 @@ function RemoteFunctions(config, remoteWSPort) {
               bottom: elementStyling.getPropertyValue('border-bottom-width')
             };
             
-            var borderBox = elementStyling.boxSizing === 'border-box';
-            
-            var innerWidth = parseInt(elementStyling.width) - parseInt(realElBorder.left) - parseInt(realElBorder.right);
-            var innerHeight = parseInt(elementStyling.height) - parseInt(realElBorder.top) - parseInt(realElBorder.bottom);
-            
-            if (!borderBox) {
-                innerWidth += parseInt(elementStyling.paddingLeft) + parseInt(elementStyling.paddingRight);
-                innerHeight += parseInt(elementStyling.paddingTop) + parseInt(elementStyling.paddingBottom);
-            }
+            var innerWidth = elementBounds.width - parseInt(realElBorder.left) - parseInt(realElBorder.right);
+            var innerHeight = elementBounds.height - parseInt(realElBorder.top) - parseInt(realElBorder.bottom);
           
             var visualisations = {
                 horizontal: "left, right",
@@ -316,7 +309,7 @@ function RemoteFunctions(config, remoteWSPort) {
               
               if (visualisations.horizontal.indexOf(side) >= 0) {
                 elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
-                elStyling['height'] = innerHeight + "px";
+                elStyling['height'] = innerHeight  + "px";
                 elStyling['top'] = realElBorder.top;
                 
               } else {
@@ -343,11 +336,12 @@ function RemoteFunctions(config, remoteWSPort) {
       
             if(visualisations['horizontal'].indexOf(side) >= 0) {
               elStyling['width'] =  elementStyling.getPropertyValue('margin-' + side);
-              elStyling['height'] = innerHeight + margin['top'] + margin['bottom'] + "px";
-              elStyling['top'] = -margin['top'] + "px";
+              elStyling['height'] = elementBounds.height + margin['top'] + margin['bottom'] + "px";
+              elStyling['top'] = "-" + margin['top'] + "px";
+
             } else {
               elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);  
-              elStyling['width'] = innerWidth + "px";
+              elStyling['width'] = elementBounds.width + "px";
               elStyling['left'] = 0;
             }
 
@@ -419,23 +413,12 @@ function RemoteFunctions(config, remoteWSPort) {
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
-            
-            var el = element,
-            offsetLeft = 0,
-            offsetTop  = 0;
-            
-            // Probably the easiest way to get elements position without including transform
-            do {
-                offsetLeft += el.offsetLeft;
-                offsetTop  += el.offsetTop;
-                el = el.offsetParent;
-            } while(el);
 
             var stylesToSet = {
-                "left": offsetLeft + "px",
-                "top": offsetTop + "px",
-                "width": innerWidth + "px",
-                "height": innerHeight + "px",
+                "left": offset.left + "px",
+                "top": offset.top + "px",
+                "width": elementBounds.width + "px",
+                "height": elementBounds.height + "px",
                 "z-index": 2000000,
                 "margin": 0,
                 "padding": 0,
@@ -449,8 +432,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 "border-width": "1px",
                 "border-color": "#00a2ff",
                 "box-shadow": "0 0 1px #fff",
-                "box-sizing": "border-box",
-                "transform": elementStyling.getPropertyValue('transform')
+                "box-sizing": "border-box"
             };
             
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
