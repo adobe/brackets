@@ -489,12 +489,14 @@ define(function (require, exports, module) {
                 if (completeLineSel) {
                     if (indentBlockComment) {
                         var endCh = _firstNotWs(doc, sel.end.line - 1);
+                        var useTabChar = Editor.getUseTabChar(editor.document.file.fullPath);
+                        var indentChar = useTabChar ? "\t" : " ";
                         editGroup.push({
-                            text: _.repeat(" ", endCh) + suffix + "\n",
+                            text: _.repeat(indentChar, endCh) + suffix + "\n",
                             start: {line: sel.end.line, ch: 0}
                         });
                         editGroup.push({
-                            text: prefix + "\n" + _.repeat(" ", startCh),
+                            text: prefix + "\n" + _.repeat(indentChar, startCh),
                             start: {line: sel.start.line, ch: startCh}
                         });
                     } else {

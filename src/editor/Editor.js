@@ -2713,7 +2713,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns true if blockCommentIndent is enabled for the specified or current file
+     * Sets indentBlockComment option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
      * @param {string=} fullPath Path to file to get preference for

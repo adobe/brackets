@@ -1013,6 +1013,87 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Line comment/uncomment in languages with only block comments and with indentBlockComment enabled and use of Tabs", function () {
+            var htmlContent = "<html>\n" +
+                              "\t<body>\n" +
+                              "\t\t<p>Hello</p>\n" +
+                              "\t</body>\n" +
+                              "</html>";
+
+            var shouldUseTabChar = Editor.getUseTabChar();
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentBlockComment", true);
+                PreferencesManager.set("useTabChar", true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentBlockComment", shouldIndentBlockComment);
+                PreferencesManager.set("useTabChar", shouldUseTabChar);
+            });
+
+            it("should comment/uncomment a single line, cursor at start", function () {
+                myEditor.setCursorPos(2, 0);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "\t\t<!--<p>Hello</p>-->";
+                var expectedText = lines.join("\n");
+
+                testToggleLine(expectedText, {line: 2, ch: 0});
+            });
+
+            it("should comment/uncomment a block", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 4});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var expectedText = "<html>\n" +
+                                   "\t<!--\n" +
+                                   "\t<body>\n" +
+                                   "\t\t<p>Hello</p>\n" +
+                                   "\t</body>\n" +
+                                   "\t-->\n" +
+                                   "</html>";
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 4}, end: {line: 4, ch: 4}});
+            });
+
+            it("should comment/uncomment a block with not closing tag ", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 2, ch: 7});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var expectedText = "<html>\n" +
+                                   "\t<!--\n" +
+                                   "\t<body>\n" +
+                                   "\t\t<p>Hello</p>\n" +
+                                   "\t\t-->\n" +
+                                   "\t</body>\n" +
+                                   "</html>";
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 4}, end: {line: 3, ch: 7}});
+            });
+
+            it("should comment/uncomment a block with not closing tag at end of file", function () {
+                myEditor.setSelection({line: 3, ch: 6}, {line: 4, ch: 2});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var expectedText = "<html>\n" +
+                                   "\t<body>\n" +
+                                   "\t\t<p>Hello</p>\n" +
+                                   "\t<!--\n" +
+                                   "\t</body>\n" +
+                                   "</html>-->\n";
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 4, ch: 6}, end: {line: 5, ch: 2}});
+            });
+        });
+
         describe("Comment/uncomment with mixed syntax modes with indentLineComment and indentBlockComment enabled", function () {
             var htmlContent = "<html>\n" +
                               "    <head>\n" +
