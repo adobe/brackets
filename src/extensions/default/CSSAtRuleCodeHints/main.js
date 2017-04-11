@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -57,7 +53,8 @@ define(function (require, exports, module) {
         }
 
         // Check if we are at '@' rule 'def' context
-        if ((token.type === "def" && cmState.context.type === "at") || (token.type === "variable-2" && (cmState.context.type === "top" || cmState.context.type === "block"))) {
+        if ((token.type === "def" && cmState.context.type === "at")
+                || (token.type === "variable-2" && (cmState.context.type === "top" || cmState.context.type === "block"))) {
             this.filter = token.string;
             return true;
         } else {
@@ -72,33 +69,34 @@ define(function (require, exports, module) {
 
         this.filter = token.string;
         this.token = token;
-
-        if (this.filter) {
-
-            // Filter the property list based on the token string
-            var result = $.map(Object.keys(AtRules), function (key, value) {
-                    if (key.indexOf(token.string) === 0) {
-                        return key;
-                    }
-                }).sort();
-
-            return {
-                hints: result,
-                match: this.filter,
-                selectInitial: true,
-                defaultDescriptionWidth: true,
-                handleWideResults: false
-            };
-        } else {
+        
+        if (!this.filter) {
             return null;
         }
+
+        // Filter the property list based on the token string
+        var result = Object.keys(AtRules).map(function (key) {
+            if (key.indexOf(token.string) === 0) {
+                return key;
+            }
+        }).filter(function (key) {
+            return key;
+        }).sort();
+
+        return {
+            hints: result,
+            match: this.filter,
+            selectInitial: true,
+            defaultDescriptionWidth: true,
+            handleWideResults: false
+        };
     };
 
 
     /**
      * Inserts a given @<rule> hint into the current editor context.
      *
-     * @param {string} hint
+     * @param {string} completion
      * The hint to be inserted into the editor context.
      *
      * @return {boolean}

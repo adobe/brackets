@@ -39,10 +39,6 @@ define(function (require, exports, module) {
         Strings             = brackets.getModule("strings"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
-        
-    // Load additional CSS code hint modules
-    require("./AtRuleCodeHints");
-    require("./PseudoSelectorHints");
 
 
     PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {

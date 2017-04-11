@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -54,10 +50,10 @@ define(function (require, exports, module) {
         } else if (token.type === "variable-3") {
             slicedToken = cursorText.substr(0, token.start).slice(-3);
         }
-
-        if (slicedToken.indexOf("::") === 1) {
+        
+        if (slicedToken.slice(-2) === "::") {
             contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
-        } else if (slicedToken.indexOf(":") === 2) {
+        } else if (slicedToken.slice(-1) === ":") {
             contextType = TOKEN_TYPE_PSEUDO_SELECTOR;
         }
 
@@ -79,11 +75,7 @@ define(function (require, exports, module) {
         this.editor = editor;
 
         // Check if we are at ':' pseudo rule or in 'variable-3' 'def' context
-        if (token.state.state === "pseudo" || token.type === "variable-3") {
-            return true;
-        } else {
-            return false;
-        }
+        return token.state.state === "pseudo" || token.type === "variable-3";
     };
 
     PsudoSelectorHints.prototype.getHints = function (implicitChar) {
@@ -98,34 +90,36 @@ define(function (require, exports, module) {
 
         // validate and keep the context in scope so that it can be used while getting description
         this.context = _getPseudoContext(token, lineTillCursor);
+        
+        // If we are not able to find context, don't proceed
+        if (this.context === -1) {
+            return null;
+        }
 
         this.token = token;
 
+        // Filter the property list based on the token string
+        var result = Object.keys(this.context === TOKEN_TYPE_PSEUDO_SELECTOR ? PseudoRules.selectors : PseudoRules.elements).map(function (key) {
+            if (key.indexOf(filter) === 0) {
+                return key;
+            }
+        }).filter(function (key) {
+            return key;
+        }).sort();
 
-        if (this.context !== -1) {
-            // Filter the property list based on the token string
-            var result = $.map(this.context === TOKEN_TYPE_PSEUDO_SELECTOR ? Object.keys(PseudoRules.selectors) : Object.keys(PseudoRules.elements), function (value, key) {
-                    if (value.indexOf(filter) === 0) {
-                        return value;
-                    }
-                }).sort();
-
-            return {
-                hints: result,
-                match: filter,
-                selectInitial: true,
-                defaultDescriptionWidth: true,
-                handleWideResults: false
-            };
-        } else {
-            return false;
-        }
+        return {
+            hints: result,
+            match: filter,
+            selectInitial: true,
+            defaultDescriptionWidth: true,
+            handleWideResults: false
+        };
     };
 
     /**
      * Inserts a given ':<pseudo>' hint into the current editor context.
      *
-     * @param {string} hint
+     * @param {string} completion
      * The hint to be inserted into the editor context.
      *
      * @return {boolean}
@@ -158,10 +152,6 @@ define(function (require, exports, module) {
 
         return false;
     };
-
-    function _init() {
-        
-    }
 
     AppInit.appReady(function () {
         // Register code hint providers
