@@ -455,23 +455,24 @@ define(function (require, exports, module) {
         this._updateSearchBarFromPrefs();
         this.focusQuery();
         //setTimeout(function() {
-            self.showSearchHints(searchHistory);
+        self.showSearchHints(searchHistory);
         //},0);
     };
 
     FindBar.prototype.showSearchHints = function (searchHistory) {
         var self = this;
         this.$searchField = $("input#find-what");
+        this.$searchField = $(this.$searchField[this.$searchField.length - 1]);
         this.searchField = new QuickSearchField(this.$searchField, {
             verticalAdjust: this.$searchField.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
             maxResults: 20,
             resultProvider: function (query) {
                 var asyncResult = new $.Deferred();
                 var filteredResults = _.filter(searchHistory,
-                    function(s) { return s.indexOf(query) !== -1; }
-                );
+                    function (s) { return s.indexOf(query) !== -1; }
+                                              );
                 asyncResult.resolve(filteredResults);
-                return asyncResult.promise(); 
+                return asyncResult.promise();
             },  //this._filterCallback,
             formatter: function (item, query) {
                 //query = query.slice(query.indexOf("@") + 1, query.length);
@@ -480,14 +481,13 @@ define(function (require, exports, module) {
                 return "<li>" + displayName + "</li>";
             },  //this._resultsFormatterCallback,
             onCommit: function (selectedItem, query) {
-                console.log(selectedItem);
-                console.log(query);
                 if (selectedItem) {
                     $("#find-what").val(selectedItem);
                     self.trigger("queryChange");
                 } else if (query.length) {
                     self.searchField.setText(query);
                 }
+                self.$("#find-what").focus();
                 //self.trigger("queryChange");
                 self.searchField.destroy();
             },

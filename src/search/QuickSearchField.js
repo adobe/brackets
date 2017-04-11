@@ -171,20 +171,26 @@ define(function (require, exports, module) {
     /** Call onCommit() immediately */
     QuickSearchField.prototype._doCommit = function (index) {
         var item;
-        if (this._displayedResults && this._displayedResults.length && this._highlightIndex>=0) {
-            item = this._displayedResults[this._highlightIndex];
+        if (this._displayedResults && this._displayedResults.length) {
+            if (index !== null && index !== undefined) {
+                item = this._displayedResults[index];
+            } else if (this._highlightIndex !== null) {
+                item = this._displayedResults[this._highlightIndex];
+            }
         }
         this.options.onCommit(item, this._displayedQuery);
     };
 
     /** Update display to reflect value of _highlightIndex, & call onHighlight() */
     QuickSearchField.prototype._updateHighlight = function (explicit) {
-        var $items = this._$dropdown.find("li");
-        $items.removeClass("highlight");
-        if (this._highlightIndex !== null) {
-            $items.eq(this._highlightIndex).addClass("highlight");
+        if (this._$dropdown) {
+            var $items = this._$dropdown.find("li");
+            $items.removeClass("highlight");
+            if (this._highlightIndex !== null) {
+                $items.eq(this._highlightIndex).addClass("highlight");
 
-            this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
+                this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
+            }
         }
     };
 
@@ -208,12 +214,14 @@ define(function (require, exports, module) {
                     this._pending = null;
                 }
             });
-            this._pending.fail(function () {
-                if (self._pending === results) {
-                    self._render([], query);
-                    this._pending = null;
-                }
-            });
+            if (this._pending) {
+                this._pending.fail(function () {
+                    if (self._pending === results) {
+                        self._render([], query);
+                        this._pending = null;
+                    }
+                });
+            }
         } else {
             // Synchronous result - render immediately
             this._render(results, query);
