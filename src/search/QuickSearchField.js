@@ -171,9 +171,8 @@ define(function (require, exports, module) {
     /** Call onCommit() immediately */
     QuickSearchField.prototype._doCommit = function (index) {
         var item;
-        if (this._displayedResults && this._displayedResults.length) {
-            var committedIndex = index !== undefined ? index : (this._highlightIndex || 0);
-            item = this._displayedResults[committedIndex];
+        if (this._displayedResults && this._displayedResults.length && this._highlightIndex>=0) {
+            item = this._displayedResults[this._highlightIndex];
         }
         this.options.onCommit(item, this._displayedQuery);
     };
@@ -264,7 +263,7 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._render = function (results, query) {
         this._displayedQuery = query;
         this._displayedResults = results;
-        this._highlightIndex = 0;
+        this._highlightIndex = null;
         // TODO: fixup to match prev value's item if possible?
 
         if (results.error || results.length === 0) {
