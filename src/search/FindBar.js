@@ -495,7 +495,7 @@ define(function (require, exports, module) {
             //verticalAdjust: 44
         });
         this.searchField.setText($("#find-what").val());
-    }
+    };
 
     /**
      * Closes this Find bar. If already closed, does nothing.
