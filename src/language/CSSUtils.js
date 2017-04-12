@@ -624,7 +624,7 @@ define(function (require, exports, module) {
         // and in attribute value state of a tag with attribute name style
         if (ctx.token.state.htmlState && (!ctx.token.state.localMode || ctx.token.state.localMode.name !== "css")) {
 
-                // tagInfo is required to aquire the style attr value
+            // tagInfo is required to aquire the style attr value
             var tagInfo = HTMLUtils.getTagInfo(editor, pos, true),
                 // To be used as relative character position
                 offset = tagInfo.position.offset;
@@ -635,7 +635,7 @@ define(function (require, exports, module) {
              * a no-op display function to run CM without a DOM head.
              */
             var _contextCM = new CodeMirror(function () {}, {
-                value: "{" + tagInfo.attr.value + "}",
+                value: "{" + tagInfo.attr.value.replace(/(^")|("$)/g, ""),
                 mode:  "css"
             });
 

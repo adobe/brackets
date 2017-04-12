@@ -226,6 +226,18 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
         }
+        
+        //Skip all the 'string' tokens backwards. Required to reach to the first line 
+        //of multiline HTML attribute value.
+        while (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx)) {
+            if (ctx.token.type !== "string") {
+                break;
+            }
+        }
+
+        //As we have skipped all the string tokens, make a forward navigation to move to the
+        //first 'string token so that in next backward navigation we can find '='.
+        TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
 
         //Move to the prev token, and check if it's "="
         if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.string !== "=") {
