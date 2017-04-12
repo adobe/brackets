@@ -172,9 +172,9 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._doCommit = function (index) {
         var item;
         if (this._displayedResults && this._displayedResults.length) {
-            if (index !== null && index !== undefined) {
+            if (index >= 0) {
                 item = this._displayedResults[index];
-            } else if (this._highlightIndex !== null) {
+            } else if (this._highlightIndex >= 0) {
                 item = this._displayedResults[this._highlightIndex];
             }
         }

@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils"),
         FindUtils          = require("search/FindUtils"),
         QuickSearchField   = require("search/QuickSearchField").QuickSearchField,
-        StringUtils        = require("utils/StringUtils"),
         HealthLogger       = require("utils/HealthLogger");
 
     /**
@@ -228,55 +227,12 @@ define(function (require, exports, module) {
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
     };
-    
-    function highlightMatch(item, matchClass, rangeFilter) {
-        var label = item.label || item;
-        matchClass = matchClass || "quicksearch-namematch";
-
-        var stringRanges = item.stringRanges;
-        if (!stringRanges) {
-            // If result didn't come from stringMatch(), highlight nothing
-            stringRanges = [{
-                text: label,
-                matched: false,
-                includesLastSegment: true
-            }];
-        }
-
-        var displayName = "";
-        if (item.scoreDebug) {
-            var sd = item.scoreDebug;
-            displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
-                ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
-                ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
-        }
-
-        // Put the path pieces together, highlighting the matched parts
-        stringRanges.forEach(function (range) {
-            if (range.matched) {
-                displayName += "<span class='" + matchClass + "'>";
-            }
-
-            var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
-            displayName += StringUtils.breakableUrl(rangeText);
-
-            if (range.matched) {
-                displayName += "</span>";
-            }
-        });
-        return displayName;
-    }
 
     /**
      * Opens the Find bar, closing any other existing Find bars.
      */
     FindBar.prototype.open = function () {
         var self = this;
-        
-        //var searchBarHTML = "<div align='right'><input type='text' autocomplete='off' id='' placeholder='" + Strings.CMD_FIND + "\u2026' style='width: 30em'><span class=''></span></div>";
-        //this.modalBar = new ModalBar(searchBarHTML, true);
-        var searchHistory = PreferencesManager.getViewState("searchHistory");
 
         // Normally, creating a new Find bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
@@ -307,7 +263,9 @@ define(function (require, exports, module) {
             FindBar._removeFindBar(self);
             MainViewManager.focusActivePane();
             self.trigger("close");
-            self.searchField.destroy();
+            if (self.searchField) {
+                self.searchField.destroy();
+            }
         });
 
         FindBar._addFindBar(this);
@@ -357,7 +315,7 @@ define(function (require, exports, module) {
                 if (intervalId === 0) {
                     intervalId = window.setInterval(executeSearchIfNeeded, 50);
                 }
-                
+                var searchHistory = PreferencesManager.getViewState("searchHistory");
                 var maxCount = PreferencesManager.get("maxSearchHistory");
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
@@ -395,15 +353,11 @@ define(function (require, exports, module) {
                         self.trigger("doFind", e.shiftKey);
                     }
                     historyIndex = 0;
-                }/* else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
-                    if (e.keyCode === KeyEvent.DOM_VK_DOWN) {
-                        historyIndex = (historyIndex - 1 + searchHistory.length) % searchHistory.length;
-                    } else {
-                        historyIndex = (historyIndex + 1 + searchHistory.length) % searchHistory.length;
+                } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
+                    if (!self.searchField) {
+                        self.showSearchHints();
                     }
-                    $("#find-what").val(searchHistory[historyIndex]);
-                    self.trigger("queryChange");
-                }*/
+                }
             });
 
         if (!this._options.multifile) {
@@ -449,17 +403,12 @@ define(function (require, exports, module) {
             this.showIndexingSpinner();
         }
 
-        //this.$searchField.focus();
-
         // Set up the initial UI state.
         this._updateSearchBarFromPrefs();
         this.focusQuery();
-        //setTimeout(function() {
-        self.showSearchHints(searchHistory);
-        //},0);
     };
 
-    FindBar.prototype.showSearchHints = function (searchHistory) {
+    FindBar.prototype.showSearchHints = function () {
         var self = this;
         this.$searchField = $("input#find-what");
         this.$searchField = $(this.$searchField[this.$searchField.length - 1]);
@@ -468,18 +417,16 @@ define(function (require, exports, module) {
             maxResults: 20,
             resultProvider: function (query) {
                 var asyncResult = new $.Deferred();
-                var filteredResults = _.filter(searchHistory,
-                    function (s) { return s.indexOf(query) !== -1; }
-                                              );
+                var searchHistory = PreferencesManager.getViewState("searchHistory");
+                var filteredResults = _.filter(searchHistory, function (s) {
+                    return s.indexOf(query) !== -1;
+                });
                 asyncResult.resolve(filteredResults);
                 return asyncResult.promise();
-            },  //this._filterCallback,
+            },
             formatter: function (item, query) {
-                //query = query.slice(query.indexOf("@") + 1, query.length);
-
-                var displayName = highlightMatch(item);
-                return "<li>" + displayName + "</li>";
-            },  //this._resultsFormatterCallback,
+                return "<li>" + item + "</li>";
+            },
             onCommit: function (selectedItem, query) {
                 if (selectedItem) {
                     $("#find-what").val(selectedItem);
@@ -488,11 +435,9 @@ define(function (require, exports, module) {
                     self.searchField.setText(query);
                 }
                 self.$("#find-what").focus();
-                //self.trigger("queryChange");
                 self.searchField.destroy();
             },
             onHighlight: function (selectedItem, query, explicit) {}
-            //verticalAdjust: 44
         });
         this.searchField.setText($("#find-what").val());
     };
@@ -505,7 +450,6 @@ define(function (require, exports, module) {
         if (this._modalBar) {
             // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
             this._modalBar.close(true, !suppressAnimation);
-            //this.searchField.destroy();
         }
     };
 
