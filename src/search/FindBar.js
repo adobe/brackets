@@ -408,6 +408,10 @@ define(function (require, exports, module) {
         this.focusQuery();
     };
 
+    /**
+     * @private
+     * Shows the search History in dropdown.
+     */
     FindBar.prototype.showSearchHints = function () {
         var self = this;
         this.$searchField = $("input#find-what");
