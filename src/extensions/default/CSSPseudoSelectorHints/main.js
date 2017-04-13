@@ -27,18 +27,20 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        TokenUtils          = brackets.getModule("utils/TokenUtils"),
         PseudoRulesText     = require("text!PseudoSelectors.json"),
         PseudoRules         = JSON.parse(PseudoRulesText);
 
 
     var TOKEN_TYPE_PSEUDO_SELECTOR = 0,
-        TOKEN_TYPE_PSEUDO_ELEMENT  = 1;
+        TOKEN_TYPE_PSEUDO_ELEMENT  = 1,
+        PUNCTUATION_CHAR           = ':';
 
-    function _getPseudoContext(token, cursorText) {
+    function _getPseudoContext(token, cursorText, ctx) {
         var slicedToken,
             contextType = -1;
 
-        // Magic code to get around CM's redundant 'pseudo' identification logic
+        // Magic code to get around CM's 'pseudo' identification logic
         // As per CSS3 spec :
         // -> ':' identifies pseudo slectors
         // -> '::' identifies pseudo elements
@@ -51,10 +53,22 @@ define(function (require, exports, module) {
             slicedToken = cursorText.substr(0, token.start).slice(-3);
         }
         
-        if (slicedToken.slice(-2) === "::") {
-            contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
-        } else if (slicedToken.slice(-1) === ":") {
-            contextType = TOKEN_TYPE_PSEUDO_SELECTOR;
+        if (!slicedToken) {
+            //We get here when in SCSS mode and the cursor is right after ':'
+            //Test the previous token first
+            TokenUtils.movePrevToken(ctx);
+            if (ctx.token.string === PUNCTUATION_CHAR) {
+                //We are in pseudo elemnt context ('::')
+                contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
+            } else {
+                contextType = TOKEN_TYPE_PSEUDO_SELECTOR;
+            }
+        } else {
+            if (slicedToken.slice(-2) === "::") {
+                contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
+            } else if (slicedToken.slice(-1) === ":") {
+                contextType = TOKEN_TYPE_PSEUDO_SELECTOR;
+            }
         }
 
         return contextType;
@@ -75,21 +89,22 @@ define(function (require, exports, module) {
         this.editor = editor;
 
         // Check if we are at ':' pseudo rule or in 'variable-3' 'def' context
-        return token.state.state === "pseudo" || token.type === "variable-3";
+        return token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR;
     };
 
     PsudoSelectorHints.prototype.getHints = function (implicitChar) {
         var pos = this.editor.getCursorPos(),
             token = this.editor._codeMirror.getTokenAt(pos),
             filter = token.type === "variable-3" ? token.string : "",
-            lineTillCursor = this.editor._codeMirror.getLine(pos.line);
+            lineTillCursor = this.editor._codeMirror.getLine(pos.line),
+            ctx = TokenUtils.getInitialContext(this.editor._codeMirror, pos);
 
-        if (!(token.state.state === "pseudo" || token.type === "variable-3")) {
+        if (!(token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR)) {
             return null;
         }
 
         // validate and keep the context in scope so that it can be used while getting description
-        this.context = _getPseudoContext(token, lineTillCursor);
+        this.context = _getPseudoContext(token, lineTillCursor, ctx);
         
         // If we are not able to find context, don't proceed
         if (this.context === -1) {
