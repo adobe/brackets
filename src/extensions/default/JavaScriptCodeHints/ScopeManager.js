@@ -927,10 +927,11 @@ define(function (require, exports, module) {
          * @param {string} path - full path of file
          * @return {jQuery.Promise} - the promise for the request
          */
-        function primePump(path) {
+        function primePump(path, isUntitledDoc) {
             _postMessageByPass({
-                type        : MessageIds.TERN_PRIME_PUMP_MSG,
-                path        : path
+                type            : MessageIds.TERN_PRIME_PUMP_MSG,
+                path            : path,
+                isUntitledDoc   : isUntitledDoc
             });
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
@@ -1152,7 +1153,7 @@ define(function (require, exports, module) {
                 if (isDocumentDirty && previousDocument) {
                     var updateFilePromise = updateTernFile(previousDocument);
                     updateFilePromise.done(function () {
-                        primePump(path);
+                        primePump(path, document.isUntitled());
                         addFilesDeferred.resolveWith(null, [_ternWorker]);
                     });
                 } else {
@@ -1171,7 +1172,7 @@ define(function (require, exports, module) {
             deferredPreferences.done(function () {
                 if (file instanceof InMemoryFile) {
                     initTernServer(pr, []);
-                    var hintsPromise = primePump(path);
+                    var hintsPromise = primePump(path, true);
                     hintsPromise.done(function () {
                         addFilesDeferred.resolveWith(null, [_ternWorker]);
                     });
@@ -1202,7 +1203,7 @@ define(function (require, exports, module) {
 
                         initTernServer(dir, files);
 
-                        var hintsPromise = primePump(path);
+                        var hintsPromise = primePump(path, false);
                         hintsPromise.done(function () {
                             if (!usingModules()) {
                                 // Read the subdirectories of the new file's directory.
@@ -1217,7 +1218,7 @@ define(function (require, exports, module) {
                                         addAllFilesAndSubdirectories(projectRoot, function () {
                                             // prime the pump again but this time don't wait
                                             // for completion.
-                                            primePump(path);
+                                            primePump(path, false);
 
                                             addFilesDeferred.resolveWith(null, [_ternWorker]);
                                         });

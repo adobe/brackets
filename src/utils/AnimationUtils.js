@@ -42,7 +42,7 @@ define(function (require, exports, module) {
             "OTransition"     : "oTransitionEnd",
             "MozTransition"   : "transitionend",
             "WebkitTransition": "webkitTransitionEnd",
-            "transition"      : "transitionend",
+            "transition"      : "transitionend"
         };
 
         _.forEach(transitions, function (value, key) {

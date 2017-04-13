@@ -23,13 +23,17 @@
             </li>
         </ul>
         <div>
-            <span class="sort-extensions-title ext-sort-group">{{Strings.EXTENSIONS_SORT_BY}}</span>
-            <select class="sort-extensions ext-sort-group">
-                <option value="publishedDate">{{Strings.EXTENSIONS_LAST_UPDATED}}</option>
-                <option value="downloadCount">{{Strings.EXTENSIONS_DOWNLOADS}}</option>
-            </select>
-            <button class="search-clear">&times;</button>
-            <input class="search" type="text" placeholder="{{EXTENSION_SEARCH_PLACEHOLDER}}">
+            <div class="ext-sort-group">
+               <div id="sort-attributes-icon"></div>
+               <select class="sort-extensions">
+                   <option value="publishedDate">{{Strings.EXTENSIONS_LAST_UPDATED}}</option>
+                   <option value="downloadCount">{{Strings.EXTENSIONS_DOWNLOADS}}</option>
+               </select>
+            </div>
+            <div class="search-container">
+                <button class="search-clear">&times;</button>
+                <input class="search" type="text" placeholder="{{Strings.EXTENSION_SEARCH_PLACEHOLDER}}">
+            </div>
         </div>
     </div>
     <div class="modal-body no-padding table-striped tab-content">

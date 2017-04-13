@@ -92,7 +92,7 @@ define(function (require, exports, module) {
             var sr = _isCurrentlyFolded(i), // surrounding range for the current line if one exists
                 range;
             var mark = marker("CodeMirror-foldgutter-blank");
-            var pos = CodeMirror.Pos(i),
+            var pos = CodeMirror.Pos(i, 0),
                 func = opts.rangeFinder || CodeMirror.fold.auto;
             // don't look inside collapsed ranges
             if (sr) {
@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      * @returns {TextMarker} A CodeMirror TextMarker object
      */
     function getFoldOnLine(cm, line) {
-        var pos = CodeMirror.Pos(line);
+        var pos = CodeMirror.Pos(line, 0);
         var folds = cm.findMarksAt(pos) || [];
         folds = folds.filter(isFold);
         return folds.length ? folds[0] : undefined;
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
 
         if (linesDiff === 0) {
             if (foldedLines.indexOf(from) >= 0) {
-                newRange = rf(cm, CodeMirror.Pos(from));
+                newRange = rf(cm, CodeMirror.Pos(from, 0));
                 if (newRange && newRange.to.line - newRange.from.line >= minFoldSize) {
                     cm._lineFolds[from] = newRange;
                 } else {

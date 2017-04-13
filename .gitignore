@@ -30,6 +30,9 @@ Thumbs.db
 # ignore .disabled file for default extensions
 /src/extensions/default/*/.disabled
 
+# generate through grunt
+/src/config.json
+
 #OSX .DS_Store files
 .DS_Store
 
@@ -46,3 +49,5 @@ Thumbs.db
 # Files that can be automatically downloaded that we don't want to ship with our builds
 /src/extensibility/node/node_modules/request/tests/
 
+# Files build by scripts
+/src/thirdparty/semver.browser.js

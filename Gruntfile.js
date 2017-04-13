@@ -129,7 +129,7 @@ module.exports = function (grunt) {
                             'keymap/{,*/}*',
                             'lib/{,*/}*',
                             'mode/{,*/}*',
-                            'theme/{,*/}*',
+                            'theme/{,*/}*'
                         ]
                     },
                     {
@@ -149,7 +149,7 @@ module.exports = function (grunt) {
                 force: true,
                 files: false
             },
-            src: ['dist/**/*'],
+            src: ['dist/**/*']
         },
         less: {
             dist: {
@@ -268,21 +268,20 @@ module.exports = function (grunt) {
             ]
         },
         watch: {
-            all : {
-                files: ['**/*', '!**/node_modules/**'],
-                tasks: ['eslint']
-            },
-            grunt : {
-                files: ['<%= meta.grunt %>', 'tasks/**/*'],
+            grunt: {
+                files: ['<%= meta.grunt %>'],
                 tasks: ['eslint:grunt']
             },
-            src : {
-                files: ['<%= meta.src %>', 'src/**/*'],
+            src: {
+                files: ['<%= meta.src %>'],
                 tasks: ['eslint:src']
             },
-            test : {
-                files: ['<%= meta.test %>', 'test/**/*'],
+            test: {
+                files: ['<%= meta.test %>'],
                 tasks: ['eslint:test']
+            },
+            options: {
+                spawn: false
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -341,7 +340,7 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config', 'less', 'npm-install-source']);
+    grunt.registerTask('install', ['write-config:dev', 'less', 'npm-install-source', 'pack-web-dependencies']);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
@@ -349,10 +348,11 @@ module.exports = function (grunt) {
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
-    grunt.registerTask('set-release', ['update-release-number', 'write-config']);
+    grunt.registerTask('set-release', ['update-release-number', 'write-config:dev']);
 
     // task: build
     grunt.registerTask('build', [
+        'write-config:dist',
         'eslint:src',
         'jasmine',
         'clean',

@@ -117,13 +117,19 @@ define(function (require, exports, module) {
         }
 
         var saveFolds = prefs.getSetting("saveFoldStates");
+        
         if (!editor || !saveFolds) {
+            if (editor) {
+                editor._codeMirror._lineFolds = editor._codeMirror._lineFolds || {};
+            }
             return;
         }
-        var viewState = ViewStateManager.getViewState(editor.document.file);
+                
         var cm = editor._codeMirror;
+        var viewState = ViewStateManager.getViewState(editor.document.file);
         var path = editor.document.file.fullPath;
         var folds = cm._lineFolds || prefs.getFolds(path) || {};
+        
         //separate out selection folds from non-selection folds
         var nonSelectionFolds = {}, selectionFolds = {}, range;
         Object.keys(folds).forEach(function (line) {
