@@ -1578,10 +1578,18 @@ a, img {
         }
 
         #find-what {
-            padding-right: 62px;  // room for #find-counter overlay
+            padding-right: 78px;  // room for #find-counter overlay
             width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
         }
-        #find-counter {
+
+        .dropdown-icon {
+            background: url(images/dropdown-icon.svg) no-repeat scroll 15px 15px;
+            background-position: center right;
+            width: 20px;
+            height: 20px;
+        }
+
+        #find-counter, .dropdown-icon {
             position: absolute;
             color: @bc-text-thin-quiet;
             top: 1px;
@@ -1822,6 +1830,7 @@ textarea.exclusions-editor {
 #find-counter {
     font-weight: @font-weight-semibold;
     padding: 0 5px;
+    margin-right: 17px;
 }
 
 .tickmark-track {

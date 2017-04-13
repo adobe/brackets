@@ -285,6 +285,17 @@ define(function (require, exports, module) {
                     self.trigger("doFind");
                 }
             })
+            .on("click", ".dropdown-icon", function (e) {
+                if (!self.searchField) {
+                    self.showSearchHints();
+                } else if ($(".quick-search-container").is(':visible')) {
+                    $(".quick-search-container").hide();
+                } else if (!$(".quick-search-container").is(':visible')) {
+                    self.searchField.setText($("#find-what").val());
+                    $(".quick-search-container").show();
+                }
+                self.$("#find-what").focus();
+            })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
                 lastKeyCode = e.keyCode;
@@ -356,6 +367,8 @@ define(function (require, exports, module) {
                 } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
                     if (!self.searchField) {
                         self.showSearchHints();
+                    } else if (!$(".quick-search-container").is(':visible')) {
+                        $(".quick-search-container").show();
                     }
                 }
             });
@@ -439,7 +452,7 @@ define(function (require, exports, module) {
                     self.searchField.setText(query);
                 }
                 self.$("#find-what").focus();
-                self.searchField.destroy();
+                $(".quick-search-container").hide();
             },
             onHighlight: function (selectedItem, query, explicit) {},
             highlightZeroResults: false

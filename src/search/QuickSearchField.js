@@ -83,7 +83,7 @@ define(function (require, exports, module) {
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
 
-        if (options.highlightZeroResults !== null) {
+        if (options.highlightZeroResults !== undefined) {
             this._highlightZeroResults = options.highlightZeroResults;
         } else {
             this._highlightZeroResults = true;
