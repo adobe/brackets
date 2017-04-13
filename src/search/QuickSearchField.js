@@ -83,10 +83,10 @@ define(function (require, exports, module) {
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
 
-        if (options.highlightZeroIndex !== null) {
-            this._highlightZeroIndex = options.highlightZeroIndex;
+        if (options.highlightZeroResults !== null) {
+            this._highlightZeroResults = options.highlightZeroResults;
         } else {
-            this._highlightZeroIndex = true;
+            this._highlightZeroResults = true;
         }
 
         $input.on("input", this._handleInput);
@@ -177,20 +177,26 @@ define(function (require, exports, module) {
     /** Call onCommit() immediately */
     QuickSearchField.prototype._doCommit = function (index) {
         var item;
-        if (this._displayedResults && this._displayedResults.length && this._highlightIndex >= 0) {
-            item = this._displayedResults[this._highlightIndex];
+        if (this._displayedResults && this._displayedResults.length) {
+            if (index >= 0) {
+                item = this._displayedResults[index];
+            } else if (this._highlightIndex >= 0) {
+                item = this._displayedResults[this._highlightIndex];
+            }
         }
         this.options.onCommit(item, this._displayedQuery);
     };
 
     /** Update display to reflect value of _highlightIndex, & call onHighlight() */
     QuickSearchField.prototype._updateHighlight = function (explicit) {
-        var $items = this._$dropdown.find("li");
-        $items.removeClass("highlight");
-        if (this._highlightIndex !== null) {
-            $items.eq(this._highlightIndex).addClass("highlight");
+        if (this._$dropdown) {
+            var $items = this._$dropdown.find("li");
+            $items.removeClass("highlight");
+            if (this._highlightIndex !== null) {
+                $items.eq(this._highlightIndex).addClass("highlight");
 
-            this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
+                this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
+            }
         }
     };
 
@@ -214,12 +220,14 @@ define(function (require, exports, module) {
                     this._pending = null;
                 }
             });
-            this._pending.fail(function () {
-                if (self._pending === results) {
-                    self._render([], query);
-                    this._pending = null;
-                }
-            });
+            if (this._pending) {
+                this._pending.fail(function () {
+                    if (self._pending === results) {
+                        self._render([], query);
+                        this._pending = null;
+                    }
+                });
+            }
         } else {
             // Synchronous result - render immediately
             this._render(results, query);
@@ -274,7 +282,7 @@ define(function (require, exports, module) {
 
         if (results.error || results.length === 0) {
             this._closeDropdown();
-            if (this._highlightZeroIndex) {
+            if (this._highlightZeroResults) {
                 this.$input.addClass("no-results");
             }
         } else if (results.hasOwnProperty("error")) {
