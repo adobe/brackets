@@ -79,6 +79,33 @@ define(function main(require, exports, module) {
         description: Strings.DESCRIPTION_LIVE_DEV_MULTIBROWSER
     });
 
+    // "livedev.remoteHighlight" preference
+    var PREF_REMOTEHIGHLIGHT = "remoteHighlight";
+    var remoteHighlightPref = prefs.definePreference(PREF_REMOTEHIGHLIGHT, "object", {
+        animateStartValue: {
+            "background-color": "rgba(0, 162, 255, 0.5)",
+            "opacity": 0
+        },
+        animateEndValue: {
+            "background-color": "rgba(0, 162, 255, 0)",
+            "opacity": 0.6
+        },
+        "paddingStyling": {
+            "border-width": "1px",
+            "border-style": "dashed",
+            "border-color": "rgba(0, 162, 255, 0.5)"
+        },
+        "marginStyling": {
+            "background-color": "rgba(21, 165, 255, 0.58)"
+        },
+        "stylesToSet": {
+            "border-width": "1px"
+        },
+        "showPaddingMargin": true
+    }, {
+        description: "LivePreview highlight settings"
+    });
+    
     /** Toggles or sets the preference **/
     function _togglePref(key, value) {
         var val,
@@ -302,6 +329,7 @@ define(function main(require, exports, module) {
     /** Initialize LiveDevelopment */
     AppInit.appReady(function () {
         params.parse();
+        config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
 
         Inspector.init(config);
         LiveDevelopment.init(config);
@@ -351,6 +379,15 @@ define(function main(require, exports, module) {
                         });
                 } else {
                     _setImplementation(prefs.get(PREF_MULTIBROWSER));
+                }
+            });
+        
+        remoteHighlightPref
+            .on("change", function () {
+                config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
+                       
+                if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
+                    LiveDevImpl.agents.remote.call("updateConfig",JSON.stringify(config));
                 }
             });
 

@@ -267,6 +267,7 @@ define(function (require, exports, module) {
         FindBar._addFindBar(this);
 
         var $root = this._modalBar.getRoot();
+        var historyIndex = 0;
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
@@ -310,9 +311,21 @@ define(function (require, exports, module) {
                 if (intervalId === 0) {
                     intervalId = window.setInterval(executeSearchIfNeeded, 50);
                 }
+                var searchHistory = PreferencesManager.getViewState("searchHistory");
+                var maxCount = PreferencesManager.get("maxSearchHistory");
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
+                    var searchQueryIndex = searchHistory.indexOf($('#find-what').val());
+                    if (searchQueryIndex !== -1) {
+                        searchHistory.splice(searchQueryIndex, 1);
+                    } else {
+                        if (searchHistory.length === maxCount) {
+                            searchHistory.pop();
+                        }
+                    }
+                    searchHistory.unshift($('#find-what').val());
+                    PreferencesManager.setViewState("searchHistory", searchHistory);
                     lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
@@ -333,6 +346,15 @@ define(function (require, exports, module) {
                         // if Shift is held down).
                         self.trigger("doFind", e.shiftKey);
                     }
+                    historyIndex = 0;
+                } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
+                    if (e.keyCode === KeyEvent.DOM_VK_DOWN) {
+                        historyIndex = (historyIndex - 1 + searchHistory.length) % searchHistory.length;
+                    } else {
+                        historyIndex = (historyIndex + 1 + searchHistory.length) % searchHistory.length;
+                    }
+                    $("#find-what").val(searchHistory[historyIndex]);
+                    self.trigger("queryChange");
                 }
             });
 
@@ -616,6 +638,10 @@ define(function (require, exports, module) {
 
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
+    PreferencesManager.stateManager.definePreference("searchHistory", "array", []);
+    PreferencesManager.definePreference("maxSearchHistory", "number", 10, {
+        description: Strings.FIND_HISTORY_MAX_COUNT
+    });
 
     exports.FindBar = FindBar;
 });

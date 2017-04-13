@@ -558,14 +558,14 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedavni projekti",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Pročitaj više",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Skupi Sve",
     "EXPAND_ALL"                    : "Proširi Sve",
     "COLLAPSE_CURRENT"              : "Skupi Trenutno",
-    "EXPAND_CURRENT"                : "Proširi Trenutno",
+    "EXPAND_CURRENT"                : "Proširi Trenutno"
 });
 
 /* Last translated for a57bd8888da0b44f382e591c64b394b065178277 */

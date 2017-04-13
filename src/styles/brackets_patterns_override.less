@@ -45,7 +45,7 @@ a {
 a:hover {
     color: @bc-text-link;
     text-decoration: underline;
-    
+
     .dark & {
         color: @dark-bc-text-link;
     }
@@ -89,7 +89,7 @@ a:focus {
     background-color: transparent;
 
     text-shadow: 0 1px 2px @bc-shadow-large;
-    
+
     .dark & {
         text-shadow: 0 1px 2px @dark-bc-shadow-large;
     }
@@ -368,7 +368,7 @@ a:focus {
         // Offset for better alignment with button
         top: 34px;
         margin-top: 0;
-        
+
         // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
         // the menu item label and keyboard shortcut. This takes away the "gotta get narrower" pressure.
         // This technique won't work on all browsers; see comments in #4593 for alternative options.
@@ -377,7 +377,7 @@ a:focus {
         width: max-content;
 
         background-color: @bc-menu-bg;
-        .border-radius(0 0 3px 3px);
+        border-radius: 0 0 3px 3px;
         box-shadow: 0 3px 9px @bc-shadow;
         border: none;
 
@@ -475,7 +475,7 @@ a:focus {
     list-style-type: none;
 
     .dropdown-menu {
-        .border-radius(3px);
+        border-radius: 3px;
         box-shadow: 0 3px 9px @bc-shadow;
 
         .dark & {
@@ -596,7 +596,7 @@ a:focus {
     &.dropdown-menu:focus {
         outline: none;
     }
-    
+
     &.dropdown-menu {
         border: none;
         border-radius: @bc-border-radius;
@@ -614,11 +614,11 @@ a:focus {
             box-shadow: 0 3px 9px @dark-bc-shadow;
         }
     }
-    
+
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
         color: @bc-menu-text;
-        
+
         .dark & {
             color: @dark-bc-menu-text;
         }
@@ -631,11 +631,11 @@ a:focus {
             }
         }
     }
-    
+
     &.dropdown-menu .stylesheet-link {
         display: block;
     }
-    
+
     &.dropdown-menu a.selected {
         background: @bc-bg-highlight;
         color: @bc-menu-text !important;
@@ -659,7 +659,7 @@ a:focus {
             display: inline-block;
         }
     }
-    
+
     &.dropdown-menu a:hover {
         /* toggle checkmark visibility */
         &.checked::before {
@@ -683,12 +683,12 @@ a:focus {
     transform-origin: 0 100%;
     height: auto;
     max-height: 80%;
-    
+
     // Improve how bottom of the dropdown joins with top of status bar button
     margin-top: -6px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    
+
     li a .default-language {
         font-style: italic;
         color: @bc-text-quiet;
@@ -716,7 +716,7 @@ a:focus {
     .stylesheet-link, .stylesheet-name {
         white-space: nowrap;
     }
-    
+
     .stylesheet-name {
         color: @bc-text;
 
@@ -724,7 +724,7 @@ a:focus {
             color: @dark-bc-text;
         }
     }
-    
+
     .stylesheet-dir {
         color: @bc-text-quiet;
 
@@ -981,15 +981,15 @@ a[href^="http"] {
             // Enable text selection
             cursor: auto;
             .user-select(text);
-            
+
             h3 {
                 font-weight: normal;
                 margin: 0 0 10px;
             }
-            
+
             ul {
                 margin-bottom: 0 0 20px;
-                
+
                 > li {
                     margin-bottom: 10px;
                 }
@@ -1026,8 +1026,8 @@ a[href^="http"] {
 /* Extension Manager dialog */
 .extension-manager-dialog {
     background-color: @bc-panel-bg-promoted;
-    width: 760px;
-    
+    min-width: @extension-manager-min-width;
+
     .dark & {
         background-color: @dark-bc-panel-bg-promoted;
     }
@@ -1035,7 +1035,7 @@ a[href^="http"] {
     .modal-header {
         border-bottom: none;
         padding: 0;
-        
+
         .nav-tabs {
             margin: 0;
             border-color: @bc-panel-separator;
@@ -1107,7 +1107,7 @@ a[href^="http"] {
                     border-color: @dark-bc-btn-border @dark-bc-btn-border transparent @dark-bc-btn-border;
                 }
             }
-            
+
             > .active > a:focus {
                 background-color: @bc-panel-bg;
                 border-color: @bc-btn-border-focused @bc-btn-border-focused transparent @bc-btn-border-focused;
@@ -1141,19 +1141,36 @@ a[href^="http"] {
 
         /* Search box */
         > :nth-child(2) {
-            position: absolute;
-            top: 15px;
-            right: 15px;
+            @media (max-width: (@extension-manager-min-width - 1px)) {
+                display: flex;
+                overflow: hidden;
+                padding: 8px 1em;
+            }
+
+            @media (min-width: @extension-manager-min-width) {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+            }
         }
-        .search {
-            background: @bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+
+        .search-container {
             float: right;
+            .flex-item(1);
+        }
+
+        .search {
+            @media (max-width: (@extension-manager-min-width - 1px)) {
+                width: calc(~'100% - 27px - 20px'); // 100% minus padding etc.
+            }
+
+            background: @bc-input-bg url("images/topcoat-search-20.svg") 2px 2px no-repeat;
             margin: 0;
             padding-left: 27px;
             padding-right: 20px;
 
             .dark & {
-                background: @dark-bc-input-bg url("images/topcoat-search-20.svg") 3px 4px no-repeat;
+                background: @dark-bc-input-bg url("images/topcoat-search-20.svg") 2px 2px no-repeat;
             }
         }
         .search-clear {
@@ -1183,16 +1200,34 @@ a[href^="http"] {
                 opacity: 0.3;
             }
         }
-        .sort-extensions-title {
-            float: left;
-            margin-right: 5px;
-            margin-top: 5px;
-        }
         .sort-extensions {
             float: left;
             margin-right: 10px;
+            margin-bottom: 0;
             width: auto;
             padding-right: 18px;
+            border-bottom-left-radius: 0px;
+            border-top-left-radius: 0px;
+            border-color: #707070;
+            border-left: 0px;
+        }
+        .ext-sort-group {
+            float: left;
+        }
+        #sort-attributes-icon {
+            width: 15px;
+            height: 14px;
+            float:left;
+            padding: 6px;
+            border-bottom-left-radius: 3px;
+            border-top-left-radius: 3px;
+            border: 1px solid #707070;
+            box-shadow: inset 0 1px rgba(255, 255, 255, 0.12);
+            background: @bc-btn-bg url("images/sort-by-attributes.svg") no-repeat right 5px center;
+            .dark & {
+                box-shadow: inset 0 1px rgba(255, 255, 255, 0.06);
+                background-color: @dark-bc-btn-bg;
+            }
         }
     }
     .modal-body {
@@ -1200,7 +1235,7 @@ a[href^="http"] {
         overflow-y: scroll;
         background-color: @bc-panel-bg;
         padding: 0;
-        
+
         .dark & {
             background-color: @dark-bc-panel-bg;
         }
@@ -1397,7 +1432,7 @@ input[type="color"],
     font-weight: normal;
     -webkit-font-smoothing: antialiased;
     box-shadow: inset 0 1px 0 @bc-shadow-small;
-    .border-radius(@bc-border-radius);
+    border-radius: @bc-border-radius;
     .transition(~"border linear 180ms, box-shadow linear 180ms");
 
     .dark & {
@@ -1465,7 +1500,7 @@ input[type="color"],
     &.top .tooltip-arrow {
         border-top-color: @bc-menu-bg;
         left: 50%;
-        
+
         .dark & {
             border-top-color: @dark-bc-menu-bg;
         }
@@ -1473,7 +1508,7 @@ input[type="color"],
     &.right .tooltip-arrow {
         border-right-color: @bc-menu-bg;
         top: 15px;
-        
+
         .dark & {
             border-right-color: @dark-bc-menu-bg;
         }
@@ -1481,7 +1516,7 @@ input[type="color"],
     &.left .tooltip-arrow {
         border-left-color: @bc-menu-bg;
         top: 15px;
-        
+
         .dark & {
             border-left-color: @dark-bc-menu-bg;
         }
@@ -1489,7 +1524,7 @@ input[type="color"],
     &.bottom .tooltip-arrow {
         border-bottom-color: @bc-menu-bg;
         left: 50%;
-        
+
         .dark & {
             border-bottom-color: @dark-bc-menu-bg;
         }
@@ -1535,7 +1570,7 @@ input[type="color"],
     font-weight: @font-weight-semibold;
     line-height: normal;
     border: 1px solid @bc-btn-border;
-    .border-radius(@bc-border-radius);
+    border-radius: @bc-border-radius;
     box-shadow: inset 0 1px @bc-highlight-hard;
     -webkit-font-smoothing: antialiased;
     text-shadow: none;
@@ -1593,7 +1628,7 @@ input[type="color"],
             color: @dark-bc-text-alt;
         }
     }
-    
+
     &:active:not([disabled]) {
         background-image: none;
         background-color: @bc-btn-bg-down;
@@ -1656,7 +1691,7 @@ input[type="color"],
             }
         }
     }
-    
+
     // Update Button Type
     &.update {
         background-color: @bc-secondary-btn-bg;
@@ -1665,7 +1700,7 @@ input[type="color"],
         color: @bc-text-alt;
         font-weight: @font-weight-semibold;
         text-shadow: 0 -1px 0 @bc-shadow-small;
-        
+
         .dark & {
             background-color: @dark-bc-secondary-btn-bg;
             border-color: @dark-bc-secondary-btn-border;
@@ -1692,7 +1727,7 @@ input[type="color"],
     // Button Sizes
     &.large {
         font-size: (@baseFontSize + 1px);
-        .border-radius(@bc-border-radius);
+        border-radius: @bc-border-radius;
     }
     &.small {
         font-size: (@baseFontSize - 1px);
@@ -1906,13 +1941,13 @@ select {
     &:active {
         background-color: @bc-btn-bg-down;
         box-shadow: inset 0 1px 0 @bc-shadow-small;
-        
+
         .dark & {
             background-color: @dark-bc-btn-bg-down;
             box-shadow: inset 0 1px 0 @dark-bc-shadow-small;
         }
     }
-    
+
     > option { // Windows (but not Mac) lets you style the dropdown items
         background-color: @bc-menu-bg;
         color: @bc-menu-text;
@@ -1975,7 +2010,7 @@ code {
 .dropdown-menu {
     background-color: @bc-menu-bg;
     color: @bc-menu-text;
-    
+
     .dark & {
         background-color: @dark-bc-menu-bg;
         color: @dark-bc-menu-text;
@@ -1994,7 +2029,7 @@ code {
 .form-horizontal {
     .controls {
         margin-left: 170px;
-        
+
         input[type='checkbox'] {
              margin-top: 8px;
         }

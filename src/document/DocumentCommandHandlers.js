@@ -55,6 +55,7 @@ define(function (require, exports, module) {
         UrlParams           = require("utils/UrlParams").UrlParams,
         StatusBar           = require("widgets/StatusBar"),
         WorkspaceManager    = require("view/WorkspaceManager"),
+        LanguageManager     = require("language/LanguageManager"),
         _                   = require("thirdparty/lodash");
 
     /**
@@ -450,7 +451,7 @@ define(function (require, exports, module) {
 
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
-                HealthLogger.fileOpened(fileInfo.path);
+                HealthLogger.fileOpened(file._path);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
@@ -952,6 +953,16 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
+            var file = FileSystem.getFileForPath(origPath);
+            if (file instanceof InMemoryFile) {
+                var language = LanguageManager.getLanguageForPath(origPath);
+                if (language) {
+                    var fileExtensions = language.getFileExtensions();
+                    if (fileExtensions && fileExtensions.length > 0) {
+                        defaultName += "." + fileExtensions[0];
+                    }
+                }
+            }
             FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
                 if (!err) {
                     if (selectedPath) {

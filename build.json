@@ -1,5 +1,6 @@
 {
-    "version": "1.9.0-0",
-    "title" : "Brackets 1.9 <Pre-release>",
-    "desciption" : "This is a Brackets pre-release build"
+    "version": "release-1.10-prerelease-1",
+    "title" : "Brackets 1.10 Pre-release for community testing",
+    "description" : "This is a Brackets 1.10 pre-release build. This release contains fix for custom font-family issues, support for Quick Docs for HTML documents and migration of Quick Docs to MDN for both HTML and CSS.",
+    "prerelease": true
 }

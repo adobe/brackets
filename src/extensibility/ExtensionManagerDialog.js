@@ -321,6 +321,7 @@ define(function (require, exports, module) {
         }
 
         models.push(new ExtensionManagerViewModel.InstalledViewModel());
+        models.push(new ExtensionManagerViewModel.DefaultViewModel());
 
         function updateSearchDisabled() {
             var model           = models[_activeTabIndex],
@@ -459,12 +460,14 @@ define(function (require, exports, module) {
             });
 
             // Filter the views when the user types in the search field.
+            var searchTimeoutID;
             $dlg.on("input", ".search", function (e) {
+                clearTimeout(searchTimeoutID);
                 var query = $(this).val();
-                views.forEach(function (view) {
-                    view.filter(query);
+                searchTimeoutID = setTimeout(function () {
+                    views[_activeTabIndex].filter(query);
                     $modalDlg.scrollTop(0);
-                });
+                }, 200);
             }).on("click", ".search-clear", clearSearch);
             
             // Sort the extension list based on the current selected sorting criteria
@@ -498,7 +501,11 @@ define(function (require, exports, module) {
             } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
-            if ($activeTab.hasClass("installed")) {
+            // If activeTab was explicitly selected by user,
+            // then check for the selection
+            // Or if there was an update available since activeTab.length would be 0,
+            // then check for updatesAvailable class in toolbar-extension-manager
+            if (($activeTab.length && $activeTab.hasClass("installed")) || (!$activeTab.length && $("#toolbar-extension-manager").hasClass('updatesAvailable'))) {
                 $(".ext-sort-group").hide();
             } else {
                 $(".ext-sort-group").show();

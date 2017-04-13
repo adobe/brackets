@@ -575,7 +575,7 @@ define(function (require, exports, module) {
         var normalizedKey = normalizeKeyDescriptorString(key);
 
         if (!normalizedKey) {
-            console.log("Fail to nomalize " + key);
+            console.log("Failed to normalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
             var binding = _keyMap[normalizedKey],
                 command = CommandManager.get(binding.commandID),

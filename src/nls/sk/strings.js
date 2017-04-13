@@ -405,6 +405,6 @@ define({
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Rýchly náhľad",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Viac"
 });

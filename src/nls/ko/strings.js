@@ -659,7 +659,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS": "최근에 사용한 프로젝트",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK": "상세 정보",
 
     // extensions/default/CodeFolding

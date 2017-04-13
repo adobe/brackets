@@ -618,7 +618,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proyek Terkini",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Baca selengkapnya"
 });
 /* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */
