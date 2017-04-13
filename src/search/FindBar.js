@@ -491,8 +491,8 @@ define(function (require, exports, module) {
                 //self.trigger("queryChange");
                 self.searchField.destroy();
             },
-            onHighlight: function (selectedItem, query, explicit) {}
-            //verticalAdjust: 44
+            onHighlight: function (selectedItem, query, explicit) {},
+            highlightZeroIndex: false
         });
         this.searchField.setText($("#find-what").val());
     };

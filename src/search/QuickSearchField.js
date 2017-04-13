@@ -83,6 +83,12 @@ define(function (require, exports, module) {
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
 
+        if (options.highlightZeroIndex !== null) {
+            this._highlightZeroIndex = options.highlightZeroIndex;
+        } else {
+            this._highlightZeroIndex = true;
+        }
+
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
 
@@ -171,7 +177,7 @@ define(function (require, exports, module) {
     /** Call onCommit() immediately */
     QuickSearchField.prototype._doCommit = function (index) {
         var item;
-        if (this._displayedResults && this._displayedResults.length && this._highlightIndex>=0) {
+        if (this._displayedResults && this._displayedResults.length && this._highlightIndex >= 0) {
             item = this._displayedResults[this._highlightIndex];
         }
         this.options.onCommit(item, this._displayedQuery);
@@ -268,7 +274,9 @@ define(function (require, exports, module) {
 
         if (results.error || results.length === 0) {
             this._closeDropdown();
-            this.$input.addClass("no-results");
+            if (this._highlightZeroIndex) {
+                this.$input.addClass("no-results");
+            }
         } else if (results.hasOwnProperty("error")) {
             // Error present but falsy - no results to show, but don't decorate with error style
             this._closeDropdown();
