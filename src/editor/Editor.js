@@ -81,25 +81,24 @@ define(function (require, exports, module) {
 
     /** Editor preferences */
 
-    var CLOSE_BRACKETS       = "closeBrackets",
-        CLOSE_TAGS           = "closeTags",
-        DRAG_DROP            = "dragDropText",
-        HIGHLIGHT_MATCHES    = "highlightMatches",
-        LINEWISE_COPY_CUT    = "lineWiseCopyCut",
-        SCROLL_PAST_END      = "scrollPastEnd",
-        SHOW_CURSOR_SELECT   = "showCursorWhenSelecting",
-        SHOW_LINE_NUMBERS    = "showLineNumbers",
-        SMART_INDENT         = "smartIndent",
-        SOFT_TABS            = "softTabs",
-        SPACE_UNITS          = "spaceUnits",
-        STYLE_ACTIVE_LINE    = "styleActiveLine",
-        TAB_SIZE             = "tabSize",
-        UPPERCASE_COLORS     = "uppercaseColors",
-        USE_TAB_CHAR         = "useTabChar",
-        WORD_WRAP            = "wordWrap",
-        INDENT_LINE_COMMENT  = "indentLineComment",
-        INDENT_BLOCK_COMMENT = "indentBlockComment",
-        INPUT_STYLE          = "inputStyle";
+    var CLOSE_BRACKETS      = "closeBrackets",
+        CLOSE_TAGS          = "closeTags",
+        DRAG_DROP           = "dragDropText",
+        HIGHLIGHT_MATCHES   = "highlightMatches",
+        LINEWISE_COPY_CUT   = "lineWiseCopyCut",
+        SCROLL_PAST_END     = "scrollPastEnd",
+        SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
+        SHOW_LINE_NUMBERS   = "showLineNumbers",
+        SMART_INDENT        = "smartIndent",
+        SOFT_TABS           = "softTabs",
+        SPACE_UNITS         = "spaceUnits",
+        STYLE_ACTIVE_LINE   = "styleActiveLine",
+        TAB_SIZE            = "tabSize",
+        UPPERCASE_COLORS    = "uppercaseColors",
+        USE_TAB_CHAR        = "useTabChar",
+        WORD_WRAP           = "wordWrap",
+        INDENT_LINE_COMMENT = "indentLineComment",
+        INPUT_STYLE         = "inputStyle";
 
 
     /**
@@ -230,9 +229,6 @@ define(function (require, exports, module) {
     });
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
-    });
-    PreferencesManager.definePreference(INDENT_BLOCK_COMMENT,  "boolean", false, {
-        description: Strings.DESCRIPTION_INDENT_BLOCK_COMMENT
     });
     PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
         description: Strings.DESCRIPTION_INPUT_STYLE
@@ -2710,27 +2706,6 @@ define(function (require, exports, module) {
      */
     Editor.getIndentLineComment = function (fullPath) {
         return PreferencesManager.get(INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
-    };
-
-    /**
-     * Sets indentBlockComment option.
-     * Affects any editors that share the same preference location.
-     * @param {boolean} value
-     * @param {string=} fullPath Path to file to get preference for
-     * @return {boolean} true if value was valid
-     */
-    Editor.setIndentBlockComment = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
-        return PreferencesManager.set(INDENT_BLOCK_COMMENT, value, options);
-    };
-
-    /**
-     * Returns true if indentBlockComment is enabled for the specified or current file
-     * @param {string=} fullPath Path to file to get preference for
-     * @return {boolean}
-     */
-    Editor.getIndentBlockComment = function (fullPath) {
-        return PreferencesManager.get(INDENT_BLOCK_COMMENT, _buildPreferencesContext(fullPath));
     };
 
     /**

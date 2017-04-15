@@ -361,7 +361,7 @@ define(function (require, exports, module) {
 
         var searchCtx, atSuffix, suffixEnd, initialPos, endLine;
 
-        var indentBlockComment = Editor.getIndentBlockComment();
+        var indentLineComment = Editor.getIndentLineComment();
 
         if (!selectionsToTrack) {
             // Track the original selection.
@@ -487,7 +487,7 @@ define(function (require, exports, module) {
                 var completeLineSel = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line < sel.end.line;
                 var startCh = _firstNotWs(doc, sel.start.line);
                 if (completeLineSel) {
-                    if (indentBlockComment) {
+                    if (indentLineComment) {
                         var endCh = _firstNotWs(doc, sel.end.line - 1);
                         var useTabChar = Editor.getUseTabChar(editor.document.file.fullPath);
                         var indentChar = useTabChar ? "\t" : " ";
@@ -505,7 +505,7 @@ define(function (require, exports, module) {
                     }
                 } else {
                     editGroup.push({text: suffix, start: sel.end});
-                    if (indentBlockComment) {
+                    if (indentLineComment) {
                         editGroup.push({text: prefix, start: { line: sel.start.line, ch: startCh }});
                     } else {
                         editGroup.push({text: prefix, start: sel.start});
@@ -534,7 +534,7 @@ define(function (require, exports, module) {
                             if (completeLineSel) {
                                 // Just move the line down.
                                 pos.line++;
-                            } else if (!indentBlockComment && pos.line === sel.start.line) {
+                            } else if (!indentLineComment && pos.line === sel.start.line) {
                                 pos.ch += prefix.length;
                             }
                         }
@@ -550,14 +550,14 @@ define(function (require, exports, module) {
                 // If both are found we assume that a complete line selection comment added new lines, so we remove them.
                 var line          = doc.getLine(prefixPos.line).trim(),
                     prefixAtStart = prefixPos.ch === 0 && prefix.length === line.length,
-                    prefixIndented = indentBlockComment && prefix.length === line.length,
+                    prefixIndented = indentLineComment && prefix.length === line.length,
                     suffixAtStart = false,
                     suffixIndented = false;
 
                 if (suffixPos) {
                     line = doc.getLine(suffixPos.line).trim();
                     suffixAtStart = suffixPos.ch === 0 && suffix.length === line.length;
-                    suffixIndented = indentBlockComment && suffix.length === line.length;
+                    suffixIndented = indentLineComment && suffix.length === line.length;
                 }
 
                 // Remove the suffix if there is one
