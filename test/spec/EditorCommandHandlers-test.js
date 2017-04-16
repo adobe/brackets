@@ -1093,6 +1093,58 @@ define(function (require, exports, module) {
             });
         });
 
+        // The "block comment" command should be unaffected by indentLineComment preference.
+        describe("Block comment/uncomment in languages with only block comments and with indentLineComment enabled", function () {
+            var htmlContent = "<html>\n" +
+                              "    <body>\n" +
+                              "        <p>Hello</p>\n" +
+                              "    </body>\n" +
+                              "</html>";
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentLineComment", true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+            });
+
+            it("should comment/uncomment a single line, cursor at start", function () {
+                myEditor.setCursorPos(2, 0);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "<!---->        <p>Hello</p>";
+                var expectedText = lines.join("\n");
+
+                testToggleBlock(expectedText, {line: 2, ch: 0});
+            });
+
+            it("should comment/uncomment a single line, cursor at end", function () {
+                myEditor.setCursorPos(2, 20);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "        <p>Hello</p><!---->";
+                var expectedText = lines.join("\n");
+
+                testToggleBlock(expectedText, {line: 2, ch: 24});
+            });
+
+            it("should comment/uncomment a block", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 11});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var expectedText = "<html>\n" +
+                                   "    <!--<body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "    </body>-->\n" +
+                                   "</html>";
+
+                testToggleBlock(expectedText, {start: {line: 1, ch: 8}, end: {line: 3, ch: 11}});
+            });
+        });
+
         describe("Line comment in languages with mutiple line comment prefixes", function () {
             // Define a special version of JavaScript for testing purposes
             LanguageManager.defineLanguage("javascript2", {
