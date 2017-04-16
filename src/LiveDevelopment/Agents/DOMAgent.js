@@ -288,12 +288,12 @@ define(function DOMAgent(require, exports, module) {
 
     /** Enable the domain */
     function enable() {
-        return Inspector.DOM.enable();
+        return Inspector.DOM.enable ? Inspector.DOM.enable() : (new $.Deferred()).resolve().promise();
     }
 
     /** Disable the domain */
     function disable() {
-        return Inspector.DOM.disable();
+        return Inspector.DOM.disable ? Inspector.DOM.disable() : (new $.Deferred()).resolve().promise();
     }
 
 
