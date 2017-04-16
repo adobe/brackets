@@ -959,12 +959,13 @@ define(function (require, exports, module) {
                 var expectedText = lines.join("\n");
 
                 testToggleLine(expectedText, {line: 2, ch: 0});
+
+                // Uncomment
+                testToggleLine(htmlContent, {line: 2, ch: 0});
             });
 
             it("should comment/uncomment a block", function () {
                 myEditor.setSelection({line: 1, ch: 7}, {line: 3, ch: 7});
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var expectedText = "<html>\n" +
                                    "    <!--\n" +
@@ -974,14 +975,14 @@ define(function (require, exports, module) {
                                    "    -->\n" +
                                    "</html>";
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 7}, end: {line: 4, ch: 7}});
+                testToggleLine(expectedText, {start: {line: 2, ch: 7}, end: {line: 4, ch: 7}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 7}, end: {line: 3, ch: 7}});
             });
 
             it("should comment/uncomment a block with not closing tag ", function () {
                 myEditor.setSelection({line: 1, ch: 7}, {line: 2, ch: 7});
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var expectedText = "<html>\n" +
                                    "    <!--\n" +
@@ -991,14 +992,14 @@ define(function (require, exports, module) {
                                    "    </body>\n" +
                                    "</html>";
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 7}, end: {line: 3, ch: 7}});
+                testToggleLine(expectedText, {start: {line: 2, ch: 7}, end: {line: 3, ch: 7}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 7}, end: {line: 2, ch: 7}});
             });
 
             it("should comment/uncomment a block with not closing tag at end of file", function () {
                 myEditor.setSelection({line: 3, ch: 9}, {line: 4, ch: 5});
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var expectedText = "<html>\n" +
                                    "    <body>\n" +
@@ -1007,8 +1008,10 @@ define(function (require, exports, module) {
                                    "    </body>\n" +
                                    "</html>-->\n";
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 4, ch: 9}, end: {line: 5, ch: 5}});
+                testToggleLine(expectedText, {start: {line: 4, ch: 9}, end: {line: 5, ch: 5}});
+
+                // Uncomment
+                testToggleLine(htmlContent + "\n", {start: {line: 3, ch: 9}, end: {line: 4, ch: 5}});
             });
         });
 
@@ -1045,8 +1048,6 @@ define(function (require, exports, module) {
             it("should comment/uncomment a block", function () {
                 myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 4});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var expectedText = "<html>\n" +
                                    "\t<!--\n" +
                                    "\t<body>\n" +
@@ -1055,14 +1056,14 @@ define(function (require, exports, module) {
                                    "\t-->\n" +
                                    "</html>";
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 4}, end: {line: 4, ch: 4}});
+                testToggleLine(expectedText, {start: {line: 2, ch: 4}, end: {line: 4, ch: 4}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 4}, end: {line: 3, ch: 4}});
             });
 
             it("should comment/uncomment a block with not closing tag ", function () {
                 myEditor.setSelection({line: 1, ch: 4}, {line: 2, ch: 7});
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var expectedText = "<html>\n" +
                                    "\t<!--\n" +
@@ -1072,14 +1073,14 @@ define(function (require, exports, module) {
                                    "\t</body>\n" +
                                    "</html>";
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 4}, end: {line: 3, ch: 7}});
+                testToggleLine(expectedText, {start: {line: 2, ch: 4}, end: {line: 3, ch: 7}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 4}, end: {line: 2, ch: 7}});
             });
 
             it("should comment/uncomment a block with not closing tag at end of file", function () {
                 myEditor.setSelection({line: 3, ch: 6}, {line: 4, ch: 2});
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var expectedText = "<html>\n" +
                                    "\t<body>\n" +
@@ -1088,8 +1089,10 @@ define(function (require, exports, module) {
                                    "\t</body>\n" +
                                    "</html>-->\n";
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 4, ch: 6}, end: {line: 5, ch: 2}});
+                testToggleLine(expectedText, {start: {line: 4, ch: 6}, end: {line: 5, ch: 2}});
+
+                // Uncomment
+                testToggleLine(htmlContent + "\n", {start: {line: 3, ch: 6}, end: {line: 4, ch: 2}});
             });
         });
 
@@ -1117,7 +1120,7 @@ define(function (require, exports, module) {
                 lines[2] = "<!---->        <p>Hello</p>";
                 var expectedText = lines.join("\n");
 
-                testToggleBlock(expectedText, {line: 2, ch: 0});
+                testToggleBlock(expectedText, {line: 2, ch: 4});
             });
 
             it("should comment/uncomment a single line, cursor at end", function () {
