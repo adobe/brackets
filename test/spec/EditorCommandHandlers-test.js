@@ -1133,8 +1133,6 @@ define(function (require, exports, module) {
             it("should comment/uncomment a block", function () {
                 myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 11});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var expectedText = "<html>\n" +
                                    "    <!--<body>\n" +
                                    "        <p>Hello</p>\n" +
