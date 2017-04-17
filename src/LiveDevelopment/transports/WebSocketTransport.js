@@ -84,13 +84,17 @@ define(function (require, exports, module) {
             node;
             
         for (node in pathArr) {
-            _addToPath(editor, pathArr[node]);
+            if (pathArr.hasOwnProperty(node)) {
+                _addToPath(editor, pathArr[node]);
+            }
         }
     }
     
     function _isVendorPrefixedRule(rule) {
         if (rule.selectors) {
-            return !rule.selectors.filter(prop => !/-(moz|ms|o)-/.test(prop)).length;
+            return !rule.selectors.filter(function (prop) {
+                !/-(moz|ms|o)-/.test(prop);
+            }).length;
         } else {
             return false;
         }
@@ -99,14 +103,16 @@ define(function (require, exports, module) {
     function _getMatchedRule(rules, index) {
         var counter, ruleRefCounter = -1, rule, refRule;
         for (counter in rules) {
-            rule = rules[counter];
-            if (rule.type !== 'comment' && !_isVendorPrefixedRule(rule)) {
-                ruleRefCounter++;
-            }
-            
-            if (ruleRefCounter === index) {
-                refRule = rule;
-                break;
+            if (rules.hasOwnProperty(counter)) {
+                rule = rules[counter];
+                if (rule.type !== 'comment' && !_isVendorPrefixedRule(rule)) {
+                    ruleRefCounter++;
+                }
+
+                if (ruleRefCounter === index) {
+                    refRule = rule;
+                    break;
+                }
             }
         }
         
@@ -140,6 +146,7 @@ define(function (require, exports, module) {
                     startLine: matchedSelector.position.start.line - 1,
                     endLine: matchedSelector.position.end.line - 1
                 };
+                
                 inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, $("#livedata-tools .inline-editor-holder"));
                 inlineInfo.editor.refresh();
                 $("#livedata-tools .inline-editor-header .filename").html("");
@@ -158,15 +165,19 @@ define(function (require, exports, module) {
         var fIndex, file, rIndex, rule, $entry;
         
         for (fIndex in files) {
-            file = files[fIndex];
-            rules = ruleArr[file];
-            $(SectionHeaderEntry.split("{{fileName}}").join(file.split("/").pop()).split("{{ruleCount}}").join(rules.length)).appendTo("#livedata-tools .related > ul");
-            for (rIndex in rules) {
-                rule = rules[rIndex];
-                if (parseInt(rule.index)) {
-                    $entry = $(SelectorEntry.split("{{selectorText}}").join(rule.selectorText).split("{{lineIndex}}").join(rule.index)).appendTo("#livedata-tools .related > ul");
-                    $entry.data("file", file);
-                    $entry.data("index", rule.index);
+            if (files.hasOwnProperty(fIndex)) {
+                file = files[fIndex];
+                rules = ruleArr[file];
+                $(SectionHeaderEntry.split("{{fileName}}").join(file.split("/").pop()).split("{{ruleCount}}").join(rules.length)).appendTo("#livedata-tools .related > ul");
+                for (rIndex in rules) {
+                    if (rules.hasOwnProperty(rIndex)) {
+                        rule = rules[rIndex];
+                        if (parseInt(rule.index, 10)) {
+                            $entry = $(SelectorEntry.split("{{selectorText}}").join(rule.selectorText).split("{{lineIndex}}").join(rule.index)).appendTo("#livedata-tools .related > ul");
+                            $entry.data("file", file);
+                            $entry.data("index", rule.index);
+                        }
+                    }
                 }
             }
         }
