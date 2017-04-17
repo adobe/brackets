@@ -434,11 +434,7 @@ define(function (require, exports, module) {
             maxResults: 20,
             resultProvider: function (query) {
                 var asyncResult = new $.Deferred();
-                var searchHistory = PreferencesManager.getViewState("searchHistory");
-                var filteredResults = _.filter(searchHistory, function (s) {
-                    return s.indexOf(query) !== -1;
-                });
-                asyncResult.resolve(filteredResults);
+                asyncResult.resolve(PreferencesManager.getViewState("searchHistory"));
                 return asyncResult.promise();
             },
             formatter: function (item, query) {
