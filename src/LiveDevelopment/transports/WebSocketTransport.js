@@ -155,7 +155,7 @@ define(function (require, exports, module) {
         });
     }
     
-    $(document).on("click", "#livedata-tools .related > ul > li", function () {
+    $(window.document).on("click", "#livedata-tools .related > ul > li", function () {
         _handleInlineEdit($(this));
     });
     
