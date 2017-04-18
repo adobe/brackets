@@ -155,7 +155,7 @@ define({
 	"FIND_HISTORY_MAX_COUNT": "Maximum Number of Search Items in Search History",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
 	"BUTTON_REPLACE_ALL": "すべて置換",
-	"BUTTON_REPLACE_BATCH": "バッチ¥u2026",
+	"BUTTON_REPLACE_BATCH": "バッチ\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
 	"BUTTON_REPLACE": "置換",
 	"BUTTON_NEXT": "\u25B6",
