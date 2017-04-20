@@ -308,7 +308,7 @@ define(function (require, exports, module) {
     function _firstNotWs(doc, lineNum) {
         var text = doc.getLine(lineNum);
         if (text === null || text === undefined) {
-            return null;
+            return 0;
         }
 
         return text.search(/\S|$/);
