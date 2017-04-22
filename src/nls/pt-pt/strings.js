@@ -207,7 +207,7 @@ define({
 
     // View menu commands
     "VIEW_MENU"                           : "Ver",
-    "CMD_VIEW_TOGGLE_INSPECTION"          : ""Lint" arquivos em salvar",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "'Lint' arquivos em salvar",
     "CMD_HIDE_SIDEBAR"                    : "Esconder barra lateral",
     "CMD_SHOW_SIDEBAR"                    : "Mostrar barra lateral",
     "CMD_TOGGLE_PANELS"                   : "Alternar painéis",
