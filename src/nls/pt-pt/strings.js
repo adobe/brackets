@@ -215,7 +215,7 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamanho da fonte",
     "CMD_DECREASE_FONT_SIZE"              : "Diminuir tamanho da fonte",
     "CMD_RESTORE_FONT_SIZE"               : "Restaurar tamanho da fonte",
-    "CMD_TOGGLE_LINE_NUMBERS":            : "Números de linha",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Números de linha",
     "CMD_TOGGLE_WORD_WRAP"                : "Embrulhar palavra",
     "CMD_LIVE_HIGHLIGHT"                  : "Destacar linha ativa",
     "CMD_WORKINGSET_SORT_BY_ADDED"        : "Ordenar por data adicionado",
