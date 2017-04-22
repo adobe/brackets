@@ -115,6 +115,7 @@ define({
      */
 
     "UNTITLED" : "Sem título",
+    "WORKING_FILES" : "Arquivos de trabalho",	
 
     /**
      * Keyboard modifier names
@@ -141,24 +142,38 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Ficheiro",
+    "CMD_FILE_NEW_UNTITLED"               : "Novo",
     "CMD_FILE_NEW"                        : "Novo",
     "CMD_FILE_NEW_FOLDER"                 : "Nova pasta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "Abrir recentemente\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Adicionar ao conjunto de trabalho",
     "CMD_OPEN_FOLDER"                     : "Abrir pasta\u2026",
     "CMD_FILE_CLOSE"                      : "Fechar",
     "CMD_FILE_CLOSE_ALL"                  : "Fechar tudo",
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar tudo",
-    "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_FILE_SAVE_AS"                    : "Salvar como\u2026",	
+    "CMD_LIVE_FILE_PREVIEW"               : "Visualização ao vivo",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Ativar visualização ao vivo experimental",
     "CMD_PROJECT_SETTINGS"                : "Definições do projeto\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Gerente de extensão",
     "CMD_FILE_RENAME"                     : "Renomear",
     "CMD_QUIT"                            : "Sair",
+    "CMD_EXIT"                            : "Sair",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Editar",
+    "CMD_UNDO"                            : "Desfazer",
+    "CMD_REDO"                            : "Refazer",
+    "CMD_CUT"                             : "Cortar",
+    "CMD_COPY"                            : "Copiar",
+    "CMD_PASTE"                           : "Colar",
     "CMD_SELECT_ALL"                      : "Selecionar tudo",
     "CMD_SELECT_LINE"                     : "Selecionar linha",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Ecrã dividido em linhas",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Adicionar cursor à próxima linha",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Adicionar cursor à linha anterior",
     "CMD_FIND"                            : "Encontrar",
     "CMD_FIND_IN_FILES"                   : "Encontrar nos ficheiros",
     "CMD_FIND_IN_SUBTREE"                 : "Encontrar em\u2026",
@@ -173,18 +188,41 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Alternar comentário bloco",
     "CMD_LINE_UP"                         : "Mover linha(s) para cima",
     "CMD_LINE_DOWN"                       : "Mover linha(s) para baixo",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Automaticamente fechar chaveta",
+    "CMD_SHOW_CODE_HINTS"                 : "Mostrar dicas de código",
+
+    // Search menu commands
+    "FIND_MENU"                           : "Encontrar",
+    "CMD_FIND"                            : "Encontrar",
+    "CMD_FIND_NEXT"                       : "",
+    "CMD_FIND_PREVIOUS"                   : "",
+    "CMD_FIND_ALL_AND_SELECT"             : "Encontrar tudo e selecionar",
+    "CMD_ADD_NEXT_MATCH"                  : "Adicionar próximo correspondência de frases à seleção",
+    "CMD_SKIP_CURRENT_MATCH"              : "Ignorar e adicionar próximo correspondência de frases",
+    "CMD_FIND_IN_FILES"                   : "",
+    "CMD_FIND_IN_SUBTREE"                 : "",
+    "CMD_REPLACE"                         : "Substituir",
+    "CMD_REPLACE_IN_FILES"                : "Substituir em arquivos",
+    "CMD_REPLACE_IN_SUBTREE"              : "Substituir em\u2026",
 
     // View menu commands
     "VIEW_MENU"                           : "Ver",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : ""Lint" arquivos em salvar",
     "CMD_HIDE_SIDEBAR"                    : "Esconder barra lateral",
     "CMD_SHOW_SIDEBAR"                    : "Mostrar barra lateral",
+    "CMD_TOGGLE_PANELS"                   : "Alternar painéis",
+    "CMD_TOGGLE_PURE_CODE"                : "Sem distrações",
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamanho da fonte",
     "CMD_DECREASE_FONT_SIZE"              : "Diminuir tamanho da fonte",
     "CMD_RESTORE_FONT_SIZE"               : "Restaurar tamanho da fonte",
+    "CMD_TOGGLE_LINE_NUMBERS":            : "Números de linha",
+    "CMD_TOGGLE_WORD_WRAP"                : "Embrulhar palavra",
+    "CMD_LIVE_HIGHLIGHT"                  : "Destacar linha ativa",
     "CMD_WORKINGSET_SORT_BY_ADDED"        : "Ordenar por data adicionado",
     "CMD_WORKINGSET_SORT_BY_NAME"         : "Ordenar por nome",
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Ordenar por tipo",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Ordenação automática",
+    "CMD_THEMES"                          : "Temas\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegar",
@@ -196,13 +234,26 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Resultado seguinte",
     "CMD_NEXT_DOC"                        : "Ficheiro seguinte",
     "CMD_PREV_DOC"                        : "Ficheiro anterior",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Próximo ficheiro em lista",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Ficheiro anterior em lista",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Ficheiros rápidos",
     "CMD_SHOW_IN_TREE"                    : "Mostrar na lista de pastas",
 
     // Help menu commands
     "HELP_MENU"                           : "Ajuda",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
     "CMD_CHECK_FOR_UPDATE"                : "Verificar atualizações",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Como usar {APP_NAME}",
+    "CMD_SUPPORT"                         : "Suporte para {APP_NAME}",
+    "CMD_SUGGEST"                         : "Sugerir um recurso",
+    "CMD_RELEASE_NOTES"                   : "Notas de lançamento",
+    "CMD_GET_INVOLVED"                    : "Envolva-se",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Relatório de saúde",
+    "CMD_HOMEPAGE"                        : "Pagina inicial de {APP_TITLE}",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} em Twitter",
     "CMD_ABOUT"                           : "Sobre",
+    "CMD_OPEN_PREFERENCES"                : "Abrir arquivo de preferências",
+    "CMD_OPEN_KEYMAP"                     : "Abrir mapa de chave de usuário",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versão Experimental",
@@ -231,17 +282,36 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "O URL base não pode conter cardinal como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracteres especiais como '{0}' têm que ser %-codificados.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Erro desconhecido na análise do URL base",
+    "CMD_SPLITVIEW_NONE"                   : "Sem divisão",
+    "CMD_SPLITVIEW_VERTICAL"               : "Divisão vertical",
+    "CMD_SPLITVIEW_HORIZONTAL"             : "Divisão horizontal",
 
 
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                : "Saltar para definição",
+    "CMD_SHOW_PARAMETER_HINT"              : "Mostrar dicas de parâmetros",
+    "CMD_ENABLE_QUICK_VIEW"                : "Visualização rápida",
+	
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                         : "Colapso tudo",
+    "EXPAND_ALL"                           : "Expandir tudo",
+    "COLLAPSE_CURRENT"                     : "Colapso atual",
+    "EXPAND_CURRENT"                       : "Expandir atual",
+	
     // extensions/default/DebugCommands
-    "DEBUG_MENU"                           : "Debug",
+    "DEBUG_MENU"                           : "Depurar",
     "CMD_SHOW_DEV_TOOLS"                   : "Mostrar ferramentas de desenvolvimento",
     "CMD_REFRESH_WINDOW"                   : "Recarregar o {APP_NAME}",
     "CMD_NEW_BRACKETS_WINDOW"              : "Nova janela do {APP_NAME}",
+    "CMD_ENABLE_NODE_DEBUGGER"             : "Ativar depurador de nódulo",
+    "CMD_LOG_NODE_STATE"                   : "Registrar condição de nódulo a console",
+    "CMD_RESTART_NODE"                     : "Reiniciar o nódulo",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"        : "Mostrar erros em barra de status",
+    "CMD_OPEN_BRACKETS_SOURCE"             : "Abrir código de {APP_NAME}",
     "CMD_SWITCH_LANGUAGE"                  : "Mudar linguagem",
     "CMD_RUN_UNIT_TESTS"                   : "Executar testes",
     "CMD_SHOW_PERF_DATA"                   : "Mostrar dados de desempenho",
-
+    "CMD_RELOAD_WITHOUT_USER_EXTS"         : "Recarregar sem extensões",
     "LANGUAGE_TITLE"                       : "Mudar idioma",
     "LANGUAGE_MESSAGE"                     : "Por favor, selecione o idioma desejado na lista abaixo:",
     "LANGUAGE_SUBMIT"                      : "Recarregar {APP_NAME}",
