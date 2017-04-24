@@ -36,7 +36,7 @@
         "phantomjs": "1.9.18",
         "grunt-lib-phantomjs": "0.3.0",
         "grunt-eslint": "19.0.0",
-        "grunt-contrib-watch": "0.4.3",
+        "grunt-contrib-watch": "1.0.0",
         "grunt-contrib-jasmine": "0.4.2",
         "grunt-template-jasmine-requirejs": "0.1.0",
         "grunt-contrib-cssmin": "0.6.0",

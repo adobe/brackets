@@ -189,7 +189,7 @@ define(function (require, exports, module) {
      * @param {string} fontFamily  A string with the font family
      */
     function _addDynamicFontFamily(fontFamily) {
-        _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
+        _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, {
             propName: "font-family",
             propValue: fontFamily
         });

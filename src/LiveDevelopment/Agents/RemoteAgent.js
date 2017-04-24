@@ -131,7 +131,7 @@ define(function RemoteAgent(require, exports, module) {
         _stopKeepAliveInterval();
 
         // inject RemoteFunctions
-        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + "," + PreferencesManager.get("livedev.wsPort") + ");";
+        var command = "window._LD=" + RemoteFunctions + "(" + JSON.stringify(LiveDevelopment.config) + "," + PreferencesManager.get("livedev.wsPort") + ");";
 
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
