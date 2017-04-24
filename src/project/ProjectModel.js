@@ -95,7 +95,6 @@ define(function (require, exports, module) {
         // See https://github.com/adobe/brackets/issues/13099
         return !(
             filename.match(_invalidChars)|| filename.match(_illegalFilenamesRegEx)
-            //filename.match(_invalidChars) || filename.match(_illegalFilenamesRegEx)
         );
     }
 
