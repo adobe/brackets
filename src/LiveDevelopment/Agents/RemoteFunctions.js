@@ -232,6 +232,52 @@ function RemoteFunctions(experimental, remoteWSPort) {
             }
         }
     };
+    
+    function _processDecodedURL(path, files) {
+        var elements = path.split("/");
+        var folder;
+        
+        while(elements.length > 1) {
+            elements.pop();
+            folder =  elements.join("/").split("%20").join(' ');
+            if (files.indexOf(folder) === -1) {
+                files.push(folder + '/');
+            }
+        }
+            
+        return path.split("%20").join(' ');
+    }
+    
+    function _collateResources() {
+        var files = [], item;
+        
+        files.push(_processDecodedURL(window.location.href.replace(window.location.origin, ""), files));
+        
+        for(item in document.styleSheets) {
+            if (document.styleSheets[item].href) {
+                files.push(_processDecodedURL(document.styleSheets[item].href.replace(window.location.origin, ""), files));
+            }
+        }
+        
+        for(item in document.scripts) {
+            if (document.scripts[item].src) {
+                files.push(_processDecodedURL(document.scripts[item].src.replace(window.location.origin, ""), files));
+            }
+        }
+        
+        for(item in document.images) {
+            if (document.images[item].src) {
+                files.push(_processDecodedURL(document.images[item].src.replace(window.location.origin, ""), files));
+            }
+        }
+        
+        var msg = JSON.stringify({relatedFiles: JSON.stringify(files)});
+
+        _ws.send(JSON.stringify({
+            type: "livedata",
+            message: msg
+        }));
+    }
 
     function Highlight(color, trigger) {
         this.color = color;
@@ -330,7 +376,11 @@ function RemoteFunctions(experimental, remoteWSPort) {
             
             if (_ws && element && element.hasAttribute('data-brackets-id')) {
                 setTimeout(function () {
-                    _sendLiveInspectionData(element);
+                    //_sendLiveInspectionData(element);
+                }, 100);
+                
+                setTimeout(function () {
+                    _collateResources();
                 }, 100);
             }
         },
@@ -860,9 +910,9 @@ function RemoteFunctions(experimental, remoteWSPort) {
     
     function _indexOfRule(rules, rule) {
         var index;
-        for(index in rules) {
-            if(rules.hasOwnProperty(index)) {
-                if(rules[index] === rule) {
+        for (index in rules) {
+            if (rules.hasOwnProperty(index)) {
+                if (rules[index] === rule) {
                     return index;
                 }
             }
@@ -872,14 +922,14 @@ function RemoteFunctions(experimental, remoteWSPort) {
     
     function _stringifyLiveData(element) {
         var rulesets = window.getMatchedCSSRules(element) || [];
-        var counter = 0;
+        var counter = rulesets.length - 1;
         var ruleList = {};
         var styleSheetPath, pathEntry, ruleIndex = -1;
         
-        while (counter < rulesets.length) {
+        while (counter >= 0) {
             styleSheetPath = rulesets[counter].parentStyleSheet.href || "";
             if (styleSheetPath) {
-                styleSheetPath = styleSheetPath.replace(window.location.origin, "");
+                styleSheetPath = styleSheetPath.replace(window.location.origin, "").split('%20').join(' ');
                 ruleIndex = _indexOfRule(rulesets[counter].parentStyleSheet.cssRules, rulesets[counter]);
             }
             
@@ -887,7 +937,7 @@ function RemoteFunctions(experimental, remoteWSPort) {
             pathEntry.push({selectorText: rulesets[counter].selectorText, index: ruleIndex});
             ruleList[styleSheetPath] = pathEntry;
             
-            counter++;
+            counter--;
         }
         return JSON.stringify(ruleList);
     }
@@ -929,6 +979,10 @@ function RemoteFunctions(experimental, remoteWSPort) {
             
             setTimeout(function () {
                 _sendLiveInspectionData(element);
+            }, 0);
+            
+            setTimeout(function () {
+                _collateResources();
             }, 0);
         }
     }

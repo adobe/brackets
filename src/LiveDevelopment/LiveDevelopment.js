@@ -96,6 +96,7 @@ define(function LiveDevelopment(require, exports, module) {
         StringUtils          = require("utils/StringUtils"),
         UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer,
         WebSocketTransport   = require("LiveDevelopment/transports/WebSocketTransport"),
+        LiveDataHandler      = require("LiveDevelopment/LiveDataHandler"),
         PreferencesManager   = require("preferences/PreferencesManager");
 
     // Inspector

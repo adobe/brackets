@@ -360,6 +360,7 @@ define(function main(require, exports, module) {
         // Create bottom panel for connected tools
         var livedataHtml = Mustache.render(ConnectedToolsTemplate, Strings);
         var $livedataPanel = WorkspaceManager.createBottomPanel("livedata-tools", $(livedataHtml), 100);
+        
         $("#livedata-tools .close").on("click", function () {
             $livedataPanel.hide();
         });

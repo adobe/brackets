@@ -290,10 +290,10 @@ define(function (require, exports, module) {
             newRuleButton.closeDropdown();
         }
 
-        CSSUtils.findMatchingRules(selectorName, hostEditor.document)
+        (brackets.findMatchingRules || CSSUtils.findMatchingRules)(selectorName, hostEditor.document)
             .done(function (rules) {
                 var inlineEditorDeferred = new $.Deferred();
-                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
+                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(brackets.connected ? rules : CSSUtils.consolidateRules(rules),
                                                                                     _getNoRulesMsg, CSSUtils.getRangeSelectors,
                                                                                     _fileComparator);
                 cssInlineEditor.load(hostEditor);
