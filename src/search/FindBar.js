@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         ViewUtils          = require("utils/ViewUtils"),
         FindUtils          = require("search/FindUtils"),
+        ProjectManager     = require("project/ProjectManager"),
         HealthLogger       = require("utils/HealthLogger");
 
     /**
@@ -311,7 +312,19 @@ define(function (require, exports, module) {
                 if (intervalId === 0) {
                     intervalId = window.setInterval(executeSearchIfNeeded, 50);
                 }
+            
+                var projectRoot = ProjectManager.getProjectRoot(),
+                    context = {
+                        location : {
+                            scope: "user",
+                            layer: "project",
+                            layerID: projectRoot.fullPath
+                        }
+                    };
                 var searchHistory = PreferencesManager.getViewState("searchHistory");
+                if (!searchHistory) {
+                    PreferencesManager.setViewState("searchHistory", [], context);
+                }
                 var maxCount = PreferencesManager.get("maxSearchHistory");
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
@@ -325,7 +338,7 @@ define(function (require, exports, module) {
                         }
                     }
                     searchHistory.unshift($('#find-what').val());
-                    PreferencesManager.setViewState("searchHistory", searchHistory);
+                    PreferencesManager.setViewState("searchHistory", searchHistory, context);
                     lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
@@ -638,7 +651,6 @@ define(function (require, exports, module) {
 
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
-    PreferencesManager.stateManager.definePreference("searchHistory", "array", []);
     PreferencesManager.definePreference("maxSearchHistory", "number", 10, {
         description: Strings.FIND_HISTORY_MAX_COUNT
     });
