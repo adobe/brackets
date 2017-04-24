@@ -286,13 +286,14 @@ define(function (require, exports, module) {
                 }
             })
             .on("click", ".dropdown-icon", function (e) {
+                var quickSearchContainer = $(".quick-search-container");
                 if (!self.searchField) {
                     self.showSearchHints();
-                } else if ($(".quick-search-container").is(':visible')) {
-                    $(".quick-search-container").hide();
-                } else if (!$(".quick-search-container").is(':visible')) {
-                    self.searchField.setText($("#find-what").val());
-                    $(".quick-search-container").show();
+                } else if (quickSearchContainer.is(':visible')) {
+                    quickSearchContainer.hide();
+                } else {
+                    self.searchField.setText(self.$("#find-what").val());
+                    quickSearchContainer.show();
                 }
                 self.$("#find-what").focus();
             })
@@ -331,7 +332,8 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
-                    var searchQueryIndex = searchHistory.indexOf($('#find-what').val());
+                    var searchVal = self.$("#find-what").val()
+                    var searchQueryIndex = searchHistory.indexOf(searchVal);
                     if (searchQueryIndex !== -1) {
                         searchHistory.splice(searchQueryIndex, 1);
                     } else {
@@ -339,8 +341,8 @@ define(function (require, exports, module) {
                             searchHistory.pop();
                         }
                     }
-                    if ($('#find-what').val()) {
-                        searchHistory.unshift($('#find-what').val());
+                    if (searchVal) {
+                        searchHistory.unshift(searchVal);
                     }
                     PreferencesManager.setViewState("searchHistory", searchHistory);
                     lastQueriedText = self.getQueryInfo().query;
@@ -365,10 +367,11 @@ define(function (require, exports, module) {
                     }
                     historyIndex = 0;
                 } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
+                    var quickSearchContainer = $(".quick-search-container");
                     if (!self.searchField) {
                         self.showSearchHints();
-                    } else if (!$(".quick-search-container").is(':visible')) {
-                        $(".quick-search-container").show();
+                    } else if (!quickSearchContainer.is(':visible')) {
+                        quickSearchContainer.show();
                     }
                 }
             });
@@ -427,10 +430,9 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.showSearchHints = function () {
         var self = this;
-        this.$searchField = $("input#find-what");
-        this.$searchField = $(this.$searchField[this.$searchField.length - 1]);
-        this.searchField = new QuickSearchField(this.$searchField, {
-            verticalAdjust: this.$searchField.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
+        var searchFieldInput = self.$("#find-what");
+        this.searchField = new QuickSearchField(searchFieldInput, {
+            verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
             maxResults: 20,
             resultProvider: function (query) {
                 var asyncResult = new $.Deferred();
@@ -442,7 +444,7 @@ define(function (require, exports, module) {
             },
             onCommit: function (selectedItem, query) {
                 if (selectedItem) {
-                    $("#find-what").val(selectedItem);
+                    self.$("#find-what").val(selectedItem);
                     self.trigger("queryChange");
                 } else if (query.length) {
                     self.searchField.setText(query);
@@ -453,7 +455,7 @@ define(function (require, exports, module) {
             onHighlight: function (selectedItem, query, explicit) {},
             highlightZeroResults: false
         });
-        this.searchField.setText($("#find-what").val());
+        this.searchField.setText(searchFieldInput.val());
     };
 
     /**

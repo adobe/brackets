@@ -288,9 +288,13 @@ define(function (require, exports, module) {
         } else if (results.hasOwnProperty("error")) {
             // Error present but falsy - no results to show, but don't decorate with error style
             this._closeDropdown();
-            this.$input.removeClass("no-results");
+            if (this._highlightZeroResults) {
+                this.$input.removeClass("no-results");
+            }
         } else {
-            this.$input.removeClass("no-results");
+            if (this._highlightZeroResults) {
+                this.$input.removeClass("no-results");
+            }
 
             var count = Math.min(results.length, this.options.maxResults),
                 html = "",
