@@ -81,6 +81,7 @@ define(function (require, exports, module) {
         _                  = require("thirdparty/lodash");
 
     /** Editor preferences */
+
     var CLOSE_BRACKETS      = "closeBrackets",
         CLOSE_TAGS          = "closeTags",
         DRAG_DROP           = "dragDropText",
@@ -99,6 +100,7 @@ define(function (require, exports, module) {
         WORD_WRAP           = "wordWrap",
         INDENT_LINE_COMMENT = "indentLineComment",
         INPUT_STYLE         = "inputStyle";
+
 
     /**
       * A list of gutter name and priorities currently registered for editors.
@@ -226,11 +228,9 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
-
     PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
         description: Strings.DESCRIPTION_INPUT_STYLE
     });
@@ -2702,8 +2702,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets lineCommentIndent option.
-     *
+     * Sets indentLineComment option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
@@ -2714,7 +2714,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns true if word wrap is enabled for the specified or current file
+     * Returns true if indentLineComment is enabled for the specified or current file
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
