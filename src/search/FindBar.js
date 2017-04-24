@@ -332,7 +332,7 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
-                    var searchVal = self.$("#find-what").val()
+                    var searchVal = self.$("#find-what").val();
                     var searchQueryIndex = searchHistory.indexOf(searchVal);
                     if (searchQueryIndex !== -1) {
                         searchHistory.splice(searchQueryIndex, 1);
