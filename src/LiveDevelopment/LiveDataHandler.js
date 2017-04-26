@@ -150,7 +150,9 @@ define(function (require, exports, module) {
             if (matchedSelector) {
                 var range = {
                     startLine: matchedSelector.position.start.line - 1,
-                    endLine: matchedSelector.position.end.line - 1
+                    endLine: matchedSelector.position.end.line - 1,
+                    startChar: matchedSelector.position.start.column - 1,
+                    endChar: matchedSelector.position.end.column - 1
                 };
 
                 inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, $("#livedata-tools .inline-editor-holder"));
@@ -186,15 +188,25 @@ define(function (require, exports, module) {
         console.warn(info);
     }
     
-    function _consolidateRules(ruleArr) {
+    function _createGlobalCSSSearchHandler(consolidatedRanges) {
+        brackets.connected = true;
+        brackets.findMatchingRules = function () {
+            var $deferred = $.Deferred();
+            $deferred.resolve(consolidatedRanges);
+            return $deferred.promise();
+        };
+    }
+    
+    /*function _consolidateRules(ruleArr) {
         var files = Object.keys(ruleArr), rules;
-        var fIndex, file, rIndex, rule, $entry, consolidatedRanges = [];
+        var fIndex, file, rule, $entry, consolidatedRanges = [];
         
         for (fIndex in files) {
             if (files.hasOwnProperty(fIndex)) {
                 file = files[fIndex];
                 rules = ruleArr[file];
                 DocumentManager.getDocumentForPath(ProjectManager.getProjectRoot()._path + file.substring(1)).done(function (doc) {
+                    var rIndex;
                     for (rIndex in rules) {
                         if (rules.hasOwnProperty(rIndex)) {
                             rule = rules[rIndex];
@@ -205,19 +217,12 @@ define(function (require, exports, module) {
                         }
                     }
                     if (Object.keys(ruleArr).length === 0) {
-                        //_createMultiRangeInlineEditor(consolidatedRanges);
-                        brackets.connected = true;
-                        brackets.findMatchingRules = function () {
-                            var $deferred = $.Deferred();
-                            $deferred.resolve(consolidatedRanges);
-                            return $deferred.promise();
-                        }
-                        //CommandManager.execute(Commands.TOGGLE_QUICK_EDIT);
+                        _createGlobalCSSSearchHandler(consolidatedRanges);
                     }
                 });
             }
         }
-    }
+    }*/
     
     $(window.document).on("click", "#livedata-tools .related > ul > li", function () {
         _handleInlineEdit($(this));
@@ -248,7 +253,7 @@ define(function (require, exports, module) {
         
         $("#livedata-tools .related > ul > li:nth-child(2)").addClass("selected");
         _handleInlineEdit($("#livedata-tools .related > ul > li:nth-child(2)"));
-        _consolidateRules(ruleArr);
+        //_consolidateRules(ruleArr);
     }
     
     WebSocketTransportDomain.on("livedata", function (obj, message) {
@@ -259,7 +264,7 @@ define(function (require, exports, module) {
             $("#livedata-tools").show();
             $("#livedata-tools #breadcrumb").show();
             _processNodePath(JSON.parse(message.path));
-            _processLiveData/*_consolidateRules*/(JSON.parse(message.data));
+            _processLiveData(JSON.parse(message.data));
         }
     });
     
@@ -272,7 +277,7 @@ define(function (require, exports, module) {
         return "";
     });
     
-    $(document).on("change", "#related-toggle", function () {
+    $(window.document).on("change", "#related-toggle", function () {
         //CommandManager.execute(Commands.FILE_REFRESH);
         ProjectManager.rerenderTree();
     });

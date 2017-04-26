@@ -332,7 +332,7 @@ define(function (require, exports, module) {
         var $container = $(container);
 
         if (range) {    // attach this first: want range updated before we process a change
-            this._visibleRange = new TextRange(document, range.startLine, range.endLine);
+            this._visibleRange = new TextRange(document, range.startLine, range.endLine, range.startChar, range.endChar);
         }
 
         // store this-bound version of listeners so we can remove them later
@@ -849,17 +849,40 @@ define(function (require, exports, module) {
         if (this._visibleRange) {
             var cm = this._codeMirror,
                 self = this;
-            cm.operation(function () {
-                self._hideMarks.forEach(function (mark) {
-                    if (mark) {
-                        mark.clear();
-                    }
+            if (this._visibleRange.startChar && this._visibleRange.endChar) {
+                this._updateHiddenRanges();
+            } else {
+                cm.operation(function () {
+                    self._hideMarks.forEach(function (mark) {
+                        if (mark) {
+                            mark.clear();
+                        }
+                    });
+                    self._hideMarks = [];
+                    self._hideMarks.push(self._hideLines(0, self._visibleRange.startLine));
+                    self._hideMarks.push(self._hideLines(self._visibleRange.endLine + 1, self.lineCount()));
                 });
-                self._hideMarks = [];
-                self._hideMarks.push(self._hideLines(0, self._visibleRange.startLine));
-                self._hideMarks.push(self._hideLines(self._visibleRange.endLine + 1, self.lineCount()));
-            });
+            }
         }
+    };
+    
+    /**
+     * Ensures that the lines that are actually hidden in the inline editor correspond to
+     * the desired visible range.
+     */
+    Editor.prototype._updateHiddenRanges = function () {
+        var cm = this._codeMirror,
+            self = this;
+        cm.operation(function () {
+            self._hideMarks.forEach(function (mark) {
+                if (mark) {
+                    mark.clear();
+                }
+            });
+            self._hideMarks = [];
+            self._hideMarks.push(self._hideRange({line: 0, ch: 0}, {line: self._visibleRange.startLine, ch: self._visibleRange.startChar}));
+            self._hideMarks.push(self._hideRange({line: self._visibleRange.endLine, ch: self._visibleRange.endChar}, {line: self.lineCount(), ch: Number.MAX_SAFE_INTEGER}));
+        });
     };
 
     Editor.prototype._applyChanges = function (changeList) {
@@ -1544,6 +1567,29 @@ define(function (require, exports, module) {
         var value = this._codeMirror.markText(
             {line: from, ch: 0},
             {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
+            {collapsed: true, inclusiveLeft: true, inclusiveRight: true, clearWhenEmpty: false}
+        );
+
+        return value;
+    };
+    
+    /* Hides the specified line number in the editor
+     * @param {!from} line to start hiding from (inclusive)
+     * @param {!to} line to end hiding at (exclusive)
+     * @return {TextMarker} The CodeMirror mark object that's hiding the lines
+     */
+    Editor.prototype._hideRange = function (from, to) {
+        /*if (to <= from) {
+            return;
+        }*/
+
+        // We set clearWhenEmpty: false so that if there's a blank line at the beginning or end of
+        // the document, and that's the only hidden line, we can still actually hide it. Doing so
+        // requires us to create a 0-length marked span, which would ordinarily be cleaned up by CM
+        // if clearWithEmpty is true. See https://groups.google.com/forum/#!topic/codemirror/RB8VNF8ow2w
+        var value = this._codeMirror.markText(
+            from,
+            to,
             {collapsed: true, inclusiveLeft: true, inclusiveRight: true, clearWhenEmpty: false}
         );
 

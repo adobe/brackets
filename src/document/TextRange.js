@@ -55,9 +55,11 @@ define(function (require, exports, module) {
      * @param {number} startLine First line in range (0-based, inclusive)
      * @param {number} endLine   Last line in range (0-based, inclusive)
      */
-    function TextRange(document, startLine, endLine) {
+    function TextRange(document, startLine, endLine, startChar, endChar) {
         this.startLine = startLine;
         this.endLine = endLine;
+        this.startChar = startChar;
+        this.endChar = endChar;
 
         this.document = document;
         document.addRef();
