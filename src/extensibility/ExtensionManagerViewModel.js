@@ -81,6 +81,12 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype.SOURCE_INSTALLED = "installed";
 
     /**
+     * @type {string}
+     * Constant indicating that this model/view should initialize from the list of default bundled extensions.
+     */
+    ExtensionManagerViewModel.prototype.SOURCE_DEFAULT = "default";
+
+    /**
      * @type {Object}
      * The current set of extensions managed by this model. Same as ExtensionManager.extensions.
      */
@@ -510,6 +516,65 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Model for displaying default extensions that come bundled with Brackets
+     */
+    function DefaultViewModel() {
+        ExtensionManagerViewModel.call(this);
+    }
+
+    // Inheritance setup
+    DefaultViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    DefaultViewModel.prototype.constructor = DefaultViewModel;
+
+    /**
+     * Add SOURCE_DEFAULT to DefaultViewModel
+     */
+    DefaultViewModel.prototype.source = ExtensionManagerViewModel.prototype.SOURCE_DEFAULT;
+
+    /**
+     * Initializes the model from the set of default extensions, sorted alphabetically by id
+     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     */
+    DefaultViewModel.prototype._initializeFromSource = function () {
+        var self = this;
+        this.extensions = ExtensionManager.extensions;
+        this.sortedFullSet = Object.keys(this.extensions)
+            .filter(function (key) {
+                return self.extensions[key].installInfo &&
+                    self.extensions[key].installInfo.locationType === ExtensionManager.LOCATION_DEFAULT;
+            });
+        this._sortFullSet();
+        this._setInitialFilter();
+        return new $.Deferred().resolve().promise();
+    };
+
+    /**
+     * @private
+     * Re-sorts the current full set
+     */
+    DefaultViewModel.prototype._sortFullSet = function () {
+        var self = this;
+        this.sortedFullSet = this.sortedFullSet.sort(function (key1, key2) {
+            var metadata1 = self.extensions[key1].installInfo.metadata,
+                metadata2 = self.extensions[key2].installInfo.metadata,
+                id1 = (metadata1.title || metadata1.name).toLocaleLowerCase(),
+                id2 = (metadata2.title || metadata2.name).toLocaleLowerCase();
+            return id1.localeCompare(id2);
+        });
+    };
+
+    /**
+     * @private
+     * Finds the default extension metadata by id. If there is no default extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the theme extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    DefaultViewModel.prototype._getEntry = function (id) {
+        return this.extensions[id] ? this.extensions[id].installInfo : null;
+    };
+
+    /**
      * The model for the ExtensionManagerView that is responsible for handling registry-based theme extensions.
      * This extends ExtensionManagerViewModel.
      * Must be disposed with dispose() when done.
@@ -573,4 +638,5 @@ define(function (require, exports, module) {
     exports.RegistryViewModel = RegistryViewModel;
     exports.ThemesViewModel = ThemesViewModel;
     exports.InstalledViewModel = InstalledViewModel;
+    exports.DefaultViewModel = DefaultViewModel;
 });

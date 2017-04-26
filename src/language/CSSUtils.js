@@ -90,8 +90,13 @@ define(function (require, exports, module) {
             return null;
         }
         var state = ctx.token.state.localState || ctx.token.state;
-        if (!state.context && ctx.token.state.html && ctx.token.state.html.localState) {
-            state = ctx.token.state.html.localState;
+        // if state contains a valid html inner state use that first
+        if (state.htmlState) {
+            state = ctx.token.state.htmlState;
+        } else {
+            if (!state.context && ctx.token.state.html && ctx.token.state.html.localState) {
+                state = ctx.token.state.html.localState;
+            }
         }
         return state;
     }
@@ -435,11 +440,13 @@ define(function (require, exports, module) {
      *           range: {start: {line: number, ch: number},
      *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
-    function _getRuleInfoStartingFromPropValue(ctx, editor) {
-        var propNamePos = $.extend({}, ctx.pos),
+    function _getRuleInfoStartingFromPropValue(ctx, editorParam) {
+        var editor      = editorParam._codeMirror || editorParam,
+            contextDoc  = editor.document || editor.doc,
+            propNamePos = $.extend({}, ctx.pos),
             backwardPos = $.extend({}, ctx.pos),
             forwardPos  = $.extend({}, ctx.pos),
-            propNameCtx = TokenUtils.getInitialContext(editor._codeMirror, propNamePos),
+            propNameCtx = TokenUtils.getInitialContext(editor, propNamePos),
             backwardCtx,
             forwardCtx,
             lastValue = "",
@@ -448,7 +455,7 @@ define(function (require, exports, module) {
             offset = TokenUtils.offsetInToken(ctx),
             canAddNewOne = false,
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos, true),
+            testToken = editor.getTokenAt(testPos, true),
             propName,
             range;
 
@@ -460,7 +467,7 @@ define(function (require, exports, module) {
         }
 
         // Scan backward to collect all preceding property values
-        backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, backwardPos);
+        backwardCtx = TokenUtils.getInitialContext(editor, backwardPos);
         propValues = _getPrecedingPropValues(backwardCtx);
 
         lastValue = "";
@@ -492,14 +499,14 @@ define(function (require, exports, module) {
             offset = 0;
 
             // If pos is at EOL, then there's implied whitespace (newline).
-            if (editor.document.getLine(ctx.pos.line).length > ctx.pos.ch  &&
+            if (contextDoc.getLine(ctx.pos.line).length > ctx.pos.ch  &&
                     (testToken.string.length === 0 || testToken.string.match(/\S/))) {
                 canAddNewOne = false;
             }
         }
 
         // Scan forward to collect all succeeding property values and append to all propValues.
-        forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
+        forwardCtx = TokenUtils.getInitialContext(editor, forwardPos);
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
 
         if (propValues.length) {
@@ -613,16 +620,34 @@ define(function (require, exports, module) {
             return createInfo();
         }
 
+        // Context from the current editor will have htmlState if we are in css mode
+        // and in attribute value state of a tag with attribute name style
+        if (ctx.token.state.htmlState && (!ctx.token.state.localMode || ctx.token.state.localMode.name !== "css")) {
+
+            // tagInfo is required to aquire the style attr value
+            var tagInfo = HTMLUtils.getTagInfo(editor, pos, true),
+                // To be used as relative character position
+                offset = tagInfo.position.offset;
+
+            /**
+             * We will use this CM to cook css context in case of style attribute value
+             * as CM in htmlmixed mode doesn't yet identify this as css context. We provide
+             * a no-op display function to run CM without a DOM head.
+             */
+            var _contextCM = new CodeMirror(function () {}, {
+                value: "{" + tagInfo.attr.value.replace(/(^")|("$)/g, ""),
+                mode:  "css"
+            });
+
+            ctx = TokenUtils.getInitialContext(_contextCM, {line: 0, ch: offset + 1});
+        }
+        
         if (_isInPropName(ctx)) {
-            return _getPropNameInfo(ctx, editor);
+            return _getPropNameInfo(ctx, ctx.editor);
         }
-
+        
         if (_isInPropValue(ctx)) {
-            return _getRuleInfoStartingFromPropValue(ctx, editor);
-        }
-
-        if (_isInAtRule(ctx)) {
-            return _getImportUrlInfo(ctx, editor);
+            return _getRuleInfoStartingFromPropValue(ctx, ctx.editor);
         }
 
         return createInfo();

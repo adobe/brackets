@@ -98,9 +98,7 @@ define(function main(require, exports, module) {
         "marginStyling": {
             "background-color": "rgba(21, 165, 255, 0.58)"
         },
-        "stylesToSet": {
-            "border-width": "1px"
-        },
+        "borderColor": "rgba(21, 165, 255, 0.85)",
         "showPaddingMargin": true
     }, {
         description: "LivePreview highlight settings"
