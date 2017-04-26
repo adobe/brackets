@@ -4,7 +4,7 @@
         "active":              {"desc": "Selects the active link"},
         "checked":             {"desc": "Selects every checked <input> element"},
         "disabled":            {"desc": "Selects every disabled <input> element"},
-        "empty"	:              {"desc": "Selects every element that has no children/text (including text nodes)"},
+        "empty":               {"desc": "Selects every element that has no children/text (including text nodes)"},
         "enabled":             {"desc": "Selects every enabled <input> element"},
         "first-child":         {"desc": "Selects every element that is the first child of its parent"},
         "first-of-type":       {"desc": "Selects every element that is the first element identified by 'type' of its parent"},
@@ -35,10 +35,10 @@
     },
     "elements" :
     {
-        "after":        {"desc": "Insert something after the content of each element identified by this selctor"},
-        "before":       {"desc": "Insert something before the content of each element identified by this selctor"},
-        "first-letter": {"desc": "Selects the first letter of every element identified by this selctor"},
-        "first-line":   {"desc": "Selects the first line of every element identified by this selctor"},
-        "selection":    {"desc": "Selects the portion of an element identified by this selctor that is selected by a user"}
+        "after":        {"desc": "Insert something after the content of each element identified by this selector"},
+        "before":       {"desc": "Insert something before the content of each element identified by this selector"},
+        "first-letter": {"desc": "Selects the first letter of every element identified by this selector"},
+        "first-line":   {"desc": "Selects the first line of every element identified by this selector"},
+        "selection":    {"desc": "Selects the portion of an element identified by this selector that is selected by a user"}
     }
 }

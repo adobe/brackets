@@ -75,12 +75,10 @@ define(function (require, exports, module) {
         }
 
         // Filter the property list based on the token string
-        var result = Object.keys(AtRules).map(function (key) {
+        var result = Object.keys(AtRules).filter(function (key) {
             if (key.indexOf(token.string) === 0) {
                 return key;
             }
-        }).filter(function (key) {
-            return key;
         }).sort();
 
         return {
@@ -113,5 +111,8 @@ define(function (require, exports, module) {
         // Register code hint providers
         var restrictedBlockHints = new AtRuleHints();
         CodeHintManager.registerHintProvider(restrictedBlockHints, ["css", "less", "scss"], 0);
+        
+        // For unit testing
+        exports.restrictedBlockHints = restrictedBlockHints;
     });
 });

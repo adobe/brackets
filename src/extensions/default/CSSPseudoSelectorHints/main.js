@@ -114,12 +114,10 @@ define(function (require, exports, module) {
         this.token = token;
 
         // Filter the property list based on the token string
-        var result = Object.keys(this.context === TOKEN_TYPE_PSEUDO_SELECTOR ? PseudoRules.selectors : PseudoRules.elements).map(function (key) {
+        var result = Object.keys(this.context === TOKEN_TYPE_PSEUDO_SELECTOR ? PseudoRules.selectors : PseudoRules.elements).filter(function (key) {
             if (key.indexOf(filter) === 0) {
                 return key;
             }
-        }).filter(function (key) {
-            return key;
         }).sort();
 
         return {
@@ -172,5 +170,8 @@ define(function (require, exports, module) {
         // Register code hint providers
         var pseudoSelectorHints = new PsudoSelectorHints();
         CodeHintManager.registerHintProvider(pseudoSelectorHints, ["css", "scss", "less"], 0);
+        
+        // For test
+        exports.pseudoSelectorHints = pseudoSelectorHints;
     });
 });
