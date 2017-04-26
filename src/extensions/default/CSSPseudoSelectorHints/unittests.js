@@ -127,7 +127,6 @@ define(function (require, exports, module) {
         };
 
         describe("Pseudo selectors in different style modes", function () {
-
             beforeEach(function () {
                 // create Editor instance (containing a CodeMirror instance)
                 var mock = SpecRunnerUtils.createMockEditor(defaultContent, selectMode());
@@ -141,17 +140,14 @@ define(function (require, exports, module) {
                 testDocument = null;
             });
             
-            for (modeCounter in modesToTest) {
-            
-                it("should list all Pseudo selectors right after :", function () {
+            var testAllHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 11 });    // after :
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "active");  // filtered on "empty string"
                     verifyListsAreIdentical(hintList, Object.keys(PseudoStaticData.selectors).sort());
-                });
-
-                it("should list filtered pseudo selectors right after :n", function () {
+                },
+                testFilteredHints = function () {
                     testEditor.setCursorPos({ line: 4, ch: 12 });    // after :n
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
                     console.log(JSON.stringify(hintList));
@@ -161,12 +157,16 @@ define(function (require, exports, module) {
                                                        "nth-last-child(n)",
                                                        "nth-last-of-type(n)",
                                                        "nth-of-type(n)"]);
-                });
-
-                it("should not list rule hints if the cursor is before :", function () {
+                },
+                testNoHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 10 });    // after {
                     expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, 'a')).toBe(false);
-                });
+                };
+            
+            for (modeCounter in modesToTest) {
+                it("should list all Pseudo selectors right after :", testAllHints);
+                it("should list filtered pseudo selectors right after :n", testFilteredHints);
+                it("should not list rule hints if the cursor is before :", testNoHints);
             }
         });
 
@@ -186,29 +186,30 @@ define(function (require, exports, module) {
                 testDocument = null;
             });
             
-            for (modeCounter in modesToTest) {
-            
-                it("should list all Pseudo selectors right after :", function () {
+            var testAllHints = function () {
                     testEditor.setCursorPos({ line: 2, ch: 12 });    // after ::
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "after");  // filtered on "empty string"
                     verifyListsAreIdentical(hintList, Object.keys(PseudoStaticData.elements).sort());
-                });
-
-                it("should list filtered pseudo selectors right after ::f", function () {
+                },
+                testFilteredHints = function () {
                     testEditor.setCursorPos({ line: 6, ch: 13 });    // after ::f
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "first-letter");  // filtered on "f"
                     verifyListsAreIdentical(hintList, ["first-letter",
                                                        "first-line"]);
-                });
-
-                it("should not list rule hints if the cursor is before :", function () {
+                },
+                testNoHints = function () {
                     testEditor.setCursorPos({ line: 2, ch: 10 });    // after ::f
                     expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, 'c')).toBe(false);
-                });
+                };
+            
+            for (modeCounter in modesToTest) {
+                it("should list all Pseudo selectors right after :", testAllHints);
+                it("should list filtered pseudo selectors right after ::f", testFilteredHints);
+                it("should not list rule hints if the cursor is before :", testNoHints);
             }
 
         });

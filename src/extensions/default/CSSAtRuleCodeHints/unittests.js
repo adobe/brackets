@@ -121,7 +121,7 @@ define(function (require, exports, module) {
             return modesToTest[modeCounter];
         };
 
-        describe("'@' rules in CSS mode (selection of correct restricted block based on input)", function () {
+        describe("'@' rules in styles mode (selection of correct restricted block based on input)", function () {
 
             beforeEach(function () {
                 // create Editor instance (containing a CodeMirror instance)
@@ -136,9 +136,7 @@ define(function (require, exports, module) {
                 testDocument = null;
             });
             
-            for (modeCounter in modesToTest) {
-            
-                it("should list all rule hints right after @", function () {
+            var testAllHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 1 });    // after @
                     var hintList = expectHints(CSSAtRuleCodeHints.restrictedBlockHints);
                     verifyFirstEntry(hintList, "@charset");  // filtered on "empty string"
@@ -150,24 +148,27 @@ define(function (require, exports, module) {
                                                        "@namespace",
                                                        "@page",
                                                        "@supports"]);
-                });
-
-                it("should list filtered rule hints right after @m", function () {
+                },
+                testFilteredHints = function () {
                     testEditor.setCursorPos({ line: 3, ch: 2 });    // after @m
                     var hintList = expectHints(CSSAtRuleCodeHints.restrictedBlockHints);
                     verifyFirstEntry(hintList, "@media");  // filtered on "@m"
                     verifyListsAreIdentical(hintList, ["@media"]);
-                });
-
-                it("should not list rule hints on space", function () {
+                },
+                testNoHintsOnSpace = function () {
                     testEditor.setCursorPos({ line: 3, ch: 3 });    // after {
                     expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, '')).toBe(false);
-                });
-
-                it("should not list rule hints if the cursor is before @", function () {
+                },
+                testNoHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 0 });    // after {
                     expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, 'c')).toBe(false);
-                });
+                };
+            
+            for (modeCounter in modesToTest) {
+                it("should list all rule hints right after @", testAllHints);
+                it("should list filtered rule hints right after @m", testFilteredHints);
+                it("should not list rule hints on space", testNoHintsOnSpace);
+                it("should not list rule hints if the cursor is before @", testNoHints);
             }
         });
         
