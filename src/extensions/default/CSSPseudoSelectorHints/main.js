@@ -79,6 +79,10 @@ define(function (require, exports, module) {
      */
     function PsudoSelectorHints() {
     }
+    
+    function _validatePseudoContext(token) {
+        return token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR;
+    }
 
     // As we are only going to provide :<pseudo> name hints
     // we should claim that we don't have hints for anything else
@@ -89,7 +93,7 @@ define(function (require, exports, module) {
         this.editor = editor;
 
         // Check if we are at ':' pseudo rule or in 'variable-3' 'def' context
-        return token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR;
+        return _validatePseudoContext(token);
     };
 
     PsudoSelectorHints.prototype.getHints = function (implicitChar) {
@@ -99,7 +103,7 @@ define(function (require, exports, module) {
             lineTillCursor = this.editor._codeMirror.getLine(pos.line),
             ctx = TokenUtils.getInitialContext(this.editor._codeMirror, pos);
 
-        if (!(token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR)) {
+        if (!_validatePseudoContext(token)) {
             return null;
         }
 
