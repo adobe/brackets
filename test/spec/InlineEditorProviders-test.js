@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, beforeFirst, afterLast */
+/*global describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -41,6 +39,14 @@ define(function (require, exports, module) {
         FileUtils        = require("file/FileUtils"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         Strings          = require("strings");
+
+    // Helper functions for testing cursor position / selection range
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
+    }
 
     describe("InlineEditorProviders", function () {
 
@@ -316,7 +322,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position and displayed range in inline editor
-                    expect(inlinePos).toEqual(infos["test1.php"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.php"].offsets[0]));
                     expect(inlineWidget.editor).toHaveInlineEditorRange(toRange(4, 8));
 
                     inlineWidget = null;
@@ -331,7 +337,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[0]));
 
                     inlineWidget = null;
                 });
@@ -345,7 +351,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[0]));
 
                     inlineWidget = null;
                 });
@@ -359,7 +365,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[1]));
 
                     inlineWidget = null;
                 });
@@ -373,7 +379,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[1]));
 
                     inlineWidget = null;
                 });
@@ -387,7 +393,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.html"].offsets[11]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.html"].offsets[11]));
 
                     inlineWidget = null;
                 });
@@ -401,7 +407,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[2]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[2]));
 
                     inlineWidget = null;
                 });
@@ -446,7 +452,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(infos["test1.css"].offsets[8]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(infos["test1.css"].offsets[8]));
 
                     inlineWidget = null;
                 });

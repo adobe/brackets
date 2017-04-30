@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -113,6 +111,7 @@ define(function (require, exports, module) {
      * Clears out the model to an empty state.
      */
     SearchModel.prototype.clear = function () {
+        var numMatchesBefore = this.numMatches;
         this.results = {};
         this.queryInfo = null;
         this.queryExpr = null;
@@ -122,7 +121,9 @@ define(function (require, exports, module) {
         this.numMatches = 0;
         this.foundMaximum = false;
         this.exceedsMaximum = false;
-        this.fireChanged();
+        if (numMatchesBefore !== 0) {
+            this.fireChanged();
+        }
     };
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Apakah Anda ingin menyimpan perubahan yang Anda buat di dokumen <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Apakah Anda ingin menyimpan perubahan pada file berikut?",
     "EXT_MODIFIED_TITLE"                : "Perubahan Eksternal",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Konfirmasi Hapus",
+    "CONFIRM_DELETE_TITLE"              : "Konfirmasi Hapus",
     "CONFIRM_FOLDER_DELETE"             : "Apakah Anda yakin ingin menghapus folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Dihapus",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> telah dimodifikasi di disk.<br /><br />Apakah Anda ingin menyimpan file dan menimpa perubahan tersebut?",
@@ -621,7 +618,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proyek Terkini",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Baca selengkapnya"
 });
 /* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */

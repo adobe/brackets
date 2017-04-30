@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,9 +40,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, Mustache */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -50,6 +47,7 @@ define(function (require, exports, module) {
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Strings             = brackets.getModule("strings"),
+        Mustache            = brackets.getModule("thirdparty/mustache/mustache"),
 
         InlineTimingFunctionEditor = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor,
         TimingFunctionUtils        = require("TimingFunctionUtils"),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,9 +28,6 @@
  * version in the registry app should be kept in sync.
  * In the future, we should have a better mechanism for sharing code between the two.
  */
-
-/*jslint vars: true, plusplus: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -123,7 +120,7 @@ define(function (require, exports, module) {
      *     we should look at the top level of the object.
      * @return {Array} Sorted array of registry entries.
      */
-    exports.sortRegistry = function (registry, subkey) {
+    exports.sortRegistry = function (registry, subkey, sortBy) {
         function getPublishTime(entry) {
             if (entry.versions) {
                 return new Date(entry.versions[entry.versions.length - 1].published).getTime();
@@ -139,8 +136,16 @@ define(function (require, exports, module) {
             sortedEntries.push(registry[key]);
         });
         sortedEntries.sort(function (entry1, entry2) {
-            return getPublishTime((subkey && entry2[subkey]) || entry2) -
-                getPublishTime((subkey && entry1[subkey]) || entry1);
+            if (sortBy !== "publishedDate") {
+                if (entry1.registryInfo && entry2.registryInfo) {
+                    return entry2.registryInfo.totalDownloads - entry1.registryInfo.totalDownloads;
+                } else {
+                    return Number.NEGATIVE_INFINITY;
+                }
+            } else {
+                return getPublishTime((subkey && entry2[subkey]) || entry2) -
+                    getPublishTime((subkey && entry1[subkey]) || entry1);
+            }
         });
 
         return sortedEntries;

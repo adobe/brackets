@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, setTimeout */
-
 
 /*
  * Text field with attached dropdown list that is updated (based on a provider) whenever the text changes.
@@ -86,6 +82,12 @@ define(function (require, exports, module) {
 
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
+
+        if (options.highlightZeroResults !== undefined) {
+            this._highlightZeroResults = options.highlightZeroResults;
+        } else {
+            this._highlightZeroResults = true;
+        }
 
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
@@ -176,20 +178,25 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._doCommit = function (index) {
         var item;
         if (this._displayedResults && this._displayedResults.length) {
-            var committedIndex = index !== undefined ? index : (this._highlightIndex || 0);
-            item = this._displayedResults[committedIndex];
+            if (index >= 0) {
+                item = this._displayedResults[index];
+            } else if (this._highlightIndex >= 0) {
+                item = this._displayedResults[this._highlightIndex];
+            }
         }
         this.options.onCommit(item, this._displayedQuery);
     };
 
     /** Update display to reflect value of _highlightIndex, & call onHighlight() */
     QuickSearchField.prototype._updateHighlight = function (explicit) {
-        var $items = this._$dropdown.find("li");
-        $items.removeClass("highlight");
-        if (this._highlightIndex !== null) {
-            $items.eq(this._highlightIndex).addClass("highlight");
+        if (this._$dropdown) {
+            var $items = this._$dropdown.find("li");
+            $items.removeClass("highlight");
+            if (this._highlightIndex !== null) {
+                $items.eq(this._highlightIndex).addClass("highlight");
 
-            this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
+                this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
+            }
         }
     };
 
@@ -213,12 +220,14 @@ define(function (require, exports, module) {
                     this._pending = null;
                 }
             });
-            this._pending.fail(function () {
-                if (self._pending === results) {
-                    self._render([], query);
-                    this._pending = null;
-                }
-            });
+            if (this._pending) {
+                this._pending.fail(function () {
+                    if (self._pending === results) {
+                        self._render([], query);
+                        this._pending = null;
+                    }
+                });
+            }
         } else {
             // Synchronous result - render immediately
             this._render(results, query);
@@ -268,18 +277,24 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._render = function (results, query) {
         this._displayedQuery = query;
         this._displayedResults = results;
-        this._highlightIndex = 0;
+        this._highlightIndex = null;
         // TODO: fixup to match prev value's item if possible?
 
         if (results.error || results.length === 0) {
             this._closeDropdown();
-            this.$input.addClass("no-results");
+            if (this._highlightZeroResults) {
+                this.$input.addClass("no-results");
+            }
         } else if (results.hasOwnProperty("error")) {
             // Error present but falsy - no results to show, but don't decorate with error style
             this._closeDropdown();
-            this.$input.removeClass("no-results");
+            if (this._highlightZeroResults) {
+                this.$input.removeClass("no-results");
+            }
         } else {
-            this.$input.removeClass("no-results");
+            if (this._highlightZeroResults) {
+                this.$input.removeClass("no-results");
+            }
 
             var count = Math.min(results.length, this.options.maxResults),
                 html = "",

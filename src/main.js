@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, window, brackets, navigator */
-
 /**
  * The bootstrapping module for brackets. This module sets up the require
  * configuration and loads the brackets module.
@@ -32,6 +29,7 @@ require.config({
     paths: {
         "text"              : "thirdparty/text/text",
         "i18n"              : "thirdparty/i18n/i18n",
+        "react"             : "thirdparty/react",
 
         // The file system implementation. Change this value to use different
         // implementations (e.g. cloud-based storage).
@@ -39,7 +37,8 @@ require.config({
     },
     map: {
         "*": {
-            "thirdparty/CodeMirror2": "thirdparty/CodeMirror"
+            "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
+            "thirdparty/react":       "react"
         }
     }
 });
@@ -61,7 +60,7 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
      * extension).
      */
     require.config({
-        locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+        locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : window.navigator.language)
     });
 }
 

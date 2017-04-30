@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,17 +21,17 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
-indent: 4, maxerr: 50, regexp: true */
+/*eslint-env node */
+/*jslint node: true, regexp: true */
 
 "use strict";
 
-var DecompressZip = require("decompress-zip"),
-    semver        = require("semver"),
-    path          = require("path"),
-    temp          = require("temp"),
-    fs            = require("fs-extra");
+var DecompressZip               = require("decompress-zip"),
+    semver                      = require("semver"),
+    path                        = require("path"),
+    temp                        = require("temp"),
+    fs                          = require("fs-extra"),
+    performNpmInstallIfRequired = require("./npm-installer").performNpmInstallIfRequired;
 
 // Track and cleanup files at exit
 temp.track();
@@ -294,12 +294,16 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                 if (!isTheme && !fs.existsSync(mainJS)) {
                     errors.push([Errors.MISSING_MAIN, zipPath, mainJS]);
                 }
-                callback(null, {
+
+                performNpmInstallIfRequired({
+                    production: true,
+                    proxy: options.proxy
+                }, {
                     errors: errors,
                     metadata: metadata,
                     commonPrefix: commonPrefix,
                     extractDir: extractDir
-                });
+                }, callback);
             });
         });
     });
@@ -328,7 +332,7 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
  * read successfully from package.json in the zip file.
  *
  * @param {string} path Absolute path to the package zip file
- * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} options for validation
+ * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>, proxy: ?<string>}} options for validation
  * @param {function} callback (err, result)
  */
 function validate(path, options, callback) {

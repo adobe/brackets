@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -102,7 +99,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložiť zmeny, ktoré ste spravili v dokumente <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložiť zmeny v následujúcich súboroch?",
     "EXT_MODIFIED_TITLE"                : "Externé zmeny",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdte odstránenie",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdte odstránenie",
     "CONFIRM_FOLDER_DELETE"             : "Ste si istý zmazaním priečinku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Súbor odstránený",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> bol upravený na disku, ale tiež ma neuložené zmeny in {APP_NAME}.<br /><br />Ktorú verziu chcete ponechať?",
@@ -408,6 +405,6 @@ define({
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Rýchly náhľad",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Viac"
 });

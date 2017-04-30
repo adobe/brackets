@@ -1,6 +1,6 @@
 <div class="find-input-group">
     <div id="find-group"><!--
-        --><div class="search-input-container"><input type="text" id="find-what" placeholder="{{queryPlaceholder}}" value="{{initialQuery}}" /><div class="error"></div><span id="find-counter"></span></div><!--
+        --><div class="search-input-container"><input type="text" id="find-what" placeholder="{{queryPlaceholder}}" value="{{initialQuery}}" /><div class="dropdown-icon"></div><div class="error"></div><span id="find-counter"></span></div><!--
         --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
         --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
         {{^multifile}}
@@ -17,7 +17,11 @@
         {{^multifile}}
         --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{Strings.BUTTON_REPLACE}}</button><!--
         {{/multifile}}
-        --><button id="replace-all" class="btn no-focus {{#multifile}}solo{{/multifile}}" tabindex="-1">{{replaceAllLabel}}</button></div>
+        --><button id="replace-batch" class="btn no-focus {{#multifile}}solo{{/multifile}}" tabindex="-1">{{replaceBatchLabel}}</button><!--
+        {{^multifile}}
+        --><button id="replace-all" class="btn no-focus" tabindex="-1">{{replaceAllLabel}}</button><!--
+        {{/multifile}}
+        --></div>
     {{/replace}}
 </div>
 

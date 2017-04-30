@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
+/*global describe, beforeEach, afterEach, it, runs, expect, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
 
 define(function (require, exports, module) {
     'use strict';
@@ -104,6 +102,27 @@ define(function (require, exports, module) {
             });
         });
 
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+        function fixSel(sel) {
+            fixPos(sel.start);
+            fixPos(sel.end);
+            if (!("reversed" in sel)) {
+                sel.reversed = false;
+            }
+            return sel;
+        }
+        function fixSels(sels) {
+            sels.forEach(function (sel) {
+                fixSel(sel);
+            });
+            return sels;
+        }
 
         /** Expect a file to exist (failing test if not) and then delete it */
         function expectAndDelete(fullPath) {
@@ -976,7 +995,7 @@ define(function (require, exports, module) {
                     var currentDocument = DocumentManager.getCurrentDocument(),
                         currentEditor = EditorManager.getActiveEditor();
                     expect(currentDocument.file.fullPath).toEqual(newFilePath);
-                    expect(currentEditor.getSelections()).toEqual(selections);
+                    expect(fixSels(currentEditor.getSelections())).toEqual(fixSels(selections));
                 });
 
                 runs(function () {

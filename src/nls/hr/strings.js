@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -108,7 +105,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Želite li sačuvati izmjene koje ste napravili u dokumentu <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Želite li sačuvati izmjene sljedećih datoteka?",
     "EXT_MODIFIED_TITLE"                : "Vanjske izmjene",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdi brisanje",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdi brisanje",
     "CONFIRM_FOLDER_DELETE"             : "Da li ste sigurni da želite obrisati mapu <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Datoteka Obrisana",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> je bio izmjenjen na disku.<br /><br />Da li želite sačuvati datoteku i spremiti preko tih izmjena?",
@@ -350,6 +347,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Novo pravilo",
     "CMD_NEXT_DOC"                        : "Sljedeći dokument",
     "CMD_PREV_DOC"                        : "Prethodni dokument",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Sljedeći dokument u listi",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Prethodni dokument u listi",
     "CMD_SHOW_IN_TREE"                    : "Prikaži u stablu datoteka",
     "CMD_SHOW_IN_EXPLORER"                : "Prikaži u Exploreru",
     "CMD_SHOW_IN_FINDER"                  : "Prikaži u Finderu",
@@ -454,7 +453,7 @@ define({
     "EXTENSION_MANAGER_TITLE"              : "Manager extenzija",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Pristupanje registru extenzije nije moguće. Pokušajte kasnije.",
     "INSTALL_EXTENSION_DRAG"               : "Dovuci .zip ovdje ili",
-    "INSTALL_EXTENSION_DROP"               : "Ispusti .zip da instaliraš",
+    "INSTALL_EXTENSION_DROP"               : "ispusti .zip da instaliraš",
     "INSTALL_FROM_URL"                     : "Instaliraj sa URL linka\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
@@ -480,7 +479,7 @@ define({
     "MARKED_FOR_UPDATE"                    : "Označeno za ažuriranje",
     "UNDO_UPDATE"                          : "Poništi",
     "CHANGE_AND_RELOAD_TITLE"              : "Promjeni extenzije",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Da biste obnovili ili uklonili označene extenzije, {APP_NAME} će se trebati ponovo učitati. Bit ćete zatraženi da sačuvate nesačuvane promjene.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Da biste obnovili ili uklonili označene extenzije, {APP_NAME} se treba ponovo učitati. Bit ćete zatraženi da sačuvate nesačuvane promjene.",
     "REMOVE_AND_RELOAD"                    : "Ukloni extenzije i ponovno učitaj",
     "CHANGE_AND_RELOAD"                    : "Promjeni extenzije i ponovo učitaj",
     "UPDATE_AND_RELOAD"                    : "Obnovi extenzije i ponovo učitaj",
@@ -559,14 +558,14 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedavni projekti",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Pročitaj više",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Skupi Sve",
     "EXPAND_ALL"                    : "Proširi Sve",
     "COLLAPSE_CURRENT"              : "Skupi Trenutno",
-    "EXPAND_CURRENT"                : "Proširi Trenutno",
+    "EXPAND_CURRENT"                : "Proširi Trenutno"
 });
 
 /* Last translated for a57bd8888da0b44f382e591c64b394b065178277 */

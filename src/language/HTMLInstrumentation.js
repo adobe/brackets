@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: HTML Instrumentation*/
 
 /**
@@ -56,7 +53,8 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
-        HTMLDOMDiff     = require("./HTMLDOMDiff");
+        HTMLDOMDiff     = require("./HTMLDOMDiff"),
+        _               = require("thirdparty/lodash");
 
     var allowIncremental = true;
 
@@ -88,6 +86,21 @@ define(function (require, exports, module) {
      */
     function _posEq(pos1, pos2) {
         return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
+    }
+
+    function getPositionFromTagId(editor, tagId) {
+        var marks = editor._codeMirror.getAllMarks(),
+            i,
+            markFound;
+        
+        markFound = _.find(marks, function (mark) {
+            return (mark.tagID === tagId);
+        });
+        if (markFound) {
+            return markFound.find().from;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -145,21 +158,16 @@ define(function (require, exports, module) {
         }
 
         // The mark with the latest start is the innermost one.
-        match = marks[marks.length - 1];
+        match = marks.pop();
         if (preferParent) {
             // If the match is exactly at the edge of the range and preferParent is set,
-            // we want to pop upwards.
-            if (_posEq(match.range.from, pos) || _posEq(match.range.to, pos)) {
-                if (marks.length > 1) {
-                    match = marks[marks.length - 2];
-                } else {
-                    // We must be outside the root, so there's no containing tag.
-                    match = null;
-                }
+            // we want to pop upwards. If pos is exactly between two marks, we need to pop upwards twice.
+            while (match && (_posEq(match.range.from, pos) || _posEq(match.range.to, pos))) {
+                match = marks.pop();
             }
         }
 
-        return match.mark;
+        return match && match.mark;
     }
 
     /**
@@ -813,6 +821,7 @@ define(function (require, exports, module) {
     exports._markText                   = _markText;
     exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
     exports._getTagIDAtDocumentPos      = _getTagIDAtDocumentPos;
+    exports.getPositionFromTagId        = getPositionFromTagId;
     exports._markTextFromDOM            = _markTextFromDOM;
     exports._updateDOM                  = _updateDOM;
     exports._allowIncremental           = allowIncremental;

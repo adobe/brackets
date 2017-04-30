@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -188,14 +185,14 @@ define(function (require, exports, module) {
         _offlineCallback = offlineCallback;
     }
 
-    function watchPath(path, callback) {
+    function watchPath(path, ignored, callback) {
         var cb = _getCallback("watchPath", path, callback);
 
         _model.watchPath(path);
         cb(null);
     }
 
-    function unwatchPath(path, callback) {
+    function unwatchPath(path, ignored, callback) {
         var cb = _getCallback("unwatchPath", path, callback);
         _model.unwatchPath(path);
         cb(null);

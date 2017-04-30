@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,8 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
-indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
+/*jslint regexp: true */
+/*global describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -50,6 +48,7 @@ define(function (require, exports, module) {
         Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
+        PreferencesManager        = require("preferences/PreferencesManager"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
         mockRegistryThemesText    = require("text!spec/ExtensionManager-test-files/mockRegistryThemes.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
@@ -216,7 +215,7 @@ define(function (require, exports, module) {
                 model = new ModelClass();
                 modelDisposed = false;
                 waitsForDone(view.initialize(model), "view initializing");
-                view.$el.appendTo(document.body);
+                view.$el.appendTo(window.document.body);
             });
             runs(function () {
                 spyOn(view.model, "dispose").andCallThrough();
@@ -736,7 +735,15 @@ define(function (require, exports, module) {
                     expect(model.extensions).toEqual(ExtensionManager.extensions);
                 });
 
+                it("should start with the full set sorted in reverse download count order", function () {
+                    PreferencesManager.set("extensions.sort", "downloadCount");
+                    model._setSortedExtensionList(ExtensionManager.extensions, false);
+                    expect(model.filterSet).toEqual(["item-6", "item-4", "item-3", "find-uniq1-in-name", "item-2", "item-5"]);
+                });
+                
                 it("should start with the full set sorted in reverse publish date order", function () {
+                    PreferencesManager.set("extensions.sort", "publishedDate");
+                    model._setSortedExtensionList(ExtensionManager.extensions, false);
                     expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
                 });
 
@@ -830,6 +837,12 @@ define(function (require, exports, module) {
 
                 it("should start with the full set sorted in reverse publish date order", function () {
                     expect(model.filterSet).toEqual(["theme-1", "theme-2"]);
+                });
+                
+                it("should start with the full set sorted in reverse download count order", function () {
+                    PreferencesManager.set("extensions.sort", "downloadCount");
+                    model._setSortedExtensionList(ExtensionManager.extensions, true);
+                    expect(model.filterSet).toEqual(["theme-2", "theme-1"]);
                 });
             });
 
@@ -1284,7 +1297,8 @@ define(function (require, exports, module) {
 
                             // Simple fields
                             [item.metadata.version,
-                                item.metadata.author && item.metadata.author.name]
+                                item.metadata.author && item.metadata.author.name,
+                                item.totalDownloads]
                                 .forEach(function (value) {
                                     if (value) {
                                         expect(view).toHaveText(value);
@@ -1579,7 +1593,7 @@ define(function (require, exports, module) {
                         spyOn(NativeApp, "openURLInDefaultBrowser");
 
                         var event = new window.Event("click", { bubbles: false, cancelable: true });
-                        document.querySelector("a[href='https://github.com/someuser']").dispatchEvent(event);
+                        window.document.querySelector("a[href='https://github.com/someuser']").dispatchEvent(event);
 
                         expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/someuser");
                         expect(window.location.href).toBe(origHref);

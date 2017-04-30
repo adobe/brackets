@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -61,6 +59,14 @@ define(function (require, exports, module) {
         });
 
         return result.promise();
+    }
+
+    // Helper function for testing cursor position
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
     }
 
     /**
@@ -239,7 +245,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[0]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(this.infos["test1inline.js"].offsets[0]));
                 });
             });
 
@@ -251,7 +257,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[1]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(this.infos["test1inline.js"].offsets[1]));
                 });
             });
 
@@ -263,7 +269,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineWidget.editor.getCursorPos();
 
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[2]);
+                    expect(fixPos(inlinePos)).toEqual(fixPos(this.infos["test1inline.js"].offsets[2]));
                 });
             });
 

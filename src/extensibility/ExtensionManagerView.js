@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -35,7 +33,17 @@ define(function (require, exports, module) {
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
-        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        LanguageManager           = require("language/LanguageManager"),
+        Mustache                  = require("thirdparty/mustache/mustache"),
+        PathUtils                 = require("thirdparty/path-utils/path-utils"),
+        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
+        PreferencesManager        = require("preferences/PreferencesManager");
+        
+
+    /**
+     * Create a detached link element, so that we can use it later to extract url details like 'protocol'
+     */
+    var _tmpLink = window.document.createElement('a');
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
@@ -64,6 +72,7 @@ define(function (require, exports, module) {
         this._$infoMessage = $("<div class='info-message'/>")
             .appendTo(this.$el).html(this.model.infoMessage);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
+        $(".sort-extensions").val(PreferencesManager.get("extensions.sort"));
 
         this.model.initialize().done(function () {
             self._setupEventHandlers();
@@ -241,6 +250,7 @@ define(function (require, exports, module) {
                 var installWarningBase = context.requiresNewer ? Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER : Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER;
                 context.installWarning = StringUtils.format(installWarningBase, entry.registryInfo.versions[entry.registryInfo.versions.length - 1].version, latestVerCompatInfo.compatibleVersion);
             }
+            context.downloadCount = entry.registryInfo.totalDownloads;
         } else {
             // We should only get here when viewing the Installed tab and some extensions don't exist in the registry
             // (or registry is offline). These flags *should* always be ignored in that scenario, but just in case...
@@ -326,15 +336,33 @@ define(function (require, exports, module) {
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !hasPendingAction;
-        context.disablingAllowed = this.model.source === "installed" &&
-            !context.disabled && !hasPendingAction;
-        context.enablingAllowed = this.model.source === "installed" &&
-            context.disabled && !hasPendingAction;
+        var isDefaultOrInstalled = this.model.source === "default" || this.model.source === "installed";
+        var isDefaultAndTheme = this.model.source === "default" && context.metadata.theme;
+        context.disablingAllowed = isDefaultOrInstalled && !isDefaultAndTheme && !context.disabled && !hasPendingAction;
+        context.enablingAllowed = isDefaultOrInstalled && !isDefaultAndTheme && context.disabled && !hasPendingAction;
 
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
             context[helper] = registry_utils[helper];
         });
+
+        // Do some extra validation on homepage url to make sure we don't end up executing local binary
+        if (context.metadata.homepage) {
+            var parsed = PathUtils.parseUrl(context.metadata.homepage);
+
+            // We can't rely on path-utils because of known problems with protocol identification
+            // Falling back to Browsers protocol identification mechanism
+            _tmpLink.href = context.metadata.homepage;
+
+            // Check if the homepage refers to a local resource
+            if (_tmpLink.protocol === "file:") {
+                var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ''));
+                // If identified language for the local resource is binary, don't list it
+                if (language && language.isBinary()) {
+                    delete context.metadata.homepage;
+                }
+            }
+        }
 
         return $(this._itemTemplate(context));
     };

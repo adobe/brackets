@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
-
 /*
  * UI for the Find/Replace and Find in Files modal bar.
  */
@@ -31,6 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                  = require("thirdparty/lodash"),
+        Mustache           = require("thirdparty/mustache/mustache"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Commands           = require("command/Commands"),
         KeyBindingManager  = require("command/KeyBindingManager"),
@@ -41,6 +39,7 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         ViewUtils          = require("utils/ViewUtils"),
         FindUtils          = require("search/FindUtils"),
+        QuickSearchField   = require("search/QuickSearchField").QuickSearchField,
         HealthLogger       = require("utils/HealthLogger");
 
     /**
@@ -70,7 +69,8 @@ define(function (require, exports, module) {
      *      Parameters are:
      *          shiftKey - boolean, false for Find Next, true for Find Previous
      * - doReplace - when the user chooses to do a single replace. Use getReplaceText() to get the current replacement text.
-     * - doReplaceAll - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
+     * - doReplaceBatch - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
+     * - doReplaceAll - when the user chooses to perform a Replace All. Use getReplaceText() to get the current replacement text.
      *-  close - when the find bar is closed
      *
      * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
@@ -246,7 +246,8 @@ define(function (require, exports, module) {
 
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
-        templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
+        templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
+        templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
 
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
 
@@ -262,11 +263,15 @@ define(function (require, exports, module) {
             FindBar._removeFindBar(self);
             MainViewManager.focusActivePane();
             self.trigger("close");
+            if (self.searchField) {
+                self.searchField.destroy();
+            }
         });
 
         FindBar._addFindBar(this);
 
         var $root = this._modalBar.getRoot();
+        var historyIndex = 0;
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
@@ -279,6 +284,18 @@ define(function (require, exports, module) {
                 if (self._options.multifile) {  //instant search
                     self.trigger("doFind");
                 }
+            })
+            .on("click", ".dropdown-icon", function (e) {
+                var quickSearchContainer = $(".quick-search-container");
+                if (!self.searchField) {
+                    self.showSearchHints();
+                } else if (quickSearchContainer.is(':visible')) {
+                    quickSearchContainer.hide();
+                } else {
+                    self.searchField.setText(self.$("#find-what").val());
+                    quickSearchContainer.show();
+                }
+                self.$("#find-what").focus();
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
@@ -310,9 +327,24 @@ define(function (require, exports, module) {
                 if (intervalId === 0) {
                     intervalId = window.setInterval(executeSearchIfNeeded, 50);
                 }
+                var searchHistory = PreferencesManager.getViewState("searchHistory");
+                var maxCount = PreferencesManager.get("maxSearchHistory");
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
+                    var searchVal = self.$("#find-what").val();
+                    var searchQueryIndex = searchHistory.indexOf(searchVal);
+                    if (searchQueryIndex !== -1) {
+                        searchHistory.splice(searchQueryIndex, 1);
+                    } else {
+                        if (searchHistory.length === maxCount) {
+                            searchHistory.pop();
+                        }
+                    }
+                    if (searchVal) {
+                        searchHistory.unshift(searchVal);
+                    }
+                    PreferencesManager.setViewState("searchHistory", searchHistory);
                     lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
@@ -326,12 +358,20 @@ define(function (require, exports, module) {
                             }
                         } else {
                             HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
-                            self.trigger("doReplaceAll");
+                            self.trigger("doReplaceBatch");
                         }
                     } else {
                         // In the single file case, we just want to trigger a Find Next (or Find Previous
                         // if Shift is held down).
                         self.trigger("doFind", e.shiftKey);
+                    }
+                    historyIndex = 0;
+                } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
+                    var quickSearchContainer = $(".quick-search-container");
+                    if (!self.searchField) {
+                        self.showSearchHints();
+                    } else if (!quickSearchContainer.is(':visible')) {
+                        quickSearchContainer.show();
                     }
                 }
             });
@@ -353,6 +393,9 @@ define(function (require, exports, module) {
             $root
                 .on("click", "#replace-yes", function (e) {
                     self.trigger("doReplace");
+                })
+                .on("click", "#replace-batch", function (e) {
+                    self.trigger("doReplaceBatch");
                 })
                 .on("click", "#replace-all", function (e) {
                     self.trigger("doReplaceAll");
@@ -379,6 +422,40 @@ define(function (require, exports, module) {
         // Set up the initial UI state.
         this._updateSearchBarFromPrefs();
         this.focusQuery();
+    };
+
+    /**
+     * @private
+     * Shows the search History in dropdown.
+     */
+    FindBar.prototype.showSearchHints = function () {
+        var self = this;
+        var searchFieldInput = self.$("#find-what");
+        this.searchField = new QuickSearchField(searchFieldInput, {
+            verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
+            maxResults: 20,
+            resultProvider: function (query) {
+                var asyncResult = new $.Deferred();
+                asyncResult.resolve(PreferencesManager.getViewState("searchHistory"));
+                return asyncResult.promise();
+            },
+            formatter: function (item, query) {
+                return "<li>" + item + "</li>";
+            },
+            onCommit: function (selectedItem, query) {
+                if (selectedItem) {
+                    self.$("#find-what").val(selectedItem);
+                    self.trigger("queryChange");
+                } else if (query.length) {
+                    self.searchField.setText(query);
+                }
+                self.$("#find-what").focus();
+                $(".quick-search-container").hide();
+            },
+            onHighlight: function (selectedItem, query, explicit) {},
+            highlightZeroResults: false
+        });
+        this.searchField.setText(searchFieldInput.val());
     };
 
     /**
@@ -517,7 +594,7 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.enableReplace = function (enable) {
         if (this.isEnabled) {
-            this.$("#replace-yes, #replace-all").prop("disabled", !enable);
+            this.$("#replace-yes, #replace-batch, #replace-all").prop("disabled", !enable);
         }
     };
 
@@ -613,7 +690,10 @@ define(function (require, exports, module) {
 
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
-    PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
+    PreferencesManager.stateManager.definePreference("searchHistory", "array", []);
+    PreferencesManager.definePreference("maxSearchHistory", "number", 10, {
+        description: Strings.FIND_HISTORY_MAX_COUNT
+    });
 
     exports.FindBar = FindBar;
 });

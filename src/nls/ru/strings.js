@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -114,7 +111,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Вы хотите сохранить изменения, которые вы сделали в документе <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Вы хотите сохранить изменения для следующих файлов?",
     "EXT_MODIFIED_TITLE"                : "Внешние изменения",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Подтвердить удаление",
+    "CONFIRM_DELETE_TITLE"              : "Подтвердить удаление",
     "CONFIRM_FOLDER_DELETE"             : "Вы уверены, что хотите удалить директорию <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Файл удален",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> был изменен на диске.<br /><br />Вы хотите сохранить ваши изменения и перезаписать внешние?",
@@ -555,7 +552,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Предыдущие проекты",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Подробнее\u2026",
 
     //extensions/default/CodeFolding

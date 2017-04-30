@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -46,21 +42,21 @@ define(function (require, exports, module) {
 
         var checked = command1.getChecked();
         if (checked) {
-            alert("Unchecking self. Disabling next.");
+            window.alert("Unchecking self. Disabling next.");
             command2.setEnabled(false);
         } else {
-            alert("Checking self. Enabling next.");
+            window.alert("Checking self. Enabling next.");
             command2.setEnabled(true);
         }
         command1.setChecked(!checked);
     }
 
     function TestCommand2() {
-        alert("Executing command 2");
+        window.alert("Executing command 2");
     }
 
     function TestCommand3() {
-        alert("Executing command 3");
+        window.alert("Executing command 3");
     }
 
     // Register the functions as commands

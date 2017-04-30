@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, PathUtils */
+/*jslint forin: true */
 
 /**
  * CSSAgent keeps track of loaded style sheets and allows reloading them
@@ -35,12 +33,11 @@
 define(function CSSAgent(require, exports, module) {
     "use strict";
 
-    require("thirdparty/path-utils/path-utils.min");
-
     var _ = require("thirdparty/lodash");
 
     var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        EventDispatcher = require("utils/EventDispatcher");
+        EventDispatcher = require("utils/EventDispatcher"),
+        PathUtils       = require("thirdparty/path-utils/path-utils");
 
     /**
      * Stylesheet details

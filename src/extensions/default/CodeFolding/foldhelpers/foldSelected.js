@@ -3,7 +3,7 @@
  * @author Patrick Oladimeji
  * @date 31/07/2015 00:11:53
  */
-/*global define*/
+
 define(function (require, exports, module) {
     "use strict";
 

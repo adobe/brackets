@@ -19,7 +19,8 @@
         "published": "2013-04-10T18:21:27.058Z",
         "brackets": ">0.20.0"
       }
-    ]
+    ],
+    "totalDownloads": 10
   },
   "item-2": {
     "metadata": {
@@ -36,7 +37,8 @@
         "version": "1.0.0",
         "published": "2013-04-10T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 5
   },
   "item-3": {
     "metadata": {
@@ -53,7 +55,8 @@
         "version": "1.0.0",
         "published": "2013-04-10T13:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 11
   },
   "item-4": {
     "metadata": {
@@ -71,7 +74,8 @@
         "version": "1.0.0",
         "published": "2013-04-10T15:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 12
   },
   "item-5": {
     "metadata": {
@@ -89,7 +93,8 @@
         "version": "1.0.0",
         "published": "2013-04-16T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 2
   },
   "item-6": {
     "metadata": {
@@ -111,6 +116,7 @@
         "version": "1.0.0",
         "published": "2013-04-15T18:26:20.553Z"
       }
-    ]
+    ],
+    "totalDownloads": 100
   }
 }

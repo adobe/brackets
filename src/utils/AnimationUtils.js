@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * Utilities for dealing with animations in the UI.
  */
@@ -40,13 +36,13 @@ define(function (require, exports, module) {
      * @return {string} The supported transitionend event name.
      */
     function _detectTransitionEvent() {
-        var event, el = document.createElement("fakeelement");
+        var event, el = window.document.createElement("fakeelement");
 
         var transitions = {
             "OTransition"     : "oTransitionEnd",
             "MozTransition"   : "transitionend",
             "WebkitTransition": "webkitTransitionEnd",
-            "transition"      : "transitionend",
+            "transition"      : "transitionend"
         };
 
         _.forEach(transitions, function (value, key) {

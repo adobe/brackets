@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, brackets, waitsForDone */
+/*global describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -129,6 +127,14 @@ define(function (require, exports, module) {
         // Expect hintList to contain folder and file names.
         function verifyUrlHints(hintList, expectedHints) {
             expect(hintList).toEqual(expectedHints);
+        }
+
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
         }
 
         describe("HTML Url Code Hints", function () {
@@ -430,7 +436,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos3)).toEqual("url(test.html)");
 
                     // Cursor was moved past closing paren
-                    expect(testEditor.getCursorPos()).toEqual(pos3);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos3));
                 });
             });
 
@@ -460,7 +466,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos3)).toEqual("url('test.html')");
 
                     // Cursor was moved past closing single-quote and closing paren
-                    expect(testEditor.getCursorPos()).toEqual(pos3);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos3));
                 });
             });
 
@@ -490,7 +496,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/");
 
                     // Cursor remains inside quote
-                    expect(testEditor.getCursorPos()).toEqual(pos2);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos2));
 
                     // Get hints of inserted folder
                     hintsObj = null;
@@ -512,7 +518,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/chevron.png");
 
                     // Cursor was moved past closing double-quote and closing paren
-                    expect(testEditor.getCursorPos()).toEqual(pos4);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos4));
                 });
             });
 
@@ -545,7 +551,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos4)).toEqual('url("subfolder/")');
 
                     // Cursor remains inside double-quote and closing paren
-                    expect(testEditor.getCursorPos()).toEqual(pos3);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos3));
 
                     // Get hints of inserted folder
                     hintsObj = null;
@@ -567,7 +573,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos5)).toEqual('url("subfolder/chevron.png")');
 
                     // Cursor was moved past closing double-quote and closing paren
-                    expect(testEditor.getCursorPos()).toEqual(pos5);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos5));
                 });
             });
 
@@ -597,7 +603,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/test2.html");
 
                     // Cursor is at end of inserted folder
-                    expect(testEditor.getCursorPos()).toEqual(pos2);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos2));
 
                     // Get hints of inserted folder
                     hintsObj = null;
@@ -617,6 +623,34 @@ define(function (require, exports, module) {
 
                     // Filename was replaced
                     expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
+                });
+            });
+
+            it("should completely replace file in HTML", function () {
+                var pos1    = { line: 25, ch: 11 },
+                    pos2    = { line: 25, ch: 27 },
+                    pos3    = { line: 25, ch: 34 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
+
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
+
+                    // File name was completely replaced, not just appended to
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("'subfolder/chevron.png'");
+
+                    // Cursor was moved past closing single-quote
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos3));
                 });
             });
 
@@ -694,7 +728,7 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/dummy.jpg");
 
                     // Cursor is at end of inserted folder
-                    expect(testEditor.getCursorPos()).toEqual(pos2);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos2));
 
                     // Get hints of inserted folder
                     hintsObj = null;

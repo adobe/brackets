@@ -1,3 +1,17 @@
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
-    <path opacity="0.7" d="M1,7.81c0,4.03,3.21,7.299,7.17,7.299s7.17-3.27,7.17-7.299c0-4.04-3.21-7.31-7.17-7.31S1,3.77,1,7.81zM3.27,7.81c0-2.76,2.2-5,4.9-5c2.71,0,4.9,2.24,4.9,5c0,2.76-2.19,4.99-4.9,4.99C5.47,12.8,3.27,10.57,3.27,7.81zM13.221,14.51l3.09,3.61c0.5,0.5,0.819,0.51,1.319,0l0.99-1.011c0.489-0.5,0.521-0.819,0-1.35l-3.55-3.13L13.221,14.51z"/>
+<svg xmlns="http://www.w3.org/2000/svg"  width="23" height="23" viewBox="7295 439 39 39">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #878787;
+      }
+
+      .cls-2 {
+        fill: none;
+      }
+    </style>
+  </defs>
+  <g id="ic_search_black_24px" transform="translate(7295 439)">
+    <path id="Path_14" data-name="Path 14" class="cls-1" d="M23.313,20.875H22.029l-.455-.439a10.578,10.578,0,1,0-1.138,1.138l.439.455v1.284L29,31.421,31.421,29Zm-9.75,0a7.313,7.313,0,1,1,7.313-7.312A7.3,7.3,0,0,1,13.563,20.875Z" transform="translate(1.875 1.875)"/>
+    <path id="Path_15" data-name="Path 15" class="cls-2" d="M0,0H39V39H0Z"/>
+  </g>
 </svg>

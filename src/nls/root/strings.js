@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 define({
 
@@ -65,6 +62,7 @@ define({
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming {0}",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "The file or directory is not part of the currently opened project. Unfortunately, only project files can be renamed at this point.",
     "ERROR_DELETING_FILE_TITLE"         : "Error Deleting {0}",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid {0}",
@@ -130,7 +128,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
+    "CONFIRM_DELETE_TITLE"              : "Confirm Delete",
+    "CONFIRM_FILE_DELETE"               : "Are you sure you want to delete the file <span class='dialog-filename'>{0}</span>?",
     "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
@@ -153,8 +152,10 @@ define({
     "FIND_MATCH_INDEX"                  : "{0} of {1}",
     "FIND_NO_RESULTS"                   : "No results",
     "FIND_QUERY_PLACEHOLDER"            : "Find\u2026",
+    "FIND_HISTORY_MAX_COUNT"            : "Maximum Number of Search Items in Search History",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
-    "BUTTON_REPLACE_ALL"                : "Batch\u2026",
+    "BUTTON_REPLACE_ALL"                : "Replace All",
+    "BUTTON_REPLACE_BATCH"              : "Batch\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Replace\u2026",
     "BUTTON_REPLACE"                    : "Replace",
     "BUTTON_NEXT"                       : "\u25B6",
@@ -213,6 +214,7 @@ define({
     "FILE_FILTER_DIALOG"                : "Edit Exclusion Set",
     "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILTER_NAME_PLACEHOLDER"           : "Name this exclusion set (optional)",
+    "FILTER_NAME_REMAINING"             : "{0} characters remaining",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
     "FILTER_COUNTING_FILES"             : "Counting files\u2026",
     "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
@@ -315,6 +317,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "Open Recent\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
@@ -421,6 +424,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Show in Explorer",
     "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
     "CMD_SHOW_IN_OS"                      : "Show in OS",
+    "CMD_SWITCH_PANE_FOCUS"               : "Switch Pane Focus",
 
     // Help menu commands
     "HELP_MENU"                           : "Help",
@@ -504,8 +508,10 @@ define({
     "INSTALL_CANCELED"                     : "Installation canceled.",
     "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
     "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
+    "SORT_EXTENSION_METHOD"                : "Sort Extensions using downloadCount or publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
+    "MISSING_PACKAGE_JSON"                 : "The package has no package.json file.",
     "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
     "MISSING_PACKAGE_NAME"                 : "The package.json file doesn't specify a package name.",
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
@@ -513,6 +519,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
     "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string ({0}) is invalid.",
     "DISALLOWED_WORDS"                     : "The words ({1}) are not allowed in the {0} field.",
+    "NPM_INSTALL_FAILED"                   : "npm install command failed: {0}",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "EXTENSION_ALREADY_INSTALLED"          : "Installing this package will overwrite a previously installed extension. Overwrite the old extension?",
@@ -576,9 +583,12 @@ define({
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_DEFAULT_TITLE"             : "Default",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+    "EXTENSIONS_LAST_UPDATED"              : "Last Updated",
+    "EXTENSIONS_DOWNLOADS"                 : "Downloads",
 
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
@@ -651,6 +661,7 @@ define({
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
+    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex (0x) Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
 
@@ -670,7 +681,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Read more",
 
     // extensions/default/CodeFolding
@@ -678,6 +689,11 @@ define({
     "EXPAND_ALL"                    : "Expand All",
     "COLLAPSE_CURRENT"              : "Collapse Current",
     "EXPAND_CURRENT"                : "Expand Current",
+
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Recent Files",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Clear",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Clear files not in Working Set",
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
@@ -696,6 +712,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Minimum lines before a collapsible section icon appears",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true to remember collapsed sections if you close and reopen a file or project",
     "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true to enable code folding on selected text in the editor",
+    "DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS"        : "Default extensions that are disabled",
     "DESCRIPTION_ATTR_HINTS"                         : "Enable/disable HTML attribute hints",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Enable/disable CSS/LESS/SCSS property hints",
     "DESCRIPTION_JS_HINTS"                           : "Enable/disable JavaScript code hints",
@@ -745,6 +762,8 @@ define({
     "DESCRIPTION_LANGUAGE"                           : "Language specific settings",
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Additional mappings from file extension to language name",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Additional mappings from file name to language name",
+    "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Doing copy and cut when there's no selection will copy or cut the whole lines that have cursors in them",
+    "DESCRIPTION_INPUT_STYLE"                        : "Selects the way CodeMirror handles input and focus. It cans be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
     "DESCRIPTION_LINTING_ENABLED"                    : "true to enable Code Inspection",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "The time in milliseconds after which asynchronous linters time out",
     "DESCRIPTION_LINTING_PREFER"                     : "Array of linters to run first",
@@ -786,5 +805,8 @@ define({
     "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Toggle when to show the close and flip-view buttons on the header.",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
-    "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}"
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview"
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,8 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*jshint unused: false */
-/*global window, navigator, Node, console */
+/*jslint forin: true */
+/*global Node, MessageEvent */
 /*theseus instrument: false */
 
 /**
@@ -32,10 +30,29 @@
  * modules should define a single function that returns an object of all
  * exported functions.
  */
-function RemoteFunctions(experimental) {
+function RemoteFunctions(config, remoteWSPort) {
     "use strict";
 
+    var experimental;
+    if (!config) {
+        experimental = false;    
+    } else {
+        experimental = config.experimental;    
+    }
     var lastKeepAliveTime = Date.now();
+    var req, timeout;
+    var animateHighlight = function (time) {
+        if(req) {
+            window.cancelAnimationFrame(req);	
+            window.clearTimeout(timeout);
+        }
+        req = window.requestAnimationFrame(redrawHighlights);
+
+        timeout = setTimeout(function () {
+            window.cancelAnimationFrame(req);	
+            req = null;
+        }, time * 1000);
+    };
 
     /**
      * @type {DOMEditHandler}
@@ -47,7 +64,7 @@ function RemoteFunctions(experimental) {
 
     // determine whether an event should be processed for Live Development
     function _validEvent(event) {
-        if (navigator.platform.substr(0, 3) === "Mac") {
+        if (window.navigator.platform.substr(0, 3) === "Mac") {
             // Mac
             return event.metaKey;
         } else {
@@ -100,6 +117,23 @@ function RemoteFunctions(experimental) {
             element.removeAttribute(key);
         }
     }
+    
+    // Checks if the element is in Viewport in the client browser
+    function isInViewport(element) {
+        var rect = element.getBoundingClientRect();
+        var html = window.document.documentElement;
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || html.clientHeight) &&
+            rect.right <= (window.innerWidth || html.clientWidth)
+        );
+    }
+    
+    // returns the distance from the top of the closest relatively positioned parent element
+    function getDocumentOffsetTop(element) {
+        return element.offsetTop + (element.offsetParent ? getDocumentOffsetTop(element.offsetParent) : 0);
+    }
 
     // construct the info menu
     function Menu(element) {
@@ -127,7 +161,7 @@ function RemoteFunctions(experimental) {
                 y = offset.top + this.element.offsetHeight;
 
             // create the container
-            this.body = document.createElement("div");
+            this.body = window.document.createElement("div");
             this.body.style.setProperty("z-index", 2147483647);
             this.body.style.setProperty("position", "absolute");
             this.body.style.setProperty("left", x + "px");
@@ -143,7 +177,7 @@ function RemoteFunctions(experimental) {
         },
 
         addItem: function (target) {
-            var item = document.createElement("div");
+            var item = window.document.createElement("div");
             item.style.setProperty("padding", "2px 6px");
             if (this.body.childNodes.length > 0) {
                 item.style.setProperty("border-top", "1px solid #ccc");
@@ -154,7 +188,7 @@ function RemoteFunctions(experimental) {
             item.addEventListener("click", this.onClick.bind(this, target.url));
 
             if (target.file) {
-                var file = document.createElement("i");
+                var file = window.document.createElement("i");
                 file.style.setProperty("float", "right");
                 file.style.setProperty("margin-left", "12px");
                 file.innerHTML = " " + target.file;
@@ -168,16 +202,16 @@ function RemoteFunctions(experimental) {
                 this.body = this.createBody();
             }
             if (!this.body.parentNode) {
-                document.body.appendChild(this.body);
+                window.document.body.appendChild(this.body);
             }
-            document.addEventListener("click", this.remove);
+            window.document.addEventListener("click", this.remove);
         },
 
         remove: function () {
             if (this.body && this.body.parentNode) {
-                document.body.removeChild(this.body);
+                window.document.body.removeChild(this.body);
             }
-            document.removeEventListener("click", this.remove);
+            window.document.removeEventListener("click", this.remove);
         }
 
     };
@@ -235,17 +269,165 @@ function RemoteFunctions(experimental) {
             }
             return false;
         },
-
         _makeHighlightDiv: function (element, doAnimation) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
-                styles = window.getComputedStyle(element);
+                elementStyling = window.getComputedStyle(element),
+                transitionDuration = parseFloat(elementStyling.getPropertyValue('transition-duration')),
+                animationDuration = parseFloat(elementStyling.getPropertyValue('animation-duration'));
+            
+            if (transitionDuration) {
+                animateHighlight(transitionDuration);
+            }
+
+            if (animationDuration) {
+                animateHighlight(animationDuration);
+            }
 
             // Don't highlight elements with 0 width & height
             if (elementBounds.width === 0 && elementBounds.height === 0) {
                 return;
             }
+            
+            var realElBorder = {
+              right: elementStyling.getPropertyValue('border-right-width'),
+              left: elementStyling.getPropertyValue('border-left-width'),
+              top: elementStyling.getPropertyValue('border-top-width'),
+              bottom: elementStyling.getPropertyValue('border-bottom-width')
+            };
+            
+            var borderBox = elementStyling.boxSizing === 'border-box';
+            
+            var innerWidth = parseInt(elementStyling.width),
+                innerHeight = parseInt(elementStyling.height),
+                outerHeight = innerHeight,
+                outerWidth = innerWidth;
+                
+            if (!borderBox) {
+                innerWidth += parseInt(elementStyling.paddingLeft) + parseInt(elementStyling.paddingRight);
+                innerHeight += parseInt(elementStyling.paddingTop) + parseInt(elementStyling.paddingBottom);
+                outerWidth = innerWidth + parseInt(realElBorder.right) +
+                parseInt(realElBorder.left),
+                outerHeight = innerHeight + parseInt(realElBorder.bottom) + parseInt(realElBorder.top);
+            }
 
+          
+            var visualisations = {
+                horizontal: "left, right",
+                vertical: "top, bottom"
+            };
+          
+            var drawPaddingRect = function(side) {
+              var elStyling = {};
+                
+              if (visualisations.horizontal.indexOf(side) >= 0) {
+                elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
+                elStyling['height'] = innerHeight + "px";
+                elStyling['top'] = 0;
+                  
+                  if (borderBox) {
+                    elStyling['height'] = innerHeight - parseInt(realElBorder.top) - parseInt(realElBorder.bottom) + "px";
+                  }
+                
+              } else {
+                elStyling['height'] = elementStyling.getPropertyValue('padding-' + side);  
+                elStyling['width'] = innerWidth + "px";
+                elStyling['left'] = 0;
+                  
+                  if (borderBox) {
+                    elStyling['width'] = innerWidth - parseInt(realElBorder.left) - parseInt(realElBorder.right) + "px";
+                  }
+              }
+                
+              elStyling[side] = 0;
+              elStyling['position'] = 'absolute';
+              
+              return elStyling;
+            };
+          
+          var drawMarginRect = function(side) {
+            var elStyling = {};
+            
+            var margin = [];
+            margin['right'] = parseInt(elementStyling.getPropertyValue('margin-right'));
+            margin['top'] = parseInt(elementStyling.getPropertyValue('margin-top'));
+            margin['bottom'] = parseInt(elementStyling.getPropertyValue('margin-bottom'));
+            margin['left'] = parseInt(elementStyling.getPropertyValue('margin-left'));
+          
+            if(visualisations['horizontal'].indexOf(side) >= 0) {
+
+              elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
+              elStyling['height'] = outerHeight + margin['top'] + margin['bottom'] + "px";
+              elStyling['top'] = "-" + (margin['top'] + parseInt(realElBorder.top))  + "px";
+            } else {
+              elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);
+              elStyling['width'] = outerWidth + "px";
+              elStyling['left'] = "-" + realElBorder.left;
+            }
+
+            elStyling[side] = "-" + (margin[side] + parseInt(realElBorder[side])) + "px";
+            elStyling['position'] = 'absolute';
+
+            return elStyling;
+          };
+
+            var setVisibility = function (el) {
+                if (
+                    !config.remoteHighlight.showPaddingMargin || 
+                    parseInt(el.height, 10) <= 0 || 
+                    parseInt(el.width, 10) <= 0 
+                ) {
+                    el.display = 'none';
+                } else {
+                    el.display = 'block';
+                }
+            };
+            
+            var mainBoxStyles = config.remoteHighlight.stylesToSet;
+            
+            var paddingVisualisations = [
+              drawPaddingRect('top'),
+              drawPaddingRect('right'),
+              drawPaddingRect('bottom'),
+              drawPaddingRect('left')  
+            ];
+                
+            var marginVisualisations = [
+              drawMarginRect('top'),
+              drawMarginRect('right'),
+              drawMarginRect('bottom'),
+              drawMarginRect('left')  
+            ];
+            
+            var setupVisualisations = function (arr, config) {
+                var i;
+                for (i = 0; i < arr.length; i++) {
+                    setVisibility(arr[i]);
+                    
+                    // Applies to every visualisationElement (padding or margin div)
+                    arr[i]["transform"] = "none";
+                    var el = window.document.createElement("div"),
+                        styles = Object.assign(
+                        {},
+                        config,
+                        arr[i]
+                    );
+
+                    _setStyleValues(styles, el.style);
+
+                    highlight.appendChild(el);
+                }
+            };
+            
+            setupVisualisations(
+                marginVisualisations,
+                config.remoteHighlight.marginStyling
+            );
+            setupVisualisations(
+                paddingVisualisations,
+                config.remoteHighlight.paddingStyling
+            );
+            
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
@@ -260,31 +442,18 @@ function RemoteFunctions(experimental) {
                 "padding": 0,
                 "position": "absolute",
                 "pointer-events": "none",
-                "border-top-left-radius": styles.borderTopLeftRadius,
-                "border-top-right-radius": styles.borderTopRightRadius,
-                "border-bottom-left-radius": styles.borderBottomLeftRadius,
-                "border-bottom-right-radius": styles.borderBottomRightRadius,
-                "border-style": "solid",
-                "border-width": "1px",
-                "border-color": "#00a2ff",
                 "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box"
             };
+            
+            var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
 
-            var animateStartValues = {
-                "background-color": "rgba(0, 162, 255, 0.5)",
-                "opacity": 0
-            };
+            var animateStartValues = config.remoteHighlight.animateStartValue;
 
-            var animateEndValues = {
-                "background-color": "rgba(0, 162, 255, 0)",
-                "opacity": 1
-            };
+            var animateEndValues = config.remoteHighlight.animateEndValue;
 
             var transitionValues = {
-                "-webkit-transition-property": "opacity, background-color",
-                "-webkit-transition-duration": "300ms, 2.3s",
-                "transition-property": "opacity, background-color",
+                "transition-property": "opacity, background-color, transform",
                 "transition-duration": "300ms, 2.3s"
             };
 
@@ -296,7 +465,7 @@ function RemoteFunctions(experimental) {
                 }
             }
 
-            _setStyleValues(stylesToSet, highlight.style);
+            _setStyleValues(mergedStyles, highlight.style);
             _setStyleValues(
                 doAnimation ? animateStartValues : animateEndValues,
                 highlight.style
@@ -315,11 +484,19 @@ function RemoteFunctions(experimental) {
         },
 
         add: function (element, doAnimation) {
-            if (this._elementExists(element) || element === document) {
+            if (this._elementExists(element) || element === window.document) {
                 return;
             }
             if (this.trigger) {
                 _trigger(element, "highlight", 1);
+            }
+            
+            if ((!window.event || window.event instanceof MessageEvent) && !isInViewport(element)) {
+                var top = getDocumentOffsetTop(element);
+                if (top) {
+                    top -= (window.innerHeight / 2);
+                    window.scrollTo(0, top);
+                }
             }
             this.elements.push(element);
 
@@ -395,7 +572,7 @@ function RemoteFunctions(experimental) {
 
     function onMouseMove(event) {
         onMouseOver(event);
-        document.removeEventListener("mousemove", onMouseMove);
+        window.document.removeEventListener("mousemove", onMouseMove);
     }
 
     function onClick(event) {
@@ -412,11 +589,11 @@ function RemoteFunctions(experimental) {
 
     function onKeyUp(event) {
         if (_setup && !_validEvent(event)) {
-            document.removeEventListener("keyup", onKeyUp);
-            document.removeEventListener("mouseover", onMouseOver);
-            document.removeEventListener("mouseout", onMouseOut);
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("click", onClick);
+            window.document.removeEventListener("keyup", onKeyUp);
+            window.document.removeEventListener("mouseover", onMouseOver);
+            window.document.removeEventListener("mouseout", onMouseOut);
+            window.document.removeEventListener("mousemove", onMouseMove);
+            window.document.removeEventListener("click", onClick);
             _localHighlight.clear();
             _localHighlight = undefined;
             _setup = false;
@@ -425,11 +602,11 @@ function RemoteFunctions(experimental) {
 
     function onKeyDown(event) {
         if (!_setup && _validEvent(event)) {
-            document.addEventListener("keyup", onKeyUp);
-            document.addEventListener("mouseover", onMouseOver);
-            document.addEventListener("mouseout", onMouseOut);
-            document.addEventListener("mousemove", onMouseMove);
-            document.addEventListener("click", onClick);
+            window.document.addEventListener("keyup", onKeyUp);
+            window.document.addEventListener("mouseover", onMouseOver);
+            window.document.addEventListener("mouseout", onMouseOut);
+            window.document.addEventListener("mousemove", onMouseMove);
+            window.document.addEventListener("click", onClick);
             _localHighlight = new Highlight("#ecc", true);
             _setup = true;
         }
@@ -479,7 +656,7 @@ function RemoteFunctions(experimental) {
     // highlight a rule
     function highlightRule(rule) {
         hideHighlight();
-        var i, nodes = document.querySelectorAll(rule);
+        var i, nodes = window.document.querySelectorAll(rule);
         for (i = 0; i < nodes.length; i++) {
             highlight(nodes[i]);
         }
@@ -500,7 +677,7 @@ function RemoteFunctions(experimental) {
     function _scrollHandler(e) {
         // Document scrolls can be updated immediately. Any other scrolls
         // need to be updated on a timer to ensure the layout is correct.
-        if (e.target === document) {
+        if (e.target === window.document) {
             redrawHighlights();
         } else {
             if (_remoteHighlight || _localHighlight) {
@@ -817,7 +994,12 @@ function RemoteFunctions(experimental) {
     }
 
     function getSimpleDOM() {
-        return JSON.stringify(_domElementToJSON(document.documentElement));
+        return JSON.stringify(_domElementToJSON(window.document.documentElement));
+    }
+    
+    function updateConfig(newConfig) {
+        config = JSON.parse(newConfig);
+        return JSON.stringify(config);
     }
 
     // init
@@ -826,7 +1008,42 @@ function RemoteFunctions(experimental) {
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
+    
+    var _ws = null;
 
+    function onDocumentClick(event) {
+        var element = event.target,
+            currentDataId,
+            newDataId;
+        
+        if (_ws && element && element.hasAttribute('data-brackets-id')) {
+            _ws.send(JSON.stringify({
+                type: "message",
+                message: element.getAttribute('data-brackets-id')
+            }));
+        }
+    }
+    
+    
+    function createWebSocket() {
+        _ws = new WebSocket("ws://localhost:" + remoteWSPort);
+        _ws.onopen = function () {
+            window.document.addEventListener("click", onDocumentClick);
+        };
+                
+        _ws.onmessage = function (evt) {
+        };
+                
+        _ws.onclose = function () {
+            // websocket is closed
+            window.document.removeEventListener("click", onDocumentClick);
+        };
+    }
+    
+    if (remoteWSPort) {
+        createWebSocket();
+    }
+    
     return {
         "DOMEditHandler"        : DOMEditHandler,
         "keepAlive"             : keepAlive,
@@ -836,6 +1053,7 @@ function RemoteFunctions(experimental) {
         "highlightRule"         : highlightRule,
         "redrawHighlights"      : redrawHighlights,
         "applyDOMEdits"         : applyDOMEdits,
-        "getSimpleDOM"          : getSimpleDOM
+        "getSimpleDOM"          : getSimpleDOM,
+        "updateConfig"          : updateConfig
     };
 }

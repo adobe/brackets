@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -134,6 +131,7 @@ define(function (require, exports, module) {
         var self = this;
         if (colorString !== this._color) {
             var range = this.getCurrentRange();
+
             if (!range) {
                 return;
             }

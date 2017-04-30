@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
-
 /**
  *  Utilities functions for displaying update notifications
  *
@@ -38,7 +35,8 @@ define(function (require, exports, module) {
         NativeApp            = require("utils/NativeApp"),
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
-        UpdateListTemplate   = require("text!htmlContent/update-list.html");
+        UpdateListTemplate   = require("text!htmlContent/update-list.html"),
+        Mustache             = require("thirdparty/mustache/mustache");
 
     // make sure the global brackets variable is loaded
     require("utils/Global");
@@ -62,12 +60,6 @@ define(function (require, exports, module) {
     PreferencesManager.stateManager.definePreference("lastExtensionRegistryCheckTime", "number", 0);
     // Data about available updates in the registry
     PreferencesManager.stateManager.definePreference("extensionUpdateInfo", "Array", []);
-
-    PreferencesManager.convertPreferences(module, {
-        "lastNotifiedBuildNumber": "user",
-        "lastInfoURLFetchTime": "user",
-        "updateInfo": "user"
-    }, true);
 
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
@@ -267,6 +259,9 @@ define(function (require, exports, module) {
         var $dlg        = $(".update-dialog.instance"),
             $updateList = $dlg.find(".update-info");
 
+        // Make the update notification icon clickable again
+        _addedClickHandler = false;
+
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
     }
@@ -378,12 +373,14 @@ define(function (require, exports, module) {
                     var $updateNotification = $("#update-notification");
 
                     $updateNotification.css("display", "block");
-                    if (!_addedClickHandler) {
-                        _addedClickHandler = true;
-                        $updateNotification.on("click", function () {
+
+                    $updateNotification.on("click", function () {
+                        // Block the click until the Notification Dialog opens
+                        if (!_addedClickHandler) {
+                            _addedClickHandler = true;
                             checkForUpdate(true);
-                        });
-                    }
+                        }
+                    });
 
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update

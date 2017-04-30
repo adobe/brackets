@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global self, importScripts, require */
 
 importScripts("thirdparty/requirejs/require.js");
@@ -36,13 +35,14 @@ var config = {};
     require(["./MessageIds", "./HintUtils2"], function (messageIds, hintUtils2) {
         MessageIds = messageIds;
         HintUtils2 = hintUtils2;
-        var ternRequire = require.config({baseUrl: "./thirdparty"});
+        var ternRequire = require.config({baseUrl: "./node_modules"});
         ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment", "tern/plugin/angular"], function (tern, infer, requirejs, docComment) {
             Tern = tern;
             Infer = infer;
 
             var ternServer  = null,
-                inferenceTimeout;
+                inferenceTimeout,
+                isUntitledDoc = false;
 
             // Save the tern callbacks for when we get the contents of the file
             var fileCallBacks = {};
@@ -107,15 +107,30 @@ var config = {};
                 delete fileCallBacks[file];
             }
 
+            function _getNormalizedFilename(fileName) {
+                if (!isUntitledDoc && ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === -1) {
+                    fileName = ternServer.projectDir + fileName;
+                }
+                return fileName;
+            }
+
+            function _getDenormalizedFilename(fileName) {
+                if (!isUntitledDoc && ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === 0) {
+                    fileName = fileName.slice(ternServer.projectDir.length);
+                }
+                return fileName;
+            }
+
             /**
              * Create a new tern server.
              *
              * @param {Object} env - an Object with the environment, as read in from
-             *  the json files in thirdparty/tern/defs
+             *  the json files in node_modules/tern/defs
              * @param {Array.<string>} files - a list of filenames tern should be aware of
              */
-            function initTernServer(env, files) {
+            function initTernServer(dir, env, files) {
                 var ternOptions = {
+                    projectDir: dir,
                     defs: env,
                     async: true,
                     getFile: getFile,
@@ -200,8 +215,9 @@ var config = {};
                             self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
                             return;
                         }
+                        
                         var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
-                                              file: fileInfo.name,
+                                              file: _getNormalizedFilename(fileInfo.name),
                                               resultFile: data.file,
                                               offset: offset,
                                               start: data.start,
@@ -257,7 +273,7 @@ var config = {};
 
                         // Post a message back to the main thread with the completions
                         self.postMessage({type: type,
-                                          file: fileInfo.name,
+                                          file: _getNormalizedFilename(fileInfo.name),
                                           offset: offset,
                                           properties: properties
                             });
@@ -303,7 +319,7 @@ var config = {};
                         if (completions.length > 0 || !isProperty) {
                             // Post a message back to the main thread with the completions
                             self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
-                                file: fileInfo.name,
+                                file: _getNormalizedFilename(fileInfo.name),
                                 offset: offset,
                                 completions: completions
                                 });
@@ -537,7 +553,7 @@ var config = {};
 
                 // Post a message back to the main thread with the completions
                 self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
-                    file: fileInfo.name,
+                    file: _getNormalizedFilename(fileInfo.name),
                     offset: offset,
                     fnType: fnType,
                     error: error
@@ -580,14 +596,21 @@ var config = {};
              * @param {string} path     - the path of the file
              */
             function handlePrimePump(path) {
-                var fileInfo = createEmptyUpdate(path),
+                var fileName = _getDenormalizedFilename(path);
+                var fileInfo = createEmptyUpdate(fileName),
                     request = buildRequest(fileInfo, "completions", {line: 0, ch: 0});
 
                 try {
                     ternServer.request(request, function (error, data) {
+                        if (error) {
+                            _log("Error returned from Tern 'completions' request: " + error);
+                            self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG, file: fileInfo.name, path: path});
+                            return;
+                        }
+
                         // Post a message back to the main thread
                         self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
-                            path: path
+                            path: _getNormalizedFilename(path)
                             });
                     });
                 } catch (e) {
@@ -615,11 +638,12 @@ var config = {};
 
                 if (type === MessageIds.TERN_INIT_MSG) {
 
-                    var env     = request.env,
+                    var dir     = request.dir,
+                        env     = request.env,
                         files   = request.files;
                     inferenceTimeout = request.timeout;
 
-                    initTernServer(env, files);
+                    initTernServer(dir, env, files);
                 } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
                     offset  = request.offset;
                     getTernHints(request.fileInfo, offset, request.isProperty);
@@ -636,6 +660,7 @@ var config = {};
                 } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
                     handleAddFiles(request.files);
                 } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
+                    isUntitledDoc = request.isUntitledDoc;
                     handlePrimePump(request.path);
                 } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
                     offset  = request.offset;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, brackets */
+/*global describe, it, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,6 +30,14 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         HTMLEntityHints = require("main").SpecialCharHints,
         defaultContent  = require("text!unittest-files/default.html");
+
+    // Helper function for testing cursor position
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
+    }
 
     describe("HTML Entity Hinting", function () {
 
@@ -152,7 +158,7 @@ define(function (require, exports, module) {
 
                 var hints = expectHints(hintProvider);
                 hintProvider.insertHint(hints[0]);
-                expect(testEditorAndDoc.editor.getCursorPos()).toEqual({line: 17, ch: 23});
+                expect(fixPos(testEditorAndDoc.editor.getCursorPos())).toEqual(fixPos({line: 17, ch: 23}));
             });
         });
     });

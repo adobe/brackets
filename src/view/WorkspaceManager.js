@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, Mustache */
 
 /**
 * Manages layout of panels surrounding the editor area, and size of the editor area (but not its contents).
@@ -45,7 +42,8 @@ define(function (require, exports, module) {
         ContainerPanelHTML      = require("text!widgets/ContainerPanel.html"),
         PanelTabTitleHTML       = require("text!widgets/PanelTabTitle.html"),
         PanelTabContentHTML     = require("text!widgets/PanelTabContent.html"),
-        Strings                 = require("strings");
+        Strings                 = require("strings"),
+        Mustache                = require("thirdparty/mustache/mustache");
 
     /**
      * Constants events.

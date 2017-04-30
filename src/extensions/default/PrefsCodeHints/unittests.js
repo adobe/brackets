@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, describe, beforeEach, afterEach, it, expect*/
+/*global describe, beforeEach, afterEach, it, expect*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -139,11 +138,19 @@ define(function (require, exports, module) {
             expect(token.type).toBe(type);
         }
 
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+
         // Determines the position of the cursor.
         function expectCursorAt(pos) {
             var selection = testEditor.getSelection();
-            expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
+            expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
+            expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
 
         describe("File name based hinting", function () {

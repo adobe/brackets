@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 
 /**
  * MainViewManager manages the arrangement of all open panes as well as provides the controller
@@ -95,7 +92,8 @@ define(function (require, exports, module) {
         AsyncUtils          = require("utils/Async"),
         ViewUtils           = require("utils/ViewUtils"),
         Resizer             = require("utils/Resizer"),
-        Pane                = require("view/Pane").Pane;
+        Pane                = require("view/Pane").Pane,
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
 
     /**
      * Preference setting name for the MainView Saved State
@@ -830,6 +828,8 @@ define(function (require, exports, module) {
 
         sourcePane.moveView(file, destinationPane, destinationIndex)
             .done(function () {
+                // remove existing entry from mrulist for the same document if present 
+                _removeFileFromMRU(destinationPane.id, file);
                 // update the mru list
                 _mruList.every(function (record) {
                     if (record.file === file && record.paneId === sourcePane.id) {
@@ -838,12 +838,24 @@ define(function (require, exports, module) {
                     }
                     return true;
                 });
-
                 exports.trigger("workingSetMove", file, sourcePane.id, destinationPane.id);
                 result.resolve();
             });
 
         return result.promise();
+    }
+
+    /**
+     * Switch between panes
+     */
+    function switchPaneFocus() {
+        var $firstPane = $('#first-pane'), $secondPane = $('#second-pane');
+        if($firstPane.hasClass('active-pane')) {
+            $secondPane.click();
+        }
+        else {
+            $firstPane.click();
+        }
     }
 
     /**
@@ -1261,11 +1273,15 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc, $.extend({}, options, {
-                        noPaneActivate: true
-                    }));
-                    doPostOpenActivation();
-                    result.resolve(doc.file);
+                    if (doc) {
+                        _edit(paneId, doc, $.extend({}, options, {
+                            noPaneActivate: true
+                        }));
+                        doPostOpenActivation();
+                        result.resolve(doc.file);
+                    } else {
+                        result.resolve(null);
+                    }
                 })
                 .fail(function (fileError) {
                     result.reject(fileError);
@@ -1337,7 +1353,7 @@ define(function (require, exports, module) {
     function _close(paneId, file, optionsIn) {
         var options = optionsIn || {};
         _forEachPaneOrPanes(paneId, function (pane) {
-            if (pane.removeView(file, options.noOpenNextFile) && pane.id === paneId) {
+            if (pane.removeView(file, options.noOpenNextFile) && (paneId === ACTIVE_PANE || pane.id === paneId)) {
                 _removeFileFromMRU(pane.id, file);
                 exports.trigger("workingSetRemove", file, false, pane.id);
                 return false;
@@ -1618,6 +1634,10 @@ define(function (require, exports, module) {
         //  get an event handler for workspace events and we don't listen
         //  to the event before we've been initialized
         WorkspaceManager.on("workspaceUpdateLayout", _updateLayout);
+
+        // Listen to key Alt-W to toggle between panes
+        CommandManager.register(Strings.CMD_SWITCH_PANE_FOCUS, Commands.CMD_SWITCH_PANE_FOCUS, switchPaneFocus);
+        KeyBindingManager.addBinding(Commands.CMD_SWITCH_PANE_FOCUS, {key: 'Alt-W'});
     }
 
     /**
@@ -1660,8 +1680,8 @@ define(function (require, exports, module) {
 
         return result;
     }
-
-
+    
+    
     /**
      * Setup a ready event to initialize ourself
      */
@@ -1713,6 +1733,7 @@ define(function (require, exports, module) {
     exports.findInWorkingSetByAddedOrder  = findInWorkingSetByAddedOrder;
     exports.findInWorkingSetByMRUOrder    = findInWorkingSetByMRUOrder;
     exports.findInAllWorkingSets          = findInAllWorkingSets;
+    exports.findInGlobalMRUList           = _findFileInMRUList;
 
     // Traversal
     exports.beginTraversal                = beginTraversal;
@@ -1730,6 +1751,7 @@ define(function (require, exports, module) {
 
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;
+    exports.switchPaneFocus               = switchPaneFocus;
 
     // Layout
     exports.setLayoutScheme               = setLayoutScheme;

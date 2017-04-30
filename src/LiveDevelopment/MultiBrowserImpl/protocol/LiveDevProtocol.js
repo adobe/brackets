@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
 
 /**
  * Provides the protocol that Brackets uses to talk to a browser instance for live development.
@@ -48,8 +45,10 @@ define(function (require, exports, module) {
 
     // Text of the script we'll inject into the browser that handles protocol requests.
     var LiveDevProtocolRemote = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/LiveDevProtocolRemote.js"),
-        DocumentObserver = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/DocumentObserver.js"),
-        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
+        DocumentObserver      = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/DocumentObserver.js"),
+        RemoteFunctions       = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
+        EditorManager         = require("editor/EditorManager"),
+        HTMLInstrumentation   = require("language/HTMLInstrumentation");
 
     /**
      * @private
@@ -111,6 +110,12 @@ define(function (require, exports, module) {
                 } else {
                     deferred.resolve(msg);
                 }
+            }
+        } else if (msg.tagId) {
+            var editor = EditorManager.getActiveEditor(),
+                position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(msg.tagId, 10));
+            if (position) {
+                editor.setCursorPos(position.line, position.ch, true);
             }
         } else {
             // enrich received message with clientId

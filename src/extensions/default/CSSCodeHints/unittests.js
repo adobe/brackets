@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, $, brackets */
+/*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
     "use strict";
@@ -52,6 +51,21 @@ define(function (require, exports, module) {
                              " bordborder: \n" +
                              " color\n" +
                              "} \n";
+                             
+        var defaultHTMLContent = "<html> \n" +
+                                 "<head> \n" +
+                                 "</head> \n" +
+                                 "<body> \n" +
+                                 "<div style=' \n" + // line 4
+                                 " \n" +
+                                 " b\n" +
+                                 " bord\n" +
+                                 " border-\n" +
+                                 " border-colo\n" +
+                                 " border-color: red;'>\n" + // line 10
+                                 "</div> \n" +
+                                 "</body> \n" +
+                                 "</html> \n";
 
         var testDocument, testEditor;
 
@@ -115,10 +129,16 @@ define(function (require, exports, module) {
         }
 
         // Helper function for testing cursor position
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
         function expectCursorAt(pos) {
             var selection = testEditor.getSelection();
-            expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
+            expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
+            expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
 
         // Helper function to
@@ -432,6 +452,92 @@ define(function (require, exports, module) {
             });
 
         });
+        
+        describe("CSS Hint provider in style attribute value context for html mode", function () {
+
+            beforeEach(function () {
+                // create Editor instance (containing a CodeMirror instance)
+                var mock = SpecRunnerUtils.createMockEditor(defaultHTMLContent, "html");
+                testEditor = mock.editor;
+                testDocument = mock.doc;
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testEditor = null;
+                testDocument = null;
+            });
+            
+            it("should list all prop-name hints right after the open quote for style value context", function () {
+                testEditor.setCursorPos({ line: 4, ch: 12 });    // after "='"
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
+            });
+
+            it("should list all prop-name hints in new line for style value context", function () {
+                testEditor.setCursorPos({ line: 5, ch: 0 });
+
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
+            });
+
+            it("should list all prop-name hints starting with 'b' in new line for style value context", function () {
+                testEditor.setCursorPos({ line: 6, ch: 2 });
+
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "backface-visibility");  // filtered on "b"
+            });
+
+            it("should list all prop-name hints starting with 'bord' for style value context", function () {
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 6, ch: 2 });
+
+                testEditor.setCursorPos({ line: 7, ch: 5 });
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "border");  // filtered on "bord"
+            });
+
+            it("should list all prop-name hints starting with 'border-' for style value context", function () {
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 7, ch: 5 });
+
+                testEditor.setCursorPos({ line: 8, ch: 8 });
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "border-bottom");  // filtered on "border-"
+            });
+
+            it("should list only prop-name hint border-color for style value context", function () {
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 8, ch: 8 });
+
+                testEditor.setCursorPos({ line: 9, ch: 12 });
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "border-color");  // filtered on "border-color"
+                verifyListsAreIdentical(hintList, ["border-color",
+                                                   "border-left-color",
+                                                   "border-top-color",
+                                                   "border-bottom-color",
+                                                   "border-right-color"]);
+            });
+
+            it("should list prop-name hints at end of property-value finished by ; for style value context", function () {
+                testEditor.setCursorPos({ line: 10, ch: 19 });    // after ;
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
+            });
+
+            it("should NOT list prop-name hints right before style value context", function () {
+                testEditor.setCursorPos({ line: 4, ch: 11 });    // after =
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
+            });
+
+            it("should NOT list prop-name hints after style value context", function () {
+                testEditor.setCursorPos({ line: 10, ch: 20 });    // after "'"
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
+            });
+            
+        });
+
 
         describe("CSS hint provider in other filecontext (e.g. javascript)", function () {
             var defaultContent = "function foobar (args) { \n " +
@@ -685,7 +791,9 @@ define(function (require, exports, module) {
                 var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints;
                 expect(hints[0].text()).toBe("aliceblue"); // first hint should be aliceblue
                 expect(hints[0].find(".color-swatch").length).toBe(1);
-                expect(hints[0].find(".color-swatch").css("backgroundColor")).toBe("rgb(240, 248, 255)");
+                // CEF 2623 will output "aliceblue" whereas earlier versions give "rgb(240, 248, 255)",
+                // so we need this ugly hack to make sure this test passes on both
+                expect(hints[0].find(".color-swatch").css("backgroundColor")).toMatch(/^rgb\(240, 248, 255\)$|aliceblue/);
             });
 
             it("should filter out color names appropriately", function () {

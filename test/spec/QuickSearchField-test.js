@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, maxerr: 50 */
-/*global $, jasmine, define, describe, it, expect, beforeEach, afterEach, runs, waitsFor */
+/*global jasmine, describe, it, expect, beforeEach, afterEach, runs, waitsFor */
 
 define(function (require, exports, module) {
     'use strict';

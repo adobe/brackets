@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -258,9 +254,6 @@ define(function (require, exports, module) {
             if ($listItem.length === 1) {
                 // list item position is relative to scroller
                 var selectionMarkerTop = $listItem.offset().top - $scrollerElement.offset().top + $scrollerElement.get(0).scrollTop;
-
-                // force selection width to match scroller
-                $selectionMarker.width($scrollerElement.get(0).scrollWidth);
 
                 // move the selectionMarker position to align with the list item
                 $selectionMarker.css("top", selectionMarkerTop);

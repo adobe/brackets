@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*jslint regexp: true */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -138,7 +137,7 @@ define(function (require, exports, module) {
         }
 
         while (nextToken()) {
-            if (style !== "comment" && style !== "regexp" && style !== "string") {
+            if (style !== "comment" && style !== "regexp" && style !== "string" && style !== "string-2") {
                 if (token === "{") {
                     foundStartBrace = true;
                     blockCount++;

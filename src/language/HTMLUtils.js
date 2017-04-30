@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -230,6 +226,18 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
         }
+        
+        //Skip all the 'string' tokens backwards. Required to reach to the first line 
+        //of multiline HTML attribute value.
+        while (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx)) {
+            if (ctx.token.type !== "string") {
+                break;
+            }
+        }
+
+        //As we have skipped all the string tokens, make a forward navigation to move to the
+        //first 'string token so that in next backward navigation we can find '='.
+        TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
 
         //Move to the prev token, and check if it's "="
         if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.string !== "=") {
@@ -303,13 +311,14 @@ define(function (require, exports, module) {
      *      className:tag       string:"></span>"
      * @param {Editor} editor An instance of a Brackets editor
      * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursorPos())
+     * @param {isHtmlMode:boolean} let the module know we are in html mode
      * @return {{tagName:string,
      *           attr:{name:string, value:string, valueAssigned:boolean, quoteChar:string, hasEndQuote:boolean},
      *           position:{tokenType:string, offset:number}
      *         }}
      *         A tagInfo object with some context about the current tag hint.
      */
-    function getTagInfo(editor, constPos) {
+    function getTagInfo(editor, constPos, isHtmlMode) {
         // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.
         var pos = $.extend({}, constPos),
@@ -318,8 +327,8 @@ define(function (require, exports, module) {
             tagInfo,
             tokenType;
 
-        // Check if this is inside a style block.
-        if (editor.getModeForSelection() !== "html") {
+        // Check if this is not known to be in html mode and inside a style block.
+        if (!isHtmlMode && editor.getModeForSelection() !== "html") {
             return createTagInfo();
         }
 

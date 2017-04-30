@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, WebSocket */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -57,6 +55,7 @@ define(function (require, exports, module) {
         UrlParams           = require("utils/UrlParams").UrlParams,
         StatusBar           = require("widgets/StatusBar"),
         WorkspaceManager    = require("view/WorkspaceManager"),
+        LanguageManager     = require("language/LanguageManager"),
         _                   = require("thirdparty/lodash");
 
     /**
@@ -291,8 +290,8 @@ define(function (require, exports, module) {
         // TODO should be removed once bug is closed.
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
-        if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE) === fullPath) {
-            result.resolve(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
+        if (MainViewManager.getCurrentlyViewedPath(paneId || MainViewManager.ACTIVE_PANE) === fullPath) {
+            result.resolve(MainViewManager.getCurrentlyViewedFile(paneId || MainViewManager.ACTIVE_PANE));
             return result.promise();
         }
 
@@ -452,7 +451,7 @@ define(function (require, exports, module) {
 
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
-                HealthLogger.fileOpened(fileInfo.path);
+                HealthLogger.fileOpened(file._path);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
@@ -954,6 +953,16 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
+            var file = FileSystem.getFileForPath(origPath);
+            if (file instanceof InMemoryFile) {
+                var language = LanguageManager.getLanguageForPath(origPath);
+                if (language) {
+                    var fileExtensions = language.getFileExtensions();
+                    if (fileExtensions && fileExtensions.length > 0) {
+                        defaultName += "." + fileExtensions[0];
+                    }
+                }
+            }
             FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
                 if (!err) {
                     if (selectedPath) {
@@ -1377,8 +1386,6 @@ define(function (require, exports, module) {
                     console.error(ex);
                 }
 
-                PreferencesManager.savePreferences();
-
                 postCloseHandler();
             })
             .fail(function () {
@@ -1525,35 +1532,31 @@ define(function (require, exports, module) {
     /** Delete file command handler  **/
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem();
-        if (entry.isDirectory) {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_EXT_DELETED,
-                Strings.CONFIRM_FOLDER_DELETE_TITLE,
-                StringUtils.format(
-                    Strings.CONFIRM_FOLDER_DELETE,
-                    StringUtils.breakableUrl(entry.name)
-                ),
-                [
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.DELETE
-                    }
-                ]
-            )
-                .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_OK) {
-                        ProjectManager.deleteItem(entry);
-                    }
-                });
-        } else {
-            ProjectManager.deleteItem(entry);
-        }
+        Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_EXT_DELETED,
+            Strings.CONFIRM_DELETE_TITLE,
+            StringUtils.format(
+                entry.isFile ? Strings.CONFIRM_FILE_DELETE : Strings.CONFIRM_FOLDER_DELETE,
+                StringUtils.breakableUrl(entry.name)
+            ),
+            [
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                    id        : Dialogs.DIALOG_BTN_CANCEL,
+                    text      : Strings.CANCEL
+                },
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id        : Dialogs.DIALOG_BTN_OK,
+                    text      : Strings.DELETE
+                }
+            ]
+        )
+            .done(function (id) {
+                if (id === Dialogs.DIALOG_BTN_OK) {
+                    ProjectManager.deleteItem(entry);
+                }
+            });
     }
 
     /** Show the selected sidebar (tree or workingset) item in Finder/Explorer */

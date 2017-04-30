@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, less, window */
+/*global less */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -81,6 +79,31 @@ define(function main(require, exports, module) {
         description: Strings.DESCRIPTION_LIVE_DEV_MULTIBROWSER
     });
 
+    // "livedev.remoteHighlight" preference
+    var PREF_REMOTEHIGHLIGHT = "remoteHighlight";
+    var remoteHighlightPref = prefs.definePreference(PREF_REMOTEHIGHLIGHT, "object", {
+        animateStartValue: {
+            "background-color": "rgba(0, 162, 255, 0.5)",
+            "opacity": 0
+        },
+        animateEndValue: {
+            "background-color": "rgba(0, 162, 255, 0)",
+            "opacity": 0.6
+        },
+        "paddingStyling": {
+            "border-width": "1px",
+            "border-style": "dashed",
+            "border-color": "rgba(0, 162, 255, 0.5)"
+        },
+        "marginStyling": {
+            "background-color": "rgba(21, 165, 255, 0.58)"
+        },
+        "borderColor": "rgba(21, 165, 255, 0.85)",
+        "showPaddingMargin": true
+    }, {
+        description: "LivePreview highlight settings"
+    });
+    
     /** Toggles or sets the preference **/
     function _togglePref(key, value) {
         var val,
@@ -304,6 +327,7 @@ define(function main(require, exports, module) {
     /** Initialize LiveDevelopment */
     AppInit.appReady(function () {
         params.parse();
+        config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
 
         Inspector.init(config);
         LiveDevelopment.init(config);
@@ -355,6 +379,15 @@ define(function main(require, exports, module) {
                     _setImplementation(prefs.get(PREF_MULTIBROWSER));
                 }
             });
+        
+        remoteHighlightPref
+            .on("change", function () {
+                config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
+                       
+                if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
+                    LiveDevImpl.agents.remote.call("updateConfig",JSON.stringify(config));
+                }
+            });
 
     });
 
@@ -364,11 +397,6 @@ define(function main(require, exports, module) {
             config.highlight = PreferencesManager.getViewState("livedev.highlight");
             _updateHighlightCheckmark();
         });
-
-    PreferencesManager.convertPreferences(module, {
-        "highlight": "user livedev.highlight",
-        "afterFirstLaunch": "user livedev.afterFirstLaunch"
-    }, true);
 
     config.highlight = PreferencesManager.getViewState("livedev.highlight");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window */
+/*jslint regexp: true */
 
 /**
  * RemoteAgent defines and provides an interface for custom remote functions
@@ -35,10 +33,11 @@
 define(function RemoteAgent(require, exports, module) {
     "use strict";
 
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
-        EventDispatcher = require("utils/EventDispatcher"),
-        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
+    var LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        EventDispatcher     = require("utils/EventDispatcher"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
+        PreferencesManager  = require("preferences/PreferencesManager");
 
     var _load; // deferred load
     var _objectId; // the object id of the remote object
@@ -132,7 +131,7 @@ define(function RemoteAgent(require, exports, module) {
         _stopKeepAliveInterval();
 
         // inject RemoteFunctions
-        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
+        var command = "window._LD=" + RemoteFunctions + "(" + JSON.stringify(LiveDevelopment.config) + "," + PreferencesManager.get("livedev.wsPort") + ");";
 
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
