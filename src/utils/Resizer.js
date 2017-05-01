@@ -155,6 +155,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Because of the resizing performance issue we need to make the width of the codemirror 
+     *  fixed size (3000px) in each panes to prevent rendering when the user is resizing 
+     * @makeFixed  {Boolean} false if we want thenormal width
+     */
+    function makeEditorsFixedWidth(makeFixed) {
+        var $firstPane = $("#first-pane>.pane-content>.CodeMirror");
+        var $secondPane = $("#second-pane>.pane-content>.CodeMirror");
+        if (makeFixed) {
+            $firstPane.addClass("fixedWidth");
+            $secondPane.addClass("fixedWidth");
+        } else {
+            $firstPane.removeClass("fixedWidth");
+            $secondPane.removeClass("fixedWidth");
+        }
+    }
+
+    /**
      * Adds resizing and (optionally) expand/collapse capabilities to a given html element. The element's size
      * & visibility are automatically saved & restored as a view-state preference.
      *
@@ -365,6 +382,9 @@ define(function (require, exports, module) {
 
 
         $resizer.on("mousedown.resizer", function (e) {
+            // we change the editors' width to fixed size to prevent rendering contents
+            makeEditorsFixedWidth(true);
+
             var $resizeShield   = $("<div class='resizing-container " + direction + "-resizing' />"),
                 startPosition   = e[directionProperty],
                 startSize       = $element.is(":visible") ? elementSizeFunction.apply($element) : 0,
@@ -467,6 +487,9 @@ define(function (require, exports, module) {
             }
 
             function endResize(e) {
+            	// restoring the width to default value
+            	makeEditorsFixedWidth(false);
+
                 if (isResizing) {
 
                     var elementSize	= elementSizeFunction.apply($element);
