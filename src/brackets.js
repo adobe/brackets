@@ -124,6 +124,23 @@ define(function (require, exports, module) {
             return Mustache;
         }
     });
+    
+    // DEPRECATED: Mustache.compile has been deprecated since Mustache 0.8,
+    // but for now we use a polyfill for it so as to avoid breaking extensions in the
+    // interim.
+    Object.defineProperty(Mustache, "compile", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use Mustache.parse(templateName) instead of Mustache.compile. For more information see https://github.com/janl/mustache.js/issues/346.', true);
+            
+            return function (template) {
+                Mustache.parse(template);
+
+                return function (view, partials) {
+                    return Mustache.render(template, view, partials);
+                };
+            };
+        }
+    });
 
     // DEPRECATED: In future we want to remove the global PathUtils, but for now we
     // expose our required PathUtils globally so as to avoid breaking extensions in the
