@@ -1033,6 +1033,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var currentDocument = DocumentManager.getCurrentDocument();
+                    // clean out the C: prefix on win, does nothing on mac as paths always start with /
+                    newFilePath = newFilePath.replace(/^\w:/, "");
                     expect(currentDocument.file.fullPath).toEqual(newFilePath);
                 });
 
