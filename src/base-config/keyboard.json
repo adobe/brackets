@@ -266,6 +266,9 @@
             "platform": "mac"
         }
     ],
+    "debug.jslint": [
+        "Ctrl-Shift-J"
+    ],
     "navigate.quickOpen":  [
         "Ctrl-Shift-O"
     ],
