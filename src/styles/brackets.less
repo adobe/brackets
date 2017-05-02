@@ -47,6 +47,7 @@ html, body {
     color: @bc-text;
     height: 100%;
     overflow: hidden;
+    background-color: @project-panel-base-color;
 
     /* Turn off selection for UI elements */
     .user-select(none);
@@ -598,7 +599,7 @@ a, img {
     .vbox;
     .box-pack(center);
     .box-align(center);
-    background: #f8f8f8 url('images/no_content_bg.svg') no-repeat center 45%;
+    background: @project-panel-base-color url('images/no_content_bg.svg') no-repeat center 45%;
 
     .dark & {
         background: #1d1f21 url('images/no_content_bg_dark.svg') no-repeat center 45%;
