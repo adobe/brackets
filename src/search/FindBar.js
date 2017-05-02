@@ -490,7 +490,7 @@ define(function (require, exports, module) {
     FindBar.prototype.getQueryInfo = function () {
         return {
             query:           this.$("#find-what").val() || "",
-            isCaseSensitive: this.$("#find-case-sensitive").is(".active"),
+            isCaseSensitive: this.$("#find-case-sensitive").is(".inactive"),
             isRegexp:        this.$("#find-regexp").is(".active")
         };
     };
