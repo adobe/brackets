@@ -210,7 +210,7 @@
     "transform":                   {"values": ["matrix()", "matrix3d()", "none", "perspective()", "rotate()", "rotate3d()", "rotateX()", "rotateY()", "rotateZ()", "scale()", "scale3d()", "scaleX()", "scaleY()", "scaleZ()", "skewX()", "skewY()", "translate()", "translate3d()", "translateX()", "translateY()", "translateZ()"]},
     "transform-origin":            {"values": ["bottom", "center", "left", "right", "top"]},
     "transform-style":             {"values": ["flat", "preserve-3d"]},
-    "transition":                  {"values": []},
+    "transition":                  {"values": ["${1prop} ${2time}"]},
     "transition-delay":            {"values": []},
     "transition-duration":         {"values": []},
     "transition-property":         {"values": ["all", "none"]},
