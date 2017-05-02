@@ -45,6 +45,7 @@ define({
     "FILENAMES_LEDE"                    : "Filenames",
     "FILENAME"                          : "Filename",
     "DIRECTORY_NAME"                    : "Directory Name",
+    "SAVE_FILE_BEFORE_PROCEEDING"       : "Please save the file before proceeding",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error Loading Project",
@@ -71,6 +72,7 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Error Creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
     "ERROR_MIXED_DRAGDROP"              : "Cannot open a folder at the same time as opening other files.",
+    "ERROR_PERFORMING_OPERATION"        : "Error performing this operation",
 
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Error Reading User Key Map",

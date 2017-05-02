@@ -270,6 +270,19 @@ define(function (require, exports, module) {
             )
         );
     }
+    
+    /**
+    * Shows an error dialog indicating that the file needs to be saved before performing any further operation.  
+    * This will be shown when the user tries to 'Rename', 'Show in explorer', or 'Show in file tree' a freshly
+    * created file without saving it
+    */
+    function showSaveBeforeProceedError() {
+        return Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            Strings.ERROR_PERFORMING_OPERATION,
+            Strings.SAVE_FILE_BEFORE_PROCEEDING
+        );
+    }
 
     /**
      * @private
@@ -1438,7 +1451,13 @@ define(function (require, exports, module) {
             entry = MainViewManager.getCurrentlyViewedFile();
         }
         if (entry) {
-            ProjectManager.renameItemInline(entry);
+            if (entry instanceof InMemoryFile) {
+                showSaveBeforeProceedError().done(function () {
+                    handleFileSave(entry);
+                });
+            } else {
+                ProjectManager.renameItemInline(entry);
+            }
         }
     }
 
@@ -1526,7 +1545,14 @@ define(function (require, exports, module) {
 
     /** Show in File Tree command handler **/
     function handleShowInTree() {
-        ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
+        var entry = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
+        if (entry instanceof InMemoryFile) {
+            showSaveBeforeProceedError().done(function () {
+                handleFileSave(entry);
+            });
+        } else {
+            ProjectManager.showInTree(entry);
+        }
     }
 
     /** Delete file command handler  **/
@@ -1563,11 +1589,17 @@ define(function (require, exports, module) {
     function handleShowInOS() {
         var entry = ProjectManager.getSelectedItem();
         if (entry) {
-            brackets.app.showOSFolder(entry.fullPath, function (err) {
-                if (err) {
-                    console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
-                }
-            });
+            if (entry instanceof InMemoryFile) {
+                showSaveBeforeProceedError().done(function () {
+                    handleFileSave(entry);
+                });
+            } else {
+                brackets.app.showOSFolder(entry.fullPath, function (err) {
+                    if (err) {
+                        console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
+                    }
+                });
+            }
         }
     }
 
