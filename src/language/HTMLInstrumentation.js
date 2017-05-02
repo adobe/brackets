@@ -188,7 +188,7 @@ define(function (require, exports, module) {
         });
     }
     // Workaround for JSHint to not complain about the unused function
-    void(_dumpMarks);
+    undefined(_dumpMarks);
 
     /**
      * Get the instrumented tagID at the specified position. Returns -1 if
