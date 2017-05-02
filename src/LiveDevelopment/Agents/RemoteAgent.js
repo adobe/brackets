@@ -83,8 +83,12 @@ define(function RemoteAgent(require, exports, module) {
                 }
             });
 
-            Inspector.Runtime.callFunctionOn(objectId, method, params, undefined, callback)
-                .then(deferred.resolve, deferred.reject);
+            var funcDeferred = Inspector.Runtime.callFunctionOn(objectId, method, params, undefined, callback);
+            if (funcDeferred) {
+                funcDeferred.then(deferred.resolve, deferred.reject);
+            } else {
+                deferred.reject();
+            }
         });
 
         return deferred.promise();
