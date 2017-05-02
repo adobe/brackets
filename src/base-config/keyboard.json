@@ -5,6 +5,9 @@
     "file.open":  [
         "Ctrl-O"
     ],
+    "file.openFolder":  [
+        "Ctrl-Alt-O"
+    ],
     "file.close":  [
         "Ctrl-W"
     ],
