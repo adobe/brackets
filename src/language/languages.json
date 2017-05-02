@@ -247,6 +247,13 @@
         "mode": "gfm"
     },
 
+    "toml": {
+        "name": "TOML",
+        "mode": ["toml", "text/x-toml"],
+        "fileExtensions": ["toml"],
+        "lineComment": ["#"]
+    },
+
     "yaml": {
         "name": "YAML",
         "mode": "yaml",
