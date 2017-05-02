@@ -73,6 +73,7 @@ The following languages have been contributed by the Brackets community:
 * Portuguese (pt-pt)
 * Romanian (ro)
 * Russian (ru)
+* Sinhala (si-lk)
 * Slovak (sk)
 * Serbian (sr)
 * Swedish (sv)

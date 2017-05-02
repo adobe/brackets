@@ -52,6 +52,7 @@ define({
     "LOCALE_PT_PT"                              : "português (PT)",
     "LOCALE_RO"                                 : "română",
     "LOCALE_RU"                                 : "русский",
+    "LOCALE_SI_LK"                              : "සිංහල",
     "LOCALE_SK"                                 : "slovenčina",
     "LOCALE_SR"                                 : "Српски",
     "LOCALE_SV"                                 : "svenska",
