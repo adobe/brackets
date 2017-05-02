@@ -166,6 +166,8 @@ very difficult to resolve. For example:
 3. Click on the Branches Tab: `github.com/user1/brackets/branches`
 4. Click on the link to the branch: `github.com/user1/brackets/tree/patch-1`
 5. This is where you make changes to your `patch-1` branch.
+6. Check that you have selected (already active by default): "Commit directly to the `patch-1` branch" 
+7. Click "Commit changes" button for save edits
 
 Saved edits show up as a new commit, so they automatically show up in the original
 pull request. After making an update, add a comment to the pull request such as
