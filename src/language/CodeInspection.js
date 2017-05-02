@@ -450,7 +450,15 @@ define(function (require, exports, module) {
                     .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
 
                 if (!_collapsed) {
-                    Resizer.show($problemsPanel);
+                    setTimeout(function () {
+                        // showing the panel using setTimeout 
+                        //  allows the browser time to finish its
+                        //  layout and any pending mouse clicks
+                        //  to be dispatched before changing 
+                        //  the layout and stifling the mouse click
+                        //  (http://github.com/adobe/brackets/issues/9040)
+                        Resizer.show($problemsPanel);
+                    }, 180);
                 }
 
                 updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted);
