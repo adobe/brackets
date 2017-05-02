@@ -262,7 +262,15 @@ define(function (require, exports, module) {
      * @return {string} Font size with size unit as 'px' or 'em'
      */
     function getFontSize() {
-        return prefs.get("fontSize");
+        
+            var input = prefs.get("fontSize");
+            var last2digits = input.substr(input.length-2);
+            var fsizeNumeric = input.substr(0,input.length-2);
+            if(last2digits=="px" || last2digits=="em" && !isNaN(fsizeNumeric)  ) {
+             return prefs.get("fontSize");
+            } else {
+              return ;
+            }
     }
 
 
