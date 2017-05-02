@@ -55,7 +55,8 @@ define(function (require, exports, module) {
     /** @type {$.Element} jQuery elements used for the dropdown menu */
     var $dropdownItem,
         $dropdown,
-        $links;
+        $links,
+        currentEditor;
 
     /**
      * Get the stored list of recent projects, fixing up paths as appropriate.
@@ -263,6 +264,9 @@ define(function (require, exports, module) {
         $("html").off("click", closeDropdown);
         $("#project-files-container").off("scroll", closeDropdown);
         $("#titlebar .nav").off("click", closeDropdown);
+        if (currentEditor) {
+            currentEditor._codeMirror.off("focus", closeDropdown);
+        }
         $dropdown = null;
 
         MainViewManager.focusActivePane();
@@ -408,6 +412,12 @@ define(function (require, exports, module) {
         // Hacky: if we detect a click in the menubar, close ourselves.
         // TODO: again, we should have centralized popup management.
         $("#titlebar .nav").on("click", closeDropdown);
+
+        // close dropdown when editor is focused
+        currentEditor = EditorManager.getCurrentFullEditor();
+        if (currentEditor) {
+            currentEditor._codeMirror.on("focus", closeDropdown);
+        }
 
         _handleListEvents();
         $(window).on("keydown", keydownHook);
