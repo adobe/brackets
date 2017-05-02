@@ -281,6 +281,8 @@ define(function (require, exports, module) {
                     var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
                     waitsForDone(promise, "FILE_SAVE_ALL");
                 });
+                
+                waits(10);    // wait for async save-as operation to complete and set the current document
 
                 runs(function () {
                     var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
@@ -1030,6 +1032,8 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_SAVE_AS);
                     waitsForDone(promise, "Provide new filename");
                 });
+                
+                waits(10);    // wait for async save-as operation to complete and set the current document
 
                 runs(function () {
                     var currentDocument = DocumentManager.getCurrentDocument();
@@ -1066,6 +1070,8 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_SAVE_AS);
                     waitsForFail(promise, "Provide new filename");
                 });
+                
+                waits(10);    // wait for async save-as operation to complete and set the current document
 
                 runs(function () {
                     var currentDocument = DocumentManager.getCurrentDocument();
