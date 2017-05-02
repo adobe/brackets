@@ -9,7 +9,7 @@
         "Ctrl-W"
     ],
     "file.openFolder": [
-        "Ctrl-Alt-O"
+        "Ctrl-Alt-F"
     ],
     "file.close_all":  [
         "Ctrl-Shift-W"
@@ -18,7 +18,7 @@
         "Ctrl-S"
     ],
     "file.saveAll":  [
-        "Ctrl-Alt-S"
+        "Ctrl-Shift-S"
     ],
     "file.saveAs":  [
         "Ctrl-Shift-S"
