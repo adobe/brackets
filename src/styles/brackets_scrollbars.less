@@ -196,3 +196,41 @@
         }
     }
 }
+
+.platform-win .content {
+    ::-webkit-scrollbar {
+        width: 15px;
+        height: 15px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f0f0f0;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #cdcdcd;
+        width: 15px;
+        border: 1px solid #f0f0f0;
+    }
+    :hover::-webkit-scrollbar-thumb,
+    :focus::-webkit-scrollbar-thumb {
+        background: #a6a6a6;
+    }
+    :active::-webkit-scrollbar-thumb {
+        background: #606060;
+    }
+    ::-webkit-scrollbar-track:vertical {
+        margin: 0 0 15px 0;
+    }
+    ::-webkit-scrollbar-track:horizontal {
+        margin: 0 15px 0 0;
+    }
+}
+
+.scrollbar-filler {
+    background: #f0f0f0;
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    z-index: 10;
+    bottom: 26px;
+    right: 0;
+}
