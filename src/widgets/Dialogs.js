@@ -251,6 +251,7 @@ define(function (require, exports, module) {
      */
     Dialog.prototype.done = function (callback) {
         this._promise.done(callback);
+        return this;
     };
 
 
