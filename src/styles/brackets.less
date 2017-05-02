@@ -608,13 +608,21 @@ a, img {
 // Split View Separator Styles
 .split-vertical #second-pane {
     border-left: 1px solid rgba(0, 0, 0, 0.17);
+    .pane-content {
+        padding-left: 4px;
+        background-color: @background;
+        .dark & {
+            background-color: #1d1f21; // not using a variable on purpose.
+        }
+    }
     .dark & {
         border-left: 1px solid rgba(255, 255, 255, 0.3);
-    }
+    }    
 }
 
 .split-horizontal #second-pane {
     border-top: 1px solid rgba(0, 0, 0, 0.17);
+
     .dark & {
         border-top: 1px solid rgba(255, 255, 255, 0.3);
     }
