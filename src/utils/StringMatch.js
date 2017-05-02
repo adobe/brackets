@@ -872,6 +872,7 @@ define(function (require, exports, module) {
                 } else {
                     var valueA = a[comparison];
                     var valueB = b[comparison];
+                    
                     if (typeof valueA === "string") {
                         valueA = valueA.toLowerCase();
                         valueB = valueB.toLowerCase();

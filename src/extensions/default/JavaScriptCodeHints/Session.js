@@ -552,7 +552,8 @@ define(function (require, exports, module) {
          */
         function filterWithQueryAndMatcher(hints, matcher) {
             var matchResults = $.map(hints, function (hint) {
-                var searchResult = matcher.match(hint.value, query);
+                var searchResult    = matcher.match(hint.value, query),
+                    partialHint     = "";
                 if (searchResult) {
                     searchResult.value = hint.value;
                     searchResult.guess = hint.guess;
@@ -583,6 +584,17 @@ define(function (require, exports, module) {
                         searchResult.builtin = 1;
                     } else {
                         searchResult.builtin = 0;
+                    }
+                    
+                    partialHint = hint.value.substring(0, query.length);
+                    
+                    if (partialHint === query) {
+                        // Exact matches gets the highest score possible
+                        // Note: The most negative score is the highest score
+                        searchResult.matchGoodness = -Number.MAX_VALUE;
+                    } else if (partialHint.toLowerCase() === query.toLowerCase()) {
+                        // Case insensitive exact matches get the second highest score
+                        searchResult.matchGoodness = -Number.MAX_VALUE / 10;
                     }
                 }
 
