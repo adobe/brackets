@@ -541,6 +541,25 @@ define(function (require, exports, module) {
         }
 
         /**
+         *  Test if the searchResult contains a prefix only match.
+         *
+         * @param searchResult - the search result to test
+         * @returns {boolean} - true if the only match is a prefix match,
+         * false otherwise.
+         */
+        function isPrefixMatch(searchResult) {
+            var prefixOnly = false;
+
+            searchResult.stringRanges.every(function (range, i) {
+                prefixOnly = (i === 0) ? range.matched : !range.matched;
+
+                return prefixOnly;
+            });
+
+            return prefixOnly;
+        }
+
+        /**
          *  Filter an array hints using a given query and matcher.
          *  The hints are returned in the format of the matcher.
          *  The matcher returns the value in the "label" property,
@@ -583,6 +602,11 @@ define(function (require, exports, module) {
                         searchResult.builtin = 1;
                     } else {
                         searchResult.builtin = 0;
+                    }
+
+                    // make all prefix matches have the same value
+                    if (isPrefixMatch(searchResult)) {
+                        searchResult.matchGoodness = -Number.MAX_VALUE;
                     }
                 }
 
