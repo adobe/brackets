@@ -76,6 +76,7 @@ The following languages have been contributed by the Brackets community:
 * Slovak (sk)
 * Serbian (sr)
 * Swedish (sv)
+* தமிழ் (ta)
 * Turkish (tr)
 * Ukrainian (uk)
 * Simplified Chinese (zh-cn)
