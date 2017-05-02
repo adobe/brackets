@@ -160,7 +160,7 @@ define(function (require, exports, module) {
             _handleTab(e, this);
         } else if (e.which === KeyEvent.DOM_VK_ESCAPE) {
             buttonId = DIALOG_BTN_CANCEL;
-        } else if (e.which === KeyEvent.DOM_VK_RETURN && (!inTextArea || e.ctrlKey)) {
+        } else if (e.which === KeyEvent.DOM_VK_RETURN && autoDismiss && (!inTextArea || e.ctrlKey)) {
             // Enter key in single-line text input always dismisses; in text area, only Ctrl+Enter dismisses
             // Click primary
             stopEvent();
@@ -197,7 +197,9 @@ define(function (require, exports, module) {
         }
 
         if (buttonId) {
-            stopEvent();
+            if (autoDismiss) {
+                stopEvent();
+            }
             _processButton(this, buttonId, autoDismiss);
         }
 
