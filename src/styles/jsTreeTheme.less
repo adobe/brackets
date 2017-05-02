@@ -53,13 +53,6 @@ li.jstree-closed > ul { display:none; }
 
 @jstree-icon-backindent: 12px;
 
-/* Make the links in the JS tree the width of the container
- * by shifting the off the screen by negative margin and moving the
- * content back by pushing the padding. The icons are positioned absolute
- * relative to the containing list item so they sit above the a's background.
- * This also means we need to include the size of the sprite in the padding
- * so the text ends up back in the same spot visually
- */
 .jstree-brackets li > a {
     @jstree-icon-text-overlap: 2px;
     padding-left: (@jstree-sprite-size - @jstree-icon-backindent - @jstree-icon-text-overlap);
