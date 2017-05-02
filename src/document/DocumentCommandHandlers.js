@@ -1420,7 +1420,7 @@ define(function (require, exports, module) {
         return _handleWindowGoingAway(
             commandData,
             function () {
-                window.close();
+                brackets.app.quit();
             },
             function () {
                 // if fail, tell the app to abort any pending quit operation.
