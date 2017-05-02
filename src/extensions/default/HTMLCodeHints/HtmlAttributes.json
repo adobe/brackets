@@ -160,7 +160,7 @@
     "cols":               { "attribOption": [] },
     "colspan":            { "attribOption": [] },
     "content":            { "attribOption": [] },
-    "controls":           { "attribOption": [], "type": "flag" },
+    "controls":           { "attribOption": ["controls"], "type": "flag" },
     "coords":             { "attribOption": [] },
     "data":               { "attribOption": [] },
     "datetime":           { "attribOption": [] },
