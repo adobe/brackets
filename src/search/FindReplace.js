@@ -559,6 +559,7 @@ define(function (require, exports, module) {
                 state.foundAny = cursor.findNext();
                 indicateHasMatches();
             }
+            getDialogTextField().focus();
         });
     }
 
