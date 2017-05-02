@@ -124,7 +124,15 @@
     "php": {
         "name": "PHP",
         "mode": "php",
-        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"],
+        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp" , "inc"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//", "#"]
+    },
+    
+    "inc": {
+        "name": "INC",
+        "mode": "php",
+        "fileExtensions": ["inc"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//", "#"]
     },
