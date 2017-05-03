@@ -269,6 +269,13 @@
         "fileNames": [".bash_login", ".bash_logout", ".bash_profile", ".bashrc", ".profile"],
         "lineComment": ["#"]
     },
+    
+    "htaccess": {
+        "name": "Htaccess",
+        "mode": "htaccess",
+        "fileExtensions": ["htaccess"],
+        "lineComment": ["#"]
+    },
   
     "image": {
         "name": "Image",
