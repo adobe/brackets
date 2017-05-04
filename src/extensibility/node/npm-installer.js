@@ -114,7 +114,7 @@ function performNpmInstallIfRequired(npmOptions, validationResult, callback) {
         packageJson = null;
     }
 
-    if (!packageJson || !packageJson.dependencies) {
+    if (!packageJson || !packageJson.dependencies || !Object.keys(packageJson.dependencies).length) {
         return finish();
     }
 
