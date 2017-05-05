@@ -227,6 +227,28 @@ define(function (require, exports, module) {
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
     };
+    
+    /**
+     * @private
+     * Adds element to the search history queue.
+     * @param {string} search string that needs to be added to history.
+     */
+    FindBar.prototype._addElementToSearchHistory = function (searchVal) {
+        if (searchVal) {
+            var searchHistory = PreferencesManager.getViewState("searchHistory");
+            var maxCount = PreferencesManager.get("maxSearchHistory");
+            var searchQueryIndex = searchHistory.indexOf(searchVal);
+            if (searchQueryIndex !== -1) {
+                searchHistory.splice(searchQueryIndex, 1);
+            } else {
+                if (searchHistory.length === maxCount) {
+                    searchHistory.pop();
+                }
+            }
+            searchHistory.unshift(searchVal);
+            PreferencesManager.setViewState("searchHistory", searchHistory);
+        }
+    };
 
     /**
      * Opens the Find bar, closing any other existing Find bars.
@@ -248,6 +270,8 @@ define(function (require, exports, module) {
         templateVars.Strings = Strings;
         templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
         templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
+        
+        self._addElementToSearchHistory(this._options.initialQuery);
 
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
 
@@ -327,24 +351,10 @@ define(function (require, exports, module) {
                 if (intervalId === 0) {
                     intervalId = window.setInterval(executeSearchIfNeeded, 50);
                 }
-                var searchHistory = PreferencesManager.getViewState("searchHistory");
-                var maxCount = PreferencesManager.get("maxSearchHistory");
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
-                    var searchVal = self.$("#find-what").val();
-                    var searchQueryIndex = searchHistory.indexOf(searchVal);
-                    if (searchQueryIndex !== -1) {
-                        searchHistory.splice(searchQueryIndex, 1);
-                    } else {
-                        if (searchHistory.length === maxCount) {
-                            searchHistory.pop();
-                        }
-                    }
-                    if (searchVal) {
-                        searchHistory.unshift(searchVal);
-                    }
-                    PreferencesManager.setViewState("searchHistory", searchHistory);
+                    self._addElementToSearchHistory(self.$("#find-what").val());
                     lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
