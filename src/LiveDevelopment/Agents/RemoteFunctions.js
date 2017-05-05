@@ -298,17 +298,17 @@ function RemoteFunctions(config, remoteWSPort) {
             
             var borderBox = elementStyling.boxSizing === 'border-box';
             
-            var innerWidth = parseInt(elementStyling.width),
-                innerHeight = parseInt(elementStyling.height),
+            var innerWidth = parseFloat(elementStyling.width),
+                innerHeight = parseFloat(elementStyling.height),
                 outerHeight = innerHeight,
                 outerWidth = innerWidth;
                 
             if (!borderBox) {
-                innerWidth += parseInt(elementStyling.paddingLeft) + parseInt(elementStyling.paddingRight);
-                innerHeight += parseInt(elementStyling.paddingTop) + parseInt(elementStyling.paddingBottom);
-                outerWidth = innerWidth + parseInt(realElBorder.right) +
-                parseInt(realElBorder.left),
-                outerHeight = innerHeight + parseInt(realElBorder.bottom) + parseInt(realElBorder.top);
+                innerWidth += parseFloat(elementStyling.paddingLeft) + parseFloat(elementStyling.paddingRight);
+                innerHeight += parseFloat(elementStyling.paddingTop) + parseFloat(elementStyling.paddingBottom);
+                outerWidth = innerWidth + parseFloat(realElBorder.right) +
+                parseFloat(realElBorder.left),
+                outerHeight = innerHeight + parseFloat(realElBorder.bottom) + parseFloat(realElBorder.top);
             }
 
           
@@ -326,7 +326,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 elStyling['top'] = 0;
                   
                   if (borderBox) {
-                    elStyling['height'] = innerHeight - parseInt(realElBorder.top) - parseInt(realElBorder.bottom) + "px";
+                    elStyling['height'] = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
                   }
                 
               } else {
@@ -335,7 +335,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 elStyling['left'] = 0;
                   
                   if (borderBox) {
-                    elStyling['width'] = innerWidth - parseInt(realElBorder.left) - parseInt(realElBorder.right) + "px";
+                    elStyling['width'] = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
                   }
               }
                 
@@ -349,23 +349,23 @@ function RemoteFunctions(config, remoteWSPort) {
             var elStyling = {};
             
             var margin = [];
-            margin['right'] = parseInt(elementStyling.getPropertyValue('margin-right'));
-            margin['top'] = parseInt(elementStyling.getPropertyValue('margin-top'));
-            margin['bottom'] = parseInt(elementStyling.getPropertyValue('margin-bottom'));
-            margin['left'] = parseInt(elementStyling.getPropertyValue('margin-left'));
+            margin['right'] = parseFloat(elementStyling.getPropertyValue('margin-right'));
+            margin['top'] = parseFloat(elementStyling.getPropertyValue('margin-top'));
+            margin['bottom'] = parseFloat(elementStyling.getPropertyValue('margin-bottom'));
+            margin['left'] = parseFloat(elementStyling.getPropertyValue('margin-left'));
           
             if(visualisations['horizontal'].indexOf(side) >= 0) {
 
               elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
               elStyling['height'] = outerHeight + margin['top'] + margin['bottom'] + "px";
-              elStyling['top'] = "-" + (margin['top'] + parseInt(realElBorder.top))  + "px";
+              elStyling['top'] = "-" + (margin['top'] + parseFloat(realElBorder.top))  + "px";
             } else {
               elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);
               elStyling['width'] = outerWidth + "px";
               elStyling['left'] = "-" + realElBorder.left;
             }
 
-            elStyling[side] = "-" + (margin[side] + parseInt(realElBorder[side])) + "px";
+            elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
             elStyling['position'] = 'absolute';
 
             return elStyling;
