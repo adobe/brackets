@@ -186,7 +186,8 @@ define(function (require, exports, module) {
      */
     ModalBar.prototype.close = function (restoreScrollPos, animate, _reason) {
         var result = new $.Deferred(),
-            self = this;
+            self = this,
+            animateClass;
 
         if (restoreScrollPos === undefined) {
             restoreScrollPos = true;
@@ -213,7 +214,9 @@ define(function (require, exports, module) {
         }
 
         if (animate) {
-            AnimationUtils.animateUsingClass(this._$root.get(0), "offscreen")
+            // Use "offscreen2" class if ModalBar is 2 lines tall, otherwise use "offscreen"
+            animateClass = (this.height() > 50) ? "offscreen2" : "offscreen";
+            AnimationUtils.animateUsingClass(this._$root.get(0), animateClass)
                 .done(doRemove);
         } else {
             doRemove();

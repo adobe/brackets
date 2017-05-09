@@ -1530,6 +1530,17 @@ a, img {
         transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
     }
 
+    &.offscreen2 {
+        -webkit-transform: translate(0, -88px);
+        transform: translate(0, -88px);
+        transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
+        transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
+
+        body:not(.has-appshell-menus) & {
+            top: 81px;
+        }
+    }
+
     input {
         font-family: @sansFontFamily;
         outline: none;
