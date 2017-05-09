@@ -329,5 +329,9 @@
     ],
     "help.support": [
         "F1"
+    ],
+    "window.fullscreen": [
+        "key": "Cmd-Shift-F",
+        "platform": "mac"
     ]
 }
