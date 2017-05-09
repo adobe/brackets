@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+#make sure that .sh files in the tools are unix-ending
+tools/*.sh text eol=lf
