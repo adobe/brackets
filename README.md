@@ -83,7 +83,7 @@ move it to the feature backlog for you.
 
 Awesome! _There are lots of ways you can help._ First read 
 [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md), 
-then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
+then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).  If you're looking for in-demand issues to work on, review the [starter issues and features](http://brackets.io/contribute/#get-coding).
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/codemirror/CodeMirror)&mdash;thanks to Marijn for
