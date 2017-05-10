@@ -50,7 +50,7 @@ define(function (require, exports, module) {
 
             // copy files to temp directory
             runs(function () {
-                waitsForDone(SpecRunnerUtils.copy(testPath, tempDir), "copy temp files");
+                waitsForDone(SpecRunnerUtils.copyPath(testPath, tempDir), "copy temp files");
             });
 
             runs(function () {
