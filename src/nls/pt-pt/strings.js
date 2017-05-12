@@ -114,7 +114,7 @@ define({
      * ProjectManager
      */
 
-    "UNTITLED" 		                : "Sem título",
+    "UNTITLED"                          : "Sem título",
     "WORKING_FILES"                     : "Arquivos de trabalho",
 
     /**
