@@ -52,7 +52,7 @@
     var previousErrorHandler = window.onerror;
 
     // Our error handler
-    function handleError(message, url, line) {
+    var handleError = function(message, url, line) {
         // Ignore this error if it does not look like the rather vague cross origin error in Chrome
         // Chrome will print it to the console anyway
         if (!testCrossOriginError(message, url, line)) {
@@ -67,7 +67,7 @@
 
         // Restore the original handler for later errors
         window.onerror = previousErrorHandler;
-    }
+    };
 
     // Install our error handler
     window.onerror = handleError;
