@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         ConnectedToolsTemplate  = require("text!htmlContent/connected-tools.html");
         
         
-    var _currentInspectedSource;
+    var _currentInspectedSource,
+        _currentStaticPageSource;
         
     var _ = require("thirdparty/lodash");
     var relatedFiles = [];
@@ -165,11 +166,10 @@ define(function (require, exports, module) {
                 rule = rules[counter];
                 if (rule.type !== 'comment' && !_isVendorPrefixedRule(rule)) {
                     ruleRefCounter++;
-                }
-
-                if (ruleRefCounter === index) {
-                    refRule = rule;
-                    break;
+                    if (ruleRefCounter === index) {
+                        refRule = rule;
+                        break;
+                    }
                 }
             }
         }
@@ -402,7 +402,11 @@ define(function (require, exports, module) {
     
     WebSocketTransportDomain.on("livedata", function (obj, message) {
         message = JSON.parse(message);
-        if (message.relatedFiles) {
+        if (message.pageSource) {
+            DocumentManager.getDocumentForPath(_currentInspectedSource).done(function (doc) {
+                doc.setText(message.pageSource);
+            });
+        } else if (message.relatedFiles) {
             if (message.source) {
                 var sourcePathInProject = ProjectManager.getProjectRoot()._path + message.source.substring(1);
                 if (sourcePathInProject !== _currentInspectedSource) {
@@ -437,6 +441,19 @@ define(function (require, exports, module) {
         return "";
     });
     
+    function _handleLiveCodeToggle() {
+        if ($("#live-code-toggle").is(":checked")) {
+            DocumentManager.getDocumentForPath(_currentInspectedSource).done(function (doc) {
+                _currentStaticPageSource = doc.getText();
+                WebSocketTransport.sendDataToBrowser(JSON.stringify({requestLiveCode: true}));
+            });
+        } else {
+            DocumentManager.getDocumentForPath(_currentInspectedSource).done(function (doc) {
+                doc.setText(_currentStaticPageSource);
+            });
+        }
+    }
+    
     function _handleInspectToggle() {
         if ($("#inspect-toggle").is(":checked")) {
             $livedataPanel.show();
@@ -462,11 +479,16 @@ define(function (require, exports, module) {
     function _handleLiveViewStatus(event, status, reason) {
         if (status === 3) {
             $("#inspect-toggle").on("change", _handleInspectToggle);
+            $("#live-code-toggle").on("change", _handleLiveCodeToggle);
             $("#toggle-reverse-inspect").on("click", _handleReverseInspectToggle);
             $("body").addClass("connected");
             $breadCrumb.show();
             $('#status-info').detach().appendTo('#status-indicators');
             _currentInspectedSource = DocumentManager.getCurrentDocument().file.fullPath;
+            if ($("#inspect-toggle").is(":checked")) {
+                $livedataPanel.show();
+                $(".connected-tools").show();
+            }
             setTimeout(function () {
                 EditorManager.getActiveEditor().setCursorPos(EditorManager.getActiveEditor().getCursorPos());
             }, 500);
@@ -475,11 +497,13 @@ define(function (require, exports, module) {
             lastVisitedPath = null;
             $breadCrumb.empty();
             $breadCrumb.hide();
-            $("#inspect-toggle").attr('checked', null);
             $("#inspect-toggle").off("change", _handleInspectToggle);
             $("#toggle-reverse-inspect").off("click", _handleReverseInspectToggle);
+            $("#live-code-toggle").off("change", _handleLiveCodeToggle);
             $("body").removeClass("connected");
             $('#status-info').detach().prependTo('#status-bar');
+            $livedataPanel.hide();
+            $(".connected-tools").hide();
         }
     }
     

@@ -345,10 +345,10 @@ function RemoteFunctions(config, remoteWSPort) {
             }
             
             var realElBorder = {
-              right: elementStyling.getPropertyValue('border-right-width'),
-              left: elementStyling.getPropertyValue('border-left-width'),
-              top: elementStyling.getPropertyValue('border-top-width'),
-              bottom: elementStyling.getPropertyValue('border-bottom-width')
+                right: elementStyling.getPropertyValue('border-right-width'),
+                left: elementStyling.getPropertyValue('border-left-width'),
+                top: elementStyling.getPropertyValue('border-top-width'),
+                bottom: elementStyling.getPropertyValue('border-bottom-width')
             };
             
             var borderBox = elementStyling.boxSizing === 'border-box';
@@ -361,8 +361,7 @@ function RemoteFunctions(config, remoteWSPort) {
             if (!borderBox) {
                 innerWidth += parseFloat(elementStyling.paddingLeft) + parseFloat(elementStyling.paddingRight);
                 innerHeight += parseFloat(elementStyling.paddingTop) + parseFloat(elementStyling.paddingBottom);
-                outerWidth = innerWidth + parseFloat(realElBorder.right) +
-                parseFloat(realElBorder.left),
+                outerWidth = innerWidth + parseFloat(realElBorder.right) + parseFloat(realElBorder.left);
                 outerHeight = innerHeight + parseFloat(realElBorder.bottom) + parseFloat(realElBorder.top);
             }
 
@@ -373,57 +372,56 @@ function RemoteFunctions(config, remoteWSPort) {
             };
           
             var drawPaddingRect = function(side) {
-              var elStyling = {};
-                
-              if (visualisations.horizontal.indexOf(side) >= 0) {
-                elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
-                elStyling['height'] = innerHeight + "px";
-                elStyling['top'] = 0;
-                  
-                  if (borderBox) {
-                    elStyling['height'] = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
-                  }
-                
-              } else {
-                elStyling['height'] = elementStyling.getPropertyValue('padding-' + side);  
-                elStyling['width'] = innerWidth + "px";
-                elStyling['left'] = 0;
-                  
-                  if (borderBox) {
-                    elStyling['width'] = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
-                  }
-              }
-                
-              elStyling[side] = 0;
-              elStyling['position'] = 'absolute';
-              
-              return elStyling;
+                var elStyling = {};
+
+                if (visualisations.horizontal.indexOf(side) >= 0) {
+                    elStyling.width =  elementStyling.getPropertyValue('padding-' + side);
+                    elStyling.height = innerHeight + "px";
+                    elStyling.top = 0;
+
+                    if (borderBox) {
+                        elStyling.height = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
+                    }
+
+                } else {
+                    elStyling.height = elementStyling.getPropertyValue('padding-' + side);  
+                    elStyling.width = innerWidth + "px";
+                    elStyling.left = 0;
+
+                    if (borderBox) {
+                        elStyling.width = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
+                    }
+                }
+
+                elStyling[side] = 0;
+                elStyling.position = 'absolute';
+
+                return elStyling;
             };
           
           var drawMarginRect = function(side) {
-            var elStyling = {};
+              var elStyling = {};
             
-            var margin = [];
-            margin['right'] = parseFloat(elementStyling.getPropertyValue('margin-right'));
-            margin['top'] = parseFloat(elementStyling.getPropertyValue('margin-top'));
-            margin['bottom'] = parseFloat(elementStyling.getPropertyValue('margin-bottom'));
-            margin['left'] = parseFloat(elementStyling.getPropertyValue('margin-left'));
+              var margin = [];
+              margin.right = parseFloat(elementStyling.getPropertyValue('margin-right'));
+              margin.top = parseFloat(elementStyling.getPropertyValue('margin-top'));
+              margin.bottom = parseFloat(elementStyling.getPropertyValue('margin-bottom'));
+              margin.left = parseFloat(elementStyling.getPropertyValue('margin-left'));
           
-            if(visualisations['horizontal'].indexOf(side) >= 0) {
+              if(visualisations.horizontal.indexOf(side) >= 0) {
+                  elStyling.width = elementStyling.getPropertyValue('margin-' + side);
+                  elStyling.height = outerHeight + margin['top'] + margin['bottom'] + "px";
+                  elStyling.top = "-" + (margin['top'] + parseFloat(realElBorder.top))  + "px";
+              } else {
+                  elStyling.height = elementStyling.getPropertyValue('margin-' + side);
+                  elStyling.width = outerWidth + "px";
+                  elStyling.left = "-" + realElBorder.left;
+              }
 
-              elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
-              elStyling['height'] = outerHeight + margin['top'] + margin['bottom'] + "px";
-              elStyling['top'] = "-" + (margin['top'] + parseFloat(realElBorder.top))  + "px";
-            } else {
-              elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);
-              elStyling['width'] = outerWidth + "px";
-              elStyling['left'] = "-" + realElBorder.left;
-            }
+              elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
+              elStyling.position = 'absolute';
 
-            elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
-            elStyling['position'] = 'absolute';
-
-            return elStyling;
+              return elStyling;
           };
 
             var setVisibility = function (el) {
@@ -441,17 +439,17 @@ function RemoteFunctions(config, remoteWSPort) {
             var mainBoxStyles = config.remoteHighlight.stylesToSet;
             
             var paddingVisualisations = [
-              drawPaddingRect('top'),
-              drawPaddingRect('right'),
-              drawPaddingRect('bottom'),
-              drawPaddingRect('left')  
+                drawPaddingRect('top'),
+                drawPaddingRect('right'),
+                drawPaddingRect('bottom'),
+                drawPaddingRect('left')  
             ];
                 
             var marginVisualisations = [
-              drawMarginRect('top'),
-              drawMarginRect('right'),
-              drawMarginRect('bottom'),
-              drawMarginRect('left')  
+                drawMarginRect('top'),
+                drawMarginRect('right'),
+                drawMarginRect('bottom'),
+                drawMarginRect('left')  
             ];
             
             var setupVisualisations = function (arr, config) {
@@ -463,10 +461,10 @@ function RemoteFunctions(config, remoteWSPort) {
                     arr[i]["transform"] = "none";
                     var el = window.document.createElement("div"),
                         styles = Object.assign(
-                        {},
-                        config,
-                        arr[i]
-                    );
+                            {},
+                            config,
+                            arr[i]
+                        );
 
                     _setStyleValues(styles, el.style);
 
@@ -1016,7 +1014,6 @@ function RemoteFunctions(config, remoteWSPort) {
 
         // update highlight after applying diffs
         redrawHighlights();
-        //_collateResources();
     };
 
     function applyDOMEdits(edits) {
@@ -1074,6 +1071,12 @@ function RemoteFunctions(config, remoteWSPort) {
     
     var _ws = null;
     
+    function _sendDataOverSocket(data) {
+        if (_ws && _ws.readyState === WebSocket.OPEN) {
+            _ws.send(data);
+        }
+    }
+    
     function _indexOfRule(rules, rule) {
         var index;
         for (index in rules) {
@@ -1086,78 +1089,123 @@ function RemoteFunctions(config, remoteWSPort) {
         return index;
     }
     
+    function _getAcceptedProperty(key, element) {
+        var lastSelectorUsed;
+        var lastPriorityUsed;
+        var indexUsed;
+        
+        var value = null, tmpValue;
+        var isPrioritySet = false;
+        var rule, i;
+        var rulesets = window.getMatchedCSSRules(element) || [];
+        value = element.style.getPropertyValue(key);
+        var isDefaultPrioritySet = element.style.getPropertyPriority(key);
+        lastPriorityUsed = isDefaultPrioritySet;
+        
+        for (i = rulesets.length - 1; i >= 0 && !isDefaultPrioritySet; i--) {
+            rule = rulesets[i];
+            tmpValue = rule.style.getPropertyValue(key);
+            isPrioritySet = rule.style.getPropertyPriority(key);
+            if (tmpValue) {
+                if (!value) {
+                    value = tmpValue;
+                    lastSelectorUsed = rule.selectorText;
+                    lastPriorityUsed = isPrioritySet;
+                    indexUsed = i;
+                } else {
+                    if (lastSelectorUsed === rule.selectorText) {
+                        if (isPrioritySet || (!isPrioritySet && !lastPriorityUsed)) {
+                            value = tmpValue;
+                            lastSelectorUsed = rule.selectorText;
+                            lastPriorityUsed = isPrioritySet;
+                            indexUsed = i;
+                        }
+                    } else if (isPrioritySet) {
+                        if (!lastPriorityUsed) {
+                            value = tmpValue;
+                            lastSelectorUsed = rule.selectorText;
+                            lastPriorityUsed = isPrioritySet;
+                            indexUsed = i;
+                        }
+                    }
+                }
+            }
+        }
+        return { name: key, selector: lastSelectorUsed || "", value: value || "", index: rulesets.length - indexUsed, priority: lastPriorityUsed};
+    }
+    
     function _createContentBoxMetadata(element) {
         return {
-                width: _getAcceptedProperty("width", element),
-                height: _getAcceptedProperty("height", element)
-            };
+            width: _getAcceptedProperty("width", element),
+            height: _getAcceptedProperty("height", element)
+        };
     }
     
     function _createMarginBoxMetadata(element) {
         return {
-                "margin": _getAcceptedProperty("margin", element),
-                "margin-left": _getAcceptedProperty("margin-left", element),
-                "margin-top": _getAcceptedProperty("margin-top", element),
-                "margin-right": _getAcceptedProperty("margin-right", element),
-                "margin-bottom": _getAcceptedProperty("margin-bottom", element)
-            };
+            "margin": _getAcceptedProperty("margin", element),
+            "margin-left": _getAcceptedProperty("margin-left", element),
+            "margin-top": _getAcceptedProperty("margin-top", element),
+            "margin-right": _getAcceptedProperty("margin-right", element),
+            "margin-bottom": _getAcceptedProperty("margin-bottom", element)
+        };
     }
     
     function _createBorderBoxMetadata(element) {
         return {
-                "border": _getAcceptedProperty("border", element),
-                "border-left": _getAcceptedProperty("border-left", element),
-                "border-top": _getAcceptedProperty("border-top", element),
-                "border-right": _getAcceptedProperty("border-right", element),
-                "border-bottom": _getAcceptedProperty("border-bottom", element)
-            };
+            "border": _getAcceptedProperty("border", element),
+            "border-left": _getAcceptedProperty("border-left", element),
+            "border-top": _getAcceptedProperty("border-top", element),
+            "border-right": _getAcceptedProperty("border-right", element),
+            "border-bottom": _getAcceptedProperty("border-bottom", element)
+        };
     }
     
     function _createPaddingBoxMetadata(element) {
         return {
-                "padding": _getAcceptedProperty("padding", element),
-                "padding-left": _getAcceptedProperty("padding-left", element),
-                "padding-top": _getAcceptedProperty("padding-top", element),
-                "padding-right": _getAcceptedProperty("padding-right", element),
-                "padding-bottom": _getAcceptedProperty("padding-bottom", element)
-            };
-    }
-    
-    function _createMarginBox(styles, element){
-         return { 
-                    left : styles['margin-left'] || "-",
-                    right : styles['margin-right'] || "-",
-                    top : styles['margin-top'] || "-",
-                    bottom : styles['margin-bottom'] || "-",
-                    metadata : _createMarginBoxMetadata(element)
+            "padding": _getAcceptedProperty("padding", element),
+            "padding-left": _getAcceptedProperty("padding-left", element),
+            "padding-top": _getAcceptedProperty("padding-top", element),
+            "padding-right": _getAcceptedProperty("padding-right", element),
+            "padding-bottom": _getAcceptedProperty("padding-bottom", element)
         };
     }
     
-    function _createBorderBox(styles, element){
-        return { 
-                    left : styles['border-left-width'] || "-",
-                    right : styles['border-right-width'] || "-",
-                    top : styles['border-top-width'] || "-",
-                    bottom : styles['border-bottom-width'] || "-",
-                    metadata : _createBorderBoxMetadata(element)
+    function _createMarginBox(styles, element) {
+        return {
+            left : styles['margin-left'] || "-",
+            right : styles['margin-right'] || "-",
+            top : styles['margin-top'] || "-",
+            bottom : styles['margin-bottom'] || "-",
+            metadata : _createMarginBoxMetadata(element)
         };
     }
     
-    function _createPaddingBox(styles, element){
-        return { 
-                    left : styles['padding-left'] || "-",
-                    right : styles['padding-right'] || "-",
-                    top : styles['padding-top'] || "-",
-                    bottom : styles['padding-bottom'] || "-",
-                    metadata : _createPaddingBoxMetadata(element)
+    function _createBorderBox(styles, element) {
+        return {
+            left : styles['border-left-width'] || "-",
+            right : styles['border-right-width'] || "-",
+            top : styles['border-top-width'] || "-",
+            bottom : styles['border-bottom-width'] || "-",
+            metadata : _createBorderBoxMetadata(element)
         };
     }
     
-    function _createContentBox(styles, element){
-        return { 
-                    width : styles['width'] || "-",
-                    height : styles['height'] || "-",
-                    metadata : _createContentBoxMetadata(element)
+    function _createPaddingBox(styles, element) {
+        return {
+            left : styles['padding-left'] || "-",
+            right : styles['padding-right'] || "-",
+            top : styles['padding-top'] || "-",
+            bottom : styles['padding-bottom'] || "-",
+            metadata : _createPaddingBoxMetadata(element)
+        };
+    }
+    
+    function _createContentBox(styles, element) {
+        return {
+            width : styles.width || "-",
+            height : styles.height || "-",
+            metadata : _createContentBoxMetadata(element)
         };
     }
     
@@ -1168,7 +1216,7 @@ function RemoteFunctions(config, remoteWSPort) {
             margin : _createMarginBox(computedStyles, element),
             border : _createBorderBox(computedStyles, element),
             padding : _createPaddingBox(computedStyles, element),
-            content : _createContentBox(computedStyles, element)            
+            content : _createContentBox(computedStyles, element)
         };
     }
     
@@ -1189,21 +1237,21 @@ function RemoteFunctions(config, remoteWSPort) {
                     ruleIndex = _indexOfRule(rulesets[counter].parentStyleSheet.cssRules, rulesets[counter]);
                 }
                 if (rulesets[counter].parentRule && rulesets[counter].parentRule.media) {
-                    ruleObj = { selectorText: rulesets[counter].selectorText, 
-                                index: ruleIndex, 
-                                href: styleSheetPath, 
-                                media:rulesets[counter].parentRule.media[0],
+                    ruleObj = { selectorText: rulesets[counter].selectorText,
+                                index: ruleIndex,
+                                href: styleSheetPath,
+                                media: rulesets[counter].parentRule.media[0],
                                 parentIndex: parentRuleIndex
                             };
                 } else {
-                    ruleObj = { selectorText: rulesets[counter].selectorText, 
-                                index: ruleIndex, 
+                    ruleObj = { selectorText: rulesets[counter].selectorText,
+                                index: ruleIndex,
                                 href: styleSheetPath
                             };
                 }
                 ruleList.push(ruleObj);
                 counter--;
-            } 
+            }
         }
         return JSON.stringify(ruleList);
     }
@@ -1220,53 +1268,7 @@ function RemoteFunctions(config, remoteWSPort) {
         
         return JSON.stringify(hrchy);
     }
-    
-    function _getAcceptedProperty(key, element){
         
-        var lastSelectorUsed;
-        var lastPriorityUsed;
-        var indexUsed;
-        
-        var value = null,tmpValue;
-        var isPrioritySet = false;
-        var rule, i;
-        var rulesets = window.getMatchedCSSRules(element) || [];
-        value = element.style.getPropertyValue(key);
-        var isDefaultPrioritySet = element.style.getPropertyPriority(key);
-        lastPriorityUsed = isDefaultPrioritySet;
-        
-        for(i=rulesets.length - 1;i >=0 && !isDefaultPrioritySet;i--){
-            rule = rulesets[i];
-            tmpValue = rule.style.getPropertyValue(key);
-            isPrioritySet = rule.style.getPropertyPriority(key);
-            if(tmpValue){
-                if(!value){
-                    value = tmpValue;
-                    lastSelectorUsed = rule.selectorText;
-                    lastPriorityUsed = isPrioritySet;
-                    indexUsed = i;
-                } else {
-                    if(lastSelectorUsed === rule.selectorText){
-                        if(isPrioritySet || (!isPrioritySet && !lastPriorityUsed)){
-                            value = tmpValue;
-                            lastSelectorUsed = rule.selectorText;
-                            lastPriorityUsed = isPrioritySet;
-                            indexUsed = i;
-                        }
-                    } else if(isPrioritySet){
-                        if(!lastPriorityUsed){
-                            value = tmpValue;
-                            lastSelectorUsed = rule.selectorText;
-                            lastPriorityUsed = isPrioritySet;
-                            indexUsed = i;
-                        }
-                    }
-                }
-            }
-        }
-        return { name: key, selector: lastSelectorUsed || "", value: value || "", index: rulesets.length - indexUsed, priority: lastPriorityUsed};
-    }
-    
     function _sendLiveInspectionData(element, isRefresh) {
         var livedata = _stringifyLiveData(element),
             elmXPath = _stringyfyNodePath(element),
@@ -1278,6 +1280,37 @@ function RemoteFunctions(config, remoteWSPort) {
         }));
         
         lastHiglightedElement = element;
+    }
+    
+    function onDocumentClick(event, target) {
+        var element = target || event.target,
+            currentDataId,
+            newDataId;
+        
+        if (_ws && element && element.hasAttribute('data-brackets-id')) {
+            _sendDataOverSocket(JSON.stringify({
+                type: "message",
+                message: element.getAttribute('data-brackets-id')
+            }));
+        }
+        
+        setTimeout(function () {
+            _sendLiveInspectionData(element);
+        }, 0);
+    }
+    
+    function _getMajorDOMAttrStr(element) {
+        var tagStr = element.tagName;
+        if (element.id) {
+            tagStr += '#';
+            tagStr += element.id;
+        } else {
+            if (element.classList.length) {
+                tagStr += '.';
+                tagStr += element.classList.value.split(/\s/).join('.');
+            }
+        }
+        return tagStr + " ";
     }
       
     function _createInpectPane() {
@@ -1302,12 +1335,13 @@ function RemoteFunctions(config, remoteWSPort) {
             var targetElement = inspectDOM.elementFromPoint(event.clientX, event.clientY);
             var computedStyles = inspectWindow.getComputedStyle(targetElement);
             preview.style.pointerEvents = 'all';
-
             var rect = targetElement.getBoundingClientRect();
             var previewMask = inspectDOM.getElementsByClassName('content')[0];
             
-            var vertPaddingComp = parseInt(computedStyles['padding-top']) + parseInt(computedStyles['padding-bottom']),
-                horzPaddingComp = parseInt(computedStyles['padding-left']) + parseInt(computedStyles['padding-right']);
+            var titleStr = _getMajorDOMAttrStr(targetElement) + '| ' + rect.width + 'x' + rect.height;
+            
+            var vertPaddingComp = parseInt(computedStyles['padding-top'], 10) + parseInt(computedStyles['padding-bottom'], 10),
+                horzPaddingComp = parseInt(computedStyles['padding-left'], 10) + parseInt(computedStyles['padding-right'], 10);
 
             var computedWidth = (rect.width - horzPaddingComp) + 'px',
                 computedHeight = (rect.height - vertPaddingComp) + 'px';
@@ -1336,9 +1370,10 @@ function RemoteFunctions(config, remoteWSPort) {
             previewMask.style.borderTopWidth = computedStyles['margin-top'];
             previewMask.style.borderBottomWidth = computedStyles['margin-bottom'];
 
-            previewMask.style.left = (rect.left - parseInt(computedStyles['margin-left'])) + 'px';
-            previewMask.style.top = (rect.top - parseInt(computedStyles['margin-top'])) + 'px';
-
+            previewMask.style.left = (rect.left - parseInt(computedStyles['margin-left'], 10)) + 'px';
+            previewMask.style.top = (rect.top - parseInt(computedStyles['margin-top'], 10)) + 'px';
+            
+            previewMask.title = titleStr;
 
         });
 
@@ -1361,23 +1396,6 @@ function RemoteFunctions(config, remoteWSPort) {
     }
     
     window.removeInspectPane = _removeInspectPane;
-
-    function onDocumentClick(event, target) {
-        var element = target || event.target,
-            currentDataId,
-            newDataId;
-        
-        if (_ws && element && element.hasAttribute('data-brackets-id')) {
-            _sendDataOverSocket(JSON.stringify({
-                type: "message",
-                message: element.getAttribute('data-brackets-id')
-            }));
-        }
-        
-        setTimeout(function () {
-            _sendLiveInspectionData(element);
-        }, 0);
-    }
     
     var refreshScheduleID;
     
@@ -1392,18 +1410,13 @@ function RemoteFunctions(config, remoteWSPort) {
         }
     }
     
-    function _sendDataOverSocket(data) {
-        if (_ws && _ws.readyState === WebSocket.OPEN) {
-            _ws.send(data);
-        }
+    function _fetchPageSource() {
+        _sendDataOverSocket(JSON.stringify({type: "livedata", message: JSON.stringify({pageSource: window.document.documentElement.outerHTML})}));
     }
-    
-    
     
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
-            //window.document.addEventListener("click", onDocumentClick);
             _collateResources();
             window.document.addEventListener("DOMContentLoaded", _collateResources);
             window.document.addEventListener("unload", _collateResources);
@@ -1412,7 +1425,9 @@ function RemoteFunctions(config, remoteWSPort) {
         
         _ws.onmessage = function (evt) {
             var data = JSON.parse(evt.data);
-            if (data.inspect) {
+            if (data.requestLiveCode) {
+                _fetchPageSource();
+            } else if (data.inspect) {
                 _createInpectPane();
             } else {
                 _removeInspectPane();
@@ -1421,7 +1436,6 @@ function RemoteFunctions(config, remoteWSPort) {
                 
         _ws.onclose = function () {
             // websocket is closed
-            //window.document.removeEventListener("click", onDocumentClick);
             window.document.removeEventListener("DOMContentLoaded", _collateResources);
             window.document.removeEventListener("unload", _collateResources);
             window.removeEventListener("resize", _refreshLiveData);
