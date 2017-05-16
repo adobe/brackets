@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,17 +21,6 @@
  *
  */
 
-// FUTURE: Merge part (or all) of this class with InlineTextEditor
-
-/**
- * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a
- * contiguous set of lines in a file.
- *
- * In the current implementation, only one range is visible at a time. A list on the right side
- * of the editor allows the user to select which range is visible.
- *
- * This module does not dispatch any events.
- */
 define(function (require, exports, module) {
     "use strict";
 
@@ -52,7 +41,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         CSSUtils            = require("language/CSSUtils"),
-        CSSCustomParser     = require("LiveDevelopment/CSSParser"),
+        CSSCustomParser     = require("thirdparty/CSSParser"),
         WorkspaceManager        = require("view/WorkspaceManager"),
         Mustache                = require("thirdparty/mustache/mustache"),
         ConnectedToolsTemplate  = require("text!htmlContent/connected-tools.html");
@@ -413,9 +402,7 @@ define(function (require, exports, module) {
     
     WebSocketTransportDomain.on("livedata", function (obj, message) {
         message = JSON.parse(message);
-        if (message.urlchange) {
-            alert(message.newurl + "---" + message.trigger);
-        } else if (message.relatedFiles) {
+        if (message.relatedFiles) {
             if (message.source) {
                 var sourcePathInProject = ProjectManager.getProjectRoot()._path + message.source.substring(1);
                 if (sourcePathInProject !== _currentInspectedSource) {

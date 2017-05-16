@@ -1169,7 +1169,7 @@ function RemoteFunctions(config, remoteWSPort) {
             border : _createBorderBox(computedStyles, element),
             padding : _createPaddingBox(computedStyles, element),
             content : _createContentBox(computedStyles, element)            
-        }
+        };
     }
     
     function _stringifyLiveData(element) {
@@ -1284,17 +1284,17 @@ function RemoteFunctions(config, remoteWSPort) {
         if (window.document.getElementById('preview-mask')) {
             return;
         }
-        var inspectPane = document.createElement('div');
+        var inspectPane = window.document.createElement('div');
         inspectPane.id = "preview-mask";
-        inspectPane.innerHTML = '<div id="preview" class="margin" name="margin" style="border-color: rgba(246, 178, 107, 0.658824);position:absolute;border-style:solid;margin:0px !important;padding:0px !important;"><div class="border" name="border" accesskey="" style="border-color: rgba(255, 229, 153, 0.658824);border-style:solid;margin:0px !important;padding:0px !important;"><div class="padding" name="padding" style="border-color: rgba(147, 196, 125, 0.54902);border-style:solid;margin:0px !important;padding:0px !important;"><div class="content" style="background-color: rgba(111, 168, 220, 0.658824);"></div></div></div></div>'
+        inspectPane.innerHTML = '<div id="preview" class="margin" name="margin" style="border-color: rgba(246, 178, 107, 0.658824);position:absolute;border-style:solid;margin:0px !important;padding:0px !important;"><div class="border" name="border" accesskey="" style="border-color: rgba(255, 229, 153, 0.658824);border-style:solid;margin:0px !important;padding:0px !important;"><div class="padding" name="padding" style="border-color: rgba(147, 196, 125, 0.54902);border-style:solid;margin:0px !important;padding:0px !important;"><div class="content" style="background-color: rgba(111, 168, 220, 0.658824);"></div></div></div></div>';
         
         inspectPane.style.cssText = "position: fixed; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; pointer-events: all;z-index:1000000;";
         window.document.body.append(inspectPane);
         inspectPane = window.document.getElementById('preview-mask');
         
-        var preview = document.getElementById('preview-mask');
         var inspectWindow = window,
-            inspectDOM = document;
+            inspectDOM = windo.document,
+            preview = inspectDOM.getElementById('preview-mask');
                 
             
         preview.addEventListener('mousemove', function (event) {
