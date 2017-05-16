@@ -1418,7 +1418,7 @@ define(function LiveDevelopment(require, exports, module) {
         // close the current session and begin a new session if the current
         // document changes to an HTML document that was not loaded yet
         var docUrl = _server && _server.pathToUrl(doc.file.fullPath),
-            wasRequested = agents.network && agents.network.wasURLRequested(docUrl),
+            wasRequested = agents.network && !agents.network.liveSourceSync && agents.network.wasURLRequested(docUrl),
             isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
 
         if (!wasRequested && isViewable) {

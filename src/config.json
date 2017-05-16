@@ -47,7 +47,7 @@
         "request": "2.79.0",
         "semver": "5.3.0",
         "temp": "0.8.3",
-        "ws": "~0.4.31"
+        "ws": "2.3.1"
     },
     "devDependencies": {
         "glob": "7.1.1",
@@ -59,7 +59,7 @@
         "phantomjs": "1.9.18",
         "grunt-lib-phantomjs": "0.3.0",
         "grunt-eslint": "19.0.0",
-        "grunt-contrib-watch": "0.4.3",
+        "grunt-contrib-watch": "1.0.0",
         "grunt-contrib-jasmine": "0.4.2",
         "grunt-template-jasmine-requirejs": "0.1.0",
         "grunt-contrib-cssmin": "0.6.0",

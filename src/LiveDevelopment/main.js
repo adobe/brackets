@@ -49,8 +49,8 @@ define(function main(require, exports, module) {
         ExtensionUtils          = require("utils/ExtensionUtils"),
         StringUtils             = require("utils/StringUtils"),
         WorkspaceManager        = require("view/WorkspaceManager"),
-        Mustache                = require("thirdparty/mustache/mustache"),
-        ConnectedToolsTemplate  = require("text!htmlContent/connected-tools.html");
+        Mustache                = require("thirdparty/mustache/mustache");
+        
 
     var params = new UrlParams();
     var config = {
@@ -382,14 +382,6 @@ define(function main(require, exports, module) {
                     _setImplementation(prefs.get(PREF_MULTIBROWSER));
                 }
             });
-            
-        // Create bottom panel for connected tools
-        var livedataHtml = Mustache.render(ConnectedToolsTemplate, Strings);
-        var $livedataPanel = WorkspaceManager.createBottomPanel("livedata-tools", $(livedataHtml), 100);
-        
-        $("#livedata-tools .close").on("click", function () {
-            $livedataPanel.hide();
-        });
         
         remoteHighlightPref
             .on("change", function () {

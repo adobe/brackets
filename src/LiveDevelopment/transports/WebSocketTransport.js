@@ -66,7 +66,12 @@ define(function (require, exports, module) {
         WebSocketTransportDomain.exec("close");
     }
     
+    function sendDataToBrowser(data) {
+        WebSocketTransportDomain.exec("send", data);
+    }
+    
     exports.WebSocketTransportDomain = WebSocketTransportDomain;
     exports.createWebSocketServer = createWebSocketServer;
     exports.closeWebSocketServer  = closeWebSocketServer;
+    exports.sendDataToBrowser  = sendDataToBrowser;
 });

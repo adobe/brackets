@@ -43,6 +43,13 @@ var _wsServer;
 
 /**
  * @private
+ * The WebSocket we use for communication.
+ * @type {?WebSocket}
+ */
+ //var _ws;
+
+/**
+ * @private
  * The Brackets domain manager for registering node extensions.
  * @type {?DomainManager}
  */
@@ -56,9 +63,15 @@ function _createServer(socketPort) {
     if (!_wsServer) {
         // TODO: make port configurable, or use random port
         _wsServer = new WebSocketServer({port: socketPort});
+        //_ws = null;
         _wsServer.on("connection", function (ws) {
+            /*console.log("connected", arguments);
+            _ws = ws;
+            _ws.on('open', function () {
+                _ws.send("Got you!");
+            });*/
             ws.on("message", function (msg) {
-                console.log("WebSocketServer - received - " + msg);
+                //console.log("WebSocketServer - received - " + msg);
                 var msgObj;
                 try {
                     msgObj = JSON.parse(msg);
@@ -95,6 +108,7 @@ function _createServer(socketPort) {
                 console.log("webSocketTransport closed");
             });
         }).on("error", function (e) {
+            //_ws = null;
             console.error("webSocketTransport: Error on live preview server creation: " + e);
         });
     }
@@ -116,6 +130,16 @@ function _cmdClose() {
         _wsServer.close();
         _wsServer = null;
     }
+}
+
+/**
+ * Sends data over the socket
+ */
+function _sendDataOverSocket(data) {
+    console.log(" Sending data to preview page", data);
+    _wsServer.clients.forEach(function each(client) {
+        client.send(data);
+    });
 }
 
 /**
@@ -176,6 +200,21 @@ function init(domainManager) {
         "Kills the websocket server",
         []
     );
+    
+    domainManager.registerCommand(
+        "webSocketTransport",       // domain name
+        "send",                     // command name
+        _sendDataOverSocket,        // command handler function
+        false,                      // this command is synchronous in Node
+        "sends data to the client",
+        [{
+            name: "data",
+            type: "string",
+            description: "JSON data to client page"
+        }],
+        []
+    );
+    
 }
 
 exports.init = init;

@@ -31,9 +31,163 @@
     }
 }
 
+.connected-tools {
+    display:none;
+}
+
+.connected .connected-tools {
+    display:block;
+}
+
+.connected div#status-file {
+    display:none;
+}
+
+.connected #status-info {
+    float:right;
+    position: static;
+}
+
+.connected #sidebar {
+    min-width: 180px !important;
+}
+
+#inspect-toolbar {
+    width:100%;
+    display:none;
+    height:30px;
+    padding-top: 7px;
+    padding-left: 5px;
+}
+
+.connected #inspect-toolbar {
+    display:block !important;
+}
+.empty-related-container {
+    min-height: initial;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    height: calc(100% - 202px) !important;
+    background: #dfe2e2;
+    width: 250px;
+    text-align: center;
+    padding-top: 20px;
+    box-sizing: border-box;
+}
+
+.dark .empty-related-container {
+    background: #2c2c2c;
+}
+
+#status-bar {
+    #breadcrumb {
+        position:absolute;
+        list-style: none;
+        display: inline-block;
+        width:900px;
+        left: 10px;
+        top:3px;
+        margin-left: 0px;
+    }
+    #breadcrumb li {
+      float: left;
+    }
+    #breadcrumb li a {
+      color: #fff;
+      display: block;
+      background: #3498db;
+      text-decoration: none;
+      position: relative;
+      height: 20px;
+      line-height: 20px;
+      padding: 0 10px 0 5px;
+      text-align: center;
+      margin-right: 23px;
+    }
+    #breadcrumb li:nth-child(even) a {
+      background-color: #2980b9;
+    }
+    #breadcrumb li:nth-child(even) a:before {
+      border-color: #2980b9;
+      border-left-color: transparent;
+    }
+    #breadcrumb li:nth-child(even) a:after {
+      border-left-color: #2980b9;
+    }
+    #breadcrumb li:first-child a {
+      padding-left: 15px;
+      -moz-border-radius: 4px 0 0 4px;
+      -webkit-border-radius: 4px;
+      border-radius: 4px 0 0 4px;
+    }
+    #breadcrumb li:first-child a:before {
+      border: none;
+    }
+    #breadcrumb li:last-child a {
+      padding-right: 15px;
+      -moz-border-radius: 0 4px 4px 0;
+      -webkit-border-radius: 0;
+      border-radius: 0 4px 4px 0;
+    }
+    #breadcrumb li:last-child a:after {
+      border: none;
+    }
+    #breadcrumb li a:before, #breadcrumb li a:after {
+      content: "";
+      position: absolute;
+      top: 0;
+      border: 0 solid #3498db;
+      border-width: 10px 10px;
+      width: 0;
+      height: 0;
+    }
+    #breadcrumb li a:before {
+      left: -20px;
+      border-left-color: transparent;
+    }
+    #breadcrumb li a:after {
+      left: 100%;
+      border-color: transparent;
+      border-left-color: #3498db;
+    }
+    #breadcrumb li a:hover {
+      background-color: #1abc9c;
+    }
+    #breadcrumb li a:hover:before {
+      border-color: #1abc9c;
+      border-left-color: transparent;
+    }
+    #breadcrumb li a:hover:after {
+      border-left-color: #1abc9c;
+    }
+    #breadcrumb li a:active {
+      background-color: #16a085;
+    }
+    #breadcrumb li a:active:before {
+      border-color: #16a085;
+      border-left-color: transparent;
+    }
+    #breadcrumb li a:active:after {
+      border-left-color: #16a085;
+    }
+}
+
 #livedata-tools {
+    .related-container {
+        min-height: initial;
+        position:absolute;
+        top:0px;
+        right:0px;
+    }
     .CodeMirror, .CodeMirror-gutters {
         background: transparent !important;
+    }
+}
+
+.dark #livedata-tools {
+    .CodeMirror .CodeMirror-cursor {
+        border-left: 1px solid #ccc;
     }
 }
 
@@ -41,9 +195,257 @@
     opacity:0.5 !important;
 }
 
+.in-preview .extension::after {
+    content: "●";
+    color: #8fddff;
+    margin-left: 5px;
+}
+
+li.activeMedia::after {
+    color: #e88501;
+    content: "@media";
+    margin-left:5px;
+}
+
+li.jstree-closed.in-preview > a > span::after {
+    content: "●";
+    color: #8fddff;
+    margin-left: 5px;
+}
+
+.in-preview .not-in-preview .extension::after {
+    content: "";
+    color: transparent;
+    margin-left: 0px;
+}
+
 .not-in-preview .not-in-preview{
     opacity:1 !important;
 }
+
+.connected #editor-holder {
+    /*height:calc(100% - 40px);
+    margin-top:40px;*/
+}
+
+#related-files-container {
+    display:none;
+    position:absolute;
+    width:100%;
+    height:37px;
+    top:0px;
+    left:0px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    background: #5D5F60;
+}
+
+.connected .content #related-files-container {
+    display:none;
+}
+
+#related-files-container > ul {
+    white-space: nowrap;
+}
+
+.connected .content #related-files-container > ul > li {
+    display:inline-block;
+    float:none;
+}
+
+.connected .content #related-files-container > ul > li > a {
+    color: white;
+}
+
+.connected .content #related-files-container > ul > li.active > a {
+    background-color: #2D2E30;
+    color: #8fddff;
+}
+
+.connected .content #related-files-container > ul > li > a:hover {
+    background-color: #2D2E30;
+}
+
+.connected .content #related-files-container > ul > li > a .extension {
+    color: #adb9bd;
+}
+
+#livedata-tools .metrics {
+    min-height: 160px;
+    position: absolute;
+    bottom: 0px;
+    right: 3px;
+    width: 230px;
+    display: flex;
+    flex-direction: column;
+    -webkit-align-items: center;
+    -webkit-justify-content: center;
+    border-top: 1px solid #ccc;
+    border-bottom: none;
+    border-bottom: 1px solid #ccc;
+    padding: 8px;
+    font-size: 10px;
+    text-align: center;
+    white-space: nowrap;
+    background: #dfe2e2;
+}
+
+.metrics .margin {
+    border: 1px dashed;
+    background-color: white;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 3px;
+    margin: 3px;
+}
+
+.dark #livedata-tools .metrics{
+    background: #2c2c2c;
+    border-color: #5c5c5c;
+    color: #222;
+}
+
+.metrics .lbl {
+    position: absolute;
+    font-size: 10px;
+    margin-left: 3px;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.metrics .top {
+    display: inline-block;
+}
+
+.metrics .left {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.metrics .border {
+    border: 1px black solid;
+    background-color: white;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 3px;
+    margin: 3px;
+}
+
+.metrics .right {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.metrics .bottom {
+    display: inline-block;
+}
+
+.metrics .padding {
+    border: 1px grey dashed;
+    background-color: white;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 3px;
+    margin: 3px;
+}
+
+.metrics .contentbox {
+    position: static;
+    border: 1px gray solid;
+    background-color: white;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 3px;
+    margin: 3px;
+    min-width: 80px;
+    overflow: visible;
+}
+
+// Statusbar inspect slider
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  top:-2px;
+  border-left: 1px solid rgba(0, 0, 0, 0.09);
+}
+
+.switch input {display:none;}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 10px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 4px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 10px;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(14px);
+  -ms-transform: translateX(14px);
+  transform: translateX(14px);
+}
+
+.inspect-toggle {
+    display: inline-block;
+    margin-left:5px;
+    margin-top:3px;
+    float:left;
+}
+
+#toggle-reverse-inspect {
+    float: left;
+    margin-top: 0px;
+    margin-left: 10px;
+    background: transparent;
+    color: lightgray;
+    font-size: 16px;
+}
+
+#toggle-reverse-inspect.active {
+    color:#2196F3;
+}
+
+/*#related-files-container:hover {
+    overflow-x: auto;
+}*/
+
+/*#related-files-container::-webkit-scrollbar {
+    background-color: transparent;
+}*/
+
   
 @-webkit-keyframes flash {
     from {

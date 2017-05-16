@@ -4813,7 +4813,7 @@
       "dev": true
     },
     "ws": {
-      "version": "0.4.32",
+      "version": "2.3.1",
       "from": "ws@>=0.4.31 <0.5.0",
       "resolved": "https://registry.npmjs.org/ws/-/ws-0.4.32.tgz",
       "dependencies": {

@@ -235,7 +235,7 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
         this.detachFromEditor();
 
-        if (newActive && newActive.document === this.doc) {
+        if (newActive && newActive.document === this.doc && !newActive.connected) {
             this.attachToEditor(newActive);
         }
     };

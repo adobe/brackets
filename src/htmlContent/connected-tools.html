@@ -1,27 +1,52 @@
 <div id="livedata-tools" class="inline-widget bottom-panel vert-resizable top-resizer no-focus">
-    <div class="toolbar simple-toolbar-layout">
-        <ul id="breadcrumb" style="position: static;list-style: none;display: inline-block; padding: 1px;margin: 0px;"></ul>
-        <a href="#" class="close" style="left: calc(100% - 20px);">&times;</a>
-    </div>
-    <div class="related-container" style="min-height: calc(100% - 40px)">
-        <div class="selection" style="display: block; top: 31px; height: 22px;"></div>
+    <div class="empty-related-container" style="height: calc(100% - 202px) !important;">No matched selector</div>
+    <div class="related-container" style="height: calc(100% - 202px) !important;">
+        <div class="selection" style="display: block; top: 1px; height: 22px;"></div>
         <div class="related">
             <ul>
-                <li class="section-header" title="main.css"><span class="disclosure-triangle expanded"></span><span class="filename"></span></li>
-                <li title="" class="selected"><span class="related-file"></span></li>
-                <li title="h2 :25"><span class="related-file"></span></li>
             </ul>
         </div>
     </div>
-    <div class="inline-text-editor">
+    <div class="metrics">
+        <div class="margin" name="margin" style="background-color: rgba(246, 178, 107, 0.658824);">
+            <div class="lbl">margin</div>
+            <div class="top" name="margin-top">-</div>
+            <br>
+            <div class="left" name="margin-left">-</div>
+            <div class="border" name="border" accesskey=""style="background-color: rgba(255, 229, 153, 0.658824);">
+                <div class="lbl">border</div>
+                <div class="top" name="border-top">-</div>
+                <br>
+                <div class="left" name="border-left">-</div>
+                <div class="padding" name="padding" style="background-color: rgba(147, 196, 125, 0.54902);">
+                    <div class="lbl">padding</div>
+                    <div class="top" name="padding-top">-</div>
+                    <br>
+                    <div class="left" name="padding-left">-</div>
+                    <div class="contentbox" style="background-color: rgba(111, 168, 220, 0.658824);">
+                <span class="contentwidth">auto</span>&nbsp;x&nbsp;<span class="contentheight">auto</span>
+            </div>
+                    <div class="right" name="padding-right">-</div>
+                    <br>
+                    <div class="bottom" name="padding-bottom">-</div>
+                </div>
+                <div class="right" name="border-right">-</div>
+                <br>
+                <div class="bottom" name="border-bottom">-</div>
+            </div>
+            <div class="right" name="margin-right">-</div>
+            <br>
+            <div class="bottom" name="margin-bottom">-</div>
+        </div>
+    </div>
+    <div class="inline-text-editor" style="width:calc(100% - 260px);height:100%;">
         <div class="inline-editor-header">
             <a class="filename" title="">
                 <div class="dirty-indicator" style="width: 0px;">•</div>
                 <span class="line-number"></span>
             </a>
-            <button class="btn btn-mini stylesheet-button">New Rule</button>
         </div>
-        <div class="inline-editor-holder" style="display: block;">
+        <div class="inline-editor-holder" style="display: block;width:100%; height:calc(100% - 30px);">
         </div>
     </div>
 </div>

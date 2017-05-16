@@ -35,21 +35,21 @@ function RemoteFunctions(config, remoteWSPort) {
 
     var experimental;
     if (!config) {
-        experimental = false;    
+        experimental = false;
     } else {
-        experimental = config.experimental;    
+        experimental = config.experimental;
     }
     var lastKeepAliveTime = Date.now();
     var req, timeout;
     var animateHighlight = function (time) {
-        if(req) {
-            window.cancelAnimationFrame(req);	
+        if (req) {
+            window.cancelAnimationFrame(req);
             window.clearTimeout(timeout);
         }
         req = window.requestAnimationFrame(redrawHighlights);
 
         timeout = setTimeout(function () {
-            window.cancelAnimationFrame(req);	
+            window.cancelAnimationFrame(req);
             req = null;
         }, time * 1000);
     };
@@ -58,6 +58,9 @@ function RemoteFunctions(config, remoteWSPort) {
      * @type {DOMEditHandler}
      */
     var _editHandler;
+    
+    
+    var lastHiglightedElement;
 
     var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight",
         KEEP_ALIVE_TIMEOUT  = 3000;   // Keep alive timeout value, in milliseconds
@@ -256,7 +259,7 @@ function RemoteFunctions(config, remoteWSPort) {
         var elements = path.split("/");
         var folder;
         
-        while(elements.length > 1) {
+        while (elements.length > 1) {
             elements.pop();
             folder =  elements.join("/").split("%20").join(' ');
             if (files.indexOf(folder) === -1) {
@@ -267,32 +270,38 @@ function RemoteFunctions(config, remoteWSPort) {
         return path.split("%20").join(' ');
     }
     
+    function _isResourceFromDisk(path) {
+        return path.indexOf(window.location.origin) === 0;
+    }
+    
     function _collateResources() {
         var files = [], item;
         
+        var sourceFile = window.location.href.replace(window.location.origin, "").split("%20").join(' ');
+        
         files.push(_processDecodedURL(window.location.href.replace(window.location.origin, ""), files));
         
-        for(item in document.styleSheets) {
-            if (document.styleSheets[item].href) {
-                files.push(_processDecodedURL(document.styleSheets[item].href.replace(window.location.origin, ""), files));
+        for (item in window.document.styleSheets) {
+            if (window.document.styleSheets[item].href && _isResourceFromDisk(window.document.styleSheets[item].href)) {
+                files.push(_processDecodedURL(window.document.styleSheets[item].href.replace(window.location.origin, ""), files));
             }
         }
         
-        for(item in document.scripts) {
-            if (document.scripts[item].src) {
-                files.push(_processDecodedURL(document.scripts[item].src.replace(window.location.origin, ""), files));
+        for (item in window.document.scripts) {
+            if (window.document.scripts[item].src && _isResourceFromDisk(window.document.scripts[item].src)) {
+                files.push(_processDecodedURL(window.document.scripts[item].src.replace(window.location.origin, ""), files));
             }
         }
         
-        for(item in document.images) {
-            if (document.images[item].src) {
-                files.push(_processDecodedURL(document.images[item].src.replace(window.location.origin, ""), files));
+        for (item in window.document.images) {
+            if (window.document.images[item].src && _isResourceFromDisk(window.document.images[item].src)) {
+                files.push(_processDecodedURL(window.document.images[item].src.replace(window.location.origin, ""), files));
             }
         }
         
-        var msg = JSON.stringify({relatedFiles: JSON.stringify(files)});
+        var msg = JSON.stringify({relatedFiles: JSON.stringify(files), source: sourceFile});
 
-        _ws.send(JSON.stringify({
+        _sendDataOverSocket(JSON.stringify({
             type: "livedata",
             message: msg
         }));
@@ -352,8 +361,7 @@ function RemoteFunctions(config, remoteWSPort) {
             if (!borderBox) {
                 innerWidth += parseInt(elementStyling.paddingLeft) + parseInt(elementStyling.paddingRight);
                 innerHeight += parseInt(elementStyling.paddingTop) + parseInt(elementStyling.paddingBottom);
-                outerWidth = innerWidth + parseInt(realElBorder.right) +
-                parseInt(realElBorder.left),
+                outerWidth = innerWidth + parseInt(realElBorder.right) + parseInt(realElBorder.left);
                 outerHeight = innerHeight + parseInt(realElBorder.bottom) + parseInt(realElBorder.top);
             }
 
@@ -530,11 +538,7 @@ function RemoteFunctions(config, remoteWSPort) {
             
             if (_ws && element && element.hasAttribute('data-brackets-id')) {
                 setTimeout(function () {
-                    //_sendLiveInspectionData(element);
-                }, 100);
-                
-                setTimeout(function () {
-                    _collateResources();
+                    _sendLiveInspectionData(element);
                 }, 100);
             }
         },
@@ -667,7 +671,7 @@ function RemoteFunctions(config, remoteWSPort) {
             _setup = true;
         }
     }
-
+    
     /** Public Commands **********************************************************/
 
     // keep alive. Called once a second when a Live Development connection is active.
@@ -924,6 +928,7 @@ function RemoteFunctions(config, remoteWSPort) {
         var targetID,
             targetElement,
             childElement,
+            reparseResources = false,
             self = this;
 
         this.rememberedNodes = {};
@@ -1010,6 +1015,7 @@ function RemoteFunctions(config, remoteWSPort) {
 
         // update highlight after applying diffs
         redrawHighlights();
+        //_collateResources();
     };
 
     function applyDOMEdits(edits) {
@@ -1079,24 +1085,124 @@ function RemoteFunctions(config, remoteWSPort) {
         return index;
     }
     
+    function _createContentBoxMetadata(element) {
+        return {
+                width: _getAcceptedProperty("width", element),
+                height: _getAcceptedProperty("height", element)
+            };
+    }
+    
+    function _createMarginBoxMetadata(element) {
+        return {
+                "margin": _getAcceptedProperty("margin", element),
+                "margin-left": _getAcceptedProperty("margin-left", element),
+                "margin-top": _getAcceptedProperty("margin-top", element),
+                "margin-right": _getAcceptedProperty("margin-right", element),
+                "margin-bottom": _getAcceptedProperty("margin-bottom", element)
+            };
+    }
+    
+    function _createBorderBoxMetadata(element) {
+        return {
+                "border": _getAcceptedProperty("border", element),
+                "border-left": _getAcceptedProperty("border-left", element),
+                "border-top": _getAcceptedProperty("border-top", element),
+                "border-right": _getAcceptedProperty("border-right", element),
+                "border-bottom": _getAcceptedProperty("border-bottom", element)
+            };
+    }
+    
+    function _createPaddingBoxMetadata(element) {
+        return {
+                "padding": _getAcceptedProperty("padding", element),
+                "padding-left": _getAcceptedProperty("padding-left", element),
+                "padding-top": _getAcceptedProperty("padding-top", element),
+                "padding-right": _getAcceptedProperty("padding-right", element),
+                "padding-bottom": _getAcceptedProperty("padding-bottom", element)
+            };
+    }
+    
+    function _createMarginBox(styles, element){
+         return { 
+                    left : styles['margin-left'] || "-",
+                    right : styles['margin-right'] || "-",
+                    top : styles['margin-top'] || "-",
+                    bottom : styles['margin-bottom'] || "-",
+                    metadata : _createMarginBoxMetadata(element)
+        };
+    }
+    
+    function _createBorderBox(styles, element){
+        return { 
+                    left : styles['border-left-width'] || "-",
+                    right : styles['border-right-width'] || "-",
+                    top : styles['border-top-width'] || "-",
+                    bottom : styles['border-bottom-width'] || "-",
+                    metadata : _createBorderBoxMetadata(element)
+        };
+    }
+    
+    function _createPaddingBox(styles, element){
+        return { 
+                    left : styles['padding-left'] || "-",
+                    right : styles['padding-right'] || "-",
+                    top : styles['padding-top'] || "-",
+                    bottom : styles['padding-bottom'] || "-",
+                    metadata : _createPaddingBoxMetadata(element)
+        };
+    }
+    
+    function _createContentBox(styles, element){
+        return { 
+                    width : styles['width'] || "-",
+                    height : styles['height'] || "-",
+                    metadata : _createContentBoxMetadata(element)
+        };
+    }
+    
+    
+    function _createBoxModelData(element) {
+        var computedStyles = window.getComputedStyle(element);
+        return {
+            margin : _createMarginBox(computedStyles, element),
+            border : _createBorderBox(computedStyles, element),
+            padding : _createPaddingBox(computedStyles, element),
+            content : _createContentBox(computedStyles, element)            
+        }
+    }
+    
     function _stringifyLiveData(element) {
         var rulesets = window.getMatchedCSSRules(element) || [];
         var counter = rulesets.length - 1;
-        var ruleList = {};
-        var styleSheetPath, pathEntry, ruleIndex = -1;
+        var ruleList = [];//{};
+        var styleSheetPath, pathEntry, ruleObj, ruleIndex = -1, parentRuleIndex = -1;
         
         while (counter >= 0) {
             styleSheetPath = rulesets[counter].parentStyleSheet.href || "";
             if (styleSheetPath) {
                 styleSheetPath = styleSheetPath.replace(window.location.origin, "").split('%20').join(' ');
-                ruleIndex = _indexOfRule(rulesets[counter].parentStyleSheet.cssRules, rulesets[counter]);
-            }
-            
-            pathEntry = ruleList[styleSheetPath] || [];
-            pathEntry.push({selectorText: rulesets[counter].selectorText, index: ruleIndex});
-            ruleList[styleSheetPath] = pathEntry;
-            
-            counter--;
+                if (rulesets[counter].parentRule) {
+                    parentRuleIndex = _indexOfRule(rulesets[counter].parentStyleSheet.cssRules, rulesets[counter].parentRule);
+                    ruleIndex = _indexOfRule(rulesets[counter].parentRule.cssRules, rulesets[counter]);
+                } else {
+                    ruleIndex = _indexOfRule(rulesets[counter].parentStyleSheet.cssRules, rulesets[counter]);
+                }
+                if (rulesets[counter].parentRule && rulesets[counter].parentRule.media) {
+                    ruleObj = { selectorText: rulesets[counter].selectorText, 
+                                index: ruleIndex, 
+                                href: styleSheetPath, 
+                                media:rulesets[counter].parentRule.media[0],
+                                parentIndex: parentRuleIndex
+                            };
+                } else {
+                    ruleObj = { selectorText: rulesets[counter].selectorText, 
+                                index: ruleIndex, 
+                                href: styleSheetPath
+                            };
+                }
+                ruleList.push(ruleObj);
+                counter--;
+            } 
         }
         return JSON.stringify(ruleList);
     }
@@ -1114,51 +1220,210 @@ function RemoteFunctions(config, remoteWSPort) {
         return JSON.stringify(hrchy);
     }
     
-    function _sendLiveInspectionData(element) {
+    function _getAcceptedProperty(key, element){
+        
+        var lastSelectorUsed;
+        var lastPriorityUsed;
+        var indexUsed;
+        
+        var value = null,tmpValue;
+        var isPrioritySet = false;
+        var rule, i;
+        var rulesets = window.getMatchedCSSRules(element) || [];
+        value = element.style.getPropertyValue(key);
+        var isDefaultPrioritySet = element.style.getPropertyPriority(key);
+        lastPriorityUsed = isDefaultPrioritySet;
+        
+        for(i=rulesets.length - 1;i >=0 && !isDefaultPrioritySet;i--){
+            rule = rulesets[i];
+            tmpValue = rule.style.getPropertyValue(key);
+            isPrioritySet = rule.style.getPropertyPriority(key);
+            if(tmpValue){
+                if(!value){
+                    value = tmpValue;
+                    lastSelectorUsed = rule.selectorText;
+                    lastPriorityUsed = isPrioritySet;
+                    indexUsed = i;
+                } else {
+                    if(lastSelectorUsed === rule.selectorText){
+                        if(isPrioritySet || (!isPrioritySet && !lastPriorityUsed)){
+                            value = tmpValue;
+                            lastSelectorUsed = rule.selectorText;
+                            lastPriorityUsed = isPrioritySet;
+                            indexUsed = i;
+                        }
+                    } else if(isPrioritySet){
+                        if(!lastPriorityUsed){
+                            value = tmpValue;
+                            lastSelectorUsed = rule.selectorText;
+                            lastPriorityUsed = isPrioritySet;
+                            indexUsed = i;
+                        }
+                    }
+                }
+            }
+        }
+        return { name: key, selector: lastSelectorUsed || "", value: value || "", index: rulesets.length - indexUsed, priority: lastPriorityUsed};
+    }
+    
+    function _sendLiveInspectionData(element, isRefresh) {
         var livedata = _stringifyLiveData(element),
             elmXPath = _stringyfyNodePath(element),
-            msg      = JSON.stringify({data: livedata, path: elmXPath});
+            msg      = JSON.stringify({data: livedata, path: elmXPath, boxmodel: _createBoxModelData(element), refresh: isRefresh || false});
 
-        _ws.send(JSON.stringify({
+        _sendDataOverSocket(JSON.stringify({
             type: "livedata",
             message: msg
         }));
+        
+        lastHiglightedElement = element;
     }
+      
+    function _createInpectPane() {
+        if (window.document.getElementById('preview-mask')) {
+            return;
+        }
+        var inspectPane = document.createElement('div');
+        inspectPane.id = "preview-mask";
+        inspectPane.innerHTML = '<div id="preview" class="margin" name="margin" style="border-color: rgba(246, 178, 107, 0.658824);position:absolute;border-style:solid;margin:0px !important;padding:0px !important;"><div class="border" name="border" accesskey="" style="border-color: rgba(255, 229, 153, 0.658824);border-style:solid;margin:0px !important;padding:0px !important;"><div class="padding" name="padding" style="border-color: rgba(147, 196, 125, 0.54902);border-style:solid;margin:0px !important;padding:0px !important;"><div class="content" style="background-color: rgba(111, 168, 220, 0.658824);"></div></div></div></div>'
+        
+        inspectPane.style.cssText = "position: fixed; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; pointer-events: all;z-index:1000000;";
+        window.document.body.append(inspectPane);
+        inspectPane = window.document.getElementById('preview-mask');
+        
+        var preview = document.getElementById('preview-mask');
+        var inspectWindow = window,
+            inspectDOM = document;
+                
+            
+        preview.addEventListener('mousemove', function (event) {
+            preview.style.pointerEvents = 'none';
+            var targetElement = inspectDOM.elementFromPoint(event.clientX, event.clientY);
+            var computedStyles = inspectWindow.getComputedStyle(targetElement);
+            preview.style.pointerEvents = 'all';
 
-    function onDocumentClick(event) {
-        var element = event.target,
+            var rect = targetElement.getBoundingClientRect();
+            var previewMask = inspectDOM.getElementsByClassName('content')[0];
+            
+            var vertPaddingComp = parseInt(computedStyles['padding-top']) + parseInt(computedStyles['padding-bottom']),
+                horzPaddingComp = parseInt(computedStyles['padding-left']) + parseInt(computedStyles['padding-right']);
+
+            var computedWidth = (rect.width - horzPaddingComp) + 'px',
+                computedHeight = (rect.height - vertPaddingComp) + 'px';
+
+            previewMask.style.width = computedWidth;
+            previewMask.style.height = computedHeight;
+
+            previewMask = previewMask.parentElement;
+
+            previewMask.style.borderLeftWidth = computedStyles['padding-left'];
+            previewMask.style.borderRightWidth = computedStyles['padding-right'];
+            previewMask.style.borderTopWidth = computedStyles['padding-top'];
+            previewMask.style.borderBottomWidth = computedStyles['padding-bottom'];
+
+            previewMask = previewMask.parentElement;
+
+            previewMask.style.borderLeftWidth = computedStyles['border-left-width'];
+            previewMask.style.borderRightWidth = computedStyles['border-right-width'];
+            previewMask.style.borderTopWidth = computedStyles['border-top-width'];
+            previewMask.style.borderBottomWidth = computedStyles['border-bottom-width'];
+
+            previewMask = previewMask.parentElement;
+
+            previewMask.style.borderLeftWidth = computedStyles['margin-left'];
+            previewMask.style.borderRightWidth = computedStyles['margin-right'];
+            previewMask.style.borderTopWidth = computedStyles['margin-top'];
+            previewMask.style.borderBottomWidth = computedStyles['margin-bottom'];
+
+            previewMask.style.left = (rect.left - parseInt(computedStyles['margin-left'])) + 'px';
+            previewMask.style.top = (rect.top - parseInt(computedStyles['margin-top'])) + 'px';
+
+
+        });
+
+        inspectPane.addEventListener('click', function (event) {
+            inspectPane.style.pointerEvents = 'none';
+            var targetElement = inspectDOM.elementFromPoint(event.clientX, event.clientY);
+            inspectPane.style.pointerEvents = 'all';
+            onDocumentClick(event, targetElement);
+        });
+        
+    }
+    
+    window.createInpectPane = _createInpectPane;
+    
+    function _removeInspectPane() {
+        var inspectPane = window.document.getElementById('preview-mask');
+        if (inspectPane) {
+            inspectPane.remove();
+        }
+    }
+    
+    window.removeInspectPane = _removeInspectPane;
+
+    function onDocumentClick(event, target) {
+        var element = target || event.target,
             currentDataId,
             newDataId;
         
         if (_ws && element && element.hasAttribute('data-brackets-id')) {
-            _ws.send(JSON.stringify({
+            _sendDataOverSocket(JSON.stringify({
                 type: "message",
                 message: element.getAttribute('data-brackets-id')
             }));
-            
-            setTimeout(function () {
-                _sendLiveInspectionData(element);
-            }, 0);
-            
-            setTimeout(function () {
-                _collateResources();
-            }, 0);
+        }
+        
+        setTimeout(function () {
+            _sendLiveInspectionData(element);
+        }, 0);
+    }
+    
+    var refreshScheduleID;
+    
+    function _refreshLiveData() {
+        if (lastHiglightedElement) {
+            if (refreshScheduleID) {
+                window.clearTimeout(refreshScheduleID);
+            }
+            refreshScheduleID = window.setTimeout(function () {
+                _sendLiveInspectionData(lastHiglightedElement, true);
+            }, 400);
         }
     }
+    
+    function _sendDataOverSocket(data) {
+        if (_ws && _ws.readyState === WebSocket.OPEN) {
+            _ws.send(data);
+        }
+    }
+    
     
     
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
-            window.document.addEventListener("click", onDocumentClick);
+            //window.document.addEventListener("click", onDocumentClick);
+            _collateResources();
+            window.document.addEventListener("DOMContentLoaded", _collateResources);
+            window.document.addEventListener("unload", _collateResources);
+            window.addEventListener("resize", _refreshLiveData);
         };
-                
+        
         _ws.onmessage = function (evt) {
+            var data = JSON.parse(evt.data);
+            if (data.inspect) {
+                _createInpectPane();
+            } else {
+                _removeInspectPane();
+            }
         };
                 
         _ws.onclose = function () {
             // websocket is closed
-            window.document.removeEventListener("click", onDocumentClick);
+            //window.document.removeEventListener("click", onDocumentClick);
+            window.document.removeEventListener("DOMContentLoaded", _collateResources);
+            window.document.removeEventListener("unload", _collateResources);
+            window.removeEventListener("resize", _refreshLiveData);
         };
     }
     

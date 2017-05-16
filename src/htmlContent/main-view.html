@@ -41,6 +41,14 @@
     <!-- Main UI: horizontal set of sidebar, main content vertical stack, and vertical toolbar -->
     <div class="main-view">
         <div id="sidebar" class="sidebar panel quiet-scrollbars horz-resizable right-resizer collapsible" data-minsize="0" data-maxsize="80%" data-forceleft=".content">
+            <div id="inspect-toolbar" style="display:none">
+                <label style="float:left;margin-top: 1px;">INSPECT</label>
+                <label class="inspect-toggle switch">
+                  <input type="checkbox" id="inspect-toggle">
+                  <div class="slider"></div>
+                </label>
+                <button id='toggle-reverse-inspect' class="btn-alt-quiet">&#8689;</button>
+            </div>
             <div class="working-set-splitview-btn btn-alt-quiet"></div>
             <div class="working-set-option-btn btn-alt-quiet"></div>
             
@@ -49,8 +57,6 @@
             </div>
             <div id="project-files-header">
                 <span id="project-title" class="title"></span>
-                <input type="checkbox" id="related-toggle" style="float: right;margin-right: 20px; margin-top: 3px;">
-                <label style="float: right;margin-right: 5px;">Show Related</label>
             </div>
             <div id="project-files-container">
                 <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
