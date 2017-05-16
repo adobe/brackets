@@ -1386,17 +1386,13 @@ function RemoteFunctions(config, remoteWSPort) {
         
     }
     
-    window.createInpectPane = _createInpectPane;
-    
     function _removeInspectPane() {
         var inspectPane = window.document.getElementById('preview-mask');
         if (inspectPane) {
             inspectPane.remove();
         }
     }
-    
-    window.removeInspectPane = _removeInspectPane;
-    
+
     var refreshScheduleID;
     
     function _refreshLiveData() {
@@ -1408,6 +1404,14 @@ function RemoteFunctions(config, remoteWSPort) {
                 _sendLiveInspectionData(lastHiglightedElement, true);
             }, 400);
         }
+    }
+    
+    function _refreshBoxModelData() {
+        var msg = JSON.stringify({path: _stringyfyNodePath(lastHiglightedElement), boxmodel: _createBoxModelData(lastHiglightedElement), livedataRefresh: true});
+        _sendDataOverSocket(JSON.stringify({
+            type: "livedata",
+            message: msg
+        }));
     }
     
     function _fetchPageSource() {
@@ -1425,7 +1429,9 @@ function RemoteFunctions(config, remoteWSPort) {
         
         _ws.onmessage = function (evt) {
             var data = JSON.parse(evt.data);
-            if (data.requestLiveCode) {
+            if (data.livedataRefresh) {
+                _refreshBoxModelData();
+            } else if (data.requestLiveCode) {
                 _fetchPageSource();
             } else if (data.inspect) {
                 _createInpectPane();

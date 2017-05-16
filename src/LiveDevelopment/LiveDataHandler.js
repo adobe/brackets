@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     var breadCrumbItem =  '<li><a href="#">{{selector}}</a></li>';
     var InlineSelectorEntry = '<li class="topcoat-list__item" style="cursor:move" title="{{title}}">{{selector}}</li>';
     var SectionHeaderEntry  = '<li class="section-header" title="@media {{selectorText}}"><span class="disclosure-triangle expanded"></span><span class="activemedia">@media &nbsp;</span><span class="filename">{{selectorText}}</span></li>';
-    var SelectorEntry = '<li title="{{selectorText}} :{{lineIndex}}">{{selectorText}} <span class="related-file">:{{fileName}}</span></li>';
+    var SelectorEntry = '<li class="leaf-selector" title="{{selectorText}} :{{lineIndex}}">{{selectorText}} <span class="related-file">:{{fileName}}</span></li>';
     var FileNameTemplate = '<a class="filename" title=""><div class="dirty-indicator" style="width: 0px;">•</div> {{fileName}} : <span class="line-number">0</span></a>';
     var RelatedFileEntryTemplate = '<li></li>';
     
@@ -177,6 +177,18 @@ define(function (require, exports, module) {
         return refRule;
     }
     
+    var liveDataRefreshTimer;
+    
+    function _handleCSSEdit() {
+        if (liveDataRefreshTimer) {
+            window.clearTimeout(liveDataRefreshTimer);
+        }
+        
+        liveDataRefreshTimer = window.setTimeout(function () {
+            WebSocketTransport.sendDataToBrowser(JSON.stringify({livedataRefresh: true}));
+        }, 400);
+    }
+    
     function _handleInlineEdit($entry, selData) {
         if (!$entry.data("file")) {
             return;
@@ -232,6 +244,8 @@ define(function (require, exports, module) {
                         }
                     }
                 }
+                
+                inlineInfo.editor._codeMirror.on("changes", _handleCSSEdit);
             }
         });
     }
@@ -318,10 +332,16 @@ define(function (require, exports, module) {
         for (rIndex in ruleArr) {
             if (ruleArr.hasOwnProperty(rIndex)) {
                 rule = ruleArr[rIndex];
+                if (rule.media) {
+                   $entry = $(SectionHeaderEntry.split("{{selectorText}}").join(rule.media).split("{{fileName}}").join(rule.href.split("/").pop())).appendTo("#livedata-tools .related > ul");
+                    $entry.data("file", rule.href);
+                    $entry.data("index", rule.parentIndex);
+                }
                 if (!isNaN(parseInt(rule.index, 10))) {
                     $entry = $(SelectorEntry.split("{{selectorText}}").join(rule.selectorText).split("{{fileName}}").join(rule.href.split("/").pop())).appendTo("#livedata-tools .related > ul");
                     $entry.data("file", rule.href);
                     $entry.data("index", rule.index);
+                    $entry.addClass('leaf-selector');
                     if (rule.media) {
                         $entry.data("parentIndex", rule.parentIndex);
                         $entry.attr('title', rule.media);
@@ -331,8 +351,8 @@ define(function (require, exports, module) {
             }
         }
         
-        $("#livedata-tools .related > ul > li:nth-child(1)").addClass("selected");
-        _handleInlineEdit($("#livedata-tools .related > ul > li:nth-child(1)"));
+        $("#livedata-tools .related > ul > li.leaf-selector:nth-child(1)").addClass("selected");
+        _handleInlineEdit($("#livedata-tools .related > ul > li.leaf-selector:nth-child(1)"));
         //_consolidateRules(ruleArr);
     }
     
@@ -342,7 +362,7 @@ define(function (require, exports, module) {
     
     function _jumpToDef(metadata) {
         if (metadata && metadata.index) {
-            _handleInlineEdit($("#livedata-tools .related > ul > li:nth-child(" + metadata.index + ")"), metadata);
+            _handleInlineEdit($("#livedata-tools .related > ul > li.leaf-selector:nth-child(" + metadata.index + ")"), metadata);
         }
         if (window.event) {
             window.event.stopPropagation();
@@ -425,6 +445,8 @@ define(function (require, exports, module) {
                 lastVisitedPath = message.path;
                 _processNodePath(JSON.parse(message.path));
                 _processLiveData(JSON.parse(message.data));
+                _processBoxModelMarker(message.boxmodel);
+            } else if (message.livedataRefresh) {
                 _processBoxModelMarker(message.boxmodel);
             }
         }
