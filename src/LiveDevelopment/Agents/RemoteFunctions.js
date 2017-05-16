@@ -1293,7 +1293,7 @@ function RemoteFunctions(config, remoteWSPort) {
         inspectPane = window.document.getElementById('preview-mask');
         
         var inspectWindow = window,
-            inspectDOM = windo.document,
+            inspectDOM = window.document,
             preview = inspectDOM.getElementById('preview-mask');
                 
             
