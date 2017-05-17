@@ -1425,7 +1425,9 @@ function RemoteFunctions(config, remoteWSPort) {
         
         _ws.onmessage = function (evt) {
             var data = JSON.parse(evt.data);
-            if (data.livedataRefresh) {
+            if (data.resourcedataRefresh) {
+                _collateResources();
+            } else if (data.livedataRefresh) {
                 _refreshBoxModelData();
             } else if (data.inspect) {
                 _createInpectPane();

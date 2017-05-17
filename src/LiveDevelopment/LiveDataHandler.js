@@ -189,6 +189,18 @@ define(function (require, exports, module) {
         }, 400);
     }
     
+    var resourceDataRefreshTimer;
+    
+    function _handleSourceEdit() {
+        if (resourceDataRefreshTimer) {
+            window.clearTimeout(resourceDataRefreshTimer);
+        }
+        
+        resourceDataRefreshTimer = window.setTimeout(function () {
+            WebSocketTransport.sendDataToBrowser(JSON.stringify({resourcedataRefresh: true}));
+        }, 400);
+    }
+    
     function _handleDirtyFlagChange(event, changedDoc) {
         var currentInspectDocPath = $("#livedata-tools .inline-text-editor .filename").data("file");
         if (!changedDoc) {
@@ -517,6 +529,8 @@ define(function (require, exports, module) {
         }
     }
     
+    var currentSourceEditor;
+    
     function _handleLiveViewStatus(event, status, reason) {
         if (status === 3) {
             $("#inspect-toggle").on("change", _handleInspectToggle);
@@ -533,6 +547,8 @@ define(function (require, exports, module) {
                 EditorManager.getActiveEditor().setCursorPos(EditorManager.getActiveEditor().getCursorPos());
             }, 500);
             DocumentManager.on("dirtyFlagChange", _handleDirtyFlagChange);
+            currentSourceEditor = EditorManager.getCurrentFullEditor();
+            currentSourceEditor._codeMirror.on("changes", _handleSourceEdit);
         } else {
             relatedFiles = [];
             lastVisitedPath = null;
@@ -545,6 +561,8 @@ define(function (require, exports, module) {
             $livedataPanel.hide();
             $(".connected-tools").hide();
             DocumentManager.off("dirtyFlagChange", _handleDirtyFlagChange);
+            currentSourceEditor._codeMirror.off("changes", _handleSourceEdit);
+            currentSourceEditor = null;
         }
     }
     
