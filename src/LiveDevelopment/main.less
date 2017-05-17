@@ -434,15 +434,19 @@ input:checked + .slider:before {
 
 #toggle-reverse-inspect {
     float: left;
-    margin-top: 0px;
+    margin-top: 1px;
+    padding: 1px;
     margin-left: 10px;
-    background: transparent;
-    color: lightgray;
-    font-size: 16px;
+    background: url(styles/images/inspect.svg);
+    height: 24px;
+    width: 24px;
+    border: none;
+    background-repeat: no-repeat;
 }
 
 #toggle-reverse-inspect.active {
-    color:#2196F3;
+    background: url(styles/images/active-inspect.svg);
+    background-repeat: no-repeat;
 }
 
 /*#related-files-container:hover {
