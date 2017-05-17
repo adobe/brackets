@@ -1414,10 +1414,6 @@ function RemoteFunctions(config, remoteWSPort) {
         }));
     }
     
-    function _fetchPageSource() {
-        _sendDataOverSocket(JSON.stringify({type: "livedata", message: JSON.stringify({pageSource: window.document.documentElement.outerHTML})}));
-    }
-    
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
@@ -1431,8 +1427,6 @@ function RemoteFunctions(config, remoteWSPort) {
             var data = JSON.parse(evt.data);
             if (data.livedataRefresh) {
                 _refreshBoxModelData();
-            } else if (data.requestLiveCode) {
-                _fetchPageSource();
             } else if (data.inspect) {
                 _createInpectPane();
             } else {

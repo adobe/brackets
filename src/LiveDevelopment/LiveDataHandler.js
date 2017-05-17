@@ -62,9 +62,9 @@ define(function (require, exports, module) {
 
     var breadCrumbItem =  '<li><a href="#">{{selector}}</a></li>';
     var InlineSelectorEntry = '<li class="topcoat-list__item" style="cursor:move" title="{{title}}">{{selector}}</li>';
-    var SectionHeaderEntry  = '<li class="section-header" title="@media {{selectorText}}"><span class="disclosure-triangle expanded"></span><span class="activemedia">@media &nbsp;</span><span class="filename">{{selectorText}}</span></li>';
+    var SectionHeaderEntry  = '<li class="section-header activeMedia" title="@media {{selectorText}}"><span class="activemedia">&nbsp;</span><span class="filename">{{selectorText}}</span></li>';
     var SelectorEntry = '<li class="leaf-selector" title="{{selectorText}} :{{lineIndex}}">{{selectorText}} <span class="related-file">:{{fileName}}</span></li>';
-    var FileNameTemplate = '<a class="filename" title=""><div class="dirty-indicator" style="width: 0px;">•</div> {{fileName}} : <span class="line-number">0</span></a>';
+    var FileNameTemplate = '<a class="filename" title=""><div class="dirty-indicator" style="width: 16px;">•</div> {{fileName}} : <span class="line-number">{{line}}</span></a>';
     var RelatedFileEntryTemplate = '<li></li>';
     
     function _jumpToNode(editor, position) {
@@ -189,6 +189,23 @@ define(function (require, exports, module) {
         }, 400);
     }
     
+    function _handleDirtyFlagChange(event, changedDoc) {
+        var currentInspectDocPath = $("#livedata-tools .inline-text-editor .filename").data("file");
+        if (!changedDoc) {
+            changedDoc = DocumentManager.getOpenDocumentForPath(currentInspectDocPath);
+        }
+        
+        if (currentInspectDocPath && changedDoc && changedDoc.file.fullPath === currentInspectDocPath) {
+            if (changedDoc.isDirty) {
+                $("#livedata-tools .inline-text-editor .filename .dirty-indicator").css('visibility', 'visible');
+            } else {
+                $("#livedata-tools .inline-text-editor .filename .dirty-indicator").css('visibility', 'hidden');
+            }
+        } else {
+            $("#livedata-tools .inline-text-editor .filename .dirty-indicator").css('visibility', 'hidden');
+        }
+    }
+    
     function _handleInlineEdit($entry, selData) {
         if (!$entry.data("file")) {
             return;
@@ -230,8 +247,21 @@ define(function (require, exports, module) {
                 inlineInfo.editor.refresh();
                 inlineInfo.editor._renderGutters();
                 inlineInfo.editor.connected = true;
-                $("#livedata-tools .inline-editor-header .filename").html("");
-                $(FileNameTemplate.split("{{fileName}}").join($entry.data("file").split("/").pop())).appendTo("#livedata-tools .inline-editor-header .filename");
+                $("#livedata-tools .inline-editor-header").html("");
+                
+                var $fileEntry = $(FileNameTemplate.split("{{fileName}}").join($entry.data("file").split("/").pop()).split("{{line}}").join(range.startLine)).appendTo("#livedata-tools .inline-editor-header");
+                $fileEntry.data('file', ProjectManager.getProjectRoot()._path + $entry.data("file").substring(1));
+                $fileEntry.data('range', JSON.stringify({line: range.startLine, ch: range.startChar}));
+                
+                $fileEntry.click(function () {
+                    var $this = $(this);
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: $this.data('file')}).done(function () {
+                        EditorManager.getCurrentFullEditor().setCursorPos(JSON.parse($this.data('range')), true);
+                    });
+                });
+                
+                _handleDirtyFlagChange();
+                
                 if (selData) {
                     var i, decl;
                     for (i in matchedSelector.declarations) {
@@ -249,6 +279,7 @@ define(function (require, exports, module) {
             }
         });
     }
+    
     
     function _getRelativeDocRange(doc, entry) {
         var selectors = CSSCustomParser.praseCSS(doc.getText()).stylesheet.rules;
@@ -333,26 +364,27 @@ define(function (require, exports, module) {
             if (ruleArr.hasOwnProperty(rIndex)) {
                 rule = ruleArr[rIndex];
                 if (rule.media) {
-                   $entry = $(SectionHeaderEntry.split("{{selectorText}}").join(rule.media).split("{{fileName}}").join(rule.href.split("/").pop())).appendTo("#livedata-tools .related > ul");
+                    $entry = $(SectionHeaderEntry.split("{{selectorText}}").join(rule.media).split("{{fileName}}").join(rule.href.split("/").pop())).appendTo("#livedata-tools .related > ul");
                     $entry.data("file", rule.href);
                     $entry.data("index", rule.parentIndex);
+                    $entry.attr('title', rule.media);
                 }
                 if (!isNaN(parseInt(rule.index, 10))) {
                     $entry = $(SelectorEntry.split("{{selectorText}}").join(rule.selectorText).split("{{fileName}}").join(rule.href.split("/").pop())).appendTo("#livedata-tools .related > ul");
                     $entry.data("file", rule.href);
                     $entry.data("index", rule.index);
                     $entry.addClass('leaf-selector');
+                    $entry.attr('title', rule.selectorText);
                     if (rule.media) {
                         $entry.data("parentIndex", rule.parentIndex);
-                        $entry.attr('title', rule.media);
                         $entry.addClass('activeMedia');
                     }
                 }
             }
         }
         
-        $("#livedata-tools .related > ul > li.leaf-selector:nth-child(1)").addClass("selected");
-        _handleInlineEdit($("#livedata-tools .related > ul > li.leaf-selector:nth-child(1)"));
+        $("#livedata-tools .related > ul > li.leaf-selector:first").addClass("selected");
+        _handleInlineEdit($("#livedata-tools .related > ul > li.leaf-selector:first"));
         //_consolidateRules(ruleArr);
     }
     
@@ -362,7 +394,7 @@ define(function (require, exports, module) {
     
     function _jumpToDef(metadata) {
         if (metadata && metadata.index) {
-            _handleInlineEdit($("#livedata-tools .related > ul > li.leaf-selector:nth-child(" + metadata.index + ")"), metadata);
+            _handleInlineEdit($("#livedata-tools .related > ul > li.leaf-selector:eq(" + (metadata.index - 1) + ")"), metadata);
         }
         if (window.event) {
             window.event.stopPropagation();
@@ -463,25 +495,12 @@ define(function (require, exports, module) {
         return "";
     });
     
-    function _handleLiveCodeToggle() {
-        if ($("#live-code-toggle").is(":checked")) {
-            DocumentManager.getDocumentForPath(_currentInspectedSource).done(function (doc) {
-                _currentStaticPageSource = doc.getText();
-                WebSocketTransport.sendDataToBrowser(JSON.stringify({requestLiveCode: true}));
-            });
-        } else {
-            DocumentManager.getDocumentForPath(_currentInspectedSource).done(function (doc) {
-                doc.setText(_currentStaticPageSource);
-            });
-        }
-    }
-    
     function _handleInspectToggle() {
         if ($("#inspect-toggle").is(":checked")) {
             $livedataPanel.show();
             $(".connected-tools").show();
-            $("#livedata-tools .related > ul > li:nth-child(1)").addClass("selected");
-            _handleInlineEdit($("#livedata-tools .related > ul > li:nth-child(1)"));
+            $("#livedata-tools .related > ul > li.leaf-selector:first").addClass("selected");
+            _handleInlineEdit($("#livedata-tools .related > ul > li.leaf-selector:first"));
         } else {
             $livedataPanel.hide();
             $(".connected-tools").hide();
@@ -501,7 +520,6 @@ define(function (require, exports, module) {
     function _handleLiveViewStatus(event, status, reason) {
         if (status === 3) {
             $("#inspect-toggle").on("change", _handleInspectToggle);
-            $("#live-code-toggle").on("change", _handleLiveCodeToggle);
             $("#toggle-reverse-inspect").on("click", _handleReverseInspectToggle);
             $("body").addClass("connected");
             $breadCrumb.show();
@@ -514,6 +532,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 EditorManager.getActiveEditor().setCursorPos(EditorManager.getActiveEditor().getCursorPos());
             }, 500);
+            DocumentManager.on("dirtyFlagChange", _handleDirtyFlagChange);
         } else {
             relatedFiles = [];
             lastVisitedPath = null;
@@ -521,11 +540,11 @@ define(function (require, exports, module) {
             $breadCrumb.hide();
             $("#inspect-toggle").off("change", _handleInspectToggle);
             $("#toggle-reverse-inspect").off("click", _handleReverseInspectToggle);
-            $("#live-code-toggle").off("change", _handleLiveCodeToggle);
             $("body").removeClass("connected");
             $('#status-info').detach().prependTo('#status-bar');
             $livedataPanel.hide();
             $(".connected-tools").hide();
+            DocumentManager.off("dirtyFlagChange", _handleDirtyFlagChange);
         }
     }
     

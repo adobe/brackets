@@ -67,10 +67,10 @@
     min-height: initial;
     position: absolute;
     top: 0px;
-    right: 0px;
+    right: 3px;
     height: calc(100% - 202px) !important;
     background: #dfe2e2;
-    width: 250px;
+    width: 246px;
     text-align: center;
     padding-top: 20px;
     box-sizing: border-box;
@@ -178,7 +178,8 @@
         min-height: initial;
         position:absolute;
         top:0px;
-        right:0px;
+        right:3px;
+        width:246px;
     }
     .CodeMirror, .CodeMirror-gutters {
         background: transparent !important;
@@ -204,8 +205,13 @@
 li.activeMedia::before {
     color: #e88501;
     content: "●";
-    margin-left:-2px;
     padding-left: 15px;
+}
+
+li.section-header.activeMedia::before {
+    color: #e88501;
+    content: "@media";
+    margin-left:-4px;
 }
 
 li.jstree-closed.in-preview > a > span::after {
