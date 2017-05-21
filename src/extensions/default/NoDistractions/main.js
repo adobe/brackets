@@ -135,10 +135,12 @@ define(function (require, exports, module) {
 
     PreferencesManager.on("change", PREFS_PURE_CODE, function () {
         if (PreferencesManager.get(PREFS_PURE_CODE)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(Commands.VIEW_HIDE_SIDEBAR);
             ViewUtils.hideMainToolBar();
             CommandManager.execute(Commands.HIDE_SIDEBAR);
             _hidePanelsIfRequired();
         } else {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H", Menus.BEFORE, CMD_TOGGLE_PANELS);
             ViewUtils.showMainToolBar();
             CommandManager.execute(Commands.SHOW_SIDEBAR);
             _showPanelsIfRequired();
