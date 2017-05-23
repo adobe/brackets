@@ -229,6 +229,12 @@
         "fileExtensions": ["sql"]
     },
 
+    "xquery": {
+        "name": "XQuery",
+        "mode": ["xquery", "application/xquery"],
+        "fileExtensions": ["xq", "jq"]
+    },
+
     "diff": {
         "name": "Diff",
         "mode": "diff",
