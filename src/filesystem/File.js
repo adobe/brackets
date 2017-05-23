@@ -54,6 +54,14 @@ define(function (require, exports, module) {
      * @type {?string}
      */
     File.prototype._contents = null;
+    
+    
+    /**
+     * Encoding detected by brackets-shell
+     * @private
+     * @type {?string}
+     */
+    File.prototype._encoding = null;
 
     /**
      * Consistency hash for this file. Reads and writes update this value, and
@@ -102,7 +110,7 @@ define(function (require, exports, module) {
             options.stat = this._stat;
         }
 
-        this._impl.readFile(this._path, options, function (err, data, stat) {
+        this._impl.readFile(this._path, options, function (err, data, encoding, stat) {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -111,6 +119,7 @@ define(function (require, exports, module) {
 
             // Always store the hash
             this._hash = stat._hash;
+            this._encoding = encoding;
 
             // Only cache data for watched files
             if (watched) {
@@ -146,6 +155,7 @@ define(function (require, exports, module) {
         if (!options.blind) {
             options.expectedHash = this._hash;
             options.expectedContents = this._contents;
+            options.encoding = this._encoding;
         }
 
         // Block external change events until after the write has finished
