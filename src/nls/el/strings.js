@@ -328,7 +328,7 @@ define({
     "ABOUT"                                : "Σχετικά",
     "CLOSE"                                : "Κλείσιμο",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Πληροφορίες, όροι και οι προϋποθέσεις που αφορούν λογισμικό τρίτων κατασκευαστών βρίσκονται στο <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> και ενσωματώνονται εδώ με αναφορά.",
+    "ABOUT_TEXT_LINE3"                     : "Πληροφορίες, όροι και προϋποθέσεις που αφορούν λογισμικό τρίτων κατασκευαστών βρίσκονται στο <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> και ενσωματώνονται εδώ με αναφορά.",
     "ABOUT_TEXT_LINE4"                     : "Documentation και πηγαίος κώδικας στο <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Φτιαγμένο με \u2764 και JavaScript από:",
     "ABOUT_TEXT_LINE6"                     : "Πολλούς ανθρώπους (απλά αντιμετωπίζουμε ένα πρόβλημα με την φόρτωση των δεδομένων αυτήν την στιγμή).",
