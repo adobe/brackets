@@ -233,6 +233,14 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Retrieves the Language Map for further use in extensions.
+     * @return {Languages} The languages map as currently defined.
+     */
+    function getLanguages() {
+        return _languages;
+    }
+
+    /**
      * Resolves a language ID to a Language object.
      * File names have a higher priority than file extensions.
      * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
