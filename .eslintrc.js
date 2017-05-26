@@ -7,6 +7,7 @@ module.exports = {
         "no-empty": 1,
         "no-invalid-regexp": 2,
         "no-regex-spaces": 2,
+        "no-unsafe-negation": 1,
         "valid-jsdoc": 0,
         "valid-typeof": 2,
         // http://eslint.org/docs/rules/#best-practices
@@ -36,8 +37,17 @@ module.exports = {
         // http://eslint.org/docs/rules/#nodejs-and-commonjs
         "no-new-require": 2,
         // http://eslint.org/docs/rules/#stylistic-issues
+        "block-spacing": 1,
+        "brace-style": [1, "1tbs", { allowSingleLine: true }],
+        "camelcase": 1,
+        "comma-dangle": 2,
+        "comma-spacing": 1,
+        "comma-style": [1, "last"],
+        "computed-property-spacing": 1,
         "eol-last": 1,
+        "func-call-spacing": 1,
         "indent": [1, 4],
+        "key-spacing": [1, { beforeColon: false, afterColon: true }],
         "max-len": [1, 120],
         "new-cap": [0, {
             "capIsNewExceptions": [

@@ -81,7 +81,7 @@ define(function (require, exports, module) {
     if (hasNativeMenus) {
         global.brackets.nativeMenus = (hasNativeMenus === "true");
     } else {
-        global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
+        global.brackets.nativeMenus = (!global.brackets.inBrowser);
     }
 
     // Locale-related APIs

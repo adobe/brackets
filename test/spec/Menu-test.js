@@ -21,7 +21,7 @@
  *
  */
 
-/*global describe, it, expect, runs, beforeFirst, afterLast */
+/*global describe, it, expect, runs, beforeFirst, afterLast, waitsForDone, spyOn*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -30,6 +30,7 @@ define(function (require, exports, module) {
         Commands,           // Load from brackets.test
         KeyBindingManager,  // Load from brackets.test
         Menus,              // Load from brackets.test
+        FileSystem,         // Load from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         KeyEvent            = require("utils/KeyEvent");
 
@@ -52,6 +53,7 @@ define(function (require, exports, module) {
                 Commands          = testWindow.brackets.test.Commands;
                 KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
                 Menus             = testWindow.brackets.test.Menus;
+                FileSystem        = testWindow.brackets.test.FileSystem;
             }, testWindowOptions);
         });
 
@@ -298,6 +300,55 @@ define(function (require, exports, module) {
                 // verify all dropdowns are closed
                 isOpen = cmenu.isOpen();
                 expect(isOpen).toBe(false);
+            });
+            
+            it("it should disable context menu items when file doesn't exist ", function () {
+                runs(function () {
+                    // runs create a new file
+                    var promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                    
+                    // opens context menu
+                    var cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+                    cmenu.open({pageX: 0, pageY: 0});
+                    
+                    // checks that all the relevant items are disabled
+                    var notVisible = [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
+                    notVisible.forEach(function (item) { expect(CommandManager.get(item).getEnabled()).toBe(false); });
+                    
+                    //close menu and new file
+                    cmenu.close();
+                    
+                });
+            });
+            
+            it("it should enable context menu items when file does exist ", function () {
+                var testPath = SpecRunnerUtils.getTempDirectory();
+                var newFilePath = testPath + "/contextMenuTest.js";
+                runs(function () {
+                    // runs create a new file and saves it
+                    SpecRunnerUtils.createTempDirectory();
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                    var promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                    
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    waitsForDone(promise, "Provide new filename", 5000);
+                });
+                runs(function () {
+                    // opens context menu
+                    var cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+                    cmenu.open({pageX: 0, pageY: 0});
+                    
+                    // checks that all the items are enabled
+                    var visible = [Commands.FILE_SAVE, Commands.FILE_SAVE_AS, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS, Commands.CMD_FIND_IN_SUBTREE, Commands.CMD_REPLACE_IN_SUBTREE, Commands.FILE_CLOSE];
+                    visible.forEach(function (item) { expect(CommandManager.get(item).getEnabled()).toBe(true); });
+                });
             });
         });
     });

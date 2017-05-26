@@ -1,0 +1,550 @@
+{
+    "<a>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a",
+        "SUMMARY": "The <em>HTML <code>&lt;a&gt;</code> Element</em> (or the HTML Anchor Element) defines a hyperlink, the named target destination for a hyperlink, or both."
+    },
+    "<abbr>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/abbr",
+        "SUMMARY": "The <em>HTML Abbreviation element</em> (<strong>&lt;abbr&gt;</strong>) represents an abbreviation and optionally provides a full description for it. If present, the <code>title</code> attribute must contain this full description and nothing else."
+    },
+    "<acronym>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/acronym",
+        "SUMMARY": "The HTML Acronym Element (<code>&lt;acronym&gt;)</code> allows authors to clearly indicate a sequence of characters that compose an acronym or abbreviation for a word."
+    },
+    "<address>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/address",
+        "SUMMARY": "The <em>HTML <code>Address</code> Element</em> (<strong>&lt;address&gt;</strong>) should be used by authors to supply contact information for its nearest <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article\" title=\"The HTML Article Element (&lt;article&gt;) represents a self-contained composition in a document, page, application, or site, which is intended to be independently distributable or reusable, e.g., in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, or any other independent item of content. Each &lt;article&gt; should be identified, typically by including a heading (h1-h6 element) as a child of the &lt;article&gt; element.\"><code>&lt;article&gt;</code></a> or <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body\" title=\"The HTML Body Element (&lt;body&gt;) represents the content of an HTML&#xA0;document. There can be only one &lt;body&gt; element in a document.\"><code>&lt;body&gt;</code></a> ancestor; in the latter case, it applies to the whole document."
+    },
+    "<applet>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/applet",
+        "SUMMARY": "The HTML Applet Element (<code>&lt;applet&gt;</code>) identifies the inclusion of a Java applet."
+    },
+    "<area>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area",
+        "SUMMARY": "The <em>HTML <code>&lt;area&gt;</code> element</em> defines a hot-spot region on an image, and optionally associates it with a <a class=\"glossaryLink\" href=\"https://developer.mozilla.org/en-US/docs/Glossary/Hyperlink\" title=\"hypertext link: Hyperlinks connect web pages, or data items, to one another. In HTML, anchor elements define the hyperlinks from a part of a Web page, such as a text string or image, to another site, page or even a particular point within a page.\">hypertext link</a>. This element is used only within a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map\" title=\"The HTML &lt;map&gt; element is used with &lt;area&gt; elements to define an image map (a clickable link area).\"><code>&lt;map&gt;</code></a> element."
+    },
+    "<article>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article",
+        "SUMMARY": "The <em>HTML <code>Article</code> Element</em> (<strong>&lt;article&gt;</strong>) represents a self-contained composition in a document, page, application, or site, which is intended to be independently distributable or reusable, e.g., in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, or any other independent item of content. Each <em><code>&lt;article&gt;</code></em> should be identified, typically by including a heading (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements\">h1-h6</a> element) as a child of the <em><code>&lt;article&gt;</code></em> element."
+    },
+    "<aside>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/aside",
+        "SUMMARY": "The <em>HTML <code>&lt;aside&gt;</code> element</em> represents a section of the page with content connected tangentially to the rest, which could be considered separate from that content. These sections are often represented as sidebars or inserts. They often contain the definitions on the sidebars, such as definitions from the glossary; there may also be other types of information, such as related advertisements; the biography of the author; web applications; profile information or related links on the blog."
+    },
+    "<audio>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio",
+        "SUMMARY": "The <strong>HTML <code>&lt;audio&gt;</code> element</strong> is used to embed sound content in documents. It may contain several audio sources, represented using the <code>src</code> attribute or the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source\" title=\"The HTML &lt;source&gt; element is used to specify multiple media resources for &lt;picture&gt;, &lt;audio&gt; and &lt;video&gt; elements. It is an empty element. It is commonly used to serve the same media in multiple formats supported by different browsers.\"><code>&lt;source&gt;</code></a> element; the browser will choose the most suitable one."
+    },
+    "<b>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/b",
+        "SUMMARY": "The <strong>HTML <code>&lt;b&gt;</code> Element</strong> represents a span of text stylistically different from normal text, without conveying any special importance or relevance. It is typically used for keywords in a summary, product names in a review, or other spans of text whose typical presentation would be boldfaced. Another example of its use is to mark the lead sentence of each paragraph of an article."
+    },
+    "<base>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base",
+        "SUMMARY": "The <em>HTML Base Element</em> (<strong>&lt;base&gt;</strong>) specifies the base URL to use for all relative URLs contained within a document. There can be only one &lt;base&gt; element in a document."
+    },
+    "<basefont>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/basefont",
+        "SUMMARY": "The HTML basefont element (<code>&lt;basefont&gt;</code>) establishes a default font size for a document. Font size then can be varied relative to the base font size using the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font\" title=\"The HTML Font Element (&lt;font&gt;) defines the font size, color and face for its content.\"><code>&lt;font&gt;</code></a> element."
+    },
+    "<bdi>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdi",
+        "SUMMARY": "The <em>HTML <code>&lt;bdi&gt;</code> Element</em> (or Bi-Directional Isolation Element) isolates a span of text that might be formatted in a different direction from other text outside it."
+    },
+    "<bdo>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo",
+        "SUMMARY": "The <strong>HTML <code>&lt;bdo&gt;</code> Element</strong> (or <em>HTML bidirectional override element</em>) is used to override the current directionality of text. It causes the directionality of the characters to be ignored in favor of the specified directionality."
+    },
+    "<bgsound>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bgsound",
+        "SUMMARY": "The HTML Background Sound Element (<bgsound>) is an Internet Explorer element associating a background sound with a page."
+    },
+    "<big>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/big",
+        "SUMMARY": "The HTML Big Element (<code>&lt;big&gt;</code>) makes the text <em>font size</em> one size bigger (for example, from small to medium, or from large to x-large) up to the browser's maximum font size."
+    },
+    "<blink>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blink",
+        "SUMMARY": "The HTML Blink Element (<code>&lt;blink&gt;</code>) is a non-standard element causing the enclosed text to flash slowly."
+    },
+    "<blockquote>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote",
+        "SUMMARY": "The <strong>HTML <code>&lt;blockquote&gt;</code> Element</strong> (or <em>HTML Block Quotation Element</em>) indicates that the enclosed text is an extended quotation. Usually, this is rendered visually by indentation (see <a href=\"https://developer.mozilla.org/en-US/docs/HTML/Element/blockquote#Notes\" title=\"HTML/Element/blockquote#Notes\">Notes</a> for how to change it). A URL for the source of the quotation may be given using the <strong>cite</strong> attribute, while a text representation of the source can be given using the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/cite\" title=\"The&#xA0;HTML Citation Element&#xA0;(&lt;cite&gt;) represents a reference to a creative work. It must include the title of a work or a URL reference,&#xA0;which may be in an abbreviated form according to the conventions used for the addition of citation metadata.\"><code>&lt;cite&gt;</code></a> element."
+    },
+    "<body>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body",
+        "SUMMARY": "The <em>HTML Body Element</em> (<strong>&lt;body&gt;</strong>) represents the content of an HTML document. There can be only one <code>&lt;body&gt;</code> element in a document."
+    },
+    "<br>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/br",
+        "SUMMARY": "The <strong>HTML <code>&lt;br&gt;</code> Element</strong> (or <em>HTML </em><em>Line Break Element</em>) produces a line break in text (carriage-return). It is useful for writing a poem or an address, where the division of lines is significant."
+    },
+    "<button>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button",
+        "SUMMARY": "The <strong>HTML <em><code>&lt;button&gt;</code></em> Element</strong> represents a clickable button."
+    },
+    "<canvas>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas",
+        "SUMMARY": "The <strong>HTML <code>&lt;canvas&gt;</code> Element</strong> can be used to draw graphics via scripting (usually <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript\" title=\"JavaScript\">JavaScript</a>). For example, it can be used to draw graphs, make photo compositions or even perform animations. You may (and should) provide alternate content inside the <code>&lt;canvas&gt;</code> block. That content will be rendered both on older browsers that don't support canvas <strong>and</strong> in browsers with JavaScript disabled."
+    },
+    "<caption>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/caption",
+        "SUMMARY": "The <strong>HTML <code>&lt;caption&gt;</code> Element</strong> (or <em>HTML Table Caption Element</em>) represents the title of a table. Though it is always the first descendant of a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table\" title=\"The HTML Table Element (&lt;table&gt;) represents data in two dimensions or more.\"><code>&lt;table&gt;</code></a>, its styling, using CSS, may place it elsewhere, relative to the table."
+    },
+    "<center>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/center",
+        "SUMMARY": "The HTML Center Element (<code>&lt;center&gt;</code>) is a <a href=\"https://developer.mozilla.org/en-US/docs/HTML/Block-level_elements\" title=\"HTML/Block-level_elements\">block-level element</a> that can contain paragraphs and other block-level and inline elements. The entire content of this element is centered horizontally within its containing element (typically, the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body\" title=\"The HTML Body Element (&lt;body&gt;) represents the content of an HTML&#xA0;document. There can be only one &lt;body&gt; element in a document.\"><code>&lt;body&gt;</code></a>)."
+    },
+    "<cite>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/cite",
+        "SUMMARY": "The <em>HTML Citation Element</em> (<strong>&lt;cite&gt;</strong>) represents a reference to a creative work. It must include the title of a work or a URL reference, which may be in an abbreviated form according to the conventions used for the addition of citation metadata."
+    },
+    "<code>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/code",
+        "SUMMARY": "The <em>HTML Code Element</em> (<strong>&lt;code&gt;</strong>) represents a fragment of computer code. By default, it is displayed in the browser's default monospace font."
+    },
+    "<col>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/col",
+        "SUMMARY": "The <em>HTML Table Column Element</em> (<strong>&lt;col&gt;</strong>) defines a column within a table and is used for defining common semantics on all common cells. It is generally found within a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/colgroup\" title=\"The HTML &lt;colgroup&gt; Element (or HTML Table Column Group Element) defines a group of columns within a table.\"><code>&lt;colgroup&gt;</code></a> element."
+    },
+    "<colgroup>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/colgroup",
+        "SUMMARY": "The <em>HTML Table Column Group Element</em> (<strong>&lt;colgroup&gt;</strong>) defines a group of columns within a table."
+    },
+    "<command>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/command",
+        "SUMMARY": "The <code>command</code> element represents a command which the user can invoke."
+    },
+    "<content>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/content",
+        "SUMMARY": "The <strong><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML\">HTML</a> <code>&lt;content&gt;</code></strong> element is used inside of <a href=\"https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM\">Shadow DOM</a> as an <a class=\"glossaryLink\" href=\"https://developer.mozilla.org/en-US/docs/Glossary/insertion_point\" title=\"The definition of that term (insertion point) has not been written yet; please consider contributing it!\">insertion point</a>. It is not intended to be used in ordinary HTML. It is used with <a href=\"https://developer.mozilla.org/en-US/docs/Web/Web_Components\">Web Components</a>."
+    },
+    "<data>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/data",
+        "SUMMARY": "The <strong>HTML <code>&lt;data&gt;</code> Element</strong> links a given content with a machine-readable translation. If the content is time- or date-related, the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time\" title=\"The HTML &lt;time&gt; element represents either a time on a 24-hour clock or a precise date in the Gregorian calendar (with optional time and timezone information).\"><code>&lt;time&gt;</code></a> must be used."
+    },
+    "<datalist>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/datalist",
+        "SUMMARY": "The <em>HTML Datalist Element</em> (<strong>&lt;datalist&gt;</strong>) contains a set of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/option\" title=\"In a Web form, the HTML &lt;option&gt; element is used to create a control representing an item within a &lt;select&gt;, an &lt;optgroup&gt; or a &lt;datalist&gt; HTML5 element.\"><code>&lt;option&gt;</code></a> elements that represent the values available for other controls."
+    },
+    "<dd>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dd",
+        "SUMMARY": "The <em>HTML Description Element</em> (<strong>&lt;dd&gt;</strong>) indicates the description of a term in a description list (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dl\" title=\"The HTML &lt;dl&gt; Element (or HTML Description List Element) encloses a list of pairs of terms and descriptions. Common uses for this element are to implement a glossary or to display metadata (a list of key-value pairs).\"><code>&lt;dl&gt;</code></a>) element. This element can occur only as a child element of a definition list and it must follow a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dt\" title=\"The HTML &lt;dt&gt; element (or HTML Definition Term Element) identifies a term in a definition list. This element can occur only as a child element of a &lt;dl&gt;. It is usually followed by a &lt;dd&gt; element; however, multiple &lt;dt&gt; elements in a row indicate several terms that are all defined by the immediate next &lt;dd&gt; element.\"><code>&lt;dt&gt;</code></a> element."
+    },
+    "<del>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/del",
+        "SUMMARY": "The <em>HTML Deleted Text Element</em> (<strong>&lt;del&gt;</strong>) represents a range of text that has been deleted from a document. This element is often (but need not be) rendered with strike-through text."
+    },
+    "<details>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details",
+        "SUMMARY": "The <em>HTML Details Element</em> (<strong>&lt;details&gt;</strong>) is used as a disclosure widget from which the user can retrieve additional information."
+    },
+    "<dfn>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dfn",
+        "SUMMARY": "The <em>HTML Definition Element</em> (<strong>&lt;dfn&gt;</strong>) represents the defining instance of a term."
+    },
+    "<dialog>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog",
+        "SUMMARY": "The <strong>HTML <code>&lt;dialog&gt;</code> element</strong> represents a dialog box or other interactive component, such as an inspector or window. <code>&lt;form&gt;</code> elements can be integrated within a dialog by specifying them with the attribute <code>method=\"dialog\"</code>. When such a form is submitted, the dialog is closed with a <code>returnValue</code> attribute set to the <code>value</code> of the submit button used."
+    },
+    "<dir>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dir",
+        "SUMMARY": "The <em>HTML directory element</em> (<code>&lt;dir&gt;</code>) represents a directory, namely a collection of filenames."
+    },
+    "<div>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div",
+        "SUMMARY": "The <strong><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML\">HTML</a> <code>&lt;div&gt;</code> element</strong> (or <em>HTML Document Division Element</em>) is the generic container for flow content, which does not inherently represent anything. It can be used to group elements for styling purposes (using the <strong>class</strong> or <strong>id</strong> attributes), or because they share attribute values, such as <strong>lang</strong>. It should be used only when no other semantic element (such as <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article\" title=\"The HTML &lt;article&gt; Element represents a self-contained composition in a document, page, application, or site, which is intended to be independently distributable or reusable, e.g., in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.\"><code>&lt;article&gt;</code></a> or <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav\" title=\"The HTML Navigation Element (&lt;nav&gt;) represents a section of a page that links to other pages or to parts within the page: a section with navigation links.\"><code>&lt;nav&gt;</code></a>) is appropriate."
+    },
+    "<dl>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dl",
+        "SUMMARY": "The <strong>HTML <code>&lt;dl&gt;</code> Element</strong> (or <em>HTML</em> <em>Description List Element</em>) encloses a list of pairs of terms and descriptions. Common uses for this element are to implement a glossary or to display metadata (a list of key-value pairs)."
+    },
+    "<dt>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dt",
+        "SUMMARY": "The <strong>HTML <code>&lt;dt&gt;</code> element</strong> (or HTML Definition Term Element) identifies a term in a definition list. This element can occur only as a child element of a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dl\" title=\"The HTML &lt;dl&gt; Element (or HTML Description List Element) encloses a list of pairs of terms and descriptions. Common uses for this element are to implement a glossary or to display metadata (a list of key-value pairs).\"><code>&lt;dl&gt;</code></a>. It is usually followed by a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dd\" title=\"The HTML &lt;dd&gt; Element (or HTML Description Element) indicates the description of a term in a description list (&lt;dl&gt;) element. This element can occur only as a child element of a definition list and it must follow a &lt;dt&gt; element.\"><code>&lt;dd&gt;</code></a> element; however, multiple <code>&lt;dt&gt;</code> elements in a row indicate several terms that are all defined by the immediate next <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dd\" title=\"The HTML &lt;dd&gt; Element (or HTML Description Element) indicates the description of a term in a description list (&lt;dl&gt;) element. This element can occur only as a child element of a definition list and it must follow a &lt;dt&gt; element.\"><code>&lt;dd&gt;</code></a> element."
+    },
+    "<element>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/element",
+        "SUMMARY": "The <strong><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML\">HTML</a> <code>&lt;element&gt;</code> element</strong> is used to define new custom DOM elements."
+    },
+    "<em>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/em",
+        "SUMMARY": "The <em>HTML Emphasis Element</em> (<strong>&lt;em&gt;</strong>) marks text that has stress emphasis. The <code>&lt;em&gt;</code> element can be nested, with each level of nesting indicating a greater degree of emphasis."
+    },
+    "<embed>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/embed",
+        "SUMMARY": "The <strong>HTML <code>&lt;embed&gt;</code> Element</strong> represents an integration point for an external application or interactive content (in other words, a plug-in)."
+    },
+    "<fieldset>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/fieldset",
+        "SUMMARY": "The <strong>HTML <code>&lt;fieldset&gt;</code> element</strong> is used to group several controls as well as labels (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label\" title=\"The HTML Label&#xA0;Element (&lt;label&gt;) represents a caption for an item in a user interface. It can be associated with a control either by placing the control element inside the &lt;label&gt; element, or by using the for attribute. Such a control is called the labeled control of the label element.\"><code>&lt;label&gt;</code></a>) within a web form."
+    },
+    "<figcaption>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption",
+        "SUMMARY": "The <strong>HTML <code>&lt;figcaption&gt;</code> Element</strong> represents a caption or a legend associated with a figure or an illustration described by the rest of the data of the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure\" title=\"The HTML &lt;figure&gt; Element represents self-contained content, frequently with a caption&#xA0;(&lt;figcaption&gt;), and is&#xA0;typically referenced as a single unit. While it is related to the main flow, its position is independent of the main flow. Usually this is an image, an illustration, a diagram, a code snippet, or a schema that is referenced in the main text, but that can be moved to another page or to an appendix without affecting the main flow.\"><code>&lt;figure&gt;</code></a> element which is its immediate ancestor which means <code>&lt;figcaption&gt;</code> can be the first or last element inside a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure\" title=\"The HTML &lt;figure&gt; Element represents self-contained content, frequently with a caption&#xA0;(&lt;figcaption&gt;), and is&#xA0;typically referenced as a single unit. While it is related to the main flow, its position is independent of the main flow. Usually this is an image, an illustration, a diagram, a code snippet, or a schema that is referenced in the main text, but that can be moved to another page or to an appendix without affecting the main flow.\"><code>&lt;figure&gt;</code></a> block. Also, the <em>HTML Figcaption Element </em>is optional; if not provided, then the parent figure element will have no caption."
+    },
+    "<figure>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure",
+        "SUMMARY": "The <strong>HTML <code>&lt;figure&gt;</code> Element</strong> represents self-contained content, frequently with a caption (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption\" title=\"The HTML &lt;figcaption&gt; Element represents a caption or a legend associated with a figure or an illustration described by the rest of the data of the &lt;figure&gt; element which is its immediate ancestor which means &lt;figcaption&gt; can be the first or last element inside a &lt;figure&gt; block.&#xA0;Also, the HTML Figcaption Element&#xA0;is optional; if not provided, then the parent figure element will have no caption.\"><code>&lt;figcaption&gt;</code></a>)<em><code>,</code></em> and is typically referenced as a single unit. While it is related to the main flow, its position is independent of the main flow. Usually this is an image, an illustration, a diagram, a code snippet, or a schema that is referenced in the main text, but that can be moved to another page or to an appendix without affecting the main flow."
+    },
+    "<font>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font",
+        "SUMMARY": "The <em>HTML Font Element</em> (<span style=\"font-family: Courier New;\">&lt;font&gt;</span>) defines the font size, color and face for its content."
+    },
+    "<footer>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/footer",
+        "SUMMARY": "The <em>HTML Footer Element</em> (<strong>&lt;footer&gt;</strong>) represents a footer for its nearest <a href=\"https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Sections_and_Outlines_of_an_HTML5_document#Defining_Sections_in_HTML5\">sectioning content</a> or <a href=\"https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Sections_and_Outlines_of_an_HTML5_document#Sectioning_root\" title=\"Sections and Outlines of an HTML5 document#Sectioning root\">sectioning root</a> element. A footer typically contains information about the author of the section, copyright data or links to related documents."
+    },
+    "<form>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form",
+        "SUMMARY": "The <strong>HTML <code>&lt;form&gt;</code> element</strong> represents a document section that contains interactive controls to submit information to a web server."
+    },
+    "<frame>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/frame",
+        "SUMMARY": "<code>&lt;frame&gt;</code> is an HTML element which defines a particular area in which another HTML document can be displayed. A frame should be used within a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/frameset\" title=\"&lt;frameset&gt; is an HTML element which is used to contain &lt;frame&gt; elements.\"><code>&lt;frameset&gt;</code></a>."
+    },
+    "<frameset>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/frameset",
+        "SUMMARY": "<code>&lt;frameset&gt;</code> is an HTML element which is used to contain <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/frame\" title=\"&lt;frame&gt; is an HTML element which defines a particular area in which another HTML document can be displayed. A frame should be used within a &lt;frameset&gt;.\"><code>&lt;frame&gt;</code></a> elements."
+    },
+    "<head>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head",
+        "SUMMARY": "The <em>HTML Head Element</em> (<strong>&lt;head&gt;</strong>) provides general information (metadata) about the document, including its title and links to or definitions of scripts and style sheets"
+    },
+    "<header>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header",
+        "SUMMARY": "The <strong>HTML <code>&lt;header&gt;</code> Element</strong> represents a group of introductory or navigational aids. It may contain some heading elements but also other elements like a logo, wrapped section's header, a search form, and so on."
+    },
+    "<hgroup>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/hgroup",
+        "SUMMARY": "The <strong>HTML <code>&lt;hgroup&gt;</code> Element</strong> (<em>HTML Headings Group Element</em>) represents the heading of a section. It defines a single title that participates in <a href=\"https://developer.mozilla.org/en-US/docs/Sections_and_Outlines_of_an_HTML5_document\" title=\"Sections and Outlines of an HTML5 document\">the outline of the document</a> as the heading of the implicit or explicit section that it belongs to."
+    },
+    "<hr>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/hr",
+        "SUMMARY": "The <strong>HTML <code>&lt;hr&gt;</code> element</strong> represents a thematic break between paragraph-level elements (for example, a change of scene in a story, or a shift of topic with a section). In previous versions of HTML, it represented a horizontal rule. It may still be displayed as a horizontal rule in visual browsers, but is now defined in semantic terms, rather than presentational terms."
+    },
+    "<html>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html",
+        "SUMMARY": "The <em>HTML Root Element</em> (<strong><code>&lt;html&gt;</code></strong>) represents the root of an HTML document. All other elements must be descendants of this element."
+    },
+    "<i>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/i",
+        "SUMMARY": "The <strong>HTML <code>&lt;i&gt;</code> Element</strong> represents a range of text that is set off from the normal text for some reason, for example, technical terms, foreign language phrases, or fictional character thoughts. It is typically displayed in italic type."
+    },
+    "<iframe>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe",
+        "SUMMARY": "The <em>HTML Inline Frame Element</em> (<code><strong>&lt;iframe&gt;</strong></code>) represents a nested browsing context, effectively embedding another HTML page into the current page. In HTML 4.01, a document may contain a <code>head</code> and a <code>body</code> or a <code>head</code> and a <code>frame-set</code>, but not both a <code>body</code> and a <code>frame-set</code>. However, an <code>&lt;iframe&gt;</code> can be used within a normal document body. Each browsing context has its own session history and active document. The browsing context that contains the embedded content is called the <dfn>parent</dfn> browsing context. The <dfn>top-level</dfn> browsing context (which has no parent) is typically the browser window."
+    },
+    "<image>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/image",
+        "SUMMARY": "The HTML <code>&lt;image&gt;</code> element was an experimental element designed to display pictures. It never was implemented and the standard <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img\" title=\"The HTML &lt;img&gt; Element (or HTML Image Element) represents an image of the document.\"><code>&lt;img&gt;</code></a> element must be used."
+    },
+    "<img>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img",
+        "SUMMARY": "The <em>HTML Image Element</em> (<strong>&lt;img&gt;</strong>) represents an image of the document."
+    },
+    "<input>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input",
+        "SUMMARY": "The HTML <strong><code>&lt;input&gt;</code> element</strong> is used to create interactive controls for web-based forms in order to accept data from the user. The semantics of an <code>&lt;input&gt;</code> varies considerably depending on the value of its <code>type</code> attribute."
+    },
+    "<ins>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ins",
+        "SUMMARY": "The <strong>HTML <code>&lt;ins&gt;</code> Element</strong> (or <em>HTML Inserted Text</em>) HTML represents a range of text that has been added to a document."
+    },
+    "<isindex>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/isindex",
+        "SUMMARY": "<code>&lt;isindex&gt;</code> is an HTML element which is used for putting a text field in the document for querying document. <code>&lt;isindex&gt;</code> is intented to use inside of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head\" title=\"The HTML &lt;head&gt; element represents a collection of metadata about the document, including links to or definitions of scripts and style sheets\"><code>&lt;head&gt;</code></a> element by W3C, however browsers provide support wherever it is used in the document."
+    },
+    "<kbd>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/kbd",
+        "SUMMARY": "The <em>HTML Keyboard Input Element</em> (<strong>&lt;kbd&gt;</strong>) represents user input and produces an inline element displayed in the browser's default monospace font."
+    },
+    "<keygen>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/keygen",
+        "SUMMARY": "The HTML <code>&lt;keygen&gt;</code> element exists to facilitate generation of key material, and submission of the public key as part of an <a href=\"https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Forms\">HTML form</a>. This mechanism is designed for use with Web-based certificate management systems. It is expected that the <code>&lt;keygen&gt;</code> element will be used in an HTML form along with other information needed to construct a certificate request, and that the result of the process will be a signed certificate."
+    },
+    "<label>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label",
+        "SUMMARY": "The<em> </em><em>HTML Label Element</em> (<code><strong>&lt;label&gt;</strong></code>) represents a caption for an item in a user interface. It can be associated with a control either by placing the control element inside the <code>&lt;label&gt;</code> element, or by using the <code>for</code> attribute. Such a control is called the <em>labeled control</em> of the label element."
+    },
+    "<legend>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend",
+        "SUMMARY": "The <strong>HTML <span style=\"font-family: Courier New;\">&lt;legend&gt;</span> Element</strong> (or <em>HTML Legend Field Element</em>) represents a caption for the content of its parent <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/fieldset\" title=\"The HTML &lt;fieldset&gt; element is used to group several controls as well as labels (&lt;label&gt;) within a web form.\"><code>&lt;fieldset&gt;</code></a>."
+    },
+    "<li>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/li",
+        "SUMMARY": "The <em>HTML List Item Element</em> (<code>&lt;li&gt;</code>) is used to represent an item in a list. It must be contained in a parent element: an ordered list (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol\" title=\"The HTML &lt;ol&gt; Element (or HTML Ordered List Element) represents an ordered list of items. Typically, ordered-list items are displayed with a preceding numbering, which can be of any form, like numerals, letters or Romans numerals or even simple bullets. This numbered style is not defined in the HTML description of the page, but in its associated CSS, using the list-style-type property.\"><code>&lt;ol&gt;</code></a>), an unordered list (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul\" title=\"The HTML unordered list element (&lt;ul&gt;) represents an unordered list of items, namely a collection of items that do not have a numerical ordering, and their order in the list is meaningless. Typically, unordered-list items are displayed with a bullet, which can be of several forms, like a dot, a circle or a squared. The bullet style is not defined in the HTML description of the page, but in its associated CSS, using the list-style-type property.\"><code>&lt;ul&gt;</code></a>), or a menu (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu\" title=\"The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.\"><code>&lt;menu&gt;</code></a>). In menus and unordered lists, list items are usually displayed using bullet points. In ordered lists, they are usually displayed with an ascending counter on the left, such as a number or letter."
+    },
+    "<link>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link",
+        "SUMMARY": "The <em>HTML Link Element</em> (<strong>&lt;link&gt;</strong>) specifies relationships between the current document and an external resource. Possible uses for this element include defining a relational framework for navigation. This Element is most used to link to style sheets."
+    },
+    "<listing>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/listing",
+        "SUMMARY": "The <em>HTML Listing Element</em> (<code>&lt;listing&gt;</code>) renders text between the start and end tags without interpreting the HTML in between and using a monospaced font. The HTML 2 standard recommended that lines shouldn't be broken when not greater than 132 characters."
+    },
+    "<main>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/main",
+        "SUMMARY": "The <em>HTML Main Element</em> (<strong>&lt;main&gt;</strong>) represents the main content of  the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body\" title=\"The HTML Body Element (&lt;body&gt;) represents the content of an HTML&#xA0;document. There can be only one &lt;body&gt; element in a document.\"><code>&lt;body&gt;</code></a> of a document or application. The main content area consists of content that is directly related to, or expands upon the central topic of a document or the central functionality of an application. This content should be unique to the document, excluding any content that is repeated across a set of documents such as sidebars, navigation links, copyright information, site logos, and search forms (unless, of course, the document's main function is as a search form)."
+    },
+    "<map>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map",
+        "SUMMARY": "The <strong>HTML <code>&lt;map&gt;</code> element</strong> is used with <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area\" title=\"The HTML &lt;area&gt; element defines a hot-spot region on an image, and optionally associates it with a hypertext link. This element is used only within a &lt;map&gt; element.\"><code>&lt;area&gt;</code></a> elements to define an image map (a clickable link area)."
+    },
+    "<mark>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/mark",
+        "SUMMARY": "The <em>HTML Mark Element</em> (&lt;mark&gt;) represents highlighted text, i.e., a run of text marked for reference purpose, due to its <em>relevance</em> in a particular context. For example it can be used in a page showing search results to highlight every instance of the searched-for word."
+    },
+    "<marquee>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/marquee",
+        "SUMMARY": "The HTML <code>&lt;marquee&gt;</code> element is used to insert a scrolling area of text."
+    },
+    "<menu>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu",
+        "SUMMARY": "The <strong>HTML <code>&lt;menu&gt;</code> element</strong> represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked."
+    },
+    "<menuitem>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menuitem",
+        "SUMMARY": "The <strong>HTML <code>&lt;menuitem&gt;</code> element</strong> represents a command that a user is able to invoke through a popup menu. This includes context menus, as well as menus that might be attached to a menu button."
+    },
+    "<meta>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta",
+        "SUMMARY": "The <em><a class=\"glossaryLink\" href=\"https://developer.mozilla.org/en-US/docs/Glossary/HTML\" title=\"HTML: HTML (hypertext markup language) is a descriptive language that specifies webpage structure.\">HTML</a> Meta Element </em>(<strong>&lt;meta&gt;</strong>) represents any metadata information that cannot be represented by one of the other HTML meta-related elements (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base\" title=\"The HTML Base Element (&lt;base&gt;) specifies the base URL to use for all relative URLs contained within a document. There can be only one &lt;base&gt; element in a document.\"><code>&lt;base&gt;</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link\" title=\"The HTML Link Element (&lt;link&gt;) specifies relationships between the current document and an external resource. Possible uses for this element include defining a relational framework for navigation. This Element is most used to link to style sheets.\"><code>&lt;link&gt;</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script\" title=\"The HTML &lt;script&gt; element is used to embed or reference an executable script within an HTML or XHTML document.\"><code>&lt;script&gt;</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/style\" title=\"The HTML Style Element (&lt;style&gt;) contains style information for a document, or part of a document. By default, the style instructions written inside that element are expected to be CSS.\"><code>&lt;style&gt;</code></a> or <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title\" title=\"The HTML Title Element (&lt;title&gt;) defines the title of the document, shown in a browser's title bar or on the page's tab. It can only contain text and any contained tags are not interpreted.\"><code>&lt;title&gt;</code></a>)."
+    },
+    "<meter>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meter",
+        "SUMMARY": "The <strong>HTML <code>&lt;meter&gt;</code> Element</strong> represents either a scalar value within a known range or a fractional value."
+    },
+    "<multicol>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/multicol",
+        "SUMMARY": "The HTML <code>&lt;multicol&gt;</code> element was an experimental element designed to allow multi-column layouts. It never got any significant traction and is not implemented in any major browsers."
+    },
+    "<nav>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav",
+        "SUMMARY": "The <em>HTML Navigation Element</em> (<code>&lt;nav&gt;</code>) represents a section of a page that links to other pages or to parts within the page: a section with navigation links."
+    },
+    "<nobr>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nobr",
+        "SUMMARY": "The HTML <code>&lt;nobr&gt;</code> element prevents a text from breaking into a new line automatically, so it is displayed on one long line and scrolling might be necessary. This tag is not standard HTML and should not be used."
+    },
+    "<noembed>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/noembed",
+        "SUMMARY": "The <code><strong>&lt;noembed&gt;</strong></code> element is a deprecated and non-standard way to provide alternative, or \"fallback\", content for browsers that do not support the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/embed\" title=\"The HTML &lt;embed&gt; Element represents an integration point for an external application or interactive content (in other words, a plug-in).\"><code>&lt;embed&gt;</code></a> element or do not support <a href=\"https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Embedded_content\">embedded content</a> an author wishes to use."
+    },
+    "<noframes>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/noframes",
+        "SUMMARY": "<code>&lt;noframes&gt;</code> is an HTML element which is used to supporting browsers which are not able to support <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/frame\" title=\"&lt;frame&gt; is an HTML element which defines a particular area in which another HTML document can be displayed. A frame should be used within a &lt;frameset&gt;.\"><code>&lt;frame&gt;</code></a> elements or configured to do so."
+    },
+    "<noscript>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/noscript",
+        "SUMMARY": "The <strong>HTML <code>&lt;noscript&gt;</code> Element</strong> defines a section of html to be inserted if a script type on the page is unsupported or if scripting is currently turned off in the browser."
+    },
+    "<object>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object",
+        "SUMMARY": "The <em>HTML Embedded Object Element</em> (<strong>&lt;object&gt;</strong>) represents an external resource, which can be treated as an image, a nested browsing context, or a resource to be handled by a plugin."
+    },
+    "<ol>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol",
+        "SUMMARY": "The <strong>HTML <code>&lt;ol&gt;</code> Element</strong> (or <em>HTML Ordered List Element</em>) represents an ordered list of items. Typically, ordered-list items are displayed with a preceding numbering, which can be of any form, like numerals, letters or Romans numerals or even simple bullets. This numbered style is not defined in the HTML description of the page, but in its associated CSS, using the <a href=\"https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type\" title=\"The list-style-type property specifies the appearance of a list item element. Because it is the only property that&#xA0;defaults to display:list-item, this is usually a &lt;li&gt; element, but can be any element with this display value.\"><code>list-style-type</code></a> property."
+    },
+    "<optgroup>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup",
+        "SUMMARY": "In a Web form, the <strong>HTML <code>&lt;optgroup&gt;</code> element</strong>  creates a grouping of options within a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select\" title=\"The HTML select (&lt;select&gt;) element represents a control that presents a menu of options. The options within the menu are represented by &lt;option&gt; elements, which can be grouped by &lt;optgroup&gt; elements. Options can be pre-selected for the user.\"><code>&lt;select&gt;</code></a> element."
+    },
+    "<option>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/option",
+        "SUMMARY": "In a Web form, the <strong>HTML<em> </em><code>&lt;option&gt;</code><em> </em>element</strong> is used to create a control representing an item within a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select\" title=\"The HTML select (&lt;select&gt;) element represents a control that presents a menu of options. The options within the menu are represented by &lt;option&gt; elements, which can be grouped by &lt;optgroup&gt; elements. Options can be pre-selected for the user.\"><code>&lt;select&gt;</code></a>, an <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup\" title=\"In a Web form, the HTML &lt;optgroup&gt; element&#xA0; creates a grouping of options within a &lt;select&gt; element.\"><code>&lt;optgroup&gt;</code></a> or a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/datalist\" title=\"The HTML &lt;datalist&gt; Element contains a set of &lt;option&gt; elements that represent the values available for other controls.\"><code>&lt;datalist&gt;</code></a> HTML5 element."
+    },
+    "<output>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/output",
+        "SUMMARY": "The <strong>HTML <code>&lt;output&gt;</code> element</strong> represents the result of a calculation or user action."
+    },
+    "<p>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/p",
+        "SUMMARY": "The <strong>HTML <code>&lt;p&gt;</code> element</strong> <em>(</em>or <em>HTML Paragraph Element)</em> represents a paragraph of text."
+    },
+    "<param>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/param",
+        "SUMMARY": "The <strong>HTML <code>&lt;param&gt;</code> Element</strong> (or <em>HTML Parameter Element)</em> defines parameters for <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object\" title=\"The HTML &lt;object&gt; Element (or HTML Embedded Object Element) represents an external resource, which can be treated as an image, a nested browsing context, or a resource to be handled by a plugin.\"><code>&lt;object&gt;</code></a>."
+    },
+    "<picture>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture",
+        "SUMMARY": "The <strong>HTML <code>&lt;picture&gt;</code> element</strong> is a container used to specify multiple <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source\" title=\"The HTML &lt;source&gt; element is used to specify multiple media resources for &lt;picture&gt;, &lt;audio&gt; and &lt;video&gt; elements. It is an empty element. It is commonly used to serve the same media in multiple formats supported by different browsers.\"><code>&lt;source&gt;</code></a>s for a specific <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img\" title=\"The&#xA0;HTML Image Element&#xA0;(&lt;img&gt;) represents an image of the document.\"><code>&lt;img&gt;</code></a> contained in it. The browser will choose the most suitable source according to the current layout of the page (the constraints of the box the image will appear in) and the device it will be displayed on (e.g. a normal or hiDPI device)."
+    },
+    "<plaintext>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/plaintext",
+        "SUMMARY": "The <em>HTML Plaintext Element</em> (<code>&lt;plaintext&gt;</code>) renders everything following the start tag as raw text, without interpreting any HTML. There is no closing tag, since everything after it is considered raw text."
+    },
+    "<pre>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/pre",
+        "SUMMARY": "The <em>HTML Preformatted Text</em> (<strong>&lt;pre&gt;</strong>) represents preformatted text. Text within this element is typically displayed in a non-proportional font exactly as it is laid out in the file. Whitespaces inside this element are displayed as typed."
+    },
+    "<progress>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/progress",
+        "SUMMARY": "The <strong>HTML<em> </em><code>&lt;progress&gt;</code> Element</strong> is used to view the completion progress of a task. While the specifics of how it's displayed is left up to the browser developer, it's typically displayed as a progress bar. Javascript can be used to manipulate the value of progress bar."
+    },
+    "<q>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/q",
+        "SUMMARY": "The <em>HTML Quote Element</em> (<strong>&lt;q&gt;</strong>) indicates that the enclosed text is a short inline quotation. This element is intended for short quotations that don't require paragraph breaks; for long quotations use <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote\" title=\"The HTML &lt;blockquote&gt; Element (or HTML Block Quotation Element) indicates that the enclosed text is an extended quotation. Usually, this is rendered visually by indentation (see Notes for how to change it). A URL for the source of the quotation may be given using the cite attribute, while a text representation of the source can be given using the &lt;cite&gt; element.\"><code>&lt;blockquote&gt;</code></a> element."
+    },
+    "<rp>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rp",
+        "SUMMARY": "The <strong>HTML <code>&lt;rp&gt;</code> element</strong> is used to provide fall-back parenthesis for browsers non-supporting ruby annotations. Ruby annotations are for showing pronounciation of East Asian characters, like using Japanese furigana or Taiwainese bopomofo characters. The <code>&lt;rp&gt;</code> element is used in the case of lack of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ruby\" title=\"The HTML &lt;ruby&gt; Element represents a ruby annotation. Ruby annotations are for showing pronounciation of East Asian characters.\"><code>&lt;ruby&gt;</code></a> element support its content has what should be displayed in order to indicate the presence of a ruby annotation, usually parentheses."
+    },
+    "<rt>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rt",
+        "SUMMARY": "The <strong>HTML <code>&lt;rt&gt;</code> Element</strong> embraces pronunciation of character presented in a ruby annotations, which are for showing pronunciation of East Asian characters and the <code>&lt;rt&gt;</code> element is used inside of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ruby\" title=\"The HTML &lt;ruby&gt; Element represents a ruby annotation. Ruby annotations are for showing pronunciation of East Asian characters.\"><code>&lt;ruby&gt;</code></a> element."
+    },
+    "<rtc>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rtc",
+        "SUMMARY": "The <strong>HTML <code>&lt;rtc&gt;</code> Element</strong> embraces semantic annotations of characters presented in a ruby of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rb\" title=\"This article hasn't been written yet. Please consider contributing!\"><code>&lt;rb&gt;</code></a> elements used inside of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ruby\" title=\"The HTML &lt;ruby&gt; Element represents a ruby annotation. Ruby annotations are for showing pronounciation of East Asian characters.\"><code>&lt;ruby&gt;</code></a> element. <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rb\" title=\"This article hasn't been written yet. Please consider contributing!\"><code>&lt;rb&gt;</code></a> elements can have both pronunciation (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rt\" title=\"The HTML &lt;rt&gt; Element embraces pronunciation of character presented in a ruby annotations, which are for showing pronunciation of East Asian characters and the &lt;rt&gt; element is used inside of &lt;ruby&gt; element.\"><code>&lt;rt&gt;</code></a> and semantic (<code>&lt;rtc&gt;</code>) annotations."
+    },
+    "<ruby>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ruby",
+        "SUMMARY": "The <strong>HTML <code>&lt;ruby&gt;</code> Element</strong> represents a ruby annotation. Ruby annotations are for showing pronunciation of East Asian characters."
+    },
+    "<s>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/s",
+        "SUMMARY": "The <em>HTML Strikethrough Element</em> (<code>&lt;s&gt;</code>) renders text with a strikethrough, or a line through it. Use the <code>&lt;s&gt;</code> element to represent things that are no longer relevant or no longer accurate. However, <code>&lt;s&gt;</code> is not appropriate when indicating document edits; for that, use the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/del\" title=\"The HTML &lt;del&gt; element (or HTML Deleted Text Element) represents a range of text that has been deleted from a document. This element is often (but need not be) rendered with strike-through text.\"><code>&lt;del&gt;</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ins\" title=\"The HTML &lt;ins&gt; Element (or HTML Inserted Text) HTML represents a range of text that has been added to a document.\"><code>&lt;ins&gt;</code></a> elements, as appropriate."
+    },
+    "<samp>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/samp",
+        "SUMMARY": "The HTML <span style=\"font-family: Courier New;\">&lt;samp&gt;</span> element is an element intended to identify sample output from a computer program. It is usually displayed in the browser's default monotype font (such as Lucida Console)."
+    },
+    "<script>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script",
+        "SUMMARY": "The <strong>HTML <code>&lt;script&gt;</code> element</strong> is used to embed or reference an executable script within an <abbr title=\"Hypertext Markup Language\">HTML</abbr> or <abbr title=\"Extensible Hypertext Markup Language\">XHTML</abbr> document."
+    },
+    "<section>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/section",
+        "SUMMARY": "The <em>HTML Section Element</em> (<code>&lt;section&gt;</code>) represents a generic section of a document, i.e., a thematic grouping of content, typically with a heading. Each <code>&lt;section&gt;</code> should be identified, typically by including a heading (<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h1\" title=\"Heading elements implement six levels of document headings, &lt;h1&gt; is the most important and &lt;h6&gt; is the least. A heading element briefly describes the topic of the section it introduces. Heading information may be used by user agents, for example, to construct a table of contents for a document automatically.\"><code>&lt;h1&gt;</code></a>-<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h6\" title=\"Heading elements implement six levels of document headings, &lt;h1&gt; is the most important and &lt;h6&gt; is the least. A heading element briefly describes the topic of the section it introduces. Heading information may be used by user agents, for example, to construct a table of contents for a document automatically.\"><code>&lt;h6&gt;</code></a> element) as a child of the <code>&lt;section&gt;</code> element."
+    },
+    "<select>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select",
+        "SUMMARY": "The HTML <em>select</em> (<code>&lt;select&gt;</code>) element represents a control that presents a menu of options. The options within the menu are represented by <code><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/option\" title=\"In a Web form, the HTML &lt;option&gt; element is used to create a control representing an item within a &lt;select&gt;, an &lt;optgroup&gt; or a &lt;datalist&gt; HTML5 element.\"><code>&lt;option&gt;</code></a></code> elements, which can be grouped by <code><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup\" title=\"In a Web form, the HTML &lt;optgroup&gt; element  creates a grouping of options within a &lt;select&gt; element.\"><code>&lt;optgroup&gt;</code></a></code> elements. Options can be pre-selected for the user."
+    },
+    "<shadow>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Shadow",
+        "SUMMARY": "The <strong><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML\">HTML</a> <code>&lt;shadow&gt;</code></strong> element is used as a shadow DOM <a class=\"glossaryLink\" href=\"https://developer.mozilla.org/en-US/docs/Glossary/insertion_point\" title=\"The definition of that term (insertion point) has not been written yet; please consider contributing it!\">insertion point</a>. You might use it if you have created multiple shadow roots under a shadow host. It is not useful in ordinary HTML. It is used with <a href=\"https://developer.mozilla.org/en-US/docs/Web/Web_Components\">Web Components</a>."
+    },
+    "<small>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/small",
+        "SUMMARY": "The HTML Small Element (<span style=\"font-family: Courier New;\">&lt;small&gt;</span>) makes the text <em>font size</em> one size smaller (for example, from large to medium, or from small to x-small) down to the browser's minimum font size.  In HTML5, this element is repurposed to represent side-comments and small print, including copyright and legal text, independent of its styled presentation."
+    },
+    "<source>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source",
+        "SUMMARY": "The <strong>HTML <code>&lt;source&gt;</code> element</strong> is used to specify multiple media resources for <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture\" title=\"The HTML &lt;picture&gt; element is a container used to specified multiple {{HTMLElement(&quot;source&quot;)}} for a specific {{HTMLElement(&quot;img&quot;)}} contained in it. The browser will choose the most suitable source according to the current layout (constraints of the box the image will appear in) of the page and the device it will be displayed on (like a normal or hiDPI device).\"><code>&lt;picture&gt;</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio\" title=\"The HTML &lt;audio&gt; element is used to embed sound content in documents. It may contain several audio sources, represented using the src attribute or the &lt;source&gt; element; the browser will choose the most suitable one.\"><code>&lt;audio&gt;</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video\" title=\"The HTML &lt;video&gt; element is used to embed video content. It may contain several video sources, represented using the src attribute or the &lt;source&gt; element; the browser will choose the most suitable one.\"><code>&lt;video&gt;</code></a> elements. It is an empty element. It is commonly used to serve the same media in <a href=\"https://developer.mozilla.org/en-US/docs/Media_formats_supported_by_the_audio_and_video_elements\" title=\"Media formats supported by the audio and video elements\">multiple formats supported by different browsers</a>."
+    },
+    "<spacer>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/spacer",
+        "SUMMARY": "<code>&lt;spacer&gt;</code> is an HTML element which is used for inserting white spaces to web pages. It was created by NetScape for achieving same effect as a single-pixel layout GIF image, which was something web designers used to use to add white spaces to web pages, without actually using a GIF. However <code>&lt;spacer&gt; </code>is not supported by any major browser and same effects can be created with various CSS rules. In Mozilla applications, support for this element was removed in <span title=\"(Firefox 4 / Thunderbird 3.3 / SeaMonkey 2.1)\">Gecko 2.0</span>. Therefore usage of <code>&lt;spacer&gt;</code> is unnecessary."
+    },
+    "<span>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span",
+        "SUMMARY": "The <strong>HTML <code>&lt;span&gt;</code> element</strong> is a generic inline container for phrasing content, which does not inherently represent anything. It can be used to group elements for styling purposes (using the <code>class</code> or <code>id</code> attributes), or because they share attribute values, such as <code>lang</code>. It should be used only when no other semantic element is appropriate. <code>&lt;span&gt;</code> is very much like a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div\" title=\"The HTML &lt;div&gt; element (or HTML Document Division Element) is the generic container for flow content, which does not inherently represent anything. It can be used to group elements for styling purposes (using the class or id attributes), or because they share attribute values, such as lang. It should be used only when no other semantic element (such as &lt;article&gt; or &lt;nav&gt;) is appropriate.\"><code>&lt;div&gt;</code></a> element, but <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div\" title=\"The HTML &lt;div&gt; element (or HTML Document Division Element) is the generic container for flow content, which does not inherently represent anything. It can be used to group elements for styling purposes (using the class or id attributes), or because they share attribute values, such as lang. It should be used only when no other semantic element (such as &lt;article&gt; or &lt;nav&gt;) is appropriate.\"><code>&lt;div&gt;</code></a> is a <a href=\"https://developer.mozilla.org/en-US/docs/HTML/Block-level_elements\">block-level element</a> whereas a <code>&lt;span&gt;</code> is an<a href=\"https://developer.mozilla.org/en-US/docs/HTML/Inline_elements\"> inline element</a>."
+    },
+    "<strike>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strike",
+        "SUMMARY": "The <em>HTML Strikethrough Element</em> (<code>&lt;strike&gt;</code>) renders text with a strikethrough, or a line through it."
+    },
+    "<strong>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong",
+        "SUMMARY": "The HTML Strong Element (<code>&lt;strong&gt;</code>) gives text strong importance, and is typically displayed in bold."
+    },
+    "<style>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/style",
+        "SUMMARY": "The <em>HTML Style Element</em> (<strong>&lt;style&gt;</strong>) contains style information for a document, or part of a document. By default, the style instructions written inside that element are expected to be <a href=\"https://developer.mozilla.org/en-US/docs/Web/CSS\">CSS</a>."
+    },
+    "<sub>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sub",
+        "SUMMARY": "The <em>HTML Subscript Element</em> (<code>&lt;sub&gt;</code>) defines a span of text that should be displayed, for typographic reasons, lower, and often smaller, than the main span of text."
+    },
+    "<summary>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/summary",
+        "SUMMARY": "The HTML <em>summary </em>element (<code>&lt;summary&gt;</code>) is used as a summary, caption, or legend for the content of a <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details\" title=\"The HTML &lt;details&gt; Element is used as a disclosure widget from which the user can retrieve additional information.\"><code>&lt;details&gt;</code></a> element."
+    },
+    "<sup>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sup",
+        "SUMMARY": "The <em>HTML Superscript Element</em> (<code>&lt;sup&gt;</code>) defines a span of text that should be displayed, for typographic reasons, higher, and often smaller, than the main span of text."
+    },
+    "<table>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table",
+        "SUMMARY": "The <em>HTML Table Element </em>(<code>&lt;table&gt;</code>) represents data in two dimensions or more."
+    },
+    "<tbody>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tbody",
+        "SUMMARY": "The HTML Table Body Element (<tbody>) defines one or more <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tr\" title=\"The HTML Table Row Element (&lt;tr&gt;) defines a row of cells in a table. Those can be a mix of &lt;td&gt; and &lt;th&gt; elements.\"><code>&lt;tr&gt;</code></a> element data-rows to be the body of its parent <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table\" title=\"The HTML Table Element (&lt;table&gt;) represents data in two dimensions or more.\"><code>&lt;table&gt;</code></a> element (as long as no &lt;tr&gt; elements are immediate children of that table element.)  In conjunction with a preceding <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead\" title=\"The HTML Table Head Element (&lt;thead&gt;) defines a set of rows defining the head of the columns of the table.\"><code>&lt;thead&gt;</code></a> and/or <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot\" title=\"The HTML Table Foot Element (&lt;tfoot&gt;) defines a set of rows summarizing the columns of the table.\"><code>&lt;tfoot&gt;</code></a> element, &lt;tbody&gt; provides additional semantic information for devices such as printers and displays. Of the parent table's child elements, &lt;tbody&gt; represents the content which, when longer than a page, will most likely differ for each page printed; while the content of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead\" title=\"The HTML Table Head Element (&lt;thead&gt;) defines a set of rows defining the head of the columns of the table.\"><code>&lt;thead&gt;</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot\" title=\"The HTML Table Foot Element (&lt;tfoot&gt;) defines a set of rows summarizing the columns of the table.\"><code>&lt;tfoot&gt;</code></a> will be the same or similar for each page printed. For displays, &lt;tbody&gt; will enable separate scrolling of the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead\" title=\"The HTML Table Head Element (&lt;thead&gt;) defines a set of rows defining the head of the columns of the table.\"><code>&lt;thead&gt;</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot\" title=\"The HTML Table Foot Element (&lt;tfoot&gt;) defines a set of rows summarizing the columns of the table.\"><code>&lt;tfoot&gt;</code></a>, and <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/caption\" title=\"The HTML &lt;caption&gt; Element (or HTML Table Caption Element) represents the title of a table. Though it is always the first descendant of a &lt;table&gt;, its styling, using CSS, may place it elsewhere, relative to the table.\"><code>&lt;caption&gt;</code></a> elements of the same parent <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table\" title=\"The HTML Table Element (&lt;table&gt;) represents data in two dimensions or more.\"><code>&lt;table&gt;</code></a> element.  Note that unlike the &lt;thead&gt;, &lt;tfoot&gt;, and &lt;caption&gt; elements however, multiple<strong> </strong><span style=\"font-family: consolas,monaco,andale mono,monospace;\">&lt;tbody&gt; </span>elements are permitted (if consecutive), allowing the data-rows in long tables to be divided into different sections, each separately formatted as needed."
+    },
+    "<td>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/td",
+        "SUMMARY": "The <em>Table cell</em> <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML\">HTML</a> element (<strong><code>&lt;td&gt;</code></strong>) defines a cell of a table that contains data. It participates in the <em>table model</em>."
+    },
+    "<template>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template",
+        "SUMMARY": "The <strong><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML\">HTML</a> template element <code>&lt;template&gt;</code></strong> is a mechanism for holding client-side content that is not to be rendered when a page is loaded but may subsequently be instantiated during runtime using JavaScript. "
+    },
+    "<textarea>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea",
+        "SUMMARY": "The <strong>HTML <code>&lt;textarea&gt; </code>element</strong> represents a multi-line plain-text editing control."
+    },
+    "<tfoot>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot",
+        "SUMMARY": "The <em>HTML Table Foot Element</em> (<code>&lt;tfoot&gt;</code>) defines a set of rows summarizing the columns of the table."
+    },
+    "<th>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th",
+        "SUMMARY": "The <em>HTML Table Header Cell Element</em> (<code>&lt;th&gt;</code>) defines a cell that is a header for a group of cells of a table. The group of cells that the header refers to is defined by the <code><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope\">scope</a></code> and <code><a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-headers\">headers</a></code> attribute."
+    },
+    "<thead>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead",
+        "SUMMARY": "The <em>HTML Table Head Element</em> (<code>&lt;thead&gt;</code>) defines a set of rows defining the head of the columns of the table."
+    },
+    "<time>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time",
+        "SUMMARY": "The <strong>HTML <code>&lt;time&gt;</code> element</strong> represents either a time on a 24-hour clock or a precise date in the <a class=\"external\" href=\"http://en.wikipedia.org/wiki/Gregorian_calendar\" title=\"http://en.wikipedia.org/wiki/Gregorian_calendar\">Gregorian calendar</a> (with optional time and timezone information)."
+    },
+    "<title>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title",
+        "SUMMARY": "The <em>HTML Title Element</em> (<strong>&lt;title&gt;</strong>) defines the title of the document, shown in a browser's title bar or on the page's tab. It can only contain text and any contained tags are not interpreted."
+    },
+    "<tr>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tr",
+        "SUMMARY": "The <em>HTML Table Row Element</em> (<code>&lt;tr&gt;</code>) defines a row of cells in a table. Those can be a mix of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/td\" title=\"The Table cell HTML element (&lt;td&gt;) defines a cell of a table that contains data. It participates in the table model.\"><code>&lt;td&gt;</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th\" title=\"The HTML Table Header Cell Element (&lt;th&gt;) defines a cell that is a header for a group of cells of a table. The group of cells that the header refers to is defined by the scope and headers attribute.\"><code>&lt;th&gt;</code></a> elements."
+    },
+    "<track>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track",
+        "SUMMARY": "The <strong>HTML <code>&lt;track&gt;</code> element</strong> is used as a child of the media elements—<a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio\" title=\"The HTML &lt;audio&gt; element is used to embed sound content in documents. It may contain several audio sources, represented using the src attribute or the &lt;source&gt; element; the browser will choose the most suitable one.\"><code>&lt;audio&gt;</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video\" title=\"The HTML &lt;video&gt; element is used to embed video content. It may contain several video sources, represented using the src attribute or the &lt;source&gt; element; the browser will choose the most suitable one.\"><code>&lt;video&gt;</code></a>. It lets you specify timed text tracks (or time-based data), for example to automatically handle subtitles. The tracks are formatted in <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Web_Video_Text_Tracks_Format\">WebVTT format</a> (<code>.vtt</code> files) — Web Video Text Tracks."
+    },
+    "<tt>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tt",
+        "SUMMARY": "The HTML Teletype Text Element (<code>&lt;tt&gt;</code>) produces an inline element displayed in the browser's default monotype font. This element was intended to style text as it would display on a fixed width display, such as a teletype. It probably is more common to display fixed width type using the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/code\" title=\"The HTML &lt;code&gt; Element represents a fragment of computer code. By default, it is displayed in the browser's default monospace font.\"><code>&lt;code&gt;</code></a> element."
+    },
+    "<u>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/u",
+        "SUMMARY": "The <em>HTML Underline Element</em> (<code>&lt;u&gt;</code>) renders text with an underline, a line under the baseline of its content."
+    },
+    "<ul>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul",
+        "SUMMARY": "The HTML <em>unordered list</em> element (<code>&lt;ul&gt;</code>) represents an unordered list of items, namely a collection of items that do not have a numerical ordering, and their order in the list is meaningless. Typically, unordered-list items are displayed with a bullet, which can be of several forms, like a dot, a circle or a squared. The bullet style is not defined in the HTML description of the page, but in its associated CSS, using the <a href=\"https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type\" title=\"The list-style-type property specifies the appearance of a list item element. Because it is the only property that&#xA0;defaults to display:list-item, this is usually a &lt;li&gt; element, but can be any element with this display value.\"><code>list-style-type</code></a> property."
+    },
+    "<var>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/var",
+        "SUMMARY": "The HTML Variable Element (<code>&lt;var&gt;</code>) represents a variable in a mathematical expression or a programming context."
+    },
+    "<video>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video",
+        "SUMMARY": "The <strong>HTML <code>&lt;video&gt;</code> element</strong> is used to embed video content. It may contain several video sources, represented using the <code>src</code> attribute or the <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source\" title=\"The HTML &lt;source&gt; element is used to specify multiple media resources for &lt;picture&gt;, &lt;audio&gt; and &lt;video&gt; elements. It is an empty element. It is commonly used to serve the same media in multiple formats supported by different browsers.\"><code>&lt;source&gt;</code></a> element; the browser will choose the most suitable one."
+    },
+    "<wbr>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/wbr",
+        "SUMMARY": "The <em>Word Break Opportunit</em><em>y</em> (<code>&lt;wbr&gt;</code>) HTML element represents a position within text where the browser may optionally break a line, though its line-breaking rules would not otherwise create a break at that location."
+    },
+    "<xmp>": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/xmp",
+        "SUMMARY": "The <em>HTML Example Element</em> (<code>&lt;xmp&gt;</code>) renders text between the start and end tags without interpreting the HTML in between and using a monospaced font. The HTML2 specification recommended that it should be rendered wide enough to allow 80 characters per line."
+    },
+    "Heading elements": {
+        "URL": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements",
+        "SUMMARY": "<strong>Heading</strong> elements implement six levels of document headings, <code>&lt;h1&gt;</code> is the most important and <code>&lt;h6&gt;</code> is the least. A heading element briefly describes the topic of the section it introduces. Heading information may be used by user agents, for example, to construct a table of contents for a document automatically."
+    }
+}

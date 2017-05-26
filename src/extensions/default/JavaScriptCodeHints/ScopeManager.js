@@ -954,10 +954,11 @@ define(function (require, exports, module) {
          * @param {string} path - full path of file
          * @return {jQuery.Promise} - the promise for the request
          */
-        function primePump(path) {
+        function primePump(path, isUntitledDoc) {
             _postMessageByPass({
-                type        : MessageIds.TERN_PRIME_PUMP_MSG,
-                path        : path
+                type            : MessageIds.TERN_PRIME_PUMP_MSG,
+                path            : path,
+                isUntitledDoc   : isUntitledDoc
             });
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
@@ -1196,7 +1197,7 @@ define(function (require, exports, module) {
             deferredPreferences.done(function () {
                 if (file instanceof InMemoryFile) {
                     initTernServer(pr, []);
-                    var hintsPromise = primePump(path);
+                    var hintsPromise = primePump(path, true);
                     hintsPromise.done(function () {
                         addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
                     });
@@ -1227,7 +1228,7 @@ define(function (require, exports, module) {
 
                         initTernServer(dir, files);
 
-                        var hintsPromise = primePump(path);
+                        var hintsPromise = primePump(path, false);
                         hintsPromise.done(function () {
                             if (!usingModules()) {
                                 // Read the subdirectories of the new file's directory.

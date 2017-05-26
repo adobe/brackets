@@ -75,11 +75,13 @@ define(function (require, exports, module) {
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
+        HTMLUtils          = require("language/HTMLUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         MainViewManager    = require("view/MainViewManager"),
         _                  = require("thirdparty/lodash");
 
     /** Editor preferences */
+
     var CLOSE_BRACKETS      = "closeBrackets",
         CLOSE_TAGS          = "closeTags",
         DRAG_DROP           = "dragDropText",
@@ -96,7 +98,9 @@ define(function (require, exports, module) {
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
-        INDENT_LINE_COMMENT   = "indentLineComment";
+        INDENT_LINE_COMMENT = "indentLineComment",
+        INPUT_STYLE         = "inputStyle";
+
 
     /**
       * A list of gutter name and priorities currently registered for editors.
@@ -137,11 +141,15 @@ define(function (require, exports, module) {
     cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
+    cmOptions[INPUT_STYLE]        = "inputStyle";
 
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
-    PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [], dontCloseTags: [] }, {
+
+    // CodeMirror, html mode, set some tags do not close automatically.
+    // We do not initialize "dontCloseTags" because otherwise we would overwrite the default behavior of CodeMirror.
+    PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [] }, {
         description: Strings.DESCRIPTION_CLOSE_TAGS,
         keys: {
             dontCloseTags: {
@@ -220,9 +228,11 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
+    });
+    PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
+        description: Strings.DESCRIPTION_INPUT_STYLE
     });
 
     var editorOptions = Object.keys(cmOptions);
@@ -410,7 +420,7 @@ define(function (require, exports, module) {
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
-            inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
+            inputStyle                  : currentOptions[INPUT_STYLE],
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
             lineWrapping                : currentOptions[WORD_WRAP],
@@ -2200,6 +2210,19 @@ define(function (require, exports, module) {
             isMixed     = (outerMode.name !== startMode.name);
 
         if (isMixed) {
+            // This is the magic code to let the code view know that we are in 'css' context
+            // if the CodeMirror outermode is 'htmlmixed' and we are in 'style' attributes
+            // value context. This has to be done as CodeMirror doesn't yet think this as 'css'
+            // This magic is executed only when user is having a cursor and not selection
+            // We will enable selection handling one we figure a way out to handle mixed scope selection
+            if (outerMode.name === 'htmlmixed' && primarySel.start.line === primarySel.end.line && primarySel.start.ch === primarySel.end.ch) {
+                var tagInfo = HTMLUtils.getTagInfo(this, primarySel.start, true),
+                    tokenType = tagInfo.position.tokenType;
+ 
+                if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name.toLowerCase() === 'style') {
+                    return 'css';
+                }
+            }
             // Shortcut the first check to avoid getModeAt(), which can be expensive
             if (primarySel.start.line !== primarySel.end.line || primarySel.start.ch !== primarySel.end.ch) {
                 var endMode = TokenUtils.getModeAt(this._codeMirror, primarySel.end);
@@ -2679,8 +2702,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets lineCommentIndent option.
-     *
+     * Sets indentLineComment option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
@@ -2691,7 +2714,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns true if word wrap is enabled for the specified or current file
+     * Returns true if indentLineComment is enabled for the specified or current file
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */

@@ -82,7 +82,7 @@ define(function (require, exports, module) {
         rtc     : { rb: true, rt: true, rtc: true, rp: true },
         optgroup: { optgroup: true, option: true },
         option  : { option: true },
-        tbody   : { caption: true, colgroup: true, thead: true, tbody: true, tfoot: true, },
+        tbody   : { caption: true, colgroup: true, thead: true, tbody: true, tfoot: true },
         tfoot   : { caption: true, colgroup: true, thead: true, tbody: true },
         thead   : { caption: true, colgroup: true },
         tr      : { tr: true, th: true, td: true, caption: true },

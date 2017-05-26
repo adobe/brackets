@@ -1,0 +1,236 @@
+/* Colors */
+@bc-btn-bg: #e5e9e9;
+@bc-btn-border: #b2b5b5;
+@bc-highlight: rgba(255, 255, 255, 0.12);
+@bc-panel-separator: #c3c6c5;
+@bc-text: #333;
+@bc-text-link: #0083e8;
+@bc-text-thin-quiet: #777;
+
+/* Typography */
+@font-weight-semibold: 500;
+
+
+/* Overall inline widget content container */
+.css-prop-defn {
+    margin-left: 20px;
+    
+    color: @bc-text-thin-quiet;
+    
+    /* Enable text selection */
+    cursor: auto;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -o-user-select: text;
+    user-select: text;
+    
+    &:focus {
+        outline: none;
+    }
+    
+    font-family: SourceSansPro;
+    font-size: 14px;
+    
+    h1 {
+        color: @bc-text;
+        font-size: 16px;
+        font-weight: @font-weight-semibold;
+        line-height: normal;
+        margin: 15px 0 9px 0;
+    }
+    
+    a {
+        color: @bc-text-link;
+    }
+    
+    code {
+        font-family: SourceCodePro;
+        font-size: 12px;
+        color: @bc-text;
+        background: none;   // revert Bootstrap's styling
+        padding: 0;
+        white-space: normal;
+    }
+    
+    b {
+        font-weight: @font-weight-semibold;
+    }
+
+    table {
+        width: 100%;
+        margin-bottom: 1em;
+        th, td {
+            border: 1px solid lighten(@bc-text-thin-quiet, 20%);
+            padding: 0 .15em;
+        }
+    }
+}
+
+/* Left-hand column */
+.css-prop-summary {
+    box-sizing: border-box;
+    float: left;
+    padding-left: 20px;
+    width: 35%;
+    word-wrap: break-word;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    
+    p {
+        line-height: 18px;
+    }
+}
+
+// Used to avoid overlapping CM scrollbar - TODO (#3460): need a cleaner way to do this
+@scrollbar-wid: 17px;
+
+/* Right-hand column */
+.css-prop-values {
+    box-sizing: border-box; //for exact dimension        
+    float: right;
+    width: 60%;
+    
+    .scroller {
+        max-height: 300px;
+        overflow-y: auto;
+        
+        margin: 20px (@scrollbar-wid + 4px) 0 0;
+        
+        &:focus {
+            outline: none;
+        }
+    }
+        
+    dl {
+        margin-top: 0px;
+        
+        dt {
+            color: @bc-text;
+            font-size: 13px;
+            font-weight: @font-weight-semibold;
+            margin-bottom: 3px;
+        }
+        
+        dd {
+            // some styles must specifically be on <p> to override Bootstrap
+            p, li, b {
+                font-size: 13px;
+                font-style: normal;
+                line-height: 18px;
+                margin-bottom: 15px;
+            }
+            line-height: 18px;
+            margin-left: 20px;
+            margin-right: 0px;
+            margin-bottom: -2px; // remove extra spacing between dt-dd pairs
+            padding-bottom: 0px;
+        }
+    }
+}
+
+.divider-holder {
+    // This nesting lets us effectively have 'left: (37% + 12px)'
+    position: absolute;
+    left: 37%;
+    top: 0;
+    height: 100%;
+    .divider {
+        margin-left: 12px;
+        width: 0px;
+        height: 100%;
+        border-left: 1px solid @bc-panel-separator;
+    }
+}
+
+.fullscreen-summary {
+    .css-prop-summary {
+        width: 95%;
+    }
+    
+    .css-prop-values, .divider-holder {
+        display: none;
+    }
+}
+
+.content-bottom {
+    // Used to pull bottom edge of .css-prop-defn down below its two floated children.
+    // Also prevents .more-info (after us in DOM order) from overlapping the float: right content.
+    clear: both;
+}
+
+/* Link to full docs, at bottom */
+a.more-info {
+    position: absolute;
+    bottom: 0px;
+    right: (33px + @scrollbar-wid);
+    padding: 4px 10px 4px 28px;
+    
+    background: @bc-btn-bg url("logo.svg");
+    background-repeat: no-repeat;
+    background-size: 15px 15px;
+    background-position: 8px 4px;
+    
+    border: 1px solid @bc-btn-border;
+    border-radius: 3px 3px 0 0;
+    border-bottom: none;
+    box-shadow: inset 0 1px 0 @bc-highlight;  // white chisel along top edge
+    
+    font-size: 12px;
+    font-weight: @font-weight-semibold;
+    color: @bc-text;
+    text-shadow: 0 1px 0 @bc-highlight;
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+/* Dark UI Theme */
+@dark-bc-highlight: rgba(255, 255, 255, 0.06);
+@dark-bc-text: #ccc;
+@dark-bc-text-link: #6bbeff;
+@dark-bc-text-thin-quiet: #bbb;
+@dark-bc-btn-bg: #3f3f3f;
+@dark-bc-btn-border: #202020;
+@dark-bc-panel-separator: #343434;
+
+.dark {
+    .css-prop-defn {
+        color: @dark-bc-text-thin-quiet;
+        
+        h1, b {
+            color: @dark-bc-text;
+        }
+
+        a {
+            color: @dark-bc-text-link;
+        }
+
+        code {
+            color: @dark-bc-text;
+        }
+
+        dl dt {
+            color: @dark-bc-text;
+        }
+
+        .divider-holder .divider {
+            border-left: 1px solid @dark-bc-panel-separator;
+        }
+
+        a.more-info {
+            background-color: @dark-bc-btn-bg;
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text;
+            text-shadow: 0 1px 0 @dark-bc-highlight;
+        }
+
+        table {
+            th, td {
+                border-color: darken(@dark-bc-text-thin-quiet, 35%);
+            }
+        }
+    }
+}

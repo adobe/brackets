@@ -321,6 +321,7 @@ define(function (require, exports, module) {
         }
 
         models.push(new ExtensionManagerViewModel.InstalledViewModel());
+        models.push(new ExtensionManagerViewModel.DefaultViewModel());
 
         function updateSearchDisabled() {
             var model           = models[_activeTabIndex],
@@ -500,7 +501,11 @@ define(function (require, exports, module) {
             } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
-            if ($activeTab.hasClass("installed")) {
+            // If activeTab was explicitly selected by user,
+            // then check for the selection
+            // Or if there was an update available since activeTab.length would be 0,
+            // then check for updatesAvailable class in toolbar-extension-manager
+            if (($activeTab.length && $activeTab.hasClass("installed")) || (!$activeTab.length && $("#toolbar-extension-manager").hasClass('updatesAvailable'))) {
                 $(".ext-sort-group").hide();
             } else {
                 $(".ext-sort-group").show();
