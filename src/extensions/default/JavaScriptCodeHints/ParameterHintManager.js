@@ -93,7 +93,8 @@ define(function (require, exports, module) {
             top           = ypos - hintHeight - POINTER_TOP_OFFSET,
             left          = xpos,
             $editorHolder = $("#editor-holder"),
-            editorLeft;
+            editorLeft,
+            editorTop;
 
         if ($editorHolder.offset() === undefined) {
             // this happens in jasmine tests that run
@@ -105,7 +106,9 @@ define(function (require, exports, module) {
         left = Math.max(left, editorLeft);
         left = Math.min(left, editorLeft + $editorHolder.width() - hintWidth);
 
-        if (top < 0) {
+        editorTop = $editorHolder.offset().top;
+
+        if (top < editorTop) {
             $hintContainer.removeClass("preview-bubble-above");
             $hintContainer.addClass("preview-bubble-below");
             top = ybot + POSITION_BELOW_OFFSET;
