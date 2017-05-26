@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Začínáme s Brackets</title>
+    <meta name="description" content="Interaktivní průvodce pro Brackets.">
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<h1>ZAČÍNÁME S PROGRAMEM BRACKETS</h1>
+<h2>Toto je váš průvodce!</h2>
+
+<!--
+    VYTVOŘENO S LÁSKOU A JAVASCRIPTEM
+-->
+
+<p>
+    Vítejte v programu Brackets - novém open-source editoru pro další generace webu. Jsme velkými fanoušky standardů a chceme vytvořit lepší nástroj pro prácí s HTML, CSS, Javascript a dalšími webovými technologiemi. Toto je náš skromný začátek. 
+</p>
+
+<!--
+    CO JE BRACKETS?
+-->
+<p>
+    <em>Máte před sebou jednu z prvních verzí Brackets.</em>
+    V mnoha směrech je Brackets jiným typem editoru. Jedním z rozdílů je, že tento editor je napsán pomocí Javascript. Takže zatímco Brackets ještě není zcela připraven pro každodenní používání, používáme ho každý den pro vytvoření Brackets.
+</p>
+
+
+<h2>Zkoušíme několik nových technik</h2>
+
+<!--
+    VZTAH MEZI HTML, CSS A JAVASCRIPTEM
+-->
+<h3>Rychlá úprava pro CSS a JavaScript</h3>
+<p>
+    Když editujete HTML, použijte <kbd>Cmd/Ctrl + E</kbd> klávesou zkratku pro otevření rychlého inline editoru, který zobrazí související CSS. Proveďte úpravy v CSS, zmáčkněte <kbd>ESC</kbd> a můžete opět editovat HTML. Nebo nechte okno s CSS otevřené a stane se součástí vašeho editoru. Pokud zmáčknete <kbd>ESC</kbd> když se nenacházíte v okně rychlého editoru, všechny okna s CSS se zavřou. Už nemusíte přecházet z okna do okna a hledat, kde jste skončili.
+</p>
+
+<samp>
+    Chcete vidět, jak to funguje? Umístěte kurzor do elementu <!-- <samp> --> a zmáčkněte <kbd>Cmd/Ctrl + E</kbd>. Uvidíte okno pro rychlou editaci CSS. Vpravo uvidíte seznam CSS pravidel, které se vztahují k tomuto elementu. Pro posun na příslušný řádek použijte <kbd>Alt + Up/Down</kbd> a editujte.
+</samp>
+
+<a href="screenshots/brackets-quick-edit.png">
+    <img alt="ukázka rychlé úpravy v Brackets" src="screenshots/brackets-quick-edit.png" />
+</a>
+
+<p>
+  Můžete použít stejnou klávesovou zkratku v Javascript pro editaci funkce, kterou voláte, tím, že umístíte kurzor do jména funkce. Nebo otevřte okno pro výběr barvy tím, že umístíte kurzor na barvu, která je zapsána v hex, rgb nebo hsl formátu. V této chvíli jednotlivé editory nemohou být vnořené.
+</p>
+
+<!--
+    ŽIVÝ NÁHLED
+-->
+<h3>Prohlédněte si změny prováděné v CSS přímo v prohlížeči.</h3>
+<p>
+  Stále používáte metodu ulož soubor/načti soubor znovu v prohlížeči? Tu metodu, kde provedete změny v editoru, uložíte změny, přesunete se do prohlížeče a nakonec obnovíte stránku, abyste viděli změny? S Brackets již toto dělat nemusíte.
+</p>
+<p>
+    Brackets vytvoří <em>živé propojení</em> s vašim prohlížečem a bude aktualizovat změny v CSS ve chvíli, kdy je provedete. Něco podobného již možná děláte s nástroji, které máte doinstalovány v prohlížeči, ale s Brackets nemusíte kopírovat a vkládat CSS zpět do editoru. Kód se zobrazuje v prohlížeči, ale vy ho upravujete v editoru!
+</p>
+<samp>
+  Pokud máte nainstalován Google Chrome, můžete si to vyzkoušet sami. Klikněte na ikonku blesku v pravém horním rohu, nebo použijte <kbd>Cmd/Ctrl + Alt + P</kbd>. Když je živý náhled povolen v HTML dokumentu, všechny připojené CSS soubory mohou být editovány v reálném čase. Ikona se změní ze šedé na zlatou, když Brackets naváže spojení s vašim prohlížečem.
+  Nyní umístěte kurzor do elementu <!-- <img> --> a použijte <kbd>Cmd/Ctrl + E</kbd> pro zobrazení již vytvořených CSS pravidel. Zkuste změnit velikost ohraničení z 1px na 10px nebo změňte barvu pozadí z "dimgray" na "hotpink". Pokud máte okna Brackets a prohlížeče umístěné vedle sebe, okamžitě uvidíte změny v prohlížeči. To není špatné, že?
+</samp>
+        
+<p class="note">
+  Nyní Brackets podporuje pouze živý náhled pro CSS. Pracujeme také na podpoře pro HTML a Javascript. V současné verzi jsou změny, které provedete v HTML nebo Javascript, zobrazeny až ve chvíli, kdy soubor uložíte. Živý náhled funguje pouze s Google Chrome. Chceme tuto funkci zavést pro všechny moderní prohlížeče a těšíme se na spolupráci s tvůrci těchto prohlížečů.
+</p>
+
+<!--
+    SDĚLTE NÁM VÁŠ NÁZOR
+-->
+<h2>Zapojte se</h2>
+<p>
+  Brackets je open-source projekt. Tvůrci ze všech částí světa přispívají k vytvoření lepšího editoru. Napište nám své připomínky, názory nebo se zapojte přímo do projektu.
+</p>
+<ul>
+    <li><a href="http://brackets.io">Brackets.io</a></li>
+    <li><a href="http://blog.brackets.io">Brackets - Blog</a></li>
+    <li><a href="http://github.com/adobe/brackets">Brackets - GitHub</a></li>
+    <li><a href="http://github.com/adobe/brackets/wiki">Brackets - Wiki</a></li>
+    <li><a href="http://groups.google.com/group/brackets-dev">Brackets - Mailing List</a></li>
+    <li><a href="https://twitter.com/#!/brackets">@Brackets - Twitter</a></li>
+    <li>Chatujte s tvůrci Brackets pomocí IRC v #brackets na Freenode</li>
+</ul>
+
+    </body>
+</html>
+<!--
+
+    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+    [::::::::::::::     ::::::::::::::]
+    [::::::::::::::     ::::::::::::::]
+    [::::::[[[[[[[:     :]]]]]]]::::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[    CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [::::::[[[[[[[:     :]]]]]]]::::::]
+    [::::::::::::::     ::::::::::::::]
+    [::::::::::::::     ::::::::::::::]
+    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+
+-->
