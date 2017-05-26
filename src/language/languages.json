@@ -160,6 +160,14 @@
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
+    
+    "processing": {
+        "name": "Processing",
+        "mode": ["clike", "text/x-java"],
+        "fileExtensions": ["pde"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
 
     "scala": {
         "name": "Scala",
@@ -222,7 +230,7 @@
         "blockComment": ["--[[", "]]"],
         "lineComment": ["--"]
     },
-
+      
     "sql": {
         "name": "SQL",
         "mode": ["sql", "text/x-mysql"],
