@@ -737,11 +737,13 @@ a:focus {
 /* Dialog-related styles */
 
 .modal-wrapper {
-    width: 100%;
+    width: 100% !important;
+    max-width: 75%;
     height: 100%;
     position: absolute;
     top: 0;
     left: 0;
+    padding-left: 0;
     overflow: auto;
     display: table;
 }
@@ -889,6 +891,8 @@ a:focus {
 
 .dialog-title {
     color: @bc-text-thin;
+    padding-top: 10px;
+    padding-bottom: 15px !important;
     margin-bottom: 0;
     margin-top: 0;
     font-size: 22px;
