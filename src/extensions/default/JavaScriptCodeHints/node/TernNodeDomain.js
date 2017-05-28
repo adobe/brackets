@@ -137,12 +137,13 @@ function initTernServer(env, files) {
         plugins: {requirejs: {}, doc_comment: true, angular: true}
     };
 
-    // If a server is already created just reset the analysis data 
+    // If a server is already created just reset the analysis data before marking it for GC
     if (ternServer) {
         ternServer.reset();
-    } else {
-        ternServer = new Tern.Server(ternOptions);
-    }
+        Infer.resetGuessing();
+    } 
+        
+    ternServer = new Tern.Server(ternOptions);
 
     files.forEach(function (file) {
         ternServer.addFile(file);
@@ -157,7 +158,6 @@ function resetTernServer() {
     // If a server is already created just reset the analysis data 
     if (ternServer) {
         ternServer.reset();
-        ternServer.flush();
         Infer.resetGuessing();
         // tell the main thread we're ready to start processing again
         self.postMessage({type: MessageIds.TERN_WORKER_READY});
@@ -325,8 +325,8 @@ function getTernHints(fileInfo, offset, isProperty) {
             if (error) {
                 _log("Error returned from Tern 'completions' request: " + error);
             } else {
-                //_log("found " + data.completions.length + " for " + file + "@" + offset);
-                completions = data.completion.map(function (completion) {
+                //_log("found " + data.completions + " for " + file + "@" + offset);
+                completions = data.completions.map(function (completion) {
                     return {value: completion.name, type: completion.type, depth: completion.depth,
                         guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url};
                 });
