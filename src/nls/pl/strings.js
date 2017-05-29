@@ -129,6 +129,7 @@ define({
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Czy chcesz zapisać zmiany w następujących plikach?",
     "EXT_MODIFIED_TITLE"                : "Zmiany zewnętrzne",
     "CONFIRM_DELETE_TITLE"              : "Potwierdź usunięcie",
+    "CONFIRM_FILE_DELETE"               : "Czy na pewno chcesz usunąć plik <span class='dialog-filename'>{0}</span>?",
     "CONFIRM_FOLDER_DELETE"             : "Czy na pewno chcesz usunąć folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Plik został usunięty",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> został zmodyfikowany na dysku, poza {APP_NAME}.<br /><br />Czy chcesz zapisać plik i nadpisać te zmiany?",
@@ -151,8 +152,10 @@ define({
     "FIND_MATCH_INDEX"                  : "{0} z {1}",
     "FIND_NO_RESULTS"                   : "Brak wyników",
     "FIND_QUERY_PLACEHOLDER"            : "Szukaj\u2026",
+    "FIND_HISTORY_MAX_COUNT"            : "Maksymalna liczba pozycji w historii wyszukiwania",
     "REPLACE_PLACEHOLDER"               : "Zamień na\u2026",
     "BUTTON_REPLACE_ALL"                : "Zamień wiele\u2026",
+    "BUTTON_REPLACE_BATCH"              : "Przetwarzaj\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Zamień w wielu plikach\u2026",
     "BUTTON_REPLACE"                    : "Zamień",
     "BUTTON_NEXT"                       : "\u25B6",
@@ -208,6 +211,7 @@ define({
     "FILE_FILTER_DIALOG"                : "Edytuj wykluczenia",
     "FILE_FILTER_INSTRUCTIONS"          : "Wyklucz pliki/foldery pasujące do następujących nazw, wzorów lub <a href='{0}' title='{0}'>masek</a>. Każdą regułę umieść w osobnej linii.",
     "FILTER_NAME_PLACEHOLDER"           : "Nazwa wykluczenia (opcjonalnie)",
+    "FILTER_NAME_REMAINING"             : "{0} znaków pozostało",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "i {0} więcej",
     "FILTER_COUNTING_FILES"             : "Liczenie plików\u2026",
     "FILTER_FILE_COUNT"                 : "Przeszukane zostanie {0} z {1} plików {2}",
@@ -310,6 +314,7 @@ define({
     "CMD_FILE_NEW"                        : "Nowy plik",
     "CMD_FILE_NEW_FOLDER"                 : "Nowy folder",
     "CMD_FILE_OPEN"                       : "Otwórz\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "Ostatnio otwierane\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Dodaj do folderu roboczego",
     "CMD_OPEN_DROPPED_FILES"              : "Otwórz przeciągnięte pliki",
     "CMD_OPEN_FOLDER"                     : "Otwórz folder\u2026",
@@ -416,6 +421,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Pokaż w eksploratorze",
     "CMD_SHOW_IN_FINDER"                  : "Pokaż w Finder",
     "CMD_SHOW_IN_OS"                      : "Pokaż w systemie plików",
+    "CMD_SWITCH_PANE_FOCUS"               : "Zmień aktywny panel",
 
     // Help menu commands
     "HELP_MENU"                           : "Pomoc",
@@ -499,8 +505,10 @@ define({
     "INSTALL_CANCELED"                     : "Instalacja anulowana.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Pokaż cały opis",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Pokaż skrócony opis",
+    "SORT_EXTENSION_METHOD"                : "Sortuj rozszerzenia za pomocą liczby pobrań lub daty publikacji",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Pobrany plik nie jest poprawnym plikiem zip.",
+    "MISSING_PACKAGE_JSON"                 : "Pakiet nie zawiera pliku package.json.",
     "INVALID_PACKAGE_JSON"                 : "Plik package.json nie jest poprawny (wystąpił błąd: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Plik package.json nie zawiera nazwy pakietu.",
     "BAD_PACKAGE_NAME"                     : "{0} jest niepoprawną nazwą pakietu.",
@@ -508,6 +516,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Numer wersji pakietu ({0}) jest niepoprawny.",
     "INVALID_BRACKETS_VERSION"             : "Ciąg kompatybilności z {APP_NAME} ({0}) jest nieprawidłowy.",
     "DISALLOWED_WORDS"                     : "Słowa ({1}) są niedozwolone w polu {0}.",
+    "NPM_INSTALL_FAILED"                   : "Wykonanie polecenia npm install nie powiodło się: {0}",
     "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją {APP_NAME}. Jest zainstalowane w folderze z nieaktywnymi rozszerzeniami.",
     "MISSING_MAIN"                         : "Pakiet nie zawiera pliku main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Zainstalowanie tego rozszerzenia nadpisze to, które zainstalowano poprzednio. Czy nadpisać starsze rozszerzenie?",
@@ -571,9 +580,12 @@ define({
     "NO_EXTENSION_MATCHES"                 : "Nie znaleziono pasujących rozszerzeń.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "Uwaga: te rozszerzenia mogą pochodzić od innych autorów i mają pełne uprawnienia. Uważaj gdy instalujesz rozszerzenia z nieznanych źródeł.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Zainstalowane",
+    "EXTENSIONS_DEFAULT_TITLE"             : "Domyślne",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostępne",
     "EXTENSIONS_THEMES_TITLE"              : "Motywy",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizacje",
+    "EXTENSIONS_LAST_UPDATED"              : "Ostatnia aktualizacja",
+    "EXTENSIONS_DOWNLOADS"                 : "Ilość pobrań",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Brak wyników.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Wszystkie wyniki zostały zwinięte. Rozwiń listę plików po prawej, by pokazać wyniki.",
@@ -641,6 +653,7 @@ define({
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "Format RGBa",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Format Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Format HSLa",
+    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Format Hex (0x)",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (użyto {1} raz)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (użyto {1} razy)",
 
@@ -669,6 +682,11 @@ define({
     "COLLAPSE_CURRENT"              : "Zwiń element",
     "EXPAND_CURRENT"                : "Rozwiń element",
 
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Ostatnie pliki",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Wyczyść",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Wyczyść pliki nie będące w zbiorze roboczym",
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false to remove the \"Close Others Above\" from the Working Files context menu",
@@ -686,6 +704,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Minimum lines before a collapsible section icon appears",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true to remember collapsed sections if you close and reopen a file or project",
     "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true to enable code folding on selected text in the editor",
+    "DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS"        : "Default extensions that are disabled",
     "DESCRIPTION_ATTR_HINTS"                         : "Enable/disable HTML attribute hints",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Enable/disable CSS/LESS/SCSS property hints",
     "DESCRIPTION_JS_HINTS"                           : "Enable/disable JavaScript code hints",
@@ -735,6 +754,8 @@ define({
     "DESCRIPTION_LANGUAGE"                           : "Language specific settings",
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Additional mappings from file extension to language name",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Additional mappings from file name to language name",
+    "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Doing copy and cut when there's no selection will copy or cut the whole lines that have cursors in them",
+    "DESCRIPTION_INPUT_STYLE"                        : "Selects the way CodeMirror handles input and focus. It cans be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
     "DESCRIPTION_LINTING_ENABLED"                    : "true to enable Code Inspection",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "The time in milliseconds after which asynchronous linters time out",
     "DESCRIPTION_LINTING_PREFER"                     : "Array of linters to run first",
@@ -777,7 +798,9 @@ define({
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
-    "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments"
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview"
 });
 
-/* Last translated for a505026d40a4eb0bffc196eda30557c0e6b021bc */
+/* Last translated for a01159ac2518fe1f27dfafb62d95a28c2958831f */
