@@ -208,7 +208,9 @@ function buildRequest(fileInfo, query, offset) {
 
     var request = {query: query, files: [], offset: offset, timeout: inferenceTimeout};
     if (fileInfo.type !== MessageIds.TERN_FILE_INFO_TYPE_EMPTY) {
-        request.files.push(fileInfo);
+        // Create a copy to mutate ahead
+        var fileInfoCopy = JSON.parse(JSON.stringify(fileInfo));
+        request.files.push(fileInfoCopy);
     }
 
     return request;
@@ -285,11 +287,10 @@ function getTernProperties(fileInfo, offset, type) {
                 _log("Error returned from Tern 'properties' request: " + error);
             } else {
                 //_log("tern properties: completions = " + data.completions.length);
-                properties = data.completion.map(function (completion) {
+                properties = data.completions.map(function (completion) {
                     return {value: completion, type: completion.type, guess: true};
                 });
             }
-
             // Post a message back to the main thread with the completions
             self.postMessage({type: type,
                               file: fileInfo.name,
@@ -807,8 +808,6 @@ function init(domainManager) {
             }
         ]
     );
-
-    console.log("Tern Node ready!");
 }
 
 exports.init = init;
