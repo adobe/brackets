@@ -29,10 +29,11 @@ define(function (require, exports, module) {
     var Acorn                       = require("node_modules/acorn/dist/acorn");
 
     var LANGUAGE_ID                 = "javascript",
+        TYPESCRIPT_LANGUAGE_ID      = "typescript",
         JSX_LANGUAGE_ID             = "jsx",
         HTML_LANGUAGE_ID            = "html",
         PHP_LANGUAGE_ID             = "php",
-        SUPPORTED_LANGUAGES         = [LANGUAGE_ID, JSX_LANGUAGE_ID, HTML_LANGUAGE_ID, PHP_LANGUAGE_ID],
+        SUPPORTED_LANGUAGES         = [LANGUAGE_ID, TYPESCRIPT_LANGUAGE_ID, JSX_LANGUAGE_ID, HTML_LANGUAGE_ID, PHP_LANGUAGE_ID],
         SINGLE_QUOTE                = "'",
         DOUBLE_QUOTE                = "\"";
 
