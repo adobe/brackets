@@ -421,11 +421,13 @@ define(function (require, exports, module) {
         }
 
         if (Array.isArray(error)) {
-            error[0] = localize(error[0]);
-            return StringUtils.format.apply(window, error);
-        } else {
-            return localize(error);
+            error = error[0];
+            if (Array.isArray(error)) {
+                error[0] = localize(error[0]);
+                return StringUtils.format.apply(window, error);
+            }
         }
+        return localize(error);
     }
 
     /**
