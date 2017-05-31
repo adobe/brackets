@@ -209,6 +209,7 @@ define({
     "FILE_FILTER_DIALOG"                : "Redigera filter",
     "FILE_FILTER_INSTRUCTIONS"          : "Exkludera filer och mappar som matchar någon av följande strängar, substrängar eller <a href='{0}' title='{0}'>wildcards</a>. Ange varje sträng på en ny rad.",
     "FILTER_NAME_PLACEHOLDER"           : "Namnge detta exkluderingsset (frivilligt)",
+    "FILTER_NAME_REMAINING"             : "{0} tecken kvar",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "och {0} till",
     "FILTER_COUNTING_FILES"             : "Räknar filer\u2026",
     "FILTER_FILE_COUNT"                 : "Tillåter {0} av {1} filer {2}",
@@ -668,7 +669,7 @@ define({
     // extensions/default/NavigationAndHistory
     "RECENT_FILES_DLG_HEADER"                    : "Senaste filer",
     "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Rensa",
-    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Rensa filer ej i Working Set"
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Rensa filer ej i arbetsyta"
 });
 
 /* Last translated for a01159ac2518fe1f27dfafb62d95a28c2958831f */
