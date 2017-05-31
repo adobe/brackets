@@ -211,7 +211,7 @@ define({
     "FILE_FILTER_DIALOG"                : "Edytuj wykluczenia",
     "FILE_FILTER_INSTRUCTIONS"          : "Wyklucz pliki/foldery pasujące do następujących nazw, wzorów lub <a href='{0}' title='{0}'>masek</a>. Każdą regułę umieść w osobnej linii.",
     "FILTER_NAME_PLACEHOLDER"           : "Nazwa wykluczenia (opcjonalnie)",
-    "FILTER_NAME_REMAINING"             : "{0} znaków pozostało",
+    "FILTER_NAME_REMAINING"             : "pozostało {0} znaków",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "i {0} więcej",
     "FILTER_COUNTING_FILES"             : "Liczenie plików\u2026",
     "FILTER_FILE_COUNT"                 : "Przeszukane zostanie {0} z {1} plików {2}",
@@ -505,7 +505,7 @@ define({
     "INSTALL_CANCELED"                     : "Instalacja anulowana.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Pokaż cały opis",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Pokaż skrócony opis",
-    "SORT_EXTENSION_METHOD"                : "Sortuj rozszerzenia za pomocą liczby pobrań lub daty publikacji",
+    "SORT_EXTENSION_METHOD"                : "Sortuj rozszerzenia według liczby pobrań lub daty publikacji",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Pobrany plik nie jest poprawnym plikiem zip.",
     "MISSING_PACKAGE_JSON"                 : "Pakiet nie zawiera pliku package.json.",
@@ -516,7 +516,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Numer wersji pakietu ({0}) jest niepoprawny.",
     "INVALID_BRACKETS_VERSION"             : "Ciąg kompatybilności z {APP_NAME} ({0}) jest nieprawidłowy.",
     "DISALLOWED_WORDS"                     : "Słowa ({1}) są niedozwolone w polu {0}.",
-    "NPM_INSTALL_FAILED"                   : "Wykonanie polecenia npm install nie powiodło się: {0}",
+    "NPM_INSTALL_FAILED"                   : "Nie udało się wykonać polecenia npm install: {0}",
     "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją {APP_NAME}. Jest zainstalowane w folderze z nieaktywnymi rozszerzeniami.",
     "MISSING_MAIN"                         : "Pakiet nie zawiera pliku main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Zainstalowanie tego rozszerzenia nadpisze to, które zainstalowano poprzednio. Czy nadpisać starsze rozszerzenie?",
@@ -685,7 +685,7 @@ define({
     // extensions/default/NavigationAndHistory
     "RECENT_FILES_DLG_HEADER"                    : "Ostatnie pliki",
     "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Wyczyść",
-    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Wyczyść pliki nie będące w zbiorze roboczym",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Wyczyść pliki (oprócz aktualnie otwartych)",
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
