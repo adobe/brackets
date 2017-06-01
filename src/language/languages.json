@@ -18,6 +18,12 @@
         "fileExtensions": ["ini", "properties"]
     },
 
+    "properties": {
+        "name": "Properties",
+        "mode": ["properties", "text/x-properties"],
+        "fileExtensions": ["ini", "properties"]
+    },
+
     "css": {
         "name": "CSS",
         "mode": "css",
@@ -167,6 +173,18 @@
         "fileExtensions": ["scala", "sbt"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
+    },
+
+    "scala": {
+        "name": "Scala",
+        "mode": ["clike", "text/x-scala"],
+        "fileExtensions": ["scala"]
+    },
+
+    "sbt": {
+        "name": "SBT",
+        "mode": ["clike", "text/x-scala"],
+        "fileExtensions": ["sbt"]
     },
 
     "coffeescript": {
