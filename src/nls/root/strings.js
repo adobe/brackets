@@ -415,6 +415,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "New Rule",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_NAVIGATE_BACKWARD"               : "Navigate Backward",
+    "CMD_NAVIGATE_FORWARD"                : "Navigate Forward",
     "CMD_NEXT_DOC_LIST_ORDER"             : "Next Document in List",
     "CMD_PREV_DOC_LIST_ORDER"             : "Previous Document in List",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
