@@ -903,6 +903,7 @@ define(function (require, exports, module) {
 
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
+            newFile._encoding = doc.file._encoding;
 
             // Save as warns you when you're about to overwrite a file, so we
             // explicitly allow "blind" writes to the filesystem in this case,

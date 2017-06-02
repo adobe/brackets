@@ -94,7 +94,9 @@ define(function (require, exports, module) {
         if (typeof (options) === "function") {
             callback = options;
             options = {};
+            options.encoding = this._encoding;
         }
+        options.encoding = this._encoding || "utf8";
 
         // We don't need to check isWatched() here because contents are only saved
         // for watched files. Note that we need to explicitly test this._contents
@@ -155,8 +157,8 @@ define(function (require, exports, module) {
         if (!options.blind) {
             options.expectedHash = this._hash;
             options.expectedContents = this._contents;
-            options.encoding = this._encoding;
         }
+        options.encoding = this._encoding || "utf8";
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();

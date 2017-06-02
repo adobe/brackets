@@ -40,10 +40,12 @@ define(function (require, exports, module) {
         PreferencesManager   = require("preferences/PreferencesManager"),
         StatusBar            = require("widgets/StatusBar"),
         Strings              = require("strings"),
+        FileUtils            = require("file/FileUtils"),
         StringUtils          = require("utils/StringUtils");
 
     /* StatusBar indicators */
     var languageSelect, // this is a DropdownButton instance
+        encodingSelect, // this is a DropdownButton instance
         $cursorInfo,
         $fileInfo,
         $indentType,
@@ -78,6 +80,22 @@ define(function (require, exports, module) {
         languageSelect.$button.css("width", "auto");
         // Show the current language as button title
         languageSelect.$button.text(lang.getName());
+    }
+
+    /**
+     * Update encoding
+     * @param {Editor} editor Current editor
+     */
+    function _updateEncodingInfo(editor) {
+        var doc = editor.document;
+
+        // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
+        encodingSelect.$button.css("width", "auto");
+        // Show the current language as button title
+        if (!doc.file._encoding) {
+           doc.file._encoding = "UTF-8";
+        }
+        encodingSelect.$button.text(doc.file._encoding);
     }
 
     /**
@@ -277,6 +295,7 @@ define(function (require, exports, module) {
 
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);
+            _updateEncodingInfo(current);
             _updateFileInfo(current);
             _initOverwriteMode(current);
             _updateIndentType(fullPath);
@@ -303,6 +322,62 @@ define(function (require, exports, module) {
         // Add option to top of menu for persisting the override
         languageSelect.items.unshift("---");
         languageSelect.items.unshift(LANGUAGE_SET_AS_DEFAULT);
+    }
+
+
+    /**
+     * Populate the encodingSelect DropdownButton's menu with all registered encodings
+     */
+    function _populateEncodingDropdown() {
+        // Get all non-binary languages
+        var encodings = [
+            "UTF-8",
+            "UTF-16",
+            "ISO-2022-JP",
+            "ISO-8859-6",
+            "ISO-2022-CN",
+            "ISO-2022-KR",
+            "GB18030",
+            "BIG5",
+            "EUC-JP",
+            "EUC-KR",
+            "ISO-8859-1",
+            "ISO-8859-2",
+            "ISO-8859-5",
+            "ISO-8859-6",
+            "ISO-8859-7",
+            "ISO-8859-8",
+            "ISO-8859-9",
+            "WINDOWS-1250",
+            "WINDOWS-1251",
+            "WINDOWS-1252",
+            "WINDOWS-1253",
+            "WINDOWS-1254",
+            "WINDOWS-1255",
+            "WINDOWS-1256",
+            "KOI8-R",
+            "IBM420",
+            "IBM420",
+            "ISO-8859-8-I",
+            "SHIFT_JIS",
+            "ISO-8859-3",
+            "ISO-8859-4",
+            "UTF-16BE",
+            "WINDOWS-1257",
+            "WINDOWS-1258",
+            "GB2312",
+            "HZ-GB-2312",
+            "WINDOWS-874",
+            "CP866"
+        ];
+        
+
+        // sort dropdown alphabetically
+        encodings.sort(function (a, b) {
+            return a.toLowerCase().localeCompare(b.toLowerCase());
+        });
+
+        encodingSelect.items = encodings;
     }
 
     /**
@@ -342,6 +417,30 @@ define(function (require, exports, module) {
         languageSelect.$button.addClass("btn-status-bar");
         $("#status-language").append(languageSelect.$button);
         languageSelect.$button.attr("title", Strings.STATUSBAR_LANG_TOOLTIP);
+
+
+
+        encodingSelect      = new DropdownButton("", [], function (item, index) {
+            var document = EditorManager.getActiveEditor().document;
+            var html = _.escape(item);
+
+            // Show indicators for currently selected & default languages for the current file
+            if (item === "utf-8") {
+                html += " <span class='default-language'>" + "Default Encoding" + "</span>";
+            }
+            if (item === document.file._encoding) {
+                html = "<span class='checked-language'></span>" + html;
+            }
+            return html;
+        });
+
+        encodingSelect.dropdownExtraClasses = "dropdown-status-bar";
+        encodingSelect.$button.addClass("btn-status-bar");
+        $("#status-encoding").append(encodingSelect.$button);
+        encodingSelect.$button.attr("title", "Select encoding");
+
+
+        
 
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
@@ -389,6 +488,23 @@ define(function (require, exports, module) {
             }
         });
 
+        // Encoding select change handler
+        encodingSelect.on("select", function (e, encoding) {
+            var document = EditorManager.getActiveEditor().document,
+                fullPath = document.file.fullPath;
+
+            document.file._encoding = encoding;
+            var promise = FileUtils.readAsText(document.file);
+
+            promise.done(function (text, readTimestamp) {
+                encodingSelect.$button.text(encoding);
+                document.refreshText(text, readTimestamp);
+            });
+            promise.fail(function (error) {
+                console.log("Error reloading contents of " + document.file.fullPath, error);
+            });
+        });
+
         $statusOverwrite.on("click", _updateEditorOverwriteMode);
     }
 
@@ -399,6 +515,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         // Populate language switcher with all languages after startup; update it later if this set changes
         _populateLanguageDropdown();
+        _populateEncodingDropdown();
         LanguageManager.on("languageAdded languageModified", _populateLanguageDropdown);
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         StatusBar.show();
