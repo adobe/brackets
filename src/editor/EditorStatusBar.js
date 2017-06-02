@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         StatusBar            = require("widgets/StatusBar"),
         Strings              = require("strings"),
         FileUtils            = require("file/FileUtils"),
+        InMemoryFile         = require("document/InMemoryFile"),
         StringUtils          = require("utils/StringUtils");
 
     /* StatusBar indicators */
@@ -91,7 +92,7 @@ define(function (require, exports, module) {
 
         // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
         encodingSelect.$button.css("width", "auto");
-        // Show the current language as button title
+        // Show the current encoding as button title
         if (!doc.file._encoding) {
            doc.file._encoding = "UTF-8";
         }
@@ -419,14 +420,13 @@ define(function (require, exports, module) {
         languageSelect.$button.attr("title", Strings.STATUSBAR_LANG_TOOLTIP);
 
 
-
-        encodingSelect      = new DropdownButton("", [], function (item, index) {
+        encodingSelect = new DropdownButton("", [], function (item, index) {
             var document = EditorManager.getActiveEditor().document;
             var html = _.escape(item);
 
             // Show indicators for currently selected & default languages for the current file
-            if (item === "utf-8") {
-                html += " <span class='default-language'>" + "Default Encoding" + "</span>";
+            if (item === "UTF-8") {
+                html += " <span class='default-language'>" + Strings.STATUSBAR_DEFAULT_LANG + "</span>";
             }
             if (item === document.file._encoding) {
                 html = "<span class='checked-language'></span>" + html;
@@ -439,8 +439,6 @@ define(function (require, exports, module) {
         $("#status-encoding").append(encodingSelect.$button);
         encodingSelect.$button.attr("title", "Select encoding");
 
-
-        
 
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
@@ -494,15 +492,18 @@ define(function (require, exports, module) {
                 fullPath = document.file.fullPath;
 
             document.file._encoding = encoding;
-            var promise = FileUtils.readAsText(document.file);
+            encodingSelect.$button.text(encoding);
 
-            promise.done(function (text, readTimestamp) {
-                encodingSelect.$button.text(encoding);
-                document.refreshText(text, readTimestamp);
-            });
-            promise.fail(function (error) {
-                console.log("Error reloading contents of " + document.file.fullPath, error);
-            });
+            // Don't call refresh in case of InMemoryFile
+            if (!(document.file instanceof InMemoryFile)) {
+                var promise = FileUtils.readAsText(document.file);
+                promise.done(function (text, readTimestamp) {
+                    document.refreshText(text, readTimestamp);
+                });
+                promise.fail(function (error) {
+                    console.log("Error reloading contents of " + document.file.fullPath, error);
+                });
+            }
         });
 
         $statusOverwrite.on("click", _updateEditorOverwriteMode);
