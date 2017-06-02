@@ -646,6 +646,10 @@ define(function (require, exports, module) {
     
     function _initRecentFilesList() {
         _mrofList = PreferencesManager.getViewState(OPEN_FILES_VIEW_STATE, _getPrefsContext()) || [];
+        
+        _mrofList = _mrofList.filter(function (entry) {
+            return entry;
+        });
         // Have a check on the number of entries to fallback to working set if we detect corruption
         if (_mrofList.length < MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)) {
             _mrofList = _createMROFList();
