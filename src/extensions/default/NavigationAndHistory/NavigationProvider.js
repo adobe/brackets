@@ -78,7 +78,7 @@ define(function (require, exports, module) {
             self.cm = null;
             self.bookMarkIds = null;
         });
-    }
+    };
     
     NavigationFrame.prototype._createMarkers = function (ranges) {
         var range, index, bookMark;
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
             if (entry.className === self.uId || self.bookMarkIds.indexOf(entry.id) !== -1) {
                 return entry;
             }
-        })
+        });
         for (index in markers) {
             marker = markers[index];
             selection = marker.find();
