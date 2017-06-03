@@ -572,7 +572,7 @@ define({
     "EXTENSIONS_THEMES_TITLE"              : "Teman",
     "EXTENSIONS_UPDATES_TITLE"             : "Uppdateringar",
     "EXTENSIONS_LAST_UPDATED"              : "Senast uppdaterad",
-    "EXTENSIONS_DOWNLOADS"                 : "Nerladdningar",
+    "EXTENSIONS_DOWNLOADS"                 : "Nedladdningar",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Inga träffar tillgängliga.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Alla träffar är minimerade. Expandera filerna listade till höger för att visa träffar.",
