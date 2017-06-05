@@ -83,7 +83,6 @@ define(function (require, exports, module) {
                                 if (err) {
                                     userUuid = uuid.v4();
                                 } else {
-                                    console.log(macHash);
                                     userUuid = macHash;
                                 }
 
@@ -92,8 +91,7 @@ define(function (require, exports, module) {
                                 oneTimeHealthData.uuid = userUuid;
                                 return result.resolve(oneTimeHealthData);
                             });
-                            
-                            
+
                         } else {
                             oneTimeHealthData.uuid = userUuid;
                             return result.resolve(oneTimeHealthData);
