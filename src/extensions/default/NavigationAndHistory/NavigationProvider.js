@@ -64,29 +64,19 @@ define(function (require, exports, module) {
     * @type {Array.<Object>}
     */
     var jumpedPosStack = [],
+        activePosNotSynced = false,
         captureTimer,
-        activePosNotSynched = false,
         jumpInProgress,
-        command_JumpBack,
-        command_JumpFwd,
-        cmMarkers = {};
+        commandJumpBack,
+        commandJumpFwd;
      
    /**
     * Function to enable/disable navigation command based on cursor positions availability.
     * @private
     */
     function _validateNavigationCmds() {
-        if (jumpToPosStack.length > 0) {
-            command_JumpBack.setEnabled(true);
-        } else {
-            command_JumpBack.setEnabled(false);
-        }
-        
-        if (jumpedPosStack.length > 0) {
-            command_JumpFwd.setEnabled(true);
-        } else {
-            command_JumpFwd.setEnabled(false);
-        }
+        commandJumpBack.setEnabled(jumpToPosStack.length > 0);
+        commandJumpFwd.setEnabled(jumpedPosStack.length > 0);
     }
     
     /**
@@ -98,9 +88,9 @@ define(function (require, exports, module) {
             fileEntry = FileSystem.getFileForPath(entry.file);
 
         if (entry.inMem) {
-            var indxInWS = MainViewManager.findInWorkingSet(entry.paneId, entry.file);
+            var indexInWS = MainViewManager.findInWorkingSet(entry.paneId, entry.file);
             // Remove entry if InMemoryFile is not found in Working set
-            if (indxInWS === -1) {
+            if (indexInWS === -1) {
                 deferred.reject();
             } else {
                 deferred.resolve();
@@ -112,7 +102,7 @@ define(function (require, exports, module) {
                 } else {
                     deferred.reject();
                 }
-		    });
+			});
 	    }
 
         return deferred.promise();
@@ -124,7 +114,7 @@ define(function (require, exports, module) {
     function NavigationFrame(editor, selectionObj) {
         this.cm = editor._codeMirror;
         this.file = editor.document.file._path;
-        this.inMem = editor.document.file.constructor.name === "InMemoryFile" ? true : false;
+        this.inMem = editor.document.file.constructor.name === "InMemoryFile";
         this.paneId = editor._paneId;
         this.uId = (new Date()).getTime();
         this.selections = [];
@@ -134,7 +124,7 @@ define(function (require, exports, module) {
     }
     
    /**
-    * Binds the lifecycle event listner of the editor for which this frame is captured
+    * Binds the lifecycle event listener of the editor for which this frame is captured
     */
     NavigationFrame.prototype._bindEditor = function (editor) {
         var self = this;
@@ -154,7 +144,10 @@ define(function (require, exports, module) {
     * -> Addition/Updation of characters in the captured selection
     */
     NavigationFrame.prototype._createMarkers = function (ranges) {
-        var range, index, bookMark;
+        var range,
+			index,
+			bookMark;
+
         this.bookMarkIds = [];
         for (index in ranges) {
             range = ranges[index];
@@ -177,15 +170,23 @@ define(function (require, exports, module) {
         if (!this.cm) {
             return;
         }
+		
+		var marker,
+			selection,
+			index;
         
+		// Reset selections first.
         this.selections = [];
-        var marker, selection, index;
         var self = this;
+		
+		// Collate only the markers we used to mark selections/cursors
         var markers = this.cm.getAllMarks().filter(function (entry) {
             if (entry.className === self.uId || self.bookMarkIds.indexOf(entry.id) !== -1) {
                 return entry;
             }
         });
+		
+		// Iterate over CM textmarkers and collate the updated(if?) positions
         for (index in markers) {
             marker = markers[index];
             selection = marker.find();
@@ -238,10 +239,10 @@ define(function (require, exports, module) {
             captureTimer = window.setTimeout(function () {
                 jumpToPosStack.push(new NavigationFrame(event.target, selectionObj));
                 _validateNavigationCmds();
-                activePosNotSynched = false;
+                activePosNotSynced = false;
             }, NAV_FRAME_CAPTURE_LATENCY);
         } else {
-            activePosNotSynched = true;
+            activePosNotSynced = true;
         }
     }
     
@@ -250,7 +251,7 @@ define(function (require, exports, module) {
     */
     function _navigateBack() {
         if (!jumpedPosStack.length) {
-            if (activePosNotSynched) {
+            if (activePosNotSynced) {
                 jumpToPosStack.push(new NavigationFrame(EditorManager.getCurrentFullEditor(), {ranges: EditorManager.getCurrentFullEditor()._codeMirror.listSelections()}));
             }
         }
@@ -303,10 +304,10 @@ define(function (require, exports, module) {
     function _initNavigationCommands() {
         CommandManager.register(Strings.CMD_NAVIGATE_BACKWARD, NAVIGATION_JUMP_BACK, _navigateBack);
         CommandManager.register(Strings.CMD_NAVIGATE_FORWARD, NAVIGATION_JUMP_FWD, _navigateFwd);
-        command_JumpBack = CommandManager.get(NAVIGATION_JUMP_BACK);
-        command_JumpFwd = CommandManager.get(NAVIGATION_JUMP_FWD);
-        command_JumpBack.setEnabled(false);
-        command_JumpFwd.setEnabled(false);
+        commandJumpBack = CommandManager.get(NAVIGATION_JUMP_BACK);
+        commandJumpFwd = CommandManager.get(NAVIGATION_JUMP_FWD);
+        commandJumpBack.setEnabled(false);
+        commandJumpFwd.setEnabled(false);
         KeyBindingManager.addBinding(NAVIGATION_JUMP_BACK, KeyboardPrefs[NAVIGATION_JUMP_BACK]);
         KeyBindingManager.addBinding(NAVIGATION_JUMP_FWD, KeyboardPrefs[NAVIGATION_JUMP_FWD]);
         _initNavigationMenuItems();
@@ -318,7 +319,7 @@ define(function (require, exports, module) {
     */
     function _captureFrame(editor) {
         // Capture the active position now if it was not captured earlier
-        if ((activePosNotSynched || !jumpToPosStack.length) && !jumpInProgress) {
+        if ((activePosNotSynced || !jumpToPosStack.length) && !jumpInProgress) {
             jumpToPosStack.push(new NavigationFrame(editor, {ranges: editor._codeMirror.listSelections()}));
         }
     }
@@ -335,7 +336,7 @@ define(function (require, exports, module) {
         }
         
         if (current && current._paneId) { // Handle only full editors
-            activePosNotSynched = true;
+            activePosNotSynced = true;
             current.on("beforeSelectionChange", _recordJumpDef);
         }
     }
