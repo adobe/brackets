@@ -1283,7 +1283,19 @@ var ReactPerf = _dereq_(78);
 var setInnerHTML = _dereq_(138);
 var setTextContent = _dereq_(139);
 var invariant = _dereq_(161);
-
+/*jamran7 solution
+*/ //see 6868
+function cleanElements(element){
+    var children = element.children[1].className;
+    for(var i = 0; i < element.children.length; i++){
+        if(element.children[i].className == "jstree-open" || element.children[i].className == "jstree-closed"){
+            cleanElements(element.children[i]);
+        }
+        if(element.children[i].className == "jstree-leaf" && /.(Icon)/.test(element.children[i].innerText)){
+            element.removeChild(element.children[i]);
+        }
+    }    
+}
 /**
  * Inserts `childNode` as a child of `parentNode` at the `index`.
  *
@@ -1300,9 +1312,12 @@ function insertChildAt(parentNode, childNode, index) {
 
   // fix render order error in safari
   // IE8 will throw error when index out of list size.
-  var beforeChild = index >= parentNode.childNodes.length ? null : parentNode.childNodes.item(index);
+  /*jamran7 solution
+*/
 
-  parentNode.insertBefore(childNode, beforeChild);
+  var beforeChild = index >= parentNode.childNodes.length ? null : parentNode.childNodes.item(index);
+  //cleanElements(childNode);
+    parentNode.insertBefore(childNode, beforeChild);
 }
 
 /**
@@ -6850,6 +6865,7 @@ function enqueuePutListener(id, registrationName, listener, transaction) {
 
 function putListener() {
   var listenerToPut = this;
+  //if(!(/.(Icon)/.test(listenerToPut.id)))
   ReactBrowserEventEmitter.putListener(listenerToPut.id, listenerToPut.registrationName, listenerToPut.listener);
 }
 
@@ -11852,8 +11868,9 @@ var ReactMount = {
           // through its siblings to ensure they're cached so that we don't have
           // to revisit this node again. Otherwise, we make n^2 calls to getID
           // when visiting the many children of a single node in order.
+          var test = childID;
 
-          if (targetID === childID) {
+          if (targetID === childID /*|| 10 == test.charCodeAt(test.length -1)? targetID === test.substr(0,test.length - 1) : false*/) {
             targetChild = child;
           } else if (ReactInstanceHandles.isAncestorIDOf(childID, targetID)) {
             // If we find a child whose ID is an ancestor of the given ID,
@@ -11886,7 +11903,7 @@ var ReactMount = {
     }
 
     firstChildren.length = 0;
-
+    
     !false ? "development" !== 'production' ? invariant(false, 'findComponentRoot(..., %s): Unable to find element. This probably ' + 'means the DOM was unexpectedly mutated (e.g., by the browser), ' + 'usually due to forgetting a <tbody> when using tables, nesting tags ' + 'like <form>, <p>, or <a>, or using non-SVG elements in an <svg> ' + 'parent. ' + 'Try inspecting the child nodes of the element with React ID `%s`.', targetID, ReactMount.getID(ancestorNode)) : invariant(false) : undefined;
   },
 

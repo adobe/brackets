@@ -179,14 +179,14 @@ define(function (require, exports, module) {
 
         function handleDragOver(event) {
             event = event.originalEvent || event;
-
+            event.stopPropagation();
+            event.preventDefault();
+            
             var files = event.dataTransfer.files;
 
             stopURIListPropagation(files, event);
 
             if (files && files.length) {
-                event.stopPropagation();
-                event.preventDefault();
 
                 var dropEffect = "none";
 
@@ -200,15 +200,14 @@ define(function (require, exports, module) {
 
         function handleDrop(event) {
             event = event.originalEvent || event;
-
+            event.stopPropagation(); //moved from inside below if-statement
+            event.preventDefault(); //the default behavior and propagation should be stopped no matter what 
+            
             var files = event.dataTransfer.files;
 
             stopURIListPropagation(files, event);
 
             if (files && files.length) {
-                event.stopPropagation();
-                event.preventDefault();
-
                 brackets.app.getDroppedFiles(function (err, paths) {
                     if (!err) {
                         openDroppedFiles(paths);
@@ -242,7 +241,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_DROPPED_FILES, Commands.FILE_OPEN_DROPPED_FILES, openDroppedFiles);
 
     // Export public API
-    exports.attachHandlers      = attachHandlers;
     exports.isValidDrop         = isValidDrop;
+    exports.attachHandlers      = attachHandlers;
     exports.openDroppedFiles    = openDroppedFiles;
 });

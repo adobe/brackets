@@ -1,3 +1,30 @@
+FIT, CSE2410-02 Software Engineering
+
+Instructors: Dr. Keith Gallagher, Casey Doran
+
+Team: ChainsawFist
+
+Members:	
+
+		Christopher Lindelof, Chris
+
+		Lawrence Nadur, Logan
+
+		Boyce Poleon Jr., Boyce
+
+		James Ranyak, James
+
+Issues* / Features$
+~~~~
+$Open .gdoc files
+	1. pull the link from the gdoc file
+	2. request access to 'Live Preview'
+		a. inform that user must access to the gdoc file (because the nature of the files are to exist w/ resriction & to be online)
+	3. once granted, have the browser open the link
+	4. once link is opened, pull the page source into Brackets
+~~~~
+
+-------------------
 Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
