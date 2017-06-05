@@ -333,10 +333,10 @@ define(function (require, exports, module) {
         var promise = document.reload();
         promise.done(function (text, readTimestamp) {
             // For older CEF version, _encoding is undefined
-            if (document.file._encoding == undefined) {
+            if (document.file._encoding === undefined) {
                 encodingSelect.$button.text(encoding);
             } else {
-                encodingSelect.$button.text(encoding);
+                encodingSelect.$button.text(document.file._encoding);
             }
         });
         promise.fail(function (error) {
