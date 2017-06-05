@@ -21,7 +21,7 @@
  *
  */
 
-/*global navigator, appshell */
+/*global define, $, brackets,navigator, console, appshell */
 define(function (require, exports, module) {
     "use strict";
 
@@ -31,20 +31,18 @@ define(function (require, exports, module) {
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
         Strings             = brackets.getModule("strings"),
         HealthDataUtils     = require("HealthDataUtils"),
-        uuid                = require("thirdparty/uuid");
-
-    var prefs      = PreferencesManager.getExtensionPrefs("healthData");
+        uuid                = require("thirdparty/uuid"),
+        prefs               = PreferencesManager.getExtensionPrefs("healthData"),
+        params              = new UrlParams(),
+        ONE_MINUTE          = 60 * 1000,
+        ONE_DAY             = 24 * 60 * ONE_MINUTE,
+        FIRST_LAUNCH_SEND_DELAY = 30 * ONE_MINUTE,
+        timeoutVar;
 
     prefs.definePreference("healthDataTracking", "boolean", true, {
         description: Strings.DESCRIPTION_HEALTH_DATA_TRACKING
     });
 
-    var ONE_MINUTE = 60 * 1000,
-        ONE_DAY = 24 * 60 * ONE_MINUTE,
-        FIRST_LAUNCH_SEND_DELAY = 30 * ONE_MINUTE,
-        timeoutVar;
-
-    var params = new UrlParams();
     params.parse();
 
     /**
@@ -144,13 +142,16 @@ define(function (require, exports, module) {
      * for opt-out/in is closed.
      */
     function checkHealthDataSend() {
-        var result = new $.Deferred(),
-            isHDTracking = prefs.get("healthDataTracking");
+        var result         = new $.Deferred(),
+            isHDTracking   = prefs.get("healthDataTracking"),
+            nextTimeToSend,
+            currentTime;
+
         HealthLogger.setHealthLogsEnabled(isHDTracking);
         window.clearTimeout(timeoutVar);
         if (isHDTracking) {
-            var nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime"),
-                currentTime = Date.now();
+            nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime");
+            currentTime    = Date.now();
 
             // Never send data before FIRST_LAUNCH_SEND_DELAY has ellapsed on a fresh install. This gives the user time to read the notification
             // popup, learn more, and opt out if desired
