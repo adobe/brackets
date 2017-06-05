@@ -769,7 +769,7 @@ define(function (require, exports, module) {
             self.refreshText(text, readTimestamp);
         });
         promise.fail(function (error) {
-            console.log("Error reloading contents of " + this.file.fullPath, error);
+            console.log("Error reloading contents of " + self.file.fullPath, error);
         });
         return promise;
     };
