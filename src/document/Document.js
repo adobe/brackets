@@ -758,6 +758,22 @@ define(function (require, exports, module) {
         return this.file instanceof InMemoryFile;
     };
 
+    /**
+     *  Reloads the document from FileSystem
+     *  @return {promise} - to check if reload was successful or not
+     */
+    Document.prototype.reload = function () {
+        var promise = FileUtils.readAsText(this.file);
+        var self = this;
+        promise.done(function (text, readTimestamp) {
+            self.refreshText(text, readTimestamp);
+        });
+        promise.fail(function (error) {
+            console.log("Error reloading contents of " + document.file.fullPath, error);
+        });
+        return promise;
+    };
+
     // We dispatch events from the module level, and the instance level. Instance events are wired up
     // in the Document constructor.
     EventDispatcher.makeEventDispatcher(exports);

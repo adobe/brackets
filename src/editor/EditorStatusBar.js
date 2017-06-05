@@ -42,6 +42,9 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         FileUtils            = require("file/FileUtils"),
         InMemoryFile         = require("document/InMemoryFile"),
+        Dialogs              = require("widgets/Dialogs"),
+        DefaultDialogs       = require("widgets/DefaultDialogs"),
+        ProjectManager       = require("project/ProjectManager"),
         StringUtils          = require("utils/StringUtils");
 
     /* StatusBar indicators */
@@ -326,6 +329,17 @@ define(function (require, exports, module) {
     }
 
 
+    function _changeEncodingAndReloadDoc(document) {
+        var promise = document.reload();
+        promise.done(function (text, readTimestamp) {
+            encodingSelect.$button.text(document.file._encoding);
+        });
+        promise.fail(function (error) {
+            console.log("Error reloading contents of " + document.file.fullPath, error);
+        });
+    }
+
+
     /**
      * Populate the encodingSelect DropdownButton's menu with all registered encodings
      */
@@ -369,7 +383,8 @@ define(function (require, exports, module) {
             "GB2312",
             "HZ-GB-2312",
             "WINDOWS-874",
-            "CP866"
+            "CP866",
+            "euc-jp"
         ];
         
 
@@ -492,17 +507,39 @@ define(function (require, exports, module) {
                 fullPath = document.file.fullPath;
 
             document.file._encoding = encoding;
-            encodingSelect.$button.text(encoding);
+            
 
-            // Don't call refresh in case of InMemoryFile
-            if (!(document.file instanceof InMemoryFile)) {
-                var promise = FileUtils.readAsText(document.file);
-                promise.done(function (text, readTimestamp) {
-                    document.refreshText(text, readTimestamp);
-                });
-                promise.fail(function (error) {
-                    console.log("Error reloading contents of " + document.file.fullPath, error);
-                });
+            if (!(document.file instanceof InMemoryFile) && document.isDirty) {
+                var dialogId = DefaultDialogs.DIALOG_ID_EXT_CHANGED,
+                    message = StringUtils.format(
+                        "Cannot change encoding of a dirty file",
+                        StringUtils.breakableUrl(
+                            ProjectManager.makeProjectRelativeIfPossible(document.file.fullPath)
+                        )
+                    ),
+                    buttons = [
+                        {
+                            className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                            id:        Dialogs.DIALOG_BTN_DONTSAVE,
+                            text:      "Ignore Changes and Reload from Disk"
+                        },
+                        {
+                            className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                            id:        Dialogs.DIALOG_BTN_CANCEL,
+                            text:      "Cancel"
+                        }
+                    ];
+                
+                Dialogs.showModalDialog(dialogId, "Save the file before changing encoding", message, buttons)
+                    .done(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
+                            _changeEncodingAndReloadDoc(document)
+                        }
+                    });
+            } else if (document.file instanceof InMemoryFile) {
+                encodingSelect.$button.text(encoding);
+            } else if (!document.isDirty) {
+                _changeEncodingAndReloadDoc(document);
             }
         });
 
