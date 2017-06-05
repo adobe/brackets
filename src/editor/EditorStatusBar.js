@@ -329,10 +329,15 @@ define(function (require, exports, module) {
     }
 
 
-    function _changeEncodingAndReloadDoc(document) {
+    function _changeEncodingAndReloadDoc(document, encoding) {
         var promise = document.reload();
         promise.done(function (text, readTimestamp) {
-            encodingSelect.$button.text(document.file._encoding);
+            // For older CEF version, _encoding is undefined
+            if (document.file._encoding == undefined) {
+                encodingSelect.$button.text(encoding);
+            } else {
+                encodingSelect.$button.text(encoding);
+            }
         });
         promise.fail(function (error) {
             console.log("Error reloading contents of " + document.file.fullPath, error);
@@ -533,13 +538,13 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialog(dialogId, "Save the file before changing encoding", message, buttons)
                     .done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
-                            _changeEncodingAndReloadDoc(document)
+                            _changeEncodingAndReloadDoc(document, encoding);
                         }
                     });
             } else if (document.file instanceof InMemoryFile) {
                 encodingSelect.$button.text(encoding);
             } else if (!document.isDirty) {
-                _changeEncodingAndReloadDoc(document);
+                _changeEncodingAndReloadDoc(document, encoding);
             }
         });
 
