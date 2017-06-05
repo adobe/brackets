@@ -21,6 +21,7 @@
  *
  */
 
+/*global navigator, appshell */
 define(function (require, exports, module) {
     "use strict";
 
@@ -53,14 +54,6 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             oneTimeHealthData = {};
 
-        var userUuid = PreferencesManager.getViewState("UUID");
-
-        if (!userUuid) {
-            userUuid = uuid.v4();
-            PreferencesManager.setViewState("UUID", userUuid);
-        }
-
-        oneTimeHealthData.uuid = userUuid;
         oneTimeHealthData.snapshotTime = Date.now();
         oneTimeHealthData.os = brackets.platform;
         oneTimeHealthData.userAgent = window.navigator.userAgent;
@@ -79,7 +72,33 @@ define(function (require, exports, module) {
                         oneTimeHealthData.bracketsTheme = bracketsTheme;
                     })
                     .always(function () {
-                        return result.resolve(oneTimeHealthData);
+                        var userUuid = PreferencesManager.getViewState("UUID");
+
+                        if (!userUuid) {
+
+                            // For first launch, we are now going to
+                            // rely on the macine Hash.
+                            appshell.app.getMachineHash(function (err, macHash) {
+                                // In case of error, use the older algorithm
+                                if (err) {
+                                    userUuid = uuid.v4();
+                                } else {
+                                    console.log(macHash);
+                                    userUuid = macHash;
+                                }
+
+                                PreferencesManager.setViewState("UUID", userUuid);
+
+                                oneTimeHealthData.uuid = userUuid;
+                                return result.resolve(oneTimeHealthData);
+                            });
+                            
+                            
+                        } else {
+                            oneTimeHealthData.uuid = userUuid;
+                            return result.resolve(oneTimeHealthData);
+                        }
+
                     });
 
             });
