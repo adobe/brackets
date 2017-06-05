@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -20,7 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
-
+ 
+/**
+ * Manages Editor navigation history to aid back/fwd movement between the edit positions 
+ * in the active project context. The navigation history is purely in-memory and not 
+ * persisted to file system when a project is being closed.
+ */
 define(function (require, exports, module) {
     "use strict";
 
@@ -34,43 +39,103 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
         Menus                   = brackets.getModule("command/Menus"),
-        KeyBindingManager       = brackets.getModule("command/KeyBindingManager");
+        KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
+        FileSystem              = brackets.getModule("filesystem/FileSystem");
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     // Command constants for navigation history
     var NAVIGATION_JUMP_BACK      = "navigation.jump.back",
         NAVIGATION_JUMP_FWD       = "navigation.jump.fwd";
-        
-    var NAV_FRAME_CAPTURE_LATENCY = 3000;
-        
+    
+    // The latency time to capture an explicit cursor movement as a navigation frame
+    var NAV_FRAME_CAPTURE_LATENCY = 2000;
     
     /*
-    * Contains list of most recently opened files and their last known cursor position
+    * Contains list of most recently known cursor positions.
     * @private
     * @type {Array.<Object>}
     */
-    var jumpToPosStack = [],
-        jumpedPosStack = [],
+    var jumpToPosStack = [];
+    
+    /*
+    * Contains list of most recently traversed cursor positions using NAVIGATION_JUMP_BACK command.
+    * @private
+    * @type {Array.<Object>}
+    */
+    var jumpedPosStack = [],
         captureTimer,
         activePosNotSynched = false,
         jumpInProgress,
         command_JumpBack,
         command_JumpFwd,
         cmMarkers = {};
+     
+   /**
+    * Function to enable/disable navigation command based on cursor positions availability.
+    * @private
+    */
+    function _validateNavigationCmds() {
+        if (jumpToPosStack.length > 0) {
+            command_JumpBack.setEnabled(true);
+        } else {
+            command_JumpBack.setEnabled(false);
+        }
         
+        if (jumpedPosStack.length > 0) {
+            command_JumpFwd.setEnabled(true);
+        } else {
+            command_JumpFwd.setEnabled(false);
+        }
+    }
     
+    /**
+    * Function to check existence of a file entry
+    * @private
+    */
+    function _checkIfExist(entry) {
+        var deferred = new $.Deferred(),
+            fileEntry = FileSystem.getFileForPath(entry.file);
+
+        if (entry.inMem) {
+            var indxInWS = MainViewManager.findInWorkingSet(entry.paneId, entry.file);
+            // Remove entry if InMemoryFile is not found in Working set
+            if (indxInWS === -1) {
+                deferred.reject();
+            } else {
+                deferred.resolve();
+            }
+        } else {
+            fileEntry.exists(function (err, exists) {
+                if (!err && exists) {
+                    deferred.resolve();
+                } else {
+                    deferred.reject();
+                }
+		    });
+	    }
+
+        return deferred.promise();
+    }
+        
+   /**
+    * Prototype to capture a navigation frame and it's various data/functional attributues
+    */
     function NavigationFrame(editor, selectionObj) {
         this.cm = editor._codeMirror;
         this.file = editor.document.file._path;
+        this.inMem = editor.document.file.constructor.name === "InMemoryFile" ? true : false;
         this.paneId = editor._paneId;
-        this.uId = (new Date()).getTime() + "";
+        this.uId = (new Date()).getTime();
         this.selections = [];
         this.bookMarkIds = [];
         this._createMarkers(selectionObj.ranges);
         this._bindEditor(editor);
     }
     
+   /**
+    * Binds the lifecycle event listner of the editor for which this frame is captured
+    */
     NavigationFrame.prototype._bindEditor = function (editor) {
         var self = this;
         editor.on("beforeDestroy", function () {
@@ -80,20 +145,34 @@ define(function (require, exports, module) {
         });
     };
     
+   /**
+    * Function to create CM TextMarkers for the navigated positions/selections.
+    * This logic is required to ensure that the captured navaigation positions 
+    * stay valid and contextual even when the actual document text mutates.
+    * The mutations which are handled here :
+    * -> Addition/Deletion of lines before the captured position
+    * -> Addition/Updation of characters in the captured selection
+    */
     NavigationFrame.prototype._createMarkers = function (ranges) {
         var range, index, bookMark;
         this.bookMarkIds = [];
         for (index in ranges) {
             range = ranges[index];
+            // 'markText' has to used for a non-zero length position, if current selection is 
+            // of zero length use bookmark instead.
             if (range.anchor.line === range.head.line && range.anchor.ch === range.head.ch) {
                 bookMark = this.cm.setBookmark(range.anchor, range.head);
                 this.bookMarkIds.push(bookMark.id);
             } else {
-                this.cm.markText(range.anchor, range.head, {className: (this.uId + "")});
+                this.cm.markText(range.anchor, range.head, {className: (this.uId)});
             }
         }
     };
     
+   /**
+    * Function to actually convert the CM markers to CM positions which can be used to 
+    * set selections or cursor positions in Editor.
+    */
     NavigationFrame.prototype._backupSelectionRanges = function () {
         if (!this.cm) {
             return;
@@ -118,34 +197,47 @@ define(function (require, exports, module) {
         }
     };
 
+   /**
+    * Function to actually navigate to the position(file,selections) captured in this frame
+    */
     NavigationFrame.prototype.goTo = function () {
         var self = this;
         this._backupSelectionRanges();
         jumpInProgress = true;
         CommandManager.execute(Commands.FILE_OPEN, {fullPath: this.file, paneId: this.paneId}).done(function () {
             EditorManager.getCurrentFullEditor().setSelections(self.selections, true);
-            command_JumpFwd.setEnabled(true);
+            _validateNavigationCmds();
         }).always(function () {
             jumpInProgress = false;
         });
     };
     
+    
+   /**
+    * Function to capture a non-zero set of selections as a navigation frame.
+    * The assumptions behind capturing a frame as a navigation frame are :
+    *
+    * -> If it's set by user explicitly (using mouse click or jump to definition)
+    * -> By clicking on search results
+    * -> Change of cursor by keyboard navigation keys or actual edits are not captured.
+    *
+    * @private
+    */
     function _recordJumpDef(event, selectionObj) {
         if (jumpInProgress) {
             return;
         }
+        // Reset forward navigation stack if we are capturing a new event
         jumpedPosStack = [];
+        if (captureTimer) {
+            window.clearTimeout(captureTimer);
+            captureTimer = null;
+        }
+        // Ensure cursor activity has not happened because of arrow keys or edit
         if (selectionObj.origin !== "+move" && (window.event && window.event.type !== "input")) {
-            if (captureTimer) {
-                window.clearTimeout(captureTimer);
-                captureTimer = null;
-            }
             captureTimer = window.setTimeout(function () {
                 jumpToPosStack.push(new NavigationFrame(event.target, selectionObj));
-                command_JumpFwd.setEnabled(false);
-                if (jumpToPosStack.length > 1) {
-                    command_JumpBack.setEnabled(true);
-                }
+                _validateNavigationCmds();
                 activePosNotSynched = false;
             }, NAV_FRAME_CAPTURE_LATENCY);
         } else {
@@ -153,26 +245,81 @@ define(function (require, exports, module) {
         }
     }
     
-    function _jumpToPosBack() {
+   /**
+    * Command handler to navigate backward
+    */
+    function _navigateBack() {
         if (!jumpedPosStack.length) {
             if (activePosNotSynched) {
                 jumpToPosStack.push(new NavigationFrame(EditorManager.getCurrentFullEditor(), {ranges: EditorManager.getCurrentFullEditor()._codeMirror.listSelections()}));
-            } else {
-                jumpedPosStack.push(jumpToPosStack.pop());
             }
         }
         var navFrame = jumpToPosStack.pop();
         if (navFrame) {
-            jumpedPosStack.push(navFrame);
-            navFrame.goTo();
+            // We will check for the file existence now, if it doesn't exist we will jump back again
+            // but discard the popped frame as invalid.
+            _checkIfExist(navFrame).done(function () {
+                jumpedPosStack.push(navFrame);
+                navFrame.goTo();
+            }).fail(function () {
+                _validateNavigationCmds();
+                CommandManager.execute(NAVIGATION_JUMP_BACK);
+            });
         }
     }
     
-    function _jumpToPosFwd() {
+   /**
+    * Command handler to navigate forward
+    */
+    function _navigateFwd() {
         var navFrame = jumpedPosStack.pop();
         if (navFrame) {
-            jumpToPosStack.push(navFrame);
-            navFrame.goTo();
+            // We will check for the file existence now, if it doesn't exist we will jump back again
+            // but discard the popped frame as invalid.
+            _checkIfExist(navFrame).done(function () {
+                jumpToPosStack.push(navFrame);
+                navFrame.goTo();
+            }).fail(function () {
+                _validateNavigationCmds();
+                CommandManager.execute(NAVIGATION_JUMP_FWD);
+            });
+        }
+    }
+    
+    /**
+    * Function to initialize navigation menu items.
+    * @private
+    */
+    function _initNavigationMenuItems() {
+        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
+        menu.addMenuItem(NAVIGATION_JUMP_BACK, "", Menus.AFTER, Commands.NAVIGATE_PREV_DOC);
+        menu.addMenuItem(NAVIGATION_JUMP_FWD, "", Menus.AFTER, NAVIGATION_JUMP_BACK);
+    }
+    
+   /**
+    * Function to initialize navigation commands and it's keyboard shortcuts.
+    * @private
+    */
+    function _initNavigationCommands() {
+        CommandManager.register(Strings.CMD_NAVIGATE_BACKWARD, NAVIGATION_JUMP_BACK, _navigateBack);
+        CommandManager.register(Strings.CMD_NAVIGATE_FORWARD, NAVIGATION_JUMP_FWD, _navigateFwd);
+        command_JumpBack = CommandManager.get(NAVIGATION_JUMP_BACK);
+        command_JumpFwd = CommandManager.get(NAVIGATION_JUMP_FWD);
+        command_JumpBack.setEnabled(false);
+        command_JumpFwd.setEnabled(false);
+        KeyBindingManager.addBinding(NAVIGATION_JUMP_BACK, KeyboardPrefs[NAVIGATION_JUMP_BACK]);
+        KeyBindingManager.addBinding(NAVIGATION_JUMP_FWD, KeyboardPrefs[NAVIGATION_JUMP_FWD]);
+        _initNavigationMenuItems();
+    }
+    
+   /**
+    * Function to request a navigation frame creation explicitly.
+    * @private
+    */
+    function _captureFrame(editor) {
+        // Capture the active position now if it was not captured earlier
+        if ((activePosNotSynched || !jumpToPosStack.length) && !jumpInProgress) {
+            jumpToPosStack.push(new NavigationFrame(editor, {ranges: editor._codeMirror.listSelections()}));
         }
     }
     
@@ -181,12 +328,15 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleActiveEditorChange(event, current, previous) {
-        if (current && current._paneId) { // Handle only full editors
-            current.on("beforeSelectionChange", _recordJumpDef);
-        }
-
-        if (previous && previous._paneId) { 
+        if (previous && previous._paneId) { // Handle only full editors
             previous.off("beforeSelectionChange", _recordJumpDef);
+            _captureFrame(previous);
+            _validateNavigationCmds();
+        }
+        
+        if (current && current._paneId) { // Handle only full editors
+            activePosNotSynched = true;
+            current.on("beforeSelectionChange", _recordJumpDef);
         }
     }
     
@@ -194,21 +344,15 @@ define(function (require, exports, module) {
         jumpToPosStack = [];
         jumpedPosStack = [];
     }
-
-    function init() {
-        CommandManager.register(Strings.CMD_NAVIGATE_BACKWARD, NAVIGATION_JUMP_BACK, _jumpToPosBack);
-        CommandManager.register(Strings.CMD_NAVIGATE_FORWARD, NAVIGATION_JUMP_FWD, _jumpToPosFwd);
-        command_JumpBack = CommandManager.get(NAVIGATION_JUMP_BACK);
-        command_JumpFwd = CommandManager.get(NAVIGATION_JUMP_FWD);
-        command_JumpBack.setEnabled(false);
-        command_JumpFwd.setEnabled(false);
-        KeyBindingManager.addBinding(NAVIGATION_JUMP_BACK, KeyboardPrefs[NAVIGATION_JUMP_BACK]);
-        KeyBindingManager.addBinding(NAVIGATION_JUMP_FWD, KeyboardPrefs[NAVIGATION_JUMP_FWD]);
-        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
-        menu.addMenuItem(NAVIGATION_JUMP_BACK, "", Menus.AFTER, Commands.NAVIGATE_PREV_DOC);
-        menu.addMenuItem(NAVIGATION_JUMP_FWD, "", Menus.AFTER, NAVIGATION_JUMP_BACK);
+    
+    function _initHandlers() {
         EditorManager.on("activeEditorChange", _handleActiveEditorChange);
         ProjectManager.on("projectOpen", _handleProjectOpen);
+    }
+
+    function init() {
+        _initNavigationCommands();
+        _initHandlers();
     }
     
     exports.init = init;
