@@ -600,7 +600,7 @@ define(function (require, exports, module) {
         }, false)
         .always(function () {
              PreferencesManager.setViewState("encoding", encoding, context);
-        })
+        });
     });
 
     AppInit.htmlReady(_init);
