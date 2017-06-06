@@ -1,0 +1,157 @@
+/**
+ * All selectors descend from .bezier-curve-editor to constrain styles to this extension
+ */
+.bezier-curve-editor * {
+    margin: 0;
+}
+
+.bezier-curve-editor {
+    position: relative;
+    height: 300px;
+    margin: 0 25px;
+}
+
+.bezier-curve-editor:focus {
+    outline: none;
+}
+
+.bezier-curve-editor .cubic-bezier-highlight {
+    background-color: #DDC;
+}
+
+.bezier-curve-editor .cubic-bezier {
+    background: url(grid.png) 0px -75px repeat;
+    border-left: 1px solid #bbb;
+    border-right: 1px solid #bbb;
+    background-size: 15px 450px;
+    height: 300px;
+    width: 149px;
+    margin: 0 0 0 25px;
+    position: absolute;
+    top: 0;
+    z-index: 2;
+}
+
+.bezier-curve-editor:after {
+    content: "";
+    display: block;
+    height: 300px;
+    width: 149px;
+    margin: 0 0 0 25px;
+    background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 30%, #fff 70%, rgba(255, 255, 255, 0) 100%);
+    background-position: 2px 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+.bezier-curve-editor .coordinate-plane {
+    position: relative;
+    left: 0;
+    line-height: 0;
+    top: 75px;
+    width: 149px;
+    height: 149px;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
+.bezier-curve-editor .coordinate-plane:before,
+.bezier-curve-editor .coordinate-plane:after {
+    position: absolute;
+    bottom: 0%;
+    left: 0;
+    width: 100%;
+    padding: .3em .5em;
+    
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    color: #454545;
+    font-size: 75%;
+    line-height: 1;
+}
+
+.bezier-curve-editor .coordinate-plane:before {
+    border-bottom: 1px solid transparent;
+    content: 'Progression';
+       -moz-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+         -o-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+            transform: rotate(-90deg);
+       -moz-transform-origin: bottom left;
+        -ms-transform-origin: bottom left;
+         -o-transform-origin: bottom left;
+    -webkit-transform-origin: bottom left;
+            transform-origin: bottom left;
+    white-space: nowrap;
+}
+
+.bezier-curve-editor .coordinate-plane:after {
+    content: 'Time';
+    margin-bottom: -1.5em;
+    white-space: nowrap;
+}
+
+.bezier-curve-editor .coordinate-plane:hover:before {
+    content: 'Progression (' attr(data-progression) '%)';
+}
+
+.bezier-curve-editor .coordinate-plane:hover:after {
+    content: 'Time (' attr(data-time) '%)';
+}
+
+.bezier-curve-editor .control-point {
+    background: -webkit-linear-gradient(270deg, rgb(249, 249, 249) 50%, rgb(237, 237, 237) 50%);
+    position: absolute;
+    z-index: 2;
+    height: 16px;
+    width: 16px;
+    border: 1px solid #9c9e9e;
+    margin: -8px 0 0 -8px;
+    outline: none;
+    padding: 0 !important;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+.bezier-curve-editor .control-point:focus {
+    border: 1px solid #0940fd !important;
+    box-shadow: 0 0 0 2px #6fb5f1;
+}
+
+.bezier-curve-editor .P0, .bezier-curve-editor .P3 {
+    background: #1461FC;
+    border-radius: 0;
+    border: none;
+    height: 12px;
+    width: 12px;
+    z-index: 1;
+}
+
+.bezier-curve-editor .P1, .bezier-curve-editor .P2 {
+    cursor: pointer;
+    z-index: 100;
+}
+
+.bezier-curve-editor .P0 {
+    left: 2px;
+    top: 151px;
+}
+
+.bezier-curve-editor .P3 {
+    right: -7px;
+    top: 1px;
+}
+
+.bezier-curve-editor canvas.curve {
+    position: absolute;
+    z-index: 1;
+    top: -75px;
+    left: 0;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
