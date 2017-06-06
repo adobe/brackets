@@ -45,6 +45,8 @@ define(function (require, exports, module) {
         Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ProjectManager       = require("project/ProjectManager"),
+        Async                = require("utils/Async"),
+        FileSystem           = require("filesystem/FileSystem"),
         StringUtils          = require("utils/StringUtils");
 
     /* StatusBar indicators */
@@ -328,11 +330,26 @@ define(function (require, exports, module) {
         languageSelect.items.unshift(LANGUAGE_SET_AS_DEFAULT);
     }
 
-
+    /**
+     * Change the encoding and reload the current document.
+     * If passed then save the preferred encoding in state.
+     */
     function _changeEncodingAndReloadDoc(document) {
         var promise = document.reload();
         promise.done(function (text, readTimestamp) {
             encodingSelect.$button.text(document.file._encoding);
+            // Store the preferred encoding in the state
+            var projectRoot = ProjectManager.getProjectRoot(),
+            context = {
+                location : {
+                    scope: "user",
+                    layer: "project",
+                    layerID: projectRoot.fullPath
+                }
+            };
+            var encoding = PreferencesManager.getViewState("encoding", context);
+            encoding[document.file.fullPath] = document.file._encoding;
+            PreferencesManager.setViewState("encoding", encoding, context);
         });
         promise.fail(function (error) {
             console.log("Error reloading contents of " + document.file.fullPath, error);
@@ -548,6 +565,43 @@ define(function (require, exports, module) {
 
     // Initialize: status bar focused listener
     EditorManager.on("activeEditorChange", _onActiveEditorChange);
+
+    function _checkFileExistance(filePath, index, encoding) {
+        var deferred = new $.Deferred(),
+            fileEntry = FileSystem.getFileForPath(filePath);
+    
+        fileEntry.exists(function (err, exists) {
+            if (!err && exists) {
+                deferred.resolve();
+            } else {
+                delete encoding[filePath];
+                deferred.reject();
+            }
+        });
+
+        return deferred.promise();
+    }
+
+    ProjectManager.on("projectOpen", function() {
+        var projectRoot = ProjectManager.getProjectRoot(),
+            context = {
+                location : {
+                    scope: "user",
+                    layer: "project",
+                    layerID: projectRoot.fullPath
+                }
+            };
+        var encoding = PreferencesManager.getViewState("encoding", context);
+        if (!encoding) {
+            PreferencesManager.setViewState("encoding", {}, context);
+        }
+        Async.doSequentially(Object.keys(encoding), function(filePath, index) {
+            return _checkFileExistance(filePath, index, encoding);
+        }, false)
+        .always(function () {
+             PreferencesManager.setViewState("encoding", encoding, context);
+        })
+    });
 
     AppInit.htmlReady(_init);
     AppInit.appReady(function () {
