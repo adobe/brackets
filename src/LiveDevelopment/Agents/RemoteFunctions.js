@@ -431,19 +431,37 @@ function RemoteFunctions(config, remoteWSPort) {
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
+            		
+            var el = element,		
+            offsetLeft = 0,		
+            offsetTop  = 0;		
+             		
+            // Probably the easiest way to get elements position without including transform		
+            do {		
+               offsetLeft += el.offsetLeft;		
+               offsetTop  += el.offsetTop;		
+               el = el.offsetParent;		
+            } while(el);
 
             var stylesToSet = {
-                "left": offset.left + "px",
-                "top": offset.top + "px",
-                "width": elementBounds.width + "px",
-                "height": elementBounds.height + "px",
+                "left": offsetLeft + "px",
+                "top": offsetTop + "px",
+                "width": innerWidth + "px",
+                "height": innerHeight + "px",
                 "z-index": 2000000,
                 "margin": 0,
                 "padding": 0,
                 "position": "absolute",
                 "pointer-events": "none",
                 "box-shadow": "0 0 1px #fff",
-                "box-sizing": "border-box"
+                "box-sizing": elementStyling.getPropertyValue('box-sizing'),		
+                "border-right": elementStyling.getPropertyValue('border-right'),		
+                "border-left": elementStyling.getPropertyValue('border-left'),		
+                "border-top": elementStyling.getPropertyValue('border-top'),		
+                "border-bottom": elementStyling.getPropertyValue('border-bottom'),		
+                "transform": elementStyling.getPropertyValue('transform'),		
+                "transform-origin": elementStyling.getPropertyValue('transform-origin'),		
+                "border-color": config.remoteHighlight.borderColor
             };
             
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
