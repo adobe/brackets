@@ -382,26 +382,33 @@ define(function (require, exports, module) {
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
+    
+    /**
+     * Returns the File or Directory corresponding to the item selected in the file tree; or null if no
+     * file tree item is selected.
+     * MAY NOT be identical to the current Document - a folder may be selected in the file tree.
+     * @return {?(File|Directory)}
+     */
+    function getSelectedFileTreeItem() {
+        // Prefer file tree context, else use file tree selection
+        var selectedEntry = model.getContext();
+        if (!selectedEntry) {
+            selectedEntry = model.getSelected();
+        }
+        return selectedEntry;
+    }
 
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
      * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
      * May NOT be identical to the current Document - a folder may be selected in the sidebar, or the sidebar may not
      * have the current document visible in the tree & working set.
-     * @param {boolean=} includeWorkingSet If true, fall back to the working set item that is selected if there's
-     *      no selected file tree item (default behaviour)
      * @return {?(File|Directory)}
      */
-    function getSelectedItem(includeWorkingSet) {
-        if (includeWorkingSet === undefined) {
-            includeWorkingSet = true;
-        }
-        // Prefer file tree context, then selection, else use working set
-        var selectedEntry = model.getContext();
+    function getSelectedItem() {
+        // Prefer file tree, else use working set
+        var selectedEntry = getSelectedFileTreeItem();
         if (!selectedEntry) {
-            selectedEntry = model.getSelected();
-        }
-        if (!selectedEntry && includeWorkingSet) {
             selectedEntry = MainViewManager.getCurrentlyViewedFile();
         }
         return selectedEntry;
@@ -1401,6 +1408,7 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
     exports.openProject                   = openProject;
+    exports.getSelectedFileTreeItem       = getSelectedFileTreeItem;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
     exports.getInitialProjectPath         = getInitialProjectPath;
