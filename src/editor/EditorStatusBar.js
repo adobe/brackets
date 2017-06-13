@@ -364,9 +364,8 @@ define(function (require, exports, module) {
         // Get all non-binary languages
         var encodings = [
             "UTF-8",
-            "UTF-16",
+            "UTF-16LE",
             "ISO-2022-JP",
-            "ISO-8859-6",
             "ISO-2022-CN",
             "ISO-2022-KR",
             "GB18030",
@@ -389,7 +388,6 @@ define(function (require, exports, module) {
             "WINDOWS-1256",
             "KOI8-R",
             "IBM420",
-            "IBM420",
             "ISO-8859-8-I",
             "SHIFT_JIS",
             "ISO-8859-3",
@@ -401,6 +399,11 @@ define(function (require, exports, module) {
             "HZ-GB-2312",
             "WINDOWS-874",
             "CP866",
+            "DOS-862",
+            "KOI8-RU",
+            "DOS-720",
+            "KOI8-RU",
+            "ASMO-708",
             "euc-jp"
         ];
         
