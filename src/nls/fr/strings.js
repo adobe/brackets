@@ -704,7 +704,6 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "Nombre minimum de lignes pour qu’une icône de section réductible apparaisse",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "vrai pour mémoriser les sections réduites si vous fermez et rouvrez un fichier ou un projet",
 	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "vrai pour activer le pliage de code sur le texte sélectionné dans l’éditeur",
-	"DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS": "Default extensions that are disabled",
 	"DESCRIPTION_ATTR_HINTS": "Activer/désactiver les indicateurs d’attribut HTML",
 	"DESCRIPTION_CSS_PROP_HINTS": "Activer/désactiver les indicateurs de propriété CSS/LESS/SCSS",
 	"DESCRIPTION_JS_HINTS": "Activer/désactiver les indicateurs de code JavaScript",
