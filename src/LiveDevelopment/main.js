@@ -101,7 +101,7 @@ define(function main(require, exports, module) {
         "borderColor": "rgba(21, 165, 255, 0.85)",
         "showPaddingMargin": true
     }, {
-        description: "LivePreview highlight settings"
+        description: Strings.DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS
     });
     
     /** Toggles or sets the preference **/
