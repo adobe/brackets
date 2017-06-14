@@ -379,6 +379,8 @@ define(function (require, exports, module) {
             "ISO-8859-7",
             "ISO-8859-8",
             "ISO-8859-9",
+            "ISO-8859-11",
+            "ISO-8859-13",
             "WINDOWS-1250",
             "WINDOWS-1251",
             "WINDOWS-1252",
@@ -400,11 +402,13 @@ define(function (require, exports, module) {
             "WINDOWS-874",
             "CP866",
             "DOS-862",
-            "KOI8-RU",
             "DOS-720",
             "KOI8-RU",
             "ASMO-708",
-            "euc-jp"
+            "euc-jp",
+            "CP437",
+            "CP852",
+            "GBK"
         ];
         
 
