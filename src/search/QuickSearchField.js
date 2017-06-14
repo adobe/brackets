@@ -83,7 +83,6 @@ define(function (require, exports, module) {
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
 
-        // For search History this flag is set to false
         if (options.highlightZeroResults !== undefined) {
             this._highlightZeroResults = options.highlightZeroResults;
         } else {
@@ -93,6 +92,7 @@ define(function (require, exports, module) {
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
         
+        // For search History this flag is set to false
         if (options.shouldHighLightFirstIndex === undefined) {
             this._shouldHighLightFirstIndex = true;
         } else {
