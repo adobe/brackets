@@ -83,6 +83,7 @@ define(function (require, exports, module) {
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
 
+        // For search History this flag is set to false
         if (options.highlightZeroResults !== undefined) {
             this._highlightZeroResults = options.highlightZeroResults;
         } else {
@@ -91,6 +92,12 @@ define(function (require, exports, module) {
 
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
+        
+        if (options.shouldHighLightFirstIndex === undefined) {
+            this._shouldHighLightFirstIndex = true;
+        } else {
+            this._shouldHighLightFirstIndex = options.shouldHighLightFirstIndex;
+        }
 
         this._dropdownTop = $input.offset().top + $input.height() + (options.verticalAdjust || 0);
     }
@@ -277,7 +284,11 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._render = function (results, query) {
         this._displayedQuery = query;
         this._displayedResults = results;
-        this._highlightIndex = null;
+        if (this._shouldHighLightFirstIndex) {
+            this._highlightIndex = 0;
+        } else {
+            this._highlightIndex = null;
+        }
         // TODO: fixup to match prev value's item if possible?
 
         if (results.error || results.length === 0) {
