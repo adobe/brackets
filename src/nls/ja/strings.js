@@ -755,7 +755,7 @@ define({
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "ファイル拡張子から言語名への追加のマッピング",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "ファイル名から言語名への追加のマッピング",
 	"DESCRIPTION_LINEWISE_COPY_CUT": "何も選択せずにコピーやカットを行うと、カーソルのあるすべての行がコピーまたはカットされます。",
-	"DESCRIPTION_INPUT_STYLE": "Selects the way CodeMirror handles input and focus. It can be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
+	"DESCRIPTION_INPUT_STYLE": "CodeMirror による入力とフォーカスの処理方法を選択します。Textarea (初期設定) や counterditable (スクリーンリーダー向け)(不安定) などを選択できます",
 	"DESCRIPTION_LINTING_ENABLED": "コード検証を有効にするには true",
 	"DESCRIPTION_ASYNC_TIMEOUT": "非同期の構文チェックがタイムアウトするまでの時間 (ミリ秒)",
 	"DESCRIPTION_LINTING_PREFER": "最初に実行する構文チェックの配列",
@@ -801,5 +801,5 @@ define({
 	"DESCRIPTION_INDENT_LINE_COMMENT": "行コメントのインデントを有効にするには true",
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
-	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Live Preview Highlight settings"
+	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "LivePreview のハイライト設定"
 });
