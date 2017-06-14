@@ -755,7 +755,7 @@ define({
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "Mappages supplémentaires entre extension de fichier et nom de langue",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "Mappages supplémentaires entre nom de fichier et nom de langue",
 	"DESCRIPTION_LINEWISE_COPY_CUT": "En cas d’absence de sélection, un couper-copier coupe ou copie les lignes entières comportant des curseurs.",
-	"DESCRIPTION_INPUT_STYLE": "Sélectionne la manière dont CodeMirror gère l'entrée et la mise au point. Il peut s'agir de zone de texte, qui est la sélection par défaut, ou de contenu modifiable, qui est la meilleure méthode pour les lecteurs d'écran (instable)",
+	"DESCRIPTION_INPUT_STYLE": "Selects the way CodeMirror handles input and focus. It can be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
 	"DESCRIPTION_LINTING_ENABLED": "vrai pour activer l’inspection de code",
 	"DESCRIPTION_ASYNC_TIMEOUT": "Durée, en millisecondes, après laquelle les utilitaires lint asynchrones échouent",
 	"DESCRIPTION_LINTING_PREFER": "Ensemble d’utilitaires lint à exécuter en premier",
@@ -801,5 +801,5 @@ define({
 	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
 	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
-	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Live Preview Hightlight settings"
+	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Live Preview Highlight settings"
 });
