@@ -93,11 +93,7 @@ define(function (require, exports, module) {
         $input.on("keydown", this._handleKeyDown);
         
         // For search History this flag is set to false
-        if (options.shouldHighLightFirstIndex === undefined) {
-            this._shouldHighLightFirstIndex = true;
-        } else {
-            this._shouldHighLightFirstIndex = options.shouldHighLightFirstIndex;
-        }
+        this._firstHighlightIndex = options.firstHighlightIndex;
 
         this._dropdownTop = $input.offset().top + $input.height() + (options.verticalAdjust || 0);
     }
@@ -284,8 +280,8 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._render = function (results, query) {
         this._displayedQuery = query;
         this._displayedResults = results;
-        if (this._shouldHighLightFirstIndex) {
-            this._highlightIndex = 0;
+        if (this._firstHighlightIndex >= 0) {
+            this._highlightIndex = this._firstHighlightIndex;
         } else {
             this._highlightIndex = null;
         }
