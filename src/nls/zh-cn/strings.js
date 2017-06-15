@@ -450,7 +450,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "基于 \u2764 和 JavaScript 由以下用户参与贡献设计:",
     "ABOUT_TEXT_LINE6"                     : "有相当多的人参与其中, 但现在有一些问题导致加载不出, 你可以到GitHub上去看。",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web 平台文档和图形 logo 遵循<a href='{WEB_PLATFORM_DOCS_LICENSE}'>署名-相同方式共享 3.0 未本地化</a>协议。",
+    "ABOUT_TEXT_MDN_DOCS"                  : "Web 平台文档和图形 logo 遵循<a href='{MDN_DOCS_LICENSE}'>署名-相同方式共享 3.0 未本地化</a>协议。",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新版本的 {APP_NAME}! 点此查看详情。",
     "UPDATE_AVAILABLE_TITLE"               : "可用的更新",
     "UPDATE_MESSAGE"                       : "有一个新版本的 {APP_NAME}，增加了一些功能：",

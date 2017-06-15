@@ -448,7 +448,7 @@ define({
     "ABOUT_TEXT_LINE4": "문서와 소스 코드는 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>에서 구할 수 있습니다.",
     "ABOUT_TEXT_LINE5": "\u2764 및 JavaScript를 사용하여 다음의 사람에 의해 작성되었습니다 :",
     "ABOUT_TEXT_LINE6": "많은 사람들 (단, 인물 데이터 로딩에 문제가 발생하고 있습니다).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS": "웹 플랫폼 문서와 웹 플랫폼 로고는 크리에이티브 커먼즈 저작자표시 라이선스, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a> 로 배포됩니다.",
+    "ABOUT_TEXT_MDN_DOCS": "웹 플랫폼 문서와 웹 플랫폼 로고는 크리에이티브 커먼즈 저작자표시 라이선스, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a> 로 배포됩니다.",
     "UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME}의 새로운 빌드를 사용할 수 있습니다. 자세한 내용은 여기를 클릭하세요.",
     "UPDATE_AVAILABLE_TITLE": "사용 가능한 업데이트가 있습니다",
     "UPDATE_MESSAGE": "{APP_NAME}의 새로운 빌드를 사용할 수 있습니다. 새로운 기능의 일부를 다음에 소개합니다 :",

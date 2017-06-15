@@ -449,7 +449,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentācija un avots <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Izveidots ar \u2764 un JavaScript, autors:",
     "ABOUT_TEXT_LINE6"                     : "Daudz cilvēku (bet mums šobrīd ir grūtības ielādēt šos datus).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Tīmekļa platformas dokumenti un tīmekļa platformas grafiskais logo ir licencēti saskaņā ar \"Creative Commons\" licenci <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "Tīmekļa platformas dokumenti un tīmekļa platformas grafiskais logo ir licencēti saskaņā ar \"Creative Commons\" licenci <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} ir pieejams jauns būvējums! Spiediet šeit, lai saņemtu sīkāku informāciju.",
     "UPDATE_AVAILABLE_TITLE"               : "Pieejams atjauninājums",
     "UPDATE_MESSAGE"                       : "{APP_NAME} ir pieejams jauns būvējums. Dažas no jaunajām funkcijām:",

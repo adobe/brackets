@@ -436,7 +436,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentatie en broncode op <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Gemaakt met \u2764 en JavaScript door:",
     "ABOUT_TEXT_LINE6"                     : "Veel mensen (maar we hebben problemen met het laden van die data op dit moment).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs en het Web Platform logo zijn gelicentieerd onder een Creative Commons Attribution licentie, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs en het MDN logo zijn gelicentieerd onder een Creative Commons Attribution licentie, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Er is een nieuwe versie van {APP_NAME} beschikbaar! Klik hier voor details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update beschikbaar",
     "UPDATE_MESSAGE"                       : "Hey, er is een nieuwe versie van {APP_NAME} beschikbaar. Hier zijn een aantal van de nieuwe functies:",
