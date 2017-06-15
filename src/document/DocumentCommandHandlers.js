@@ -627,7 +627,7 @@ define(function (require, exports, module) {
         // If a directory is currently selected in the tree, put it in it.
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
         var baseDirEntry,
-            selected = ProjectManager.getSelectedFileTreeItem();
+            selected = ProjectManager.getFileTreeContext();
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }

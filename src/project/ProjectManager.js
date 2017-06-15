@@ -384,17 +384,11 @@ define(function (require, exports, module) {
     var actionCreator = new ActionCreator(model);
     
     /**
-     * Returns the File or Directory corresponding to the item selected in the file tree; or null if no
-     * file tree item is selected.
-     * MAY NOT be identical to the current Document - a folder may be selected in the file tree.
+     * Returns the File or Directory corresponding to the item that was right-clicked on in the file tree menu.
      * @return {?(File|Directory)}
      */
-    function getSelectedFileTreeItem() {
-        // Prefer file tree context, else use file tree selection
+    function getFileTreeContext() {
         var selectedEntry = model.getContext();
-        if (!selectedEntry) {
-            selectedEntry = model.getSelected();
-        }
         return selectedEntry;
     }
 
@@ -406,8 +400,11 @@ define(function (require, exports, module) {
      * @return {?(File|Directory)}
      */
     function getSelectedItem() {
-        // Prefer file tree, else use working set
-        var selectedEntry = getSelectedFileTreeItem();
+        // Prefer file tree context, then file tree selection, else use working set
+        var selectedEntry = getFileTreeContext();
+        if (!selectedEntry) {
+            selectedEntry = model.getSelected();
+        }
         if (!selectedEntry) {
             selectedEntry = MainViewManager.getCurrentlyViewedFile();
         }
@@ -1408,7 +1405,7 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
     exports.openProject                   = openProject;
-    exports.getSelectedFileTreeItem       = getSelectedFileTreeItem;
+    exports.getFileTreeContext            = getFileTreeContext;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
     exports.getInitialProjectPath         = getInitialProjectPath;
