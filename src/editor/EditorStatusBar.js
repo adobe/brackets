@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         encodingSelect.$button.css("width", "auto");
         // Show the current encoding as button title
         if (!doc.file._encoding) {
-           doc.file._encoding = "UTF-8";
+            doc.file._encoding = "UTF-8";
         }
         encodingSelect.$button.text(doc.file._encoding);
     }
@@ -340,13 +340,13 @@ define(function (require, exports, module) {
             encodingSelect.$button.text(document.file._encoding);
             // Store the preferred encoding in the state
             var projectRoot = ProjectManager.getProjectRoot(),
-            context = {
-                location : {
-                    scope: "user",
-                    layer: "project",
-                    layerID: projectRoot.fullPath
-                }
-            };
+                context = {
+                    location : {
+                        scope: "user",
+                        layer: "project",
+                        layerID: projectRoot.fullPath
+                    }
+                };
             var encoding = PreferencesManager.getViewState("encoding", context);
             encoding[document.file.fullPath] = document.file._encoding;
             PreferencesManager.setViewState("encoding", encoding, context);
@@ -408,7 +408,8 @@ define(function (require, exports, module) {
             "euc-jp",
             "CP437",
             "CP852",
-            "GBK"
+            "GBK",
+            "ISO-2022-JP"
         ];
         
 
@@ -589,7 +590,7 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
 
-    ProjectManager.on("projectOpen", function() {
+    ProjectManager.on("projectOpen", function () {
         var projectRoot = ProjectManager.getProjectRoot(),
             context = {
                 location : {
@@ -602,12 +603,12 @@ define(function (require, exports, module) {
         if (!encoding) {
             PreferencesManager.setViewState("encoding", {}, context);
         }
-        Async.doSequentially(Object.keys(encoding), function(filePath, index) {
+        Async.doSequentially(Object.keys(encoding), function (filePath, index) {
             return _checkFileExistance(filePath, index, encoding);
         }, false)
-        .always(function () {
-             PreferencesManager.setViewState("encoding", encoding, context);
-        });
+            .always(function () {
+                PreferencesManager.setViewState("encoding", encoding, context);
+            });
     });
 
     AppInit.htmlReady(_init);
