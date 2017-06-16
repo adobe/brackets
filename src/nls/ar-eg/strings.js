@@ -169,7 +169,7 @@ define({
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "ستبدال دون رجعة",
 
     "OPEN_FILE"                         : "إفتح ملف",
-    "SAVE_FILE_AS"                      : "إحفظ ملف,
+    "SAVE_FILE_AS"                      : "إحفظ ملف,",
     "CHOOSE_FOLDER"                     : "إختر مجلد",
 
     "RELEASE_NOTES"                     : "ملاحظات الإصدار",
