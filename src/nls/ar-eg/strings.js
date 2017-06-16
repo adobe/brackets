@@ -239,10 +239,10 @@ define({
     /**
      * MainViewManager
      */
-    "TOP"               : "Top",
-    "BOTTOM"            : "Bottom",
-    "LEFT"              : "Left",
-    "RIGHT"             : "Right",
+    "TOP"               : "أعلى",
+    "BOTTOM"            : "أسفل",
+    "LEFT"              : "يسار",
+    "RIGHT"             : "يمين",
 
     "CMD_SPLITVIEW_NONE"        : "No Split",
     "CMD_SPLITVIEW_VERTICAL"    : "Vertical Split",
@@ -309,12 +309,12 @@ define({
      */
 
     // File menu commands
-    "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW_UNTITLED"               : "New",
-    "CMD_FILE_NEW"                        : "New File",
-    "CMD_FILE_NEW_FOLDER"                 : "New Folder",
-    "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_RECENT_FILES_OPEN"               : "Open Recent\u2026",
+    "FILE_MENU"                           : "ملف",
+    "CMD_FILE_NEW_UNTITLED"               : "جديد",
+    "CMD_FILE_NEW"                        : "ملف جديد",
+    "CMD_FILE_NEW_FOLDER"                 : "ملف جديد",
+    "CMD_FILE_OPEN"                       : "إفتح\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "إفتح الحالي\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
