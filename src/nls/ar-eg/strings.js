@@ -803,3 +803,4 @@ define({
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
     "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings"
 });
+/* Last translated for f76c19507d1cdc4462bb9671f92a69f720c6f4e2 */
