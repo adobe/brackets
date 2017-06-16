@@ -1695,7 +1695,11 @@ a, img {
         border-top-right-radius: 3px;
         border-bottom-right-radius: 3px;
         border-left: none;
-        border-right: 1px solid #b2b5b5;
+        border-right: 1px solid @bc-btn-border;
+        
+        .dark & {
+            border-right-color: @dark-bc-btn-border;
+        }
     }
 
     // Make find field snug with options buttons
