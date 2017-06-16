@@ -365,7 +365,6 @@ define(function (require, exports, module) {
         var encodings = [
             "UTF-8",
             "UTF-16LE",
-            "ISO-2022-JP",
             "ISO-2022-CN",
             "ISO-2022-KR",
             "GB18030",
