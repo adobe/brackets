@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
+/*global describe, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -84,6 +82,21 @@ define(function (require, exports, module) {
             testWindow.closeAllFiles();
         });
 
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+        function fixSel(sel) {
+            fixPos(sel.start);
+            fixPos(sel.end);
+            if (!("reversed" in sel)) {
+                sel.reversed = false;
+            }
+            return sel;
+        }
 
         function checkLineWrapping(editor, firstPos, secondPos, shouldWrap) {
             runs(function () {
@@ -421,7 +434,7 @@ define(function (require, exports, module) {
                     checkCloseBraces(editor, {line: 0, ch: 16}, null, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";");
 
                     runs(function () {
-                        expect(editor.getCursorPos()).toEqual({line: 0, ch: 17});
+                        expect(fixPos(editor.getCursorPos())).toEqual(fixPos({line: 0, ch: 17}));
                     });
                 });
             });
@@ -434,7 +447,7 @@ define(function (require, exports, module) {
                     checkCloseBraces(editor, {line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];");
 
                     runs(function () {
-                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 17}, end: {line: 0, ch: 35}, reversed: false});
+                        expect(fixSel(editor.getSelection())).toEqual(fixSel({start: {line: 0, ch: 17}, end: {line: 0, ch: 35}}));
                     });
                 });
             });

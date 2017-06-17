@@ -21,7 +21,7 @@
  *
  */
 
-/*global define, $, console, appshell */
+/*global appshell */
 /*unittests: Preferences Base */
 
 /**
@@ -1666,6 +1666,9 @@ define(function (require, exports, module) {
                         var pref      = this.getPreference(id),
                             validator = pref && pref.validator;
                         if (!validator || validator(result)) {
+                            if (pref && pref.type === "object") {
+                                result = _.extend({}, pref.initial, result);
+                            }
                             return _.cloneDeep(result);
                         }
                     }
@@ -1934,7 +1937,7 @@ define(function (require, exports, module) {
          */
         getPrefixedSystem: function (prefix) {
             return new PrefixedPreferencesSystem(this, prefix + ".");
-        },
+        }
 
     });
 

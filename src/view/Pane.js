@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
-
  /**
   * Pane objects host views of files, editors, etc... Clients cannot access
   * Pane objects directly. Instead the implementation is protected by the
@@ -156,6 +152,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
+        Mustache            = require("thirdparty/mustache/mustache"),
         EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         InMemoryFile        = require("document/InMemoryFile"),
@@ -212,6 +209,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Ensures that the given pane is focused after other focus related events occur
+     * @params {string} paneId - paneId of the pane to focus
+     * @private
+     */
+    function _ensurePaneIsFocused(paneId) {
+        var pane = MainViewManager._getPane(paneId);
+
+        // Defer the focusing until other focus events have occurred.
+        setTimeout(function () {
+            // Focus has most likely changed: give it back to the given pane.
+            pane.focus();
+            this._lastFocusedElement = pane.$el[0];
+            MainViewManager.setActivePaneId(paneId);
+        }, 1);
+    }
+
+    /**
      * @typedef {!$el: jQuery, getFile:function():!File, updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)=, getViewState:function():?*=, restoreViewState:function(viewState:!*)=, notifyContainerChange:function()=, notifyVisibilityChange:function(boolean)=} View
      */
 
@@ -245,9 +259,14 @@ define(function (require, exports, module) {
             var currentFile = self.getCurrentlyViewedFile();
             var otherPaneId = self.id === FIRST_PANE ? SECOND_PANE : FIRST_PANE;
             var otherPane = MainViewManager._getPane(otherPaneId);
+            var sameDocInOtherView = otherPane.getViewForPath(currentFile.fullPath);
             
-            // If the same doc view is present in the destination pane prevent flip
-            if (otherPane.getViewForPath(currentFile.fullPath)) {
+            // If the same doc view is present in the destination, show the file instead of flipping it
+            if (sameDocInOtherView) {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
+                                                            paneId: otherPaneId}).always(function () {
+                    _ensurePaneIsFocused(otherPaneId);
+                });
                 return;
             }
 
@@ -255,30 +274,14 @@ define(function (require, exports, module) {
             // give focus to the pane. This way it is possible to flip multiple panes to the active one
             // without losing focus.
             var activePaneIdBeforeFlip = MainViewManager.getActivePaneId();
-            var currentFileOnOtherPaneIndex = otherPane.findInViewList(currentFile.fullPath);
 
-            // if the currentFile is already on other pane just close the current pane
-            if (currentFileOnOtherPaneIndex  !== -1) {
-                CommandManager.execute(Commands.FILE_CLOSE, {File: currentFile, paneId: self.id});
-            }
-            
             MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
                                                             paneId: otherPaneId}).always(function () {
-
-                    var activePaneBeforeFlip = MainViewManager._getPane(activePaneIdBeforeFlip);
-
                     // Trigger view list changes for both panes
                     self.trigger("viewListChange");
                     otherPane.trigger("viewListChange");
-
-                    // Defer the focusing until other focus events have occurred.
-                    setTimeout(function () {
-                        // Focus has most likely changed: give it back to the original pane.
-                        activePaneBeforeFlip.focus();
-                        self._lastFocusedElement = activePaneBeforeFlip.$el[0];
-                        MainViewManager.setActivePaneId(activePaneIdBeforeFlip);
-                    }, 1);
+                    _ensurePaneIsFocused(activePaneIdBeforeFlip);
                 });
             });
         });

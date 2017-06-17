@@ -22,8 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, brackets, $, window */
+/*jslint forin: true, regexp: true */
 
 /**
  * GotoAgent constructs and responds to the in-browser goto dialog.

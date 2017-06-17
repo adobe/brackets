@@ -21,11 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, Mustache, $*/
-
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -33,6 +28,7 @@ define(function (require, exports, module) {
     var MainViewManager             = brackets.getModule("view/MainViewManager"),
         Dialogs                     = brackets.getModule("widgets/Dialogs"),
         Strings                     = brackets.getModule("strings"),
+        Mustache                    = brackets.getModule("thirdparty/mustache/mustache"),
         HealthDataNotificationHtml  = require("text!htmlContent/healthdata-popup.html");
 
     function closeCallout() {

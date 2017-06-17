@@ -21,10 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: FindReplace*/
-
 
 /**
  * Adds Find and Replace commands
@@ -94,30 +91,19 @@ define(function (require, exports, module) {
             findBar.showError(null);
         }
 
-        if (!queryInfo || !queryInfo.query) {
+        var parsed = FindUtils.parseQueryInfo(queryInfo);
+        if (parsed.empty === true) {
             return "";
         }
 
-        var query = queryInfo.query;
-    
-        // Is it a (non-blank) regex?
-        if (queryInfo.isRegexp) {
-            try {
-                if (queryInfo.isWholeWord) {
-                    query = "\\b" + query + "\\b";
-                }
-                return new RegExp(query, queryInfo.isCaseSensitive ? "" : "i");
-            } catch (e) {
-                if (findBar) {
-                    findBar.showError(e.message);
-                }
-                return "";
+        if (!parsed.valid) {
+            if (findBar) {
+                findBar.showError(parsed.error);
             }
-        } else if (queryInfo.isWholeWord) {
-            return new RegExp("\\b" + StringUtils.regexEscape(query) + "\\b", queryInfo.isCaseSensitive ? "" : "i");
-        } else {
-            return query;
+            return "";
         }
+
+        return parsed.queryExpr;
     }
 
     /**
@@ -686,7 +672,10 @@ define(function (require, exports, module) {
             state = getSearchState(cm),
             replaceText = findBar.getReplaceText();
 
-        if (all) {
+        if (all === null) {
+            findBar.close();
+            FindInFilesUI.searchAndReplaceResults(state.queryInfo, editor.document.file, null, replaceText);
+        } else if (all) {
             findBar.close();
             // Delegate to Replace in Files.
             FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
@@ -716,8 +705,11 @@ define(function (require, exports, module) {
             .on("doReplace.FindReplace", function (e) {
                 doReplace(editor, false);
             })
-            .on("doReplaceAll.FindReplace", function (e) {
+            .on("doReplaceBatch.FindReplace", function (e) {
                 doReplace(editor, true);
+            })
+            .on("doReplaceAll.FindReplace", function (e) {
+                doReplace(editor, null);
             });
     }
 

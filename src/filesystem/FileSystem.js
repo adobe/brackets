@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * FileSystem is a model object representing a complete file system. This object creates
  * and manages File and Directory instances, dispatches events when the file system changes,
@@ -264,7 +261,8 @@ define(function (require, exports, module) {
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
         var impl = this._impl,
             recursiveWatch = impl.recursiveWatch,
-            commandName = shouldWatch ? "watchPath" : "unwatchPath";
+            commandName = shouldWatch ? "watchPath" : "unwatchPath",
+            filterGlobs = watchedRoot.filterGlobs;
 
         if (recursiveWatch) {
             // The impl can watch the entire subtree with one call on the root (we also fall into this case for
@@ -276,7 +274,7 @@ define(function (require, exports, module) {
             } else {
                 // The impl will handle finding all subdirectories to watch.
                 this._enqueueWatchRequest(function (requestCb) {
-                    impl[commandName].call(impl, entry.fullPath, requestCb);
+                    impl[commandName].call(impl, entry.fullPath, filterGlobs, requestCb);
                 }.bind(this), callback);
             }
         } else if (shouldWatch) {
@@ -317,7 +315,7 @@ define(function (require, exports, module) {
                     };
 
                     entriesToWatch.forEach(function (entry) {
-                        impl.watchPath(entry.fullPath, watchCallback);
+                        impl.watchPath(entry.fullPath, filterGlobs, watchCallback);
                     });
                 });
             }, callback);
@@ -854,11 +852,19 @@ define(function (require, exports, module) {
      * @param {function(string): boolean} filter - Returns true if a particular item should
      *      be watched, given its name (not full path). Items that are ignored are also
      *      filtered from Directory.getContents() results within this subtree.
+     * @param {Array<string>} filterGlobs - glob compatible string definitions for
+     *      filtering out events on the node side.
      * @param {function(?string)=} callback - A function that is called when the watch has
      *      completed. If the watch fails, the function will have a non-null FileSystemError
      *      string parametr.
      */
-    FileSystem.prototype.watch = function (entry, filter, callback) {
+    FileSystem.prototype.watch = function (entry, filter, filterGlobs, callback) {
+        // make filterGlobs an optional argument to stay backwards compatible
+        if (typeof callback === "undefined" && typeof filterGlobs === "function") {
+            callback = filterGlobs;
+            filterGlobs = null;
+        }
+
         var fullPath = entry.fullPath;
 
         callback = callback || function () {};
@@ -885,7 +891,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var watchedRoot = new WatchedRoot(entry, filter);
+        var watchedRoot = new WatchedRoot(entry, filter, filterGlobs);
 
         this._watchedRoots[fullPath] = watchedRoot;
 

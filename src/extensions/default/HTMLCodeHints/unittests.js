@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, $, brackets */
+/*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
     "use strict";
@@ -496,10 +494,16 @@ define(function (require, exports, module) {
             }
 
             // Helper function for testing cursor position
+            function fixPos(pos) {
+                if (!("sticky" in pos)) {
+                    pos.sticky = null;
+                }
+                return pos;
+            }
             function expectCursorAt(pos) {
                 var selection = testEditor.getSelection();
-                expect(selection.start).toEqual(selection.end);
-                expect(selection.start).toEqual(pos);
+                expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
+                expect(fixPos(selection.start)).toEqual(fixPos(pos));
             }
 
             it("should insert =\"\" after attribute", function () {

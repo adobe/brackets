@@ -28,8 +28,7 @@
  * from an outer scope.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, Worker, setTimeout */
+/*global Worker */
 
 define(function (require, exports, module) {
     "use strict";
@@ -48,7 +47,8 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         Strings             = brackets.getModule("strings"),
-        StringUtils         = brackets.getModule("utils/StringUtils");
+        StringUtils         = brackets.getModule("utils/StringUtils"),
+        InMemoryFile        = brackets.getModule("document/InMemoryFile");
 
     var HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
 
     var ternEnvironment     = [],
         pendingTernRequests = {},
-        builtinFiles        = ["ecma5.json", "browser.json", "jquery.json"],
+        builtinFiles        = ["ecmascript.json", "browser.json", "jquery.json"],
         builtinLibraryNames = [],
         isDocumentDirty     = false,
         _hintCount          = 0,
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = ExtensionUtils.getModulePath(module, "thirdparty/tern/defs/"),
+        var path = ExtensionUtils.getModulePath(module, "node_modules/tern/defs/"),
             files = builtinFiles,
             library;
 
@@ -927,10 +927,11 @@ define(function (require, exports, module) {
          * @param {string} path - full path of file
          * @return {jQuery.Promise} - the promise for the request
          */
-        function primePump(path) {
+        function primePump(path, isUntitledDoc) {
             _postMessageByPass({
-                type        : MessageIds.TERN_PRIME_PUMP_MSG,
-                path        : path
+                type            : MessageIds.TERN_PRIME_PUMP_MSG,
+                path            : path,
+                isUntitledDoc   : isUntitledDoc
             });
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
@@ -1152,7 +1153,7 @@ define(function (require, exports, module) {
                 if (isDocumentDirty && previousDocument) {
                     var updateFilePromise = updateTernFile(previousDocument);
                     updateFilePromise.done(function () {
-                        primePump(path);
+                        primePump(path, document.isUntitled());
                         addFilesDeferred.resolveWith(null, [_ternWorker]);
                     });
                 } else {
@@ -1169,6 +1170,15 @@ define(function (require, exports, module) {
 
             ensurePreferences();
             deferredPreferences.done(function () {
+                if (file instanceof InMemoryFile) {
+                    initTernServer(pr, []);
+                    var hintsPromise = primePump(path, true);
+                    hintsPromise.done(function () {
+                        addFilesDeferred.resolveWith(null, [_ternWorker]);
+                    });
+                    return;
+                }
+
                 FileSystem.resolve(dir, function (err, directory) {
                     if (err) {
                         console.error("Error resolving", dir);
@@ -1193,7 +1203,7 @@ define(function (require, exports, module) {
 
                         initTernServer(dir, files);
 
-                        var hintsPromise = primePump(path);
+                        var hintsPromise = primePump(path, false);
                         hintsPromise.done(function () {
                             if (!usingModules()) {
                                 // Read the subdirectories of the new file's directory.
@@ -1208,7 +1218,7 @@ define(function (require, exports, module) {
                                         addAllFilesAndSubdirectories(projectRoot, function () {
                                             // prime the pump again but this time don't wait
                                             // for completion.
-                                            primePump(path);
+                                            primePump(path, false);
 
                                             addFilesDeferred.resolveWith(null, [_ternWorker]);
                                         });

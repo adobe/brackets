@@ -2,8 +2,7 @@
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 // Based on http://codemirror.net/addon/fold/foldcode.js
 // Modified by Patrick Oladimeji for Brackets
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, document*/
+
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
@@ -60,7 +59,7 @@ define(function (require, exports, module) {
         }
 
         function makeWidget() {
-            var widget = document.createElement("span");
+            var widget = window.document.createElement("span");
             widget.className = "CodeMirror-foldmarker";
             return widget;
         }
@@ -90,18 +89,25 @@ define(function (require, exports, module) {
         });
 
         textRange.on("clear", function (from, to) {
-            delete cm._lineFolds[pos.line];
-            CodeMirror.signal(cm, "unfold", cm, from, to, pos.line);
+            delete cm._lineFolds[from.line];
+            CodeMirror.signal(cm, "unfold", cm, from, to);
         });
 
         if (force === "fold") {
             delete range.cleared;
-            cm._lineFolds[pos.line] = range;
+            // In some cases such as in xml style files, the start of  line folds can span multiple lines.
+            // For instance the attributes of an element can span multiple lines. In these cases when folding
+            // we want to render a gutter marker for both the beginning and end of the opening xml tag.
+            if (pos.line < range.from.line) {
+                cm._lineFolds[range.from.line] = range;
+            } else {
+                cm._lineFolds[pos.line] = range;
+            }
         } else {
             delete cm._lineFolds[pos.line];
         }
 
-        CodeMirror.signal(cm, force, cm, range.from, range.to, pos.line);
+        CodeMirror.signal(cm, force, cm, range.from, range.to);
         return range;
     }
 
@@ -133,7 +139,7 @@ define(function (require, exports, module) {
                 keys.forEach(function (lineNumber) {
                     lineNumber = +lineNumber;
                     if (lineNumber >= cm.firstLine() && lineNumber <= cm.lastLine()) {
-                        range = rf(cm, CodeMirror.Pos(lineNumber));
+                        range = rf(cm, CodeMirror.Pos(lineNumber, 0));
                         cachedRange = folds[lineNumber];
                         if (range && cachedRange && range.from.line === cachedRange.from.line &&
                                 range.to.line === cachedRange.to.line) {

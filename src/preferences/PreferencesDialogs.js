@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, PathUtils, Mustache */
-
 /**
  * PreferencesDialogs
  *
@@ -32,13 +28,13 @@
 define(function (require, exports, module) {
     "use strict";
 
-    require("thirdparty/path-utils/path-utils.min");
-
     var Dialogs                = require("widgets/Dialogs"),
         ProjectManager         = require("project/ProjectManager"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
-        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html");
+        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html"),
+        Mustache               = require("thirdparty/mustache/mustache"),
+        PathUtils              = require("thirdparty/path-utils/path-utils");
 
     /**
      * Validate that text string is a valid base url which should map to a server folder

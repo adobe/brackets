@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, describe, it, expect, jasmine */
+/*global describe, it, expect, jasmine */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
@@ -44,9 +44,10 @@ define(function (require, exports, module) {
                     entry: Immutable.Map()
                 }));
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
-                expect(a.children[1].textContent).toBe("afile");
-                expect(a.children[2].textContent).toBe(".js");
-                expect(a.children[0].textContent).toBe(" ");
+                expect(a.children[0].textContent).toBe("");
+                expect(a.children[1].textContent).toBe(" ");
+                expect(a.children[2].textContent).toBe("afile");
+                expect(a.children[3].textContent).toBe(".js");
             });
 
             it("should call icon extensions to replace the default icon", function () {
@@ -69,9 +70,10 @@ define(function (require, exports, module) {
                 expect(extensionCalls).toBe(1);
 
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
-                expect(a.children[1].textContent).toBe("afile");
-                expect(a.children[2].textContent).toBe(".js");
-                expect(a.children[0].textContent).toBe("ICON");
+                expect(a.children[0].textContent).toBe("");
+                expect(a.children[1].textContent).toBe("ICON");
+                expect(a.children[2].textContent).toBe("afile");
+                expect(a.children[3].textContent).toBe(".js");
             });
 
             it("should allow icon extensions to return a string for the icon", function () {
@@ -91,8 +93,9 @@ define(function (require, exports, module) {
                 expect(extensionCalls).toBe(1);
 
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
-                expect(a.children[1].textContent).toBe("afile");
-                expect(a.children[2].textContent).toBe(".js");
+                expect(a.children[0].textContent).toBe("");
+                expect(a.children[2].textContent).toBe("afile");
+                expect(a.children[3].textContent).toBe(".js");
 
                 var $a = $(ReactDOM.findDOMNode(a)),
                     $ins = $a.find("ins");
@@ -166,8 +169,9 @@ define(function (require, exports, module) {
                 expect(extensionCalls).toBe(1);
 
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
-                expect(a.children[1].textContent).toBe("afile");
-                expect(a.children[2].textContent).toBe(".js");
+                expect(a.children[0].textContent).toBe("");
+                expect(a.children[2].textContent).toBe("afile");
+                expect(a.children[3].textContent).toBe(".js");
 
                 var $a = $(a),
                     $ins = $a.find("ins");
@@ -377,8 +381,8 @@ define(function (require, exports, module) {
                     dirA = $(dirLI).find("a")[0];
 
                 expect(dirLI.className).toBe("jstree-closed new classes are cool");
-                var icon = dirA.children[0];
-                expect(icon.textContent).toBe("ICON");
+                expect(dirA.children[0].textContent).toBe("");
+                expect(dirA.children[1].textContent).toBe("ICON");
             });
 
             it("should allow renaming a closed directory", function () {
@@ -401,7 +405,7 @@ define(function (require, exports, module) {
                 }));
                 var fileLI = ReactDOM.findDOMNode(rendered),
                     fileA = $(fileLI).find("a")[0];
-                expect(fileA.children[1].textContent).toBe("afile");
+                expect(fileA.children[2].textContent).toBe("afile");
             });
 
             it("should be able to list closed directories", function () {
@@ -419,7 +423,7 @@ define(function (require, exports, module) {
 
                 var subdirLI = ReactDOM.findDOMNode(rendered),
                     subdirA = $(subdirLI).find(".jstree-closed > a")[0];
-                expect(subdirA.children[1].textContent).toBe("subdir");
+                expect(subdirA.children[2].textContent).toBe("subdir");
             });
 
             it("should be able to list open subdirectories", function () {
@@ -433,8 +437,8 @@ define(function (require, exports, module) {
                     aTags = subdirLI.find("a");
 
                 expect(aTags.length).toBe(2);
-                expect(aTags[0].children[1].textContent).toBe("subdir");
-                expect(aTags[1].children[1].textContent).toBe("afile");
+                expect(aTags[0].children[2].textContent).toBe("subdir");
+                expect(aTags[1].children[2].textContent).toBe("afile");
             });
 
             it("should sort directory contents according to the flag", function () {
@@ -516,8 +520,8 @@ define(function (require, exports, module) {
                 var rootNode = ReactDOM.findDOMNode(rendered),
                     aTags = $(rootNode).find("a");
                 expect(aTags.length).toBe(2);
-                expect(aTags[0].children[1].textContent).toBe("subdir");
-                expect(aTags[1].children[1].textContent).toBe("afile");
+                expect(aTags[0].children[2].textContent).toBe("subdir");
+                expect(aTags[1].children[2].textContent).toBe("afile");
             });
 
             it("should rerender contents as needed", function () {
@@ -559,7 +563,7 @@ define(function (require, exports, module) {
 
         describe("render", function () {
             it("should render into the given element", function () {
-                var el = document.createElement("div"),
+                var el = window.document.createElement("div"),
                     viewModel = new FileTreeViewModel.FileTreeViewModel();
                 viewModel._treeData = new Immutable.Map({
                     "subdir": twoLevel.getIn(["children", "subdir"])

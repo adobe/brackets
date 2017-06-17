@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, window, $, Mustache */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -43,6 +40,7 @@ define(function (require, exports, module) {
         FileUtils               = brackets.getModule("file/FileUtils"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         Strings                 = brackets.getModule("strings"),
+        Mustache                = brackets.getModule("thirdparty/mustache/mustache"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
@@ -440,8 +438,6 @@ define(function (require, exports, module) {
             }, 0);
         }
     }
-
-    PreferencesManager.convertPreferences(module, {"recentProjects": "user"}, true);
 
     // Register command handlers
     CommandManager.register(Strings.CMD_TOGGLE_RECENT_PROJECTS, TOGGLE_DROPDOWN, handleKeyEvent);

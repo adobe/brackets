@@ -1,0 +1,6 @@
+{
+    "version": "release-1.10-prerelease-2",
+    "title" : "Brackets 1.10 Pre-release for community testing",
+    "description" : "This is a Brackets 1.10 pre-release build. This release adds native menus for Linux, Search History UI, pseudo selector and AtRules hints in CSS, CSS hints in style attribute value for HTML documents.",
+    "prerelease": true
+}

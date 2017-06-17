@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, PathUtils */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -40,7 +39,8 @@ define(function (require, exports, module) {
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         Strings             = brackets.getModule("strings"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils");
+        TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils");
 
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
 
@@ -59,6 +59,9 @@ define(function (require, exports, module) {
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
 
     var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss", "stylus"];
+
+    // List of protocols which we will support for image preview urls
+    var validProtocols = ["data:", "http:", "https:", "ftp:", "file:"];
 
     prefs = PreferencesManager.getExtensionPrefs("quickview");
     prefs.definePreference("enabled", "boolean", true, {
@@ -322,6 +325,11 @@ define(function (require, exports, module) {
         function hasLengthInPixels(args) {
             return (args.length > 1 && args[1].indexOf("px") > 0);
         }
+        
+        // Ensures that input is in usable hex format
+        function ensureHexFormat(str) {
+            return (/^0x/).test(str) ? str.replace("0x","#") : str;
+        }
 
         // Normalizes px color stops to %
         function normalizeGradientExpressionForQuickview(expression) {
@@ -397,15 +405,14 @@ define(function (require, exports, module) {
                 }
             } else if (pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
-                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
+                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]); 
 
                 // normalize the arguments to something that we can display to the user
                 // NOTE: we need both the div and the popover's _previewCSS member
                 //          (used by unit tests) to match so normalize the css for both
-                previewCSS = normalizeGradientExpressionForQuickview(previewCSS);
+                previewCSS = normalizeGradientExpressionForQuickview(ensureHexFormat(previewCSS));
 
-                var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
-                              "</div>";
+                var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" + "</div>";
                 var startPos = {line: pos.line, ch: match.index},
                     endPos = {line: pos.line, ch: match.index + match[0].length},
                     startCoords = cm.charCoords(startPos),
@@ -474,7 +481,8 @@ define(function (require, exports, module) {
 
         // Determine whether or not this URL/path is likely to be an image.
         var parsed = PathUtils.parseUrl(tokenString);
-        var hasProtocol = parsed.protocol !== "";
+        // If the URL has a protocol, check if it's one of the supported protocols
+        var hasProtocol = parsed.protocol !== "" && validProtocols.indexOf(parsed.protocol.trim().toLowerCase()) !== -1;
         var ext = parsed.filenameExtension.replace(/^\./, '');
         var language = LanguageManager.getLanguageForExtension(ext);
         var id = language && language.getId();
@@ -746,7 +754,7 @@ define(function (require, exports, module) {
     }
 
     function setExtensionlessImagePreview(_extensionlessImagePreview, doNotSave) {
-        if(extensionlessImagePreview !== _extensionlessImagePreview) {
+        if (extensionlessImagePreview !== _extensionlessImagePreview) {
             extensionlessImagePreview = _extensionlessImagePreview;
             if (!doNotSave) {
                 prefs.set("extensionlessImagePreview", enabled);
@@ -814,11 +822,6 @@ define(function (require, exports, module) {
     // Insert menu at specific pos since this may load before OR after code folding extension
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
     Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
-
-    // Convert old preferences
-    PreferencesManager.convertPreferences(module, {
-        "enabled": "user quickview.enabled"
-    });
 
     // Setup initial UI state
     setEnabled(prefs.get("enabled"), true);

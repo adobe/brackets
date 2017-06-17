@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, window, brackets, navigator */
-
 /**
  * The bootstrapping module for brackets. This module sets up the require
  * configuration and loads the brackets module.
@@ -41,7 +38,7 @@ require.config({
     map: {
         "*": {
             "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
-            "thirdparty/react":	"react"
+            "thirdparty/react":       "react"
         }
     }
 });
@@ -63,7 +60,7 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
      * extension).
      */
     require.config({
-        locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+        locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : window.navigator.language)
     });
 }
 

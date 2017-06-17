@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -65,6 +62,7 @@ define({
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
 	"ERROR_RENAMING_FILE_TITLE": "{0} の名前を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "{2} <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
+	"ERROR_RENAMING_NOT_IN_PROJECT": "ファイルまたはディレクトリが、現在開いているプロジェクトの一部ではありません。現時点で、プロジェクトファイルの名前のみを変更できます。",
 	"ERROR_DELETING_FILE_TITLE": "{0} を削除する際にエラーが発生しました。",
 	"ERROR_DELETING_FILE": "{2} <span class='dialog-filename'>{0}</span> を削除する際にエラーが発生しました。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}",
@@ -130,7 +128,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
-	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
+	"CONFIRM_DELETE_TITLE": "削除を確認",
+	"CONFIRM_FILE_DELETE": "ファイル <span class='dialog-filename'>{0}</span> を削除してもよろしいですか？",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか？",
@@ -153,8 +152,10 @@ define({
 	"FIND_MATCH_INDEX": "{0} / {1}",
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
+	"FIND_HISTORY_MAX_COUNT": "検索履歴内の検索項目の最大数",
 	"REPLACE_PLACEHOLDER": "\u2026 に置換",
-	"BUTTON_REPLACE_ALL": "バッチ\u2026",
+	"BUTTON_REPLACE_ALL": "すべて置換",
+	"BUTTON_REPLACE_BATCH": "バッチ\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
 	"BUTTON_REPLACE": "置換",
 	"BUTTON_NEXT": "\u25B6",
@@ -210,6 +211,7 @@ define({
 	"FILE_FILTER_DIALOG": "除外セットを編集",
 	"FILE_FILTER_INSTRUCTIONS": "次の文字列やサブストリング、または<a href='{0}' title='{0}'>ワイルドカード</a>のいずれかに一致するファイルおよびフォルダーを除外します。各文字列を新しい行に入力してください。",
 	"FILTER_NAME_PLACEHOLDER": "この除外セットに名前を付ける (オプション)",
+	"FILTER_NAME_REMAINING": "残り {0} 文字",
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
 	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
@@ -312,6 +314,7 @@ define({
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
+	"CMD_RECENT_FILES_OPEN": "最近使用したファイルを開く\u2026",
 	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに開く",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
@@ -382,7 +385,7 @@ define({
 	"CMD_SHOW_SIDEBAR": "サイドバーを表示する",
 	"CMD_TOGGLE_SIDEBAR": "サイドバーの切り替え",
 	"CMD_TOGGLE_PANELS": "パネルの表示切り替え",
-	"CMD_TOGGLE_PURE_CODE": "中断なし",
+	"CMD_TOGGLE_PURE_CODE": "簡易表示",
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
@@ -418,6 +421,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "エクスプローラーで表示",
 	"CMD_SHOW_IN_FINDER": "Finder で表示",
 	"CMD_SHOW_IN_OS": "OS で表示",
+	"CMD_SWITCH_PANE_FOCUS": "ペインフォーカスの切り替え",
 
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
@@ -467,7 +471,7 @@ define({
 
     // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>このペインにフォーカスがあるときにファイルを開く</em>",
-	"FLIPVIEW_BTN_TOOLTIP": "{0} ペインにこのビューを反転",
+	"FLIPVIEW_BTN_TOOLTIP": "このビューを {0} ペインにめくる",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",
@@ -501,8 +505,10 @@ define({
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
 	"VIEW_COMPLETE_DESCRIPTION": "詳細な説明を表示",
 	"VIEW_TRUNCATED_DESCRIPTION": "省略された説明を表示",
+	"SORT_EXTENSION_METHOD": "downloadCount または publishedDate を使用してエクステンションをソート",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
+	"MISSING_PACKAGE_JSON": "パッケージに package.json ファイルがありません。",
 	"INVALID_PACKAGE_JSON": "package.json ファイルは有効ではありません (エラーは {0} です)。",
 	"MISSING_PACKAGE_NAME": "package.json ファイルはパッケージ名を指定していません。",
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
@@ -510,6 +516,7 @@ define({
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
 	"INVALID_BRACKETS_VERSION": "{APP_NAME} 互換文字列 {0} は無効です。",
 	"DISALLOWED_WORDS": "{1} は {0} フィールドでは使用できません。",
+	"NPM_INSTALL_FAILED": "npm install コマンドに失敗しました : {0}",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"EXTENSION_ALREADY_INSTALLED": "このパッケージをインストールすると以前にインストールした拡張機能が上書きされます。古い拡張機能を上書きしますか？",
@@ -573,9 +580,12 @@ define({
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
 	"REGISTRY_SANITY_CHECK_WARNING": "注意 : これらの拡張機能の作成元が {APP_NAME} 以外である可能性があります。拡張機能はレビューされず、ローカルアクセス権が一杯です。不明なソースから拡張機能をインストールするときは十分に注意してください。",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
+	"EXTENSIONS_DEFAULT_TITLE": "デフォルト",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_THEMES_TITLE": "テーマ",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
+	"EXTENSIONS_LAST_UPDATED": "最終更新日",
+	"EXTENSIONS_DOWNLOADS": "ダウンロード",
 
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
 	"INLINE_EDITOR_HIDDEN_MATCHES": "一致項目はすべて縮小されています。一致項目を表示するには、右側にリストされているファイルを展開してください。",
@@ -643,6 +653,7 @@ define({
 	"COLOR_EDITOR_RGBA_BUTTON_TIP": "RGBa 形式",
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "16 進形式",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
+	"COLOR_EDITOR_0X_BUTTON_TIP": "16 進数 (0x) 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
 	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
 
@@ -662,7 +673,7 @@ define({
     // extensions/default/RecentProjects
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
 	"DOCS_MORE_LINK": "詳細",
 
     // extensions/default/CodeFolding
@@ -670,6 +681,11 @@ define({
 	"EXPAND_ALL": "すべて展開",
 	"COLLAPSE_CURRENT": "現在のコードをたたむ",
 	"EXPAND_CURRENT": "現在のコードを展開",
+
+    // extensions/default/NavigationAndHistory
+	"RECENT_FILES_DLG_HEADER": "最近使用したファイル",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "消去",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "ワーキングセットにないファイルをクリア",
 
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
@@ -688,6 +704,7 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "次の行数に達したら折りたたみ可能なセクションのアイコンを表示する",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "ファイルまたはプロジェクトを閉じて再度開く場合に折りたたまれたセクションを記憶するには true",
 	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "エディター内の選択したテキストでコード折りたたみを有効にするには true",
+	"DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS": "無効化された初期設定のエクステンション",
 	"DESCRIPTION_ATTR_HINTS": "HTML 属性ヒントを有効化/無効化",
 	"DESCRIPTION_CSS_PROP_HINTS": "CSS/LESS/SCSS プロパティヒントを有効化/無効化",
 	"DESCRIPTION_JS_HINTS": "JavaScript のコードヒントを有効化/無効化",
@@ -737,6 +754,8 @@ define({
 	"DESCRIPTION_LANGUAGE": "言語固有の設定",
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "ファイル拡張子から言語名への追加のマッピング",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "ファイル名から言語名への追加のマッピング",
+	"DESCRIPTION_LINEWISE_COPY_CUT": "何も選択せずにコピーやカットを行うと、カーソルのあるすべての行がコピーまたはカットされます。",
+	"DESCRIPTION_INPUT_STYLE": "CodeMirror による入力とフォーカスの処理方法を選択します。Textarea (初期設定) や counterditable (スクリーンリーダー向け)(不安定) などを選択できます",
 	"DESCRIPTION_LINTING_ENABLED": "コード検証を有効にするには true",
 	"DESCRIPTION_ASYNC_TIMEOUT": "非同期の構文チェックがタイムアウトするまでの時間 (ミリ秒)",
 	"DESCRIPTION_LINTING_PREFER": "最初に実行する構文チェックの配列",
@@ -776,7 +795,11 @@ define({
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "左側/上部のペインでユーザーの環境設定ファイルを開くには false",
 	"DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED": "ペインからの最後のファイルがペインのヘッダーの閉じるボタンにより閉じられた後、ペインを折りたたむには true",
 	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "ヘッダーの閉じるボタンと反転表示ボタンを表示するタイミングを切り替えます。",
-	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} で環境設定がサポートされた\n読み取り専用ファイルです。\n * このファイルは、他のペインで開かれた環境設定ファイル brackets.json を\n * 変更する際の参照資料として使用します。\n * {APP_NAME} 内で環境設定を使用する方法については、Web ページ\n *  (https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences) を参照してください。\n */",
+	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} がサポートしている環境設定が 記録された読み取り\n * 専用ファイルです。\n * もう片方のペインで開かれた環境設定ファイル brackets.json を変更\n * する際の参考としてお使いください。\n * {APP_NAME} 内で環境設定を使用する方法について は、Web ページ\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n * を参照してください。\n*/",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "デフォルト",
-	"DESCRIPTION_PURE_CODING_SURFACE": "{APP_NAME} でコードのみモードを有効にし、その他すべての UI エレメントを非表示にするには true"
+	"DESCRIPTION_PURE_CODING_SURFACE": "{APP_NAME} でコードのみモードを有効にし、その他すべての UI エレメントを非表示にするには true",
+	"DESCRIPTION_INDENT_LINE_COMMENT": "行コメントのインデントを有効にするには true",
+	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
+	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
+	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定"
 });

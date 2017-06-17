@@ -21,9 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: LanguageManager*/
 
 /**
@@ -669,6 +666,11 @@ define(function (require, exports, module) {
             }
 
             this._wasModified();
+        } else if(!_fileExtensionToLanguageMap[extension]) {
+            
+            // Language should be in the extension map but isn't
+            _fileExtensionToLanguageMap[extension] = this;
+            this._wasModified();
         }
     };
 
@@ -959,6 +961,12 @@ define(function (require, exports, module) {
 
             // store language to language map
             _languages[language.getId()] = language;
+
+            // restore any preferences for non-default languages
+            if(PreferencesManager) {
+                _updateFromPrefs(_EXTENSION_MAP_PREF);
+                _updateFromPrefs(_NAME_MAP_PREF);
+            }
         }
 
         if (!language._setId(id) || !language._setName(name) ||
@@ -1077,6 +1085,15 @@ define(function (require, exports, module) {
                     language[state.add](name);
                 }
             }
+            if(!getLanguage(newMapping[name])) {
+                
+                // If the language doesn't exist, restore any overrides and remove it
+                // from the state.
+                if(overridden[name]) {
+                    _restoreOverriddenDefault(name, state);
+                }
+                delete newMapping[name];
+            }
         });
 
         // Look for removed names (extensions or filenames)
@@ -1101,8 +1118,16 @@ define(function (require, exports, module) {
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|\/ng-template$|^text\/html$/i,
-                       "mode": null}]
+        "scriptTypes": [
+            {
+                "matches": /\/x-handlebars|\/x-mustache|\/ng-template$|^text\/html$/i,
+                "mode": "htmlmixed"
+            },
+            {
+                "matches": /^text\/(babel|jsx)$/i,
+                "mode": "jsx"
+            }
+        ]
     });
 
     // Define SVG MIME type so an SVG language can be defined for SVG-specific code hints.

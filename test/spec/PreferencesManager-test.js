@@ -21,86 +21,17 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, runs, beforeFirst, afterLast, spyOn, waitsForDone */
+/*global describe, it, expect, beforeEach, runs, beforeFirst, afterLast, spyOn, waitsForDone */
+
 define(function (require, exports, module) {
     'use strict';
 
     // Load dependent modules
-    var PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         testPath                = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files"),
         nonProjectFile          = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test.js"),
         PreferencesManager,
         testWindow;
-
-    var CLIENT_ID = "PreferencesManager-test";
-
-    describe("PreferenceStorage", function () {
-
-        it("should read initial preferences from JSON", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": "bar", hello: "world"});
-            expect(store.getValue("foo")).toBe("bar");
-            expect(store.getValue("hello")).toBe("world");
-        });
-
-        it("should store values as JSON", function () {
-            var json = {};
-            var store = new PreferenceStorage(CLIENT_ID, json);
-            store.setValue("foo", 42);
-
-            expect(json.foo).toEqual(42);
-            expect(store.getValue("foo")).toBe(42);
-        });
-
-        it("should output preferences as JSON", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {});
-            store.setValue("foo", 42);
-            var json = store.getAllValues();
-
-            expect(json.foo).toEqual(42);
-        });
-
-        it("should remove values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": "bar"});
-            expect(store.getValue("foo")).toBe("bar");
-
-            store.remove("foo");
-            expect(store.getValue("foo")).toBe(undefined);
-        });
-
-        it("should use setAllValues to append multiple new name/value pairs", function () {
-            var initial = {"foo": "bar"};
-            var store = new PreferenceStorage(CLIENT_ID, initial);
-
-            // append
-            store.setAllValues({"hello": ["world", "!"], "goodbye": 42}, true);
-            expect(store.getValue("foo")).toBe("bar");
-            expect(store.getValue("hello")).toEqual(["world", "!"]);
-            expect(store.getValue("goodbye")).toBe(42);
-
-            // overwrite
-            store.setAllValues({"winning": false}, false);
-            expect(store.getValue("foo")).toBe(undefined);
-            expect(store.getValue("hello")).toBe(undefined);
-            expect(store.getValue("goodbye")).toBe(undefined);
-            expect(store.getValue("winning")).toBe(false);
-        });
-
-        it("should throw errors for invalid values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
-
-            expect(store.getValue("foo")).toBe(42);
-            // function data is not valid JSON
-            store.setValue("foo", function () {});
-            expect(store.getValue("foo")).toBe(42);
-
-            // number key is not valid JSON
-            store.setValue(42, "bar");
-            expect(store.getValue(42)).toBe(undefined);
-        });
-
-    });
 
     describe("PreferencesManager", function () {
         this.category = "integration";
@@ -118,13 +49,6 @@ define(function (require, exports, module) {
         afterLast(function () {
             PreferencesManager = null;
             SpecRunnerUtils.closeTestWindow();
-        });
-
-        beforeEach(function () {
-            // SpecRunner.js already initializes the unit test instance of
-            // PreferencesManager to use the unit test key. All we need to do
-            // here is reset to clear callbacks and in-memory preferences.
-            PreferencesManager._reset();
         });
 
         it("should find preferences in the project", function () {
@@ -152,43 +76,5 @@ define(function (require, exports, module) {
                 expect(PreferencesManager.get("spaceUnits")).not.toBe(9);
             });
         });
-
-
-        // Old tests follow
-        it("should use default preferences", function () {
-            var store = PreferencesManager.getPreferenceStorage(CLIENT_ID, {foo: "default"});
-            expect(store.getValue("foo")).toEqual("default");
-        });
-
-        describe("Create clientID for preference store", function () {
-            it("should return clientID for module that exists in extension directories", function () {
-                spyOn(PreferencesManager, "_getExtensionPaths").andCallFake(function () {
-                    return ['/local/Extension/Folder/Extensions/',
-                            '/User/test/Library/Application Support/Brackets/extensions/user/',
-                            'c:/Program Files (x86)/Brackets/wwww/extensions/default/'];
-                });
-
-                var module = {id: 'utils/Resizer', uri: '/local/Extension/Folder/Extensions/utils/Resizer.js'};
-
-                var clientID = PreferencesManager.getClientID(module);
-                expect(clientID).toBe("com.adobe.brackets.utils/Resizer.js");
-
-                clientID = PreferencesManager.getClientID({id: 'main', uri: '/User/test/Library/Application Support/Brackets/extensions/user/HelloWorld/main.js'});
-                expect(clientID).toBe("com.adobe.brackets.HelloWorld/main.js");
-
-                clientID = PreferencesManager.getClientID({id: 'main', uri: 'c:/Program Files (x86)/Brackets/wwww/extensions/default/JSLint/main.js'});
-                expect(clientID).toBe("com.adobe.brackets.JSLint/main.js");
-            });
-
-            it("should always return a clientID for a module that doesn't exist in extension directories", function () {
-                spyOn(PreferencesManager, "_getExtensionPaths").andCallFake(function () {
-                    return []; // no extension directories
-                });
-
-                var clientID = PreferencesManager.getClientID({id: 'main', uri: '/path/is/not/an/Extension/directory/someExtension/main.js'});
-                expect(clientID).toBe("com.adobe.brackets.main");
-            });
-        });
-
     });
 });

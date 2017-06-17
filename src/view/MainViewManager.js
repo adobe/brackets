@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * MainViewManager manages the arrangement of all open panes as well as provides the controller
  * logic behind all views in the MainView (e.g. ensuring that a file doesn't appear in 2 lists)
@@ -95,7 +92,8 @@ define(function (require, exports, module) {
         AsyncUtils          = require("utils/Async"),
         ViewUtils           = require("utils/ViewUtils"),
         Resizer             = require("utils/Resizer"),
-        Pane                = require("view/Pane").Pane;
+        Pane                = require("view/Pane").Pane,
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
 
     /**
      * Preference setting name for the MainView Saved State
@@ -848,6 +846,19 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Switch between panes
+     */
+    function switchPaneFocus() {
+        var $firstPane = $('#first-pane'), $secondPane = $('#second-pane');
+        if($firstPane.hasClass('active-pane')) {
+            $secondPane.click();
+        }
+        else {
+            $firstPane.click();
+        }
+    }
+
+    /**
      * DocumentManager.pathDeleted Event handler to remove a file
      * from the MRU list
      * @param {!jQuery.event} e -
@@ -1262,11 +1273,15 @@ define(function (require, exports, module) {
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
-                    _edit(paneId, doc, $.extend({}, options, {
-                        noPaneActivate: true
-                    }));
-                    doPostOpenActivation();
-                    result.resolve(doc.file);
+                    if (doc) {
+                        _edit(paneId, doc, $.extend({}, options, {
+                            noPaneActivate: true
+                        }));
+                        doPostOpenActivation();
+                        result.resolve(doc.file);
+                    } else {
+                        result.resolve(null);
+                    }
                 })
                 .fail(function (fileError) {
                     result.reject(fileError);
@@ -1338,7 +1353,7 @@ define(function (require, exports, module) {
     function _close(paneId, file, optionsIn) {
         var options = optionsIn || {};
         _forEachPaneOrPanes(paneId, function (pane) {
-            if (pane.removeView(file, options.noOpenNextFile) && pane.id === paneId) {
+            if (pane.removeView(file, options.noOpenNextFile) && (paneId === ACTIVE_PANE || pane.id === paneId)) {
                 _removeFileFromMRU(pane.id, file);
                 exports.trigger("workingSetRemove", file, false, pane.id);
                 return false;
@@ -1619,6 +1634,10 @@ define(function (require, exports, module) {
         //  get an event handler for workspace events and we don't listen
         //  to the event before we've been initialized
         WorkspaceManager.on("workspaceUpdateLayout", _updateLayout);
+
+        // Listen to key Alt-W to toggle between panes
+        CommandManager.register(Strings.CMD_SWITCH_PANE_FOCUS, Commands.CMD_SWITCH_PANE_FOCUS, switchPaneFocus);
+        KeyBindingManager.addBinding(Commands.CMD_SWITCH_PANE_FOCUS, {key: 'Alt-W'});
     }
 
     /**
@@ -1661,8 +1680,8 @@ define(function (require, exports, module) {
 
         return result;
     }
-
-
+    
+    
     /**
      * Setup a ready event to initialize ourself
      */
@@ -1714,6 +1733,7 @@ define(function (require, exports, module) {
     exports.findInWorkingSetByAddedOrder  = findInWorkingSetByAddedOrder;
     exports.findInWorkingSetByMRUOrder    = findInWorkingSetByMRUOrder;
     exports.findInAllWorkingSets          = findInAllWorkingSets;
+    exports.findInGlobalMRUList           = _findFileInMRUList;
 
     // Traversal
     exports.beginTraversal                = beginTraversal;
@@ -1731,6 +1751,7 @@ define(function (require, exports, module) {
 
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;
+    exports.switchPaneFocus               = switchPaneFocus;
 
     // Layout
     exports.setLayoutScheme               = setLayoutScheme;

@@ -21,9 +21,8 @@
  *
  */
 
+/*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn, KeyboardEvent */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 define(function (require, exports, module) {
     'use strict';
 
@@ -256,34 +255,54 @@ define(function (require, exports, module) {
     }
 
     function _resetPermissionsOnSpecialTempFolders() {
-        var folders = [],
-            baseDir = getTempDirectory(),
-            promise;
+        var entries = [],
+            result = new $.Deferred(),
+            promise,
+            entryPromise = new $.Deferred(),
+            tempDir;
 
-        folders.push(baseDir + "/cant_read_here");
-        folders.push(baseDir + "/cant_write_here");
-
-        promise = Async.doSequentially(folders, function (folder) {
-            var deferred = new $.Deferred();
-
-            _getFileSystem().resolve(folder, function (err, entry) {
-                if (!err) {
-                    // Change permissions if the directory exists
-                    chmod(folder, "777").then(deferred.resolve, deferred.reject);
+        function visitor(entry) {
+            entries.push(entry.fullPath);
+            return true;
+        }
+        tempDir = FileSystem.getDirectoryForPath(getTempDirectory());
+        tempDir.visit(visitor, function(err){
+            if (!err) {
+                entryPromise.resolve(entries);
+            } else {
+                if (err === FileSystemError.NOT_FOUND) {
+                    entryPromise.resolve(entries);
                 } else {
-                    if (err === FileSystemError.NOT_FOUND) {
-                        // Resolve the promise since the folder to reset doesn't exist
-                        deferred.resolve();
-                    } else {
-                        deferred.reject();
-                    }
+                    entryPromise.reject();
                 }
-            });
+            }
+        });
+        entryPromise.done(function(entries){
+            promise = Async.doSequentially(entries, function (entry) {
+                var deferred = new $.Deferred();
 
-            return deferred.promise();
-        }, true);
+                FileSystem.resolve(entry, function (err, item) {
+                    if (!err) {
+                        // Change permissions if the directory exists
+                        chmod(entry, "777").then(deferred.resolve, deferred.reject);
+                    } else {
+                        if (err === FileSystemError.NOT_FOUND) {
+                            // Resolve the promise since the folder to reset doesn't exist
+                            deferred.resolve();
+                        } else {
+                            deferred.reject();
+                        }
+                    }
+                });
 
-        return promise;
+                return deferred.promise();
+            }, true);
+            promise.then(result.resolve, result.reject);
+        }).fail(function() {
+            result.reject();
+        });
+        
+        return result.promise();
     }
 
     /**
@@ -395,14 +414,18 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
-    function createEditorInstance(doc, $editorHolder, visibleRange, paneId) {
+    function createEditorInstance(doc, pane, visibleRange) {
+        var $editorHolder = pane.$el || pane; // To handle actual pane mock or a fake container
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
 
         Editor.setUseTabChar(EDITOR_USE_TABS);
         Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
-        if (paneId) {
-            editor._paneId = paneId;
+
+        if (pane.addView) {
+            pane.addView(editor);
+            editor._paneId = pane.id;
         }
+
         EditorManager._notifyActiveEditorChanged(editor);
 
         return editor;
@@ -460,7 +483,8 @@ define(function (require, exports, module) {
             $el: $el,
             id: paneId || 'first-pane',
             $content: $fakeContent,
-            addView: function (path, editor) {
+            addView: function (editor) {
+                this.$content.append(editor.$el);
             },
             showView: function (editor) {
             }
@@ -988,18 +1012,29 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Simulate key event. Found this code here:
-     * http://stackoverflow.com/questions/10455626/keydown-simulation-in-chrome-fires-normally-but-not-the-correct-key
-     *
-     * TODO: need parameter(s) for modifier keys
-     *
+     * Simulate a key event.
      * @param {Number} key Key code
      * @param (String) event Key event to simulate
      * @param {HTMLElement} element Element to receive event
+     * @param {KeyboardEventInit} options Optional arguments for key event
      */
-    function simulateKeyEvent(key, event, element) {
-        var doc = element.ownerDocument,
-            oEvent = doc.createEvent('KeyboardEvent');
+    function simulateKeyEvent(key, event, element, options) {
+        var doc = element.ownerDocument;
+
+        if(typeof options === 'undefined') {
+            options = {
+                view: doc.defaultView,
+                bubbles: true,
+                cancelable: true,
+                keyIdentifer: key
+            };
+        } else {
+            options.view = doc.defaultView;
+            options.bubbles = true;
+            options.cancelable = true;
+            options.keyIdentifier = key;
+        }
+        var oEvent = new KeyboardEvent(event, options);
 
         if (event !== "keydown" && event !== "keyup" && event !== "keypress") {
             console.log("SpecRunnerUtils.simulateKeyEvent() - unsupported keyevent: " + event);
@@ -1025,15 +1060,9 @@ define(function (require, exports, module) {
             }
         });
 
-        if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
-        } else {
-            oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
-        }
-
         oEvent.keyCodeVal = key;
         if (oEvent.keyCode !== key) {
-            console.log("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
+            console.log("SpecRunnerUtils.simulateKeyEvent() - keyCode mismatch: " + oEvent.keyCode);
         }
 
         element.dispatchEvent(oEvent);

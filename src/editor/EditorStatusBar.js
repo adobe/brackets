@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
-
 /**
  * Manages parts of the status bar related to the current editor's state.
  */
@@ -80,8 +76,6 @@ define(function (require, exports, module) {
 
         // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
         languageSelect.$button.css("width", "auto");
-        // Setting Untitled documents to non-text mode isn't supported yet, so disable the switcher in that case for now
-        languageSelect.$button.prop("disabled", doc.isUntitled());
         // Show the current language as button title
         languageSelect.$button.text(lang.getName());
     }

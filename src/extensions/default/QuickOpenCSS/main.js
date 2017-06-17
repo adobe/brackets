@@ -21,16 +21,12 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
-
-
-
 define(function (require, exports, module) {
     "use strict";
 
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         QuickOpen           = brackets.getModule("search/QuickOpen"),
+        QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         StringMatch         = brackets.getModule("utils/StringMatch");
@@ -80,14 +76,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @param {string} query what the user is searching for
-     * @param {boolean} returns true if this plugin wants to provide results for this query
-     */
-    function match(query) {
-        return (query[0] === "@");
-    }
-
-    /**
      * Scroll to the selected item in the current document (unless no query string entered yet,
      * in which case the topmost list item is irrelevant)
      * @param {?SearchResult} selectedItem
@@ -116,7 +104,7 @@ define(function (require, exports, module) {
             name: "CSS Selectors",
             languageIds: ["css", "less", "scss"],
             search: search,
-            match: match,
+            match: QuickOpenHelper.match,
             itemFocus: itemFocus,
             itemSelect: itemSelect
         }

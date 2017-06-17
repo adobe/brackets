@@ -149,7 +149,6 @@ span.brackets-js-hints-with-type-details {
     color: #d4d4d4;
     word-wrap: break-word;	
     white-space: normal;
-    width:300px;
     box-sizing: border-box;
 }
 
@@ -163,12 +162,15 @@ span.brackets-js-hints-with-type-details {
     color: grey;
     word-wrap: break-word;
     white-space: normal;
-    width: 300px;
     box-sizing: border-box;
     float: left;
     clear: left;
-    max-height: 3em;
+    max-height: 2em;
     overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1em;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .dark .jshint-jsdoc {
@@ -219,7 +221,7 @@ span.brackets-js-hints-with-type-details {
 }
 
 .highlight .jshint-jsdoc {
-    display: block;
+    display: -webkit-box;
 }
 
 .dark .brackets-js-hints-type-details {

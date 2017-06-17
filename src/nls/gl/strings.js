@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -118,7 +115,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "¿Queres gardar os cambios existentes no documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Queres gardar os teus cambios nos seguintes documentos?",
     "EXT_MODIFIED_TITLE"                : "Cambios externos",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
+    "CONFIRM_DELETE_TITLE"              : "Confirmar eliminación",
     "CONFIRM_FOLDER_DELETE"             : "¿Está seguro de que desexa eliminar o directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Arquivo eliminado",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> foi modificado no disco.<br /><br />¿Desexa gardar o arquivo e sobrescribir eses cambios?",
@@ -608,7 +605,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proxectos recentes",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Máis"
 });
 

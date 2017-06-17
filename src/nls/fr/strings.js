@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -65,6 +62,7 @@ define({
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du {0}",
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de changement de nom du {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_RENAMING_NOT_IN_PROJECT": "Le fichier ou le répertoire ne fait pas partie du projet actuellement ouvert. Or, seuls les fichiers appartenant au projet peuvent être renommés à ce stade.",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du {0}",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
@@ -130,7 +128,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_FILE_DELETE": "Souhaitez-vous vraiment supprimer le fichier <span class='dialog-filename'>{0}</span> ?",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
@@ -153,8 +152,10 @@ define({
 	"FIND_MATCH_INDEX": "{0} sur {1}",
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
+	"FIND_HISTORY_MAX_COUNT": "Nombre maximal d'éléments de recherche dans l'historique des recherches",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
-	"BUTTON_REPLACE_ALL": "Traiter par lots\u2026",
+	"BUTTON_REPLACE_ALL": "Tout remplacer",
+	"BUTTON_REPLACE_BATCH": "Traiter par lots\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "Remplacer\u2026",
 	"BUTTON_REPLACE": "Remplacer",
 	"BUTTON_NEXT": "\u25B6",
@@ -210,19 +211,20 @@ define({
 	"FILE_FILTER_DIALOG": "Modifier le jeu d’exclusion",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
 	"FILTER_NAME_PLACEHOLDER": "Nommer ce jeu d’exclusion (facultatif)",
+	"FILTER_NAME_REMAINING": "{0} caractères restants",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
 
     // Quick Edit
-	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "Fonction Edition rapide non disponible pour la position actuelle du curseur",
-	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "Edition rapide CSS : placez le curseur sur un seul nom de classe",
-	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "Edition rapide CSS : attribut de classe incomplet",
-	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "Edition rapide CSS : attribut d’ID incomplet",
-	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "Edition rapide CSS : placez le curseur dans la balise, la classe ou l’ID",
-	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "Edition rapide des fonctions de temporisation CSS : syntaxe incorrecte",
-	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "Edition rapide JS : placez le curseur dans le nom de fonction",
+	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "Fonction Édition rapide non disponible pour la position actuelle du curseur",
+	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "Édition rapide CSS : placez le curseur sur un seul nom de classe",
+	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "Édition rapide CSS : attribut de classe incomplet",
+	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "Édition rapide CSS : attribut d’ID incomplet",
+	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "Édition rapide CSS : placez le curseur dans la balise, la classe ou l’ID",
+	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "Édition rapide des fonctions de temporisation CSS : syntaxe incorrecte",
+	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "Édition rapide JS : placez le curseur dans le nom de fonction",
 
     // Quick Docs
 	"ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND": "Fonction Documentation rapide non disponible pour la position actuelle du curseur",
@@ -312,6 +314,7 @@ define({
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
+	"CMD_RECENT_FILES_OPEN": "Ouvrir les fichiers récents\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ouvrir dans l’ensemble de travail",
 	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
@@ -382,7 +385,7 @@ define({
 	"CMD_SHOW_SIDEBAR": "Afficher la barre latérale",
 	"CMD_TOGGLE_SIDEBAR": "Afficher/Masquer la barre latérale",
 	"CMD_TOGGLE_PANELS": "Afficher/Masquer les panneaux",
-	"CMD_TOGGLE_PURE_CODE": "Aucune distraction",
+	"CMD_TOGGLE_PURE_CODE": "Pas de distraction",
 	"CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
 	"CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
@@ -405,7 +408,7 @@ define({
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
 	"CMD_GOTO_FIRST_PROBLEM": "Accéder au premier problème",
-	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
+	"CMD_TOGGLE_QUICK_EDIT": "Édition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
@@ -418,6 +421,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "Afficher dans l’Explorateur",
 	"CMD_SHOW_IN_FINDER": "Afficher dans le Finder",
 	"CMD_SHOW_IN_OS": "Afficher dans le SE",
+	"CMD_SWITCH_PANE_FOCUS": "Changer de volet actif",
 
     // Help menu commands
 	"HELP_MENU": "Aide",
@@ -431,7 +435,7 @@ define({
 	"CMD_HEALTH_DATA_STATISTICS": "Rapport d’intégrité",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
-	"CMD_ABOUT": "A propos de {APP_TITLE}",
+	"CMD_ABOUT": "À propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
 	"CMD_OPEN_KEYMAP": "Ouvrir le mappage de touches utilisateur",
 
@@ -443,7 +447,7 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
-	"ABOUT": "A propos",
+	"ABOUT": "À propos",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Version {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_BUILD_TIMESTAMP": "Horodatage de la version : ",
@@ -467,7 +471,7 @@ define({
 
     // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>Ouvrir un fichier quand ce panneau est actif</em>",
-	"FLIPVIEW_BTN_TOOLTIP": "Transférer cette vue dans le volet {0}",
+	"FLIPVIEW_BTN_TOOLTIP": "Transférer cette vue dans le volet de {0}",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
@@ -495,14 +499,16 @@ define({
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie !",
-	"INSTALL_FAILED": "Echec de l’installation.",
+	"INSTALL_FAILED": "Échec de l’installation.",
 	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
 	"INSTALL_CANCELED": "Installation annulée.",
 	"VIEW_COMPLETE_DESCRIPTION": "Voir la description complète",
 	"VIEW_TRUNCATED_DESCRIPTION": "Voir la description tronquée",
+	"SORT_EXTENSION_METHOD": "Trier les extensions suivant downloadCount ou publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
+	"MISSING_PACKAGE_JSON": "Le pack ne contient pas de fichier package.json.",
 	"INVALID_PACKAGE_JSON": "Le fichier package.json n’est pas valide (erreur : {0}).",
 	"MISSING_PACKAGE_NAME": "Le fichier package.json n’indique pas le nom du pack.",
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
@@ -510,6 +516,7 @@ define({
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
 	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité {APP_NAME} ({0}) n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {0} ne peut pas contenir les mots ({1}).",
+	"NPM_INSTALL_FAILED": "Échec de la commande npm install : {0}",
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"EXTENSION_ALREADY_INSTALLED": "L’installation de ce pack remplacera une extension installée précédemment. Voulez-vous remplacer l’extension installée ?",
@@ -573,9 +580,12 @@ define({
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
 	"REGISTRY_SANITY_CHECK_WARNING": "REMARQUE : ces extensions peuvent provenir d’autres sources que l’application {APP_NAME} elle-même. Les extensions ne sont pas contrôlées et disposent de privilèges locaux complets. Soyez prudents lorsque vous installez des extensions provenant d’une source inconnue.",
 	"EXTENSIONS_INSTALLED_TITLE": "Installées",
+	"EXTENSIONS_DEFAULT_TITLE": "Par défaut",
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
+	"EXTENSIONS_LAST_UPDATED": "Dernière mise à jour",
+	"EXTENSIONS_DOWNLOADS": "Téléchargements",
 
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
 	"INLINE_EDITOR_HIDDEN_MATCHES": "Tous les résultats sont réduits. Développez les fichiers dans la liste de droite pour voir le détail.",
@@ -643,6 +653,7 @@ define({
 	"COLOR_EDITOR_RGBA_BUTTON_TIP": "Format RGBa",
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "Format Hex",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "Format HSLa",
+	"COLOR_EDITOR_0X_BUTTON_TIP": "Format hexadécimal (0x)",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} (utilisé {1} fois)",
 	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)",
 
@@ -662,7 +673,7 @@ define({
     // extensions/default/RecentProjects
 	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
 	"DOCS_MORE_LINK": "En savoir plus",
 
     // extensions/default/CodeFolding
@@ -670,6 +681,11 @@ define({
 	"EXPAND_ALL": "Développer tout",
 	"COLLAPSE_CURRENT": "Réduire l’élément actif",
 	"EXPAND_CURRENT": "Développer l’élément actif",
+
+    // extensions/default/NavigationAndHistory
+	"RECENT_FILES_DLG_HEADER": "Fichiers récents",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "Effacer",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Effacer les fichiers non présents dans l’ensemble de travail",
 
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "vrai pour fermer automatiquement les accolades, les crochets et les parenthèses",
@@ -688,10 +704,11 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "Nombre minimum de lignes pour qu’une icône de section réductible apparaisse",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "vrai pour mémoriser les sections réduites si vous fermez et rouvrez un fichier ou un projet",
 	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "vrai pour activer le pliage de code sur le texte sélectionné dans l’éditeur",
+	"DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS": "Extensions par défaut qui sont désactivées",
 	"DESCRIPTION_ATTR_HINTS": "Activer/désactiver les indicateurs d’attribut HTML",
 	"DESCRIPTION_CSS_PROP_HINTS": "Activer/désactiver les indicateurs de propriété CSS/LESS/SCSS",
 	"DESCRIPTION_JS_HINTS": "Activer/désactiver les indicateurs de code JavaScript",
-	"DESCRIPTION_JS_HINTS_TYPE_DETAILS": "Activer/désactiver les détails sur le type de données dans les indicateurs de code JavaScript",
+	"DESCRIPTION_JS_HINTS_TYPE_DETAILS": "Activer/désactiver les détails de type de données dans les indicateurs de code JavaScript",
 	"DESCRIPTION_PREF_HINTS": "Activer/désactiver les indicateurs de code Préférences",
 	"DESCRIPTION_SPECIAL_CHAR_HINTS": "Activer/désactiver les indicateurs d’entité HTML",
 	"DESCRIPTION_SVG_HINTS": "Activer/désactiver les indicateurs de code SVG",
@@ -737,6 +754,8 @@ define({
 	"DESCRIPTION_LANGUAGE": "Paramètres spécifiques à la langue",
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "Mappages supplémentaires entre extension de fichier et nom de langue",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "Mappages supplémentaires entre nom de fichier et nom de langue",
+	"DESCRIPTION_LINEWISE_COPY_CUT": "En cas d’absence de sélection, un couper-copier coupe ou copie les lignes entières comportant des curseurs.",
+	"DESCRIPTION_INPUT_STYLE": "Sélectionne la manière dont CodeMirror gère l'entrée et la mise au point. Il peut s'agir de zone de texte, qui est la sélection par défaut, ou de contenu modifiable, qui est la meilleure méthode pour les lecteurs d'écran (instable)",
 	"DESCRIPTION_LINTING_ENABLED": "vrai pour activer l’inspection de code",
 	"DESCRIPTION_ASYNC_TIMEOUT": "Durée, en millisecondes, après laquelle les utilitaires lint asynchrones échouent",
 	"DESCRIPTION_LINTING_PREFER": "Ensemble d’utilitaires lint à exécuter en premier",
@@ -778,5 +797,9 @@ define({
 	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "Permet de choisir quand afficher les boutons Fermer et Transférer la vue dans l’en-tête.",
 	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * Fichier en lecture seule contenant les préférences prises\n * en charge par {APP_NAME}.\n * Utilisez ce fichier en référence pour modifier\n * votre fichier de préférences « brackets.json » ouvert dans l’autre volet.\n * Pour savoir comment utiliser les préférences dans\n * {APP_NAME}, reportez-vous à la page https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences.\n */",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut",
-	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}"
+	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}",
+	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
+	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
+	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
+	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Paramètres de surbrillance de l'Aperçu en direct"
 });

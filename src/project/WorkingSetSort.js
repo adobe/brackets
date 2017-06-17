@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * Manages the workingSetList sort methods.
  */
@@ -382,7 +378,6 @@ define(function (require, exports, module) {
      * Initialize default values for sorting preferences
      */
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
-    PreferencesManager.convertPreferences(module, {_LEGACY_SORT_PREF: "user", "automaticSort": "user"}, true);
 
     /**
      * Define a default sort method that's empty so that we
