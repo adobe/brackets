@@ -110,7 +110,7 @@ define(function (require, exports, module) {
      * @private
      * Determine the query from the given info and store it in the state.
      * @param {SearchState} state The state to store the parsed query in
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
+     * @param {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
      *      The query info object as returned by FindBar.getQueryInfo()
      */
     function setQueryInfo(state, queryInfo) {

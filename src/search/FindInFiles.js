@@ -478,7 +478,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Executes the Find in Files search inside the current scope.
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo Query info object
+     * @param {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo Query info object
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
      * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes.
@@ -607,7 +607,7 @@ define(function (require, exports, module) {
     /**
      * Does a search in the given scope with the given filter. Used when you want to start a search
      * programmatically.
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo Query info object
+     * @param {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo Query info object
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
      * @param {?string} replaceText If this is a replacement, the text to replace matches with. This is just

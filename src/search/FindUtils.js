@@ -298,7 +298,7 @@ define(function (require, exports, module) {
 
     /**
      * Parses the given query into a regexp, and returns whether it was valid or not.
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
+     * @param {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
      * @return {{queryExpr: RegExp, valid: boolean, empty: boolean, error: string}}
      *      queryExpr - the regexp representing the query
      *      valid - set to true if query is a nonempty string or a valid regexp.
