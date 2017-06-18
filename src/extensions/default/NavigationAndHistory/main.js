@@ -586,7 +586,7 @@ define(function (require, exports, module) {
 
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath && record.paneId === paneId);
+            return (record && record.file === filePath && record.paneId === paneId);
         });
 
         var entry;
