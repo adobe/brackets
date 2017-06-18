@@ -45,6 +45,11 @@ define(function (require, exports, module) {
      */
     var _tmpLink = window.document.createElement('a');
     
+    /**
+     * Specifies the amount of extensions shown initially in a tab/search, if there are more extensions
+     * a "Load more" button is shown. This const also specifies how many more items a click of this
+     * button shows.
+     */
     var ITEMS_PER_PAGE = 40;
 
     /**
@@ -112,6 +117,11 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._$table = null;
     
+    /**
+     * @private
+     * @type {jQueryObject}
+     * "Load more" button, which is shown when the amount of extensions exceeds ITEMS_PER_PAGE.
+     */
     ExtensionManagerView.prototype._$loadMoreButton = null;
     
     ExtensionManagerView.prototype._itemsRendered = 0;
