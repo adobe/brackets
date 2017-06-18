@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         this._$infoMessage = $("<div class='info-message'/>")
             .appendTo(this.$el).html(this.model.infoMessage);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
-        this._$loadMoreButton = $("<button class='btn'>Load more</button>").appendTo(this.$el);
+        this._$loadMoreButton = $("<button class='btn load-more'>Load more</button>").appendTo(this.$el);
         $(".sort-extensions").val(PreferencesManager.get("extensions.sort"));
 
         this.model.initialize().done(function () {
