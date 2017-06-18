@@ -117,7 +117,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {Object.<string, jQueryObject>}
+     * @type {Object.<string, htmlString>}
      * The individual views for each item, keyed by the extension ID.
      */
     ExtensionManagerView.prototype._itemViews = null;
@@ -161,21 +161,21 @@ define(function (require, exports, module) {
             })
             .on("change", function (e, id) {
                 var extensions = self.model.extensions,
-                    $oldItem = self._itemViews[id];
+                    oldItem = self._itemViews[id];
                 self._updateMessage();
                 if (self.model.filterSet.indexOf(id) === -1) {
                     // This extension is not in the filter set. Remove it from the view if we
                     // were rendering it previously.
-                    if ($oldItem) {
-                        $oldItem.remove();
+                    if (oldItem) {
+                        $(oldItem).remove();
                         delete self._itemViews[id];
                     }
                 } else {
                     // Render the item, replacing the old item if we had previously rendered it.
-                    var $newItem = self._renderItem(extensions[id], self.model._getEntry(id));
-                    if ($oldItem) {
-                        $oldItem.replaceWith($newItem);
-                        self._itemViews[id] = $newItem;
+                    var newItem = self._renderItem(extensions[id], self.model._getEntry(id));
+                    if (oldItem) {
+                        (oldItem).replaceWith(newItem);
+                        self._itemViews[id] = newItem;
                     }
                 }
             });
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
      * Renders the view for a single extension entry.
      * @param {Object} entry The extension entry to render.
      * @param {Object} info The extension's metadata.
-     * @return {jQueryObject} The rendered node as a jQuery object.
+     * @return {htmlString} The rendered node as a HTML string.
      */
     ExtensionManagerView.prototype._renderItem = function (entry, info) {
         // Create a Mustache context object containing the entry data and our helper functions.
@@ -364,7 +364,7 @@ define(function (require, exports, module) {
             }
         }
 
-        return $(this._itemTemplate(context));
+        return this._itemTemplate(context);
     };
 
     /**
@@ -401,12 +401,12 @@ define(function (require, exports, module) {
         this._updateMessage();
 
         this.model.filterSet.forEach(function (id) {
-            var $item = self._itemViews[id];
-            if (!$item) {
-                $item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
-                self._itemViews[id] = $item;
+            var item = self._itemViews[id];
+            if (!item) {
+                item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
+                self._itemViews[id] = item;
             }
-            $item.appendTo(self._$table);
+            self._$table.append(item);
         });
 
         this.trigger("render");
