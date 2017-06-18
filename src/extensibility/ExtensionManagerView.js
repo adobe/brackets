@@ -124,7 +124,7 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._$loadMoreButton = null;
     
-    ExtensionManagerView.prototype._itemsRendered = 0;
+    ExtensionManagerView.prototype._itemsShown = 0;
 
     /**
      * @private
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
             });
         this._$loadMoreButton
             .on("click", function () {
-                self._render(self._itemsRendered);
+                self._render(self._itemsShown);
             });
     };
 
@@ -422,7 +422,7 @@ define(function (require, exports, module) {
         if (startIndex === 0) {
             this._$table.empty();
             this._updateMessage();
-            this._itemsRendered = 0;
+            this._itemsShown = 0;
         }
 
         this.model.filterSet.slice(startIndex, startIndex + ITEMS_PER_PAGE).forEach(function (id) {
@@ -432,10 +432,10 @@ define(function (require, exports, module) {
                 self._itemViews[id] = $item;
             }
             $item.appendTo(self._$table);
-            self._itemsRendered++;
+            self._itemsShown++;
         });
         
-        if (this._itemsRendered >= this.model.filterSet.length) {
+        if (this._itemsShown >= this.model.filterSet.length) {
             // We are already showing all items, therefore hide the "Load more" button
             this._$loadMoreButton.css("display", "none");
         } else {
