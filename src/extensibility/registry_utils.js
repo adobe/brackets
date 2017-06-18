@@ -31,6 +31,10 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var moment = require("node_modules/moment/min/moment-with-locales");
+    
+    var _locale;
 
     // From Brackets StringUtils
     function htmlEscape(str) {
@@ -52,12 +56,9 @@ define(function (require, exports, module) {
         if (this.versions && this.versions.length) {
             result = this.versions[this.versions.length - 1].published;
             if (result) {
-                result = new Date(result);
-                result = result.toLocaleDateString(brackets.getLocale(), {
-                    "year": "numeric",
-                    "month": "2-digit",
-                    "day": "2-digit"
-                });
+                result = moment(new Date(result));
+                result.locale(brackets.getLocale());
+                result = result.format("L");
             }
         }
         return result || "";
