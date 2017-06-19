@@ -135,6 +135,9 @@ define({
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé du disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
+	"DIRTY_FILE_ENCODING_CHANGE_WARN": "Cannot change encoding of a dirty file",
+	"IGNORE_RELOAD_FROM_DISK": "Ignore changes and reload from disk",
+	"SAVE_FILE_ENCODING_CHANGE_WARN": "Save the file before changing encoding",
 
     // Generic dialog/button labels
 	"DONE": "Terminé",
@@ -291,6 +294,7 @@ define({
 	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}. Cliquez pour afficher/masquer le panneau des rapports.",
 	"STATUSBAR_DEFAULT_LANG": "(par défaut)",
 	"STATUSBAR_SET_DEFAULT_LANG": "Utiliser par défaut pour les fichiers .{0}",
+	"STATUSBAR_ENCODING_TOOLTIP": "Select the encoding",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
@@ -415,6 +419,8 @@ define({
 	"CMD_CSS_QUICK_EDIT_NEW_RULE": "Nouvelle règle",
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
+	"CMD_NAVIGATE_BACKWARD": "Navigate Backward",
+	"CMD_NAVIGATE_FORWARD": "Navigate Forward",
 	"CMD_NEXT_DOC_LIST_ORDER": "Document suivant de la liste",
 	"CMD_PREV_DOC_LIST_ORDER": "Document précédent de la liste",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
