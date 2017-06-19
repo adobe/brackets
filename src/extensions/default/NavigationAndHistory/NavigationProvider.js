@@ -50,16 +50,16 @@ define(function (require, exports, module) {
     
     // The latency time to capture an explicit cursor movement as a navigation frame
     var NAV_FRAME_CAPTURE_LATENCY = 2000,
-	MAX_NAV_FRAMES_COUNT = 50;
+		MAX_NAV_FRAMES_COUNT = 50;
     
-    /*
+   /**
     * Contains list of most recently known cursor positions.
     * @private
     * @type {Array.<Object>}
     */
     var jumpToPosStack = [];
     
-    /*
+   /**
     * Contains list of most recently traversed cursor positions using NAVIGATION_JUMP_BACK command.
     * @private
     * @type {Array.<Object>}
@@ -67,18 +67,18 @@ define(function (require, exports, module) {
     var jumpedPosStack = [],
         activePosNotSynced = false,
         captureTimer,
-	currentEditPos,
+		currentEditPos,
         jumpInProgress,
         commandJumpBack,
         commandJumpFwd;
 		
-	/**
+   /**
     * Function to check if there are any navigatable frame backward.
     * @private
     */
     function _hasNavBackFrames() {
-	return (jumpedPosStack.length > 0 && jumpToPosStack.length > 0)
-		|| (!jumpedPosStack.length && jumpToPosStack.length > 1);
+		return (jumpedPosStack.length > 0 && jumpToPosStack.length > 0)
+			|| (!jumpedPosStack.length && jumpToPosStack.length > 1);
     }
      
    /**
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
         commandJumpFwd.setEnabled(jumpedPosStack.length > 0);
     }
     
-    /**
+   /**
     * Function to check existence of a file entry
     * @private
     */
@@ -113,8 +113,8 @@ define(function (require, exports, module) {
                 } else {
                     deferred.reject();
                 }
-	    });
-	}
+	    	});
+		}
 
         return deferred.promise();
     }
@@ -140,19 +140,19 @@ define(function (require, exports, module) {
     NavigationFrame.prototype._bindEditor = function (editor) {
         var self = this;
         editor.on("beforeDestroy", function () {
-		var updateCurrentPos;
+			var updateCurrentPos;
 
-		// Check if this frame is actually the current frame
-		// if true then we will update the current frame with serialized positions from CM
-		if (self === currentEditPos) {
-			updateCurrentPos = true;
-		}
-		self._backupSelectionRanges();
-		self.cm = null;
-		self.bookMarkIds = null;
-		if (updateCurrentPos) {
-			currentEditPos = self;
-		}
+			// Check if this frame is actually the current frame
+			// if true then we will update the current frame with serialized positions from CM
+			if (self === currentEditPos) {
+				updateCurrentPos = true;
+			}
+			self._backupSelectionRanges();
+			self.cm = null;
+			self.bookMarkIds = null;
+			if (updateCurrentPos) {
+				currentEditPos = self;
+			}
         });
     };
     
@@ -166,8 +166,8 @@ define(function (require, exports, module) {
     */
     NavigationFrame.prototype._createMarkers = function (ranges) {
         var range,
-	    index,
-	    bookMark;
+	    	index,
+	    	bookMark;
 
         this.bookMarkIds = [];
         for (index in ranges) {
@@ -192,22 +192,22 @@ define(function (require, exports, module) {
             return;
         }
 		
-	var marker,
-	    selection,
-	    index;
+		var marker,
+			selection,
+			index;
         
-	// Reset selections first.
-        this.selections = [];
-        var self = this;
-		
-	// Collate only the markers we used to mark selections/cursors
-        var markers = this.cm.getAllMarks().filter(function (entry) {
-            if (entry.className === self.uId || self.bookMarkIds.indexOf(entry.id) !== -1) {
-                return entry;
-            }
-        });
-		
-	// Iterate over CM textmarkers and collate the updated(if?) positions
+		// Reset selections first.
+		this.selections = [];
+		var self = this;
+
+		// Collate only the markers we used to mark selections/cursors
+		var markers = this.cm.getAllMarks().filter(function (entry) {
+			if (entry.className === self.uId || self.bookMarkIds.indexOf(entry.id) !== -1) {
+				return entry;
+			}
+		});
+
+		// Iterate over CM textmarkers and collate the updated(if?) positions
         for (index in markers) {
             marker = markers[index];
             selection = marker.find();
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
         }
     };
 	
-    /**
+   /**
     * Function to clean up the markers in cm
     */
     NavigationFrame.prototype._clearMarkers = function () {
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
         }
         var self = this;
 		
-	// clear only the markers we used to mark selections/cursors
+		// clear only the markers we used to mark selections/cursors
         this.cm.getAllMarks().filter(function (entry) {
             if (entry.className === self.uId || self.bookMarkIds.indexOf(entry.id) !== -1) {
                 entry.clear();
@@ -276,17 +276,17 @@ define(function (require, exports, module) {
         // Ensure cursor activity has not happened because of arrow keys or edit
         if (selectionObj.origin !== "+move" && (!window.event || (window.event && window.event.type !== "input"))) {
             captureTimer = window.setTimeout(function () {
-		// Check if we have reached MAX_NAV_FRAMES_COUNT
-		// If yes, control overflow
-		if (jumpToPosStack.length === MAX_NAV_FRAMES_COUNT) {
-			var navFrame = jumpToPosStack.splice(0, 1);
-			navFrame._clearMarkers();
-		}
+				// Check if we have reached MAX_NAV_FRAMES_COUNT
+				// If yes, control overflow
+				if (jumpToPosStack.length === MAX_NAV_FRAMES_COUNT) {
+					var navFrame = jumpToPosStack.splice(0, 1);
+					navFrame._clearMarkers();
+				}
 
-		currentEditPos = new NavigationFrame(event.target, selectionObj);
-		jumpToPosStack.push(currentEditPos);
-                _validateNavigationCmds();
-                activePosNotSynced = false;
+				currentEditPos = new NavigationFrame(event.target, selectionObj);
+				jumpToPosStack.push(currentEditPos);
+				_validateNavigationCmds();
+				activePosNotSynced = false;
             }, NAV_FRAME_CAPTURE_LATENCY);
         } else {
             activePosNotSynced = true;
@@ -299,20 +299,20 @@ define(function (require, exports, module) {
     function _navigateBack() {
         if (!jumpedPosStack.length) {
             if (activePosNotSynced) {
-		currentEditPos = new NavigationFrame(EditorManager.getCurrentFullEditor(), {ranges: EditorManager.getCurrentFullEditor()._codeMirror.listSelections()});
+				currentEditPos = new NavigationFrame(EditorManager.getCurrentFullEditor(), {ranges: EditorManager.getCurrentFullEditor()._codeMirror.listSelections()});
                 jumpedPosStack.push(currentEditPos);
             }
         }
 		
         var navFrame = jumpToPosStack.pop();
 		
-	// Check if the poped frame is the current active frame
-	// if true, jump again
-	if (navFrame === currentEditPos) {
-		jumpedPosStack.push(navFrame);
-		CommandManager.execute(NAVIGATION_JUMP_BACK);
-		return;
-	}
+		// Check if the poped frame is the current active frame
+		// if true, jump again
+		if (navFrame === currentEditPos) {
+			jumpedPosStack.push(navFrame);
+			CommandManager.execute(NAVIGATION_JUMP_BACK);
+			return;
+		}
 		
         if (navFrame) {
             // We will check for the file existence now, if it doesn't exist we will jump back again
@@ -320,12 +320,12 @@ define(function (require, exports, module) {
             _checkIfExist(navFrame).done(function () {
                 jumpedPosStack.push(navFrame);
                 navFrame.goTo();
-		currentEditPos = navFrame;
+				currentEditPos = navFrame;
             }).fail(function () {
                 CommandManager.execute(NAVIGATION_JUMP_BACK);
             }).always(function () {
-		_validateNavigationCmds();
-	    });
+				_validateNavigationCmds();
+	    	});
         }
     }
     
@@ -335,13 +335,13 @@ define(function (require, exports, module) {
     function _navigateFwd() {
         var navFrame = jumpedPosStack.pop();
 		
-	// Check if the poped frame is the current active frame
-	// if true, jump again
-	if (navFrame === currentEditPos) {
-		jumpToPosStack.push(navFrame);
-		CommandManager.execute(NAVIGATION_JUMP_FWD);
-		return;
-	}
+		// Check if the poped frame is the current active frame
+		// if true, jump again
+		if (navFrame === currentEditPos) {
+			jumpToPosStack.push(navFrame);
+			CommandManager.execute(NAVIGATION_JUMP_FWD);
+			return;
+		}
 		
         if (navFrame) {
             // We will check for the file existence now, if it doesn't exist we will jump back again
@@ -349,17 +349,17 @@ define(function (require, exports, module) {
             _checkIfExist(navFrame).done(function () {
                 jumpToPosStack.push(navFrame);
                 navFrame.goTo();
-		currentEditPos = navFrame;
+				currentEditPos = navFrame;
             }).fail(function () {
                 _validateNavigationCmds();
                 CommandManager.execute(NAVIGATION_JUMP_FWD);
             }).always(function () {
-		_validateNavigationCmds();
-	    });
+				_validateNavigationCmds();
+			});
         }
     }
     
-    /**
+   /**
     * Function to initialize navigation menu items.
     * @private
     */
