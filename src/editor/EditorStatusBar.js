@@ -476,7 +476,7 @@ define(function (require, exports, module) {
         encodingSelect.dropdownExtraClasses = "dropdown-status-bar";
         encodingSelect.$button.addClass("btn-status-bar");
         $("#status-encoding").append(encodingSelect.$button);
-        encodingSelect.$button.attr("title", "Select encoding");
+        encodingSelect.$button.attr("title", Strings.STATUSBAR_ENCODING_TOOLTIP);
 
 
         // indentation event handlers
@@ -536,7 +536,7 @@ define(function (require, exports, module) {
             if (!(document.file instanceof InMemoryFile) && document.isDirty) {
                 var dialogId = DefaultDialogs.DIALOG_ID_EXT_CHANGED,
                     message = StringUtils.format(
-                        "Cannot change encoding of a dirty file",
+                        Strings.DIRTY_FILE_ENCODING_CHANGE_WARN,
                         StringUtils.breakableUrl(
                             ProjectManager.makeProjectRelativeIfPossible(document.file.fullPath)
                         )
@@ -545,16 +545,16 @@ define(function (require, exports, module) {
                         {
                             className: Dialogs.DIALOG_BTN_CLASS_LEFT,
                             id:        Dialogs.DIALOG_BTN_DONTSAVE,
-                            text:      "Ignore Changes and Reload from Disk"
+                            text:      Strings.IGNORE_RELOAD_FROM_DISK
                         },
                         {
                             className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
                             id:        Dialogs.DIALOG_BTN_CANCEL,
-                            text:      "Cancel"
+                            text:      Strings.CANCEL
                         }
                     ];
                 
-                Dialogs.showModalDialog(dialogId, "Save the file before changing encoding", message, buttons)
+                Dialogs.showModalDialog(dialogId, Strings.SAVE_FILE_ENCODING_CHANGE_WARN, message, buttons)
                     .done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                             _changeEncodingAndReloadDoc(document);
