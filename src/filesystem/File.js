@@ -103,7 +103,7 @@ define(function (require, exports, module) {
         // for a default value; otherwise it could be the empty string, which is
         // falsey.
         if (this._contents !== null && this._stat) {
-            callback(null, this._contents, this._stat);
+            callback(null, this._contents, this._encoding, this._stat);
             return;
         }
 
@@ -129,7 +129,7 @@ define(function (require, exports, module) {
                 this._contents = data;
             }
 
-            callback(err, data, stat);
+            callback(err, data, encoding, stat);
         }.bind(this));
     };
 

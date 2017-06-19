@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         if (!_model.exists(path)) {
             cb(FileSystemError.NOT_FOUND);
         } else {
-            cb(null, _model.readFile(path), _model.stat(path));
+            cb(null, _model.readFile(path), "UTF-8", _model.stat(path));
         }
     }
 
