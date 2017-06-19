@@ -113,7 +113,7 @@ define(function (require, exports, module) {
                 } else {
                     deferred.reject();
                 }
-	    	});
+			});
 		}
 
         return deferred.promise();
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
     
    /**
     * Function to create CM TextMarkers for the navigated positions/selections.
-    * This logic is required to ensure that the captured navaigation positions 
+    * This logic is required to ensure that the captured navigation positions 
     * stay valid and contextual even when the actual document text mutates.
     * The mutations which are handled here :
     * -> Addition/Deletion of lines before the captured position
@@ -166,8 +166,8 @@ define(function (require, exports, module) {
     */
     NavigationFrame.prototype._createMarkers = function (ranges) {
         var range,
-	    	index,
-	    	bookMark;
+			index,
+			bookMark;
 
         this.bookMarkIds = [];
         for (index in ranges) {
@@ -325,14 +325,14 @@ define(function (require, exports, module) {
                 CommandManager.execute(NAVIGATION_JUMP_BACK);
             }).always(function () {
 				_validateNavigationCmds();
-	    	});
+			});
         }
     }
     
    /**
     * Command handler to navigate forward
     */
-    function _navigateFwd() {
+    function _navigateForward() {
         var navFrame = jumpedPosStack.pop();
 		
 		// Check if the poped frame is the current active frame
@@ -375,7 +375,7 @@ define(function (require, exports, module) {
     */
     function _initNavigationCommands() {
         CommandManager.register(Strings.CMD_NAVIGATE_BACKWARD, NAVIGATION_JUMP_BACK, _navigateBack);
-        CommandManager.register(Strings.CMD_NAVIGATE_FORWARD, NAVIGATION_JUMP_FWD, _navigateFwd);
+        CommandManager.register(Strings.CMD_NAVIGATE_FORWARD, NAVIGATION_JUMP_FWD, _navigateForward);
         commandJumpBack = CommandManager.get(NAVIGATION_JUMP_BACK);
         commandJumpFwd = CommandManager.get(NAVIGATION_JUMP_FWD);
         commandJumpBack.setEnabled(false);
