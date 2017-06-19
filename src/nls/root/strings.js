@@ -135,6 +135,9 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    "DIRTY_FILE_ENCODING_CHANGE_WARN"   : "Cannot change encoding of a dirty file",
+    "IGNORE_RELOAD_FROM_DISK"           : "Ignore changes and reload from disk",
+    "SAVE_FILE_ENCODING_CHANGE_WARN"    : "Save the file before changing encoding",
 
     // Generic dialog/button labels
     "DONE"                              : "Done",
@@ -291,6 +294,7 @@ define({
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
+    "STATUSBAR_ENCODING_TOOLTIP"            : "Select the encoding",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -415,6 +419,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "New Rule",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_NAVIGATE_BACKWARD"               : "Navigate Backward",
+    "CMD_NAVIGATE_FORWARD"                : "Navigate Forward",
     "CMD_NEXT_DOC_LIST_ORDER"             : "Next Document in List",
     "CMD_PREV_DOC_LIST_ORDER"             : "Previous Document in List",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
