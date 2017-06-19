@@ -21,6 +21,7 @@
  *
  */
 
+/*global define, $, brackets,navigator, console, appshell */
 define(function (require, exports, module) {
     "use strict";
 
@@ -30,20 +31,18 @@ define(function (require, exports, module) {
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
         Strings             = brackets.getModule("strings"),
         HealthDataUtils     = require("HealthDataUtils"),
-        uuid                = require("thirdparty/uuid");
-
-    var prefs      = PreferencesManager.getExtensionPrefs("healthData");
+        uuid                = require("thirdparty/uuid"),
+        prefs               = PreferencesManager.getExtensionPrefs("healthData"),
+        params              = new UrlParams(),
+        ONE_MINUTE          = 60 * 1000,
+        ONE_DAY             = 24 * 60 * ONE_MINUTE,
+        FIRST_LAUNCH_SEND_DELAY = 30 * ONE_MINUTE,
+        timeoutVar;
 
     prefs.definePreference("healthDataTracking", "boolean", true, {
         description: Strings.DESCRIPTION_HEALTH_DATA_TRACKING
     });
 
-    var ONE_MINUTE = 60 * 1000,
-        ONE_DAY = 24 * 60 * ONE_MINUTE,
-        FIRST_LAUNCH_SEND_DELAY = 30 * ONE_MINUTE,
-        timeoutVar;
-
-    var params = new UrlParams();
     params.parse();
 
     /**
@@ -53,14 +52,6 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             oneTimeHealthData = {};
 
-        var userUuid = PreferencesManager.getViewState("UUID");
-
-        if (!userUuid) {
-            userUuid = uuid.v4();
-            PreferencesManager.setViewState("UUID", userUuid);
-        }
-
-        oneTimeHealthData.uuid = userUuid;
         oneTimeHealthData.snapshotTime = Date.now();
         oneTimeHealthData.os = brackets.platform;
         oneTimeHealthData.userAgent = window.navigator.userAgent;
@@ -79,7 +70,31 @@ define(function (require, exports, module) {
                         oneTimeHealthData.bracketsTheme = bracketsTheme;
                     })
                     .always(function () {
-                        return result.resolve(oneTimeHealthData);
+                        var userUuid = PreferencesManager.getViewState("UUID");
+
+                        if (!userUuid) {
+
+                            // For first launch, we are now going to
+                            // rely on the macine Hash.
+                            appshell.app.getMachineHash(function (err, macHash) {
+                                // In case of error, use the older algorithm
+                                if (err) {
+                                    userUuid = uuid.v4();
+                                } else {
+                                    userUuid = macHash;
+                                }
+
+                                PreferencesManager.setViewState("UUID", userUuid);
+
+                                oneTimeHealthData.uuid = userUuid;
+                                return result.resolve(oneTimeHealthData);
+                            });
+
+                        } else {
+                            oneTimeHealthData.uuid = userUuid;
+                            return result.resolve(oneTimeHealthData);
+                        }
+
                     });
 
             });
@@ -127,13 +142,16 @@ define(function (require, exports, module) {
      * for opt-out/in is closed.
      */
     function checkHealthDataSend() {
-        var result = new $.Deferred(),
-            isHDTracking = prefs.get("healthDataTracking");
+        var result         = new $.Deferred(),
+            isHDTracking   = prefs.get("healthDataTracking"),
+            nextTimeToSend,
+            currentTime;
+
         HealthLogger.setHealthLogsEnabled(isHDTracking);
         window.clearTimeout(timeoutVar);
         if (isHDTracking) {
-            var nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime"),
-                currentTime = Date.now();
+            nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime");
+            currentTime    = Date.now();
 
             // Never send data before FIRST_LAUNCH_SEND_DELAY has ellapsed on a fresh install. This gives the user time to read the notification
             // popup, learn more, and opt out if desired

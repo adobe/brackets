@@ -444,6 +444,7 @@ define(function (require, exports, module) {
         this.searchField = new QuickSearchField(searchFieldInput, {
             verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
             maxResults: 20,
+            firstHighlightIndex: null,
             resultProvider: function (query) {
                 var asyncResult = new $.Deferred();
                 asyncResult.resolve(PreferencesManager.getViewState("searchHistory"));
