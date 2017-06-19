@@ -49,7 +49,8 @@ define(function (require, exports, module) {
         NAVIGATION_JUMP_FWD       = "navigation.jump.fwd";
     
     // The latency time to capture an explicit cursor movement as a navigation frame
-    var NAV_FRAME_CAPTURE_LATENCY = 2000;
+    var NAV_FRAME_CAPTURE_LATENCY = 2000,
+		MAX_NAV_FRAMES_COUNT = 50;
     
     /*
     * Contains list of most recently known cursor positions.
@@ -66,16 +67,26 @@ define(function (require, exports, module) {
     var jumpedPosStack = [],
         activePosNotSynced = false,
         captureTimer,
+		currentEditPos,
         jumpInProgress,
         commandJumpBack,
         commandJumpFwd;
+		
+	/**
+    * Function to check if there are any navigatable frame backward.
+    * @private
+    */
+	function _hasNavBackFrames() {
+		return (jumpedPosStack.length > 0 && jumpToPosStack.length > 0)
+				|| (!jumpedPosStack.length && jumpToPosStack.length > 1);
+	}
      
    /**
     * Function to enable/disable navigation command based on cursor positions availability.
     * @private
     */
     function _validateNavigationCmds() {
-        commandJumpBack.setEnabled(jumpToPosStack.length > 0);
+        commandJumpBack.setEnabled(_hasNavBackFrames());
         commandJumpFwd.setEnabled(jumpedPosStack.length > 0);
     }
     
@@ -129,9 +140,20 @@ define(function (require, exports, module) {
     NavigationFrame.prototype._bindEditor = function (editor) {
         var self = this;
         editor.on("beforeDestroy", function () {
+			var updateCurrentPos;
+			
+			// Check if this frame is actually the current frame
+			// if true then we will update the current frame with serialized positions from CM
+			if (self === currentEditPos) {
+				updateCurrentPos = true;
+			}
             self._backupSelectionRanges();
             self.cm = null;
             self.bookMarkIds = null;
+			
+			if (updateCurrentPos) {
+				currentEditPos = self;
+			}
         });
     };
     
@@ -197,6 +219,23 @@ define(function (require, exports, module) {
             }
         }
     };
+	
+	/**
+    * Function to clean up the markers in cm
+    */
+    NavigationFrame.prototype._clearMarkers = function () {
+        if (!this.cm) {
+            return;
+        }
+        var self = this;
+		
+		// clear only the markers we used to mark selections/cursors
+        this.cm.getAllMarks().filter(function (entry) {
+            if (entry.className === self.uId || self.bookMarkIds.indexOf(entry.id) !== -1) {
+                entry.clear();
+            }
+        });
+    };
 
    /**
     * Function to actually navigate to the position(file,selections) captured in this frame
@@ -234,10 +273,19 @@ define(function (require, exports, module) {
             window.clearTimeout(captureTimer);
             captureTimer = null;
         }
+		
         // Ensure cursor activity has not happened because of arrow keys or edit
-        if (selectionObj.origin !== "+move" && (window.event && window.event.type !== "input")) {
+        if (selectionObj.origin !== "+move" && (!window.event || (window.event && window.event.type !== "input"))) {
             captureTimer = window.setTimeout(function () {
-                jumpToPosStack.push(new NavigationFrame(event.target, selectionObj));
+				// Check if we have reached MAX_NAV_FRAMES_COUNT
+				// If yes, control overflow
+				if (jumpToPosStack.length === MAX_NAV_FRAMES_COUNT) {
+					var navFrame = jumpToPosStack.splice(0, 1);
+					navFrame._clearMarkers();
+				}
+				
+				currentEditPos = new NavigationFrame(event.target, selectionObj);
+				jumpToPosStack.push(currentEditPos);
                 _validateNavigationCmds();
                 activePosNotSynced = false;
             }, NAV_FRAME_CAPTURE_LATENCY);
@@ -252,20 +300,33 @@ define(function (require, exports, module) {
     function _navigateBack() {
         if (!jumpedPosStack.length) {
             if (activePosNotSynced) {
-                jumpToPosStack.push(new NavigationFrame(EditorManager.getCurrentFullEditor(), {ranges: EditorManager.getCurrentFullEditor()._codeMirror.listSelections()}));
+				currentEditPos = new NavigationFrame(EditorManager.getCurrentFullEditor(), {ranges: EditorManager.getCurrentFullEditor()._codeMirror.listSelections()});
+                jumpedPosStack.push(currentEditPos);
             }
         }
+		
         var navFrame = jumpToPosStack.pop();
+		
+		// Check if the poped frame is the current active frame
+		// if true, jump again
+		if (navFrame === currentEditPos) {
+			jumpedPosStack.push(navFrame);
+			CommandManager.execute(NAVIGATION_JUMP_BACK);
+			return;
+		}
+		
         if (navFrame) {
             // We will check for the file existence now, if it doesn't exist we will jump back again
             // but discard the popped frame as invalid.
             _checkIfExist(navFrame).done(function () {
                 jumpedPosStack.push(navFrame);
                 navFrame.goTo();
+				currentEditPos = navFrame;
             }).fail(function () {
-                _validateNavigationCmds();
                 CommandManager.execute(NAVIGATION_JUMP_BACK);
-            });
+            }).always(function () {
+				_validateNavigationCmds();
+			});
         }
     }
     
@@ -274,16 +335,28 @@ define(function (require, exports, module) {
     */
     function _navigateFwd() {
         var navFrame = jumpedPosStack.pop();
+		
+		// Check if the poped frame is the current active frame
+		// if true, jump again
+		if (navFrame === currentEditPos) {
+			jumpToPosStack.push(navFrame);
+			CommandManager.execute(NAVIGATION_JUMP_FWD);
+			return;
+		}
+		
         if (navFrame) {
             // We will check for the file existence now, if it doesn't exist we will jump back again
             // but discard the popped frame as invalid.
             _checkIfExist(navFrame).done(function () {
                 jumpToPosStack.push(navFrame);
                 navFrame.goTo();
+				currentEditPos = navFrame;
             }).fail(function () {
                 _validateNavigationCmds();
                 CommandManager.execute(NAVIGATION_JUMP_FWD);
-            });
+            }).always(function () {
+				_validateNavigationCmds();
+			});
         }
     }
     
