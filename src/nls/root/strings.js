@@ -294,7 +294,7 @@ define({
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
-    "STATUSBAR_ENCODING_TOOLTIP"            : "Select encoding to reopen/save the file with",
+    "STATUSBAR_ENCODING_TOOLTIP"            : "Select the encoding to reopen/save the file with",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
