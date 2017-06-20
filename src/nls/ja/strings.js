@@ -135,9 +135,9 @@ define({
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか？",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
-	"DIRTY_FILE_ENCODING_CHANGE_WARN": "Cannot change encoding of a dirty file",
-	"IGNORE_RELOAD_FROM_DISK": "Ignore changes and reload from disk",
-	"SAVE_FILE_ENCODING_CHANGE_WARN": "Save the file before changing encoding",
+	"DIRTY_FILE_ENCODING_CHANGE_WARN": "ダーティファイルのエンコードを変更できません",
+	"IGNORE_RELOAD_FROM_DISK": "変更を無視してディスクから再読み込み",
+	"SAVE_FILE_ENCODING_CHANGE_WARN": "エンコードする前にファイルを保存",
 
     // Generic dialog/button labels
 	"DONE": "完了",
@@ -294,7 +294,7 @@ define({
 	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}。クリックしてレポートパネルを切り替えます。",
 	"STATUSBAR_DEFAULT_LANG": "(指定なし)",
 	"STATUSBAR_SET_DEFAULT_LANG": ".{0} ファイルのデフォルトとして設定",
-	"STATUSBAR_ENCODING_TOOLTIP": "Select the encoding",
+	"STATUSBAR_ENCODING_TOOLTIP": "エンコードを選択",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
@@ -419,8 +419,8 @@ define({
 	"CMD_CSS_QUICK_EDIT_NEW_RULE": "新規ルール",
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
-	"CMD_NAVIGATE_BACKWARD": "Navigate Backward",
-	"CMD_NAVIGATE_FORWARD": "Navigate Forward",
+	"CMD_NAVIGATE_BACKWARD": "前に戻る",
+	"CMD_NAVIGATE_FORWARD": "次に進む",
 	"CMD_NEXT_DOC_LIST_ORDER": "リストの次の文書",
 	"CMD_PREV_DOC_LIST_ORDER": "リストの前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
@@ -586,7 +586,7 @@ define({
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
 	"REGISTRY_SANITY_CHECK_WARNING": "注意 : これらの拡張機能の作成元が {APP_NAME} 以外である可能性があります。拡張機能はレビューされず、ローカルアクセス権が一杯です。不明なソースから拡張機能をインストールするときは十分に注意してください。",
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
-	"EXTENSIONS_DEFAULT_TITLE": "デフォルト",
+	"EXTENSIONS_DEFAULT_TITLE": "初期設定",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_THEMES_TITLE": "テーマ",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
