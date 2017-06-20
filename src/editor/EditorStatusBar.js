@@ -82,8 +82,6 @@ define(function (require, exports, module) {
         var doc = editor.document,
             lang = doc.getLanguage();
 
-        // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
-        languageSelect.$button.css("width", "auto");
         // Show the current language as button title
         languageSelect.$button.text(lang.getName());
     }
@@ -95,8 +93,6 @@ define(function (require, exports, module) {
     function _updateEncodingInfo(editor) {
         var doc = editor.document;
 
-        // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
-        encodingSelect.$button.css("width", "auto");
         // Show the current encoding as button title
         if (!doc.file._encoding) {
             doc.file._encoding = "UTF-8";
@@ -361,63 +357,32 @@ define(function (require, exports, module) {
      * Populate the encodingSelect DropdownButton's menu with all registered encodings
      */
     function _populateEncodingDropdown() {
-        // Get all non-binary languages
-        var encodings = [
-            "UTF-8",
-            "UTF-16LE",
-            "ISO-2022-CN",
-            "ISO-2022-KR",
-            "GB18030",
-            "BIG5",
-            "EUC-JP",
-            "EUC-KR",
-            "ISO-8859-1",
-            "ISO-8859-2",
-            "ISO-8859-5",
-            "ISO-8859-6",
-            "ISO-8859-7",
-            "ISO-8859-8",
-            "ISO-8859-9",
-            "ISO-8859-11",
-            "ISO-8859-13",
-            "WINDOWS-1250",
-            "WINDOWS-1251",
-            "WINDOWS-1252",
-            "WINDOWS-1253",
-            "WINDOWS-1254",
-            "WINDOWS-1255",
-            "WINDOWS-1256",
-            "KOI8-R",
-            "IBM420",
-            "ISO-8859-8-I",
-            "SHIFT_JIS",
-            "ISO-8859-3",
-            "ISO-8859-4",
-            "UTF-16BE",
-            "WINDOWS-1257",
-            "WINDOWS-1258",
-            "GB2312",
-            "HZ-GB-2312",
-            "WINDOWS-874",
-            "CP866",
-            "DOS-862",
-            "DOS-720",
-            "KOI8-RU",
-            "ASMO-708",
-            "euc-jp",
-            "CP437",
-            "CP852",
-            "GBK",
-            "ISO-2022-JP"
-        ];
-        
+        var file   = FileSystem.getFileForPath("C:/Users/kathpali/Documents/brackets/src/supported-encodings.json"),
+            result = new $.Deferred();
 
-        // sort dropdown alphabetically
-        encodings.sort(function (a, b) {
-            return a.toLowerCase().localeCompare(b.toLowerCase());
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                FileUtils.readAsText(file)
+                    .done(function (text) {
+                        try {
+                            if (text) {
+                                var encodings = JSON.parse(text);
+                                encodingSelect.items = encodings;
+                            }
+                        } catch (err) {
+                            // Cannot parse the text read from the key map file.
+                            console.error("Could not parse JSON");
+                        }
+                    })
+                    .fail(function (err) {
+                        // file cannot be loaded.
+                        console.error("File could not be loaded");
+                    });
+            } else {
+                // Just resolve if no user key map file
+                console.error("JSON file missing");
+            }
         });
-
-        encodingSelect.items = encodings;
     }
 
     /**

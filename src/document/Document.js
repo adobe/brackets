@@ -763,15 +763,18 @@ define(function (require, exports, module) {
      *  @return {promise} - to check if reload was successful or not
      */
     Document.prototype.reload = function () {
-        var promise = FileUtils.readAsText(this.file);
+        var $deferred = $.Deferred();
         var self = this;
-        promise.done(function (text, readTimestamp) {
-            self.refreshText(text, readTimestamp);
-        });
-        promise.fail(function (error) {
-            console.log("Error reloading contents of " + self.file.fullPath, error);
-        });
-        return promise;
+        FileUtils.readAsText(this.file)
+            .done(function (text, readTimestamp) {
+                self.refreshText(text, readTimestamp);
+                $deferred.resolve();
+            })
+            .fail(function (error) {
+                console.log("Error reloading contents of " + self.file.fullPath, error);
+                $deferred.reject();
+            });
+        return $deferred.promise();
     };
 
     // We dispatch events from the module level, and the instance level. Instance events are wired up

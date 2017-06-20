@@ -326,13 +326,13 @@ define(function (require, exports, module) {
                 file._encoding = options.encoding;
             } else {
                 var projectRoot = ProjectManager.getProjectRoot(),
-                context = {
-                    location : {
-                        scope: "user",
-                        layer: "project",
-                        layerID: projectRoot.fullPath
-                    }
-                };
+                    context = {
+                        location : {
+                            scope: "user",
+                            layer: "project",
+                            layerID: projectRoot.fullPath
+                        }
+                    };
                 var encoding = PreferencesManager.getViewState("encoding", context);
                 if (encoding[fullPath]) {
                     file._encoding = encoding[fullPath];
@@ -919,7 +919,19 @@ define(function (require, exports, module) {
 
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
-            newFile._encoding = doc.file._encoding;
+            if (doc.file._encoding && doc.file._encoding !== "UTF-8") {
+                var projectRoot = ProjectManager.getProjectRoot(),
+                    context = {
+                        location : {
+                            scope: "user",
+                            layer: "project",
+                            layerID: projectRoot.fullPath
+                        }
+                    };
+                var encoding = PreferencesManager.getViewState("encoding", context);
+                encoding[path] = doc.file._encoding;
+                PreferencesManager.setViewState("encoding", encoding, context);
+            }
 
             // Save as warns you when you're about to overwrite a file, so we
             // explicitly allow "blind" writes to the filesystem in this case,
