@@ -751,7 +751,7 @@ define({
     "DESCRIPTION_PROXY"                              : "扩展安装所用的代理服务器 URL",
     "DESCRIPTION_SCROLL_PAST_END"                    : "值为真时，允许滚动超出文档末尾",
     "DESCRIPTION_SHOW_CODE_HINTS"                    : "值为假时，关闭所有代码提示",
-    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "有蚊子选区时保持光标闪烁",
+    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "有文字选区时保持光标闪烁",
     "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "值为真时，在代码左侧显示行号",
     "DESCRIPTION_SMART_INDENT"                       : "生成新区域时自动缩进",
     "DESCRIPTION_SOFT_TABS"                          : "值为假时，关闭软 tab 功能",
@@ -787,4 +787,4 @@ define({
     "DESCRIPTION_RECENT_FILES_NAV"                   : "开启/关闭最近文件导航"
 });
 
-/* Last translated for 0e7d6bc04c6f9d3035fec72bed72e393635b234c */
+/* Last translated for ae015b5be491e1d97d86b1f7f4fd352157063110 */
