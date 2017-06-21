@@ -579,6 +579,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Non ci sono regole CSS esistenti che corrispondano alla tua selezione.<br />Clicca \"Nuova Regola\" per crearne una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Non ci sono fogli di stile nel tuo progetto.<br />Creane uno per aggiungere regole CSS.",
 
+    // Container panel strings
+    "CONTAINER_PANEL_TITLE"                : "Workspace",
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "il più grande",
 

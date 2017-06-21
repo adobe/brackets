@@ -50,7 +50,6 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         AppInit                 = require("utils/AppInit"),
-        Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar"),
         Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
@@ -73,7 +72,6 @@ define(function (require, exports, module) {
      * Constants for the preferences defined in this file.
      */
     var PREF_ENABLED            = "enabled",
-        PREF_COLLAPSED          = "collapsed",
         PREF_ASYNC_TIMEOUT      = "asyncTimeout",
         PREF_PREFER_PROVIDERS   = "prefer",
         PREF_PREFERRED_ONLY     = "usePreferredOnly";
@@ -89,11 +87,10 @@ define(function (require, exports, module) {
     var _enabled = false;
 
     /**
-     * When collapsed, the errors panel is closed but the status bar icon is kept up to date.
      * @private
-     * @type {boolean}
+     * @type {PanelItem}
      */
-    var _collapsed = false;
+    var _panelItem;
 
     /**
      * @private
@@ -311,9 +308,13 @@ define(function (require, exports, module) {
      * @param {Number} numProblems - total number of problems across all providers
      * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
+     * @param {Array} providerList - the providers list
+     * @param {Document} currentDoc - the current document
      */
-    function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
-        var message, tooltip;
+    function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted, providerList, currentDoc) {
+        var message,
+            tooltip,
+            inspection = "inspection-errors";
 
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
@@ -329,6 +330,7 @@ define(function (require, exports, module) {
 
                 message = StringUtils.format(Strings.MULTIPLE_ERRORS, providersReportingProblems[0].name, numProblems);
             }
+            tooltip = StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, message);
         } else if (providersReportingProblems.length > 1) {
             $problemsPanelTable.find(".inspector-section").show();
 
@@ -337,13 +339,29 @@ define(function (require, exports, module) {
             }
 
             message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, numProblems);
+            tooltip = StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, message);
+        } else if (providerList && providerList.length) {
+            // No errors.
+            message = Strings.NO_ERRORS_MULTIPLE_PROVIDER;
+            if (providerList.length === 1) {
+                message = StringUtils.format(Strings.NO_ERRORS, providerList[0].name);
+            }
+            tooltip = message;
+            inspection = "inspection-valid";
         } else {
-            return;
+            // No linter.
+            var language = currentDoc && LanguageManager.getLanguageForPath(currentDoc.file.fullPath);
+            if (language) {
+                message = StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName());
+            } else {
+                message = Strings.NOTHING_TO_LINT;
+            }
+            tooltip = message;
+            inspection = "inspection-disabled";
         }
 
         $problemsPanel.find(".title").text(message);
-        tooltip = StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, message);
-        StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", tooltip);
+        StatusBar.updateIndicator(INDICATOR_ID, true, inspection, tooltip);
     }
 
     /**
@@ -357,21 +375,23 @@ define(function (require, exports, module) {
         if (!_enabled) {
             _hasErrors = false;
             _currentPromise = null;
-            Resizer.hide($problemsPanel);
+            _panelItem.hide();
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
             return;
         }
 
+        _panelItem.open();
+
         var currentDoc = DocumentManager.getCurrentDocument(),
             providerList = currentDoc && getProvidersForPath(currentDoc.file.fullPath);
 
+        var numProblems = 0;
+        var aborted = false;
+        var providersReportingProblems = [];
         if (providerList && providerList.length) {
-            var numProblems = 0;
-            var aborted = false;
             var allErrors = [];
             var html;
-            var providersReportingProblems = [];
 
             // run all the providers registered for this file type
             (_currentPromise = inspectFile(currentDoc.file, providerList)).then(function (results) {
@@ -386,15 +406,15 @@ define(function (require, exports, module) {
                 _hasErrors = Boolean(errors);
 
                 if (!errors) {
-                    Resizer.hide($problemsPanel);
+                    // Update results table
+                    html = Mustache.render(ResultsTemplate, {reportList: allErrors});
 
-                    var message = Strings.NO_ERRORS_MULTIPLE_PROVIDER;
-                    if (providerList.length === 1) {
-                        message = StringUtils.format(Strings.NO_ERRORS, providerList[0].name);
-                    }
+                    $problemsPanelTable
+                        .empty()
+                        .append(html)
+                        .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
 
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", message);
-
+                    updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted, providerList);
                     setGotoEnabled(false);
                     return;
                 }
@@ -449,9 +469,7 @@ define(function (require, exports, module) {
                     .append(html)
                     .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
 
-                if (!_collapsed) {
-                    Resizer.show($problemsPanel);
-                }
+                _panelItem.show(true);
 
                 updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted);
                 setGotoEnabled(true);
@@ -463,13 +481,7 @@ define(function (require, exports, module) {
             // No provider for current file
             _hasErrors = false;
             _currentPromise = null;
-            Resizer.hide($problemsPanel);
-            var language = currentDoc && LanguageManager.getLanguageForPath(currentDoc.file.fullPath);
-            if (language) {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
-            } else {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.NOTHING_TO_LINT);
-            }
+            updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted, providerList, currentDoc);
             setGotoEnabled(false);
         }
     }
@@ -573,38 +585,6 @@ define(function (require, exports, module) {
         run();
     }
 
-    /**
-     * Toggle the collapsed state for the panel. This explicitly collapses the panel (as opposed to
-     * the auto collapse due to files with no errors & filetypes with no provider). When explicitly
-     * collapsed, the panel will not reopen automatically on switch files or save.
-     *
-     * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
-     * @param {?boolean} doNotSave true if the preference should not be saved to user settings. This is generally for events triggered by project-level settings.
-     */
-    function toggleCollapsed(collapsed, doNotSave) {
-        if (collapsed === undefined) {
-            collapsed = !_collapsed;
-        }
-
-        if (collapsed === _collapsed) {
-            return;
-        }
-
-        _collapsed = collapsed;
-        if (!doNotSave) {
-            prefs.set(PREF_COLLAPSED, _collapsed);
-            prefs.save();
-        }
-
-        if (_collapsed) {
-            Resizer.hide($problemsPanel);
-        } else {
-            if (_hasErrors) {
-                Resizer.show($problemsPanel);
-            }
-        }
-    }
-
     /** Command to go to the first Problem */
     function handleGotoFirstProblem() {
         run();
@@ -625,13 +605,6 @@ define(function (require, exports, module) {
             toggleEnabled(prefs.get(PREF_ENABLED), true);
         });
 
-    prefs.definePreference(PREF_COLLAPSED, "boolean", false, {
-        description: Strings.DESCRIPTION_LINTING_COLLAPSED
-    })
-        .on("change", function (e, data) {
-            toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
-        });
-
     prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000, {
         description: Strings.DESCRIPTION_ASYNC_TIMEOUT
     });
@@ -647,9 +620,12 @@ define(function (require, exports, module) {
 
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        // Create bottom panel to list error details
+        // Create a panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
-        WorkspaceManager.createBottomPanel("errors", $(panelHtml), 100);
+        _panelItem = WorkspaceManager.addPanel($(panelHtml), {
+            id: "core-errors",
+            title: Strings.PANEL_CORE_ERRORS
+        });
         $problemsPanel = $("#problems-panel");
 
         var $selectedRow;
@@ -694,10 +670,6 @@ define(function (require, exports, module) {
                 }
             });
 
-        $("#problems-panel .close").click(function () {
-            toggleCollapsed(true);
-        });
-
         // Status bar indicator - icon & tooltip updated by run()
         var statusIconHtml = Mustache.render("<div id=\"status-inspection\">&nbsp;</div>", Strings);
         StatusBar.addIndicator(INDICATOR_ID, $(statusIconHtml), true, "", "", "status-indent");
@@ -705,13 +677,12 @@ define(function (require, exports, module) {
         $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file
             if (_hasErrors) {
-                toggleCollapsed();
+                _panelItem.show(true);
             }
         });
 
         // Set initial UI state
         toggleEnabled(prefs.get(PREF_ENABLED), true);
-        toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
     });
 
     // Testing

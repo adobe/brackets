@@ -2300,3 +2300,59 @@ label input {
     min-height: 300px;
     max-height: 300px;
 }
+
+#container-panel {
+    height: 200px;
+
+    .nav-tabs-override();
+
+    > .toolbar {
+        padding: 0;
+
+        > div {
+            width: 100%
+        }
+    }
+
+    button.close {
+        position: static;
+        margin: 0 -6px 0 6px;
+    }
+}
+
+#panel-title-list {
+    button {
+        &.close {
+            display: none;
+        }
+    }
+}
+
+#panel-content-list {
+    height: 100%;
+
+    .tab-content {
+        height: 100%;
+
+        .bottom-panel {
+            display: block;
+            height: 100%;
+            border: none;
+
+            .close {
+                display: none;
+            }
+
+            // TODO: find a better way to handle the clean of the search results.
+            &.search-results {
+                .close {
+                    display: block;
+                }
+            }
+
+            .table-container {
+                height: calc(~'100% - 25px - 5px - 5px'); // full height minus title and padding height of the titlebar
+            }
+        }
+    }
+}

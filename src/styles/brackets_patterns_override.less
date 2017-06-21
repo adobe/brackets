@@ -1023,119 +1023,129 @@ a[href^="http"] {
     width: 550px;
 }
 
+.nav-tabs-override() {
+    border-bottom: none;
+    padding: 0;
+
+    .nav-tabs {
+        margin: 0;
+        border-color: @bc-panel-separator;
+
+        .dark & {
+            border-color: @dark-bc-panel-separator;
+        }
+
+        /* Tab styling */
+        > li > a {
+            min-width: 80px;
+            min-height: 36px;
+            color: @bc-text-thin;
+            cursor: default;
+            font-size: 12px;
+
+            .box;
+            box-sizing: border-box;
+            .box-align(center);
+            .box-pack(center);
+            padding: 0;
+            margin: 0;
+
+            text-align: center;
+
+            .dark & {
+                color: @dark-bc-text-thin;
+            }
+
+            &:hover {
+                background-color: @bc-panel-bg-hover-alt;
+                border-color: @bc-panel-bg-hover-alt;
+
+                .dark & {
+                    background-color: @dark-bc-panel-bg-hover-alt;
+                    border-color: @dark-bc-panel-bg-hover-alt;
+                }
+            }
+
+            &:focus {
+                background-color: @bc-menu-bg;
+                border-color: @bc-menu-bg;
+
+                .dark & {
+                    background-color: @dark-bc-menu-bg;
+                    border-color: @dark-bc-menu-bg;
+                }
+            }
+
+            > img {
+                margin-top: 5px;
+                padding-bottom: 2px;
+            }
+        }
+
+        /* Remove border-left from the first tab */
+        > li:nth-child(1) > a {
+            border-left: transparent;
+        }
+
+        /* Colors for the active tab, remove bottom border */
+        > .active > a,
+        > .active > a:hover {
+            background-color: @bc-panel-bg;
+            border-color: @bc-btn-border @bc-btn-border transparent @bc-btn-border;
+
+            .dark & {
+                background-color: @dark-bc-panel-bg;
+                border-color: @dark-bc-btn-border @dark-bc-btn-border transparent @dark-bc-btn-border;
+            }
+        }
+
+        > .active > a:focus {
+            background-color: @bc-panel-bg;
+            border-color: @bc-btn-border-focused @bc-btn-border-focused transparent @bc-btn-border-focused;
+            box-shadow: none;
+
+            .dark & {
+                background-color: @dark-bc-panel-bg;
+                border-color: @dark-bc-btn-border-focused @dark-bc-btn-border-focused transparent @dark-bc-btn-border-focused;
+            }
+        }
+
+        > li {
+            position: relative;  // for positioning .notification icon
+            .notification {
+                display: none;  // hidden by default
+                background-color: @bc-secondary-btn-bg;
+                color: @bc-text-alt;
+                border-radius: 16px;
+                padding: 0 5px;
+                position: absolute;
+                right: 19px;
+                top: 8px;
+
+                .dark & {
+                    background-color: @dark-bc-secondary-btn-bg;
+                    color: @dark-bc-text-alt;
+                }
+            }
+        }
+    }
+}
+
 /* Extension Manager dialog */
 .extension-manager-dialog {
     background-color: @bc-panel-bg-promoted;
-    min-width: @extension-manager-min-width;
+    width: 760px;
 
     .dark & {
         background-color: @dark-bc-panel-bg-promoted;
     }
 
     .modal-header {
-        border-bottom: none;
-        padding: 0;
+        .nav-tabs-override();
 
         .nav-tabs {
-            margin: 0;
-            border-color: @bc-panel-separator;
-
-            .dark & {
-                border-color: @dark-bc-panel-separator;
-            }
-
-            /* Tab styling */
             > li > a {
-                min-width: 80px;
                 min-height: 60px;
-                color: @bc-text-thin;
-                cursor: default;
-                font-size: 12px;
-
-                .box;
-                box-sizing: border-box;
-                .box-align(center);
-                .box-pack(center);
-                padding: 0;
-                margin: 0;
-
-                text-align: center;
-
-                .dark & {
-                    color: @dark-bc-text-thin;
-                }
-
-                &:hover {
-                    background-color: @bc-panel-bg-hover-alt;
-                    border-color: @bc-panel-bg-hover-alt;
-
-                    .dark & {
-                        background-color: @dark-bc-panel-bg-hover-alt;
-                        border-color: @dark-bc-panel-bg-hover-alt;
-                    }
-                }
-
-                &:focus {
-                    background-color: @bc-menu-bg;
-                    border-color: @bc-menu-bg;
-
-                    .dark & {
-                        background-color: @dark-bc-menu-bg;
-                        border-color: @dark-bc-menu-bg;
-                    }
-                }
-
-                > img {
-                    margin-top: 5px;
-                    padding-bottom: 2px;
-                }
-            }
-
-            /* Remove border-left from the first tab */
-            > li:nth-child(1) > a {
-                border-left: transparent;
-            }
-
-            /* Colors for the active tab, remove bottom border */
-            > .active > a,
-            > .active > a:hover {
-                background-color: @bc-panel-bg;
-                border-color: @bc-btn-border @bc-btn-border transparent @bc-btn-border;
-
-                .dark & {
-                    background-color: @dark-bc-panel-bg;
-                    border-color: @dark-bc-btn-border @dark-bc-btn-border transparent @dark-bc-btn-border;
-                }
-            }
-
-            > .active > a:focus {
-                background-color: @bc-panel-bg;
-                border-color: @bc-btn-border-focused @bc-btn-border-focused transparent @bc-btn-border-focused;
-                box-shadow: none;
-
-                .dark & {
-                    background-color: @dark-bc-panel-bg;
-                    border-color: @dark-bc-btn-border-focused @dark-bc-btn-border-focused transparent @dark-bc-btn-border-focused;
-                }
-            }
-
-            > li {
-                position: relative;  // for positioning .notification icon
-                .notification {
-                    display: none;  // hidden by default
-                    background-color: @bc-secondary-btn-bg;
-                    color: @bc-text-alt;
-                    border-radius: 16px;
-                    padding: 0 5px;
-                    position: absolute;
-                    right: 19px;
-                    top: 8px;
-
-                    .dark & {
-                        background-color: @dark-bc-secondary-btn-bg;
-                        color: @dark-bc-text-alt;
-                    }
-                }
             }
         }
 

@@ -179,6 +179,9 @@ define({
     "NO_UPDATE_TITLE"                   : "You're Up to Date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
+    // Find
+    "FIND_EMPTY"                        : "Nothing to search.",
+
     // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Replace",
     "FIND_REPLACE_TITLE_WITH"           : "with",
@@ -597,6 +600,11 @@ define({
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+
+    // Container panel strings
+    "CONTAINER_PANEL_TITLE"                : "Workspace",
+    "PANEL_CORE_ERRORS"                    : "Code Hints",
+    "PANEL_CORE_SEARCH"                    : "Search",
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "largest",

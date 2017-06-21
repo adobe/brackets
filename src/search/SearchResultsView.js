@@ -71,15 +71,19 @@ define(function (require, exports, module) {
      *
      * @param {SearchModel} model The model that this view is showing.
      * @param {string} panelID The CSS ID to use for the panel.
-     * @param {string} panelName The name to use for the panel, as passed to PanelManager.createBottomPanel().
      */
-    function SearchResultsView(model, panelID, panelName) {
+    function SearchResultsView(model, panelID) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
 
-        this._panel    = WorkspaceManager.createBottomPanel(panelName, $(panelHtml), 100);
+        this._panel    = WorkspaceManager.addPanel($(panelHtml), {
+            id: panelID,
+            title: Strings.PANEL_CORE_SEARCH
+        });
         this._$summary = this._panel.$panel.find(".title");
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
+
+        this._clearSummary();
     }
     EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);
 
@@ -92,7 +96,7 @@ define(function (require, exports, module) {
      */
     SearchResultsView.prototype._searchList = [];
 
-    /** @type {Panel} Bottom panel holding the search results */
+    /** @type {PanelItem} Panel holding the search results */
     SearchResultsView.prototype._panel = null;
 
     /** @type {?string} The full path of the file that was open in the main editor on the initial search */
@@ -373,6 +377,8 @@ define(function (require, exports, module) {
             replace:     this._model.isReplace,
             Strings:     Strings
         }));
+
+        this._panel.$panel.find(".close").removeClass("forced-hidden");
     };
 
     /**
@@ -487,7 +493,6 @@ define(function (require, exports, module) {
             this._$selectedRow = null;
         }
 
-        this._panel.show();
         this._$table.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
     };
 
@@ -567,6 +572,7 @@ define(function (require, exports, module) {
         this._initialFilePath = currentDoc ? currentDoc.file.fullPath : null;
 
         this._render();
+        this._panel.show(true);
 
         // Listen for user interaction events with the panel and change events from the model.
         this._addPanelListeners();
@@ -574,12 +580,24 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @private
+     * Clear the Results Summary
+     */
+    SearchResultsView.prototype._clearSummary = function () {
+        var empty = Strings.FIND_EMPTY;
+
+        this._$summary.text(empty);
+        this._panel.$panel.find(".close").addClass("forced-hidden");
+    };
+
+    /**
      * Hides the Search Results Panel and unregisters listeners.
      */
     SearchResultsView.prototype.close = function () {
         if (this._panel && this._panel.isVisible()) {
+            this._clearSummary();
             this._$table.empty();
-            this._panel.hide();
+            // this._panel.hide();
             this._panel.$panel.off(".searchResults");
             this._model.off("change.SearchResultsView");
             this.trigger("close");
