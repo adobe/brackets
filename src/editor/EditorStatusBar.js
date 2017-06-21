@@ -48,6 +48,9 @@ define(function (require, exports, module) {
         Async                = require("utils/Async"),
         FileSystem           = require("filesystem/FileSystem"),
         StringUtils          = require("utils/StringUtils");
+    
+    var SupportedEncodingsText = require("text!supported-encodings.json"),
+        SupportedEncodings = JSON.parse(SupportedEncodingsText);
 
     /* StatusBar indicators */
     var languageSelect, // this is a DropdownButton instance
@@ -357,32 +360,7 @@ define(function (require, exports, module) {
      * Populate the encodingSelect DropdownButton's menu with all registered encodings
      */
     function _populateEncodingDropdown() {
-        var file   = FileSystem.getFileForPath("C:/Users/kathpali/Documents/brackets/src/supported-encodings.json"),
-            result = new $.Deferred();
-
-        file.exists(function (err, doesExist) {
-            if (doesExist) {
-                FileUtils.readAsText(file)
-                    .done(function (text) {
-                        try {
-                            if (text) {
-                                var encodings = JSON.parse(text);
-                                encodingSelect.items = encodings;
-                            }
-                        } catch (err) {
-                            // Cannot parse the text read from the key map file.
-                            console.error("Could not parse JSON");
-                        }
-                    })
-                    .fail(function (err) {
-                        // file cannot be loaded.
-                        console.error("File could not be loaded");
-                    });
-            } else {
-                // Just resolve if no user key map file
-                console.error("JSON file missing");
-            }
-        });
+        encodingSelect.items = SupportedEncodings;
     }
 
     /**
