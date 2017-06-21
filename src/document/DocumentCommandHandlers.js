@@ -918,7 +918,6 @@ define(function (require, exports, module) {
             doc.isSaving = true;    // mark that we're saving the document
 
             // First, write document's current text to new file
-            newFile = FileSystem.getFileForPath(path);
             if (doc.file._encoding && doc.file._encoding !== "UTF-8") {
                 var projectRoot = ProjectManager.getProjectRoot(),
                     context = {
@@ -932,6 +931,8 @@ define(function (require, exports, module) {
                 encoding[path] = doc.file._encoding;
                 PreferencesManager.setViewState("encoding", encoding, context);
             }
+            newFile = FileSystem.getFileForPath(path);
+            newFile._encoding = doc.file._encoding;
 
             // Save as warns you when you're about to overwrite a file, so we
             // explicitly allow "blind" writes to the filesystem in this case,
