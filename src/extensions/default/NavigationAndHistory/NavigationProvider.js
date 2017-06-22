@@ -66,9 +66,9 @@ define(function (require, exports, module) {
     */
     var jumpedPosStack = [],
         activePosNotSynced = false,
-        captureTimer,
-        currentEditPos,
-        jumpInProgress,
+        captureTimer = null,
+        currentEditPos = null,
+        jumpInProgress = false,
         commandJumpBack,
         commandJumpFwd;
         
