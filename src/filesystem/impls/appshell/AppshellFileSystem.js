@@ -363,11 +363,11 @@ define(function (require, exports, module) {
             if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
-                appshell.fs.readFile(path, encoding, function (_err, _data) {
+                appshell.fs.readFile(path, encoding, function (_err, _data, encoding) {
                     if (_err) {
                         callback(_mapError(_err));
                     } else {
-                        callback(null, _data, stat);
+                        callback(null, _data, encoding, stat);
                     }
                 });
             }
