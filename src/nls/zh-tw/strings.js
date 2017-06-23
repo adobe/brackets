@@ -444,7 +444,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "說明文件及原始碼都在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> 上。",
     "ABOUT_TEXT_LINE5"                     : "用 \u2764 跟 JavaScript 打造。工匠名錄:",
     "ABOUT_TEXT_LINE6"                     : "一大票人馬 (只可惜我們現在沒辦法正常載入名單)。",
-    "ABOUT_TEXT_MDN_DOCS"         : "MDN 文件及 MDN 圖示皆以 Creative Commons Attribution 授權條款 <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a> 授權。",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN 文件及 MDN 圖示皆以 Creative Commons Attribution 授權條款 <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a> 授權。",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有新版的 {APP_NAME}! 點這裡了解詳情。",
     "UPDATE_AVAILABLE_TITLE"               : "有新版",
     "UPDATE_MESSAGE"                       : "嗨! 新版的 {APP_NAME} 已經可以下載。新功能有:",
