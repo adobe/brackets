@@ -115,11 +115,11 @@ define(function (require, exports, module) {
                                 // assign the same uuid to olderuuid.
                                 if (!userUuid) {
                                     oneTimeHealthData.uuid = oneTimeHealthData.olderuuid = uuid.v4();
-                                    PreferencesManager.setViewState("UUID", oneTimeHealthData.uuid);
                                 } else {
                                     oneTimeHealthData.olderuuid = userUuid;
                                 }
 
+                                PreferencesManager.setViewState("UUID",      oneTimeHealthData.uuid);
                                 PreferencesManager.setViewState("OlderUUID", oneTimeHealthData.olderuuid);
 
                                 return result.resolve(oneTimeHealthData);
