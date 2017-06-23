@@ -445,7 +445,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentation och källkod återfinns på <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Skapat med \u2764 och JavaScript av:",
     "ABOUT_TEXT_LINE6"                     : "Massor av människor (men vi har lite problem att visa dessa data just nu).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs och dess logotyp är licenserad under en Creative Commons Attribution-licens, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs och dess logotyp är licenserad under en Creative Commons Attribution-licens, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "En ny version av {APP_NAME} är tillgänglig! Klicka här för fler detaljer.",
     "UPDATE_AVAILABLE_TITLE"               : "Uppdatering tillgänglig!",
     "UPDATE_MESSAGE"                       : "Hallå! En ny version av {APP_NAME} är tillgänglig. Här är några av de nya funktionerna:",
