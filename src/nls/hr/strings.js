@@ -382,7 +382,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentacija i izvorni kôd na <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Napravili sa \u2764 i JavaScriptom:",
     "ABOUT_TEXT_LINE6"                     : "Mnogo ljudi (ali trenutno imamo poteškoća sa učitavanjem tih podataka).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs i Web Platform graphical logo su zaštićeni pod Creative Commons Attribution licencom, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs i MDN graphical logo su zaštićeni pod Creative Commons Attribution licencom, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Dostupna je nova verzija aplikacije {APP_NAME}! Kliknite ovdje za detalje.",
     "UPDATE_AVAILABLE_TITLE"               : "Novija verzija je dostupna",
     "UPDATE_MESSAGE"                       : "Nova verzija aplikacije {APP_NAME} je dostupna. Ovo su neke od najnovijih izmjena:",

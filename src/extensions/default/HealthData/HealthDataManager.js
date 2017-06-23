@@ -70,31 +70,61 @@ define(function (require, exports, module) {
                         oneTimeHealthData.bracketsTheme = bracketsTheme;
                     })
                     .always(function () {
-                        var userUuid = PreferencesManager.getViewState("UUID");
+                        var userUuid  = PreferencesManager.getViewState("UUID");
+                        var olderUuid = PreferencesManager.getViewState("OlderUUID");
 
-                        if (!userUuid) {
+                        if (userUuid && olderUuid) {
+                            oneTimeHealthData.uuid      = userUuid;
+                            oneTimeHealthData.olderuuid = olderUuid;
+                            return result.resolve(oneTimeHealthData);
+                        } else {
 
-                            // For first launch, we are now going to
-                            // rely on the macine Hash.
-                            appshell.app.getMachineHash(function (err, macHash) {
-                                // In case of error, use the older algorithm
-                                if (err) {
-                                    userUuid = uuid.v4();
+                            // So we are going to get the Machine hash in either of the cases.
+                            if (appshell.app.getMachineHash) {
+                                appshell.app.getMachineHash(function (err, macHash) {
+
+                                    var generatedUuid;
+                                    if (err) {
+                                        generatedUuid = uuid.v4();
+                                    } else {
+                                        generatedUuid = macHash;
+                                    }
+
+                                    if (!userUuid) {
+                                        // Could be a new user. In this case
+                                        // both will remain the same.
+                                        userUuid = olderUuid = generatedUuid;
+                                    } else {
+                                        // For existing user, we will still cache
+                                        // the older uuid, so that we can improve
+                                        // our reporting in terms of figuring out
+                                        // the new users accurately.
+                                        olderUuid = userUuid;
+                                        userUuid  = generatedUuid;
+                                    }
+
+                                    PreferencesManager.setViewState("UUID", userUuid);
+                                    PreferencesManager.setViewState("OlderUUID", olderUuid);
+
+                                    oneTimeHealthData.uuid      = userUuid;
+                                    oneTimeHealthData.olderuuid = olderUuid;
+                                    return result.resolve(oneTimeHealthData);
+                                });
+                            } else {
+                                // Probably running on older shell, in which case we will
+                                // assign the same uuid to olderuuid.
+                                if (!userUuid) {
+                                    oneTimeHealthData.uuid = oneTimeHealthData.olderuuid = uuid.v4();
                                 } else {
-                                    userUuid = macHash;
+                                    oneTimeHealthData.olderuuid = userUuid;
                                 }
 
-                                PreferencesManager.setViewState("UUID", userUuid);
+                                PreferencesManager.setViewState("UUID",      oneTimeHealthData.uuid);
+                                PreferencesManager.setViewState("OlderUUID", oneTimeHealthData.olderuuid);
 
-                                oneTimeHealthData.uuid = userUuid;
                                 return result.resolve(oneTimeHealthData);
-                            });
-
-                        } else {
-                            oneTimeHealthData.uuid = userUuid;
-                            return result.resolve(oneTimeHealthData);
+                            }
                         }
-
                     });
 
             });
