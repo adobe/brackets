@@ -363,11 +363,11 @@ define(function (require, exports, module) {
             if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
-                appshell.fs.readFile(path, encoding, function (_err, _data, encoding) {
+                appshell.fs.readFile(path, encoding, function (_err, _data, encoding, preserveBOM) {
                     if (_err) {
                         callback(_mapError(_err));
                     } else {
-                        callback(null, _data, encoding, stat);
+                        callback(null, _data, encoding, preserveBOM, stat);
                     }
                 });
             }
@@ -403,10 +403,11 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
-        var encoding = options.encoding || "utf8";
+        var encoding = options.encoding || "utf8",
+            preserveBOM = options.preserveBOM;
 
         function _finishWrite(created) {
-            appshell.fs.writeFile(path, data, encoding, function (err) {
+            appshell.fs.writeFile(path, data, encoding, preserveBOM, function (err) {
                 if (err) {
                     callback(_mapError(err));
                 } else {
