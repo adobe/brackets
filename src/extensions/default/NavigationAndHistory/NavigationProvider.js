@@ -31,6 +31,7 @@ define(function (require, exports, module) {
 
     var Strings                 = brackets.getModule("strings"),
         MainViewManager         = brackets.getModule("view/MainViewManager"),
+        Document                = brackets.getModule("document/Document"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
@@ -41,7 +42,7 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         FileSystem              = brackets.getModule("filesystem/FileSystem");
-
+    
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     // Command constants for navigation history
@@ -50,7 +51,7 @@ define(function (require, exports, module) {
     
     // The latency time to capture an explicit cursor movement as a navigation frame
     var NAV_FRAME_CAPTURE_LATENCY = 2000,
-        MAX_NAV_FRAMES_COUNT = 50;
+        MAX_NAV_FRAMES_COUNT = 30;
     
    /**
     * Contains list of most recently known cursor positions.
@@ -131,29 +132,46 @@ define(function (require, exports, module) {
         this.selections = [];
         this.bookMarkIds = [];
         this._createMarkers(selectionObj.ranges);
-        this._bindEditor(editor);
     }
     
    /**
-    * Binds the lifecycle event listener of the editor for which this frame is captured
+    * Lifecycle event handler of the editor for which this frame is captured
     */
-    NavigationFrame.prototype._bindEditor = function (editor) {
-        var self = this;
-        editor.on("beforeDestroy", function () {
-            var updateCurrentPos;
+    NavigationFrame.prototype._handleEditorDestroy = function (editor) {
+        this._backupSelectionRanges();
+        this._clearMarkers();
+        this.cm = null;
+        this.bookMarkIds = null;
+    };
+    
+    /**
+    * Function to re-create CM TextMarkers for previously backed up ranges
+    * This logic is required to ensure that the captured navigation positions 
+    * stay valid and contextual even when the actual document text mutates.
+    * The mutations which are handled here :
+    * -> Addition/Deletion of lines before the captured position
+    * -> Addition/Updation of characters in the captured selection
+    */
+    NavigationFrame.prototype._reinstateMarkers = function (editor) {
+        this.cm = editor._codeMirror;
+        this.paneId = editor._paneId;
+        
+        var range,
+            index,
+            bookMark;
 
-            // Check if this frame is actually the current frame
-            // if true then we will update the current frame with serialized positions from CM
-            if (self === currentEditPos) {
-                updateCurrentPos = true;
+        this.bookMarkIds = [];
+        for (index in this.selections) {
+            range = this.selections[index];
+            // 'markText' has to used for a non-zero length position, if current selection is 
+            // of zero length use bookmark instead.
+            if (range.start.line === range.end.line && range.start.ch === range.end.ch) {
+                bookMark = this.cm.setBookmark(range.start, range.end);
+                this.bookMarkIds.push(bookMark.id);
+            } else {
+                this.cm.markText(range.start, range.end, {className: (this.uId)});
             }
-            self._backupSelectionRanges();
-            self.cm = null;
-            self.bookMarkIds = null;
-            if (updateCurrentPos) {
-                currentEditPos = self;
-            }
-        });
+        }
     };
     
    /**
@@ -235,6 +253,14 @@ define(function (require, exports, module) {
             }
         });
     };
+    
+    /**
+    * Function to check if we have valid markers in cm for this frame
+    */
+    NavigationFrame.prototype._validateMarkers = function () {
+        this._backupSelectionRanges();
+        return this.selections.length;
+    };
 
    /**
     * Function to actually navigate to the position(file,selections) captured in this frame
@@ -243,6 +269,14 @@ define(function (require, exports, module) {
         var self = this;
         this._backupSelectionRanges();
         jumpInProgress = true;
+        
+        // To ensure we don't reopen the same doc in the last known pane
+        // rather bring it to the same pane where user has opened it
+        var thisDoc = DocumentManager.getOpenDocumentForPath(this.file);
+        if (thisDoc && thisDoc._masterEditor) {
+            this.paneId = thisDoc._masterEditor._paneId;
+        }
+        
         CommandManager.execute(Commands.FILE_OPEN, {fullPath: this.file, paneId: this.paneId}).done(function () {
             EditorManager.getCurrentFullEditor().setSelections(self.selections, true);
             _validateNavigationCmds();
@@ -263,7 +297,8 @@ define(function (require, exports, module) {
     * @private
     */
     function _recordJumpDef(event, selectionObj) {
-        if (jumpInProgress) {
+        // Don't capture frames if we are navigating or document text is being refreshed(fileSync in progress)
+        if (jumpInProgress || (event.target && event.target.document._refreshInProgress)) {
             return;
         }
         // Reset forward navigation stack if we are capturing a new event
@@ -279,7 +314,7 @@ define(function (require, exports, module) {
                 // Check if we have reached MAX_NAV_FRAMES_COUNT
                 // If yes, control overflow
                 if (jumpToPosStack.length === MAX_NAV_FRAMES_COUNT) {
-                    var navFrame = jumpToPosStack.splice(0, 1);
+                    var navFrame = jumpToPosStack.splice(0, 1)[0];
                     navFrame._clearMarkers();
                 }
 
@@ -306,10 +341,13 @@ define(function (require, exports, module) {
         
         var navFrame = jumpToPosStack.pop();
         
-        // Check if the poped frame is the current active frame
+        // Check if the poped frame is the current active frame or doesn't have any valid marker information
         // if true, jump again
-        if (navFrame === currentEditPos) {
+        if (navFrame && navFrame === currentEditPos) {
             jumpedPosStack.push(navFrame);
+            CommandManager.execute(NAVIGATION_JUMP_BACK);
+            return;
+        } else if (navFrame && !navFrame._validateMarkers()) {
             CommandManager.execute(NAVIGATION_JUMP_BACK);
             return;
         }
@@ -335,10 +373,13 @@ define(function (require, exports, module) {
     function _navigateForward() {
         var navFrame = jumpedPosStack.pop();
         
-        // Check if the poped frame is the current active frame
+        // Check if the poped frame is the current active frame or doesn't have any valid marker information
         // if true, jump again
-        if (navFrame === currentEditPos) {
+        if (navFrame && navFrame === currentEditPos) {
             jumpToPosStack.push(navFrame);
+            CommandManager.execute(NAVIGATION_JUMP_FWD);
+            return;
+        } else if (navFrame && !navFrame._validateMarkers()) {
             CommandManager.execute(NAVIGATION_JUMP_FWD);
             return;
         }
@@ -397,6 +438,80 @@ define(function (require, exports, module) {
     }
     
     /**
+    * Create snapshot of last known live markers.
+    * @private
+    */
+    function _backupLiveMarkers(frames, editor) {
+        var index, frame;
+        for (index in frames) {
+            frame = frames[index];
+            if (frame.cm === editor._codeMirror) {
+                frame._handleEditorDestroy();
+            }
+        }
+    }
+    
+    /**
+    * Handle Editor destruction to create backup of live marker positions
+    * @private
+    */
+    function _handleEditorCleanup(event, editor) {
+        _backupLiveMarkers(jumpToPosStack, editor);
+        _backupLiveMarkers(jumpedPosStack, editor);
+    }
+    
+    /**
+    * Removes all frames from backward navigation stack for the given file.
+    * @private
+    */
+    function _removeBackwardFramesForFile(file) {
+        jumpToPosStack = jumpToPosStack.filter(function (frame) {
+            return frame.file !== file._path;
+        });
+    }
+    
+    /**
+    * Removes all frames from forward navigation stack for the given file.
+    * @private
+    */
+    function _removeForwardFramesForFile(file) {
+        jumpedPosStack = jumpedPosStack.filter(function (frame) {
+            return frame.file !== file._path;
+        });
+    }
+    
+    /**
+    * Handles explicit content reset for a document caused by external changes 
+    * @private
+    */
+    function _handleExternalChange(evt, doc) {
+        if (doc) {
+            _removeBackwardFramesForFile(doc.file);
+            _removeForwardFramesForFile(doc.file);
+            _validateNavigationCmds();
+        }
+    }
+    
+    function _handleProjectOpen() {
+        jumpToPosStack = [];
+        jumpedPosStack = [];
+    }
+    
+    /**
+     * Required to make offline markers alive again to track document mutation
+     * @private
+     */
+    function _reinstateMarkers(editor, frames) {
+        var index, frame;
+        for (index in frames) {
+            frame = frames[index];
+            if (!frame.cm && frame.file === editor.document.file._path) {
+                frame._reinstateMarkers(editor);
+            }
+        }
+    }
+    
+    /**
      * Handle Active Editor change to update navigation information
      * @private
      */
@@ -409,18 +524,24 @@ define(function (require, exports, module) {
         
         if (current && current._paneId) { // Handle only full editors
             activePosNotSynced = true;
+            current.off("beforeSelectionChange", _recordJumpDef);
             current.on("beforeSelectionChange", _recordJumpDef);
+            current.off("beforeDestroy", _handleEditorCleanup);
+            current.on("beforeDestroy", _handleEditorCleanup);
         }
-    }
-    
-    function _handleProjectOpen() {
-        jumpToPosStack = [];
-        jumpedPosStack = [];
     }
     
     function _initHandlers() {
         EditorManager.on("activeEditorChange", _handleActiveEditorChange);
         ProjectManager.on("projectOpen", _handleProjectOpen);
+        Document.on("_documentRefreshed", _handleExternalChange);
+        EditorManager.on("_fullEditorCreatedForDocument", function (event, document, editor) {
+            _reinstateMarkers(editor, jumpToPosStack);
+            _reinstateMarkers(editor, jumpedPosStack);
+        });
+        FileSystem.on("change", function (event, entry) {
+            _handleExternalChange(event, {file: entry});
+        });
     }
 
     function init() {
