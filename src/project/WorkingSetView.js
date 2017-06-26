@@ -334,7 +334,6 @@ define(function (require, exports, module) {
                     gTop,
                     gHeight,
                     gBottom,
-                    deltaY,
                     containerOffset,
                     scrollerTopArea,
                     scrollerBottomArea;
@@ -409,7 +408,6 @@ define(function (require, exports, module) {
                 gTop = $ghost.offset().top;
                 gHeight = $ghost.height();
                 gBottom = gTop + gHeight;
-                deltaY = pageY - e.pageY;
 
                 // data to help us determine if we have a scroller
                 hasScroller = $item.length && $container.length && $container[0].scrollHeight > $container[0].clientHeight;
