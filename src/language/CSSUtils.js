@@ -643,7 +643,7 @@ define(function (require, exports, module) {
         }
         
         if (_isInPropName(ctx)) {
-            return _getPropNameInfo(ctx, ctx.editor);
+            return _getPropNameInfo(ctx);
         }
         
         if (_isInPropValue(ctx)) {
