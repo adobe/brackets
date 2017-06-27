@@ -64,6 +64,13 @@ define(function (require, exports, module) {
     File.prototype._encoding = null;
 
     /**
+     * BOM detected by brackets-shell
+     * @private
+     * @type {?bool}
+     */
+    File.prototype._preserveBOM = false;
+
+    /**
      * Consistency hash for this file. Reads and writes update this value, and
      * writes confirm the hash before overwriting existing files. The type of
      * this object is dependent on the FileSystemImpl; the only constraint is
@@ -112,7 +119,7 @@ define(function (require, exports, module) {
             options.stat = this._stat;
         }
 
-        this._impl.readFile(this._path, options, function (err, data, encoding, stat) {
+        this._impl.readFile(this._path, options, function (err, data, encoding, preserveBOM, stat) {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -122,6 +129,7 @@ define(function (require, exports, module) {
             // Always store the hash
             this._hash = stat._hash;
             this._encoding = encoding;
+            this._preserveBOM = preserveBOM;
 
             // Only cache data for watched files
             if (watched) {
@@ -158,7 +166,10 @@ define(function (require, exports, module) {
             options.expectedHash = this._hash;
             options.expectedContents = this._contents;
         }
-        options.encoding = this._encoding || "utf8";
+        if (!options.encoding) {
+            options.encoding = this._encoding || "utf8";
+        }
+        options.preserveBOM = this._preserveBOM;
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
