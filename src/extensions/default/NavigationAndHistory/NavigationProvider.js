@@ -92,10 +92,10 @@ define(function (require, exports, module) {
     }
     
    /**
-    * Function to check existence of a file entry
+    * Function to check existence of a file entry, validity of markers
     * @private
     */
-    function _checkIfExist(entry) {
+    function _validateFrame(entry) {
         var deferred = new $.Deferred(),
             fileEntry = FileSystem.getFileForPath(entry.file);
 
@@ -110,7 +110,14 @@ define(function (require, exports, module) {
         } else {
             fileEntry.exists(function (err, exists) {
                 if (!err && exists) {
-                    deferred.resolve();
+                    // Additional check to handle external modification and mutation of the doc text affecting markers
+                    if (fileEntry._stat !== entry.fileStat) {
+                        deferred.reject();
+                    } else if (!entry._validateMarkers()) {
+                        deferred.reject();
+                    } else {
+                        deferred.resolve();
+                    }
                 } else {
                     deferred.reject();
                 }
@@ -128,6 +135,7 @@ define(function (require, exports, module) {
         this.file = editor.document.file._path;
         this.inMem = editor.document.file.constructor.name === "InMemoryFile";
         this.paneId = editor._paneId;
+        this.fileStat = editor.document.file._stat;
         this.uId = (new Date()).getTime();
         this.selections = [];
         this.bookMarkIds = [];
@@ -345,9 +353,7 @@ define(function (require, exports, module) {
         // if true, jump again
         if (navFrame && navFrame === currentEditPos) {
             jumpedPosStack.push(navFrame);
-            CommandManager.execute(NAVIGATION_JUMP_BACK);
-            return;
-        } else if (navFrame && !navFrame._validateMarkers()) {
+            _validateNavigationCmds();
             CommandManager.execute(NAVIGATION_JUMP_BACK);
             return;
         }
@@ -355,7 +361,7 @@ define(function (require, exports, module) {
         if (navFrame) {
             // We will check for the file existence now, if it doesn't exist we will jump back again
             // but discard the popped frame as invalid.
-            _checkIfExist(navFrame).done(function () {
+            _validateFrame(navFrame).done(function () {
                 jumpedPosStack.push(navFrame);
                 navFrame.goTo();
                 currentEditPos = navFrame;
@@ -377,9 +383,7 @@ define(function (require, exports, module) {
         // if true, jump again
         if (navFrame && navFrame === currentEditPos) {
             jumpToPosStack.push(navFrame);
-            CommandManager.execute(NAVIGATION_JUMP_FWD);
-            return;
-        } else if (navFrame && !navFrame._validateMarkers()) {
+            _validateNavigationCmds();
             CommandManager.execute(NAVIGATION_JUMP_FWD);
             return;
         }
@@ -387,7 +391,7 @@ define(function (require, exports, module) {
         if (navFrame) {
             // We will check for the file existence now, if it doesn't exist we will jump back again
             // but discard the popped frame as invalid.
-            _checkIfExist(navFrame).done(function () {
+            _validateFrame(navFrame).done(function () {
                 jumpToPosStack.push(navFrame);
                 navFrame.goTo();
                 currentEditPos = navFrame;
@@ -461,22 +465,22 @@ define(function (require, exports, module) {
     }
     
     /**
-    * Removes all frames from backward navigation stack for the given file.
+    * Removes all frames from backward navigation stack for the given file only if the file is changed on disk.
     * @private
     */
     function _removeBackwardFramesForFile(file) {
         jumpToPosStack = jumpToPosStack.filter(function (frame) {
-            return frame.file !== file._path;
+            return frame.file !== file._path && frame.stat !== file._stat;
         });
     }
     
     /**
-    * Removes all frames from forward navigation stack for the given file.
+    * Removes all frames from forward navigation stack for the given file only if the file is changed on disk.
     * @private
     */
     function _removeForwardFramesForFile(file) {
         jumpedPosStack = jumpedPosStack.filter(function (frame) {
-            return frame.file !== file._path;
+            return frame.file !== file._path && frame.stat !== file._stat;
         });
     }
     
@@ -534,13 +538,16 @@ define(function (require, exports, module) {
     function _initHandlers() {
         EditorManager.on("activeEditorChange", _handleActiveEditorChange);
         ProjectManager.on("projectOpen", _handleProjectOpen);
-        Document.on("_documentRefreshed", _handleExternalChange);
         EditorManager.on("_fullEditorCreatedForDocument", function (event, document, editor) {
+            _handleExternalChange(event, {file: document.file});
             _reinstateMarkers(editor, jumpToPosStack);
             _reinstateMarkers(editor, jumpedPosStack);
         });
         FileSystem.on("change", function (event, entry) {
             _handleExternalChange(event, {file: entry});
+        });
+        Document.on("_documentRefreshed", function (event, doc) {
+            _handleExternalChange(event, {file: doc.file});
         });
     }
 
