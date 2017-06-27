@@ -110,7 +110,7 @@ define(function (require, exports, module) {
         // for a default value; otherwise it could be the empty string, which is
         // falsey.
         if (this._contents !== null && this._stat) {
-            callback(null, this._contents, this._encoding, this._preserveBOM, this._stat);
+            callback(null, this._contents, this._encoding, this._stat);
             return;
         }
 
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
                 this._contents = data;
             }
 
-            callback(err, data, encoding, this._preserveBOM, stat);
+            callback(err, data, encoding, stat);
         }.bind(this));
     };
 
@@ -166,7 +166,9 @@ define(function (require, exports, module) {
             options.expectedHash = this._hash;
             options.expectedContents = this._contents;
         }
-        options.encoding = this._encoding || "utf8";
+        if (!options.encoding) {
+            options.encoding = this._encoding || "utf8";
+        }
         options.preserveBOM = this._preserveBOM;
 
         // Block external change events until after the write has finished
