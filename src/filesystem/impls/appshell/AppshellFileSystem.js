@@ -160,6 +160,12 @@ define(function (require, exports, module) {
             return FileSystemError.OUT_OF_SPACE;
         case appshell.fs.ERR_FILE_EXISTS:
             return FileSystemError.ALREADY_EXISTS;
+        case appshell.fs.ERR_ENCODE_FILE_FAILED:
+            return FileSystemError.ENCODE_FILE_FAILED;
+        case appshell.fs.ERR_ENCODE_FILE_FAILED:
+            return FileSystemError.DECODE_FILE_FAILED;
+        case appshell.fs.ERR_UNSUPPORTED_UTF16_ENCODING:
+            return FileSystemError.UNSUPPORTED_UTF16_ENCODING;
         }
         return FileSystemError.UNKNOWN;
     }
