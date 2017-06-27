@@ -160,6 +160,12 @@ define(function (require, exports, module) {
             return FileSystemError.OUT_OF_SPACE;
         case appshell.fs.ERR_FILE_EXISTS:
             return FileSystemError.ALREADY_EXISTS;
+        case appshell.fs.ERR_ENCODE_FILE_FAILED:
+            return FileSystemError.ENCODE_FILE_FAILED;
+        case appshell.fs.ERR_ENCODE_FILE_FAILED:
+            return FileSystemError.DECODE_FILE_FAILED;
+        case appshell.fs.ERR_UNSUPPORTED_UTF16_ENCODING:
+            return FileSystemError.UNSUPPORTED_UTF16_ENCODING;
         }
         return FileSystemError.UNKNOWN;
     }
@@ -363,11 +369,11 @@ define(function (require, exports, module) {
             if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
-                appshell.fs.readFile(path, encoding, function (_err, _data, encoding) {
+                appshell.fs.readFile(path, encoding, function (_err, _data, encoding, preserveBOM) {
                     if (_err) {
                         callback(_mapError(_err));
                     } else {
-                        callback(null, _data, encoding, stat);
+                        callback(null, _data, encoding, preserveBOM, stat);
                     }
                 });
             }
@@ -403,10 +409,11 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
-        var encoding = options.encoding || "utf8";
+        var encoding = options.encoding || "utf8",
+            preserveBOM = options.preserveBOM;
 
         function _finishWrite(created) {
-            appshell.fs.writeFile(path, data, encoding, function (err) {
+            appshell.fs.writeFile(path, data, encoding, preserveBOM, function (err) {
                 if (err) {
                     callback(_mapError(err));
                 } else {
