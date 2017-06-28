@@ -2112,9 +2112,33 @@ textarea.exclusions-editor {
         text-align: right;  // make line number line up with editor line numbers
     }
 
+    .line-icon {
+        vertical-align: middle;
+
+        .line-icon-default {
+            width: 20px;
+            height: 18px;
+            background-image: url(images/topcoat-inactive-15.svg);
+            background-repeat: no-repeat;
+            background-position: 0px 1px;
+        }
+
+        // Add an image based on the type of the problem.
+        .line-icon-problem_type_error {
+            background-image: url(images/topcoat-error-15.svg);
+        }
+        .line-icon-problem_type_warning {
+            background-image: url(images/topcoat-warning-15.svg);
+        }
+        .line-icon-problem_type_meta {
+            background-image: url(images/topcoat-inactive-15.svg);
+        }
+    }
+
     .line-text {
         white-space: nowrap;
         width: auto;
+        padding-left: 5px;
     }
 
     .line-snippet {
