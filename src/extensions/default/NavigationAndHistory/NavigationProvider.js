@@ -535,7 +535,9 @@ define(function (require, exports, module) {
             _reinstateMarkers(editor, jumpForwardStack);
         });
         FileSystem.on("change", function (event, entry) {
-            _handleExternalChange(event, {file: entry});
+            if (entry) {
+                _handleExternalChange(event, {file: entry});
+            }
         });
         Document.on("_documentRefreshed", function (event, doc) {
             _handleExternalChange(event, {file: doc.file});
