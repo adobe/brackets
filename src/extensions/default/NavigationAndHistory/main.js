@@ -251,7 +251,7 @@ define(function (require, exports, module) {
                 // Try to see if we have same doc split
                 // Check existing list for this doc path and active pane entry
                 var entryIndex = _.findIndex(_mrofList, function (record) {
-                    return (record.file === value.file && record.paneId === MainViewManager.getActivePaneId());
+                    return (record && record.file === value.file && record.paneId === MainViewManager.getActivePaneId());
                 });
 
                 // If found don't process this entry, as the document is already present in active pane
@@ -559,7 +559,7 @@ define(function (require, exports, module) {
 
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath && record.paneId === paneId);
+            return (record && record.file === filePath && record.paneId === paneId);
         });
 
         var entry;
@@ -587,7 +587,7 @@ define(function (require, exports, module) {
 
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath && record.paneId === paneId);
+            return (record && record.file === filePath && record.paneId === paneId);
         });
 
         var entry;
@@ -621,13 +621,13 @@ define(function (require, exports, module) {
     function _handleWorkingSetMove(event, file, sourcePaneId, destinationPaneId) {
         // Check existing list for this doc path and source pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === file.fullPath && record.paneId === sourcePaneId);
+            return (record && record.file === file.fullPath && record.paneId === sourcePaneId);
         }), tIndex;
         // If an entry is found update the pane info
         if (index >= 0) {
             // But an entry with the target pane Id should not exist
             tIndex = _.findIndex(_mrofList, function (record) {
-                return (record.file === file.fullPath && record.paneId === destinationPaneId);
+                return (record && record.file === file.fullPath && record.paneId === destinationPaneId);
             });
             if (tIndex === -1) {
                 _mrofList[index].paneId = destinationPaneId;
@@ -706,7 +706,7 @@ define(function (require, exports, module) {
             if (value && value.paneId === paneId) { // We have got an entry which needs merge
                 // Before modifying the actual pane info check if an entry exists with same target pane
                 index = _.findIndex(_mrofList, function (record) {
-                    return (record.file === value.file && record.paneId === targetPaneId);
+                    return (record && record.file === value.file && record.paneId === targetPaneId);
                 });
                 if (index !== -1) { // A duplicate entry found, remove the current one instead of updating
                     _mrofList[index] = null;
