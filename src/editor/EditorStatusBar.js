@@ -47,6 +47,9 @@ define(function (require, exports, module) {
         ProjectManager       = require("project/ProjectManager"),
         Async                = require("utils/Async"),
         FileSystem           = require("filesystem/FileSystem"),
+        CommandManager       = require("command/CommandManager"),
+        Commands             = require("command/Commands"),
+        DocumentManager      = require("document/DocumentManager"),
         StringUtils          = require("utils/StringUtils");
     
     var SupportedEncodingsText = require("text!supported-encodings.json"),
@@ -471,38 +474,19 @@ define(function (require, exports, module) {
         // Encoding select change handler
         encodingSelect.on("select", function (e, encoding) {
             var document = EditorManager.getActiveEditor().document,
-                fullPath = document.file.fullPath;
+                originalPath = document.file.fullPath,
+                originalEncoding = document.file._encoding;
 
             document.file._encoding = encoding;
-            
-
             if (!(document.file instanceof InMemoryFile) && document.isDirty) {
-                var dialogId = DefaultDialogs.DIALOG_ID_EXT_CHANGED,
-                    message = StringUtils.format(
-                        Strings.DIRTY_FILE_ENCODING_CHANGE_WARN,
-                        StringUtils.breakableUrl(
-                            ProjectManager.makeProjectRelativeIfPossible(document.file.fullPath)
-                        )
-                    ),
-                    buttons = [
-                        {
-                            className: Dialogs.DIALOG_BTN_CLASS_LEFT,
-                            id:        Dialogs.DIALOG_BTN_DONTSAVE,
-                            text:      Strings.IGNORE_RELOAD_FROM_DISK
-                        },
-                        {
-                            className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                            id:        Dialogs.DIALOG_BTN_CANCEL,
-                            text:      Strings.CANCEL
-                        }
-                    ];
-                
-                Dialogs.showModalDialog(dialogId, Strings.SAVE_FILE_ENCODING_CHANGE_WARN, message, buttons)
-                    .done(function (id) {
-                        if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
-                            _changeEncodingAndReloadDoc(document);
-                        }
-                    });
+                CommandManager.execute(Commands.FILE_SAVE_AS, {doc: document}).done(function () {
+                    var doc = DocumentManager.getCurrentDocument();
+                    if (originalPath === doc.file.fullPath) {
+                        _changeEncodingAndReloadDoc(doc);
+                    } else {
+                        document.file._encoding = originalEncoding;
+                    }
+                });
             } else if (document.file instanceof InMemoryFile) {
                 encodingSelect.$button.text(encoding);
             } else if (!document.isDirty) {
