@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         FileSystem           = require("filesystem/FileSystem"),
         CommandManager       = require("command/CommandManager"),
         Commands             = require("command/Commands"),
+        DocumentManager      = require("document/DocumentManager"),
         StringUtils          = require("utils/StringUtils");
     
     var SupportedEncodingsText = require("text!supported-encodings.json"),
@@ -473,12 +474,18 @@ define(function (require, exports, module) {
         // Encoding select change handler
         encodingSelect.on("select", function (e, encoding) {
             var document = EditorManager.getActiveEditor().document,
+                originalPath = document.file.fullPath,
                 originalEncoding = document.file._encoding;
 
             document.file._encoding = encoding;
             if (!(document.file instanceof InMemoryFile) && document.isDirty) {
-                CommandManager.execute(Commands.FILE_SAVE_AS, {doc: document}).always(function () {
-                    document.file._encoding = originalEncoding;
+                CommandManager.execute(Commands.FILE_SAVE_AS, {doc: document}).done(function () {
+                    var doc = DocumentManager.getCurrentDocument();
+                    if (originalPath === doc.file.fullPath) {
+                        _changeEncodingAndReloadDoc(doc);
+                    } else {
+                        document.file._encoding = originalEncoding;
+                    }
                 });
             } else if (document.file instanceof InMemoryFile) {
                 encodingSelect.$button.text(encoding);
