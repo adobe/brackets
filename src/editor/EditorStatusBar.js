@@ -333,7 +333,8 @@ define(function (require, exports, module) {
      * Change the encoding and reload the current document.
      * If passed then save the preferred encoding in state.
      */
-    function _changeEncodingAndReloadDoc(document) {
+    function _changeEncodingAndReloadDoc(document, encoding) {
+        document.file._encoding = encoding;
         var promise = document.reload();
         promise.done(function (text, readTimestamp) {
             encodingSelect.$button.text(document.file._encoding);
@@ -472,8 +473,6 @@ define(function (require, exports, module) {
         encodingSelect.on("select", function (e, encoding) {
             var document = EditorManager.getActiveEditor().document,
                 fullPath = document.file.fullPath;
-
-            document.file._encoding = encoding;
             
 
             if (!(document.file instanceof InMemoryFile) && document.isDirty) {
@@ -500,13 +499,14 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialog(dialogId, Strings.SAVE_FILE_ENCODING_CHANGE_WARN, message, buttons)
                     .done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
-                            _changeEncodingAndReloadDoc(document);
+                            _changeEncodingAndReloadDoc(document, encoding);
                         }
                     });
             } else if (document.file instanceof InMemoryFile) {
+                document.file._encoding = encoding;
                 encodingSelect.$button.text(encoding);
             } else if (!document.isDirty) {
-                _changeEncodingAndReloadDoc(document);
+                _changeEncodingAndReloadDoc(document, encoding);
             }
         });
 
