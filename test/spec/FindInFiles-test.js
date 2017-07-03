@@ -86,6 +86,7 @@ define(function (require, exports, module) {
                 PreferencesManager  = testWindow.brackets.test.PreferencesManager;
                 PreferencesManager.set("findInFiles.nodeSearch", false);
                 PreferencesManager.set("findInFiles.instantSearch", false);
+                PreferencesManager.set("maxSearchHistory", 5);
             });
         });
 
@@ -407,6 +408,86 @@ define(function (require, exports, module) {
 
                     fileResults = FindInFiles.searchModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeFalsy();
+                });
+            });
+            
+            it("should verify the contents of searchHistory array", function () {
+                var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+                openSearchBar(fileEntry);
+                executeSearch("foo1");
+                executeSearch("foo2");
+                executeSearch("foo3");
+                executeSearch("foo4");
+                executeSearch("foo5");
+
+                runs(function () {
+                    var searchHistory = PreferencesManager.getViewState("searchHistory");
+                    expect(searchHistory.length).toBe(5);
+                    expect(searchHistory).toEqual(["foo5", "foo4", "foo3", "foo2", "foo1"]);
+                });
+            });
+            
+            it("should traverse through search history using arrow down key", function () {
+                var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+                openSearchBar(fileEntry);
+                executeSearch("foo1");
+                executeSearch("foo2");
+                executeSearch("foo3");
+                executeSearch("foo4");
+                executeSearch("foo5");
+
+                runs(function () {
+                    var searchHistory = PreferencesManager.getViewState("searchHistory");
+                    var $searchField = $("#find-what");
+
+                    $("#find-what").val("");
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keydown", $searchField[0]);
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keydown", $searchField[0]);
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
+                    expect($("#find-what").val()).toBe("foo5");
+                });
+            });
+            
+            it("should traverse through search history using arrow up key", function () {
+                var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+                openSearchBar(fileEntry);
+                executeSearch("foo1");
+                executeSearch("foo2");
+                executeSearch("foo3");
+                executeSearch("foo4");
+                executeSearch("foo5");
+
+                runs(function () {
+                    var searchHistory = PreferencesManager.getViewState("searchHistory");
+                    var $searchField = $("#find-what");
+
+                    $("#find-what").val("");
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_UP, "keydown", $searchField[0]);
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_UP, "keydown", $searchField[0]);
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
+                    expect($("#find-what").val()).toBe("foo1");
+                });
+            });
+            
+            it("should add element to search history if it is pre-filled in search bar", function () {
+                var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+                openSearchBar(fileEntry);
+
+                runs(function () {
+                    $("#find-what").val("some");
+                    closeSearchBar();
+                    // Adding delay to make sure that search bar is closed
+                    setTimeout(function () {
+                        openSearchBar(fileEntry);
+                        expect($("#find-what").val()).toBe("some");
+                        var searchHistory = PreferencesManager.getViewState("searchHistory");
+                        expect(searchHistory[0]).toBe("some");
+                        var $searchField = $("#find-what");
+                        SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_UP, "keydown", $searchField[0]);
+                        SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_UP, "keydown", $searchField[0]);
+                        SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
+                        expect($("#find-what").val()).toBe("some");
+                    }, 500);
                 });
             });
 

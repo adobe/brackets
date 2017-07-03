@@ -434,7 +434,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "اسناد و منابع در <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "ساخته شده با \u2764 و جاوا اسکریپت توسط:",
     "ABOUT_TEXT_LINE6"                     : "بسیاری از مردم (اما اکنون در بارگذاری داده ها ما مشکل داریم ).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "اسناد و مدارک صفحات وب و آرم اصلی گرافیکی تحت مجوز , <a href='#' class='clickable-link' data-href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 .پایه ریزی شده است</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "اسناد و مدارک صفحات وب و آرم اصلی گرافیکی تحت مجوز , <a href='#' class='clickable-link' data-href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 .پایه ریزی شده است</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "ساخته ی جدیدی از {APP_NAME} هم اکنون در دسترس است! جهت مشاهده جزئیات کلیک کنید.",
     "UPDATE_AVAILABLE_TITLE"               : "بروزرسانی جدید در دسترس است",
     "UPDATE_MESSAGE"                       : "نسخه جدیدی از {APP_NAME} هم اکنون در دسترس است. برخی از مشخصه های آن:",
@@ -620,7 +620,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "پروژه های اخیر",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "بیشتر بخوانید"
 });
 /* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */

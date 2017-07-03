@@ -29,8 +29,8 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(fel {0})",
-    "NOT_FOUND_ERR"                     : "Filen kunde inte hittas.",
-    "NOT_READABLE_ERR"                  : "Filen kunde inte läsas.",
+    "NOT_FOUND_ERR"                     : "Filen/mappen kunde inte hittas.",
+    "NOT_READABLE_ERR"                  : "Filen/mappen kunde inte läsas.",
     "EXCEEDS_MAX_FILE_SIZE"             : "Filer större än {0} MB kan inte öppnas i {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Målmappen kunde inte ändras.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Du har inte behörighet att modifiera filen.",
@@ -45,7 +45,6 @@ define({
     "FILENAMES_LEDE"                    : "Filnamn",
     "FILENAME"                          : "filnamn",
     "DIRECTORY_NAME"                    : "mappnamn",
-
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Projektet kunde inte öppnas",
@@ -63,6 +62,7 @@ define({
     "ERROR_SAVING_FILE"                 : "Ett fel inträffade när filen <span class='dialog-filename'>{0}</span> skulle sparas. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Filen kunde inte döpas om",
     "ERROR_RENAMING_FILE"               : "Ett fel uppstod när {2}-filen <span class='dialog-filename'>{0}</span> skulle döpas om. {1}",
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Filen eller mappen är inte del av det öppna projektet. Tyvärr kan bara projektfiler döpas om för närvarande.",
     "ERROR_DELETING_FILE_TITLE"         : "Filen kunde inte raderas",
     "ERROR_DELETING_FILE"               : "Ett fel uppstod när {2}-filen <span class='dialog-filename'>{0}</span> skulle tas bort. {1}",
     "INVALID_FILENAME_TITLE"            : "Ogiltigt {0}",
@@ -86,6 +86,7 @@ define({
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Kunde inte läsa inställningar",
     "ERROR_PREFS_CORRUPT"               : "Din inställningsfil är inte korrekt formaterad JSON. Filen kommer att öppnas så att du kan korrigera felet. Du kommer att behöva starta om {APP_NAME} för att ändringarna ska träda i kraft.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Dina projektinställningar är inte giltig JSON. Filen kommer att öppnas så att du kan rätta till formatet. Du behöver ladda om projektet för att ändringarna ska träda i kraft.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ajdå! {APP_NAME} körs inte i webbläsaren ännu.",
@@ -128,6 +129,7 @@ define({
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vill du spara ändringarna du gjort följande filer?",
     "EXT_MODIFIED_TITLE"                : "Externa ändringar",
     "CONFIRM_DELETE_TITLE"              : "Bekräfta borttagning",
+    "CONFIRM_FILE_DELETE"               : "Är du säker att du vill radera filen <span class='dialog-filename'>{0}</span>?",
     "CONFIRM_FOLDER_DELETE"             : "Är du säker att du vill radera mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Filen raderades",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> har ändrats.<br /><br />Vill du spara filen och skriva över dessa ändringar?",
@@ -150,6 +152,7 @@ define({
     "FIND_MATCH_INDEX"                  : "{0} av {1}",
     "FIND_NO_RESULTS"                   : "Inga träffar",
     "FIND_QUERY_PLACEHOLDER"            : "Sök\u2026",
+    "FIND_HISTORY_MAX_COUNT"            : "Maximalt antal poster i sökhistoriken",
     "REPLACE_PLACEHOLDER"               : "Ersätt med\u2026",
     "BUTTON_REPLACE_ALL"                : "Alla\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Ersätt\u2026",
@@ -206,6 +209,7 @@ define({
     "FILE_FILTER_DIALOG"                : "Redigera filter",
     "FILE_FILTER_INSTRUCTIONS"          : "Exkludera filer och mappar som matchar någon av följande strängar, substrängar eller <a href='{0}' title='{0}'>wildcards</a>. Ange varje sträng på en ny rad.",
     "FILTER_NAME_PLACEHOLDER"           : "Namnge detta exkluderingsset (frivilligt)",
+    "FILTER_NAME_REMAINING"             : "{0} tecken kvar",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "och {0} till",
     "FILTER_COUNTING_FILES"             : "Räknar filer\u2026",
     "FILTER_FILE_COUNT"                 : "Tillåter {0} av {1} filer {2}",
@@ -248,7 +252,7 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Filen är redan öppen i en annan panel. {APP_NAME} kommer inom kort att stödja möjligheten att öppna samma fil i flera paneler. Filen kommer att visas i nuvarande panel tills dess.<br /><br />(Detta meddelande kommer bara att visas en gång.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
@@ -274,7 +278,7 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Tillägg har avaktiverats",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "ÖVR",
-    "STATUSBAR_INSOVR_TOOLTIP"              : "Klicka för att växla mellan Insert (INS)- och Overwrite (OVR)-läge.",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Klicka för att växla mellan Insert (INS)- och Overwrite (ÖVR)-läge.",
     "STATUSBAR_LANG_TOOLTIP"                : "Klicka för att byta filtyp",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klicka för att visa rapportpanel.",
     "STATUSBAR_DEFAULT_LANG"                : "(standard)",
@@ -291,7 +295,6 @@ define({
     "NOTHING_TO_LINT"                       : "Ingenting att linta",
     "LINTER_TIMED_OUT"                      : "{0} har avbrutits efter att ha väntat {1} ms",
     "LINTER_FAILED"                         : "{0} avbröts efter ett fel: {1}",
-
 
     /**
      * Command Name Constants
@@ -370,11 +373,14 @@ define({
     "VIEW_MENU"                           : "Visa",
     "CMD_HIDE_SIDEBAR"                    : "Dölj sidomeny",
     "CMD_SHOW_SIDEBAR"                    : "Visa sidomeny",
+    "CMD_TOGGLE_SIDEBAR"                  : "Växla på/av sidomeny",
+    "CMD_TOGGLE_PANELS"                   : "Växla på/av paneler",
+    "CMD_TOGGLE_PURE_CODE"                : "Inga distraktioner",
     "CMD_INCREASE_FONT_SIZE"              : "Öka textstorlek",
     "CMD_DECREASE_FONT_SIZE"              : "Minska teckenstorlek",
     "CMD_RESTORE_FONT_SIZE"               : "Återställ teckenstorlek",
-    "CMD_SCROLL_LINE_UP"                  : "Skrolla rad uppåt",
-    "CMD_SCROLL_LINE_DOWN"                : "Skrolla rad nedåt",
+    "CMD_SCROLL_LINE_UP"                  : "Rulla rad uppåt",
+    "CMD_SCROLL_LINE_DOWN"                : "Rulla rad nedåt",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Radnummer",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Markera aktiv rad",
     "CMD_TOGGLE_WORD_WRAP"                : "Automatisk radbrytning",
@@ -386,7 +392,7 @@ define({
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisk sortering",
     "CMD_THEMES"                          : "Teman\u2026",
 
-    // Navigate menu Commands
+    // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navigera",
     "CMD_QUICK_OPEN"                      : "Snabböppna",
     "CMD_GOTO_LINE"                       : "Gå till rad",
@@ -399,10 +405,13 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Ny regel",
     "CMD_NEXT_DOC"                        : "Nästa dokument",
     "CMD_PREV_DOC"                        : "Föregående dokument",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Nästa dokument i lista",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Föregående dokument i lista",
     "CMD_SHOW_IN_TREE"                    : "Visa i filträdet",
     "CMD_SHOW_IN_EXPLORER"                : "Visa i Utforskaren",
     "CMD_SHOW_IN_FINDER"                  : "Visa i Finder",
     "CMD_SHOW_IN_OS"                      : "Visa i operativsystemet",
+    "CMD_SWITCH_PANE_FOCUS"               : "Växla panelfokus",
 
     // Help menu commands
     "HELP_MENU"                           : "Hjälp",
@@ -413,6 +422,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Versionsinformation",
     "CMD_GET_INVOLVED"                    : "Engagera dig",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Visa tilläggsmapp",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Hälsorapport",
     "CMD_HOMEPAGE"                        : "Webbplats för {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} på Twitter",
     "CMD_ABOUT"                           : "Om {APP_TITLE}",
@@ -435,7 +445,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentation och källkod återfinns på <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Skapat med \u2764 och JavaScript av:",
     "ABOUT_TEXT_LINE6"                     : "Massor av människor (men vi har lite problem att visa dessa data just nu).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs och dess logotyp är licenserad under en Creative Commons Attribution-licens, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs och dess logotyp är licenserad under en Creative Commons Attribution-licens, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "En ny version av {APP_NAME} är tillgänglig! Klicka här för fler detaljer.",
     "UPDATE_AVAILABLE_TITLE"               : "Uppdatering tillgänglig!",
     "UPDATE_MESSAGE"                       : "Hallå! En ny version av {APP_NAME} är tillgänglig. Här är några av de nya funktionerna:",
@@ -448,11 +458,14 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adressen kan inte innehålla hashar som \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Specialtecken som '{0}' måste vara %-kodade.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Okänt fel när adressen skulle läsas!",
+
+    // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Öppna en fil medan denna panel är i fokus</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Flippa denna vy till panel {0}",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nuvarande tema",
-    "USE_THEME_SCROLLBARS"                 : "Använd temats scrollbars",
+    "USE_THEME_SCROLLBARS"                 : "Använd temats rullningslister",
     "FONT_SIZE"                            : "Teckenstorlek",
     "FONT_FAMILY"                          : "Typsnitt",
     "THEMES_SETTINGS"                      : "Temainställningar",
@@ -464,6 +477,8 @@ define({
     "INSTALL"                              : "Installera",
     "UPDATE"                               : "Uppdatera",
     "REMOVE"                               : "Radera",
+    "DISABLE"                              : "Avaktivera",
+    "ENABLE"                               : "Aktivera",
     "OVERWRITE"                            : "Skriv över",
     "CANT_REMOVE_DEV"                      : "Tillägg i mappen \"dev\" måste raderas manuellt.",
     "CANT_UPDATE"                          : "Uppdateringen är inte kompatibel med denna version av {APP_NAME}.",
@@ -473,21 +488,23 @@ define({
     "INSTALL_EXTENSION_LABEL"              : "Tilläggets URL",
     "INSTALL_EXTENSION_HINT"               : "URL till tilläggets zip-fil eller GitHub-repository",
     "INSTALLING_FROM"                      : "Installerar tillägg från {0}\u2026",
-    "INSTALL_SUCCEEDED"                    : "Tillägget installerades!",
+    "INSTALL_SUCCEEDED"                    : "Installationen lyckades!",
     "INSTALL_FAILED"                       : "Installationen misslyckades.",
     "CANCELING_INSTALL"                    : "Avbryter\u2026",
     "CANCELING_HUNG"                       : "Installationen avbröts då den tog för lång tid. Ett internt fel kan ha inträffat.",
     "INSTALL_CANCELED"                     : "Installationen avbröts.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Visa hela beskrivningen",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Visa förkortad beskrivning",
+    "SORT_EXTENSION_METHOD"                : "Sortera tillägg på downloadCount eller publishedDate",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Det nedladdade innehållet är inte en fungerande zip-fil.",
+    "MISSING_PACKAGE_JSON"                 : "Paketet saknar filen package.json.",
     "INVALID_PACKAGE_JSON"                 : "Filen package.json är inte korrekt (felet var: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Filen package.json innehåller inte tilläggets namn.",
     "BAD_PACKAGE_NAME"                     : "{0} är inte ett godkänt namn.",
     "MISSING_PACKAGE_VERSION"              : "Filen package.json innehåller inte tilläggets versionsnummer.",
     "INVALID_VERSION_NUMBER"               : "Tilläggets versionsnummer ({0}) är felaktigt.",
-    "INVALID_BRACKETS_VERSION"             : "Kompabilitetssträngen ({0}) för {APP_NAME} är felaktig.",
+    "INVALID_BRACKETS_VERSION"             : "Kompatibilitetssträngen ({0}) för {APP_NAME} är felaktig.",
     "DISALLOWED_WORDS"                     : "Orden ({1}) är inte tillåtna i {0}-fältet.",
     "API_NOT_COMPATIBLE"                   : "Tillägget är inte kompatibelt med denna version av {APP_NAME}. Det har installerats i din mapp med inaktiverade tillägg.",
     "MISSING_MAIN"                         : "Tillägget har ingen fil med namnet main.js.",
@@ -532,10 +549,14 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Kunde inte ta bort ett eller flera tillägg: {0}. {APP_NAME} kommer fortfarande att startas om.",
     "EXTENSION_MANAGER_UPDATE"             : "Uppdatera tillägg",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Kunde inte uppdatera ett eller flera tillägg: {0}. {APP_NAME} kommer fortfarande att startas om.",
+    "EXTENSION_MANAGER_DISABLE"            : "Avaktivera tillägg",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Kan inte avaktivera ett eller flera tillägg: {0}. {APP_NAME} kommer fortfarande att startas om.",
     "MARKED_FOR_REMOVAL"                   : "Markerad för borttagning",
     "UNDO_REMOVE"                          : "Ångra",
     "MARKED_FOR_UPDATE"                    : "Markerad för uppdatering",
     "UNDO_UPDATE"                          : "Ångra",
+    "MARKED_FOR_DISABLING"                 : "Markerad för avaktivering",
+    "UNDO_DISABLE"                         : "Ångra",
     "CHANGE_AND_RELOAD_TITLE"              : "Ändra tillägg",
     "CHANGE_AND_RELOAD_MESSAGE"            : "{APP_NAME} måste startas om för att uppdatera eller ta bort markerade tillägg. Du kommer att få en fråga om att spara eventuella osparade ändringar.",
     "REMOVE_AND_RELOAD"                    : "Ta bort tillägg och starta om",
@@ -550,6 +571,8 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Tillgängliga",
     "EXTENSIONS_THEMES_TITLE"              : "Teman",
     "EXTENSIONS_UPDATES_TITLE"             : "Uppdateringar",
+    "EXTENSIONS_LAST_UPDATED"              : "Senast uppdaterad",
+    "EXTENSIONS_DOWNLOADS"                 : "Nedladdningar",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Inga träffar tillgängliga.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Alla träffar är minimerade. Expandera filerna listade till höger för att visa träffar.",
@@ -562,7 +585,6 @@ define({
     /**
      * Unit names
      */
-
     "UNIT_PIXELS"                          : "pixlar",
 
     // extensions/default/DebugCommands
@@ -572,6 +594,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Starta om med tillägg",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Starta om utan tillägg",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nytt {APP_NAME}-fönster",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Installera genväg i kommandotolk",
     "CMD_SWITCH_LANGUAGE"                       : "Byt språk",
     "CMD_RUN_UNIT_TESTS"                        : "Kör tester",
     "CMD_SHOW_PERF_DATA"                        : "Visa prestandadata",
@@ -581,11 +604,28 @@ define({
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Visa fel i statusraden",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Öppna Brackets källkod",
 
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} kommandotolk-genväg",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Ett fel inträffade under installationen av kommandotolk-genvägen. Vänligen prova <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>dessa felsökningsförslag</a>.<br/><br/>Anledning: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Kunde inte ta bort existerande symlink <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Kunde inte skapa mappen <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Kunde inte skapa symlink <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Internt fel.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "Kommandotolk-genväg stöds inte för det här operativsystemet.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Lyckades! Nu kan du lätt starta {APP_NAME} från kommandotolken: <code>brackets myFile.txt</code> för att öppna en fil eller <code>brackets myFolder</code> för att växla projekt. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Läs mer</a> om att använda {APP_NAME} från kommandotolken.",
+
     "LANGUAGE_TITLE"                            : "Byt språk",
     "LANGUAGE_MESSAGE"                          : "Språk:",
     "LANGUAGE_SUBMIT"                           : "Uppdatera {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Avbryt",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Hälsorapport inställningar",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} Hälsorapport",
+    "HEALTH_DATA_DO_TRACK"                      : "Dela anonym information om hur jag använder {APP_NAME}",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "För att förbättra {APP_NAME} skickar vi regelbundet begränsad, <strong>anonym</strong> statistik till Adobe om hur du använder {APP_NAME}. Denna information hjälper att prioritera funktioner, hitta buggar och upptäcka användbarhetsproblem.<br><br>Du kan se din data eller välja att inte dela din data genom <strong>Hjälp > Hälsorapport</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Läs mer om {APP_NAME} Hälsorapport</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} Hälsorapport",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>För att förbättra {APP_NAME} skickar vi regelbundet begränsad, <strong>anonym</strong> statistik till Adobe om hur du använder {APP_NAME}. Denna information hjälper att prioritera funktioner, hitta buggar och upptäcka användbarhetsproblem. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Läs mer om {APP_NAME} Hälsorapport</a> och hur det gagnar {APP_NAME}-gemenskapen samtidigt som din integritet skyddas.</p><p>Nedan är en förhandsvisning av datan som skickas i nästa Hälsorapport <em>om</em> det är aktiverat.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tid",
@@ -600,6 +640,7 @@ define({
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa-format",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex-format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-format",
+    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex (0x)-format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (använd {1} gång)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (använd {1} gånger)",
 
@@ -619,8 +660,19 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Senaste projekt",
 
-    // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Läs mer"
+    // extensions/default/MDNDocs
+    "DOCS_MORE_LINK"                            : "Läs mer",
+
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Kollapsa alla",
+    "EXPAND_ALL"                    : "Expandera alla",
+    "COLLAPSE_CURRENT"              : "Kollapsa nuvarande",
+    "EXPAND_CURRENT"                : "Expandera nuvarande",
+
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Senaste filer",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Rensa",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Rensa filer ej i arbetsyta"
 });
 
-/* Last translated for fd3ef2bf9041fc067c47d600df1372725f6f5f04 */
+/* Last translated for a01159ac2518fe1f27dfafb62d95a28c2958831f */

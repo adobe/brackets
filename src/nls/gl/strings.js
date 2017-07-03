@@ -422,7 +422,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Podes atopar a documentación e código fonte en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Feito con \u2764 e JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Moita xente (pero agora mesmo estamos tendo problemas para cargar eses datos).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "O contido de Web Platform Docs e o logo de Web Platform están dispoñibles baixo unha Licencia de Recoñecemento de Creative Commons, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "O contido de MDN Docs e o logo de MDN están dispoñibles baixo unha Licencia de Recoñecemento de Creative Commons, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hai unha nova versión de {APP_NAME} dispoñible! Fai click aquí para máis detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización dispoñible",
     "UPDATE_MESSAGE"                       : "¡Hai unha nova versión de {APP_NAME} dispoñible! Éstas son algunas das novas características:",
@@ -605,7 +605,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proxectos recentes",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Máis"
 });
 

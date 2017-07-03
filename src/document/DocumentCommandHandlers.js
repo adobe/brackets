@@ -322,6 +322,22 @@ define(function (require, exports, module) {
             });
 
             var file = FileSystem.getFileForPath(fullPath);
+            if (options && options.encoding) {
+                file._encoding = options.encoding;
+            } else {
+                var projectRoot = ProjectManager.getProjectRoot(),
+                    context = {
+                        location : {
+                            scope: "user",
+                            layer: "project",
+                            layerID: projectRoot.fullPath
+                        }
+                    };
+                var encoding = PreferencesManager.getViewState("encoding", context);
+                if (encoding[fullPath]) {
+                    file._encoding = encoding[fullPath];
+                }
+            }
             MainViewManager._open(paneId, file, options)
                 .done(function () {
                     result.resolve(file);
@@ -626,10 +642,8 @@ define(function (require, exports, module) {
         // If a file is currently selected in the tree, put it next to it.
         // If a directory is currently selected in the tree, put it in it.
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
-        // (Note: 'selected' may be an item that's selected in the workingset and not the tree; but in that case
-        // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDirEntry,
-            selected = ProjectManager.getSelectedItem();
+            selected = ProjectManager.getFileTreeContext();
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
@@ -902,7 +916,21 @@ define(function (require, exports, module) {
             doc.isSaving = true;    // mark that we're saving the document
 
             // First, write document's current text to new file
+            if (doc.file._encoding && doc.file._encoding !== "UTF-8") {
+                var projectRoot = ProjectManager.getProjectRoot(),
+                    context = {
+                        location : {
+                            scope: "user",
+                            layer: "project",
+                            layerID: projectRoot.fullPath
+                        }
+                    };
+                var encoding = PreferencesManager.getViewState("encoding", context);
+                encoding[path] = doc.file._encoding;
+                PreferencesManager.setViewState("encoding", encoding, context);
+            }
             newFile = FileSystem.getFileForPath(path);
+            newFile._encoding = doc.file._encoding;
 
             // Save as warns you when you're about to overwrite a file, so we
             // explicitly allow "blind" writes to the filesystem in this case,

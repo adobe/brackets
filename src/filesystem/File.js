@@ -54,6 +54,21 @@ define(function (require, exports, module) {
      * @type {?string}
      */
     File.prototype._contents = null;
+    
+    
+    /**
+     * Encoding detected by brackets-shell
+     * @private
+     * @type {?string}
+     */
+    File.prototype._encoding = null;
+
+    /**
+     * BOM detected by brackets-shell
+     * @private
+     * @type {?bool}
+     */
+    File.prototype._preserveBOM = false;
 
     /**
      * Consistency hash for this file. Reads and writes update this value, and
@@ -86,14 +101,16 @@ define(function (require, exports, module) {
         if (typeof (options) === "function") {
             callback = options;
             options = {};
+            options.encoding = this._encoding;
         }
+        options.encoding = this._encoding || "utf8";
 
         // We don't need to check isWatched() here because contents are only saved
         // for watched files. Note that we need to explicitly test this._contents
         // for a default value; otherwise it could be the empty string, which is
         // falsey.
         if (this._contents !== null && this._stat) {
-            callback(null, this._contents, this._stat);
+            callback(null, this._contents, this._encoding, this._stat);
             return;
         }
 
@@ -102,7 +119,7 @@ define(function (require, exports, module) {
             options.stat = this._stat;
         }
 
-        this._impl.readFile(this._path, options, function (err, data, stat) {
+        this._impl.readFile(this._path, options, function (err, data, encoding, preserveBOM, stat) {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -111,6 +128,8 @@ define(function (require, exports, module) {
 
             // Always store the hash
             this._hash = stat._hash;
+            this._encoding = encoding;
+            this._preserveBOM = preserveBOM;
 
             // Only cache data for watched files
             if (watched) {
@@ -118,7 +137,7 @@ define(function (require, exports, module) {
                 this._contents = data;
             }
 
-            callback(err, data, stat);
+            callback(err, data, encoding, stat);
         }.bind(this));
     };
 
@@ -147,6 +166,10 @@ define(function (require, exports, module) {
             options.expectedHash = this._hash;
             options.expectedContents = this._contents;
         }
+        if (!options.encoding) {
+            options.encoding = this._encoding || "utf8";
+        }
+        options.preserveBOM = this._preserveBOM;
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
