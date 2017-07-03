@@ -35,10 +35,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Kohdehakemistoa ei voi muuttaa.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
     "CONTENTS_MODIFIED_ERR"             : "Tiedostoa on muokattu {APP_NAME}in ulkopuolella.",
-    "UNSUPPORTED_ENCODING_ERR"          : "Tuntematon enkoodausmuoto",
-    "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} ei voinut enkoodata tämän tiedoston sisältöä.",
-    "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} ei voinut dekoodata tämän tiedoston sisältöä.",
-    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} ei tällä hetkellä tue UTF-16-koodattuja tiedostoja.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} tukee tällä hetkellä vain UTF-8-koodattuja tekstitiedostoja.",
     "FILE_EXISTS_ERR"                   : "Tiedosto tai hakemisto on jo olemassa.",
     "FILE"                              : "tiedosto",
     "FILE_TITLE"                        : "tiedosto",
@@ -155,9 +152,8 @@ define({
     "FIND_MATCH_INDEX"                  : "{0} / {1}",
     "FIND_NO_RESULTS"                   : "Ei tuloksia",
     "FIND_QUERY_PLACEHOLDER"            : "Etsi\u2026",
-    "FIND_HISTORY_MAX_COUNT"            : "Kohteiden enimmäismäärä hakuhistoriassa",
     "REPLACE_PLACEHOLDER"               : "Korvaa merkkijonolla\u2026",
-    "BUTTON_REPLACE_ALL"                : "Korvaa kaikki",
+    "BUTTON_REPLACE_ALL"                : "Kaikki\u2026",
     "BUTTON_REPLACE_BATCH"              : "Korvaa erissä\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Korvaa\u2026",
     "BUTTON_REPLACE"                    : "Korvaa",
@@ -214,7 +210,6 @@ define({
     "FILE_FILTER_DIALOG"                : "Muokkaa ohitusjoukkoa",
     "FILE_FILTER_INSTRUCTIONS"          : "Ohita tiedostoja ja kansioita, jotka sopivat mihin tahansa seuraavista merkkijonoista tai alimerkkijonoista. Voit käyttää myös <a href='{0}' title='{0}'>jokerimerkkiä</a>. Kirjoita kukin merkkijono uudelle riville.",
     "FILTER_NAME_PLACEHOLDER"           : "Nimeä tämä ohitusjoukko (valinnainen)",
-    "FILTER_NAME_REMAINING"             : "{0} merkkiä jäljellä",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
     "FILTER_COUNTING_FILES"             : "Lasketaan tiedostoja\u2026",
     "FILTER_FILE_COUNT"                 : "Sallii {0} yhteensä {1} tiedostosta {2}",
@@ -294,7 +289,6 @@ define({
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Näytä tai piilota raporttipaneeli napsauttamalla.",
     "STATUSBAR_DEFAULT_LANG"                : "(oletus)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Aseta oletukseksi .{0}-tiedostoille",
-    "STATUSBAR_ENCODING_TOOLTIP"            : "Valitse enkoodaus",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} ongelmaa",
@@ -419,8 +413,6 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Uusi sääntö",
     "CMD_NEXT_DOC"                        : "Seuraava dokumentti",
     "CMD_PREV_DOC"                        : "Edellinen dokumentti",
-    "CMD_NAVIGATE_BACKWARD"               : "Siirry taaksepäin",
-    "CMD_NAVIGATE_FORWARD"                : "Siirry eteenpäin",
     "CMD_NEXT_DOC_LIST_ORDER"             : "Seuraava dokumentti listassa",
     "CMD_PREV_DOC_LIST_ORDER"             : "Edellinen dokumentti listassa",
     "CMD_SHOW_IN_TREE"                    : "Näytä tiedostopuussa",
@@ -461,7 +453,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "He tekivät tämän \u2764:lla ja JavaScriptillä:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on juuri nyt vaikeuksia ladata näitä tietoja).",
-    "ABOUT_TEXT_MDN_DOCS"                  : "MDN-dokumentit ja graafinen MDN-logo on lisensoitu Creative Commons Attribution \u2011lisenssillä, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN \u2011dokumentit ja graafinen MDN \u2011logo on lisensoitu Creative Commons Attribution \u2011lisenssillä, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Uusi {APP_NAME}-versio on saatavilla! Saat lisätietoja napsauttamalla tästä.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavilla",
     "UPDATE_MESSAGE"                       : "Hei, uusi {APP_NAME}-versio on saatavilla. Tässä on joitakin uusista ominaisuuksista:",
@@ -511,7 +503,7 @@ define({
     "INSTALL_CANCELED"                     : "Asennus on peruutettu.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Näytä täysi kuvaus",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Näytä katkaistu kuvaus",
-    "SORT_EXTENSION_METHOD"                : "Järjestele laajennukset latausmäärän tai päivitysajankohdan mukaan",
+    "SORT_EXTENSION_METHOD"                : "Lajittele laajennukset latausmäärän tai päivitysajankohdan mukaan",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
     "MISSING_PACKAGE_JSON"                 : "Paketissa ei ole tiedostoa package.json.",
@@ -559,7 +551,7 @@ define({
     "EXTENSION_TRANSLATED_LANGS"           : "Tämä laajennus on käännetty näille kielille: {0}",
     "EXTENSION_INSTALLED"                  : "Asennettu",
     "EXTENSION_UPDATE_INSTALLED"           : "Tämä laajennuspäivitys on ladattu ja asennetaan {APP_NAME}in latauduttua uudelleen.",
-    "EXTENSION_SEARCH_PLACEHOLDER"         : "Hae",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Haku",
     "EXTENSION_MORE_INFO_LINK"             : "Lisää",
     "BROWSE_EXTENSIONS"                    : "Selaa laajennuksia",
     "EXTENSION_MANAGER_REMOVE"             : "Poista laajennus",
@@ -658,7 +650,6 @@ define({
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa-muoto",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex-muoto",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-muoto",
-    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex (0x) \u2011muoto",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (käytetty {1} kerran)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (käytetty {1} kertaa)",
 
@@ -759,7 +750,6 @@ define({
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Ylimääräiset liitokset tiedostopäätteestä kielen nimeen",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Ylimääräiset liitokset tiedostonimestä kielen nimeen",
     "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Kopiointi ja leikkaaminen ilman valintaa kopioi tai leikkaa kokonaan rivit, joilla on kohdistin",
-    "DESCRIPTION_INPUT_STYLE"                        : "Valitsee, miten CodeMirror käsittelee syötteen ja kohdistuksen. Se voi olla textarea, joka on oletus, tai contenteditable, joka on parempi näytönlukijoille (mutta epävakaa)",
     "DESCRIPTION_LINTING_ENABLED"                    : "true: ota koodin tarkistus käyttööön",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "Aika, jonka jälkeen asynkroniset tarkistimet aikakatkaistaan, millisekunteina",
     "DESCRIPTION_LINTING_PREFER"                     : "Taulukko tarkistimista, jotka suoritetaan ensin",
@@ -804,8 +794,7 @@ define({
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true: ota vain koodi -näkymä käyttöön ja piilota muut {APP_NAME}in käyttöliittymäelementit",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true: ota rivikommenttien sisennys käyttöön",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Ota viimeaikaisiin tiedostoihin siirtyminen käyttöön tai poista se käytöstä",
-    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "WebSocket-palvelimen käyttämä portti esikatselua varten",
-    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Esikatselun korostuksen asetukset"
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "WebSocket-palvelimen käyttämä portti esikatselua varten"
 });
 
-/* Last translated for 6ac21ffbe51dde2256fe6c44be007f3cd1390e7a */
+/* Last translated for 2954858128883a7bbd2a0488be4ee88fc8a07981 */
