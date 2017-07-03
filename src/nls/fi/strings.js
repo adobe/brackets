@@ -453,7 +453,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "He tekivät tämän \u2764:lla ja JavaScriptillä:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on juuri nyt vaikeuksia ladata näitä tietoja).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform \u2011dokumentit ja graafinen Web Platform \u2011logo on lisensoitu Creative Commons Attribution \u2011lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN \u2011dokumentit ja graafinen MDN \u2011logo on lisensoitu Creative Commons Attribution \u2011lisenssillä, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Uusi {APP_NAME}-versio on saatavilla! Saat lisätietoja napsauttamalla tästä.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavilla",
     "UPDATE_MESSAGE"                       : "Hei, uusi {APP_NAME}-versio on saatavilla. Tässä on joitakin uusista ominaisuuksista:",
@@ -669,7 +669,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Viimeaikaiset projektit",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Lue lisää",
 
     // extensions/default/CodeFolding

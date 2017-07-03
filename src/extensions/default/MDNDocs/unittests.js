@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         testCSS             = require("text!unittest-files/test1.css"),
         testHTML            = require("text!unittest-files/test1.html");
 
-    describe("WebPlatformDocs", function () {
+    describe("MDNDocs", function () {
 
         var testCSSInfo     = SpecRunnerUtils.parseOffsetsFromText(testCSS),
             testHTMLInfo    = SpecRunnerUtils.parseOffsetsFromText(testHTML),
@@ -64,10 +64,10 @@ define(function (require, exports, module) {
 
                     if (expectInline) {
                         // expecting a valid CSS property
-                        waitsForDone(promise, "WebPlatformDocs _inlineProvider", 1000);
+                        waitsForDone(promise, "MDNDocs _inlineProvider", 1000);
                     } else {
                         // expecting an invalid css property
-                        waitsForFail(promise, "WebPlatformDocs _inlineProvider", 1000);
+                        waitsForFail(promise, "MDNDocs _inlineProvider", 1000);
                     }
                 }
             });
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
                 var json;
 
                 runs(function () {
-                    main._getCSSDocs().done(function (result) {
+                    main._getDocs("css.json").done(function (result) {
                         json = result;
                     });
                 });
@@ -98,7 +98,23 @@ define(function (require, exports, module) {
                 waitsFor(function () { return json !== undefined; }, "read css.json database", 5000);
 
                 runs(function () {
-                    expect(Object.keys(json.PROPERTIES).length).toBeGreaterThan(0);
+                    expect(Object.keys(json).length).toBeGreaterThan(0);
+                });
+            });
+            
+            it("should retrieve the HTML docs database", function () {
+                var json;
+                
+                runs(function () {
+                    main._getDocs("html.json").done(function (result) {
+                        json = result;
+                    });
+                });
+                
+                waitsFor(function () { return json !== undefined; }, "read html.json database", 5000);
+                
+                runs(function () {
+                    expect(Object.keys(json).length).toBeGreaterThan(0);
                 });
             });
 
@@ -165,8 +181,36 @@ define(function (require, exports, module) {
                 queryInlineAtPos(testHTMLInfo, 0, true, "border");
             });
 
-            it("should not open docs for inline style attributes", function () {
-                queryInlineAtPos(testHTMLInfo, 1, false);
+            it("should open docs when the selection is on an HTML tag", function () {
+                queryInlineAtPos(testHTMLInfo, 1, true, "<body>");
+            });
+            
+            it("should not open docs when the selection is on an invalid HTML tag", function () {
+                queryInlineAtPos(testHTMLInfo, 2, false);
+            });
+            
+            it("should not open docs when the selection is not an HTML tag", function () {
+                /* Text */
+                queryInlineAtPos(testHTMLInfo, 3, false);
+                
+                /* Commented tag */
+                queryInlineAtPos(testHTMLInfo, 4, false);
+            });
+            
+            it("should open docs when the selection is on an HTML attribute", function () {
+                queryInlineAtPos(testHTMLInfo, 5, true, "<div>");
+            });
+            
+            it("should open docs for tag (fallback) when the selection is on an HTML attribute's value", function () {
+                queryInlineAtPos(testHTMLInfo, 6, true, "<div>");
+            });
+            
+            it("should open docs for tag (fallback) when the selection is on an invalid HTML attribute", function () {
+                queryInlineAtPos(testHTMLInfo, 7, true, "<div>");
+            });
+            
+            it("should not open docs when the selection is on an invalid HTML attribute on an invalid HTML tag", function () {
+                queryInlineAtPos(testHTMLInfo, 8, false);
             });
 
         });

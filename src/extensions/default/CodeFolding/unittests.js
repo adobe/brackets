@@ -37,10 +37,10 @@ define(function (require, exports, module) {
                 },
                 html: {
                     filePath: testDocumentDirectory + "test.html",
-                    foldableLines: [1, 2, 5, 7, 8, 12, 13, 14, 18, 19, 24, 27],
-                    sameLevelFoldableLines: [8, 24],
-                    firstSelection: {start: {line: 3, ch: 0}, end: {line: 10, ch: 0}},
-                    secondSelection: {start: {line: 6, ch: 0}, end: {line: 17, ch: 4}}
+                    foldableLines: [1, 2, 3, 4, 8, 9, 14, 15, 16, 20, 21, 22, 23, 28, 29, 34, 37],
+                    sameLevelFoldableLines: [3, 8],
+                    firstSelection: {start: {line: 38, ch: 0}, end: {line: 41, ch: 0}},
+                    secondSelection: {start: {line: 42, ch: 0}, end: {line: 45, ch: 4}}
                 },
                 hbs: {
                     filePath: testDocumentDirectory + "test.hbs",
@@ -382,7 +382,7 @@ define(function (require, exports, module) {
                         });
                     });
 
-                    it("can be disable persistence of fold states", function () {
+                    it("can disable persistence of fold states", function () {
                         setPreference("saveFoldStates", false);
                         runs(function () {
                             foldCodeOnLine(foldableLines[0]);
@@ -398,6 +398,14 @@ define(function (require, exports, module) {
                         runs(function () {
                             var marks = getEditorFoldMarks();
                             expect(marks.length).toEqual(0);
+                        });
+                        
+                        runs(function () {
+                            var lineNumbers = foldableLines;
+                            var marks = getGutterFoldMarks();
+                            var gutterNumbers = marks.filter(filterOpen)
+                                .map(getLineNumber);
+                            expect(gutterNumbers).toEqual(toZeroIndex(lineNumbers));
                         });
                     });
 

@@ -7,6 +7,7 @@ module.exports = {
         "no-empty": 1,
         "no-invalid-regexp": 2,
         "no-regex-spaces": 2,
+        "no-unsafe-negation": 1,
         "valid-jsdoc": 0,
         "valid-typeof": 2,
         // http://eslint.org/docs/rules/#best-practices
@@ -23,6 +24,7 @@ module.exports = {
         "no-new-wrappers": 2,
         "no-new": 2,
         "no-proto": 2,
+        "no-redeclare": 1,
         "no-script-url": 2,
         "wrap-iife": [2, "outside"],
         // http://eslint.org/docs/rules/#strict-mode

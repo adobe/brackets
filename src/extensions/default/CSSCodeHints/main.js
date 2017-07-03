@@ -468,7 +468,7 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
         var cssPropHints = new CssPropHints();
-        CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss", "less"], 0);
+        CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss", "less"], 1);
 
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-css-hints.css");
 
