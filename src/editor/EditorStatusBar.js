@@ -527,7 +527,8 @@ define(function (require, exports, module) {
             };
         var encoding = PreferencesManager.getViewState("encoding", context);
         if (!encoding) {
-            PreferencesManager.setViewState("encoding", {}, context);
+            encoding = {};
+            PreferencesManager.setViewState("encoding", encoding, context);
         }
         Async.doSequentially(Object.keys(encoding), function (filePath, index) {
             return _checkFileExistance(filePath, index, encoding);
