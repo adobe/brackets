@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         DocumentObserver      = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/DocumentObserver.js"),
         RemoteFunctions       = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         EditorManager         = require("editor/EditorManager"),
+        LiveDevMultiBrowser   = require("LiveDevelopment/LiveDevMultiBrowser"),
         HTMLInstrumentation   = require("language/HTMLInstrumentation");
 
     /**
@@ -213,7 +214,7 @@ define(function (require, exports, module) {
         // Inject DocumentObserver into the browser (tracks related documents)
         script += DocumentObserver;
         // Inject remote functions into the browser.
-        script += "window._LD=(" + RemoteFunctions + "())";
+        script += "window._LD=(" + RemoteFunctions + "(" + JSON.stringify(LiveDevMultiBrowser.config) + "))";
         return "<script>\n" + script + "</script>\n";
     }
 
