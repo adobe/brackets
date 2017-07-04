@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         if (token.state.base && token.state.base.localState) {
             cmState = token.state.base.localState;
         } else {
-            cmState = token.state;
+            cmState = token.state.localState || token.state;
         }
 
         // Check if we are at '@' rule 'def' context
