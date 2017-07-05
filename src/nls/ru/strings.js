@@ -390,7 +390,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Документация и исходный код находятся на <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Сделано с \u2764 и на JavaScript:",
     "ABOUT_TEXT_LINE6"                     : "Длинный список инженеров, но, к сожалению, в данный момент мы не можем его показать.",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs and the MDN graphical logo are licensed under a Creative Commons Attribution license, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Нажмите здесь для подробностей.",
     "UPDATE_AVAILABLE_TITLE"               : "Доступно обновление",
     "UPDATE_MESSAGE"                       : "Эй, новая версия {APP_NAME} доступна. Вот некоторые из новых функций:",

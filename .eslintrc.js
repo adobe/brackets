@@ -24,6 +24,7 @@ module.exports = {
         "no-new-wrappers": 2,
         "no-new": 2,
         "no-proto": 2,
+        "no-redeclare": 1,
         "no-script-url": 2,
         "wrap-iife": [2, "outside"],
         // http://eslint.org/docs/rules/#strict-mode

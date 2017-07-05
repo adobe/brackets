@@ -1578,10 +1578,18 @@ a, img {
         }
 
         #find-what {
-            padding-right: 62px;  // room for #find-counter overlay
+            padding-right: 78px;  // room for #find-counter overlay
             width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
         }
-        #find-counter {
+
+        .dropdown-icon {
+            background: url(images/dropdown-icon.svg) no-repeat scroll 15px 15px;
+            background-position: center right;
+            width: 20px;
+            height: 20px;
+        }
+
+        #find-counter, .dropdown-icon {
             position: absolute;
             color: @bc-text-thin-quiet;
             top: 1px;
@@ -1687,7 +1695,11 @@ a, img {
         border-top-right-radius: 3px;
         border-bottom-right-radius: 3px;
         border-left: none;
-        border-right: 1px solid #b2b5b5;
+        border-right: 1px solid @bc-btn-border;
+        
+        .dark & {
+            border-right-color: @dark-bc-btn-border;
+        }
     }
 
     // Make find field snug with options buttons
@@ -1822,6 +1834,7 @@ textarea.exclusions-editor {
 #find-counter {
     font-weight: @font-weight-semibold;
     padding: 0 5px;
+    margin-right: 17px;
 }
 
 .tickmark-track {
@@ -2099,9 +2112,33 @@ textarea.exclusions-editor {
         text-align: right;  // make line number line up with editor line numbers
     }
 
+    .line-icon {
+        vertical-align: middle;
+
+        .line-icon-default {
+            width: 20px;
+            height: 18px;
+            background-image: url(images/topcoat-inactive-15.svg);
+            background-repeat: no-repeat;
+            background-position: 0px 1px;
+        }
+
+        // Add an image based on the type of the problem.
+        .line-icon-problem_type_error {
+            background-image: url(images/topcoat-error-15.svg);
+        }
+        .line-icon-problem_type_warning {
+            background-image: url(images/topcoat-warning-15.svg);
+        }
+        .line-icon-problem_type_meta {
+            background-image: url(images/topcoat-inactive-15.svg);
+        }
+    }
+
     .line-text {
         white-space: nowrap;
         width: auto;
+        padding-left: 5px;
     }
 
     .line-snippet {
@@ -2286,4 +2323,8 @@ label input {
 .theme-settings .modal-body {
     min-height: 300px;
     max-height: 300px;
+}
+
+#status-language button, #status-encoding button {
+    width: auto;
 }

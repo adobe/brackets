@@ -275,7 +275,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 elementStyling = window.getComputedStyle(element),
                 transitionDuration = parseFloat(elementStyling.getPropertyValue('transition-duration')),
                 animationDuration = parseFloat(elementStyling.getPropertyValue('animation-duration'));
-			
+            
             if (transitionDuration) {
                 animateHighlight(transitionDuration);
             }
@@ -296,8 +296,21 @@ function RemoteFunctions(config, remoteWSPort) {
               bottom: elementStyling.getPropertyValue('border-bottom-width')
             };
             
-            var innerWidth = elementBounds.width - parseInt(realElBorder.left) - parseInt(realElBorder.right);
-            var innerHeight = elementBounds.height - parseInt(realElBorder.top) - parseInt(realElBorder.bottom);
+            var borderBox = elementStyling.boxSizing === 'border-box';
+            
+            var innerWidth = parseFloat(elementStyling.width),
+                innerHeight = parseFloat(elementStyling.height),
+                outerHeight = innerHeight,
+                outerWidth = innerWidth;
+                
+            if (!borderBox) {
+                innerWidth += parseFloat(elementStyling.paddingLeft) + parseFloat(elementStyling.paddingRight);
+                innerHeight += parseFloat(elementStyling.paddingTop) + parseFloat(elementStyling.paddingBottom);
+                outerWidth = innerWidth + parseFloat(realElBorder.right) +
+                parseFloat(realElBorder.left),
+                outerHeight = innerHeight + parseFloat(realElBorder.bottom) + parseFloat(realElBorder.top);
+            }
+
           
             var visualisations = {
                 horizontal: "left, right",
@@ -306,19 +319,27 @@ function RemoteFunctions(config, remoteWSPort) {
           
             var drawPaddingRect = function(side) {
               var elStyling = {};
-              
+                
               if (visualisations.horizontal.indexOf(side) >= 0) {
                 elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
-                elStyling['height'] = innerHeight  + "px";
-                elStyling['top'] = realElBorder.top;
+                elStyling['height'] = innerHeight + "px";
+                elStyling['top'] = 0;
+                  
+                  if (borderBox) {
+                    elStyling['height'] = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
+                  }
                 
               } else {
                 elStyling['height'] = elementStyling.getPropertyValue('padding-' + side);  
                 elStyling['width'] = innerWidth + "px";
-                elStyling['left'] = realElBorder.left;
+                elStyling['left'] = 0;
+                  
+                  if (borderBox) {
+                    elStyling['width'] = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
+                  }
               }
-              
-              elStyling[side] = realElBorder[side];
+                
+              elStyling[side] = 0;
               elStyling['position'] = 'absolute';
               
               return elStyling;
@@ -328,24 +349,23 @@ function RemoteFunctions(config, remoteWSPort) {
             var elStyling = {};
             
             var margin = [];
-            margin['right'] = parseInt(elementStyling.getPropertyValue('margin-right'));
-            margin['top'] = parseInt(elementStyling.getPropertyValue('margin-top'));
-            margin['bottom'] = parseInt(elementStyling.getPropertyValue('margin-bottom'));
-            margin['left'] = parseInt(elementStyling.getPropertyValue('margin-left'));
+            margin['right'] = parseFloat(elementStyling.getPropertyValue('margin-right'));
+            margin['top'] = parseFloat(elementStyling.getPropertyValue('margin-top'));
+            margin['bottom'] = parseFloat(elementStyling.getPropertyValue('margin-bottom'));
+            margin['left'] = parseFloat(elementStyling.getPropertyValue('margin-left'));
           
-      
             if(visualisations['horizontal'].indexOf(side) >= 0) {
-              elStyling['width'] =  elementStyling.getPropertyValue('margin-' + side);
-              elStyling['height'] = elementBounds.height + margin['top'] + margin['bottom'] + "px";
-              elStyling['top'] = "-" + margin['top'] + "px";
 
+              elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
+              elStyling['height'] = outerHeight + margin['top'] + margin['bottom'] + "px";
+              elStyling['top'] = "-" + (margin['top'] + parseFloat(realElBorder.top))  + "px";
             } else {
-              elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);  
-              elStyling['width'] = elementBounds.width + "px";
-              elStyling['left'] = 0;
+              elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);
+              elStyling['width'] = outerWidth + "px";
+              elStyling['left'] = "-" + realElBorder.left;
             }
 
-            elStyling[side] = "-" + margin[side] + "px";
+            elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
             elStyling['position'] = 'absolute';
 
             return elStyling;
@@ -364,7 +384,6 @@ function RemoteFunctions(config, remoteWSPort) {
             };
             
             var mainBoxStyles = config.remoteHighlight.stylesToSet;
-            mainBoxStyles['border'] = 'none';
             
             var paddingVisualisations = [
               drawPaddingRect('top'),
@@ -386,7 +405,6 @@ function RemoteFunctions(config, remoteWSPort) {
                     setVisibility(arr[i]);
                     
                     // Applies to every visualisationElement (padding or margin div)
-                    arr[i]["box-sizing"] = "border-box";
                     arr[i]["transform"] = "none";
                     var el = window.document.createElement("div"),
                         styles = Object.assign(
@@ -413,26 +431,37 @@ function RemoteFunctions(config, remoteWSPort) {
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
+            		
+            var el = element,		
+            offsetLeft = 0,		
+            offsetTop  = 0;		
+             		
+            // Probably the easiest way to get elements position without including transform		
+            do {		
+               offsetLeft += el.offsetLeft;		
+               offsetTop  += el.offsetTop;		
+               el = el.offsetParent;		
+            } while(el);
 
             var stylesToSet = {
-                "left": offset.left + "px",
-                "top": offset.top + "px",
-                "width": elementBounds.width + "px",
-                "height": elementBounds.height + "px",
+                "left": offsetLeft + "px",
+                "top": offsetTop + "px",
+                "width": innerWidth + "px",
+                "height": innerHeight + "px",
                 "z-index": 2000000,
                 "margin": 0,
                 "padding": 0,
                 "position": "absolute",
                 "pointer-events": "none",
-                "border-top-left-radius": elementStyling.borderTopLeftRadius,
-                "border-top-right-radius": elementStyling.borderTopRightRadius,
-                "border-bottom-left-radius": elementStyling.borderBottomLeftRadius,
-                "border-bottom-right-radius": elementStyling.borderBottomRightRadius,
-                "border-style": "solid",
-                "border-width": "1px",
-                "border-color": "#00a2ff",
                 "box-shadow": "0 0 1px #fff",
-                "box-sizing": "border-box"
+                "box-sizing": elementStyling.getPropertyValue('box-sizing'),		
+                "border-right": elementStyling.getPropertyValue('border-right'),		
+                "border-left": elementStyling.getPropertyValue('border-left'),		
+                "border-top": elementStyling.getPropertyValue('border-top'),		
+                "border-bottom": elementStyling.getPropertyValue('border-bottom'),		
+                "transform": elementStyling.getPropertyValue('transform'),		
+                "transform-origin": elementStyling.getPropertyValue('transform-origin'),		
+                "border-color": config.remoteHighlight.borderColor
             };
             
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
@@ -1019,10 +1048,10 @@ function RemoteFunctions(config, remoteWSPort) {
         _ws.onopen = function () {
             window.document.addEventListener("click", onDocumentClick);
         };
-				
+                
         _ws.onmessage = function (evt) {
         };
-				
+                
         _ws.onclose = function () {
             // websocket is closed
             window.document.removeEventListener("click", onDocumentClick);

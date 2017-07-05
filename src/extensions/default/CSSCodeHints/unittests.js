@@ -51,6 +51,21 @@ define(function (require, exports, module) {
                              " bordborder: \n" +
                              " color\n" +
                              "} \n";
+                             
+        var defaultHTMLContent = "<html> \n" +
+                                 "<head> \n" +
+                                 "</head> \n" +
+                                 "<body> \n" +
+                                 "<div style=' \n" + // line 4
+                                 " \n" +
+                                 " b\n" +
+                                 " bord\n" +
+                                 " border-\n" +
+                                 " border-colo\n" +
+                                 " border-color: red;'>\n" + // line 10
+                                 "</div> \n" +
+                                 "</body> \n" +
+                                 "</html> \n";
 
         var testDocument, testEditor;
 
@@ -437,6 +452,92 @@ define(function (require, exports, module) {
             });
 
         });
+        
+        describe("CSS Hint provider in style attribute value context for html mode", function () {
+
+            beforeEach(function () {
+                // create Editor instance (containing a CodeMirror instance)
+                var mock = SpecRunnerUtils.createMockEditor(defaultHTMLContent, "html");
+                testEditor = mock.editor;
+                testDocument = mock.doc;
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testEditor = null;
+                testDocument = null;
+            });
+            
+            it("should list all prop-name hints right after the open quote for style value context", function () {
+                testEditor.setCursorPos({ line: 4, ch: 12 });    // after "='"
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
+            });
+
+            it("should list all prop-name hints in new line for style value context", function () {
+                testEditor.setCursorPos({ line: 5, ch: 0 });
+
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
+            });
+
+            it("should list all prop-name hints starting with 'b' in new line for style value context", function () {
+                testEditor.setCursorPos({ line: 6, ch: 2 });
+
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "backface-visibility");  // filtered on "b"
+            });
+
+            it("should list all prop-name hints starting with 'bord' for style value context", function () {
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 6, ch: 2 });
+
+                testEditor.setCursorPos({ line: 7, ch: 5 });
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "border");  // filtered on "bord"
+            });
+
+            it("should list all prop-name hints starting with 'border-' for style value context", function () {
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 7, ch: 5 });
+
+                testEditor.setCursorPos({ line: 8, ch: 8 });
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "border-bottom");  // filtered on "border-"
+            });
+
+            it("should list only prop-name hint border-color for style value context", function () {
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 8, ch: 8 });
+
+                testEditor.setCursorPos({ line: 9, ch: 12 });
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "border-color");  // filtered on "border-color"
+                verifyListsAreIdentical(hintList, ["border-color",
+                                                   "border-left-color",
+                                                   "border-top-color",
+                                                   "border-bottom-color",
+                                                   "border-right-color"]);
+            });
+
+            it("should list prop-name hints at end of property-value finished by ; for style value context", function () {
+                testEditor.setCursorPos({ line: 10, ch: 19 });    // after ;
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
+            });
+
+            it("should NOT list prop-name hints right before style value context", function () {
+                testEditor.setCursorPos({ line: 4, ch: 11 });    // after =
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
+            });
+
+            it("should NOT list prop-name hints after style value context", function () {
+                testEditor.setCursorPos({ line: 10, ch: 20 });    // after "'"
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
+            });
+            
+        });
+
 
         describe("CSS hint provider in other filecontext (e.g. javascript)", function () {
             var defaultContent = "function foobar (args) { \n " +

@@ -2,7 +2,7 @@
     <tbody>
         {{#reportList}}
         <tr class="inspector-section">
-            <td colspan="3">
+            <td colspan="4">
                 <span class="disclosure-triangle {{#isExpanded}}expanded{{/isExpanded}}"></span>
                 <input type="hidden" value="{{providerName}}" />
                 {{providerName}} ({{results.length}})
@@ -11,6 +11,9 @@
         {{#results}}
         <tr class="{{display}}">
             <td class="line-number" data-character="{{pos.ch}}">{{friendlyLine}}</td>
+            <td class="line-icon">
+                <div class="line-icon-default line-icon-{{type}}"></div>
+            </td>
             <td class="line-text">{{message}}</td>
             <td class="line-snippet">{{codeSnippet}}</td>
         </tr>
