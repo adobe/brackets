@@ -649,6 +649,10 @@ define(function (require, exports, module) {
         if (_isInPropValue(ctx)) {
             return _getRuleInfoStartingFromPropValue(ctx, ctx.editor);
         }
+        
+        if (_isInAtRule(ctx)) {
+            return _getImportUrlInfo(ctx, editor);
+        }
 
         return createInfo();
     }

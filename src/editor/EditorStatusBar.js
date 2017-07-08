@@ -486,6 +486,8 @@ define(function (require, exports, module) {
                     } else {
                         document.file._encoding = originalEncoding;
                     }
+                }).fail(function () {
+                    document.file._encoding = originalEncoding;
                 });
             } else if (document.file instanceof InMemoryFile) {
                 encodingSelect.$button.text(encoding);
