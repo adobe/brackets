@@ -715,6 +715,20 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Moves the draggedOver flag
+     *
+     * @param {string} path full path to the folder over which dragging is done
+     */
+    ProjectModel.prototype.setDraggedOver = function(path) {
+        var oldDraggedOverPath = this.makeProjectRelativeIfPossible(this._selections.draggedOver),
+            newDraggedOverPath = this.makeProjectRelativeIfPossible(path);
+
+        this._selections.draggedOver = path;
+
+        this._viewModel.moveMarker("draggedOver", oldDraggedOverPath, newDraggedOverPath);
+    };
+
+    /**
      * Gets the currently selected file or directory.
      *
      * @return {FileSystemEntry} the filesystem object for the currently selected file
@@ -1237,6 +1251,50 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.closeSubtree = function (path) {
         this._viewModel.closeSubtree(this.makeProjectRelativeIfPossible(path));
+    };
+
+    /**
+     * Moves the item in oldPath to the newDirectory directory
+     * @param {string} oldPath  old path of the item
+     * @param {string} newDirectory path of the directory to move the item
+     * @return {$.Promise} promise resolved when the item is moved
+     */
+    ProjectModel.prototype.moveItem = function(oldPath, newDirectory) {
+        var self = this,
+            d = new $.Deferred(),
+            fileName = FileUtils.getBaseName(oldPath),
+            fullNewPath = newDirectory + fileName;
+
+        // Add trailing slash if directory is moved
+        if (!_pathIsFile(oldPath)) {
+            fullNewPath = _ensureTrailingSlash(fullNewPath);
+        }
+
+        // Reusing the _renameItem for moving item
+        this._renameItem(oldPath, fullNewPath, fileName, !_pathIsFile(fullNewPath)).then(function () {
+            var newDirectoryRelative = self.makeProjectRelativeIfPossible(newDirectory),
+                needsLoading    = !self._viewModel.isPathLoaded(newDirectoryRelative);
+
+            // If directory view not loaded, load it and then update the view
+            if (needsLoading) {
+                self._getDirectoryContents(newDirectory).then(function(contents) {
+                    self._viewModel.setDirectoryContents(newDirectoryRelative, contents);
+                    self._viewModel.moveItem(self.makeProjectRelativeIfPossible(oldPath), self.makeProjectRelativeIfPossible(fullNewPath));
+                });
+            } else {
+                self._viewModel.moveItem(self.makeProjectRelativeIfPossible(oldPath), self.makeProjectRelativeIfPossible(fullNewPath));
+            }
+            d.resolve();
+        }).fail(function (errorType) {
+            var errorInfo = {
+                type: errorType,
+                isFolder: !_pathIsFile(fullNewPath),
+                fullPath: fullNewPath
+            };
+            d.reject(errorInfo);
+        });
+
+        return d.promise();
     };
 
     /**

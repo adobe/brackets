@@ -490,6 +490,40 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Removes the item from the oldPath and adds the item in the newPath
+     *
+     * @param {string} oldPath old path of the item
+     * @param {string} newPath new path of the item
+     */
+    FileTreeViewModel.prototype.moveItem = function(oldPath, newPath) {
+        var treeData = this._treeData,
+            oldObjectPath = _filePathToObjectPath(treeData, oldPath),
+            newObjectPath = _filePathToObjectPath(treeData, FileUtils.getParentPath(newPath)),
+            itemName = _.last(oldObjectPath),
+            element;
+
+        // Back up to the parent directory
+        oldObjectPath.pop();
+
+        // Remove the oldPath
+        treeData = treeData.updateIn(oldObjectPath, function (directory) {
+            element = directory.get(itemName);
+            directory = directory.delete(itemName);
+            return directory;
+        });
+
+        // Add the newPath
+        if (treeData.getIn(newObjectPath).get("children")) {
+            newObjectPath.push("children");
+            newObjectPath.push(itemName);
+            treeData = _setIn(treeData, newObjectPath, element);
+        }
+
+
+        this._commit(treeData);
+    };
+
+    /**
      * @private
      *
      * See `FileTreeViewModel.setDirectoryOpen`
