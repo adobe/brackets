@@ -35,7 +35,10 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
-    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Unknown encoding format",
+    "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to encode the contents of file.",
+    "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to decode the contents of file.",
+    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} currently doesn't support UTF-16 encoded text files.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
@@ -291,6 +294,7 @@ define({
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
+    "STATUSBAR_ENCODING_TOOLTIP"            : "Select the encoding",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -415,6 +419,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "New Rule",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_NAVIGATE_BACKWARD"               : "Navigate Backward",
+    "CMD_NAVIGATE_FORWARD"                : "Navigate Forward",
     "CMD_NEXT_DOC_LIST_ORDER"             : "Next Document in List",
     "CMD_PREV_DOC_LIST_ORDER"             : "Previous Document in List",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
@@ -455,7 +461,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs and the MDN graphical logo are licensed under a Creative Commons Attribution license, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
@@ -755,7 +761,7 @@ define({
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Additional mappings from file extension to language name",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Additional mappings from file name to language name",
     "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Doing copy and cut when there's no selection will copy or cut the whole lines that have cursors in them",
-    "DESCRIPTION_INPUT_STYLE"                        : "Selects the way CodeMirror handles input and focus. It cans be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
+    "DESCRIPTION_INPUT_STYLE"                        : "Selects the way CodeMirror handles input and focus. It can be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
     "DESCRIPTION_LINTING_ENABLED"                    : "true to enable Code Inspection",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "The time in milliseconds after which asynchronous linters time out",
     "DESCRIPTION_LINTING_PREFER"                     : "Array of linters to run first",
@@ -800,5 +806,6 @@ define({
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
-    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview"
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
+    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings"
 });

@@ -93,6 +93,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager"),
+        ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings");
 
 
@@ -419,7 +420,7 @@ define(function (require, exports, module) {
         if (doc) {
             result.resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
         } else {
-            file.read(function (err, contents, stat) {
+            file.read(function (err, contents, encoding, stat) {
                 if (err) {
                     result.reject(err);
                 } else {
@@ -497,6 +498,18 @@ define(function (require, exports, module) {
         //  the user to save any unsaved changes and then calls us back
         //  via notifyFileDeleted
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
+
+        var projectRoot = ProjectManager.getProjectRoot(),
+            context = {
+                location : {
+                    scope: "user",
+                    layer: "project",
+                    layerID: projectRoot.fullPath
+                }
+            };
+        var encoding = PreferencesManager.getViewState("encoding", context);
+        delete encoding[fullPath];
+        PreferencesManager.setViewState("encoding", encoding, context);
 
         if (!getOpenDocumentForPath(fullPath) &&
                 !MainViewManager.findInAllWorkingSets(fullPath).length) {

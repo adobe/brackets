@@ -73,6 +73,8 @@ define(function (require, exports, module) {
      *          Number of pixels to position the popup below where $input is when constructor is called. Useful
      *          if UI is going to animate position after construction, but QuickSearchField may receive input
      *          before the animation is done.
+     * @param {?number} options.firstHighlightIndex
+     *          Index of the result that is highlighted by default. null to not highlight any result.
      */
     function QuickSearchField($input, options) {
         this.$input = $input;
@@ -91,6 +93,9 @@ define(function (require, exports, module) {
 
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
+        
+        // For search History this value is set to null
+        this._firstHighlightIndex = options.firstHighlightIndex;
 
         this._dropdownTop = $input.offset().top + $input.height() + (options.verticalAdjust || 0);
     }
@@ -277,7 +282,11 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._render = function (results, query) {
         this._displayedQuery = query;
         this._displayedResults = results;
-        this._highlightIndex = null;
+        if (this._firstHighlightIndex >= 0) {
+            this._highlightIndex = this._firstHighlightIndex;
+        } else {
+            this._highlightIndex = null;
+        }
         // TODO: fixup to match prev value's item if possible?
 
         if (results.error || results.length === 0) {
