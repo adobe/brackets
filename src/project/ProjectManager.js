@@ -1224,6 +1224,10 @@ define(function (require, exports, module) {
         $projectTreeContainer.css("position", "relative");
 
         fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
+        fileTreeViewContainer.style.position = "absolute";
+        fileTreeViewContainer.style.height = "100%";
+        fileTreeViewContainer.style.width = "100%";
+        fileTreeViewContainer.style.overflowY = "auto";
 
         model.setSelectionWidth($projectTreeContainer.width());
 

@@ -542,7 +542,11 @@ define(function (require, exports, module) {
                     onMouseDown: this.handleMouseDown,
                     onDoubleClick: this.handleDoubleClick,
                     draggable: true,
-                    onDragStart: this.handleDrag
+                    onDragStart: this.handleDrag,
+                    onDrop: function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                 },
                 DOM.ins({
                     className: "jstree-icon"
@@ -1039,6 +1043,19 @@ define(function (require, exports, module) {
                 this.props.selectionViewInfo !== nextProps.selectionViewInfo;
         },
 
+        handleDrop: function(e) {
+            var data = JSON.parse(e.dataTransfer.getData("text"));
+            this.props.actions.moveItem(data.path, this.props.parentPath);
+            e.stopPropagation();
+        },
+
+        /**
+        * Allow the drop
+        */
+        handleDragOver: function(e) {
+            e.preventDefault();
+        },
+
         render: function () {
             var selectionBackground = fileSelectionBox({
                 ref: "selectionBackground",
@@ -1080,10 +1097,19 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
-                });
+                }),
+                args = {
+                    onDrop: this.handleDrop,
+                    onDragOver: this.handleDragOver,
+                    style: {
+                        height: '100%',
+                        width: '100%',
+                        overflowY: 'auto'
+                    }
+                };
 
             return DOM.div(
-                null,
+                args,
                 selectionBackground,
                 contextBackground,
                 extensionForSelection,

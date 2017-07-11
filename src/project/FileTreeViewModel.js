@@ -513,12 +513,14 @@ define(function (require, exports, module) {
         });
 
         // Add the newPath
-        if (treeData.getIn(newObjectPath).get("children")) {
-            newObjectPath.push("children");
-            newObjectPath.push(itemName);
-            treeData = _setIn(treeData, newObjectPath, element);
-        }
 
+        // If item moved to root directory, objectPath should not have "children",
+        // otherwise the objectPath should have "children"
+        if (newObjectPath.length > 0) {
+            newObjectPath.push("children");
+        }
+        newObjectPath.push(itemName);
+        treeData = _setIn(treeData, newObjectPath, element);
 
         this._commit(treeData);
     };
