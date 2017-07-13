@@ -40,10 +40,16 @@ var self = {
 
 var Tern = require("tern"),
     Infer = require("tern/lib/infer");
+    
+require("tern/plugin/requirejs");
+require("tern/plugin/doc_comment");
+require("tern/plugin/angular");
+
 
 var ExtractContent = require("./ExtractFileContent");
 
 var ternServer  = null,
+    isUntitledDoc = false,
     inferenceTimeout;
 
 // Save the tern callbacks for when we get the contents of the file
@@ -90,6 +96,20 @@ function handleGetFile(file, text) {
         }
     }
     delete fileCallBacks[file];
+}
+
+function _getNormalizedFilename(fileName) {
+    if (!isUntitledDoc && ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === -1) {
+        fileName = ternServer.projectDir + fileName;
+    }
+    return fileName;
+}
+
+function _getDenormalizedFilename(fileName) {
+    if (!isUntitledDoc && ternServer.projectDir && fileName.indexOf(ternServer.projectDir) === 0) {
+        fileName = fileName.slice(ternServer.projectDir.length);
+    }
+    return fileName;
 }
 
 /**
@@ -141,7 +161,7 @@ function initTernServer(env, files) {
     if (ternServer) {
         ternServer.reset();
         Infer.resetGuessing();
-    } 
+    }
         
     ternServer = new Tern.Server(ternOptions);
 
@@ -239,7 +259,7 @@ function getJumptoDef(fileInfo, offset) {
             }
             var response = {
                 type: MessageIds.TERN_JUMPTODEF_MSG,
-                file: fileInfo.name,
+                file: _getNormalizedFilename(fileInfo.name),
                 resultFile: data.file,
                 offset: offset,
                 start: data.start,
@@ -293,7 +313,7 @@ function getTernProperties(fileInfo, offset, type) {
             }
             // Post a message back to the main thread with the completions
             self.postMessage({type: type,
-                              file: fileInfo.name,
+                              file: _getNormalizedFilename(fileInfo.name),
                               offset: offset,
                               properties: properties
                 });
@@ -336,7 +356,7 @@ function getTernHints(fileInfo, offset, isProperty) {
             if (completions.length > 0 || !isProperty) {
                 // Post a message back to the main thread with the completions
                 self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
-                    file: fileInfo.name,
+                    file: _getNormalizedFilename(fileInfo.name),
                     offset: offset,
                     completions: completions
                     });
@@ -630,7 +650,7 @@ function handleFunctionType(fileInfo, offset) {
 
     // Post a message back to the main thread with the completions
     self.postMessage({type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
-        file: fileInfo.name,
+        file: _getNormalizedFilename(fileInfo.name),
         offset: offset,
         fnType: fnType,
         error: error
@@ -674,14 +694,15 @@ function handleUpdateFile(path, text) {
  * @param {string} path     - the path of the file
  */
 function handlePrimePump(path) {
-    var fileInfo = createEmptyUpdate(path),
+    var fileName = _getDenormalizedFilename(path);
+    var fileInfo = createEmptyUpdate(fileName),
         request = buildRequest(fileInfo, "completions", {line: 0, ch: 0});
 
     try {
         ternServer.request(request, function (error, data) {
             // Post a message back to the main thread
             self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
-                path: path
+                path: _getNormalizedFilename(path)
                 });
         });
     } catch (e) {
@@ -727,6 +748,7 @@ function _requestTernServer(commandConfig) {
     } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
         handleAddFiles(request.files);
     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
+        isUntitledDoc = request.isUntitledDoc;
         handlePrimePump(request.path);
     } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
         offset  = request.offset;

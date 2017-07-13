@@ -1168,7 +1168,7 @@ define(function (require, exports, module) {
                 if (isDocumentDirty && previousDocument) {
                     var updateFilePromise = updateTernFile(previousDocument);
                     updateFilePromise.done(function () {
-                        primePump(path);
+                        primePump(path, document.isUntitled());
                         addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
                     });
                 } else {
@@ -1237,7 +1237,7 @@ define(function (require, exports, module) {
                                         addAllFilesAndSubdirectories(projectRoot, function () {
                                             // prime the pump again but this time don't wait
                                             // for completion.
-                                            primePump(path);
+                                            primePump(path, false);
                                             addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
                                         });
                                     } else {

@@ -80,12 +80,9 @@ function _readFile(fileName, callback) {
  * @param {Object} extractFromMainContext - content request handle wrapper from main thread
  */
 function extractContent(fileName, callback, extractFromMainContext) {
-    if (_dirtyFilesCache[fileName]) {
-        // Ask the main thread context to provide the updated file content
-        extractFromMainContext.apply(null, [fileName]);
-    } else {
-        _readFile(fileName, callback);
-    }
+    // Ask the main thread context to provide the updated file content
+    // We can't yet use node io to read, to utilize shells encoding detection
+    extractFromMainContext.apply(null, [fileName]);
 }
 
 exports.extractContent = extractContent;
