@@ -326,8 +326,9 @@ define(function (require, exports, module) {
      * Convert keydown events into hint list navigation actions.
      *
      * @param {KeyBoardEvent} keyEvent
+     * @param {bool} isFakeCallUp - True if faked call up (for example calling CTRL+Space while hints are open)
      */
-    CodeHintList.prototype._keydownHook = function (event) {
+    CodeHintList.prototype._keydownHook = function (event, isFakeCallUp) {
         var keyCode,
             self = this;
 
@@ -389,7 +390,7 @@ define(function (require, exports, module) {
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown" && this.isHandlingKeyCode(event)) {
+        if (event.type === "keydown" && this.isHandlingKeyCode(event) || isFakeCallUp) {
             keyCode = event.keyCode;
 
             if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
@@ -408,7 +409,7 @@ define(function (require, exports, module) {
             } else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN ||
-                    (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
+                    (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE) || isFakeCallUp) {
                 _rotateSelection.call(this, 1);
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
                 _rotateSelection.call(this, -_itemsPerPage());
@@ -517,9 +518,7 @@ define(function (require, exports, module) {
      * @param {KeyBoardEvent} keyEvent
      */
     CodeHintList.prototype.callMoveUp = function (event) {
-        delete event.type;
-        event.type = "keydown";
-        this._keydownHook(event);
+        this._keydownHook(event, true);
     };
     /**
      * Closes the hint list
