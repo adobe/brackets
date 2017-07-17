@@ -26,6 +26,7 @@
 // This transport provides a web socket mechanism. It's injected separately from the
 // protocol handler so that the transport can be changed separately.
 
+/*globals io */
 (function (global) {
     "use strict";
 
