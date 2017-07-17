@@ -49,10 +49,9 @@ define(function (require, exports, module) {
      */
     function getRemoteScript() {
         // This must match the port declared in NodeSocketTransportDomain.js.
-        var SOCKET_PORT = parseInt(PreferencesManager.get("livedevmulti.socketPort", 10));
+        var SOCKET_PORT = parseInt(PreferencesManager.get("livedevmulti.socketPort"), 10);
         return "<script src=\"http://localhost:" + SOCKET_PORT + "/socket.io/socket.io.js\"></script>\n" +
-            "<script>\n" + 
-            NodeSocketTransportRemote +
+            "<script>\n" +  NodeSocketTransportRemote +
             "this._Brackets_LiveDev_Socket_Transport_URL = 'http://localhost:" + SOCKET_PORT + "';\n" +
             "</script>\n";
     }
