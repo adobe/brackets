@@ -138,6 +138,9 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    "DIRTY_FILE_ENCODING_CHANGE_WARN"   : "Cannot change encoding of a dirty file",
+    "IGNORE_RELOAD_FROM_DISK"           : "Ignore changes and reload from disk",
+    "SAVE_FILE_ENCODING_CHANGE_WARN"    : "Save the file before changing encoding",
 
     // Generic dialog/button labels
     "DONE"                              : "Done",
@@ -807,5 +810,6 @@ define({
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
-    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings"
+    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
+    "DESCRIPTION_LIVEDEV_MULTIBROWSER_SOCKET_PORT"   : "Port on which socket.io Server runs for Multibrowser Live Preview"
 });

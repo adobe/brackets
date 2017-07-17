@@ -29,13 +29,13 @@
 (function (global) {
     "use strict";
 
-    var WebSocketTransport = {
+    var SocketIOTransport = {
         /**
          * @private
          * The WebSocket that we communicate with Brackets over.
          * @type {?WebSocket}
          */
-        _ws: null,
+        _socketio: null,
 
         /**
          * @private
@@ -67,8 +67,7 @@
          */
         connect: function (url) {
             var self = this;
-            this._ws = new WebSocket(url);
-
+            this._socketio = io(url);
             // One potential source of confusion: the transport sends two "types" of messages -
             // these are distinct from the protocol's own messages. This is because this transport
             // needs to send an initial "connect" message telling the Brackets side of the transport
@@ -81,9 +80,10 @@
             // pointing to, so the only comunication that needs to happen via postMessage() is the
             // actual protocol message strings, and no extra wrapping is necessary.
 
-            this._ws.onopen = function (event) {
+            this._socketio.on("connect", function (event) {
                 // Send the initial "connect" message to tell the other end what URL we're from.
-                self._ws.send(JSON.stringify({
+                //TODO: Change the connectmsg to generic name for emitting events
+                self._socketio.send( JSON.stringify({
                     type: "connect",
                     url: global.location.href
                 }));
@@ -91,19 +91,19 @@
                 if (self._callbacks && self._callbacks.connect) {
                     self._callbacks.connect();
                 }
-            };
-            this._ws.onmessage = function (event) {
+            });
+            this._socketio.on("message", function (event) {
                 console.log("[Brackets LiveDev] Got message: " + event.data);
                 if (self._callbacks && self._callbacks.message) {
                     self._callbacks.message(event.data);
                 }
-            };
-            this._ws.onclose = function (event) {
-                self._ws = null;
+            });
+            this._socketio.on("disconnect", function (event) {
+                self._socketio = null;
                 if (self._callbacks && self._callbacks.close) {
                     self._callbacks.close();
                 }
-            };
+            });
             // TODO: onerror
         },
 
@@ -112,10 +112,10 @@
          * @param {string} msgStr The message to send.
          */
         send: function (msgStr) {
-            if (this._ws) {
+            if (this._socketio) {
                 // See comment in `connect()` above about why we wrap the message in a transport message
                 // object.
-                this._ws.send(JSON.stringify({
+                this._socketio.send( JSON.stringify({
                     type: "message",
                     message: msgStr
                 }));
@@ -131,5 +131,5 @@
             this.connect(global._Brackets_LiveDev_Socket_Transport_URL);
         }
     };
-    global._Brackets_LiveDev_Transport = WebSocketTransport;
+    global._Brackets_LiveDev_Transport = SocketIOTransport;
 }(this));

@@ -1,7 +1,7 @@
 {
     "name": "Brackets",
-    "version": "1.11.0-0",
-    "apiVersion": "1.11.0",
+    "version": "1.10.0-0",
+    "apiVersion": "1.10.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
@@ -24,7 +24,9 @@
         "request": "2.79.0",
         "semver": "5.3.0",
         "temp": "0.8.3",
-        "ws": "~0.4.31"
+        "ws": "~0.4.31",
+        "socket.io": "^2.0.3",
+        "express": "^4.15.3"
     },
     "devDependencies": {
         "glob": "7.1.1",

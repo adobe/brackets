@@ -336,7 +336,7 @@ define(function main(require, exports, module) {
         // it can be enable by setting 'livedev.multibrowser' preference to true.
         // It has to be initiated at this point in case of dynamically switching
         // by changing the preference value.
-        MultiBrowserLiveDev.init(config);
+        MultiBrowserLiveDev.init(config, parseInt(PreferencesManager.get("livedevmulti.socketPort", 10)));
 
         _loadStyles();
         _updateHighlightCheckmark();
