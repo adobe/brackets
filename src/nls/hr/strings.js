@@ -113,6 +113,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "Datoteka <span class='dialog-filename'>{0}</span> je izbrisana na disku, ali postoje njene nesačuvane promjene u {APP_NAME}.<br /><br />Želite li sačuvati te promjene?",
 
     // Generic dialog/button labels
+    "DONE"                              : "Može",
     "OK"                                : "OK",
     "CANCEL"                            : "Otkaži",
     "DONT_SAVE"                         : "Nemoj sačuvati",
@@ -318,6 +319,9 @@ define({
     "VIEW_MENU"                           : "Prikaz",
     "CMD_HIDE_SIDEBAR"                    : "Sakrij bočnu traku",
     "CMD_SHOW_SIDEBAR"                    : "Prikaži bočnu traku",
+     "CMD_TOGGLE_SIDEBAR"                 : "Toggle bočnu traku",
+    "CMD_TOGGLE_PANELS"                   : "Toggle Panele",
+    "CMD_TOGGLE_PURE_CODE"                : "Bez odvraćanja pažnje",
     "CMD_INCREASE_FONT_SIZE"              : "Povećaj veličinu fonta",
     "CMD_DECREASE_FONT_SIZE"              : "Smanji veličinu fonta",
     "CMD_RESTORE_FONT_SIZE"               : "Vrati veličinu fonta",
