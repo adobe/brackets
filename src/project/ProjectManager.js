@@ -384,6 +384,11 @@ define(function (require, exports, module) {
     ActionCreator.prototype.moveItem = function(oldPath, newDirectory) {
         var self = this;
 
+        // If item dropped onto itself or onto its parent directory, return
+        if (oldPath === newDirectory || FileUtils.getParentPath(oldPath) === newDirectory) {
+            return;
+        }
+
         // Remove selected marker
         self.setSelected(null);
 
