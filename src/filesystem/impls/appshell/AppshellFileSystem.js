@@ -281,6 +281,39 @@ define(function (require, exports, module) {
      * @param {function(?string, Array.<FileSystemEntry>=, Array.<string|FileSystemStats>=)} callback
      */
     function readdir(path, callback) {
+        appshell.fs.readDirWithStats(path, function (err, dirContents, dirContentsStats) {
+
+            if (err) {
+                callback(_mapError(err));
+                return;
+            }
+
+            var count = dirContents.length;
+            if (!count) {
+                callback(null, [], []);
+                return;
+            }
+
+            var stats = [];
+            var idx   = 0;
+            dirContentsStats.forEach(function (val, idx) {
+                var options = {
+                    isFile: val.isFile(),
+                    mtime: val.mtime,
+                    size: val.size,
+                    realPath: val.realPath,
+                    hash: val.mtime.getTime()
+                };
+
+                var fsStats = new FileSystemStats(options);
+                stats[idx] = fsStats;
+                idx++;
+            });
+
+            callback(null, dirContents, stats);
+        });
+
+        /*
         appshell.fs.readdir(path, function (err, contents) {
             if (err) {
                 callback(_mapError(err));
@@ -304,6 +337,7 @@ define(function (require, exports, module) {
                 });
             });
         });
+        */
     }
 
     /**
