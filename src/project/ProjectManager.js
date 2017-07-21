@@ -382,6 +382,11 @@ define(function (require, exports, module) {
             Menus.closeAll();
             this.setContext(null);
         }
+
+        // Close directory, if dragged item is directory
+        if (_.last(path) === '/') {
+            this.setDirectoryOpen(path, false);
+        }
     };
 
     /**
