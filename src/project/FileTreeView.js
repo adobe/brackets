@@ -217,21 +217,44 @@ define(function (require, exports, module) {
              this.props.actions.moveItem(data.path, this.myPath());
              this.props.actions.setDraggedOver(null);
 
+             this.clearDragTimeout();
              e.stopPropagation();
+         },
+
+         handleDragEnd: function(e) {
+             this.clearDragTimeout();
          },
 
          /**
           * Allow the drop
           */
          handleDragOver: function(e) {
+             var self = this;
              this.props.actions.setDraggedOver(this.myPath());
+
+             // Open the directory tree when item is dragged over a directory
+             if (!this.dragOverTimeout) {
+                 this.dragOverTimeout = window.setTimeout(function() {
+                     self.props.actions.setDirectoryOpen(self.myPath(), true);
+                     self.dragOverTimeout = null;
+                 }, 800);
+             }
              e.preventDefault();
              e.stopPropagation();
          },
 
          handleDragLeave: function(e) {
              this.props.actions.setDraggedOver(null);
+             this.clearDragTimeout();
+         },
+
+         clearDragTimeout: function() {
+             if (this.dragOverTimeout) {
+                 clearTimeout(this.dragOverTimeout);
+                 this.dragOverTimeout = null;
+             }
          }
+
      };
 
     /**
@@ -791,6 +814,7 @@ define(function (require, exports, module) {
                     draggable: true,
                     onDragStart: this.handleDrag,
                     onDrop: this.handleDrop,
+                    onDragEnd: this.handleDragEnd,
                     onDragOver: this.handleDragOver,
                     onDragLeave: this.handleDragLeave
                 },
