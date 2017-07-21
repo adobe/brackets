@@ -395,15 +395,13 @@ define(function (require, exports, module) {
      * See `ProjectModel.moveItem`
      */
     ActionCreator.prototype.moveItem = function(oldPath, newDirectory) {
-        var self = this;
-
         // If item dropped onto itself or onto its parent directory, return
         if (oldPath === newDirectory || FileUtils.getParentPath(oldPath) === newDirectory) {
             return;
         }
 
         // Remove selected marker
-        self.setSelected(null);
+        this.setSelected(null);
 
         this.model.moveItem(oldPath, newDirectory)
         .fail(function(errorInfo) {

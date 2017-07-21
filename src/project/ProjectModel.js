@@ -1273,16 +1273,19 @@ define(function (require, exports, module) {
         // Reusing the _renameItem for moving item
         this._renameItem(oldPath, fullNewPath, fileName, !_pathIsFile(fullNewPath)).then(function () {
             var newDirectoryRelative = self.makeProjectRelativeIfPossible(newDirectory),
-                needsLoading    = !self._viewModel.isPathLoaded(newDirectoryRelative);
+                oldPathRelative = self.makeProjectRelativeIfPossible(oldPath),
+                fullNewPathRelative = self.makeProjectRelativeIfPossible(fullNewPath),
+                needsLoading = !self._viewModel.isPathLoaded(newDirectoryRelative),
+                viewModel = self._viewModel;
 
             // If directory view not loaded, load it and then update the view
             if (needsLoading) {
                 self._getDirectoryContents(newDirectory).then(function(contents) {
-                    self._viewModel.setDirectoryContents(newDirectoryRelative, contents);
-                    self._viewModel.moveItem(self.makeProjectRelativeIfPossible(oldPath), self.makeProjectRelativeIfPossible(fullNewPath));
+                    viewModel.setDirectoryContents(newDirectoryRelative, contents);
+                    viewModel.moveItem(oldPathRelative, fullNewPathRelative);
                 });
             } else {
-                self._viewModel.moveItem(self.makeProjectRelativeIfPossible(oldPath), self.makeProjectRelativeIfPossible(fullNewPath));
+                viewModel.moveItem(self.makeProjectRelativeIfPossible(oldPath), self.makeProjectRelativeIfPossible(fullNewPath));
             }
             d.resolve();
         }).fail(function (errorType) {
