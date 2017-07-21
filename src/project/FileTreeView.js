@@ -213,6 +213,7 @@ define(function (require, exports, module) {
          handleDrop: function(e) {
              var data = JSON.parse(e.dataTransfer.getData("text"));
 
+             this.props.actions.setDirectoryOpen(this.myPath(), true);
              this.props.actions.moveItem(data.path, this.myPath());
              this.props.actions.setDraggedOver(null);
 
