@@ -166,8 +166,8 @@ define(function (require, exports, module) {
      */
     function Panel($panel, minSize) {
         this.$panel = $panel;
-
-        Resizer.makeResizable($panel[0], Resizer.DIRECTION_VERTICAL, Resizer.POSITION_TOP, minSize, false, undefined, true);
+        var $rootNodeWithID = $panel.filter("*")[0];
+        Resizer.makeResizable($rootNodeWithID, Resizer.DIRECTION_VERTICAL, Resizer.POSITION_TOP, minSize, false, undefined, true);
         listenToResize($panel);
     }
 
