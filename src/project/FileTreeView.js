@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         ReactDOM          = require("thirdparty/react-dom"),
         Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
-        Menus             = require("command/Menus"),
         _                 = require("thirdparty/lodash"),
         FileUtils         = require("file/FileUtils"),
         LanguageManager   = require("language/LanguageManager"),
@@ -207,11 +206,7 @@ define(function (require, exports, module) {
                  path: this.myPath()
              }));
 
-             // Close open menus on drag and clear the context, but only if there's a menu open.
-             if ($(".dropdown.open").length > 0) {
-                 Menus.closeAll();
-                 this.props.actions.setContext(null);
-             }
+             this.props.actions.dragItem(this.myPath());
 
              e.stopPropagation();
          },

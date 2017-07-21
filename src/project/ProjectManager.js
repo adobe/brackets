@@ -376,6 +376,14 @@ define(function (require, exports, module) {
         _saveTreeState();
     };
 
+    ActionCreator.prototype.dragItem = function (path) {
+        // Close open menus on drag and clear the context, but only if there's a menu open.
+        if ($(".dropdown.open").length > 0) {
+            Menus.closeAll();
+            this.setContext(null);
+        }
+    };
+
     /**
      * Moves the item in the oldPath to the newDirectory directory
      *
