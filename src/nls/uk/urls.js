@@ -24,6 +24,6 @@
 define({
     // Relative to the samples folder
     "GETTING_STARTED"           : "uk/Починаємо роботу",
-    "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_ru/",
-    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.ru"
+    "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_uk/",
+    "MDN_DOCS_LICENSE"          : "http://creativecommons.org/licenses/by-sa/2.5/deed.uk"
 });
