@@ -400,6 +400,76 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("moveItem", function () {
+            var vm = new FileTreeViewModel.FileTreeViewModel(),
+                changeFired;
+            vm.on(FileTreeViewModel.EVENT_CHANGE, function () {
+                changeFired = true;
+            });
+
+            beforeEach(function () {
+                changeFired = false;
+                vm._treeData = Immutable.fromJS({
+                    "subdir1": {
+                        open: true,
+                        children: {
+                            subsubdir: {
+                                children: {
+                                  "subchildfile.js": {}
+                                }
+                            },
+                            "childfile.js": {}
+                        }
+                    },
+                    "subdir2": {
+                        children: {}
+                    },
+                    "topfile.js": {}
+                });
+            });
+
+            it("should be able to move a top level file to a top level directory", function () {
+                vm.moveItem("topfile.js", "subdir1/topfile.js");
+                expect(vm._treeData.get("topfile.js")).toBeUndefined();
+                expect(vm._treeData.getIn(["subdir1", "children", "topfile.js"])).toBeDefined();
+                expect(changeFired).toBe(true);
+            });
+
+            it("should be able to move a top level directory to another top level directory", function () {
+                vm.moveItem("subdir1/", "subdir2/subdir1/");
+                expect(vm._treeData.get("subdir1")).toBeUndefined();
+                expect(vm._treeData.getIn(["subdir2", "children", "subdir1"])).toBeDefined();
+                expect(changeFired).toBe(true);
+            });
+
+            it("should be able to move a file in a top level directory to root", function () {
+                vm.moveItem("subdir1/childfile.js", "childfile.js");
+                expect(vm._treeData.getIn(["subdir1", "children", "childfile.js"])).toBeUndefined();
+                expect(vm._treeData.get("childfile.js")).toBeDefined();
+                expect(changeFired).toBe(true);
+            });
+
+            it("should be able to move a subdirectory to root", function () {
+                vm.moveItem("subdir1/subsubdir/", "subsubdir");
+                expect(vm._treeData.getIn(["subdir1", "children", "subsubdir"])).toBeUndefined();
+                expect(vm._treeData.get("subsubdir")).toBeDefined();
+                expect(changeFired).toBe(true);
+            });
+
+            it("should be able to move a subdirectory to top level directory", function () {
+                vm.moveItem("subdir1/subsubdir/", "subdir2/subsubdir/");
+                expect(vm._treeData.getIn(["subdir1", "children", "subsubdir"])).toBeUndefined();
+                expect(vm._treeData.getIn(["subdir2", "children", "subsubdir"])).toBeDefined();
+                expect(changeFired).toBe(true);
+            });
+
+            it("should be able to move a file in a subdirectory to root", function () {
+                vm.moveItem("subdir1/subsubdir/subchildfile.js", "subchildfile.js");
+                expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "children", "subchildfile.js"])).toBeUndefined();
+                expect(vm._treeData.get("subchildfile.js")).toBeDefined();
+                expect(changeFired).toBe(true);
+            });
+        });
         describe("openPath", function () {
             var vm = new FileTreeViewModel.FileTreeViewModel(),
                 changesFired;
