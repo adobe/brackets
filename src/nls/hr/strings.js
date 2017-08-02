@@ -319,7 +319,7 @@ define({
     "VIEW_MENU"                           : "Prikaz",
     "CMD_HIDE_SIDEBAR"                    : "Sakrij bočnu traku",
     "CMD_SHOW_SIDEBAR"                    : "Prikaži bočnu traku",
-     "CMD_TOGGLE_SIDEBAR"                 : "Toggle bočnu traku",
+    "CMD_TOGGLE_SIDEBAR"                  : "Toggle bočnu traku",
     "CMD_TOGGLE_PANELS"                   : "Toggle Panele",
     "CMD_TOGGLE_PURE_CODE"                : "Bez odvraćanja pažnje",
     "CMD_INCREASE_FONT_SIZE"              : "Povećaj veličinu fonta",
