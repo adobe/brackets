@@ -35,6 +35,13 @@ require.config({
         // implementations (e.g. cloud-based storage).
         "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
     },
+    packages: [
+        {
+            name: "thirdparty/preact",
+            location: "thirdparty/preact",
+            main: "preact-compat"
+        }
+    ],
     map: {
         "*": {
             "thirdparty/CodeMirror2": "thirdparty/CodeMirror",

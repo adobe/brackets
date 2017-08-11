@@ -36,6 +36,13 @@ require.config({
         "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
         "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
     },
+    packages: [
+        {
+            name: "thirdparty/preact",
+            location: "thirdparty/preact",
+            main: "preact-compat"
+        }
+    ],
     map: {
         "*": {
             "thirdparty/react": "react"
