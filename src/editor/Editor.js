@@ -464,6 +464,7 @@ define(function (require, exports, module) {
 
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
+        this._markCMDisplayWrapperWithLanguageName();
 
         // Initially populate with text. This will send a spurious change event, so need to make
         // sure this is understood as a 'sync from document' case, not a genuine edit
@@ -983,8 +984,32 @@ define(function (require, exports, module) {
      */
     Editor.prototype._handleDocumentLanguageChanged = function (event) {
         this._codeMirror.setOption("mode", this._getModeFromDocument());
+        this._markCMDisplayWrapperWithLanguageName();
     };
-
+    
+    /**
+     * Sets language name as a class to CM display wrapper
+     * To support mode specific code coloring we need to add the mode to CM display container
+     * This will enable the usage of mode as descendent selector
+     */
+    Editor.prototype._markCMDisplayWrapperWithLanguageName = function () {
+        var language = this.document.getLanguage(),
+            cmDisplayWrapper = this._codeMirror.display.wrapper,
+            oldLanName = $(cmDisplayWrapper).data("language"),
+            className;
+        
+        if (language) {
+            if (oldLanName) {
+                $(cmDisplayWrapper).removeClass(oldLanName);
+            }
+            // Normalize spaces in the language name with '-'
+            className = language.getName().split(/\s/).join("-");
+            $(cmDisplayWrapper).addClass(className);
+            // Remember the class added, so that it can be removed when mode is toggled
+            $(cmDisplayWrapper).data("language", className);
+        }
+    };
+    
 
     /**
      * Install event handlers on the CodeMirror instance, translating them into
