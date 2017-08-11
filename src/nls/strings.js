@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         "fi": true,
         "fr": true,
         "gl": true,
+        "he": true,
         "hr": true,
         "hu": true,
         "id": true,
