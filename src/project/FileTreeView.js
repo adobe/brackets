@@ -219,6 +219,7 @@ define(function (require, exports, module) {
 
             var node = this.refs.name;
             node.setSelectionRange(0, _getName(fullname, extension).length);
+            node.focus(); // set focus on the rename input
             ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
         },
 
@@ -480,6 +481,11 @@ define(function (require, exports, module) {
                 extension = LanguageManager.getCompoundFileExtension(fullname),
                 name = _getName(fullname, extension);
 
+            // React automatically wraps content in a span element whereas preact doesn't, so do it manually
+            if (name) {
+                name = DOM.span({}, name);
+            }
+
             if (extension) {
                 extension = DOM.span({
                     className: "extension"
@@ -601,6 +607,7 @@ define(function (require, exports, module) {
 
             var node = this.refs.name;
             node.setSelectionRange(0, fullname.length);
+            node.focus(); // set focus on the rename input
             ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
         },
 
@@ -758,11 +765,16 @@ define(function (require, exports, module) {
                     parentPath: this.props.parentPath
                 });
             } else {
+                // React automatically wraps content in a span element whereas preact doesn't, so do it manually
+                if (this.props.name) {
+                    var name = DOM.span({}, this.props.name);
+                }
+
                 // Need to flatten the arguments because getIcons returns an array
                 var aArgs = _.flatten([{
                     href: "#",
                     className: directoryClasses
-                }, thickness, this.getIcons(), this.props.name]);
+                }, thickness, this.getIcons(), name]);
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
 
@@ -1035,11 +1047,11 @@ define(function (require, exports, module) {
 
             return DOM.div(
                 null,
+                contents,
                 selectionBackground,
                 contextBackground,
                 extensionForSelection,
-                extensionForContext,
-                contents
+                extensionForContext
             );
         }
     }));
