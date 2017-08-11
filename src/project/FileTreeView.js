@@ -31,8 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var React             = require("thirdparty/react"),
-        ReactDOM          = require("thirdparty/react-dom"),
+    var React             = require("thirdparty/preact"),
+        ReactDOM          = require("thirdparty/preact"),
         Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
