@@ -35,6 +35,25 @@ define(function (require, exports, module) {
         RTU               = require("thirdparty/preact/preact-test-utils"),
         _                 = require("thirdparty/lodash");
 
+    // Preact Test Utils doesn't have findRenderedDOMComponentWithTag method
+    // So create it
+    RTU.findRenderedDOMComponentWithTag = function(root, tagName) {
+        var nodes = [];
+        if (root.base.tagName.toUpperCase() === tagName.toUpperCase()){
+            nodes.push(root.base);
+        } else {
+            for (var i = 0; i < root.base.childNodes.length; ++i) {
+                if (root.base.childNodes[i].tagName === tagName.toUpperCase()) {
+                    nodes.push(root.base.childNodes[i]);
+                }
+            }
+        }
+        if (nodes.length !== 1) {
+            throw new Error('Did not find exactly one match for tag:' + tagName);
+        }
+        return nodes[0];
+    };
+
     describe("FileTreeView", function () {
 
         describe("_fileNode", function () {
@@ -112,7 +131,7 @@ define(function (require, exports, module) {
                     parentPath: "/foo/"
                 }));
                 var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                RTU.Simulate.mouseDown(node, {
                     button: 2
                 });
                 expect(actions.setContext).toHaveBeenCalledWith("/foo/afile.js");
@@ -128,7 +147,7 @@ define(function (require, exports, module) {
                     platform: "mac"
                 }));
                 var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                RTU.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
@@ -145,7 +164,7 @@ define(function (require, exports, module) {
                     platform: "win"
                 }));
                 var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                RTU.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
