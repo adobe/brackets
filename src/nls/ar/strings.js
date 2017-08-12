@@ -28,7 +28,7 @@ define({
      */
 
     // General file io error strings
-    "GENERIC_ERROR"                     : "({0}خطأ )",
+    "GENERIC_ERROR"                     : "({0} خطأ)",
     "NOT_FOUND_ERR"                     : "لا يمكن إيجاد الملف/المجلد.",
     "NOT_READABLE_ERR"                  : "لا يمكن قراءة الملف/المجلد.",
     "EXCEEDS_MAX_FILE_SIZE"             : "لا يمكن فتح ملفات أكبر من {0} ميغابايت في {APP_NAME}.",
@@ -36,9 +36,9 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "الصلاحيات لا تخولك القيام بالتعديلات.",
     "CONTENTS_MODIFIED_ERR"             : "تم تعديل الملف خارج {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "تنسيق ترميز غير معروف",
-    "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to encode the contents of file.",
-    "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to decode the contents of file.",
-    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} currently doesn't support UTF-16 encoded text files.",
+    "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} لا يستطيع ترميز محتويات الملف.",
+    "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} لا يستطيع فك ترميز محتويات الملف.",
+    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "ل{APP_NAME} ا يدعم حاليا الملفات النصية بترميز UTF-16.",
     "FILE_EXISTS_ERR"                   : "الملف أو المجلد موجود فعليا",
     "FILE"                              : "ملف",
     "FILE_TITLE"                        : "ملف",
@@ -51,13 +51,13 @@ define({
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "خطأ عند تحميل المشروع",
-    "OPEN_DIALOG_ERROR"                 : "An error occurred when showing the open file dialog. (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
+    "OPEN_DIALOG_ERROR"                 : "حدث خطأ عند إظهار شاشة فتح الملف. (خطأ {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "حدث خطأ عند محاولة تحميل المجلد <span class='dialog-filename'>{0}</span>. (خطأ {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "حدث خطأ عند قراءة محتويات المجلد <span class='dialog-filename'>{0}</span>. (خطأ {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "خطأ عند فتح الملف",
-    "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILE"                : "حدث خطأ عند محاولة فتح الملف <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : ":حصل خطأ عند محاولة فتح الملفات التالية",
     "ERROR_RELOADING_FILE_TITLE"        : "خطأ عند إعادة تحميل التغييرات من القرص",
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
