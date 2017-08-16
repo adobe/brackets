@@ -25,14 +25,13 @@
 
 /**
  * This is the view layer (template) for the file tree in the sidebar. It takes a FileTreeViewModel
- * and renders it to the given element using React. User actions are signaled via an ActionCreator
+ * and renders it to the given element using Preact. User actions are signaled via an ActionCreator
  * (in the Flux sense).
  */
 define(function (require, exports, module) {
     "use strict";
 
-    var React             = require("thirdparty/preact"),
-        ReactDOM          = require("thirdparty/preact"),
+    var Preact            = require("thirdparty/preact"),
         Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
@@ -42,7 +41,7 @@ define(function (require, exports, module) {
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");
 
-    var DOM = React.DOM;
+    var DOM = Preact.DOM;
 
     /**
      * @private
@@ -116,7 +115,7 @@ define(function (require, exports, module) {
      * Create an appropriate div based "thickness" to indent the tree correctly.
      *
      * @param {int} depth The depth of the current node.
-     * @return {ReactComponent} The resulting div.
+     * @return {PreactComponent} The resulting div.
      */
     function _createThickness(depth) {
         return DOM.div({
@@ -133,7 +132,7 @@ define(function (require, exports, module) {
      * Create, and indent correctly, the arrow icons used for the folders.
      *
      * @param {int} depth The depth of the current node.
-     * @return {ReactComponent} The resulting ins.
+     * @return {PreactComponent} The resulting ins.
      */
     function _createAlignedIns(depth) {
         return DOM.ins({
@@ -206,7 +205,7 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var fileRenameInput = React.createFactory(React.createClass({
+    var fileRenameInput = Preact.createFactory(Preact.createClass({
         mixins: [renameBehavior],
 
         /**
@@ -292,7 +291,7 @@ define(function (require, exports, module) {
          * Calls the icon providers to get the collection of icons (most likely just one) for
          * the current file or directory.
          *
-         * @return {Array.<ReactComponent>} icon components to render
+         * @return {Array.<PreactComponent>} icon components to render
          */
         getIcons: function () {
             var result,
@@ -303,14 +302,14 @@ define(function (require, exports, module) {
                 result = extensions.get("icons").map(function (callback) {
                     try {
                         var result = callback(data);
-                        if (result && !React.isValidElement(result)) {
-                            result = React.DOM.span({
+                        if (result && !Preact.isValidElement(result)) {
+                            result = Preact.DOM.span({
                                 dangerouslySetInnerHTML: {
                                     __html: $(result)[0].outerHTML
                                 }
                             });
                         }
-                        return result;  // by this point, returns either undefined or a React object
+                        return result;  // by this point, returns either undefined or a Preact object
                     } catch (e) {
                         console.error("Exception thrown in FileTreeView icon provider: " + e, e.stack);
                     }
@@ -363,7 +362,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    var fileNode = React.createFactory(React.createClass({
+    var fileNode = Preact.createFactory(Preact.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -395,11 +394,11 @@ define(function (require, exports, module) {
 
             if (isSelected && !wasSelected) {
                 // TODO: This shouldn't really know about project-files-container
-                // directly. It is probably the case that our React tree should actually
+                // directly. It is probably the case that our Preact tree should actually
                 // start with project-files-container instead of just the interior of
                 // project-files-container and then the file tree will be one self-contained
                 // functional unit.
-                ViewUtils.scrollElementIntoView($("#project-files-container"), $(ReactDOM.findDOMNode(this)), true);
+                ViewUtils.scrollElementIntoView($("#project-files-container"), $(Preact.findDOMNode(this)), true);
             } else if (!isSelected && wasSelected && this.state.clickTimer !== null) {
                 this.clearTimer();
             }
@@ -596,7 +595,7 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var directoryRenameInput = React.createFactory(React.createClass({
+    var directoryRenameInput = Preact.createFactory(Preact.createClass({
         mixins: [renameBehavior],
 
         /**
@@ -645,7 +644,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryNode = React.createFactory(React.createClass({
+    directoryNode = Preact.createFactory(Preact.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -799,7 +798,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryContents = React.createFactory(React.createClass({
+    directoryContents = Preact.createFactory(Preact.createClass({
 
         /**
          * Need to re-render if the sort order or the contents change.
@@ -864,7 +863,7 @@ define(function (require, exports, module) {
      * * visible: should this be visible now
      * * selectedClassName: class name applied to the element that is selected
      */
-    var fileSelectionBox = React.createFactory(React.createClass({
+    var fileSelectionBox = Preact.createFactory(Preact.createClass({
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -874,7 +873,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var node = ReactDOM.findDOMNode(this),
+            var node = Preact.findDOMNode(this),
                 selectedNode = $(node.parentNode).find(this.props.selectedClassName),
                 selectionViewInfo = this.props.selectionViewInfo;
 
@@ -913,7 +912,7 @@ define(function (require, exports, module) {
      * * selectedClassName: class name applied to the element that is selected
      * * className: class to be applied to the extension element
      */
-    var selectionExtension = React.createFactory(React.createClass({
+    var selectionExtension = Preact.createFactory(Preact.createClass({
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -923,7 +922,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var node = ReactDOM.findDOMNode(this),
+            var node = Preact.findDOMNode(this),
                 selectedNode = $(node.parentNode).find(this.props.selectedClassName).closest("li"),
                 selectionViewInfo = this.props.selectionViewInfo;
 
@@ -989,7 +988,7 @@ define(function (require, exports, module) {
      * * forceRender: causes the component to run render
      * * platform: platform that Brackets is running on
      */
-    var fileTreeView = React.createFactory(React.createClass({
+    var fileTreeView = Preact.createFactory(Preact.createClass({
 
         /**
          * Update for any change in the tree data or directory sorting preference.
@@ -1071,7 +1070,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        ReactDOM.render(fileTreeView({
+        Preact.render(fileTreeView({
             treeData: viewModel.treeData,
             selectionViewInfo: viewModel.selectionViewInfo,
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
