@@ -25,6 +25,6 @@ define({
     // Relative to the samples folder
     "GETTING_STARTED"           : "ar-eg/ebdaa",
     "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/mena_ar/legal/licenses-terms.html",
-    "WEB_PLATFORM_DOCS_LICENSE" : "https://creativecommons.org/licenses/by/3.0/deed.ar"
+    "MDN_DOCS_LICENSE"          : "https://creativecommons.org/licenses/by/3.0/deed.ar"
 
 });
