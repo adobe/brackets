@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
     // Preact Test Utils doesn't have findRenderedDOMComponentWithTag method
     // So create it
-    RTU.findRenderedDOMComponentWithTag = function(root, tagName) {
+    var findRenderedDOMComponentWithTag = function(root, tagName) {
         var nodes = [];
         if (root.base.tagName.toUpperCase() === tagName.toUpperCase()){
             nodes.push(root.base);
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
                     name: "afile.js",
                     entry: Immutable.Map()
                 }));
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[1].textContent).toBe(" ");
                 expect(a.children[2].textContent).toBe("afile");
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
 
                 expect(extensionCalls).toBe(1);
 
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[1].textContent).toBe("ICON");
                 expect(a.children[2].textContent).toBe("afile");
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
 
                 expect(extensionCalls).toBe(1);
 
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[2].textContent).toBe("afile");
                 expect(a.children[3].textContent).toBe(".js");
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
 
                 expect(extensionCalls).toBe(1);
 
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[2].textContent).toBe("afile");
                 expect(a.children[3].textContent).toBe(".js");
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
 
                 expect(extensionCalls).toBe(1);
 
-                var li = RTU.findRenderedDOMComponentWithTag(rendered, "li");
+                var li = findRenderedDOMComponentWithTag(rendered, "li");
                 expect(li.className).toBe("jstree-leaf new classes are cool");
             });
 
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                         rename: true
                     })
                 }));
-                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
+                var input = findRenderedDOMComponentWithTag(rendered, "input");
                 expect(input.value).toBe("afile.js");
             });
 
@@ -412,7 +412,7 @@ define(function (require, exports, module) {
                         rename: true
                     })
                 }));
-                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
+                var input = findRenderedDOMComponentWithTag(rendered, "input");
                 expect(input.value).toBe("thedir");
             });
 
