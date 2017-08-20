@@ -32,11 +32,11 @@ define({
     "NOT_FOUND_ERR"                     : "Nepostojeća datoteka.",
     "NOT_READABLE_ERR"                  : "Datoteka ne može biti učitana.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Ciljana mapa ne može biti izmijenjena.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Trenutne ovlasti vam ne dozvoljavaju da radite izmjene.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Trenutne ovlasti vam ne dozvoljavaju kreiranje izmjena.",
     "CONTENTS_MODIFIED_ERR"             : "Datoteka je bila izmjenjena izvan {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Datoteka ili mapa već postoji.",
-    "FILE"                              : "datoteka",
-    "DIRECTORY"                         : "direktorij",
+    "FILE"                              : "Datoteka",
+    "DIRECTORY"                         : "Direktorij",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Greška pri učitavanju projekta",
@@ -62,7 +62,7 @@ define({
     "ERROR_CREATING_FILE"               : "Došlo je do greške prilikom pokušaja da se kreira {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application preferences corrupt error strings
-    "ERROR_PREFS_CORRUPT_TITLE"         : "Greška kod čitanja preferencija",
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Greška prilikom učitanja preferencija",
     "ERROR_PREFS_CORRUPT"               : "Vaša datoteka preferencije nije valjana u JSON. Datoteka će biti otvorena tako da možete ispraviti format. Da biste vidjeli promjene, ponovo pokrenite {APP_NAME}.",
 
     // Application error strings
@@ -253,7 +253,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Nova mapa",
     "CMD_FILE_OPEN"                       : "Otvori\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Dodaj u radni set",
-    "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
+    "CMD_OPEN_DROPPED_FILES"              : "Otvori umetnune datoteke",
     "CMD_OPEN_FOLDER"                     : "Otvori Mapu\u2026",
     "CMD_FILE_CLOSE"                      : "Zatvori",
     "CMD_FILE_CLOSE_ALL"                  : "Zatvori sve",
@@ -302,13 +302,13 @@ define({
     "CMD_SHOW_CODE_HINTS"                 : "Prikaži naznake (hintove) kôda",
 
     // Search menu commands
-    "FIND_MENU"                           : "Nađi",
-    "CMD_FIND"                            : "Nađi",
-    "CMD_FIND_IN_FILES"                   : "Nađi u datotekama",
-    "CMD_FIND_IN_SUBTREE"                 : "Nađi u\u2026",
-    "CMD_FIND_NEXT"                       : "Nađi sljedeće",
-    "CMD_FIND_PREVIOUS"                   : "Nađi prethodno",
-    "CMD_FIND_ALL_AND_SELECT"             : "Nađi sve i odaberi",
+    "FIND_MENU"                           : "Pronađi",
+    "CMD_FIND"                            : "Pronađi",
+    "CMD_FIND_IN_FILES"                   : "Pronađi u datotekama",
+    "CMD_FIND_IN_SUBTREE"                 : "Pronađi u\u2026",
+    "CMD_FIND_NEXT"                       : "Pronađi sljedeće",
+    "CMD_FIND_PREVIOUS"                   : "Pronađi prethodno",
+    "CMD_FIND_ALL_AND_SELECT"             : "Pronađi sve i odaberi",
     "CMD_ADD_NEXT_MATCH"                  : "Dodaj sljedeće slaganje u odabir",
     "CMD_SKIP_CURRENT_MATCH"              : "Preskoči i dodaj sljedeće slaganje",
     "CMD_REPLACE"                         : "Zamijeni",
@@ -402,19 +402,19 @@ define({
     "EMPTY_VIEW_HEADER"                    : "<em>Otvori datoteku dok je ovaj panel u fokusu</em>",
 
     // Strings for themes-settings.html and themes-general.html
-    "CURRENT_THEME"                        : "Trenutna Tema",
+    "CURRENT_THEME"                        : "Trenutna tema",
     "USE_THEME_SCROLLBARS"                 : "Koristi scrollbarove teme",
-    "FONT_SIZE"                            : "Veličina Fonta",
-    "FONT_FAMILY"                          : "Obitelj Fonta",
-    "THEMES_SETTINGS"                      : "Postavke Teme",
+    "FONT_SIZE"                            : "Veličina fonta",
+    "FONT_FAMILY"                          : "Obitelj fonta",
+    "THEMES_SETTINGS"                      : "Postavke teme",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Novo Pravilo",
 
     // Extension Management strings
     "INSTALL"                              : "Instaliraj",
-    "UPDATE"                               : "Obnovi",
-    "REMOVE"                               : "Makni",
+    "UPDATE"                               : "Ažuriraj",
+    "REMOVE"                               : "Ukloni",
     "DISABLE"                              : "Onemogući",
     "ENABLE"                               : "Omogući",
     "OVERWRITE"                            : "Piši preko",
@@ -509,7 +509,7 @@ define({
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixela",
+    "UNIT_PIXELS"                          : "piksela",
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Otklanjanje grešaka",
@@ -542,9 +542,9 @@ define({
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Trenutna boja",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Originalna boja",
-    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
-    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
-    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa format",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex format",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Korištena {1} put)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Korištena {1} puta)",
 
@@ -566,10 +566,10 @@ define({
     "DOCS_MORE_LINK"                            : "Pročitaj više",
 
     // extensions/default/CodeFolding
-    "COLLAPSE_ALL"                  : "Skupi Sve",
-    "EXPAND_ALL"                    : "Proširi Sve",
-    "COLLAPSE_CURRENT"              : "Skupi Trenutno",
-    "EXPAND_CURRENT"                : "Proširi Trenutno"
+    "COLLAPSE_ALL"                  : "Skupi sve",
+    "EXPAND_ALL"                    : "Proširi sve",
+    "COLLAPSE_CURRENT"              : "Skupi trenutno",
+    "EXPAND_CURRENT"                : "Proširi trenutno"
 });
 
 /* Last translated for a57bd8888da0b44f382e591c64b394b065178277 */
