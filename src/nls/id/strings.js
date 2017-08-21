@@ -434,7 +434,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentasi dan kode sumber di <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Dibuat dengan \u2764 dan JavaScript oleh:",
     "ABOUT_TEXT_LINE6"                     : "Banyak sekali orang (tetapi kami tidak dapat menampilkan daftarnya saat ini).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Dokumentasi dan logo grafis Web Platform berlisensi Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "Dokumentasi dan logo grafis MDN berlisensi Creative Commons Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Versi terbaru dari {APP_NAME} telah tersedia! Klik disini untuk lebih detail.",
     "UPDATE_AVAILABLE_TITLE"               : "Pembaruan Tersedia",
     "UPDATE_MESSAGE"                       : "Hai, versi terbaru {APP_NAME} sudah ada. Ini fitur terbarunya:",

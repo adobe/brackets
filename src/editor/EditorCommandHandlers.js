@@ -297,6 +297,22 @@ define(function (require, exports, module) {
         return false;
     }
 
+    /**
+     * Return the column of the first non whitespace char in the given line.
+     *
+     * @private
+     * @param {!Document} doc
+     * @param {number} lineNum
+     * @returns {number} the column index or null
+     */
+    function _firstNotWs(doc, lineNum) {
+        var text = doc.getLine(lineNum);
+        if (text === null || text === undefined) {
+            return 0;
+        }
+
+        return text.search(/\S|$/);
+    }
 
     /**
      * Generates an edit that adds or removes block-comment tokens to the selection, preserving selection
@@ -320,12 +336,13 @@ define(function (require, exports, module) {
      *      The selection to block comment/uncomment.
      * @param {?Array.<{!{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}}>} selectionsToTrack
      *      An array of selections that should be tracked through this edit.
+     * @param {String} command The command callee. It cans be "line" or "block".
      * @return {{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|
      *                  Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}}
      *      An edit description suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
-    function _getBlockCommentPrefixSuffixEdit(editor, prefix, suffix, linePrefixes, sel, selectionsToTrack) {
+    function _getBlockCommentPrefixSuffixEdit(editor, prefix, suffix, linePrefixes, sel, selectionsToTrack, command) {
         var doc            = editor.document,
             ctx            = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
             selEndIndex    = editor.indexFromPos(sel.end),
@@ -344,6 +361,12 @@ define(function (require, exports, module) {
             edit;
 
         var searchCtx, atSuffix, suffixEnd, initialPos, endLine;
+
+        var indentLineComment = Editor.getIndentLineComment();
+
+        function isIndentLineCommand() {
+            return indentLineComment && command === "line";
+        }
 
         if (!selectionsToTrack) {
             // Track the original selection.
@@ -467,12 +490,31 @@ define(function (require, exports, module) {
             // Comment out - add the suffix to the start and the prefix to the end.
             if (canComment) {
                 var completeLineSel = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line < sel.end.line;
+                var startCh = _firstNotWs(doc, sel.start.line);
                 if (completeLineSel) {
-                    editGroup.push({text: suffix + "\n", start: sel.end});
-                    editGroup.push({text: prefix + "\n", start: sel.start});
+                    if (isIndentLineCommand()) {
+                        var endCh = _firstNotWs(doc, sel.end.line - 1);
+                        var useTabChar = Editor.getUseTabChar(editor.document.file.fullPath);
+                        var indentChar = useTabChar ? "\t" : " ";
+                        editGroup.push({
+                            text: _.repeat(indentChar, endCh) + suffix + "\n",
+                            start: {line: sel.end.line, ch: 0}
+                        });
+                        editGroup.push({
+                            text: prefix + "\n" + _.repeat(indentChar, startCh),
+                            start: {line: sel.start.line, ch: startCh}
+                        });
+                    } else {
+                        editGroup.push({text: suffix + "\n", start: sel.end});
+                        editGroup.push({text: prefix + "\n", start: sel.start});
+                    }
                 } else {
                     editGroup.push({text: suffix, start: sel.end});
-                    editGroup.push({text: prefix, start: sel.start});
+                    if (isIndentLineCommand()) {
+                        editGroup.push({text: prefix, start: { line: sel.start.line, ch: startCh }});
+                    } else {
+                        editGroup.push({text: prefix, start: sel.start});
+                    }
                 }
 
                 // Correct the tracked selections. We can't just use the default selection fixup,
@@ -497,7 +539,7 @@ define(function (require, exports, module) {
                             if (completeLineSel) {
                                 // Just move the line down.
                                 pos.line++;
-                            } else if (pos.line === sel.start.line) {
+                            } else if (pos.line === sel.start.line && !(isIndentLineCommand() && pos.ch < startCh)) {
                                 pos.ch += prefix.length;
                             }
                         }
@@ -513,16 +555,21 @@ define(function (require, exports, module) {
                 // If both are found we assume that a complete line selection comment added new lines, so we remove them.
                 var line          = doc.getLine(prefixPos.line).trim(),
                     prefixAtStart = prefixPos.ch === 0 && prefix.length === line.length,
-                    suffixAtStart = false;
+                    prefixIndented = indentLineComment && prefix.length === line.length,
+                    suffixAtStart = false,
+                    suffixIndented = false;
 
                 if (suffixPos) {
                     line = doc.getLine(suffixPos.line).trim();
                     suffixAtStart = suffixPos.ch === 0 && suffix.length === line.length;
+                    suffixIndented = indentLineComment && suffix.length === line.length;
                 }
 
                 // Remove the suffix if there is one
                 if (suffixPos) {
-                    if (prefixAtStart && suffixAtStart) {
+                    if (suffixIndented) {
+                        editGroup.push({text: "", start: {line: suffixPos.line, ch: 0}, end: {line: suffixPos.line + 1, ch: 0}});
+                    } else if (prefixAtStart && suffixAtStart) {
                         editGroup.push({text: "", start: suffixPos, end: {line: suffixPos.line + 1, ch: 0}});
                     } else {
                         editGroup.push({text: "", start: suffixPos, end: {line: suffixPos.line, ch: suffixPos.ch + suffix.length}});
@@ -530,7 +577,9 @@ define(function (require, exports, module) {
                 }
 
                 // Remove the prefix
-                if (prefixAtStart && suffixAtStart) {
+                if (prefixIndented) {
+                    editGroup.push({text: "", start: {line: prefixPos.line, ch: 0}, end: {line: prefixPos.line + 1, ch: 0}});
+                } else if (prefixAtStart && suffixAtStart) {
                     editGroup.push({text: "", start: prefixPos, end: {line: prefixPos.line + 1, ch: 0}});
                 } else {
                     editGroup.push({text: "", start: prefixPos, end: {line: prefixPos.line, ch: prefixPos.ch + prefix.length}});
@@ -566,12 +615,13 @@ define(function (require, exports, module) {
      *      lineSel A line selection as returned from `Editor.convertToLineSelections()`. `selectionForEdit` is the selection to perform
      *      the line comment operation on, and `selectionsToTrack` are a set of selections associated with this line that need to be
      *      tracked through the edit.
+     * @param {String} command The command callee. It cans be "line" or "block".
      * @return {{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|
      *                  Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}}
      *      An edit description suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
-    function _getLineCommentPrefixSuffixEdit(editor, prefix, suffix, lineSel) {
+    function _getLineCommentPrefixSuffixEdit(editor, prefix, suffix, lineSel, command) {
         var sel = lineSel.selectionForEdit;
 
         // For one-line selections, we shrink the selection to exclude the trailing newline.
@@ -581,7 +631,7 @@ define(function (require, exports, module) {
 
         // Now just run the standard block comment code, but make sure to track any associated selections
         // that were subsumed into this line selection.
-        return _getBlockCommentPrefixSuffixEdit(editor, prefix, suffix, [], sel, lineSel.selectionsToTrack);
+        return _getBlockCommentPrefixSuffixEdit(editor, prefix, suffix, [], sel, lineSel.selectionsToTrack, command);
     }
 
     /**
@@ -591,12 +641,13 @@ define(function (require, exports, module) {
      * @param {!Editor} editor The editor to edit within.
      * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}
      *      selections The selections we want to line-comment.
+     * @param {String} command The command callee. It cans be "line" or "block".
      * @return {Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|
      *                  Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>}
      *      An array of edit descriptions suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
-    function _getLineCommentEdits(editor, selections) {
+    function _getLineCommentEdits(editor, selections, command) {
         // We need to expand line selections in order to coalesce cursors on the same line, but we
         // don't want to merge adjacent line selections.
         var lineSelections = editor.convertToLineSelections(selections, { mergeAdjacent: false }),
@@ -611,7 +662,7 @@ define(function (require, exports, module) {
                 if (language.hasLineCommentSyntax()) {
                     edit = _getLineCommentPrefixEdit(editor, language.getLineCommentPrefixes(), language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), lineSel);
                 } else if (language.hasBlockCommentSyntax()) {
-                    edit = _getLineCommentPrefixSuffixEdit(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), lineSel);
+                    edit = _getLineCommentPrefixSuffixEdit(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), lineSel, command);
                 }
             }
             if (!edit) {
@@ -633,7 +684,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        editor.setSelections(editor.document.doMultipleEdits(_getLineCommentEdits(editor, editor.getSelections())));
+        editor.setSelections(editor.document.doMultipleEdits(_getLineCommentEdits(editor, editor.getSelections(), "line")));
     }
 
     /**
@@ -674,7 +725,7 @@ define(function (require, exports, module) {
         // Handle any line-comment edits. It's okay if these are out-of-order with the other edits, since
         // they shouldn't overlap, and `doMultipleEdits()` will take care of sorting the edits so the
         // selections can be tracked appropriately.
-        edits.push.apply(edits, _getLineCommentEdits(editor, lineCommentSels));
+        edits.push.apply(edits, _getLineCommentEdits(editor, lineCommentSels, "block"));
 
         editor.setSelections(editor.document.doMultipleEdits(edits));
     }

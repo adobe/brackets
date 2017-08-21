@@ -675,7 +675,7 @@ define(function (require, exports, module) {
             KeyBindingManager.addBinding(commandID, keyBindings);
 
             // Look for existing key bindings
-            _addExistingKeyBinding(menuItem, commandID);
+            _addExistingKeyBinding(menuItem);
 
             menuItem._checkedChanged();
             menuItem._enabledChanged();

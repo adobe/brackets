@@ -50,7 +50,7 @@ for a list of new features and known issues in each build.
 
 In addition to the core features built into Brackets, there is a large and growing
 community of developers building extensions that add all sorts of useful functionality.
-See the [Brackets Extension Registry](https://brackets-registry.aboutweb.com/)
+See the [Brackets Extension Registry](https://registry.brackets.io/)
 for a list of available extensions. For installation instructions,
 see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
 

@@ -145,7 +145,7 @@ define(function (require, exports, module) {
             t.kind = kind;
             t.origin = "ecmascript";
             if (kind === "string") {
-                if (/[\\\\]*[^\\]"/.test(t.value)) {
+                if (/[^\\]"/.test(t.value)) {
                     t.delimiter = SINGLE_QUOTE;
                 } else {
                     t.delimiter = DOUBLE_QUOTE;

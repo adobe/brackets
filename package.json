@@ -1,7 +1,7 @@
 {
     "name": "Brackets",
-    "version": "1.10.0-0",
-    "apiVersion": "1.10.0",
+    "version": "1.11.0-0",
+    "apiVersion": "1.11.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
@@ -22,7 +22,7 @@
         "decompress-zip": "0.3.0",
         "fs-extra": "2.0.0",
         "lodash": "4.17.4",
-        "npm": "3.10.9",
+        "npm": "3.10.10",
         "opn": "4.0.2",
         "request": "2.79.0",
         "semver": "5.3.0",

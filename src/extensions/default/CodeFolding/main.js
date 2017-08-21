@@ -329,14 +329,14 @@ define(function (require, exports, module) {
     }
 
     /**
-      * When a brand new editor is seen, initialise fold-gutter and restore line folds in it. Save line folds in
-      * departing editor in case it's getting closed.
+      * When a brand new editor is seen, initialise fold-gutter and restore line folds in it. 
+      * Save line folds in departing editor in case it's getting closed.
       * @param {object} event the event object
       * @param {Editor} current the current editor
       * @param {Editor} previous the previous editor
       */
     function onActiveEditorChanged(event, current, previous) {
-        if (current) {
+        if (current && !current._codeMirror._lineFolds) {
             enableFoldingInEditor(current);
         }
         if (previous) {

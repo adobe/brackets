@@ -448,7 +448,7 @@ define({
     "ABOUT_TEXT_LINE4"                  : "Documentazione e codice sorgente sono disponibili all’indirizzo <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Fatto con \u2764 e JavaScript da:",
     "ABOUT_TEXT_LINE6"                     : "Molte persone (abbiamo qualche difficoltà a caricare questi dati ora).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "I loghi di 'Web Platform Docs'e 'Web Platform' sono sotto licenza Creative Common Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"               : "I loghi di 'MDN Docs'e 'MDN' sono sotto licenza Creative Common Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"       : "È disponibile una nuova versione di {APP_NAME}! Clicca qui per i dettagli.",
     "UPDATE_AVAILABLE_TITLE"            : "Aggiornamento Disponibile",
     "UPDATE_MESSAGE"                    : "Hey, è disponibile una nuova versione di {APP_NAME}. Nuove caratteristiche:",
