@@ -33,15 +33,13 @@ require.config({
         "text"                          : "thirdparty/text/text",
         "i18n"                          : "thirdparty/i18n/i18n",
         "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
-        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
-    },
-    packages: [
-        {
-            name: "thirdparty/preact",
-            location: "thirdparty/preact",
-            main: "preact-compat"
-        }
-    ]
+        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl",
+        "preact-compat"                 : "thirdparty/preact-compat/preact-compat.min",
+        "preact"                        : "thirdparty/preact/preact",
+        "preact-test-utils"             : "thirdparty/preact-test-utils/preact-test-utils",
+        "simulate-event"                : "thirdparty/simulate-event/simulate-event",
+        "xtend"                         : "thirdparty/xtend"
+    }
 });
 
 define(function (require, exports, module) {

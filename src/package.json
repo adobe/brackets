@@ -2,6 +2,9 @@
   "name": "brackets-src",
   "dependencies": {
     "codemirror": "5.28.0",
-    "less": "2.7.2"
+    "less": "2.7.2",
+    "preact": "8.2.1",
+    "preact-test-utils": "0.1.3",
+    "preact-compat": "boopeshmahendran/preact-compat"
   }
 }

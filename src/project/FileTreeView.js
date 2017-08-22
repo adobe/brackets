@@ -31,7 +31,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Preact            = require("thirdparty/preact"),
+    var Preact            = require("preact-compat"),
         Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),

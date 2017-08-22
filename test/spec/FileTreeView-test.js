@@ -29,9 +29,9 @@ define(function (require, exports, module) {
 
     var FileTreeView      = require("project/FileTreeView"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
-        Preact             = require("thirdparty/preact"),
+        Preact            = require("preact-compat"),
         Immutable         = require("thirdparty/immutable"),
-        PTU               = require("thirdparty/preact/preact-test-utils"),
+        PTU               = require("preact-test-utils"),
         _                 = require("thirdparty/lodash");
 
     // Preact Test Utils doesn't have findRenderedDOMComponentWithTag method
