@@ -62,7 +62,7 @@ define({
     "ERROR_CREATING_FILE"               : "Došlo je do greške prilikom pokušaja da se kreira {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application preferences corrupt error strings
-    "ERROR_PREFS_CORRUPT_TITLE"         : "Greška prilikom učitanja preferencija",
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Greška prilikom učitavanja preferencija",
     "ERROR_PREFS_CORRUPT"               : "Vaša datoteka preferencije nije valjana u JSON. Datoteka će biti otvorena tako da možete ispraviti format. Da biste vidjeli promjene, ponovo pokrenite {APP_NAME}.",
 
     // Application error strings
