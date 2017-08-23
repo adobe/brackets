@@ -715,20 +715,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Moves the draggedOver flag
-     *
-     * @param {string} path full path to the folder over which dragging is done
-     */
-    ProjectModel.prototype.setDraggedOver = function(path) {
-        var oldDraggedOverPath = this.makeProjectRelativeIfPossible(this._selections.draggedOver),
-            newDraggedOverPath = this.makeProjectRelativeIfPossible(path);
-
-        this._selections.draggedOver = path;
-
-        this._viewModel.moveMarker("draggedOver", oldDraggedOverPath, newDraggedOverPath);
-    };
-
-    /**
      * Gets the currently selected file or directory.
      *
      * @return {FileSystemEntry} the filesystem object for the currently selected file

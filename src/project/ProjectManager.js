@@ -295,13 +295,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * See `ProjectModel.setDraggedOver`
-     */
-    ActionCreator.prototype.setDraggedOver = function (path) {
-        this.model.setDraggedOver(path);
-    };
-
-    /**
      * See `ProjectModel.startRename`
      */
     ActionCreator.prototype.startRename = function (path) {

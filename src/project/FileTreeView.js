@@ -215,7 +215,7 @@ define(function (require, exports, module) {
 
              this.props.actions.setDirectoryOpen(this.myPath(), true);
              this.props.actions.moveItem(data.path, this.myPath());
-             this.props.actions.setDraggedOver(null);
+             this.setDraggedOver(false);
 
              this.clearDragTimeout();
              e.stopPropagation();
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
           */
          handleDragOver: function(e) {
              var self = this;
-             this.props.actions.setDraggedOver(this.myPath());
+             this.setDraggedOver(true);
 
              // Open the directory tree when item is dragged over a directory
              if (!this.dragOverTimeout) {
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
          },
 
          handleDragLeave: function(e) {
-             this.props.actions.setDraggedOver(null);
+             this.setDraggedOver(false);
              this.clearDragTimeout();
          },
 
@@ -252,6 +252,13 @@ define(function (require, exports, module) {
              if (this.dragOverTimeout) {
                  clearTimeout(this.dragOverTimeout);
                  this.dragOverTimeout = null;
+             }
+         },
+         setDraggedOver: function(draggedOver) {
+             if (this.state.draggedOver !== draggedOver) {
+                 this.setState({
+                     draggedOver: draggedOver
+                 });
              }
          }
 
@@ -704,6 +711,11 @@ define(function (require, exports, module) {
     directoryNode = React.createFactory(React.createClass({
         mixins: [contextSettable, pathComputer, extendable, dragAndDrop],
 
+        getInitialState: function () {
+            return {
+                draggedOver: false,
+            };
+        },
         /**
          * We need to update this component if the sort order changes or our entry object
          * changes. Thanks to immutability, if any of the directory contents change, our
@@ -713,7 +725,8 @@ define(function (require, exports, module) {
             return nextProps.forceRender ||
                 this.props.entry !== nextProps.entry ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
-                this.props.extensions !== nextProps.extensions;
+                this.props.extensions !== nextProps.extensions ||
+                (nextState !== undefined && this.state.draggedOver !== nextState.draggedOver);
         },
 
         /**
@@ -802,7 +815,7 @@ define(function (require, exports, module) {
             });
 
             var nodeClasses = "jstree-" + nodeClass;
-            if (entry.get("draggedOver")) {
+            if (this.state.draggedOver) {
                 nodeClasses += " jstree-draggedOver";
             }
 
