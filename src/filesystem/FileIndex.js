@@ -156,7 +156,7 @@ define(function (require, exports, module) {
                     if (entry.fullPath === oldPath || entry.fullPath === newPath) {
                         renamedEntry = oldDirectory._contents.splice(index, 1)[0];
                     }
-                })
+                });
             }
 
             if (newDirectory && newDirectory._contents && renamedEntry) {
