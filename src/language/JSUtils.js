@@ -28,8 +28,9 @@ define(function (require, exports, module) {
     "use strict";
 
     var _          = require("thirdparty/lodash"),
-        AcornLoose = require("node_modules/acorn/dist/acorn_loose"),
-        ASTWalker  = require("node_modules/acorn/dist/walk");
+        Acorn      = require("thirdparty/acorn/dist/acorn"),
+        AcornLoose = require("thirdparty/acorn/dist/acorn_loose"),
+        ASTWalker  = require("thirdparty/acorn/dist/walk");
 
     // Load brackets modules
     var CodeMirror              = require("thirdparty/CodeMirror/lib/codemirror"),
@@ -55,7 +56,8 @@ define(function (require, exports, module) {
      * @return {Object.<string, Array.<{offsetStart: number, offsetEnd: number}>}
      */
     function _findAllFunctionsInText(text) {
-        var results = {},
+        var AST,
+            results = {},
             functionName,
             resultNode,
             memberPrefix,
@@ -63,7 +65,11 @@ define(function (require, exports, module) {
    
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
         
-        var AST = AcornLoose.parse_dammit(text, {locations: true});
+        try {
+            AST = Acorn.parse(text, {locations: true});
+        } catch (e) {
+            AST = AcornLoose.parse_dammit(text, {locations: true});
+        }
         
         function _addResult(node, offset, prefix) {
             memberPrefix = prefix ? prefix + " - " : "";
@@ -87,7 +93,9 @@ define(function (require, exports, module) {
                 function <functionName> () {}
             */
             FunctionDeclaration: function (node) {
-                if (node.id.name !== '✖') { // A hack to reject anonymous declarations 
+                // As acorn_loose marks identifier names with '✖' under erroneous declarations
+                // we should have a check to discard such 'FunctionDeclaration' nodes
+                if (node.id.name !== '✖') {
                     _addResult(node);
                 }
             },
@@ -110,10 +118,14 @@ define(function (require, exports, module) {
                 });
             },
             /*
-                var <functionName> = function () {}
+                var <functionName> = function () {} 
+                
+                or 
+                
+                var <functionName> = () => {}
             */
             VariableDeclarator: function (node) {
-                if (node.init && node.init.type === "FunctionExpression") {
+                if (node.init && (node.init.type === "FunctionExpression" || node.init.type === "ArrowFunctionExpression")) {
                     _addResult(node);
                 }
             },
