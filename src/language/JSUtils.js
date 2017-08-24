@@ -27,9 +27,9 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = require("thirdparty/lodash");
-    var Acorn_Loose = require("node_modules/acorn/dist/acorn_loose");
-    var AST_Walker  = require("node_modules/acorn/dist/walk");
+    var _          = require("thirdparty/lodash"),
+        AcornLoose = require("node_modules/acorn/dist/acorn_loose"),
+        ASTWalker  = require("node_modules/acorn/dist/walk");
 
     // Load brackets modules
     var CodeMirror              = require("thirdparty/CodeMirror/lib/codemirror"),
@@ -60,10 +60,10 @@ define(function (require, exports, module) {
             resultNode,
             memberPrefix,
             match;
-            
+   
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
         
-        var AST = Acorn_Loose.parse_dammit(text, {locations: true});
+        var AST = AcornLoose.parse_dammit(text, {locations: true});
         
         function _addResult(node, offset, prefix) {
             memberPrefix = prefix ? prefix + " - " : "";
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             );
         }
         
-        AST_Walker.simple(AST, {
+        ASTWalker.simple(AST, {
             /*
                 function <functionName> () {}
             */
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
             */
             ClassDeclaration: function (node) {
                 _addResult(node);
-                AST_Walker.simple(node, {
+                ASTWalker.simple(node, {
                     /*
                         class <className> () {
                             <methodName> () {
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
         });
 
         PerfUtils.addMeasurement(PerfUtils.JSUTILS_REGEXP);
-        
+
         return results;
     }
 
