@@ -56,6 +56,7 @@ define(function (require, exports, module) {
     var es6StaticsFileEntry         = FileSystem.getFileForPath(testPath + "/es6-static-methods.js");
     var es6InheritanceFileEntry     = FileSystem.getFileForPath(testPath + "/es6-inheritance.js");
     var es6GetterSetterFileEntry    = FileSystem.getFileForPath(testPath + "/es6-getter-setter.js");
+    var es6AsyncAndArrowFileEntry   = FileSystem.getFileForPath(testPath + "/es6-async-arrow.js");
 
     function init(spec, fileEntry) {
         if (fileEntry) {
@@ -169,6 +170,19 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "width", [ {start:  5, end:  5}, {start:  6, end:  6} ]);
                     expectFunctionRanges(this, this.fileJsContent, "height", [ {start:  7, end:  7}, {start:  8, end:  8} ]);
                     expectFunctionRanges(this, this.fileJsContent, "area", [ {start:  9, end:  9} ]);
+                });
+            });
+            
+            it("should return correct start and end line numbers for es6 async and arrow function expressions", function () {
+                runs(function () {
+                    doneLoading = false;
+                    init(this, es6AsyncAndArrowFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "bar", [ {start:  1, end:  1} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "fooAgain", [ {start:  3, end:  3} ]);
                 });
             });
 
