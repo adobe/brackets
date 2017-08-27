@@ -1242,25 +1242,20 @@ define(function (require, exports, module) {
     /**
      * Moves the item in oldPath to the newDirectory directory
      * @param {string} oldPath  old path of the item
-     * @param {string} newDirectory path of the directory to move the item
+     * @param {string} newPath new path of the item
      * @return {$.Promise} promise resolved when the item is moved
      */
-    ProjectModel.prototype.moveItem = function(oldPath, newDirectory) {
+    ProjectModel.prototype.moveItem = function(oldPath, newPath) {
         var self = this,
             d = new $.Deferred(),
-            fileName = FileUtils.getBaseName(oldPath),
-            fullNewPath = newDirectory + fileName;
-
-        // Add trailing slash if directory is moved
-        if (!_pathIsFile(oldPath)) {
-            fullNewPath = _ensureTrailingSlash(fullNewPath);
-        }
+            newDirectory = FileUtils.getParentPath(newPath),
+            fileName = FileUtils.getBaseName(newPath);
 
         // Reusing the _renameItem for moving item
-        this._renameItem(oldPath, fullNewPath, fileName, !_pathIsFile(fullNewPath)).then(function () {
+        this._renameItem(oldPath, newPath, fileName, !_pathIsFile(newPath)).then(function () {
             var newDirectoryRelative = self.makeProjectRelativeIfPossible(newDirectory),
                 oldPathRelative = self.makeProjectRelativeIfPossible(oldPath),
-                fullNewPathRelative = self.makeProjectRelativeIfPossible(fullNewPath),
+                newPathRelative = self.makeProjectRelativeIfPossible(newPath),
                 needsLoading = !self._viewModel.isPathLoaded(newDirectoryRelative),
                 viewModel = self._viewModel;
 
@@ -1268,17 +1263,17 @@ define(function (require, exports, module) {
             if (needsLoading) {
                 self._getDirectoryContents(newDirectory).then(function(contents) {
                     viewModel.setDirectoryContents(newDirectoryRelative, contents);
-                    viewModel.moveItem(oldPathRelative, fullNewPathRelative);
+                    viewModel.moveItem(oldPathRelative, newPathRelative);
                 });
             } else {
-                viewModel.moveItem(self.makeProjectRelativeIfPossible(oldPath), self.makeProjectRelativeIfPossible(fullNewPath));
+                viewModel.moveItem(oldPathRelative, newPathRelative);
             }
             d.resolve();
         }).fail(function (errorType) {
             var errorInfo = {
                 type: errorType,
-                isFolder: !_pathIsFile(fullNewPath),
-                fullPath: fullNewPath
+                isFolder: !_pathIsFile(newPath),
+                fullPath: newPath
             };
             d.reject(errorInfo);
         });
