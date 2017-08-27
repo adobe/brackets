@@ -390,6 +390,9 @@ define(function (require, exports, module) {
     ActionCreator.prototype.moveItem = function(oldPath, newDirectory) {
         var fileName = FileUtils.getBaseName(oldPath),
             newPath = newDirectory + fileName,
+            selectedItem = getSelectedItem(),
+            selectedItemPath = selectedItem && selectedItem.fullPath,
+            selectedItemMoved = false,
             self = this;
 
         // If item dropped onto itself or onto its parent directory, return
@@ -398,7 +401,20 @@ define(function (require, exports, module) {
         }
 
 
-        this.model.moveItem(oldPath, newDirectory)
+        // Add trailing slash if directory is moved
+        if (_.last(oldPath) === '/') {
+            newPath = ProjectModel._ensureTrailingSlash(newPath);
+        }
+
+        if (selectedItem && selectedItemPath.indexOf(oldPath) === 0) {
+            selectedItemMoved = true;
+        }
+
+        this.model.moveItem(oldPath, newPath).then(function() {
+            if (selectedItemMoved) {
+                self.setSelected(newPath + selectedItemPath.substr(oldPath.length));
+            }
+        })
         .fail(function(errorInfo) {
             // Need to do display the error message on the next event loop turn
             // because some errors can come up synchronously and then the dialog
