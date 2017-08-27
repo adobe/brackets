@@ -229,6 +229,13 @@ define(function (require, exports, module) {
          },
 
          handleDragOver: function(e) {
+             var data = JSON.parse(e.dataTransfer.getData("text"));
+
+             if (data.path === this.myPath() || FileUtils.getParentPath(data.path) === this.myPath()) {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 return;
+             }
              var self = this;
              this.setDraggedOver(true);
 
