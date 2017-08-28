@@ -65,9 +65,7 @@ define(function (require, exports, module) {
         var lines = docText.split("\n");
         var functions = JSUtils.findAllMatchingFunctionsInText(docText, "*");
         functions.forEach(function (funcEntry) {
-            var chFrom = funcEntry.columnStart;
-            var chTo = funcEntry.columnEnd;
-            functionList.push(new FileLocation(null, funcEntry.nameLineStart, chFrom, chTo, funcEntry.label || funcEntry.name));
+            functionList.push(new FileLocation(null, funcEntry.nameLineStart, funcEntry.columnStart, funcEntry.columnEnd, funcEntry.label || funcEntry.name));
         });
         return functionList;
     }
