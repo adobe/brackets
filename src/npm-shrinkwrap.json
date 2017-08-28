@@ -1,6 +1,12 @@
 {
   "name": "brackets-src",
   "dependencies": {
+    "acorn": {
+      "version": "5.1.1",
+      "from": "acorn@>=5.0.1 <6.0.0",
+      "resolved": "https://registry.npmjs.org/acorn/-/acorn-5.1.1.tgz",
+      "dev": true
+    },
     "ansi-regex": {
       "version": "2.1.1",
       "from": "ansi-regex@>=2.0.0 <3.0.0",
