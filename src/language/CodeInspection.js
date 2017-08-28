@@ -503,6 +503,11 @@ define(function (require, exports, module) {
 
         _providers[languageId].push(provider);
 
+        // Sort the providers in ascending order of priority and registration order
+        _providers[languageId].sort(function (a, b) {
+            return (a.priority || 0) - (b.priority || 0);
+        });
+
         run();  // in case a file of this type is open currently
     }
 
@@ -512,7 +517,8 @@ define(function (require, exports, module) {
     function getProvidersForLanguageId(languageId) {
         var result = [];
         if (_providers[languageId]) {
-            result = result.concat(_providers[languageId]);
+            // Will pick up the language specific provider having most priority
+            result = result.concat(_providers[languageId].slice(-1));
         }
         if (_providers['*']) {
             result = result.concat(_providers['*']);
