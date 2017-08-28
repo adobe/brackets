@@ -1,6 +1,7 @@
 {
   "name": "brackets-src",
   "dependencies": {
+    "acorn": "5.1.1",
     "codemirror": "5.28.0",
     "less": "2.7.2"
   }
