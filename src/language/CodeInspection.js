@@ -519,7 +519,6 @@ define(function (require, exports, module) {
     function getProvidersForLanguageId(languageId) {
         var result = [];
         if (_providers[languageId]) {
-            // Will pick up the language specific provider having most priority
             result = result.concat(_providers[languageId]);
         }
         if (_providers['*']) {
