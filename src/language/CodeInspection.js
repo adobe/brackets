@@ -499,14 +499,16 @@ define(function (require, exports, module) {
     function register(languageId, provider) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
+        } else {
+            // Check if provider with same name exists for the given language
+            // If yes, remove the provider before inserting the most recently loaded one
+            var indexOfProvider = _.findIndex(_providers[languageId], function(entry) { return entry.name === provider.name; });
+            if (indexOfProvider !== -1) {
+                _providers[languageId].splice(indexOfProvider, 1);
+            }
         }
 
         _providers[languageId].push(provider);
-
-        // Sort the providers in ascending order of priority and registration order
-        _providers[languageId].sort(function (a, b) {
-            return (a.priority || 0) - (b.priority || 0);
-        });
 
         run();  // in case a file of this type is open currently
     }
@@ -518,7 +520,7 @@ define(function (require, exports, module) {
         var result = [];
         if (_providers[languageId]) {
             // Will pick up the language specific provider having most priority
-            result = result.concat(_providers[languageId].slice(-1));
+            result = result.concat(_providers[languageId]);
         }
         if (_providers['*']) {
             result = result.concat(_providers['*']);
