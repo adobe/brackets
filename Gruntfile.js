@@ -143,11 +143,39 @@ module.exports = function (grunt) {
                     },
                     {
                         expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/preact-compat',
+                        cwd: 'src/node_modules/preact-compat',
+                        src: [
+                            'dist/preact-compat.min.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/simulate-event',
+                        cwd: 'src/node_modules/simulate-event',
+                        src: [
+                            'simulate-event.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/xtend',
+                        cwd: 'src/node_modules/xtend',
+                        src: [
+                            'mutable.js',
+                            'immutable.js'
+                        ]
+                    },
+                    {
+                        expand: true,
                         dest: 'src/thirdparty/acorn',
                         cwd: 'src/node_modules/acorn',
                         src: [
                             'dist/{,*/}*'
-                        ]
+                          ]
                     }
                 ]
             }
