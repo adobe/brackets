@@ -23,7 +23,7 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"           : "uk/Починаємо роботу",
+    "GETTING_STARTED"           : "uk/Pochynayemo",
     "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_uk/",
     "MDN_DOCS_LICENSE"          : "http://creativecommons.org/licenses/by-sa/2.5/deed.uk"
 });
