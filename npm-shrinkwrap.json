@@ -263,6 +263,12 @@
         }
       }
     },
+    "block-stream": {
+      "version": "0.0.9",
+      "from": "block-stream@*",
+      "resolved": "https://registry.npmjs.org/block-stream/-/block-stream-0.0.9.tgz",
+      "dev": true
+    },
     "bn.js": {
       "version": "4.11.7",
       "from": "bn.js@>=4.1.1 <5.0.0",
@@ -351,6 +357,11 @@
       "from": "buffer@>=4.3.0 <5.0.0",
       "resolved": "https://registry.npmjs.org/buffer/-/buffer-4.9.1.tgz",
       "dev": true
+    },
+    "buffer-shims": {
+      "version": "1.0.0",
+      "from": "buffer-shims@>=1.0.0 <1.1.0",
+      "resolved": "https://registry.npmjs.org/buffer-shims/-/buffer-shims-1.0.0.tgz"
     },
     "buffer-xor": {
       "version": "1.0.3",
@@ -644,6 +655,11 @@
           "version": "0.0.1",
           "from": "isarray@0.0.1",
           "resolved": "https://registry.npmjs.org/isarray/-/isarray-0.0.1.tgz"
+        },
+        "q": {
+          "version": "1.5.0",
+          "from": "q@>=1.1.2 <2.0.0",
+          "resolved": "https://registry.npmjs.org/q/-/q-1.5.0.tgz"
         },
         "readable-stream": {
           "version": "1.1.14",
@@ -1057,6 +1073,12 @@
       "version": "1.0.0",
       "from": "fs.realpath@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz",
+      "dev": true
+    },
+    "fstream": {
+      "version": "1.0.11",
+      "from": "fstream@>=1.0.2 <2.0.0",
+      "resolved": "https://registry.npmjs.org/fstream/-/fstream-1.0.11.tgz",
       "dev": true
     },
     "gaze": {
@@ -2057,7 +2079,7 @@
       "dependencies": {
         "string_decoder": {
           "version": "0.10.31",
-          "from": "string_decoder@^0.10.25",
+          "from": "string_decoder@>=0.10.25 <0.11.0",
           "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-0.10.31.tgz",
           "dev": true
         }
@@ -3997,7 +4019,8 @@
     "q": {
       "version": "1.4.1",
       "from": "q@1.4.1",
-      "resolved": "https://registry.npmjs.org/q/-/q-1.4.1.tgz"
+      "resolved": "https://registry.npmjs.org/q/-/q-1.4.1.tgz",
+      "dev": true
     },
     "qs": {
       "version": "6.3.2",
@@ -4434,6 +4457,12 @@
       "resolved": "https://registry.npmjs.org/tapable/-/tapable-0.2.7.tgz",
       "dev": true
     },
+    "tar": {
+      "version": "2.2.1",
+      "from": "tar@2.2.1",
+      "resolved": "https://registry.npmjs.org/tar/-/tar-2.2.1.tgz",
+      "dev": true
+    },
     "temp": {
       "version": "0.8.3",
       "from": "temp@0.8.3",
@@ -4845,6 +4874,12 @@
           "dev": true
         }
       }
+    },
+    "zlib": {
+      "version": "1.0.5",
+      "from": "zlib@1.0.5",
+      "resolved": "https://registry.npmjs.org/zlib/-/zlib-1.0.5.tgz",
+      "dev": true
     },
     "zlib-browserify": {
       "version": "0.0.1",
