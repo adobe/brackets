@@ -4259,9 +4259,9 @@
       "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.1.tgz"
     },
     "sax": {
-      "version": "0.4.2",
-      "from": "sax@0.4.2",
-      "resolved": "https://registry.npmjs.org/sax/-/sax-0.4.2.tgz",
+      "version": "0.6.1",
+      "from": "sax@>=0.6.1 <0.7.0",
+      "resolved": "https://registry.npmjs.org/sax/-/sax-0.6.1.tgz",
       "dev": true
     },
     "semver": {
@@ -4819,9 +4819,9 @@
       }
     },
     "xmldoc": {
-      "version": "0.1.2",
-      "from": "xmldoc@0.1.2",
-      "resolved": "https://registry.npmjs.org/xmldoc/-/xmldoc-0.1.2.tgz",
+      "version": "0.1.4",
+      "from": "xmldoc@>=0.1.2 <0.2.0",
+      "resolved": "https://registry.npmjs.org/xmldoc/-/xmldoc-0.1.4.tgz",
       "dev": true
     },
     "xmldom": {
