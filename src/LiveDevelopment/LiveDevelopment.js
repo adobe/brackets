@@ -1369,7 +1369,10 @@ define(function LiveDevelopment(require, exports, module) {
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
                 .done(function () {
-                    WebSocketTransport.createWebSocketServer(PreferencesManager.get("livedev.wsPort"));
+                    var wsPort = PreferencesManager.get("livedev.wsPort");
+                    if (wsPort) {
+                        WebSocketTransport.createWebSocketServer(wsPort);
+                    }
                     _doLaunchAfterServerReady(doc);
                 })
                 .fail(function () {
