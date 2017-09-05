@@ -608,7 +608,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
-	"ERRORS": "エラー",
+	"ERRORS": "エラー ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
