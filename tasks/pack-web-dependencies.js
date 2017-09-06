@@ -26,6 +26,18 @@ module.exports = function (grunt) {
                 "./src/thirdparty/semver.browser.js",
                 "-p",
                 "--output-library-target=amd"
+            ],
+            [
+                "./src/node_modules/preact/dist/preact.min.js",
+                "./src/thirdparty/preact/preact.js",
+                "-p",
+                "--output-library-target=amd"
+            ],
+            [
+                "./src/node_modules/preact-test-utils/lib/index.js",
+                "./src/thirdparty/preact-test-utils/preact-test-utils.js",
+                "-p",
+                "--output-library-target=amd"
             ]
         ];
         var doneWithWebpackTask = _.after(webpackTasks.length, done);

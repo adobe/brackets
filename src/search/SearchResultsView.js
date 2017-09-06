@@ -151,6 +151,9 @@ define(function (require, exports, module) {
         var self = this;
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
+            .on("dblclick.searchResults", ".toolbar", function() {
+                self.close();
+            })
             .on("click.searchResults", ".close", function () {
                 self.close();
             })
