@@ -397,7 +397,7 @@ function getParameters(inferFnType) {
     function inferArrTypeToString(inferArrType) {
         var result = "Array.<";
 
-        result += inferArrType.props["<i>"].types.types.map(inferTypeToString).join(", ");
+        result += inferArrType.props["<i>"].types.map(inferTypeToString).join(", ");
 
         // workaround case where types is zero length
         if (inferArrType.props["<i>"].types.length === 0) {
