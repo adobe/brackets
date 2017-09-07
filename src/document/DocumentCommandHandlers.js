@@ -334,7 +334,7 @@ define(function (require, exports, module) {
                         }
                     };
                 var encoding = PreferencesManager.getViewState("encoding", context);
-                if (encoding[fullPath]) {
+                if (encoding && encoding[fullPath]) {
                     file._encoding = encoding[fullPath];
                 }
             }
