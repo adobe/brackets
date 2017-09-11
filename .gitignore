@@ -18,6 +18,7 @@ Thumbs.db
 /src/thirdparty/preact-test-utils
 /src/thirdparty/simulate-event
 /src/thirdparty/xtend
+/src/thirdparty/acorn
 
 # ignore compiled files
 /dist
