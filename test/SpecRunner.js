@@ -42,8 +42,8 @@ require.config({
     },
     map: {
         "*": {
-            "thirdparty/preact":            "preact-compat",
-            "thirdparty/preact-test-utils": "preact-test-utils"
+            "thirdparty/preact"            : "preact-compat",
+            "thirdparty/preact-test-utils" : "preact-test-utils"
         }
     }
 });
