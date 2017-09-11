@@ -480,10 +480,10 @@ define({
 	"FLIPVIEW_BTN_TOOLTIP": "このビューを {0} ペインにめくる",
 
     // Strings for themes-settings.html and themes-general.html
-	"CURRENT_THEME": "現在のテーマ",
-	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
-	"FONT_SIZE": "フォントサイズ",
-	"FONT_FAMILY": "フォントファミリー",
+	"CURRENT_THEME": "現在のテーマ ",
+	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用 ",
+	"FONT_SIZE": "フォントサイズ ",
+	"FONT_FAMILY": "フォントファミリー ",
 	"THEMES_SETTINGS": "テーマ設定",
 
     // CSS Quick Edit
