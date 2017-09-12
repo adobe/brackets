@@ -784,7 +784,7 @@ function checkInterfaceAndReInit() {
         // We are here as node process got restarted 
         // Request for ReInitialization of interface and Tern Server
         self.postMessage({
-            type: "ReInitTern"
+            type: "RE_INIT_TERN"
         });
     }
 }
@@ -841,7 +841,7 @@ function init(domainManager) {
             }
         ]
     );
-    setTimeout(checkInterfaceAndReInit, 5000);
+    setTimeout(checkInterfaceAndReInit, 1000);
 }
 
 exports.init = init;

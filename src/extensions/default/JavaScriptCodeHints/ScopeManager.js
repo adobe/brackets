@@ -1099,8 +1099,8 @@ define(function (require, exports, module) {
                         handleTimedOut(response);
                     } else if (type === MessageIds.TERN_WORKER_READY) {
                         moduleDeferred.resolveWith(null, [_ternNodeDomain]);
-                    } else if (type === "ReInitTern") {
-                        // Ensure the request is beacuse of a node restart
+                    } else if (type === "RE_INIT_TERN") {
+                        // Ensure the request is because of a node restart
                         if (currentModule) {
                             prepareTern();
                             // Mark the module with resetForced, then creation of TernModule will 
