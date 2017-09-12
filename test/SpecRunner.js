@@ -39,6 +39,12 @@ require.config({
         "preact-test-utils"             : "thirdparty/preact-test-utils/preact-test-utils",
         "simulate-event"                : "thirdparty/simulate-event/simulate-event",
         "xtend"                         : "thirdparty/xtend"
+    },
+    map: {
+        "*": {
+            "thirdparty/preact"            : "preact-compat",
+            "thirdparty/preact-test-utils" : "preact-test-utils"
+        }
     }
 });
 

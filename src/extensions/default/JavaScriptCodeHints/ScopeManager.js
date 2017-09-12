@@ -1054,6 +1054,19 @@ define(function (require, exports, module) {
         function initTernModule() {
             var moduleDeferred = $.Deferred();
             ternPromise = moduleDeferred.promise();
+            
+            function prepareTern() {  
+                _ternNodeDomain.exec("setInterface", {
+                    messageIds : MessageIds
+                });
+
+                _ternNodeDomain.exec("invokeTernCommand", {
+                    type: MessageIds.SET_CONFIG,
+                    config: config
+                });
+                moduleDeferred.resolveWith(null, [_ternNodeDomain]);
+            }
+            
             if (_ternNodeDomain) {
                 _ternNodeDomain.exec("resetTernServer");
                 moduleDeferred.resolveWith(null, [_ternNodeDomain]);
@@ -1086,23 +1099,20 @@ define(function (require, exports, module) {
                         handleTimedOut(response);
                     } else if (type === MessageIds.TERN_WORKER_READY) {
                         moduleDeferred.resolveWith(null, [_ternNodeDomain]);
+                    } else if (type === "RE_INIT_TERN") {
+                        // Ensure the request is because of a node restart
+                        if (currentModule) {
+                            prepareTern();
+                            // Mark the module with resetForced, then creation of TernModule will 
+                            // happen again as part of '_maybeReset' call
+                            currentModule.resetForced = true;
+                        }
                     } else {
                         console.log("Tern Module: " + (response.log || response));
                     }
                 });
             
-                _ternNodeDomain.promise().done(function () {
-                    
-                    _ternNodeDomain.exec("setInterface", {
-                        messageIds : MessageIds
-                    });
-                    
-                    _ternNodeDomain.exec("invokeTernCommand", {
-                        type: MessageIds.SET_CONFIG,
-                        config: config
-                    });
-                    moduleDeferred.resolveWith(null, [_ternNodeDomain]);
-                });
+                _ternNodeDomain.promise().done(prepareTern);
             }
         }
 
@@ -1334,7 +1344,7 @@ define(function (require, exports, module) {
             // We don't reset if the debugging flag is set
             // because it's easier to debug if the module isn't
             // getting reset all the time.
-            if (force || (!config.noReset && ++_hintCount > MAX_HINTS)) {
+            if (currentModule.resetForced || force || (!config.noReset && ++_hintCount > MAX_HINTS)) {
                 if (config.debug) {
                     console.debug("Resetting tern module");
                 }
