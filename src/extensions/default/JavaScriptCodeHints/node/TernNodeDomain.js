@@ -778,6 +778,17 @@ function setInterface(msgInterface) {
     MessageIds = msgInterface.messageIds;
 }
 
+function checkInterfaceAndReInit() {
+    if (!MessageIds) {
+        // WTF - Worse than failure
+        // We are here as node process got restarted 
+        // Request for ReInitialization of interface and Tern Server
+        self.postMessage({
+            type: "ReInitTern"
+        });
+    }
+}
+
  /**
  * Initialize the test domain with commands and events related to find in files.
  * @param {DomainManager} domainManager The DomainManager for the TernNodeDomain
@@ -830,6 +841,7 @@ function init(domainManager) {
             }
         ]
     );
+    setTimeout(checkInterfaceAndReInit, 5000);
 }
 
 exports.init = init;
