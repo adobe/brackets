@@ -608,7 +608,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
-	"ERRORS": "Erreurs",
+	"ERRORS": "Erreurs ",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
