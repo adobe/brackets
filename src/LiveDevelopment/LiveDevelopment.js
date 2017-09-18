@@ -201,6 +201,10 @@ define(function LiveDevelopment(require, exports, module) {
     PreferencesManager.definePreference("livedev.wsPort", "number", 8125, {
         description: Strings.DESCRIPTION_LIVEDEV_WEBSOCKET_PORT
     });
+    
+    PreferencesManager.definePreference("livedev.enableReverseInspect", "boolean", true, {
+        description: Strings.DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT
+    });
 
     function _isPromisePending(promise) {
         return promise && promise.state() === "pending";
@@ -1369,8 +1373,10 @@ define(function LiveDevelopment(require, exports, module) {
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
                 .done(function () {
-                    var wsPort = PreferencesManager.get("livedev.wsPort");
-                    if (wsPort) {
+                    var reverseInspectPref = PreferencesManager.get("livedev.enableReverseInspect"),
+                        wsPort             = PreferencesManager.get("livedev.wsPort");
+                        
+                    if (wsPort && reverseInspectPref) {
                         WebSocketTransport.createWebSocketServer(wsPort);
                     }
                     _doLaunchAfterServerReady(doc);
