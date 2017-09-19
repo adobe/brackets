@@ -1718,7 +1718,29 @@ define(function (require, exports, module) {
 
     /** Reload Without Extensions commnad handler **/
     var handleReloadWithoutExts = _.partial(handleReload, true);
-
+    
+    /** 
+     * Attach a beforeunload handler to notify user about unsaved changes and URL redirection in CEF. 
+     * Prevents data loss in scenario reported under #13708
+    **/
+    window.onbeforeunload = function(e) {
+        var openDocs = DocumentManager.getAllOpenDocuments();
+        
+        // Detect any unsaved changes
+        openDocs = openDocs.filter(function(doc) {
+            return doc && doc.isDirty;
+        });
+        
+        // Ensure we are not in normal app-quit or reload workflow
+        if (!_isReloading && !_windowGoingAway) {
+            if (openDocs.length > 0) {
+                return Strings.WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES;
+            } else {
+                return Strings.WINDOW_UNLOAD_WARNING;
+            }
+        }
+    };
+ 
     /** Do some initialization when the DOM is ready **/
     AppInit.htmlReady(function () {
         // If in Reload Without User Extensions mode, update UI and log console message
