@@ -29,16 +29,17 @@ require.config({
     paths: {
         "text"              : "thirdparty/text/text",
         "i18n"              : "thirdparty/i18n/i18n",
-        "react"             : "thirdparty/react",
 
         // The file system implementation. Change this value to use different
         // implementations (e.g. cloud-based storage).
-        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem",
+        "preact-compat"     : "thirdparty/preact-compat/preact-compat.min",
+        "preact"            : "thirdparty/preact/preact"
     },
     map: {
         "*": {
             "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
-            "thirdparty/react":       "react"
+            "thirdparty/preact"     : "preact-compat"
         }
     }
 });
