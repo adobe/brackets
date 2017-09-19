@@ -1718,6 +1718,20 @@ define(function (require, exports, module) {
 
     /** Reload Without Extensions commnad handler **/
     var handleReloadWithoutExts = _.partial(handleReload, true);
+    
+    /** 
+     * Attach a beforeunload handler to notify user about unsaved changes. 
+     * Prevents data loss in scenario reported under #13708
+    **/
+    window.onbeforeunload = function(e) {
+        var openDocs = DocumentManager.getAllOpenDocuments();
+        openDocs = openDocs.filter(function(doc) {
+            return doc && doc.isDirty;
+        });
+        if (openDocs.length > 0 && !_windowGoingAway) {
+            return Strings.WINDOW_UNLOAD_WARNING;
+        }
+    };
 
     /** Do some initialization when the DOM is ready **/
     AppInit.htmlReady(function () {
