@@ -812,5 +812,5 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false to disable live preview reverse inpsect"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "ライブプレビューでのリバースインスペクトを無効にするには false"
 });
