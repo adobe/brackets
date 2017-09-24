@@ -372,7 +372,18 @@ module.exports = function (grunt) {
             mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
             win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe",
             linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
-        }
+        },
+        madge: {
+            options: {
+                format: "amd",
+                breakOnError: false,
+                force: true,
+                "exclude": "node_modules|thirdparty"
+            },
+            all: [
+                './src'
+            ]
+        },
     });
 
     // task: install
@@ -385,7 +396,7 @@ module.exports = function (grunt) {
     ]);
 
     // task: test
-    grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
+    grunt.registerTask('test', ['eslint', 'jasmine', 'madge', 'nls-check']);
 //    grunt.registerTask('test', ['eslint', 'jasmine', 'jasmine_node', 'nls-check']);
 
     // task: set-release
