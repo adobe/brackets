@@ -6,7 +6,7 @@
     "dir":                { "attribOption": ["ltr", "rtl"], "global": "true"},
     "draggable":          { "attribOption": ["auto", "false", "true"], "global": "true" },
     "dropzone":           { "attribOption": ["copy", "move", "link"], "global": "true" },
-    "hidden":             { "attribOption": ["hidden"], "global": "true" },
+    "hidden":             { "attribOption": [], "type": "flag", "global": "true" },
     "id":                 { "attribOption": [], "global": "true", "type": "cssId" },
     "lang":               { "attribOption": ["ab", "aa", "af", "sq", "am", "ar", "an", "hy", "as", "ay", "az", "ba", "eu", "bn", "dz", "bh", "bi", "br",
                                              "bg", "my", "be", "km", "ca", "zh", "co", "hr", "cs", "da", "nl", "en", "eo", "et", "fo", "fa", "fi", "fr",
