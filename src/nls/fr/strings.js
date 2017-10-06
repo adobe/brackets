@@ -812,5 +812,5 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Paramètres de surbrillance de l'Aperçu en direct",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l'inspection inverse de l'aperçu en direct"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l'inspection inverse de l'Aperçu en direct"
 });
