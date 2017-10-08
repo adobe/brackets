@@ -151,6 +151,17 @@ define(function (require, exports, module) {
         var self = this;
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
+            // MiddleClick on the toolbar closes the panel
+            .on('click', ".toolbar",function(e) {
+                if( e.which === 2 ) {
+                    self.close();
+                }
+            })          
+            // Keep the doubleClick event to propagate when clicking 
+            // buttons rapidly (which closes the panel)
+            .on("dblclick.searchResults", ".pagination-col", function(e){
+                e.stopPropagation();
+            })
             .on("dblclick.searchResults", ".toolbar", function() {
                 self.close();
             })
@@ -170,7 +181,7 @@ define(function (require, exports, module) {
                 HealthLogger.searchDone(HealthLogger.SEARCH_PREV_PAGE);
             })
             // The link to go to the next page
-            .on("click.searchResults", ".next-page:not(.disabled)", function () {
+            .on("click.searchResults", ".next-page:not(.disabled)", function (e) {
                 self.trigger('getNextPage');
                 HealthLogger.searchDone(HealthLogger.SEARCH_NEXT_PAGE);
             })
