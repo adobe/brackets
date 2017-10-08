@@ -826,9 +826,13 @@ define(function (require, exports, module) {
 
                     $("#find-in-files-results .first-page").click();
                     expectPageDisplay(expectedPages[0]);
+
                 });
             });
-
+            
+           
+            
+            
             it("should jump to last page, then page backward, displaying correct contents at each step", function () {
                 openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
 
@@ -845,6 +849,9 @@ define(function (require, exports, module) {
                     }
                 });
             });
+            
+           
+            
         });
 
         describe("SearchModel update on change events", function () {
