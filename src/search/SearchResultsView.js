@@ -181,7 +181,7 @@ define(function (require, exports, module) {
                 HealthLogger.searchDone(HealthLogger.SEARCH_PREV_PAGE);
             })
             // The link to go to the next page
-            .on("click.searchResults", ".next-page:not(.disabled)", function (e) {
+            .on("click.searchResults", ".next-page:not(.disabled)", function () {
                 self.trigger('getNextPage');
                 HealthLogger.searchDone(HealthLogger.SEARCH_NEXT_PAGE);
             })
