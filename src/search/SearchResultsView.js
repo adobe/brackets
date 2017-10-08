@@ -201,6 +201,7 @@ define(function (require, exports, module) {
             .on("click.searchResults .table-container", function (e) {
                 var $row = $(e.target).closest("tr");
 
+            
                 if ($row.length) {
                     if (self._$selectedRow) {
                         self._$selectedRow.removeClass("selected");
