@@ -10,7 +10,8 @@
         "type": "git",
         "url": "https://github.com/adobe/brackets.git",
         "branch": "",
-        "SHA": ""
+        "SHA": ""，
+        ‘jso’,''
     },
     "defaultExtensions": {
         "brackets-eslint": "3.2.0"
