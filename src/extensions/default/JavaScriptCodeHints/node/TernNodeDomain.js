@@ -397,7 +397,7 @@ function getParameters(inferFnType) {
     function inferArrTypeToString(inferArrType) {
         var result = "Array.<";
 
-        result += inferArrType.props["<i>"].types.types.map(inferTypeToString).join(", ");
+        result += inferArrType.props["<i>"].types.map(inferTypeToString).join(", ");
 
         // workaround case where types is zero length
         if (inferArrType.props["<i>"].types.length === 0) {
@@ -778,6 +778,17 @@ function setInterface(msgInterface) {
     MessageIds = msgInterface.messageIds;
 }
 
+function checkInterfaceAndReInit() {
+    if (!MessageIds) {
+        // WTF - Worse than failure
+        // We are here as node process got restarted 
+        // Request for ReInitialization of interface and Tern Server
+        self.postMessage({
+            type: "RE_INIT_TERN"
+        });
+    }
+}
+
  /**
  * Initialize the test domain with commands and events related to find in files.
  * @param {DomainManager} domainManager The DomainManager for the TernNodeDomain
@@ -830,6 +841,7 @@ function init(domainManager) {
             }
         ]
     );
+    setTimeout(checkInterfaceAndReInit, 1000);
 }
 
 exports.init = init;
