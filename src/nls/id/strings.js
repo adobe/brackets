@@ -625,4 +625,4 @@ define({
     // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Baca selengkapnya"
 });
-/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */
+/* Last translated for c96c8bc3b55f518a91ebb6625e24347812fe9a1b */
