@@ -138,6 +138,10 @@ define({
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか？",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
+    
+    // Window unload warning messages
+	"WINDOW_UNLOAD_WARNING": "Are you sure you want to navigate to a different URL and leave Brackets?",
+	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
 
     // Generic dialog/button labels
 	"DONE": "完了",
@@ -480,10 +484,10 @@ define({
 	"FLIPVIEW_BTN_TOOLTIP": "このビューを {0} ペインにめくる",
 
     // Strings for themes-settings.html and themes-general.html
-	"CURRENT_THEME": "現在のテーマ",
-	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
-	"FONT_SIZE": "フォントサイズ",
-	"FONT_FAMILY": "フォントファミリー",
+	"CURRENT_THEME": "現在のテーマ ",
+	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用 ",
+	"FONT_SIZE": "フォントサイズ ",
+	"FONT_FAMILY": "フォントファミリー ",
 	"THEMES_SETTINGS": "テーマ設定",
 
     // CSS Quick Edit
@@ -608,7 +612,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
-	"ERRORS": "エラー",
+	"ERRORS": "エラー ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
@@ -807,5 +811,6 @@ define({
 	"DESCRIPTION_INDENT_LINE_COMMENT": "行コメントのインデントを有効にするには true",
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
-	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定"
+	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定",
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "ライブプレビューでのリバースインスペクトを無効にするには false"
 });

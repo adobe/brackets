@@ -295,10 +295,20 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                     errors.push([Errors.MISSING_MAIN, zipPath, mainJS]);
                 }
 
-                performNpmInstallIfRequired({
-                    production: true,
-                    proxy: options.proxy
-                }, {
+                var npmOptions = ['--production'];
+
+                if (options.proxy) {
+                    npmOptions.push('--proxy ' + options.proxy);
+                }
+
+                if (process.platform.startsWith('win')) {
+                    // On Windows force a 32 bit build until nodejs 64 bit is supported.
+                    npmOptions.push('--arch=ia32');
+                    npmOptions.push('--npm_config_arch=ia32');
+                    npmOptions.push('--npm_config_target_arch=ia32');
+                }
+
+                performNpmInstallIfRequired(npmOptions, {
                     errors: errors,
                     metadata: metadata,
                     commonPrefix: commonPrefix,

@@ -111,7 +111,7 @@ define(function (require, exports, module) {
             fileEntry.exists(function (err, exists) {
                 if (!err && exists) {
                     // Additional check to handle external modification and mutation of the doc text affecting markers
-                    if (fileEntry._stat !== entry.fileStat) {
+                    if (fileEntry._hash !== entry._hash) {
                         deferred.reject();
                     } else if (!entry._validateMarkers()) {
                         deferred.reject();
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
         this.filePath = editor.document.file._path;
         this.inMem = editor.document.file.constructor.name === "InMemoryFile";
         this.paneId = editor._paneId;
-        this.fileStat = editor.document.file._stat;
+        this._hash = editor.document.file._hash;
         this.uId = (new Date()).getTime();
         this.selections = [];
         this.bookMarkIds = [];
@@ -164,6 +164,15 @@ define(function (require, exports, module) {
         this.cm = editor._codeMirror;
         this.paneId = editor._paneId;
         this._createMarkers(this.selections);
+    };
+    
+    
+    /**
+    * Function to validate an existing frame against a file '_hash' to detect
+    * external change so that the frame can be discarded
+    */
+    NavigationFrame.prototype._validateFileHash = function (file) {
+        return this.filePath === file._path ? this._hash === file._hash : true;
     };
     
    /**
@@ -461,7 +470,7 @@ define(function (require, exports, module) {
     */
     function _removeBackwardFramesForFile(file) {
         jumpBackwardStack = jumpBackwardStack.filter(function (frame) {
-            return frame.filePath !== file._path && frame.stat !== file._stat;
+            return frame._validateFileHash(file);
         });
     }
     
@@ -471,7 +480,7 @@ define(function (require, exports, module) {
     */
     function _removeForwardFramesForFile(file) {
         jumpForwardStack = jumpForwardStack.filter(function (frame) {
-            return frame.filePath !== file._path && frame.stat !== file._stat;
+            return frame._validateFileHash(file);
         });
     }
     
