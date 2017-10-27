@@ -819,7 +819,7 @@ define(function (require, exports, module) {
     /**
      * Initialize the LiveDevelopment module.
      */
-    function init(config, socketPort) {
+    function init(config) {
         exports.config = config;
         MainViewManager
             .on("currentFileChange", _onFileChange);
@@ -830,7 +830,7 @@ define(function (require, exports, module) {
             .on("beforeProjectClose beforeAppClose", close);
 
         // Default transport for live connection messages - can be changed
-        setTransport(NodeSocketTransport, socketPort);
+        setTransport(NodeSocketTransport, config.socketPort);
 
         // Default launcher for preview browser - can be changed
         setLauncher(DefaultLauncher);

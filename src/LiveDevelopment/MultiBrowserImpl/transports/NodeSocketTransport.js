@@ -29,9 +29,9 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var FileUtils       = require("file/FileUtils"),
-        EventDispatcher = require("utils/EventDispatcher"),
-        NodeDomain      = require("utils/NodeDomain"),
+    var FileUtils          = require("file/FileUtils"),
+        EventDispatcher    = require("utils/EventDispatcher"),
+        NodeDomain         = require("utils/NodeDomain"),
         PreferencesManager = require("preferences/PreferencesManager");
 
     // The script that will be injected into the previewed HTML to handle the other side of the socket connection.
