@@ -129,8 +129,8 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Reference to the container of the React component. Everything in this
-     * node is managed by React.
+     * Reference to the container of the Preact component. Everything in this
+     * node is managed by Preact.
      * @type {Element}
      */
     var fileTreeViewContainer;
@@ -1072,7 +1072,10 @@ define(function (require, exports, module) {
         baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
-            return model.createAtPath(baseDir + initialName, isFolder);
+            if(isFolder) {
+                return model.createAtPath(baseDir + initialName + "/");
+            }
+            return model.createAtPath(baseDir + initialName);
         }
         return actionCreator.startCreating(baseDir, initialName, isFolder);
     }
@@ -1355,11 +1358,11 @@ define(function (require, exports, module) {
      * Adds an icon provider. The callback is invoked before each tree item is rendered, and can
      * return content to prepend to the item.
      *
-     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|React.DOM.ins} callback
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|Preact.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
-     * Return a string of HTML text, a React.DOM.ins instance, a jQuery object, or a DOM node; or undefined
+     * Return a string of HTML text, a Preact.DOM.ins instance, a jQuery object, or a DOM node; or undefined
      * to prepend nothing.
      */
     function addIconProvider(callback) {

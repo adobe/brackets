@@ -13,6 +13,12 @@ Thumbs.db
 # ignore files copied from node_modules to src/thirdparty
 /src/thirdparty/CodeMirror
 /src/thirdparty/less.min.js
+/src/thirdparty/preact
+/src/thirdparty/preact-compat
+/src/thirdparty/preact-test-utils
+/src/thirdparty/simulate-event
+/src/thirdparty/xtend
+/src/thirdparty/acorn
 
 # ignore compiled files
 /dist
@@ -24,6 +30,7 @@ Thumbs.db
 # (so that the directory is non-empty and can be in git)
 /src/extensions/dev/*
 !/src/extensions/dev/README.*
+/src/extensions/default/brackets-eslint
 
 /src/extensions/disabled
 

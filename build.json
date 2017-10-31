@@ -1,6 +1,6 @@
 {
-    "version": "release-1.10-prerelease-3",
-    "title" : "Brackets 1.10 Pre-release for community testing",
-    "description" : "This is a Brackets 1.10 3rd pre-release build. This release removes the utf-8 encoding limitation, adds native menus for Linux, provides backward/forward navigation in edit history, Search History with UI, enable/disable default exetensions from extension manager, pseudo selector and AtRules hints in CSS, CSS hints in style attribute value for HTML documents.",
+    "version": "release-1.11-prerelease-2",
+    "title" : "Brackets 1.11 2nd Pre-release for community testing",
+    "description" : "This is Brackets 1.11 2nd pre-release build. In this release, CEF has been upgraded for Linux which resolved the much reported libgcrypt dependency, basic es6 support has been added by providing eslint out of the box and making required changes to list Classes/methods/arrow function expressions/generator functions/async functions/class getter-setter methods and much more. ",
     "prerelease": true
 }
