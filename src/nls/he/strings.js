@@ -140,21 +140,21 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
 
     // Generic dialog/button labels
-    "DONE"                              : "Done",
-    "OK"                                : "OK",
-    "CANCEL"                            : "Cancel",
-    "DONT_SAVE"                         : "Don't Save",
-    "SAVE"                              : "Save",
-    "SAVE_AS"                           : "Save As\u2026",
-    "SAVE_AND_OVERWRITE"                : "Overwrite",
-    "DELETE"                            : "Delete",
-    "BUTTON_YES"                        : "Yes",
-    "BUTTON_NO"                         : "No",
+    "DONE"                              : "סיים",
+    "OK"                                : "אוקיי",
+    "CANCEL"                            : "בטל",
+    "DONT_SAVE"                         : "אל תשמור",
+    "SAVE"                              : "שמור",
+    "SAVE_AS"                           : "שמור כ\u2026",
+    "SAVE_AND_OVERWRITE"                : "שמור כחדש",
+    "DELETE"                            : "מחק",
+    "BUTTON_YES"                        : "כן",
+    "BUTTON_NO"                         : "לא",
 
     // Find, Replace, Find in Files
-    "FIND_MATCH_INDEX"                  : "{0} of {1}",
-    "FIND_NO_RESULTS"                   : "No results",
-    "FIND_QUERY_PLACEHOLDER"            : "Find\u2026",
+    "FIND_MATCH_INDEX"                  : "{0} של {1}",
+    "FIND_NO_RESULTS"                   : "אין תוצאות",
+    "FIND_QUERY_PLACEHOLDER"            : "מצא\u2026",
     "FIND_HISTORY_MAX_COUNT"            : "Maximum Number of Search Items in Search History",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
     "BUTTON_REPLACE_ALL"                : "Replace All",
@@ -171,9 +171,9 @@ define({
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Replace Without Undo",
 
-    "OPEN_FILE"                         : "Open File",
-    "SAVE_FILE_AS"                      : "Save File",
-    "CHOOSE_FOLDER"                     : "Choose a folder",
+    "OPEN_FILE"                         : "פתח קובץ",
+    "SAVE_FILE_AS"                      : "שמור קובץ",
+    "CHOOSE_FOLDER"                     : "בחר/י תיקיה",
 
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're Up to Date!",
@@ -181,8 +181,8 @@ define({
 
     // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Replace",
-    "FIND_REPLACE_TITLE_WITH"           : "with",
-    "FIND_TITLE_LABEL"                  : "Found",
+    "FIND_REPLACE_TITLE_WITH"           : "עם",
+    "FIND_TITLE_LABEL"                  : "נמצא",
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} in {3}",
 
     // Find in Files
@@ -190,8 +190,8 @@ define({
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
-    "FIND_IN_FILES_FILE"                : "file",
-    "FIND_IN_FILES_FILES"               : "files",
+    "FIND_IN_FILES_FILE"                : "קובץ",
+    "FIND_IN_FILES_FILES"               : "קבצים",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
