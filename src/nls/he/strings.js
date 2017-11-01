@@ -545,7 +545,7 @@ define({
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
     "EXTENSION_AUTHOR"                     : "Author",
-    "EXTENSION_DATE"                       : "Date",
+    "EXTENSION_DATE"                       : "תאריך",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Version {0} of this extension requires a newer version of {APP_NAME}. But you can install the earlier version {1}.",
@@ -553,14 +553,14 @@ define({
     "EXTENSION_NO_DESCRIPTION"             : "No description",
     "EXTENSION_MORE_INFO"                  : "More info\u2026",
     "EXTENSION_ERROR"                      : "Extension error",
-    "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_KEYWORDS"                   : "מילות מפתח",
     "EXTENSION_TRANSLATED_USER_LANG"       : "Translated into {0} languages, including yours",
     "EXTENSION_TRANSLATED_GENERAL"         : "Translated into {0} languages",
     "EXTENSION_TRANSLATED_LANGS"           : "This extension has been translated into these languages: {0}",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed after {APP_NAME} reloads.",
-    "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
-    "EXTENSION_MORE_INFO_LINK"             : "More",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "חיפוש",
+    "EXTENSION_MORE_INFO_LINK"             : "עוד",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {0}. {APP_NAME} will still reload.",
@@ -591,7 +591,7 @@ define({
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     "EXTENSIONS_LAST_UPDATED"              : "Last Updated",
-    "EXTENSIONS_DOWNLOADS"                 : "Downloads",
+    "EXTENSIONS_DOWNLOADS"                 : "הורדות",
 
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
@@ -608,7 +608,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
-    "ERRORS"                                    : "Errors",
+    "ERRORS"                                    : "שגיאות",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -633,9 +633,9 @@ define({
     "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line.",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
-    "LANGUAGE_MESSAGE"                          : "Language:",
+    "LANGUAGE_MESSAGE"                          : "שפה:",
     "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
-    "LANGUAGE_CANCEL"                           : "Cancel",
+    "LANGUAGE_CANCEL"                           : "בטל",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
 
     // extensions/default/HealthData
@@ -647,7 +647,7 @@ define({
     "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
-    "INLINE_TIMING_EDITOR_TIME"                 : "Time",
+    "INLINE_TIMING_EDITOR_TIME"                 : "זמן",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
