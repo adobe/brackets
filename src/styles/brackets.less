@@ -854,6 +854,21 @@ a, img {
     background-position: center -41px;
 }
 
+// Submenus
+li.sub-menu {
+  position: relative;
+}
+
+li.sub-menu > ul {
+  position: absolute;
+  top: 0 !important;
+  left: 100%;
+  display: none;
+}
+
+li.sub-menu:hover > ul {
+  display: block;
+}
 
 
 // Show splitview icons on the button's dropdown menu too

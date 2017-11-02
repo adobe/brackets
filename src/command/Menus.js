@@ -200,8 +200,12 @@ define(function (require, exports, module) {
         return !!getContextMenu(id);
     }
 
+    function _isSubMenu(id) {
+      return getMenu(id).isSubMenu;
+    }
+
     function _isHTMLMenu(id) {
-        return (!brackets.nativeMenus || _isContextMenu(id));
+        return (!brackets.nativeMenus || _isContextMenu(id) || _isSubMenu(id) );
     }
 
     /**
@@ -344,6 +348,7 @@ define(function (require, exports, module) {
      */
     function Menu(id) {
         this.id = id;
+        this.isSubMenu = false;
     }
 
     Menu.prototype._getMenuItemId = function (commandId) {
@@ -739,6 +744,42 @@ define(function (require, exports, module) {
     // MenuItem.prototype.createSubMenu = function (text, id, position, relativeID) {
     //     NOT IMPLEMENTED
     // };
+
+
+    Menu.prototype.addSubMenu = function (name, id, position, relativeID) {
+        name = _.escape(name);
+        var menu;
+
+        if (!name || !id) {
+            console.error("call to addSubMenu() is missing required parameters");
+            return null;
+        }
+
+        // Guard against duplicate menu ids
+        if (menuMap[id]) {
+            console.log("Menu added with same name and id of existing Menu: " + id);
+            return null;
+        }
+
+        menu = new Menu(id);
+        menu.isSubMenu = true;
+        menuMap[id] = menu;
+
+        if (!_isHTMLMenu(id)) {
+          // TODO: Create native sub menus
+          return null;
+        }
+
+        var $name = $("<a><span class='menu-name'>" + name + "</span></a>"),
+            $popUp = $("<ul class='dropdown-menu'></ul>"),
+            $newMenu = $("<li class='sub-menu' id='" + id + "'></li>").append($name).append($popUp);
+
+        // Insert menu
+        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+        _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+                      $newMenu, position, $relativeElement);
+        return menu;
+    };
 
     /**
      * Gets the Command associated with a MenuItem
