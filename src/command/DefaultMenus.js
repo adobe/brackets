@@ -289,6 +289,21 @@ define(function (require, exports, module) {
         editor_cmenu.addMenuDivider();
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
+        var test = Menus.registerContextMenu("abcdef");
+        var testing = Menus.registerContextMenu("qouwier");
+        testing.addMenuItem(Commands.EDIT_PASTE);
+        testing.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+        testing.addMenuItem(Commands.EDIT_COPY);
+        test.addSubMenu("woeur", testing);
+        test.addMenuItem(Commands.EDIT_CUT);
+        test.addMenuItem(Commands.EDIT_PASTE);
+        test.addMenuItem(Commands.EDIT_SELECT_ALL);
+        test.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+        test.addMenuItem(Commands.EDIT_COPY);
+
+
+        editor_cmenu.addSubMenu("Cool", test);
+
         var inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
         inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         inline_editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);

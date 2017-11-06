@@ -124,6 +124,7 @@ define(function (require, exports, module) {
      * Other constants
      */
     var DIVIDER = "---";
+    var SUBMENU = "SUBMENU";
 
     /**
      * Error Codes from Brackets Shell
@@ -310,7 +311,7 @@ define(function (require, exports, module) {
         this.isDivider = (command === DIVIDER);
         this.isNative = false;
 
-        if (!this.isDivider) {
+        if (!this.isDivider && command !== SUBMENU) {
             // Bind event handlers
             this._enabledChanged = this._enabledChanged.bind(this);
             this._checkedChanged = this._checkedChanged.bind(this);
@@ -612,6 +613,11 @@ define(function (require, exports, module) {
                 $menuItem.on("click", function () {
                     menuItem._command.execute();
                 });
+
+                var self = this;
+                $menuItem.on("mouseenter", function () {
+                    self.closeSubMenu();
+                });
             }
 
             // Insert menu item
@@ -740,6 +746,55 @@ define(function (require, exports, module) {
     //     NOT IMPLEMENTED
     // };
 
+    Menu.prototype.addSubMenu = function (name, menu, position, relativeID) {
+        var id = this.id + "-" + menu.id,
+            $menuItem;
+
+        if (!name || !menu) {
+            console.error("addSubMenu(): missing required parameters: name and menu");
+            return null;
+        }
+
+        if (menuItemMap[id]) {
+            console.log("MenuItem added with same id of existing MenuItem: " + id);
+            return null;
+        }
+
+        // create MenuItem
+        var menuItem = new MenuItem(this.id + "-" +  menu.id, SUBMENU);
+        menuItemMap[id] = menuItem;
+
+        menu.parentMenuItem = menuItem;
+
+        // create MenuItem DOM
+        if (_isHTMLMenu(this.id)) {
+            // Create the HTML Menu
+            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span></a></li>");
+
+            var self = this;
+            $menuItem.on("mouseenter", function(e) {
+                self.closeSubMenu();
+                self.subMenu = menu;
+                menu.open(e);
+            });
+
+
+            // Insert menu item
+            var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+            $menuItem, position, $relativeElement);
+        } else {
+            // TODO: add submenus for native menus
+        }
+        return menuItem;
+    };
+
+    Menu.prototype.closeSubMenu = function() {
+        if (this.subMenu) {
+            this.subMenu.close();
+            this.subMenu = null;
+        }
+    };
     /**
      * Gets the Command associated with a MenuItem
      * @return {Command}
@@ -1065,13 +1120,15 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.trigger("beforeContextMenuOpen");
-
-        // close all other dropdowns
-        closeAll();
 
         // adjust positioning so menu is not clipped off bottom or right
-        var elementRect = {
+        if (this.parentMenuItem) { // If context menu is a submenu
+            var $parentMenuItem = $(_getHTMLMenuItem(this.parentMenuItem.id));
+
+            posTop = $parentMenuItem.offset().top;
+            posLeft = $parentMenuItem.offset().left + $parentMenuItem.outerWidth();
+
+            var elementRect = {
                 top:    posTop,
                 left:   posLeft,
                 height: $menuWindow.height() + 25,
@@ -1079,15 +1136,40 @@ define(function (require, exports, module) {
             },
             clip = ViewUtils.getElementClipSize($window, elementRect);
 
-        if (clip.bottom > 0) {
-            posTop = Math.max(0, posTop - clip.bottom);
-        }
-        posTop -= 30;   // shift top for hidden parent element
-        posLeft += 5;
+            if (clip.bottom > 0) {
+              posTop = Math.max(0, posTop + $parentMenuItem.height() - $menuWindow.height());
+            }
+
+            posTop -= 30;   // shift top for hidden parent element
+            posLeft += 3;
+
+            if (clip.right > 0) {
+              posLeft = Math.max(0, posLeft - 2 * $parentMenuItem.outerWidth());
+            }
+        } else {
+            this.trigger("beforeContextMenuOpen");
+
+            // close all other dropdowns
+            closeAll();
+
+            var elementRect = {
+                top:    posTop,
+                left:   posLeft,
+                height: $menuWindow.height() + 25,
+                width:  $menuWindow.width()
+            },
+            clip = ViewUtils.getElementClipSize($window, elementRect);
+
+            if (clip.bottom > 0) {
+                posTop = Math.max(0, posTop - clip.bottom);
+            }
+            posTop -= 30;   // shift top for hidden parent element
+            posLeft += 5;
 
 
-        if (clip.right > 0) {
-            posLeft = Math.max(0, posLeft - clip.right);
+            if (clip.right > 0) {
+                posLeft = Math.max(0, posLeft - clip.right);
+            }
         }
 
         // open the context menu at final location
@@ -1100,6 +1182,7 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
+        this.closeSubMenu();
         this.trigger("beforeContextMenuClose");
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
