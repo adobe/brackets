@@ -769,7 +769,7 @@ define(function (require, exports, module) {
         // create MenuItem DOM
         if (_isHTMLMenu(this.id)) {
             // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span></a></li>");
+            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span><span style='float: right'>&rtrif;</span></a></li>");
 
             var self = this;
             $menuItem.on("mouseenter", function(e) {
