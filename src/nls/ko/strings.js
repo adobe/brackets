@@ -630,9 +630,9 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME": "시간",
     "INLINE_TIMING_EDITOR_PROGRESSION": "진행",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 선택한 지점 이동 <br><kbd class='text'>Shift</kbd> 10 단위 이동 <br><kbd class='text'>Tab</kbd> 전환점",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> 단계 높이기 또는 줄이기<br><kbd>←</kbd><kbd>→</kbd> '시작'또는 '끝'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "<code> {0} </ code> 이전 값은 유효하지 않으므로 표시된 기능이 <code> {1} </ code>로 변경되었습니다. 문서는 첫 번째 편집으로 업데이트됩니다.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "현재색",
