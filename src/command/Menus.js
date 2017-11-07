@@ -773,7 +773,9 @@ define(function (require, exports, module) {
 
             var self = this;
             $menuItem.on("mouseenter", function(e) {
-                self.closeSubMenu();
+                if (self.subMenu && self.subMenu.id !== menu.id) {
+                    self.closeSubMenu();
+                }
                 self.subMenu = menu;
                 menu.open(e);
             });
@@ -785,6 +787,27 @@ define(function (require, exports, module) {
             $menuItem, position, $relativeElement);
         } else {
             // TODO: add submenus for native menus
+        }
+        return menuItem;
+    };
+
+
+    Menu.prototype.removeSubMenu = function (menuItem, menu) {
+
+        if (!menuItem || !menu) {
+            console.error("removeSubMenu(): missing required parameters: menuItem and menu");
+            return null;
+        }
+
+        delete menu.parentMenuItem;
+
+        delete menuItemMap[menuItem.id];
+
+        // remove MenuItem DOM
+        if (_isHTMLMenu(this.id)) {
+            $(_getHTMLMenuItem(menuItem.id)).parent().remove();
+        } else {
+            // TODO: remove submenus for native menus
         }
         return menuItem;
     };

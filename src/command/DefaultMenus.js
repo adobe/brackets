@@ -294,7 +294,7 @@ define(function (require, exports, module) {
         testing.addMenuItem(Commands.EDIT_PASTE);
         testing.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         testing.addMenuItem(Commands.EDIT_COPY);
-        test.addSubMenu("woeur", testing);
+        var x = test.addSubMenu("woeur", testing);
         test.addMenuItem(Commands.EDIT_CUT);
         test.addMenuItem(Commands.EDIT_PASTE);
         test.addMenuItem(Commands.EDIT_SELECT_ALL);
@@ -303,6 +303,7 @@ define(function (require, exports, module) {
 
 
         editor_cmenu.addSubMenu("Cool", test);
+        test.removeSubMenu(x, testing);
 
         var inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
         inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
