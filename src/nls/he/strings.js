@@ -614,14 +614,14 @@ define({
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
     "CMD_LAUNCH_SCRIPT_MAC"                     : "Install Command Line Shortcut",
-    "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
+    "CMD_SWITCH_LANGUAGE"                       : "שנה שפה",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
     "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "מקור {APP_NAME} פתח",
 
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Command Line Shortcut",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occurred while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}",
@@ -632,7 +632,7 @@ define({
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "Command line shortcut is not supported on this OS.",
     "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line.",
 
-    "LANGUAGE_TITLE"                            : "Switch Language",
+    "LANGUAGE_TITLE"                            : "שנה שפה",
     "LANGUAGE_MESSAGE"                          : "שפה:",
     "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "בטל",
@@ -648,7 +648,7 @@ define({
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "זמן",
-    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "התקדמות",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
@@ -656,17 +656,17 @@ define({
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
-    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
-    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
-    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
-    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex (0x) Format",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa פורמט",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex פורמט",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa פורמט",
+    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex (0x) פורמט",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
-    "NO_ARGUMENTS"                              : "<no parameters>",
+    "NO_ARGUMENTS"                              : "<אין פרמטרים>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
@@ -680,7 +680,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
 
     // extensions/default/MDNDocs
-    "DOCS_MORE_LINK"                            : "Read more",
+    "DOCS_MORE_LINK"                            : "קרא עוד",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Collapse All",
