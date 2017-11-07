@@ -575,7 +575,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE": "업데이트",
 
     "INLINE_EDITOR_NO_MATCHES": "일치하는 항목이 없습니다.",
-    "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "모든 일치 항목이 축소되었습니다. 일치하는 항목을 보려면 오른쪽에 나열된 파일을 확장하십시오.",
     "CSS_QUICK_EDIT_NO_MATCHES": "선택 일치하는 기존 CSS 규칙이 없습니다. <br> 「새 규칙」을 클릭하여 규칙을 작성하세요.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS": "프로젝트에는 스타일 시트가 없습니다. <br> 스타일 시트를 작성하여 CSS 규칙에 추가하세요.",
 
