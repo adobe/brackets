@@ -746,40 +746,42 @@ define(function (require, exports, module) {
     //     NOT IMPLEMENTED
     // };
 
-    Menu.prototype.addSubMenu = function (name, menu, position, relativeID) {
-        var id = this.id + "-" + menu.id,
-            $menuItem;
+    Menu.prototype.addSubMenu = function (name, id, position, relativeID) {
 
-        if (!name || !menu) {
-            console.error("addSubMenu(): missing required parameters: name and menu");
+        if (!name || !id) {
+            console.error("addSubMenu(): missing required parameters: name and id");
             return null;
         }
 
-        if (menuItemMap[id]) {
+        var menu = new ContextMenu(id);
+        contextMenuMap[id] = menu;
+
+        var menuItemID = this.id + "-" + id;
+
+        if (menuItemMap[menuItemID]) {
             console.log("MenuItem added with same id of existing MenuItem: " + id);
             return null;
         }
 
         // create MenuItem
-        var menuItem = new MenuItem(this.id + "-" +  menu.id, SUBMENU);
-        menuItemMap[id] = menuItem;
+        var menuItem = new MenuItem(menuItemID, SUBMENU);
+        menuItemMap[menuItemID] = menuItem;
 
         menu.parentMenuItem = menuItem;
 
         // create MenuItem DOM
         if (_isHTMLMenu(this.id)) {
             // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span><span style='float: right'>&rtrif;</span></a></li>");
+            var $menuItem = $("<li><a href='#' id='" + menuItemID + "'> <span class='menu-name'>" + name + "</span><span style='float: right'>&rtrif;</span></a></li>");
 
             var self = this;
             $menuItem.on("mouseenter", function(e) {
-                if (self.subMenu && self.subMenu.id !== menu.id) {
+                if (self.openSubMenu && self.openSubMenu.id !== menu.id) {
                     self.closeSubMenu();
                 }
-                self.subMenu = menu;
+                self.openSubMenu = menu;
                 menu.open(e);
             });
-
 
             // Insert menu item
             var $relativeElement = this._getRelativeMenuItem(relativeID, position);
@@ -788,34 +790,33 @@ define(function (require, exports, module) {
         } else {
             // TODO: add submenus for native menus
         }
-        return menuItem;
+        return menu;
     };
 
 
-    Menu.prototype.removeSubMenu = function (menuItem, menu) {
-
-        if (!menuItem || !menu) {
-            console.error("removeSubMenu(): missing required parameters: menuItem and menu");
+    Menu.prototype.removeSubMenu = function (id) {
+        if (!id) {
+            console.error("removeSubMenu(): missing required parameters: id");
             return null;
         }
 
-        delete menu.parentMenuItem;
-
-        delete menuItemMap[menuItem.id];
-
-        // remove MenuItem DOM
+        var parentMenuItem = contextMenuMap[id].parentMenuItem;
         if (_isHTMLMenu(this.id)) {
-            $(_getHTMLMenuItem(menuItem.id)).parent().remove();
+            $(_getHTMLMenuItem(parentMenuItem.id)).parent().remove();
+            $(_getHTMLMenu(id)).remove();
         } else {
             // TODO: remove submenus for native menus
         }
-        return menuItem;
+
+        delete menuItemMap[parentMenuItem.id];
+        delete contextMenuMap[id];
     };
 
     Menu.prototype.closeSubMenu = function() {
-        if (this.subMenu) {
-            this.subMenu.close();
-            this.subMenu = null;
+        if (this.openSubMenu) {
+            this.openSubMenu.close();
+            this.openSubMenu = null;
+            this.trigger("beforeSubMenuClose");
         }
     };
     /**
@@ -1146,6 +1147,8 @@ define(function (require, exports, module) {
 
         // adjust positioning so menu is not clipped off bottom or right
         if (this.parentMenuItem) { // If context menu is a submenu
+            this.trigger("beforeSubMenuOpen");
+
             var $parentMenuItem = $(_getHTMLMenuItem(this.parentMenuItem.id));
 
             posTop = $parentMenuItem.offset().top;

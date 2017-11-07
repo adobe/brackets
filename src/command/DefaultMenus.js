@@ -289,21 +289,22 @@ define(function (require, exports, module) {
         editor_cmenu.addMenuDivider();
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
-        var test = Menus.registerContextMenu("abcdef");
-        var testing = Menus.registerContextMenu("qouwier");
-        testing.addMenuItem(Commands.EDIT_PASTE);
-        testing.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        testing.addMenuItem(Commands.EDIT_COPY);
-        var x = test.addSubMenu("woeur", testing);
-        test.addMenuItem(Commands.EDIT_CUT);
-        test.addMenuItem(Commands.EDIT_PASTE);
-        test.addMenuItem(Commands.EDIT_SELECT_ALL);
-        test.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        test.addMenuItem(Commands.EDIT_COPY);
+        var subMenu = editor_cmenu.addSubMenu("submenu", "howareyou");
+        
+        var subsubMenu = subMenu.addSubMenu("subsubmenu", "cool");
+        subsubMenu.addMenuItem(Commands.EDIT_PASTE);
+        subsubMenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+        subsubMenu.addMenuItem(Commands.EDIT_COPY);
+
+        subMenu.addMenuItem(Commands.EDIT_CUT);
+        subMenu.addMenuItem(Commands.EDIT_PASTE);
+        subMenu.addMenuItem(Commands.EDIT_SELECT_ALL);
+        subMenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+        subMenu.addMenuItem(Commands.EDIT_COPY);
 
 
-        editor_cmenu.addSubMenu("Cool", test);
-        test.removeSubMenu(x, testing);
+        // editor_cmenu.removeSubMenu(subMenu.id);
+        // subMenu.removeSubMenu(subsubMenu.id);
 
         var inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
         inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
