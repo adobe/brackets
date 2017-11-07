@@ -303,8 +303,8 @@ define(function (require, exports, module) {
         subMenu.addMenuItem(Commands.EDIT_COPY);
 
 
-        // editor_cmenu.removeSubMenu(subMenu.id);
-        // subMenu.removeSubMenu(subsubMenu.id);
+        editor_cmenu.removeSubMenu(subMenu.id);
+        subMenu.removeSubMenu(subsubMenu.id);
 
         var inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
         inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);

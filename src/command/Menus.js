@@ -794,24 +794,50 @@ define(function (require, exports, module) {
     };
 
 
-    Menu.prototype.removeSubMenu = function (id) {
-        if (!id) {
-            console.error("removeSubMenu(): missing required parameters: id");
-            return null;
+    /**
+     * Removes the specified submenu from this Menu.
+     *
+     * @param {!string} menuID - the menu id of the submenu to remove.
+     */
+    Menu.prototype.removeSubMenu = function (subMenuID) {
+        var subMenu,
+            parentMenuItem;
+
+        if (!subMenuID) {
+            console.error("removeSubMenu(): missing required parameters: subMenuID");
+            return;
         }
 
-        var parentMenuItem = contextMenuMap[id].parentMenuItem;
+        subMenu = getContextMenu(subMenuID);
+
+        if (!subMenu || !subMenu.parentMenuItem) {
+            console.error("removeSubMenu(): parameter subMenuID: %s is not a valid submenu id", subMenuID);
+            return;
+        }
+
+        parentMenuItem = subMenu.parentMenuItem;
+
+
+        if (!menuItemMap[parentMenuItem.id]) {
+            console.error("removeSubMenu(): parent menuItem not found in menuItemMap: %s", parentMenuItem.id);
+            return;
+        }
+
         if (_isHTMLMenu(this.id)) {
-            $(_getHTMLMenuItem(parentMenuItem.id)).parent().remove();
-            $(_getHTMLMenu(id)).remove();
+            $(_getHTMLMenuItem(parentMenuItem.id)).parent().remove(); // remove the menu item
+            $(_getHTMLMenu(subMenuID)).remove(); // remove the menu
         } else {
             // TODO: remove submenus for native menus
         }
 
+
         delete menuItemMap[parentMenuItem.id];
-        delete contextMenuMap[id];
+        delete contextMenuMap[subMenuID];
     };
 
+    /**
+     * Closes the submenu if the menu has a submenu open.
+     */
     Menu.prototype.closeSubMenu = function() {
         if (this.openSubMenu) {
             this.openSubMenu.close();
