@@ -409,6 +409,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE": "새 규칙",
     "CMD_NEXT_DOC": "다음 문서",
     "CMD_PREV_DOC": "이전 문서",
+    "CMD_NAVIGATE_BACKWARD": "뒤로 탐색",
+    "CMD_NAVIGATE_FORWARD": "앞으로 탐색",
     "CMD_NEXT_DOC_LIST_ORDER"             : "목록의 다음 문서",
     "CMD_PREV_DOC_LIST_ORDER"             : "목록의 이전 문서",
     "CMD_SHOW_IN_TREE": "파일트리에서 보기",
