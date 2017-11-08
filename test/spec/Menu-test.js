@@ -925,30 +925,95 @@ define(function (require, exports, module) {
                 return testWindow.$("#" + subMenuId);
             }
 
-            it("open and close a context submenu on mouseenter and mouseleave", function() {
+            function getBounds(object) {
+                return {
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
+                };
+            }
+
+            function boundsInsideWindow(object) {
+                var bounds = getBounds(object);
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
+                       bounds.bottom <= $(testWindow).height();
+            }
+
+            it("open a context submenu", function() {
                 runs(function() {
+                    var openEvent = false;
+
                     menuId = "context-menu-custom-openSubmenu-1";
                     menu = Menus.registerContextMenu(menuId);
 
                     subMenuId = "submenu-custom-openSubmenu-1";
                     subMenu = menu.addSubMenu("submenu", subMenuId);
 
-                    expect(subMenu).toBeTruthy();
-                    expect(subMenu.parentMenuItem).toBeTruthy();
+                    CommandManager.register("Brackets Test Command Custom 56", "Menu-test.command56", function () {});
+                    subMenu.addMenuItem("Menu-test.command56");
 
-                    var $menuItem = parentMenuItemDOM(subMenu.parentMenuItem.id).parent();
-                    console.log($menuItem);
-                    $menuItem.trigger('mouseenter');
-                    // $menuItem.trigger('mouseleave');
-                    // expect(subMenu.isOpen()).toBe(false);
+                    subMenu.on("beforeSubMenuOpen", function() {
+                        openEvent = true;
+                    });
+
+                    subMenu.open();
+
+
+                    var $submenu = testWindow.$(".dropdown.open > ul");
+                    expect($submenu.length).toBe(1);
+
+                    expect(openEvent).toBeTruthy();
+                    
+                    subMenu.close();
                 });
+            });
 
-                waitsFor(function() {
-                    return subMenu.isOpen();
-                });
-
+            it("close a context submenu", function () {
                 runs(function() {
-                    expect(subMenu.isOpen()).toBe(true);
+                    menuId = "context-menu-custom-closeSubmenu-1";
+                    menu = Menus.registerContextMenu(menuId);
+
+                    subMenuId = "submenu-custom-closeSubmenu-1";
+                    subMenu = menu.addSubMenu("submenu", subMenuId);
+
+                    CommandManager.register("Brackets Test Command Custom 58", "Menu-test.command58", function () {});
+                    subMenu.addMenuItem("Menu-test.command58");
+
+                    subMenu.open();
+
+                    // verify dropdown is open
+                    var $submenu = testWindow.$(".dropdown.open");
+                    expect($submenu.length).toBe(1);
+
+                    // verify close event
+                    subMenu.close();
+
+                    // verify all dropdowns are closed
+                    $submenu = testWindow.$(".dropdown.open");
+                    expect($submenu.length).toBe(0);
+                });
+            });
+
+            it("context submenu is not clipped", function() {
+                runs(function() {
+                    var openEvent = false;
+
+                    menuId = "context-menu-custom-clipSubmenu-1";
+                    menu = Menus.registerContextMenu(menuId);
+
+                    subMenuId = "submenu-custom-clipSubmenu-1";
+                    subMenu = menu.addSubMenu("submenu", subMenuId);
+
+                    CommandManager.register("Brackets Test Command Custom 57", "Menu-test.command57", function () {});
+                    subMenu.addMenuItem("Menu-test.command57");
+
+                    subMenu.open();
+
+                    var $submenu = testWindow.$(".dropdown.open > ul");
+                    expect(boundsInsideWindow($submenu)).toBeTruthy();
                 });
             });
 
@@ -1281,22 +1346,6 @@ define(function (require, exports, module) {
                 isOpen = cmenu.isOpen();
                 expect(isOpen).toBe(false);
             });
-
-            /*it("add sub menu to context menu", function () {
-                var cmenu = Menus.registerContextMenu("test-cmenu56");
-                CommandManager.register("Brackets Test Command Custom 56", "Menu-test.command56", function () {});
-                cmenu.addMenuItem("Menu-test.command56");
-
-                var submenu = Menus.registerContextMenu("test-cmenu57");
-                CommandManager.register("Brackets Test Command Custom 57", "Menu-test.command57", function () {});
-                submenu.addMenuItem("Menu-test.command57");
-                var submenuItem = cmenu.addSubMenu("Submenu", submenu);
-
-                expect(submenuItem).toBeTruthy();
-                expect(submenuItem).toBeDefined();
-
-                expect(submenu.parentMenuItem).toEqual(submenuItem);
-            });*/
         });
     });
 });

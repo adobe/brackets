@@ -883,7 +883,6 @@ define(function (require, exports, module) {
      */
     Menu.prototype.closeSubMenu = function() {
         if (this.openSubMenu) {
-            this.trigger("beforeSubMenuClose");
             this.openSubMenu.close();
             this.openSubMenu = null;
         }
@@ -1192,7 +1191,7 @@ define(function (require, exports, module) {
      * will be closed before a new menu is shown (if the new menu is not
      * a submenu).
      *
-     * In case of submenus, the parentMenu of the submenu will be open when the
+     * In case of submenus, the parentMenu of the submenu will not be closed when the
      * sub menu is open.
      *
      * @param {MouseEvent | {pageX:number, pageY:number}} mouseOrLocation - pass a MouseEvent
@@ -1287,7 +1286,11 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
-        this.trigger("beforeContextMenuClose");
+        if (this.parentMenuItem) {
+            this.trigger("beforeSubMenuClose");
+        } else {
+            this.trigger("beforeContextMenuClose");
+        }
         this.closeSubMenu();
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
