@@ -819,7 +819,7 @@ define(function (require, exports, module) {
                 }
                 self.closeSubMenu();
                 self.openSubMenu = menu;
-                menu.open(e);
+                menu.open();
             });
 
             // Insert menu item
@@ -1201,7 +1201,8 @@ define(function (require, exports, module) {
      */
     ContextMenu.prototype.open = function (mouseOrLocation) {
 
-        if (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY")) {
+        if (!this.parentMenuItem &&
+           (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY"))) {
             console.error("ContextMenu open(): missing required parameter");
             return;
         }
@@ -1210,8 +1211,8 @@ define(function (require, exports, module) {
             escapedId = StringUtils.jQueryIdEscape(this.id),
             $menuAnchor = $("#" + escapedId),
             $menuWindow = $("#" + escapedId + " > ul"),
-            posTop  = mouseOrLocation.pageY,
-            posLeft = mouseOrLocation.pageX;
+            posTop,
+            posLeft;
 
         // only show context menu if it has menu items
         if ($menuWindow.children().length <= 0) {
@@ -1253,6 +1254,9 @@ define(function (require, exports, module) {
             // close all other dropdowns
             closeAll();
 
+            posTop  = mouseOrLocation.pageY;
+            posLeft = mouseOrLocation.pageX;
+
             var elementRect = {
                 top:    posTop,
                 left:   posLeft,
@@ -1283,8 +1287,8 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
-        this.closeSubMenu();
         this.trigger("beforeContextMenuClose");
+        this.closeSubMenu();
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
 
