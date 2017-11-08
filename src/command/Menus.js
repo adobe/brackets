@@ -746,10 +746,45 @@ define(function (require, exports, module) {
     //     NOT IMPLEMENTED
     // };
 
+    /**
+     *
+     * Creates a new submenu and a menuItem and adds the menuItem of the submenu
+     * to the menu and returns the submenu.
+     *
+     * A submenu will have the same structure of a menu with a additional field
+     * parentMenuItem which has the reference of the submenu's parent menuItem.
+
+     * A submenu will raise the following events:
+     * - beforeSubMenuOpen
+     * - beforeSubMenuClose
+     *
+     * Note, This function will create only a context submenu.
+     *
+     * TODO: Make this function work for Menus
+     *
+     *
+     * @param {!string} name displayed in menu item of the submenu
+     * @param {!string} id
+     * @param {?string} position - constant defining the position of new MenuItem of the submenu relative to
+     *      other MenuItems. Values:
+     *          - With no relativeID, use Menus.FIRST or LAST (default is LAST)
+     *          - Relative to a command id, use BEFORE or AFTER (required)
+     *          - Relative to a MenuSection, use FIRST_IN_SECTION or LAST_IN_SECTION (required)
+     * @param {?string} relativeID - command id OR one of the MenuSection.* constants. Required
+     *      for all position constants except FIRST and LAST.
+     *
+     * @return {Menu} the newly created submenu
+     */
     Menu.prototype.addSubMenu = function (name, id, position, relativeID) {
 
         if (!name || !id) {
             console.error("addSubMenu(): missing required parameters: name and id");
+            return null;
+        }
+
+        // Guard against duplicate context menu ids
+        if (contextMenuMap[id]) {
+            console.log("Context menu added with id of existing Context Menu: " + id);
             return null;
         }
 
@@ -772,13 +807,17 @@ define(function (require, exports, module) {
         // create MenuItem DOM
         if (_isHTMLMenu(this.id)) {
             // Create the HTML Menu
-            var $menuItem = $("<li><a href='#' id='" + menuItemID + "'> <span class='menu-name'>" + name + "</span><span style='float: right'>&rtrif;</span></a></li>");
+            var $menuItem = $("<li><a href='#' id='" + menuItemID + "'>"   +
+                             "<span class='menu-name'>" + name + "</span>" +
+                             "<span style='float: right'>&rtrif;</span>"   +
+                             "</a></li>");
 
             var self = this;
             $menuItem.on("mouseenter", function(e) {
-                if (self.openSubMenu && self.openSubMenu.id !== menu.id) {
-                    self.closeSubMenu();
+                if (self.openSubMenu && self.openSubMenu.id === menu.id) {
+                    return;
                 }
+                self.closeSubMenu();
                 self.openSubMenu = menu;
                 menu.open(e);
             });
@@ -797,7 +836,11 @@ define(function (require, exports, module) {
     /**
      * Removes the specified submenu from this Menu.
      *
-     * @param {!string} menuID - the menu id of the submenu to remove.
+     * Note, this function will only remove context submenus
+     *
+     * TODO: Make this function work for Menus
+     *
+     * @param {!string} subMenuID - the menu id of the submenu to remove.
      */
     Menu.prototype.removeSubMenu = function (subMenuID) {
         var subMenu,
@@ -840,9 +883,9 @@ define(function (require, exports, module) {
      */
     Menu.prototype.closeSubMenu = function() {
         if (this.openSubMenu) {
+            this.trigger("beforeSubMenuClose");
             this.openSubMenu.close();
             this.openSubMenu = null;
-            this.trigger("beforeSubMenuClose");
         }
     };
     /**
@@ -1143,9 +1186,14 @@ define(function (require, exports, module) {
 
     /**
      * Displays the ContextMenu at the specified location and dispatches the
-     * "beforeContextMenuOpen" event.The menu location may be adjusted to prevent
-     * clipping by the browser window. All other menus and ContextMenus will be closed
-     * bofore a new menu is shown.
+     * "beforeContextMenuOpen" event or "beforeSubMenuOpen" event (for submenus).
+     * The menu location may be adjusted to prevent clipping by the browser window.
+     * All other menus and ContextMenus will be closed before a new menu
+     * will be closed before a new menu is shown (if the new menu is not
+     * a submenu).
+     *
+     * In case of submenus, the parentMenu of the submenu will be open when the
+     * sub menu is open.
      *
      * @param {MouseEvent | {pageX:number, pageY:number}} mouseOrLocation - pass a MouseEvent
      *      to display the menu near the mouse or pass in an object with page x/y coordinates
@@ -1173,6 +1221,7 @@ define(function (require, exports, module) {
 
         // adjust positioning so menu is not clipped off bottom or right
         if (this.parentMenuItem) { // If context menu is a submenu
+
             this.trigger("beforeSubMenuOpen");
 
             var $parentMenuItem = $(_getHTMLMenuItem(this.parentMenuItem.id));
@@ -1189,14 +1238,14 @@ define(function (require, exports, module) {
             clip = ViewUtils.getElementClipSize($window, elementRect);
 
             if (clip.bottom > 0) {
-              posTop = Math.max(0, posTop + $parentMenuItem.height() - $menuWindow.height());
+                posTop = Math.max(0, posTop + $parentMenuItem.height() - $menuWindow.height());
             }
 
             posTop -= 30;   // shift top for hidden parent element
             posLeft += 3;
 
             if (clip.right > 0) {
-              posLeft = Math.max(0, posLeft - 2 * $parentMenuItem.outerWidth());
+                posLeft = Math.max(0, posLeft - 2 * $parentMenuItem.outerWidth());
             }
         } else {
             this.trigger("beforeContextMenuOpen");
