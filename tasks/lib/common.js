@@ -38,7 +38,7 @@ module.exports = function (grunt) {
         if (!_platform) {
             if (process.platform === "darwin") {
                 _platform = "mac";
-            } else if (process.platform === "win32") {
+            } else if (process.platform === "win32" || process.platform === "win64") {
                 _platform = "win";
             } else {
                 _platform = "linux";
