@@ -243,7 +243,7 @@ define({
     "CMD_SPLITVIEW_VERTICAL"    : "왼쪽/오른쪽으로 분할",
     "CMD_SPLITVIEW_HORIZONTAL"  : "위/아래로 분할",
     "SPLITVIEW_MENU_TOOLTIP"    : "에디터를 왼쪽/오른쪽 또는 위/아래로 분할합니다",
-    "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
+    "GEAR_MENU_TOOLTIP"         : "작업 집합 구성",
 
     "SPLITVIEW_INFO_TITLE"              : "이미 열려있는 파일",
     "SPLITVIEW_MULTIPANE_WARNING"       : "이 파일은 이미 다른 패널에서 열려있습니다. 이름이 같은 파일을 여러 패널에서 여는 기능은 곧 지원될 예정입니다. 그 전에는 이미 열려있던 파일은 해당 패널에서 보게될 것입니다.<br /><br />(이 메시지는 한 번만 나타납니다.)",
@@ -637,9 +637,9 @@ define({
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "현재색",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "원본색",
-    "COLOR_EDITOR_RGBA_BUTTON_TIP": "RGBA 형식",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP": "RGBa 형식",
     "COLOR_EDITOR_HEX_BUTTON_TIP": "16 진수",
-    "COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLA 형식",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 형식",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1}시간 사용)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1}시간 사용)",
 
