@@ -1196,7 +1196,8 @@ define(function (require, exports, module) {
      *
      * @param {MouseEvent | {pageX:number, pageY:number}} mouseOrLocation - pass a MouseEvent
      *      to display the menu near the mouse or pass in an object with page x/y coordinates
-     *      for a specific location.
+     *      for a specific location.This paramter is not used for submenus. Submenus are always
+     *      displayed at a position relative to the parent menu.
      */
     ContextMenu.prototype.open = function (mouseOrLocation) {
 
