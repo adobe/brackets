@@ -632,7 +632,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION": "진행",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> 단계를 증가 또는 감소 <br><kbd>←</kbd><kbd>→</kbd> '시작' 또는 '끝내기'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "이전 값 <code>{0}</code>이 유효하지 않으므로 표시된 기능이 <code>{1}</code>로 변경되었습니다. 문서가 첫 번째 수정으로 업데이트됩니다.",
+    "INLINE_TIMING_EDITOR_INVALID"              : "이전의 값 <code>{0}</code>이 유효하지 않으므로 표시된 기능이 <code>{1}</code>로 변경되었습니다. 문서가 첫 번째 수정으로 업데이트됩니다.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "현재색",
