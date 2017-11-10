@@ -575,7 +575,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE": "업데이트",
 
     "INLINE_EDITOR_NO_MATCHES": "일치하는 항목이 없습니다.",
-    "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "모든 일치 항목이 축소되었습니다. 일치하는 항목을 보려면 오른쪽에 나열된 파일을 확장하십시오.",
     "CSS_QUICK_EDIT_NO_MATCHES": "선택 일치하는 기존 CSS 규칙이 없습니다. <br> 「새 규칙」을 클릭하여 규칙을 작성하세요.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS": "프로젝트에는 스타일 시트가 없습니다. <br> 스타일 시트를 작성하여 CSS 규칙에 추가하세요.",
 
@@ -630,7 +630,7 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME": "시간",
     "INLINE_TIMING_EDITOR_PROGRESSION": "진행",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 선택한 지점 이동<br><kbd class='text'> Shift </kbd> 10 단위 이동 <br><kbd class='text'>Tab</kbd> 전환 지점",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
 
