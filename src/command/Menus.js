@@ -844,7 +844,8 @@ define(function (require, exports, module) {
      */
     Menu.prototype.removeSubMenu = function (subMenuID) {
         var subMenu,
-            parentMenuItem;
+            parentMenuItem,
+            commandID = "";
 
         if (!subMenuID) {
             console.error("removeSubMenu(): missing required parameters: subMenuID");
@@ -865,6 +866,18 @@ define(function (require, exports, module) {
             console.error("removeSubMenu(): parent menuItem not found in menuItemMap: %s", parentMenuItem.id);
             return;
         }
+
+        // Remove all of the menu items in the submenu
+        _.forEach(menuItemMap, function (value, key) {
+            if (_.startsWith(key, subMenuID)) {
+                if (value.isDivider) {
+                    subMenu.removeMenuDivider(key);
+                } else {
+                    commandID = value.getCommand();
+                    subMenu.removeMenuItem(commandID);
+                }
+            }
+        });
 
         if (_isHTMLMenu(this.id)) {
             $(_getHTMLMenuItem(parentMenuItem.id)).parent().remove(); // remove the menu item
