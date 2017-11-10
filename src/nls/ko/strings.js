@@ -38,9 +38,9 @@ define({
     "UNSUPPORTED_ENCODING_ERR": "{APP_NAME}는 현재 UTF-8 인코딩된 파일만 지원합니다.",
     "FILE_EXISTS_ERR": "파일 또는 디렉토리가 이미 있습니다.",
     "FILE": "파일",
-    "FILE_TITLE": "파일",
+    "FILE_TITLE": "파일 제목",
     "DIRECTORY": "디렉토리",
-    "DIRECTORY_TITLE": "디렉토리",
+    "DIRECTORY_TITLE": "디렉토리 제목",
     "DIRECTORY_NAMES_LEDE": "디렉토리 이름",
     "FILENAMES_LEDE": "파일 이름",
     "FILENAME": "파일 이름",
@@ -67,8 +67,8 @@ define({
     "INVALID_FILENAME_TITLE": "잘못된 {0}이름",
     "INVALID_FILENAME_MESSAGE": "파일 이름에는 다음 문자를 포함 할 수 없습니다: {0} 또는 시스템의 모든 예약어",
     "ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> 이름을 가진 파일 또는 디렉토리가 이미 존재합니다.",
-    "ERROR_CREATING_FILE_TITLE": "{0}를 만들던 중에 에러가 발생했습니다",
-    "ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span>를 만들던 중에 에러가 발생했습니다.{2}",
+    "ERROR_CREATING_FILE_TITLE": "{0}파일을 만들던 중에 에러가 발생했습니다",
+    "ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span>파일을 만들던 중에 에러가 발생했습니다.{2}",
     "ERROR_MIXED_DRAGDROP"              : "다른 파일을 여는 도중에는 폴더를 열 수 없습니다.",
 
     // User key map error strings
@@ -80,7 +80,7 @@ define({
     "ERROR_MULTIPLE_SHORTCUTS"          : "다음 명령에 대해 단축키를 여러 개 할당하려 했습니다: {0}",
     "ERROR_DUPLICATE_SHORTCUTS"         : "다음 단축키에 대해 여러 개의 명령어가 설정되어 있습니다: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "다음 단축키는 올바르지 않습니다: {0}",
-    "ERROR_NONEXISTENT_COMMANDS"        : "존재하지 안는 명령어애 단축키를 설정했습니다: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "존재하지 않는 명령어에 단축키를 설정했습니다: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "환경설정을 읽는 중 에러가 발생했습니다",
@@ -243,7 +243,7 @@ define({
     "CMD_SPLITVIEW_VERTICAL"    : "왼쪽/오른쪽으로 분할",
     "CMD_SPLITVIEW_HORIZONTAL"  : "위/아래로 분할",
     "SPLITVIEW_MENU_TOOLTIP"    : "에디터를 왼쪽/오른쪽 또는 위/아래로 분할합니다",
-    "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
+    "GEAR_MENU_TOOLTIP"         : "작업 집합 구성",
 
     "SPLITVIEW_INFO_TITLE"              : "이미 열려있는 파일",
     "SPLITVIEW_MULTIPANE_WARNING"       : "이 파일은 이미 다른 패널에서 열려있습니다. 이름이 같은 파일을 여러 패널에서 여는 기능은 곧 지원될 예정입니다. 그 전에는 이미 열려있던 파일은 해당 패널에서 보게될 것입니다.<br /><br />(이 메시지는 한 번만 나타납니다.)",
