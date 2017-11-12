@@ -335,7 +335,7 @@ module.exports = function (grunt) {
                     // The need for this should go away once the version of phantomjs gets upgraded to 2.0
                     'test/polyfills.js',
 
-                    'src/thirdparty/jquery-2.1.3.min.js',
+                    'src/thirdparty/jquery-3.2.1.min.js',
                     'src/thirdparty/less.min.js'
                 ],
                 helpers : [
