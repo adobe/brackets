@@ -24,7 +24,7 @@
 define({
     // Relative to the samples folder
     "GETTING_STARTED"           : "es/Primeros Pasos",
-    "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_es/",
-    "MDN_DOCS_LICENSE"          : "http://creativecommons.org/licenses/by-sa/2.5/deed.es"
+    "ADOBE_THIRD_PARTY"         : "https://www.adobe.com/go/thirdparty_es/",
+    "MDN_DOCS_LICENSE"          : "https://creativecommons.org/licenses/by-sa/2.5/deed.es"
 
 });
