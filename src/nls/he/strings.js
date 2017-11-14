@@ -261,13 +261,13 @@ define({
      */
     "KEYBOARD_CTRL"         : "Ctrl",
     "KEYBOARD_SHIFT"        : "Shift",
-    "KEYBOARD_SPACE"        : "Space",
+    "KEYBOARD_SPACE"        : "רווח",
     "KEYBOARD_PAGE_UP"      : "Page Up",
     "KEYBOARD_PAGE_DOWN"    : "Page Down",
     "KEYBOARD_HOME"         : "Home",
-    "KEYBOARD_END"          : "End",
+    "KEYBOARD_END"          : "סוף",
     "KEYBOARD_INSERT"       : "Insert",
-    "KEYBOARD_DELETE"       : "Delete",
+    "KEYBOARD_DELETE"       : "מחק",
 
     /**
      * StatusBar strings
@@ -313,22 +313,22 @@ define({
      */
 
     // File menu commands
-    "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW_UNTITLED"               : "New",
-    "CMD_FILE_NEW"                        : "New File",
-    "CMD_FILE_NEW_FOLDER"                 : "New Folder",
+    "FILE_MENU"                           : "קובץ",
+    "CMD_FILE_NEW_UNTITLED"               : "חדש",
+    "CMD_FILE_NEW"                        : "קובץ חדש",
+    "CMD_FILE_NEW_FOLDER"                 : "תיקיה חדשה",
     "CMD_FILE_OPEN"                       : "Open\u2026",
     "CMD_RECENT_FILES_OPEN"               : "Open Recent\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
-    "CMD_FILE_CLOSE"                      : "Close",
+    "CMD_FILE_CLOSE"                      : "סגור",
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
     "CMD_FILE_CLOSE_LIST"                 : "Close List",
     "CMD_FILE_CLOSE_OTHERS"               : "Close Others",
     "CMD_FILE_CLOSE_ABOVE"                : "Close Others Above",
     "CMD_FILE_CLOSE_BELOW"                : "Close Others Below",
-    "CMD_FILE_SAVE"                       : "Save",
+    "CMD_FILE_SAVE"                       : "שמור",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
@@ -348,9 +348,9 @@ define({
     "EDIT_MENU"                           : "Edit",
     "CMD_UNDO"                            : "Undo",
     "CMD_REDO"                            : "Redo",
-    "CMD_CUT"                             : "Cut",
-    "CMD_COPY"                            : "Copy",
-    "CMD_PASTE"                           : "Paste",
+    "CMD_CUT"                             : "גזור",
+    "CMD_COPY"                            : "העתק",
+    "CMD_PASTE"                           : "הדבק",
     "CMD_SELECT_ALL"                      : "Select All",
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
@@ -544,18 +544,18 @@ define({
     "INSTALL_EXTENSION_DROP_ERROR"         : "Install/Update aborted due to the following errors:",
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
-    "EXTENSION_AUTHOR"                     : "Author",
+    "EXTENSION_AUTHOR"                     : "מחבר/ת",
     "EXTENSION_DATE"                       : "תאריך",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Version {0} of this extension requires a newer version of {APP_NAME}. But you can install the earlier version {1}.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Version {0} of this extension only works with older versions of {APP_NAME}. But you can install the earlier version {1}.",
-    "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_NO_DESCRIPTION"             : "אין תיאור",
     "EXTENSION_MORE_INFO"                  : "More info\u2026",
     "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "מילות מפתח",
-    "EXTENSION_TRANSLATED_USER_LANG"       : "Translated into {0} languages, including yours",
-    "EXTENSION_TRANSLATED_GENERAL"         : "Translated into {0} languages",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "תורגם ל {0} שפות, כולל את שלך",
+    "EXTENSION_TRANSLATED_GENERAL"         : "תורגם ל{0} שפות",
     "EXTENSION_TRANSLATED_LANGS"           : "This extension has been translated into these languages: {0}",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed after {APP_NAME} reloads.",
@@ -599,7 +599,7 @@ define({
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
 
     // Custom Viewers
-    "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
+    "IMAGE_VIEWER_LARGEST_ICON"            : "הכי גדול",
 
     /**
      * Unit names
@@ -628,7 +628,7 @@ define({
     "ERROR_CLTOOLS_RMFAILED"                    : "Unable to remove existing <code>/usr/local/bin/brackets</code> symlink.",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "Unable to create <code>/usr/local/bin</code> directory.",
     "ERROR_CLTOOLS_LNFAILED"                    : "Unable to create <code>/usr/local/bin/brackets</code> symlink.",
-    "ERROR_CLTOOLS_SERVFAILED"                  : "Internal error.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "שגיאה פנימית.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "Command line shortcut is not supported on this OS.",
     "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line.",
 
@@ -654,8 +654,8 @@ define({
     "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
 
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
-    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "צבע נוכחי",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "צבע מקורי",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa פורמט",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex פורמט",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa פורמט",
