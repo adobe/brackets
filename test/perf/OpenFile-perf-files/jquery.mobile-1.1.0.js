@@ -2747,7 +2747,7 @@ $.mobile.transitionFallbacks = {};
 		setTimeout( setLastScroll, 100 );
 	};
 
-	// disable an scroll setting when a hashchange has been fired, this only works
+	// disable a scroll setting when a hashchange has been fired, this only works
 	// because the recording of the scroll position is delayed for 100ms after
 	// the browser might have changed the position because of the hashchange
 	$window.bind( $.support.pushState ? "popstate" : "hashchange", function() {
