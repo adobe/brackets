@@ -197,7 +197,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        // Remove all list items and then re-create them from this.items.
+        // Remove all list items and then re-create them from this items.
         $("li", this.$dropdown).remove();
         this._renderList(this.$dropdown);
     };
