@@ -162,7 +162,7 @@ test( "direct usage", function() {
 			ok( shouldCreate, "create called on instantiation" );
 		},
 		methodWithParams: function( param1, param2 ) {
-			ok( true, "method called dirctly" );
+			ok( true, "method called directly" );
 			equal( param1, "value1", "parameter passed via direct call" );
 			equal( param2, "value2", "multiple parameters passed via direct call" );
 
