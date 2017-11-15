@@ -268,7 +268,7 @@ test( "._getCreateOptions()", function() {
 		_getCreateOptions: function() {
 			return {
 				option1: "override1",
-				option2: "overideX"
+				option2: "overrideX"
 			};
 		},
 		_create: function() {
