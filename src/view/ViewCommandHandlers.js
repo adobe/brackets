@@ -131,8 +131,8 @@ define(function (require, exports, module) {
      * @param {string} ruleCfg.propName Is the name of the style property
      * @param {string} ruleCfg.propValue Is the value of the style property
      * @param {boolean} ruleCfg.priorityFlag Is a flag to make the style property !important
-     * @param {string} ruleCfg.ruleName Optional Selctor name to be used for the rule
-     * @param {string} ruleCfg.ruleText Optional selector definition text
+     * @param {string} ruleCfg.ruleName Optional Selector name to be used for the rule
+     * @param {string} ruleCfg.ruleText Optional Selector definition text
      */
     function _addDynamicProperty(propertyID, ruleCfg) {
         var $style   = $("<style type='text/css'></style>").attr("id", propertyID);
