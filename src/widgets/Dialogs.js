@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         DIALOG_BTN_CLASS_LEFT       = "left";
 
     /**
-     * The z-index used for the dialogs. Each new dialog increase this number by 2
+     * The z-index used for the dialogs. Each new dialog increases this number by 2
      * @type {number}
      */
     var zIndex = 1050;
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * If autoDismiss is true, then dismisses the dialog. Otherwise just raises an event that the
+     * If autoDismiss is true, then dismisses the dialog. Otherwise, just raises an event that the
      * given button was clicked.
      * @param {$.Element} $dlg The dialog element to be dismissed.
      * @param {string} buttonId The ID of the button that was clicked.
