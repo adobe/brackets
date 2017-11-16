@@ -42,7 +42,7 @@ define(function (require, exports, module) {
 
         // Magic code to get around CM's 'pseudo' identification logic
         // As per CSS3 spec :
-        // -> ':' identifies pseudo slectors
+        // -> ':' identifies pseudo selectors
         // -> '::' identifies pseudo elements
         // We should strictly check for single or double occurance of ':' by slicing
         // the line text till the token start position
