@@ -1262,7 +1262,7 @@ QUnit.equiv = (function() {
 						loop = false;
 						for ( j = 0; j < parents.length; j++ ) {
 							if ( parents[j] === a[i] ) {
-								loop = true;// dont rewalk array
+								loop = true;// don't rewalk array
 							}
 						}
 						if ( !loop && !innerEquiv(a[i], b[i]) ) {
