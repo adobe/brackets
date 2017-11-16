@@ -34911,7 +34911,7 @@ define('search/QuickOpen',['require','exports','module','project/FileIndexManage
      * and closes the dialog.
      *
      * Note, if selectedItem is null quick search should inspect $searchField for text
-     * that may have not matched anything in in the list, but may have information
+     * that may have not matched anything in the list, but may have information
      * for carrying out an action.
      */
     QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem) {
