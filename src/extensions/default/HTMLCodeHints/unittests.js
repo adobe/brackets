@@ -78,7 +78,7 @@ define(function (require, exports, module) {
             expect(provider.hasHints(testEditor, null)).toBe(false);
         }
 
-        // Expect hintList to contain tag names, starting with given value (if unspecified, expects the default unfilered list)
+        // Expect hintList to contain tag names, starting with given value (if unspecified, expects the default unfiltered list)
         function verifyTagHints(hintList, expectedFirstHint) {
             expect(hintList.indexOf("id")).toBe(-1);   // make sure attribute names aren't sneaking in there
 
