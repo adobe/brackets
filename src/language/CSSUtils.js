@@ -297,7 +297,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Gets all of the space/comma seperated tokens before the the current cursor position.
+     * Gets all of the space/comma seperated tokens before the current cursor position.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {?Array.<string>} An array of all the space/comma seperated tokens before the
      *    current cursor position
@@ -341,7 +341,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Gets all of the space/comma seperated tokens after the the current cursor position.
+     * Gets all of the space/comma seperated tokens after the current cursor position.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @param {string} currentValue The token string at the current cursor position
      * @return {?Array.<string>} An array of all the space/comma seperated tokens after the
