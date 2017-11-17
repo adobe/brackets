@@ -327,7 +327,7 @@ define(function (require, exports, module) {
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
-                        // we still keep the intrval timer up as instant search could get enabled/disabled based on node busy state
+                        // we still keep the interval timer up as instant search could get enabled/disabled based on node busy state
                         return;
                     }
                     if (self._closed) {
