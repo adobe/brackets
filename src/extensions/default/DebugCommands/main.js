@@ -666,7 +666,7 @@ define(function (require, exports, module) {
 
             if (doesExist) {
 
-                // Go about recreating the default preferecences file.
+                // Go about recreating the default preferences file.
                 if (recomputeDefaultPrefs) {
 
                     var prefsString       = _getDefaultPreferencesString();
