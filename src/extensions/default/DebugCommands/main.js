@@ -295,7 +295,7 @@ define(function (require, exports, module) {
         function _openFiles() {
 
             if (currScheme.rows === 1 && currScheme.columns === 1) {
-                // Split layout is not active yet. Inititate the
+                // Split layout is not active yet. Initiate the
                 // split view.
                 MainViewManager.setLayoutScheme(1, 2);
             }
