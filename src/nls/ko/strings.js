@@ -533,7 +533,7 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER": "이 확장 기능은 새 버전의 {APP_NAME}가 필요합니다.",
     "EXTENSION_INCOMPATIBLE_OLDER": "이 확장 기능은 현재 이전 버전의 {APP_NAME}에서 작동하지 않습니다.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER": "이 확장 기능 버전 {0}에는 {APP_NAME}의 새 버전이 필요합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
-    "EXTENSION_LATEST_INCOMPATIBLE_OLDER": "이 확장 기능 버전 {0} {APP_NAME}의 이전 버전에서만 작동합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER": "이 확장 기능 버전 {0}에는 {APP_NAME}의 이전 버전에서만 작동합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
     "EXTENSION_NO_DESCRIPTION": "설명 없음",
     "EXTENSION_MORE_INFO": "추가 정보...",
     "EXTENSION_ERROR": "확장 기능 에러",
@@ -575,7 +575,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE": "업데이트",
 
     "INLINE_EDITOR_NO_MATCHES": "일치하는 항목이 없습니다.",
-    "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "일치하는 항목이 모두 축소되었습니다. 일치하는 항목을 보려면 오른쪽에 나열된 파일을 확장하십시오.",
     "CSS_QUICK_EDIT_NO_MATCHES": "선택 일치하는 기존 CSS 규칙이 없습니다. <br> 「새 규칙」을 클릭하여 규칙을 작성하세요.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS": "프로젝트에는 스타일 시트가 없습니다. <br> 스타일 시트를 작성하여 CSS 규칙에 추가하세요.",
 
