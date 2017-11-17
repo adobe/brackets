@@ -67,6 +67,7 @@ define(function (require, exports, module) {
     exports.EDIT_COPY                   = "edit.copy";                  // EditorCommandHandlers.js     ignoreCommand()
     exports.EDIT_PASTE                  = "edit.paste";                 // EditorCommandHandlers.js     ignoreCommand()
     exports.EDIT_SELECT_ALL             = "edit.selectAll";             // EditorCommandHandlers.js     _handleSelectAll()
+    exports.CODE_REFACTOR               = "code.refactor";              // CodeRefactoringManager       _updateHandlers()
 
     exports.EDIT_SELECT_LINE            = "edit.selectLine";            // EditorCommandHandlers.js     selectLine()
     exports.EDIT_SPLIT_SEL_INTO_LINES   = "edit.splitSelIntoLines";     // EditorCommandHandlers.js     splitSelIntoLines()
