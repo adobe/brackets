@@ -114,7 +114,7 @@ define(function (require, exports, module) {
      * Converts the old brackets working set sort preference into the modern paneview sort preference
      * @private
      * @param {!string} sortMethod - sort preference to convert
-     * @return {?string} new sort preference string or undefined if an sortMethod is not found
+     * @return {?string} new sort preference string or undefined if a sortMethod is not found
      */
     function _convertSortPref(sortMethod) {
         if (!sortMethod) {
