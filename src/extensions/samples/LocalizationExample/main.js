@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     var browserWrapperHtml  = require("text!htmlContent/sampleHTMLFragment.html");
 
     // Load the string module for this plugin. Not this references to the strings.js
-    // file next to the main.js fiel for this plugin. To access core brackets strings
+    // file next to the main.js file for this plugin. To access core brackets strings
     // you would call brackets.getModule("strings") instead of require("strings")
     var Strings             = require("strings");
 
