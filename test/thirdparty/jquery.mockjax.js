@@ -489,7 +489,7 @@
 			return;
 		}
 		captures.shift();
-		//use handler params as keys and capture resuts as values
+		//use handler params as keys and capture results as values
 		var i = 0,
 		capturesLength = captures.length,
 		paramsLength = mockHandler.urlParams.length,
