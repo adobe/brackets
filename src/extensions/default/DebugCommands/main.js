@@ -364,7 +364,7 @@ define(function (require, exports, module) {
             if (_prefType !== undefined) {
                 finalPrefType = prefItem.type.toLowerCase();
                 // make sure the initial property's
-                // object type matches to that of 'type' propety.
+                // object type matches to that of 'type' property.
                 if (prefItem.initial !== undefined) {
 
                     if (Array.isArray(prefItem.initial)) {
@@ -666,7 +666,7 @@ define(function (require, exports, module) {
 
             if (doesExist) {
 
-                // Go about recreating the default preferecences file.
+                // Go about recreating the default preferences file.
                 if (recomputeDefaultPrefs) {
 
                     var prefsString       = _getDefaultPreferencesString();
