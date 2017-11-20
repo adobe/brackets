@@ -74,10 +74,10 @@ define(function (require, exports, module) {
             
         if ((!files || !files.length) && types) { // We only want to check if a string of text was dragged into the editor
             types.forEach(function (value) {
-                //Draging text externally (dragging text from another file): types has "text/plain" and "text/html"
-                //Draging text internally (dragging text to another line): types has just "text/plain"
-                //Draging a file: types has "Files"
-                //Draging a url: types has "text/plain" and "text/uri-list" <-what we are interested in
+                //Dragging text externally (dragging text from another file): types has "text/plain" and "text/html"
+                //Dragging text internally (dragging text to another line): types has just "text/plain"
+                //Dragging a file: types has "Files"
+                //Dragging a url: types has "text/plain" and "text/uri-list" <-what we are interested in
                 if (value === "text/uri-list") { 
                     event.stopPropagation();
                     event.preventDefault();
