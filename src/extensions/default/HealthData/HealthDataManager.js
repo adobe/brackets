@@ -183,7 +183,7 @@ define(function (require, exports, module) {
             nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime");
             currentTime    = Date.now();
 
-            // Never send data before FIRST_LAUNCH_SEND_DELAY has ellapsed on a fresh install. This gives the user time to read the notification
+            // Never send data before FIRST_LAUNCH_SEND_DELAY has elapsed on a fresh install. This gives the user time to read the notification
             // popup, learn more, and opt out if desired
             if (!nextTimeToSend) {
                 nextTimeToSend = currentTime + FIRST_LAUNCH_SEND_DELAY;
