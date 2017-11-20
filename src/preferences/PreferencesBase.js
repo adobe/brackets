@@ -1432,7 +1432,7 @@ define(function (require, exports, module) {
          * (the first one which is pending or loaded that is before the failed
          * scope). There's always the lowest-priority "default" scope which is
          * loaded and added, it guarantees that a successfully loaded scope will
-         * always be added.
+         * be always added.
          *
          * Adding a Scope "before" another Scope means that the new Scope's
          * preferences will take priority over the "before" Scope's preferences.
