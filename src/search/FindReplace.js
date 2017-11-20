@@ -49,8 +49,11 @@ define(function (require, exports, module) {
      * Maximum file size to search within (in chars)
      * @const {number}
      */
-    var FIND_MAX_FILE_SIZE  = 500000;
+   // var FIND_MAX_FILE_SIZE  = 500000;
 
+
+    var FIND_MAX_FILE_SIZE  = 10000000;
+ 
     /**
      * If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled
      * @const {number}
