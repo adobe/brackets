@@ -129,7 +129,7 @@
  *     into the editor;
  *  2. match, a string that the manager may use to emphasize substrings of
  *     hints in the hint list (case-insensitive); and
- *  3. selectInitial, a boolean that indicates whether or not the the
+ *  3. selectInitial, a boolean that indicates whether or not the
  *     first hint in the list should be selected by default.
  *  4. handleWideResults, a boolean (or undefined) that indicates whether
  *     to allow result string to stretch width of display.
