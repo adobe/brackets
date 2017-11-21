@@ -1,4 +1,5 @@
 define(function(require, exports, module) {
+    'use strict';
     var Acorn           = brackets.getModule("thirdparty/acorn/dist/acorn"),
         ASTWalker       = brackets.getModule("thirdparty/acorn/dist/walk"),
         Menus           = brackets.getModule("command/Menus"),
@@ -51,7 +52,9 @@ define(function(require, exports, module) {
         // Remove trailing semicolons from selection
         var i;
         for (i = text.length - 1; i >= 0; --i) {
-            if (text[i] !== ";") break;
+            if (text[i] !== ";") {
+                break;
+            }
         }
         end -= text.length - i - 1;
         text = text.substr(0, i + 1);
@@ -79,11 +82,11 @@ define(function(require, exports, module) {
 
     ExtractToVariable.prototype.indexFromPos = function(pos) {
         return this.editor.indexFromPos(pos);
-    }
+    };
 
     ExtractToVariable.prototype.posFromIndex = function(index) {
         return this.editor._codeMirror.posFromIndex(index);
-    }
+    };
 
     ExtractToVariable.prototype.extract = function () {
         var varDeclaration = "var test = " + this.text + ";\n",
@@ -150,7 +153,9 @@ define(function(require, exports, module) {
 
         ASTWalker.ancestor(ast, {
             Expression: function(node, ancestors) {
-                if (expFound) return;
+                if (expFound) {
+                    return;
+                }
                 if ((isStandAloneExpression(self.text) && node.start === foundNode.start && node.end === foundNode.end) ||
                     (node.start === self.start && node.end === self.end)) {
                     expFound = true;
@@ -183,8 +188,12 @@ define(function(require, exports, module) {
     CommandManager.register("Extract variable", "refactoring.extract", function() {
         var extractToVariable = new ExtractToVariable();
         extractToVariable.init();
-        if (extractToVariable.checkExpression()) extractToVariable.extract();
-        else extractToVariable.displayErrorMessage();
+        if (extractToVariable.checkExpression()) {
+            extractToVariable.extract();
+        }
+        else {
+            extractToVariable.displayErrorMessage();
+        }
     });
 
     Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extract");
