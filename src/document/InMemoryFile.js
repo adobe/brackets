@@ -29,7 +29,7 @@
  * Attempts to read/write an InMemoryFile will always fail, and exists() always yields false. InMemoryFile.fullPath
  * is just a placeholder, and should not be displayed anywhere in the UI; fullPath IS guaranteed to be unique, however.
  *
- * An InMemoryFile is not added to the filesystem index, so if you ask the the filesystem anything about this
+ * An InMemoryFile is not added to the filesystem index, so if you ask the filesystem anything about this
  * object, it won't know what you're talking about (`filesystem.getFileForPath(someInMemFile.fullPath)` will not
  * return someInMemFile).
  */
