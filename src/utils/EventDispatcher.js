@@ -128,7 +128,7 @@ define(function (require, exports, module) {
     /**
      * Removes one or more handler functions based on the space-separated 'events' list. Each item in
      * 'events' can be: bare event name, bare .namespace, or event.namespace pair. This yields a set of
-     * matching handlers. If 'fn' is ommitted, all these handlers are removed. If 'fn' is provided,
+     * matching handlers. If 'fn' is committed, all these handlers are removed. If 'fn' is provided,
      * only handlers exactly equal to 'fn' are removed (there may still be >1, if duplicates were added).
      * @param {string} events
      * @param {?function(!{type:string, target:!Object}, ...)} fn
