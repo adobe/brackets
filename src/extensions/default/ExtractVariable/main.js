@@ -132,6 +132,7 @@ define(function(require, exports, module) {
                 startPos = self.doc.adjustPosForChange(startPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
                 endPos = self.doc.adjustPosForChange(endPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
+                var posToIndent = self.doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
                 self.doc.batchOperation(function() {
                     self.doc.replaceRange(varDeclaration, insertStartPos);
                     self.doc.replaceRange("test", startPos, endPos);
@@ -149,7 +150,7 @@ define(function(require, exports, module) {
                         }
                     ]);
 
-                    self.editor._codeMirror.indentLine(startPos.line, "prev");
+                    self.editor._codeMirror.indentLine(posToIndent.line, "prev");
                 });
             }
         });
