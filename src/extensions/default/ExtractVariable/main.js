@@ -68,7 +68,7 @@ define(function(require, exports, module) {
     };
 
     function isStandAloneExpression(text) {
-        var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text), 0, text.length, function(nodeType, node) {
+        var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text, {ecmaVersion: 9}), 0, text.length, function(nodeType, node) {
             if (node.type === "BinaryExpression" || node.type === "LogicalExpression") {
                 return true;
             }
@@ -117,11 +117,13 @@ define(function(require, exports, module) {
 
                 // Check if the expression is the only thing on this line.
                 // If it is, then append variable declaration to it.
-                if (self.parentExp.type === "ExpressionStatement") {
+                if (self.parentExp.type === "ExpressionStatement" &&
+                // abs for semicolons TODO: change this
+                    self.parentExp.start === self.start && Math.abs(self.parentExp.end - self.end) <= 1) {
                     self.doc.replaceRange(varType + " test = ", insertStartPos);
                     self.editor.setSelection(
-                        {line: insertStartPos.line, ch: insertStartPos.ch + 4},
-                        {line: insertStartPos.line, ch: insertStartPos.ch + 8}
+                        {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
+                        {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 5}
                     );
                     return;
                 }
@@ -154,7 +156,7 @@ define(function(require, exports, module) {
     };
 
     ExtractToVariable.prototype.checkExpression = function() {
-        var ast = Acorn.parse_dammit(this.doc.getText()),
+        var ast = Acorn.parse_dammit(this.doc.getText(), {ecmaVersion: 9}),
             expFound = false,
             self = this;
 
@@ -179,6 +181,8 @@ define(function(require, exports, module) {
                     var temp = node;
                     for (var i = ancestors.length - 1; i >= 0 ; --i) {
                         if (ancestors[i].type === "BlockStatement" || ancestors[i].type === "Program") {
+                            console.log(node);
+                            console.log(temp);
                             self.parentExp = temp;
                             break;
                         }
@@ -213,7 +217,7 @@ define(function(require, exports, module) {
         }
     });
 
-    KeyBindingManager.addBinding("refactoring.extract", "Ctrl-Shift-V");
+    KeyBindingManager.addBinding("refactoring.extract", "Ctrl-Alt-V");
 
     Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extract");
 });
