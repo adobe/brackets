@@ -181,8 +181,6 @@ define(function(require, exports, module) {
                     var temp = node;
                     for (var i = ancestors.length - 1; i >= 0 ; --i) {
                         if (ancestors[i].type === "BlockStatement" || ancestors[i].type === "Program") {
-                            console.log(node);
-                            console.log(temp);
                             self.parentExp = temp;
                             break;
                         }
