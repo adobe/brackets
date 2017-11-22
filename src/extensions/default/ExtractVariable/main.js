@@ -4,7 +4,10 @@ define(function(require, exports, module) {
         ASTWalker       = brackets.getModule("thirdparty/acorn/dist/walk"),
         Menus           = brackets.getModule("command/Menus"),
         CommandManager  = brackets.getModule("command/CommandManager"),
-        EditorManager   = brackets.getModule("editor/EditorManager");
+        EditorManager   = brackets.getModule("editor/EditorManager"),
+        KeyBindingManager =  brackets.getModule("command/KeyBindingManager"),
+        DefaultDialogs = brackets.getModule("widgets/DefaultDialogs"),
+        Dialogs = brackets.getModule("widgets/Dialogs");
 
     function ExtractToVariable() {
         this.editor = null;
@@ -28,8 +31,8 @@ define(function(require, exports, module) {
         var selection   = this.editor.getSelection(),
             text        = this.editor.getSelectedText(),
             trimmedText,
-            start       = this.editor.indexFromPos(selection.start),
-            end         = this.editor.indexFromPos(selection.end);
+            start       = this.indexFromPos(selection.start),
+            end         = this.indexFromPos(selection.end);
 
         // Remove leading spaces
         trimmedText = text.trimLeft();
@@ -65,15 +68,16 @@ define(function(require, exports, module) {
     };
 
     function isStandAloneExpression(text) {
-        var exp = false;
-        ASTWalker.simple(Acorn.parse_dammit(text), {
-            Expression: function(node) {
-                if (node.type !== "SequenceExpression" && node.start === 0 && node.end === text.length) {
-                    exp = true;
-                }
+        var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text), 0, text.length, function(nodeType, node) {
+            if (node.type === "BinaryExpression" || node.type === "LogicalExpression") {
+                return true;
             }
+            return false;
         });
-        return exp;
+        if (found) {
+            return true;
+        }
+        return false;
     }
 
     function numLines(text) {
@@ -89,50 +93,64 @@ define(function(require, exports, module) {
     };
 
     ExtractToVariable.prototype.extract = function () {
-        var varDeclaration = "var test = " + this.text + ";\n",
+        var varType = "var",
+            varDeclaration,
             insertStartIndex = this.parentExp.start,
-            insertEndIndex   = insertStartIndex + varDeclaration.length,
-            insertStartPos = this.posFromIndex(insertStartIndex),
-            insertEndPos   = this.posFromIndex(insertEndIndex),
+            insertEndIndex,
+            insertStartPos,
+            insertEndPos ,
             startPos = this.posFromIndex(this.start),
             endPos = this.posFromIndex(this.end),
             self = this;
 
+        // Display Dialog for type
+        var $template = $(require("text!dialog.html"));
+        Dialogs.showModalDialogUsingTemplate($template).done(function(id) {
+            if (id === "extract") {
+                varType = $template.find('input:radio[name=var-type]:checked').val();
 
-        // Check if the expression is the only thing on this line.
-        // If it is, then append variable declaration to it.
-        if (this.parentExp.type === "ExpressionStatement") {
-            this.doc.replaceRange("var test = ", insertStartPos);
-            this.editor.setSelection(
-                {line: insertStartPos.line, ch: insertStartPos.ch + 4},
-                {line: insertStartPos.line, ch: insertStartPos.ch + 8}
-            );
-            return;
-        }
+                // Var initializations
+                varDeclaration = varType + " test = " + self.text + ";\n";
+                insertEndIndex = insertStartIndex + varDeclaration.length;
+                insertStartPos = self.posFromIndex(insertStartIndex);
+                insertEndPos   = self.posFromIndex(insertEndIndex);
 
-
-        startPos = this.doc.adjustPosForChange(startPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
-        endPos = this.doc.adjustPosForChange(endPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
-
-        this.doc.batchOperation(function() {
-            self.doc.replaceRange(varDeclaration, insertStartPos);
-            self.doc.replaceRange("test", startPos, endPos);
-
-            // Set the multi selections for editing variable name
-            self.editor.setSelections([
-                {
-                    start: {line: insertStartPos.line, ch: insertStartPos.ch + 4},
-                    end: {line: insertStartPos.line, ch: insertStartPos.ch + 8}
-                },
-                {
-                    start: startPos,
-                    end: {line: startPos.line, ch: startPos.ch + 4}
+                // Check if the expression is the only thing on this line.
+                // If it is, then append variable declaration to it.
+                if (self.parentExp.type === "ExpressionStatement") {
+                    self.doc.replaceRange(varType + " test = ", insertStartPos);
+                    self.editor.setSelection(
+                        {line: insertStartPos.line, ch: insertStartPos.ch + 4},
+                        {line: insertStartPos.line, ch: insertStartPos.ch + 8}
+                    );
+                    return;
                 }
-            ]);
 
-            self.editor._codeMirror.indentLine(startPos.line, "prev");
+
+                startPos = self.doc.adjustPosForChange(startPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+                endPos = self.doc.adjustPosForChange(endPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+
+                self.doc.batchOperation(function() {
+                    self.doc.replaceRange(varDeclaration, insertStartPos);
+                    self.doc.replaceRange("test", startPos, endPos);
+
+                    // Set the multi selections for editing variable name
+                    self.editor.setSelections([
+                        {
+                            start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
+                            end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 5},
+                            primary: true
+                        },
+                        {
+                            start: startPos,
+                            end: {line: startPos.line, ch: startPos.ch + 4}
+                        }
+                    ]);
+
+                    self.editor._codeMirror.indentLine(startPos.line, "prev");
+                });
+            }
         });
-
     };
 
     ExtractToVariable.prototype.checkExpression = function() {
@@ -141,10 +159,8 @@ define(function(require, exports, module) {
             self = this;
 
         var found = ASTWalker.findNodeAround(ast, self.start, function(nodeType, node) {
-            if (nodeType === "Expression" && node.type !== "Identifier" && node.type !== "Literal") {
-                return true;
-            }
-            return false;
+            return node.start <= self.start && node.end >= self.end &&
+             (node.type === "BinaryExpression" || node.type === "LogicalExpression");
         });
         var foundNode;
         if (found) {
@@ -156,7 +172,8 @@ define(function(require, exports, module) {
                 if (expFound) {
                     return;
                 }
-                if ((isStandAloneExpression(self.text) && node.start === foundNode.start && node.end === foundNode.end) ||
+                // Insightful comment
+                if ((isStandAloneExpression(self.text) && foundNode && node.start === foundNode.start && node.end === foundNode.end) ||
                     (node.start === self.start && node.end === self.end)) {
                     expFound = true;
                     var temp = node;
@@ -195,6 +212,8 @@ define(function(require, exports, module) {
             extractToVariable.displayErrorMessage();
         }
     });
+
+    KeyBindingManager.addBinding("refactoring.extract", "Ctrl-Shift-V");
 
     Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extract");
 });
