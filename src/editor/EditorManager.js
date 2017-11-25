@@ -600,7 +600,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @deprecated There is no equivelent API moving forward.
+     * @deprecated There is no equivalent API moving forward.
      * Use MainViewManager._initialize() from a unit test to create a Main View attached to a specific DOM element
      */
     function setEditorHolder() {
