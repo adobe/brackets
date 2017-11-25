@@ -800,7 +800,7 @@ a, img {
 
 .working-set-header {
     position: relative;
-    height: 19px;
+    height: 50px;
     padding: 10px 0 9px 12px;
     background: @bc-sidebar-bg;
     color: @project-panel-text-2;
@@ -810,6 +810,8 @@ a, img {
     > span {
         background: @bc-sidebar-bg;
         position: relative;
+        line-height: 50px;
+        font-size: 40px; //Top Header Text
         z-index: 9;
     }
 
@@ -891,7 +893,7 @@ a, img {
 #project-files-header {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 0 9px 12px;
-    font-size: 13px;
+    font-size: 40px;
     color: @project-panel-text-2;
     overflow: hidden;
 
@@ -917,7 +919,7 @@ a, img {
 
     li {
         position: relative; // so that children can be positioned absolute
-        line-height: 18px;
+        line-height: 50px; //Top Selected Line
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
@@ -932,15 +934,16 @@ a, img {
         }
     }
 
+
     a {
         color: @bc-text-alt;
 
-        font-size: 13px;
+        font-size: 40px; //Top Selected Text
         text-decoration: none;
 
         display: block;
-        height: 16px;
-        line-height: 15px;
+        height: 40px;
+        line-height: 40px;
         margin-left: 18px;
         padding: 3px 0 3px 0;
 
@@ -967,10 +970,13 @@ a, img {
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
     box-sizing: border-box;
-    height: 23px;
+    height: 50px; //Selection Line
     width: 100%;
     position: absolute;
 }
+
+
+#working-set-list-first-pane > div.open-files-container.active.vertical-scroll > ul
 
 .sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
@@ -1696,7 +1702,7 @@ a, img {
         border-bottom-right-radius: 3px;
         border-left: none;
         border-right: 1px solid @bc-btn-border;
-        
+
         .dark & {
             border-right-color: @dark-bc-btn-border;
         }
