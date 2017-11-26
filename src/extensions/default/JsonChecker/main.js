@@ -26,47 +26,50 @@
     var FileSystem = brackets.getModule("filesystem/FileSystem");
     var FileUtils = brackets.getModule("file/FileUtils");
 
-    //Main json files of Brackets
-    var jsonFiles = [
-    "../../../brackets.config.dev.json", 
-    "../../../brackets.config.dist.json", 
-    "../../../brackets.config.json", 
-    "../../../config.json", 
-    "../../../package.json", 
-    "../../../supported-encodings.json",
-    "../../../../npm-shrinkwrap.json",
-    "../../../../build.json",
-    "../../../../.brackets.json",
-    "../../../../package.json"
-    ];
-
-   
-    function jsonParse(path) {
-
+    function getJsonFiles() {
+        var jsonFiles = [];
         var result = new $.Deferred();
+        var path = require.toUrl("./watchList.txt");
         var file = FileSystem.getFileForPath(path);
         var promise = FileUtils.readAsText(file).then(function (text) {
-            try {
-                JSON.parse(text);
-                result.resolve();
-            } catch (e) {
-                console.log("JsonChecker: Error in " + path);
-                result.resolve();
-            }
+           jsonFiles = text.split("\n");
+           result.resolve(jsonFiles);
+       }).fail(function () {
+        result.reject();
+    });
 
-        }).fail(function () {
-            console.log("JsonChecker: Error reading file " + path);
-            result.reject();
-        });
+       return result.promise();
+   }
 
-   return result.promise();
-  }
+   function jsonParse(path) {
 
+    var result = new $.Deferred();
+    var file = FileSystem.getFileForPath(path);
+    var promise = FileUtils.readAsText(file).then(function (text) {
+        try {
+            JSON.parse(text);
+            result.resolve();
+        } catch (e) {
+            console.warn("JsonChecker: Error in " + path);
+            result.resolve();
+        }
 
-  var i = 0, path;
-  while(i < jsonFiles.length) {
-    path = require.toUrl(jsonFiles[i]);
-    jsonParse(path).then(i++);  
-    }
+    }).fail(function () {
+        console.warn("JsonChecker: Error reading file " + path);
+        result.reject();
+    });
+
+    return result.promise();
+}
+
+var i = 0, path;
+var files = getJsonFiles().then(
+    function(jsonFiles) {
+        while(i < jsonFiles.length) {
+            path = require.toUrl(jsonFiles[i]);
+            jsonParse(path).then(i++);  
+        }
+    });
+
 
 });
