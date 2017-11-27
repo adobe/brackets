@@ -800,7 +800,7 @@ a, img {
 
 .working-set-header {
     position: relative;
-    height: 50px;
+    height: 3vh;
     padding: 10px 0 9px 12px;
     background: @bc-sidebar-bg;
     color: @project-panel-text-2;
@@ -810,8 +810,8 @@ a, img {
     > span {
         background: @bc-sidebar-bg;
         position: relative;
-        line-height: 50px;
-        font-size: 40px; //Top Header Text
+        line-height: 3vh;
+        font-size: 2vh; //Top Header Text
         z-index: 9;
     }
 
@@ -893,7 +893,7 @@ a, img {
 #project-files-header {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 0 9px 12px;
-    font-size: 40px;
+    font-size: 2vh;
     color: @project-panel-text-2;
     overflow: hidden;
 
@@ -919,7 +919,7 @@ a, img {
 
     li {
         position: relative; // so that children can be positioned absolute
-        line-height: 50px; //Top Selected Line
+        line-height: 3vh; //Top Selected Line
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
@@ -938,12 +938,12 @@ a, img {
     a {
         color: @bc-text-alt;
 
-        font-size: 40px; //Top Selected Text
+        font-size: 2vh; //Top Selected Text
         text-decoration: none;
 
         display: block;
-        height: 40px;
-        line-height: 40px;
+        height: 2vh;
+        line-height: 2vh;
         margin-left: 18px;
         padding: 3px 0 3px 0;
 
@@ -970,13 +970,10 @@ a, img {
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
     box-sizing: border-box;
-    height: 50px; //Selection Line
+    height: 3vh; //Selection Line
     width: 100%;
     position: absolute;
 }
-
-
-#working-set-list-first-pane > div.open-files-container.active.vertical-scroll > ul
 
 .sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
@@ -1097,10 +1094,10 @@ a, img {
 */
 .unicode-icon-container {
     display: inline-block;
-    width: 16px;
-    height: 16px;
-    font-size: 20px;
-    line-height: 15px;
+    width: 2vh;
+    height: 2vh;
+    font-size: 2vh;
+    line-height: 2vh;
     text-align: center;
 }
 
@@ -1118,12 +1115,12 @@ a, img {
 
     &.dirty:before {
         content: "\2022";
-        line-height: 1em;
+        line-height: 2vh;
     }
 
     &.can-close:before {
         content: "\00D7";
-        line-height: 1.1em;
+        line-height: 2vh;
     }
 
     &.can-close:hover:before {
