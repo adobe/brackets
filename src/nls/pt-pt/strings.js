@@ -301,6 +301,12 @@ define({
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"        : "Mostrar erros na barra de estado",
     "CMD_OPEN_BRACKETS_SOURCE"             : "Abrir {APP_NAME} fonte",
 
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Colapsar tudo",
+    "EXPAND_ALL"                    : "Expandir tudo",
+    "COLLAPSE_CURRENT"              : "Colapsar selecionada",
+    "EXPAND_CURRENT"                : "Expandir selecionada",
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Saltar para a definição",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar dica de parâmetro",
