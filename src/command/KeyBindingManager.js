@@ -705,7 +705,7 @@ define(function (require, exports, module) {
         // skip if the key is already assigned
         if (existing) {
             if (!existing.explicitPlatform && explicitPlatform) {
-                // remove the the generic binding to replace with this new platform-specific binding
+                // remove the generic binding to replace with this new platform-specific binding
                 removeBinding(normalized);
                 existing = false;
             }
