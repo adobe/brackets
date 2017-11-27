@@ -138,7 +138,6 @@ define({
     /**
      * Command Name Constants
      */
-
     // File menu commands
     "FILE_MENU"                           : "Ficheiro",
     "CMD_FILE_NEW_UNTITLED"               : "Novo",
@@ -307,10 +306,12 @@ define({
     "COLLAPSE_CURRENT"              : "Colapsar selecionada",
     "EXPAND_CURRENT"                : "Expandir selecionada",
     
-
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Saltar para a definição",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar dica de parâmetro",
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                : "Saltar para a definição",
+    "CMD_SHOW_PARAMETER_HINT"              : "Mostrar dica de parâmetro",
 
     "LANGUAGE_TITLE"                       : "Mudar idioma",
     "LANGUAGE_MESSAGE"                     : "Por favor, selecione o idioma desejado na lista abaixo:",
