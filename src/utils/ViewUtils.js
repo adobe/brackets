@@ -197,7 +197,7 @@ define(function (require, exports, module) {
         // enable scrolling
         $scrollerElement.css("overflow", "auto");
 
-        // use relative postioning for clipping the selectionMarker within the scrollElement
+        // use relative positioning for clipping the selectionMarker within the scrollElement
         $scrollerElement.css("position", "relative");
 
         // build selectionExtension and position fixed to the window
