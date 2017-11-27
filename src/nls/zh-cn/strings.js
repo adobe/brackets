@@ -424,6 +424,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "如何使用 {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} 支持",
     "CMD_SUGGEST"                         : "推荐功能",
+    "CMD_REPORT"                          : "報告錯誤",
     "CMD_RELEASE_NOTES"                   : "发行说明",
     "CMD_GET_INVOLVED"                    : "参与",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",

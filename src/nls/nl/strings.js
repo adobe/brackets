@@ -410,6 +410,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Hoe gebruik je {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} ondersteuning",
     "CMD_SUGGEST"                         : "Stel een nieuwe functie voor",
+    "CMD_REPORT"                          : "Meld een fout",
     "CMD_RELEASE_NOTES"                   : "Nieuw in deze versie",
     "CMD_GET_INVOLVED"                    : "Doe mee",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Toon de map met extensies",

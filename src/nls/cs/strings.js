@@ -422,6 +422,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak používat {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Podpora",
     "CMD_SUGGEST"                         : "Navrhněte funkci",
+    "CMD_REPORT"                          : "Nahlásit chybu",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
     "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",

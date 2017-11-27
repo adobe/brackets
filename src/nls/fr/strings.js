@@ -439,6 +439,7 @@ define({
 	"CMD_HOW_TO_USE_BRACKETS": "Comment utiliser {APP_NAME}",
 	"CMD_SUPPORT": "Assistance {APP_NAME}",
 	"CMD_SUGGEST": "Suggérer une fonctionnalité",
+	"CMD_REPORT": "Signaler une erreur",
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",

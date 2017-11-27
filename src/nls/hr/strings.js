@@ -364,6 +364,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Kako koristiti {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Podrška (na engleskom)",
     "CMD_SUGGEST"                         : "Predloži mogućnost / značajku",
+    "CMD_REPORT"                          : "Prijavite pogrešku",
     "CMD_RELEASE_NOTES"                   : "Bilješke o trenutnoj verziji",
     "CMD_GET_INVOLVED"                    : "Uključi se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Prikaži direktorij sa ekstenzijama",

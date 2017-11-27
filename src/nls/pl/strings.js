@@ -429,6 +429,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak używać {APP_NAME}",
     "CMD_SUPPORT"                         : "Wsparcie {APP_NAME}",
     "CMD_SUGGEST"                         : "Zaproponuj swój pomysł",
+    "CMD_REPORT"                          : "Zgłoś błąd",
     "CMD_RELEASE_NOTES"                   : "Informacje o wydaniu",
     "CMD_GET_INVOLVED"                    : "Daj coś od siebie",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Otwórz folder z rozszerzeniami",

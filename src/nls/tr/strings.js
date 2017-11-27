@@ -232,6 +232,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "{APP_NAME} Nasıl Kullanılır",
     "CMD_SUPPORT"                         : "{APP_NAME} Desteği",
     "CMD_SUGGEST"                         : "Yeni Özellik Öner",
+    "CMD_REPORT"                          : "Hata bildir",
     "CMD_RELEASE_NOTES"                   : "Sürüm Notları",
     "CMD_GET_INVOLVED"                    : "Projeye Dahil Ol",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",

@@ -419,6 +419,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Hur du använder {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME}-forum",
     "CMD_SUGGEST"                         : "Föreslå en funktion",
+    "CMD_REPORT"                          : "Rapportera ett fel",
     "CMD_RELEASE_NOTES"                   : "Versionsinformation",
     "CMD_GET_INVOLVED"                    : "Engagera dig",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Visa tilläggsmapp",
