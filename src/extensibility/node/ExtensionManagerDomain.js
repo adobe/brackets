@@ -623,7 +623,7 @@ function init(domainManager) {
         [{
             name: "downloadId",
             type: "string",
-            description: "Unique identifier for this download 'session', previously pased to downloadFile"
+            description: "Unique identifier for this download 'session', previously passed to downloadFile"
         }],
         {
             type: "boolean",
