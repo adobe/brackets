@@ -27,7 +27,7 @@
 @li-min-height: 23px;
 
 .jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; z-index:1; }
-.jstree li { display:block; min-height:@li-min-height; line-height: 3vh ; white-space:nowrap; min-width:18px; }//here
+.jstree li { display:block; min-height:@li-min-height; line-height: @side-bar-big ; white-space:nowrap; min-width:18px; }//here
 .jstree-rtl li { margin-left:0; margin-right:18px; }
 .jstree > ul > li { margin-left:0; }
 .jstree-rtl > ul > li { margin-right:0; }
@@ -75,7 +75,7 @@ li.jstree-closed > ul { display:none; }
     a,
     a:hover {
         color: @project-panel-text-1;
-        font-size: 2vh; //Tree Font size
+        font-size: @side-bar-small; //Tree Font size
         cursor: default;
 
         &.jstree-clicked, &.jstree-clicked .extension {
