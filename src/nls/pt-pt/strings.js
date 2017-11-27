@@ -306,6 +306,7 @@ define({
     "EXPAND_ALL"                    : "Expandir tudo",
     "COLLAPSE_CURRENT"              : "Colapsar selecionada",
     "EXPAND_CURRENT"                : "Expandir selecionada",
+    
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Saltar para a definição",
