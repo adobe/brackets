@@ -43,21 +43,21 @@ test( "element normalization", function() {
 	$.ui.testWidget.prototype.defaultElement = "<span data-test='pass'></span>";
 	$.ui.testWidget.prototype._create = function() {
 		ok( this.element.is( "span[data-test=pass]" ), "generated span with properties" );
-		deepEqual( this.element.data( "ui-testWidget" ), this, "instace stored in .data()" );
+		deepEqual( this.element.data( "ui-testWidget" ), this, "instance stored in .data()" );
 	};
 	$.ui.testWidget();
 
 	elem = $( "<input>" );
 	$.ui.testWidget.prototype._create = function() {
 		deepEqual( this.element[ 0 ], elem[ 0 ], "from element" );
-		deepEqual( elem.data( "ui-testWidget" ), this, "instace stored in .data()" );
+		deepEqual( elem.data( "ui-testWidget" ), this, "instance stored in .data()" );
 	};
 	$.ui.testWidget( {}, elem[ 0 ] );
 
 	elem = $( "<div>" );
 	$.ui.testWidget.prototype._create = function() {
 		deepEqual( this.element[ 0 ], elem[ 0 ], "from jQuery object" );
-		deepEqual( elem.data( "ui-testWidget" ), this, "instace stored in .data()" );
+		deepEqual( elem.data( "ui-testWidget" ), this, "instance stored in .data()" );
 	};
 	$.ui.testWidget( {}, elem );
 
@@ -65,7 +65,7 @@ test( "element normalization", function() {
 		.appendTo( "#qunit-fixture" );
 	$.ui.testWidget.prototype._create = function() {
 		deepEqual( this.element[ 0 ], elem[ 0 ], "from selector" );
-		deepEqual( elem.data( "ui-testWidget" ), this, "instace stored in .data()" );
+		deepEqual( elem.data( "ui-testWidget" ), this, "instance stored in .data()" );
 	};
 	$.ui.testWidget( {}, "#element-normalization-selector" );
 
