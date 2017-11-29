@@ -18,7 +18,7 @@ and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/mast
 Brackets may have reached version 1, but we're not stopping there. We have many feature ideas on our
 [trello board](http://bit.ly/BracketsTrelloBoard) that we're anxious to add and other
 innovative web development workflows that we're planning to build into Brackets. 
-So take Brackets out for a spin and let us know how we can make it your favorite editor. 
+So take Brackets out for a spin and let us know how we can make it your favourite editor. 
 
 You can see some 
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
