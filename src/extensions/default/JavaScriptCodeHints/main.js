@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         Strings              = brackets.getModule("strings"),
         ParameterHintManager = require("ParameterHintManager"),
+        ExtractToVariable    = require("Extract/extractToVariable"),
         HintUtils            = require("HintUtils"),
         ScopeManager         = require("ScopeManager"),
         Session              = require("Session"),
@@ -643,6 +644,7 @@ define(function (require, exports, module) {
             ScopeManager.handleEditorChange(session, editor.document,
                 previousEditor ? previousEditor.document : null);
             ParameterHintManager.setSession(session);
+            ExtractToVariable.setSession(session);
             cachedHints = null;
         }
 
@@ -898,6 +900,7 @@ define(function (require, exports, module) {
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
 
         ParameterHintManager.addCommands();
+        ExtractToVariable.addCommands();
 
         // for unit testing
         exports.getSession = getSession;

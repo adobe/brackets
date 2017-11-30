@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*eslint-env node */
@@ -39,8 +39,9 @@ var self = {
 };
 
 var Tern = require("tern"),
-    Infer = require("tern/lib/infer");
-    
+    Infer = require("tern/lib/infer"),
+    util = require("util");
+
 require("tern/plugin/requirejs");
 require("tern/plugin/doc_comment");
 require("tern/plugin/angular");
@@ -162,7 +163,7 @@ function initTernServer(env, files) {
         ternServer.reset();
         Infer.resetGuessing();
     }
-        
+
     ternServer = new Tern.Server(ternOptions);
 
     files.forEach(function (file) {
@@ -175,7 +176,7 @@ function initTernServer(env, files) {
  * Resets an existing tern server.
  */
 function resetTernServer() {
-    // If a server is already created just reset the analysis data 
+    // If a server is already created just reset the analysis data
     if (ternServer) {
         ternServer.reset();
         Infer.resetGuessing();
@@ -210,10 +211,14 @@ function createEmptyUpdate(path) {
  * @param {string} query - the type of request being made
  * @param {{line: number, ch: number}} offset -
  */
-function buildRequest(fileInfo, query, offset) {
+function buildRequest(fileInfo, query, offset, endOffset) {
     query = {type: query};
     query.start = offset;
-    query.end = offset;
+    if (endOffset) {
+        query.end = endOffset;
+    } else {
+        query.end = offset;
+    }
     query.file = (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) ? "#0" : fileInfo.name;
     query.filter = false;
     query.sort = false;
@@ -279,6 +284,77 @@ function getJumptoDef(fileInfo, offset) {
 
         });
     } catch (e) {
+        _reportError(e, fileInfo.name);
+    }
+}
+
+function getExprType(fileInfo, offset, endOffset) {
+    var request = buildRequest(fileInfo, "type", offset, endOffset);
+
+    try {
+        var file = ternServer.findFile(fileInfo.name);
+        var expr = Tern.findQueryExpr(file, request.query);
+
+        console.log(expr);
+        if (expr) {
+            // Remove unwanted fields
+            expr.node.sourceFile = null;
+            var state = expr.state;
+            var newObj = expr.state = {};
+            while(state) {
+                if (state.props) {
+                    for (var x in state.props) {
+                        if (state.props.hasOwnProperty(x)) {
+                            state.props[x] = state.props[x].propertyName;
+                        }
+                    }
+                }
+                newObj.props = state.props;
+                newObj.prev = {};
+                newObj = newObj.prev;
+                state = state.prev;
+            }
+        }
+
+
+    } catch (e) {
+        _reportError(e, fileInfo.name);
+    }
+}
+
+
+function getExtractData(fileInfo, start, end) {
+    var request = buildRequest(fileInfo, "type", start, end);
+
+    try {
+        var file = ternServer.findFile(fileInfo.name);
+        var expr = Tern.findQueryExpr(file, request.query);
+        var ast = file.ast;
+        var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, end), file.scope);
+
+        // Remove unwanted fields to prevent circular structure
+        if (expr) {
+            expr.node.sourceFile = undefined;
+            expr.state = undefined;
+        }
+        if (ast) {
+            ast = JSON.parse(util.inspect(ast));
+            // ast = JSON.parse(JSON.stringify(ast, function(key, value) {
+            //     if (key === "sourceFile") return undefined;
+            //     else return value;
+            // }));
+        }
+
+        self.postMessage({
+            type: MessageIds.TERN_EXTRACTDATA_MSG,
+            file: _getNormalizedFilename(fileInfo.name),
+            start: start,
+            end: end,
+            expr: expr,
+            // scope: scope,
+            ast: ast
+        });
+    } catch(e) {
         _reportError(e, fileInfo.name);
     }
 }
@@ -721,6 +797,7 @@ function setConfig(configUpdate) {
 
 function _requestTernServer(commandConfig) {
     var file, text, offset,
+        start, end,
         request = commandConfig,
         type = request.type;
     if (config.debug) {
@@ -745,6 +822,10 @@ function _requestTernServer(commandConfig) {
     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
         offset  = request.offset;
         getJumptoDef(request.fileInfo, offset);
+    } else if (type === MessageIds.TERN_EXTRACTDATA_MSG) {
+        start = request.start;
+        end = request.end;
+        getExtractData(request.fileInfo, start, end);
     } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
         handleAddFiles(request.files);
     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
@@ -781,7 +862,7 @@ function setInterface(msgInterface) {
 function checkInterfaceAndReInit() {
     if (!MessageIds) {
         // WTF - Worse than failure
-        // We are here as node process got restarted 
+        // We are here as node process got restarted
         // Request for ReInitialization of interface and Tern Server
         self.postMessage({
             type: "RE_INIT_TERN"
