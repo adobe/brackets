@@ -69,14 +69,11 @@
     return result.promise();
 }
 
-var i = 0, path;
-var files = getJsonFiles().then(
-    function(jsonFiles) {
-        while(i < jsonFiles.length) {
-            path = require.toUrl(jsonFiles[i]);
-            jsonParse(path).then(i++);  
-        }
-    });
-
-
+var path;
+var files = getJsonFiles().then(function(jsonFiles) {
+        jsonFiles.forEach(function(file) {
+            path = require.toUrl(file);
+            jsonParse(path);
+            });
+        });
 });
