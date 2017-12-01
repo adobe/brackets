@@ -34,7 +34,7 @@
         var promise = FileUtils.readAsText(file).then(function (text) {
             try{
             jsonFiles = JSON.parse(text);
-            result.resolve(jsonFiles)
+            result.resolve(jsonFiles);
         } catch(e){
             console.warn("JsonChecker: "+ e);
             result.resolve();
