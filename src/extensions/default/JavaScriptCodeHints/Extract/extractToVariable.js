@@ -236,19 +236,61 @@ define(function(require, exports, module) {
     }
 
     function getAllIdentifiers() {
+        var identifiers = {};
+        var inThisScope = {};
         var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
         ASTWalker.simple(ast, {
-            Identifier: function(node) {
-                console.log(node);
+            Expression: function(node) {
+                if (node.type === "Identifier") {
+                    if (!identifiers.hasOwnProperty(node.name)) {
+                        identifiers[node.name] = true;
+                    }
+                }
+            },
+            VariableDeclarator: function(node) {
+                if (!inThisScope.hasOwnProperty(node.name)) {
+                    inThisScope[node.id.name] = true;
+                }
+            },
+            FunctionDeclaration: function(node) {
+                if (!inThisScope.hasOwnProperty(node.name)) {
+                    inThisScope[node.id.name] = true;
+                }
+            }
+        });
+        var ret = [];
+        for (var identifier in identifiers) {
+            if (identifiers.hasOwnProperty(identifier) && !inThisScope.hasOwnProperty(identifier)) {
+                ret.push(identifier);
+            }
+        }
+        return ret;
+    }
+
+    function findPassParams(identifiers, srcScope, destScope) {
+        var params = [];
+        identifiers.forEach(function(identifier){
+            var passParam = false;
+            while (srcScope.id !== destScope.id) {
+                if (srcScope.props.hasOwnProperty(identifier)) {
+                    passParam = true;
+                    break;
+                }
+                srcScope = srcScope.prev;
+            }
+            if (passParam) {
+                console.log(identifier)
             }
         });
     }
 
     function findScopes() {
         var curScope = data.scope;
+        var cnt = 0;
         console.log(curScope);
         var scopeNames = [];
         while (curScope) {
+            curScope.id = cnt++;
             if (curScope.fnType) {
                 scopeNames.push(curScope.fnType);
             }
@@ -289,7 +331,8 @@ define(function(require, exports, module) {
 
         // normalizeSelection(true);
         getExtractData().done(function() {
-            getAllIdentifiers();
+            findScopes();
+            findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
             /*findScopes();
             var expns = getExpressions();
             if (expns.length === 0) {
