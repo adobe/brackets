@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,12 +28,19 @@
 
     function getJsonFiles() {
         var jsonFiles = [];
+        var path = require.toUrl("./watchList.json");
         var result = new $.Deferred();
-        var path = require.toUrl("./watchList.txt");
         var file = FileSystem.getFileForPath(path);
         var promise = FileUtils.readAsText(file).then(function (text) {
-           jsonFiles = text.split("\n");
-           result.resolve(jsonFiles);
+            try{
+            jsonFiles = JSON.parse(text);
+            result.resolve(jsonFiles)
+        } catch(e){
+            console.warn("JsonChecker: "+ e);
+            result.resolve();
+        }
+
+
        }).fail(function () {
         result.reject();
     });
