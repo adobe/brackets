@@ -57,7 +57,7 @@
             JSON.parse(text);
             result.resolve();
         } catch (e) {
-            console.warn("JsonChecker: Error in " + path);
+            console.warn("JsonChecker: " + path + e);
             result.resolve();
         }
 
