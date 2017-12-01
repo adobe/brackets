@@ -358,7 +358,7 @@ define(function (require, exports, module) {
             end: end
         });
 
-        return addPendingRequest(fileInfo.name, start, MessageIds.TERN_JUMPTODEF_MSG);
+        return addPendingRequest(fileInfo.name, start, MessageIds.TERN_EXTRACTDATA_MSG);
     }
 
     /**

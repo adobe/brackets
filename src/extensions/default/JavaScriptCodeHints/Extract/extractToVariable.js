@@ -30,21 +30,27 @@ define(function(require, exports, module) {
         CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         KeyBindingManager   =  brackets.getModule("command/KeyBindingManager"),
-        _                   =  brackets.getModule("thirdparty/lodash"),
+        _                   = brackets.getModule("thirdparty/lodash"),
         DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
         Dialogs             = brackets.getModule("widgets/Dialogs"),
+        StringMatch         = brackets.getModule("utils/StringMatch"),
+        StringUtils         = brackets.getModule("utils/StringUtils"),
         ScopeManager        = require("../ScopeManager");
 
 
-    var session, text, start, end, data;
+    var session, doc, text, start, end, data = {},
+        parentBlockStatement, parentStatement, parentExpn;
+
+    // Error messages
+    var TERN_FAILED = "Unable to get data from Tern";
 
     // Utility functions
     function indexFromPos(pos) {
-        session.editor.indexFromPos(pos);
+        return session.editor.indexFromPos(pos);
     }
 
     function posFromIndex(index) {
-        session.editor._codeMirror.posFromIndex(index);
+        return session.editor._codeMirror.posFromIndex(index);
     }
 
     // Removes the leading and trailing spaces from selection and the trailing semicolons
@@ -86,15 +92,12 @@ define(function(require, exports, module) {
 
     function isStandAloneExpression(text) {
         var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text, {ecmaVersion: 9}), 0, text.length, function(nodeType, node) {
-            if (node.type === "BinaryExpression" || node.type === "LogicalExpression") {
+            if (nodeType === "Expression"){
                 return true;
             }
             return false;
         });
-        if (found) {
-            return true;
-        }
-        return false;
+        return found;
     }
 
     function numLines(text) {
@@ -166,78 +169,150 @@ define(function(require, exports, module) {
         });
     }
 
-    function checkExpression() {
-        var response = ScopeManager.requestExprType(session, this.doc, this.posFromIndex(this.start), this.posFromIndex(this.end));
-        if (response.hasOwnProperty("promise")) {
-            response.promise.done(function(response) {
-               console.log(response);
-            }).fail(function () {
-                // result.reject();
-            });
-        }
-        var ast = Acorn.parse_dammit(this.doc.getText(), {ecmaVersion: 9}),
-            expFound = false,
-            self = this;
+    function findAllExpressions() {
+        var str = doc.getText().substr(parentBlockStatement.start, parentBlockStatement.end - parentBlockStatement.start + 1);
+        console.log(str);
+        console.log(text);
 
-        var found = ASTWalker.findNodeAround(ast, self.start, function(nodeType, node) {
-            return node.start <= self.start && node.end >= self.end &&
-             (node.type === "BinaryExpression" || node.type === "LogicalExpression");
-        });
-        var foundNode;
-        if (found) {
-            foundNode = found.node;
+        function allIndexOf(str, toSearch) {
+            var indices = [];
+            for(var pos = str.indexOf(toSearch); pos !== -1; pos = str.indexOf(toSearch, pos + 1)) {
+                indices.push(pos);
+            }
+            return indices;
         }
+
+        console.log(allIndexOf(str, text));
+    }
+
+    function findParentBlockStatement() {
+        var ast =  data.ast,
+            expFound = false,
+            self = this,
+            startPos = parentExpn.start,
+            endPos = parentExpn.end;
 
         ASTWalker.ancestor(ast, {
             Expression: function(node, ancestors) {
                 if (expFound) {
                     return;
                 }
-                // Insightful comment
-                if ((isStandAloneExpression(self.text) && foundNode && node.start === foundNode.start && node.end === foundNode.end) ||
-                    (node.start === self.start && node.end === self.end)) {
+                if (node.start === startPos && node.end === endPos) {
                     expFound = true;
-                    var temp = node;
                     for (var i = ancestors.length - 1; i >= 0 ; --i) {
                         if (ancestors[i].type === "BlockStatement" || ancestors[i].type === "Program") {
-                            self.parentExp = temp;
+                            parentBlockStatement = ancestors[i];
                             break;
                         }
-                        temp = ancestors[i];
                     }
                 }
             }
         });
 
-
         return expFound;
+    }
+
+    function getExpressions() {
+        var expns = [];
+        var pos = indexFromPos(start);
+        var noSelection = start.line === end.line && start.ch === end.ch;
+        if (!noSelection && !isStandAloneExpression(text)) {
+            return [];
+        }
+        while (true) {
+            var foundNode = ASTWalker.findNodeAround(data.ast, pos, function(nodeType, node) {
+                return nodeType === "Expression" && node.end >= indexFromPos(end);
+            });
+            if (!foundNode) break;
+            var expn = foundNode.node;
+            expns.push(expn);
+            if (!noSelection) {
+                break;
+            }
+            pos = expn.start - 1;
+        }
+
+        return expns;
+    }
+
+    function getAllIdentifiers() {
+        var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+        ASTWalker.simple(ast, {
+            Identifier: function(node) {
+                console.log(node);
+            }
+        });
+    }
+
+    function findScopes() {
+        var curScope = data.scope;
+        console.log(curScope);
+        var scopeNames = [];
+        while (curScope) {
+            if (curScope.fnType) {
+                scopeNames.push(curScope.fnType);
+            }
+            else {
+                scopeNames.push("global");
+            }
+            curScope = curScope.prev;
+        }
+        console.log(scopeNames);
     }
 
     function getExtractData() {
         var response = ScopeManager.requestExtractData(session, start, end);
 
+        var result = new $.Deferred;
+
         if (response.hasOwnProperty("promise")) {
             response.promise.done(function(response) {
-                console.log(response);
-            }).fail(function () {
-                // result.reject();
-            });
+                data = response;
+                data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+                console.log(data);
+                result.resolve();
+            }).fail(function() {
+                result.reject();
+            })
         }
+
+        return result;
     }
 
     function init() {
         var selection = session.editor.getSelection();
 
+        doc = session.editor.document;
         text = session.editor.getSelectedText();
         start = selection.start;
         end = selection.end;
 
         // normalizeSelection(true);
-        getExtractData();
+        getExtractData().done(function() {
+            getAllIdentifiers();
+            /*findScopes();
+            var expns = getExpressions();
+            if (expns.length === 0) {
+                displayErrorMessage("No Expression");
+            }
+            else if (expns.length === 1) {
+                parentExpn = expns[0];
+                findParentBlockStatement();
+                findAllExpressions();
+            } else {
+                console.log(expns);
+            }*/
+            /*console.log(start);
+            console.log(end);
+            console.log(parentBlockStatement);
+            console.log(parentStatement);*/
+        }).fail(function() {
+            displayErrorMessage(TERN_FAILED);
+        });
     }
 
-    function displayErrorMessage() {
-        session.editor.displayErrorMessageAtCursor("Cannot extract variable.The selection does not form a expression");
+    function displayErrorMessage(errMsg) {
+        session.editor.displayErrorMessageAtCursor(errMsg);
     }
 
     function setSession(s) {

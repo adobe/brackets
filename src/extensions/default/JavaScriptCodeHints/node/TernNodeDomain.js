@@ -32,6 +32,7 @@
 var config = {};
 var _domainManager;
 var MessageIds;
+var ternOptions;
 var self = {
     postMessage: function (data) {
         _domainManager.emitEvent("TernNodeDomain", "data", [data]);
@@ -151,10 +152,11 @@ function getFile(name, next) {
  * @param {Array.<string>} files - a list of filenames tern should be aware of
  */
 function initTernServer(env, files) {
-    var ternOptions = {
+    ternOptions = {
         defs: env,
         async: true,
         getFile: getFile,
+        ecmaVersion: 9,
         plugins: {requirejs: {}, doc_comment: true, angular: true}
     };
 
@@ -324,38 +326,57 @@ function getExprType(fileInfo, offset, endOffset) {
 
 
 function getExtractData(fileInfo, start, end) {
-    var request = buildRequest(fileInfo, "type", start, end);
+    // Create a new tern Server
+    // Do not mess with existing tern server as it may
+    // affect codehint and jump to def
+    var ternServer = new Tern.Server(ternOptions);
+    ternServer.addFile(fileInfo.name);
+
+    var error;
+    var request = buildRequest(fileInfo, "completions", start);
 
     try {
-        var file = ternServer.findFile(fileInfo.name);
-        var expr = Tern.findQueryExpr(file, request.query);
-        var ast = file.ast;
-        var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, end), file.scope);
+        // primepump
+        ternServer.request(request, function (ternError, data) {
+            if (ternError) {
+                _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + ternError);
+                error = ternError.toString();
+            } else {
+                var file = ternServer.findFile(fileInfo.name);
+                var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, end), file.scope);
 
-        // Remove unwanted fields to prevent circular structure
-        if (expr) {
-            expr.node.sourceFile = undefined;
-            expr.state = undefined;
-        }
-        if (ast) {
-            ast = JSON.parse(util.inspect(ast));
-            // ast = JSON.parse(JSON.stringify(ast, function(key, value) {
-            //     if (key === "sourceFile") return undefined;
-            //     else return value;
-            // }));
-        }
+                if (scope) {
+                    var strscope = JSON.stringify(scope, function(key, value) {
+                        if (key == "originNode" || key == "proto" ||
+                        key == "propertyOf" || key == "sourceFile" ||
+                        key == "onNewProp"  || key == "maybeProps") return undefined;
+                        else if (key == "fnType") return value.name || "FunctionExpression";
+                        else if (key == "props") {
+                            console.log(value);
+                            for (var key in value) {
+                                value[key] = value[key].propertyName;
+                            }
+                            return value;
+                        }
+                        else return value;
+                    });
+                    scope = JSON.parse(strscope);
+                }
 
-        self.postMessage({
-            type: MessageIds.TERN_EXTRACTDATA_MSG,
-            file: _getNormalizedFilename(fileInfo.name),
-            start: start,
-            end: end,
-            expr: expr,
-            // scope: scope,
-            ast: ast
+                self.postMessage({
+                    type: MessageIds.TERN_EXTRACTDATA_MSG,
+                    file: _getNormalizedFilename(fileInfo.name),
+                    start: start,
+                    end: end,
+                    scope: scope,
+                });
+            }
         });
-    } catch(e) {
-        _reportError(e, fileInfo.name);
+    } catch (e) {
+        _reportError(e, path);
+    } finally {
+        ternServer.reset();
+        Infer.resetGuessing();
     }
 }
 
