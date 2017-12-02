@@ -182,18 +182,16 @@ define(function(require, exports, module) {
         });
     }
 
-    function findAllExpressions(expnText) {
-        var str = doc.getText().substr(parentBlockStatement.start, parentBlockStatement.end - parentBlockStatement.start + 1);
-
-        function allIndexOf(str, toSearch) {
-            var indices = [];
-            for(var pos = str.indexOf(toSearch); pos !== -1; pos = str.indexOf(toSearch, pos + 1)) {
-                indices.push(pos);
+    function findAllExpressions(expn) {
+        var obj = {};
+        var expns = [];
+        obj[expn.type] = function(node) {
+            if (text === doc.getText().substr(node.start, node.end - node.start)) {
+                expns.push(node);
             }
-            return indices;
         }
-
-        return allIndexOf(str, expnText);
+        ASTWalker.simple(parentBlockStatement, obj);
+        return expns;
     }
 
     function findParentBlockStatement(expn) {
@@ -205,7 +203,7 @@ define(function(require, exports, module) {
 
     function findParentStatement(expn) {
         var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
-            return nodeType === "Statement" && node.end >= expn.end;
+            return nodeType === "Statement" || nodeType && node.end >= expn.end;
         });
         return foundNode && foundNode.node;
     }
@@ -339,11 +337,9 @@ define(function(require, exports, module) {
             else if (expns.length === 1) {
                 parentExpn = expns[0];
                 parentBlockStatement = findParentBlockStatement(parentExpn);
-                var allExpnsStartPos = findAllExpressions(text);
-                console.log(findParentStatement({
-                    start: allExpnsStartPos[0],
-                    end: allExpnsStartPos[0] + text.length - 1
-                }));
+                var expns = findAllExpressions(parentExpn);
+                console.log(expns);
+                // console.log(findParentStatement(expns[0]));
             } else {
                 console.log(expns);
             }
