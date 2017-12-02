@@ -35,6 +35,7 @@ define(function(require, exports, module) {
         Dialogs             = brackets.getModule("widgets/Dialogs"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
+        CodeHintList        = brackets.getModule("editor/CodeHintList"),
         ScopeManager        = require("../ScopeManager");
 
 
@@ -88,6 +89,18 @@ define(function(require, exports, module) {
         text = trimmedText;
         start = posFromIndex(start);
         end = posFromIndex(end);
+    }
+
+    function getUniqueIdentifierName(scope, prefix, num) {
+       num = num || "1";
+       var name;
+       while (num < 100) { // limit search length
+         name = name + num;
+         if (!scope.props.hasOwnProperty(name)) {
+            break;
+          }
+       }
+       return name;
     }
 
     function isStandAloneExpression(text) {
@@ -169,10 +182,8 @@ define(function(require, exports, module) {
         });
     }
 
-    function findAllExpressions() {
+    function findAllExpressions(expnText) {
         var str = doc.getText().substr(parentBlockStatement.start, parentBlockStatement.end - parentBlockStatement.start + 1);
-        console.log(str);
-        console.log(text);
 
         function allIndexOf(str, toSearch) {
             var indices = [];
@@ -182,37 +193,24 @@ define(function(require, exports, module) {
             return indices;
         }
 
-        console.log(allIndexOf(str, text));
+        return allIndexOf(str, expnText);
     }
 
-    function findParentBlockStatement() {
-        var ast =  data.ast,
-            expFound = false,
-            self = this,
-            startPos = parentExpn.start,
-            endPos = parentExpn.end;
-
-        ASTWalker.ancestor(ast, {
-            Expression: function(node, ancestors) {
-                if (expFound) {
-                    return;
-                }
-                if (node.start === startPos && node.end === endPos) {
-                    expFound = true;
-                    for (var i = ancestors.length - 1; i >= 0 ; --i) {
-                        if (ancestors[i].type === "BlockStatement" || ancestors[i].type === "Program") {
-                            parentBlockStatement = ancestors[i];
-                            break;
-                        }
-                    }
-                }
-            }
+    function findParentBlockStatement(expn) {
+        var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
+            return nodeType === "BlockStatement" || nodeType === "Program" && node.end >= expn.end;
         });
-
-        return expFound;
+        return foundNode && foundNode.node;
     }
 
-    function getExpressions() {
+    function findParentStatement(expn) {
+        var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
+            return nodeType === "Statement" && node.end >= expn.end;
+        });
+        return foundNode && foundNode.node;
+    }
+
+    function getExpressions(start, end) {
         var expns = [];
         var pos = indexFromPos(start);
         var noSelection = start.line === end.line && start.ch === end.ch;
@@ -303,21 +301,22 @@ define(function(require, exports, module) {
     }
 
     function getExtractData() {
-        var response = ScopeManager.requestExtractData(session, start, end);
+        // var response = ScopeManager.requestExtractData(session, start, end);
 
         var result = new $.Deferred;
 
-        if (response.hasOwnProperty("promise")) {
+        /*if (response.hasOwnProperty("promise")) {
             response.promise.done(function(response) {
                 data = response;
                 data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
-                console.log(data);
                 result.resolve();
             }).fail(function() {
                 result.reject();
             })
-        }
+        }*/
 
+        data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+        result.resolve();
         return result;
     }
 
@@ -331,20 +330,23 @@ define(function(require, exports, module) {
 
         // normalizeSelection(true);
         getExtractData().done(function() {
-            findScopes();
-            findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
-            /*findScopes();
-            var expns = getExpressions();
+            // findScopes();
+            // findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
+            var expns = getExpressions(start, end);
             if (expns.length === 0) {
                 displayErrorMessage("No Expression");
             }
             else if (expns.length === 1) {
                 parentExpn = expns[0];
-                findParentBlockStatement();
-                findAllExpressions();
+                parentBlockStatement = findParentBlockStatement(parentExpn);
+                var allExpnsStartPos = findAllExpressions(text);
+                console.log(findParentStatement({
+                    start: allExpnsStartPos[0],
+                    end: allExpnsStartPos[0] + text.length - 1
+                }));
             } else {
                 console.log(expns);
-            }*/
+            }
             /*console.log(start);
             console.log(end);
             console.log(parentBlockStatement);
