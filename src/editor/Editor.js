@@ -119,6 +119,7 @@ define(function (require, exports, module) {
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
+        test1 = 40,
         MAX_SPACE_UNITS         = 10,
         MAX_TAB_SIZE            = 10;
 

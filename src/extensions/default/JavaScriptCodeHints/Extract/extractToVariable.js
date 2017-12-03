@@ -95,10 +95,11 @@ define(function(require, exports, module) {
        num = num || "1";
        var name;
        while (num < 100) { // limit search length
-         name = name + num;
+         name = prefix + num;
          if (!scope.props.hasOwnProperty(name)) {
             break;
           }
+          ++num;
        }
        return name;
     }
@@ -149,7 +150,7 @@ define(function(require, exports, module) {
                     self.doc.replaceRange(varType + " test = ", insertStartPos);
                     self.editor.setSelection(
                         {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
-                        {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 5}
+                        {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1}
                     );
                     return;
                 }
@@ -182,6 +183,46 @@ define(function(require, exports, module) {
         });
     }
 
+    function extractToVariable(scope, parentStatement, expns, text) {
+        var varType = "var",
+            varName = getUniqueIdentifierName(scope, "test"),
+            varDeclaration = varType + " " + varName + " = " + text + "\n",
+            insertStartPos = posFromIndex(parentStatement.start),
+            selections = [],
+            posToIndent = doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+
+            console.log(varDeclaration);
+
+            // adjust pos for change
+            for (var i = 0; i < expns.length; ++i) {
+                expns[i].start = posFromIndex(expns[i].start);
+                expns[i].end = posFromIndex(expns[i].end);
+                expns[i].start = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+                expns[i].end = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+
+                selections.push({
+                    start: expns[i].start,
+                    end: {line: expns[i].start.line, ch: expns[i].start.ch + varName.length}
+                });
+            }
+
+            doc.batchOperation(function() {
+                doc.replaceRange(varDeclaration, insertStartPos);
+
+                for (var i = 0; i < expns.length; ++i) {
+                    doc.replaceRange(varName, expns[i].start, expns[i].end);
+                }
+                selections.push({
+                        start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
+                        end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
+                        primary: true
+                });
+
+                session.editor.setSelections(selections);
+                session.editor._codeMirror.indentLine(posToIndent.line, "prev");
+            });
+    }
+
     function findAllExpressions(expn) {
         var obj = {};
         var expns = [];
@@ -196,14 +237,14 @@ define(function(require, exports, module) {
 
     function findParentBlockStatement(expn) {
         var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
-            return nodeType === "BlockStatement" || nodeType === "Program" && node.end >= expn.end;
+            return (nodeType === "BlockStatement" || nodeType === "Program") && node.end >= expn.end;
         });
         return foundNode && foundNode.node;
     }
 
     function findParentStatement(expn) {
         var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
-            return nodeType === "Statement" || nodeType && node.end >= expn.end;
+            return nodeType === "Statement" && node.end >= expn.end;
         });
         return foundNode && foundNode.node;
     }
@@ -285,25 +326,32 @@ define(function(require, exports, module) {
         var cnt = 0;
         console.log(curScope);
         var scopeNames = [];
+        var BlockScope = null;
         while (curScope) {
-            curScope.id = cnt++;
-            if (curScope.fnType) {
-                scopeNames.push(curScope.fnType);
+            if (curScope.isBlock) {
+                BlockScope = curScope;
+            } else if (BlockScope) {
+
+            } else {
+                curScope.id = cnt++;
+                if (curScope.fnType) {
+                    scopeNames.push(curScope.fnType);
+                }
+                else {
+                    scopeNames.push("global");
+                }
+                curScope = curScope.prev;
             }
-            else {
-                scopeNames.push("global");
-            }
-            curScope = curScope.prev;
         }
         console.log(scopeNames);
     }
 
     function getExtractData() {
-        // var response = ScopeManager.requestExtractData(session, start, end);
+        var response = ScopeManager.requestExtractData(session, start, end);
 
         var result = new $.Deferred;
 
-        /*if (response.hasOwnProperty("promise")) {
+        if (response.hasOwnProperty("promise")) {
             response.promise.done(function(response) {
                 data = response;
                 data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
@@ -311,10 +359,10 @@ define(function(require, exports, module) {
             }).fail(function() {
                 result.reject();
             })
-        }*/
+        }
 
-        data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
-        result.resolve();
+        // data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+        // result.resolve();
         return result;
     }
 
@@ -338,7 +386,8 @@ define(function(require, exports, module) {
                 parentExpn = expns[0];
                 parentBlockStatement = findParentBlockStatement(parentExpn);
                 var expns = findAllExpressions(parentExpn);
-                console.log(expns);
+                parentStatement = findParentStatement(expns[0]);
+                extractToVariable(data.scope, parentStatement, expns, text);
                 // console.log(findParentStatement(expns[0]));
             } else {
                 console.log(expns);
