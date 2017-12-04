@@ -692,7 +692,7 @@ define(function (require, exports, module) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = getInitialQueryFromSelection(editor) || lastQueriedText|| lastTypedText;
+                query = getInitialQueryFromSelection(editor) || lastQueriedText || lastTypedText;
             }
         }
 
