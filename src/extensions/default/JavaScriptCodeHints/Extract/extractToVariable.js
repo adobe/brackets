@@ -105,7 +105,7 @@ define(function(require, exports, module) {
        return name;
     }
 
-    function standAloneExpression(text) {
+    function isStandAloneExpression(text) {
         var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text, {ecmaVersion: 9}), 0, text.length, function(nodeType, node) {
             if (nodeType === "Expression"){
                 return true;
@@ -224,6 +224,17 @@ define(function(require, exports, module) {
             });
     }
 
+    function extractToFunction(text, srcScope, destScope) {
+        var identifiers = getAllIdentifiers();
+        var passParams = findPassParams(identifiers, srcScope, destScope);
+
+        var fnDeclaration = "function extracted(" + passParams.join(",") + ") {" +
+                            text +
+                            "}";
+        console.log(fnDeclaration);
+        console.log(destScope);
+    }
+
     function findAllExpressions(expn) {
         var obj = {};
         var expns = [];
@@ -250,6 +261,30 @@ define(function(require, exports, module) {
         return foundNode && foundNode.node;
     }
 
+    function getSingleExpression(startPos, endPos) {
+        var foundNode = ASTWalker.findNodeAround(data.ast, startPos, function(nodeType, node) {
+            return nodeType === "Expression" && node.end >= endPos;
+        });
+        if (!foundNode) return false;
+
+        var expn = foundNode.node;
+        if (expn.start === startPos && expn.end === endPos) { // if selection is a whole expression node in ast
+            return expn;
+        }
+
+        // Check subexpression
+        var parentExpn = expn;
+        var parentExpStr = doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start);
+        console.log(parentExpStr);
+
+        var str = parentExpStr.substr(0, startPos - parentExpn.start) + "extracted" + parentExpStr.substr(endPos - parentExpn.start);
+        console.log(str);
+        var node = isStandAloneExpression(str);
+        if (node && node.type === parentExpn.type) return parentExpn;
+
+        return false;
+    }
+
     function getExpressions(start, end) {
         var expns = [];
         var startPos = indexFromPos(start);
@@ -258,14 +293,8 @@ define(function(require, exports, module) {
         var expn, foundNode;
 
         if (isSelection) {
-            foundNode = ASTWalker.findNodeAround(data.ast, startPos, function(nodeType, node) {
-                return nodeType === "Expression" && node.end >= endPos;
-            });
-            expn = foundNode && foundNode.node;
-            var node = standAloneExpression(text);
-            if (expn && ((expn.start === startPos && expn.end === endPos) || (node && node.type === expn.type))) {
-                expns.push(expn)
-            }
+            var expn = getSingleExpression(startPos, endPos);
+            if (expn) expns.push(expn);
         } else {
             while (true) {
                 var foundNode = ASTWalker.findNodeAround(data.ast, startPos, function(nodeType, node) {
@@ -328,42 +357,35 @@ define(function(require, exports, module) {
                 srcScope = srcScope.prev;
             }
             if (passParam) {
-                console.log(identifier)
+                params.push(identifier);
             }
         });
+        return params;
     }
 
     function findScopes() {
         var curScope = data.scope;
         var cnt = 0;
-        console.log(curScope);
         var scopeNames = [];
-        var BlockScope = null;
         while (curScope) {
-            if (curScope.isBlock) {
-                BlockScope = curScope;
-            } else if (BlockScope) {
-
-            } else {
-                curScope.id = cnt++;
-                if (curScope.fnType) {
-                    scopeNames.push(curScope.fnType);
-                }
-                else {
-                    scopeNames.push("global");
-                }
-                curScope = curScope.prev;
+            curScope.id = cnt++;
+            if (curScope.fnType) {
+                scopeNames.push(curScope.fnType);
             }
+            else {
+                scopeNames.push("global");
+            }
+            curScope = curScope.prev;
         }
         console.log(scopeNames);
     }
 
     function getExtractData() {
-        // var response = ScopeManager.requestExtractData(session, start, end);
+        var response = ScopeManager.requestExtractData(session, start, end);
 
         var result = new $.Deferred;
 
-        /*if (response.hasOwnProperty("promise")) {
+        if (response.hasOwnProperty("promise")) {
             response.promise.done(function(response) {
                 data = response;
                 data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
@@ -371,14 +393,14 @@ define(function(require, exports, module) {
             }).fail(function() {
                 result.reject();
             })
-        }*/
+        }
 
-        data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
-        result.resolve();
+        // data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+        // result.resolve();
         return result;
     }
 
-    function init() {
+    function initExtractVariable() {
         var selection = session.editor.getSelection();
 
         doc = session.editor.document;
@@ -426,6 +448,25 @@ define(function(require, exports, module) {
         });
     }
 
+    function initExtractFunction() {
+        var selection = session.editor.getSelection();
+
+        doc = session.editor.document;
+        text = session.editor.getSelectedText();
+        start = selection.start;
+        end = selection.end;
+
+
+        // normalizeSelection(true);
+        getExtractData().done(function() {
+            findScopes();
+            extractToFunction(text, data.scope, data.scope.prev);
+            // findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
+        }).fail(function() {
+            displayErrorMessage(TERN_FAILED);
+        });
+    }
+
     function displayErrorMessage(errMsg) {
         session.editor.displayErrorMessageAtCursor(errMsg);
     }
@@ -437,7 +478,7 @@ define(function(require, exports, module) {
     function addCommands() {
         // Extract To Variable
         CommandManager.register("Extract To Variable", "refactoring.extractToVariable", function () {
-            init();
+            initExtractVariable();
         });
 
         KeyBindingManager.addBinding("refactoring.extractToVariable", "Ctrl-Alt-V");
@@ -445,7 +486,7 @@ define(function(require, exports, module) {
 
         // Extract To Function
         CommandManager.register("Extract To Function", "refactoring.extractToFunction", function () {
-            init();
+            initExtractFunction();
         });
 
         KeyBindingManager.addBinding("refactoring.extractToFunction", "Ctrl-Alt-M");
