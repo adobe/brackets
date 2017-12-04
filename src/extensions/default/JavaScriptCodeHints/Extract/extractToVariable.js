@@ -92,6 +92,7 @@ define(function(require, exports, module) {
     }
 
     function getUniqueIdentifierName(scope, prefix, num) {
+       if (!scope) return "extracted";
        num = num || "1";
        var name;
        while (num < 100) { // limit search length
@@ -265,6 +266,8 @@ define(function(require, exports, module) {
             expns.push(expn);
             if (!noSelection) {
                 break;
+            }  else if (doc.getText().substr(expn.start, expn.end).length > 20) {
+                break;
             }
             pos = expn.start - 1;
         }
@@ -347,11 +350,11 @@ define(function(require, exports, module) {
     }
 
     function getExtractData() {
-        var response = ScopeManager.requestExtractData(session, start, end);
+        // var response = ScopeManager.requestExtractData(session, start, end);
 
         var result = new $.Deferred;
 
-        if (response.hasOwnProperty("promise")) {
+        /*if (response.hasOwnProperty("promise")) {
             response.promise.done(function(response) {
                 data = response;
                 data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
@@ -359,10 +362,10 @@ define(function(require, exports, module) {
             }).fail(function() {
                 result.reject();
             })
-        }
+        }*/
 
-        // data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
-        // result.resolve();
+        data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+        result.resolve();
         return result;
     }
 
@@ -386,11 +389,15 @@ define(function(require, exports, module) {
                 parentExpn = expns[0];
                 parentBlockStatement = findParentBlockStatement(parentExpn);
                 var expns = findAllExpressions(parentExpn);
+                console.log(expns);
                 parentStatement = findParentStatement(expns[0]);
                 extractToVariable(data.scope, parentStatement, expns, text);
                 // console.log(findParentStatement(expns[0]));
             } else {
-                console.log(expns);
+                var x = expns.map(function(expn) {return doc.getText().substr(expn.start, expn.end)});
+                for (var i = 0; i < x.length; ++i) {
+                    console.log(i, x[i]);
+                }
             }
             /*console.log(start);
             console.log(end);
