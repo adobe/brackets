@@ -25,13 +25,6 @@
     var FileSystem = brackets.getModule("filesystem/FileSystem"),
     FileUtils = brackets.getModule("file/FileUtils");
 
-    function escapeCommentsChars(jsonString) {
-        return jsonString.replace(/\/*/g, "\*")
-        .replace(/\*\//g, "*/")
-        .replace(/\/\//g, "//")
-        .replace(/(\*)/g, "");
-    }
-
     function getJsonFiles() {
         var jsonFiles = [];
         var path = require.toUrl("./watchList.json");
@@ -54,7 +47,7 @@
         return result.promise();
     }
 
-
+    
 
     function jsonParse(path) {
 
@@ -62,7 +55,7 @@
         var file = FileSystem.getFileForPath(path);
         var promise = FileUtils.readAsText(file).then(function (text) {
             try {
-                JSON.parse(escapeCommentsChars(text));
+                JSON.parse(text);
                 result.resolve();
             } catch (e) {
                 console.warn("JsonChecker: " + path + e);
@@ -100,4 +93,4 @@
     jsonParse(userStateFile);
     jsonParse(require.toUrl(PATH_BRACKETS_FILE));
 
-});
+    });
