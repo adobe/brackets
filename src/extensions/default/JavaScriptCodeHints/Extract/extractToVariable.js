@@ -105,14 +105,14 @@ define(function(require, exports, module) {
        return name;
     }
 
-    function isStandAloneExpression(text) {
+    function standAloneExpression(text) {
         var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text, {ecmaVersion: 9}), 0, text.length, function(nodeType, node) {
             if (nodeType === "Expression"){
                 return true;
             }
             return false;
         });
-        return found;
+        return found && found.node;
     }
 
     function numLines(text) {
@@ -252,27 +252,36 @@ define(function(require, exports, module) {
 
     function getExpressions(start, end) {
         var expns = [];
-        var pos = indexFromPos(start);
-        var noSelection = start.line === end.line && start.ch === end.ch;
-        if (!noSelection && !isStandAloneExpression(text)) {
-            return [];
-        }
-        while (true) {
-            var foundNode = ASTWalker.findNodeAround(data.ast, pos, function(nodeType, node) {
-                return nodeType === "Expression" && node.end >= indexFromPos(end);
+        var startPos = indexFromPos(start);
+        var endPos = indexFromPos(end);
+        var isSelection = start.line !== end.line || start.ch !== end.ch;
+        var expn, foundNode;
+
+        if (isSelection) {
+            foundNode = ASTWalker.findNodeAround(data.ast, startPos, function(nodeType, node) {
+                return nodeType === "Expression" && node.end >= endPos;
             });
-            if (!foundNode) break;
-            var expn = foundNode.node;
-            expns.push(expn);
-            if (!noSelection) {
-                break;
-            }  else if (doc.getText().substr(expn.start, expn.end).length > 20) {
-                break;
+            expn = foundNode && foundNode.node;
+            var node = standAloneExpression(text);
+            if (expn && ((expn.start === startPos && expn.end === endPos) || (node && node.type === expn.type))) {
+                expns.push(expn)
             }
-            pos = expn.start - 1;
+        } else {
+            while (true) {
+                var foundNode = ASTWalker.findNodeAround(data.ast, startPos, function(nodeType, node) {
+                    return nodeType === "Expression" && node.end >= endPos;
+                });
+                if (!foundNode) break;
+                var expn = foundNode.node;
+                expns.push(expn);
+                startPos = expn.start - 1;
+            }
         }
 
-        return expns;
+        return {
+            isSelection: isSelection,
+            expns: expns
+        };
     }
 
     function getAllIdentifiers() {
@@ -377,24 +386,33 @@ define(function(require, exports, module) {
         start = selection.start;
         end = selection.end;
 
+        normalizeSelection(true);
+
         // normalizeSelection(true);
         getExtractData().done(function() {
             // findScopes();
             // findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
-            var expns = getExpressions(start, end);
+            var obj = getExpressions(start, end);
+            var isSelection = obj.isSelection;
+            var expns = obj.expns;
             if (expns.length === 0) {
                 displayErrorMessage("No Expression");
             }
-            else if (expns.length === 1) {
+            else if (isSelection) {
                 parentExpn = expns[0];
                 parentBlockStatement = findParentBlockStatement(parentExpn);
-                var expns = findAllExpressions(parentExpn);
-                console.log(expns);
-                parentStatement = findParentStatement(expns[0]);
-                extractToVariable(data.scope, parentStatement, expns, text);
+                if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
+                    var expns = findAllExpressions(parentExpn);
+                    console.log(expns);
+                    parentStatement = findParentStatement(expns[0]);
+                    extractToVariable(data.scope, parentStatement, expns, text);
+                } else {
+                    parentStatement = findParentStatement(parentExpn)
+                    extractToVariable(data.scope, parentStatement, [{start: indexFromPos(start), end: indexFromPos(end)}], text);
+                }
                 // console.log(findParentStatement(expns[0]));
             } else {
-                var x = expns.map(function(expn) {return doc.getText().substr(expn.start, expn.end)});
+                var x = expns.map(function(expn) {return doc.getText().substr(expn.start, expn.end - expn.start)});
                 for (var i = 0; i < x.length; ++i) {
                     console.log(i, x[i]);
                 }
