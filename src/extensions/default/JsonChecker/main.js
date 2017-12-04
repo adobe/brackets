@@ -88,6 +88,7 @@
 
     var SETTINGS_FILENAME    = "defaultPreferences.json",
     STATE_FILENAME    = "state.json",
+    PATH_BRACKETS_FILE = "../../../../.brackets.json",
 
     // User-level preferences
     userPrefFile = "" + brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME,
@@ -97,5 +98,6 @@
 
     jsonParse(userPrefFile);
     jsonParse(userStateFile);
+    jsonParse(require.toUrl(PATH_BRACKETS_FILE));
 
 });

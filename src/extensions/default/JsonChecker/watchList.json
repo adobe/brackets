@@ -25,7 +25,6 @@
 "../../../../src/language/languages.json",
 "../../../../src/npm-shrinkwrap.json",
 "../../../../build.json",
-"../../../../.brackets.json",
 "../../../../tasks/cla-exceptions.json",
 "../../../../npm-shrinkwrap.json"
 ]
