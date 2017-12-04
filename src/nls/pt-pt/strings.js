@@ -208,7 +208,7 @@ define({
     "CMD_SCROLL_LINE_DOWN"                : "Deslocar linha para baixo",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Números de linha",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Destacar linha ativa",
-    "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
+    "CMD_TOGGLE_WORD_WRAP"                : "Quebra de linha",
     "CMD_LIVE_HIGHLIGHT"                  : "Destacar Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Verificar erros no ficheiro ao gravar",
     "CMD_WORKINGSET_SORT_BY_ADDED"        : "Ordenar por data adicionado",
