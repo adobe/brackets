@@ -22,9 +22,8 @@
  define(function (require, exports, module) {
     "use strict";
     
-    // Function to run when the menu item is clicked
-    var FileSystem = brackets.getModule("filesystem/FileSystem");
-    var FileUtils = brackets.getModule("file/FileUtils");
+    var FileSystem = brackets.getModule("filesystem/FileSystem"),
+    FileUtils = brackets.getModule("file/FileUtils");
 
     function getJsonFiles() {
         var jsonFiles = [];
@@ -33,47 +32,63 @@
         var file = FileSystem.getFileForPath(path);
         var promise = FileUtils.readAsText(file).then(function (text) {
             try{
-            jsonFiles = JSON.parse(text);
-            result.resolve(jsonFiles);
-        } catch(e){
-            console.warn("JsonChecker: "+ e);
-            result.resolve();
-        }
+                jsonFiles = JSON.parse(text);
+                result.resolve(jsonFiles);
+            } catch(e){
+                console.warn("JsonChecker: "+ e);
+                result.resolve();
+            }
 
 
-       }).fail(function () {
-        result.reject();
-    });
+        }).fail(function () {
+            result.reject();
+        });
 
-       return result.promise();
-   }
+        return result.promise();
+    }
 
-   function jsonParse(path) {
+    
 
-    var result = new $.Deferred();
-    var file = FileSystem.getFileForPath(path);
-    var promise = FileUtils.readAsText(file).then(function (text) {
-        try {
-            JSON.parse(text);
-            result.resolve();
-        } catch (e) {
-            console.warn("JsonChecker: " + path + e);
-            result.resolve();
-        }
+    function jsonParse(path) {
 
-    }).fail(function () {
-        console.warn("JsonChecker: Error reading file " + path);
-        result.reject();
-    });
+        var result = new $.Deferred();
+        var file = FileSystem.getFileForPath(path);
+        var promise = FileUtils.readAsText(file).then(function (text) {
+            try {
+                JSON.parse(text);
+                result.resolve();
+            } catch (e) {
+                console.warn("JsonChecker: " + path + e);
+                result.resolve();
+            }
 
-    return result.promise();
-}
+        }).fail(function () {
+            console.warn("JsonChecker: Error reading file " + path);
+            result.reject();
+        });
 
-var path;
-var files = getJsonFiles().then(function(jsonFiles) {
+        return result.promise();
+    }
+
+    var path;
+    var files = getJsonFiles().then(function(jsonFiles) {
         jsonFiles.forEach(function(file) {
             path = require.toUrl(file);
             jsonParse(path);
-            });
         });
-});
+    });
+
+
+    var SETTINGS_FILENAME    = "defaultPreferences.json",
+    STATE_FILENAME    = "state.json",
+
+    // User-level preferences
+    userPrefFile = "" + brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME,
+
+    // User-level state
+    userStateFile = "" + brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
+
+    jsonParse(userPrefFile);
+    jsonParse(userStateFile);
+
+    });
