@@ -29,7 +29,7 @@ define(function(require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
-        KeyBindingManager   =  brackets.getModule("command/KeyBindingManager"),
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
         _                   = brackets.getModule("thirdparty/lodash"),
         DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
         Dialogs             = brackets.getModule("widgets/Dialogs"),
@@ -224,21 +224,68 @@ define(function(require, exports, module) {
             });
     }
 
+    function findRetParams(srcScope) {
+        var startPos = indexFromPos(start);
+        var endPos = indexFromPos(end);
+        var str = doc.getText().substr(srcScope.originNode.start, srcScope.originNode.end - srcScope.originNode.start);
+        str = str.substr(endPos - srcScope.originNode.start);
+
+        var changedValues = {};
+        var dependentValues = {};
+
+        var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+        ASTWalker.full(ast, function(node) {
+            var value, name;
+            switch(node.type) {
+                case "AssignmentExpression": value = node.left;
+                break;
+                case "UpdateExpression": value = node.argument;
+                break;
+            }
+            if (value){
+                if (value.type === "MemberExpression") {
+                    name = text.substr(value.object.start, value.object.end - value.object.start);
+                } else {
+                    name = text.substr(value.start, value.end - value.start);
+                }
+                changedValues[name] = true;
+            }
+        });
+
+        ast = Acorn.parse_dammit(str, {ecmaVersion: 9});
+        ASTWalker.simple(ast, {
+            Identifier: function(node) {
+                var name = str.substr(node.start, node.end - node.start);
+                dependentValues[name] = true;
+            },
+            Expression: function(node) {
+                if (node.type === "MemberExpression") {
+                    var name = str.substr(node.start, node.end - node.start);
+                    dependentValues[name] = true;
+                }
+            }
+        });
+        return _.intersection(_.keys(srcScope.props), _.keys(changedValues), _.keys(dependentValues));
+    }
+
     function extractToFunction(text, srcScope, destScope) {
-        var identifiers = getAllIdentifiers();
-        var passParams = findPassParams(identifiers, srcScope, destScope);
-        
+        var passParams = findPassParams(srcScope, destScope);
+        var retParams = findRetParams(srcScope, destScope);
+
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
         if (isExpression) {
             fnbody = "return " + fnbody + ";";
+        } else if (retParams && retParams.length) {
+            fnbody = fnbody + "\n" +
+                     "return " +  retParams.join(",") + ";";
         }
 
         var fnDeclaration = "function extracted(" + passParams.join(",") + ") {\n" +
                             fnbody + "\n" +
                             "}\n";
         console.log(fnDeclaration);
-        console.log(destScope);
+        console.log(srcScope);
     }
 
     function findAllExpressions(expn) {
@@ -281,10 +328,8 @@ define(function(require, exports, module) {
         // Check subexpression
         var parentExpn = expn;
         var parentExpStr = doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start);
-        console.log(parentExpStr);
 
         var str = parentExpStr.substr(0, startPos - parentExpn.start) + "extracted" + parentExpStr.substr(endPos - parentExpn.start);
-        console.log(str);
         var node = isStandAloneExpression(str);
         if (node && node.type === parentExpn.type) return parentExpn;
 
@@ -323,50 +368,31 @@ define(function(require, exports, module) {
         var identifiers = {};
         var inThisScope = {};
         var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
-        ASTWalker.simple(ast, {
-            Expression: function(node) {
-                if (node.type === "Identifier") {
-                    if (!identifiers.hasOwnProperty(node.name)) {
-                        identifiers[node.name] = true;
-                    }
-                }
-            },
-            VariableDeclarator: function(node) {
-                if (!inThisScope.hasOwnProperty(node.name)) {
-                    inThisScope[node.id.name] = true;
-                }
-            },
-            FunctionDeclaration: function(node) {
-                if (!inThisScope.hasOwnProperty(node.name)) {
-                    inThisScope[node.id.name] = true;
-                }
+        ASTWalker.full(ast, function(node) {
+            if (node.type === "Identifier") {
+                identifiers[node.name] = true;
+            }
+            if (node.type === "VariableDeclarator") {
+                inThisScope[node.id.name] = true;
             }
         });
-        var ret = [];
-        for (var identifier in identifiers) {
-            if (identifiers.hasOwnProperty(identifier) && !inThisScope.hasOwnProperty(identifier)) {
-                ret.push(identifier);
-            }
-        }
-        return ret;
+
+        return _.difference(_.keys(identifiers), _.keys(inThisScope));
     }
 
-    function findPassParams(identifiers, srcScope, destScope) {
+    function findPassParams(srcScope, destScope) {
+        var identifiers = getAllIdentifiers();
         var params = [];
-        identifiers.forEach(function(identifier){
-            var passParam = false;
-            while (srcScope.id !== destScope.id) {
-                if (srcScope.props.hasOwnProperty(identifier)) {
-                    passParam = true;
-                    break;
-                }
-                srcScope = srcScope.prev;
-            }
-            if (passParam) {
-                params.push(identifier);
-            }
-        });
-        return params;
+        var props = [];
+        var scope = srcScope;
+
+        // Find all scopes before destScope
+        while (scope.id !== destScope.id) {
+            props = _.union(props, _.keys(scope.props));
+            scope = scope.prev;
+        }
+
+        return _.intersection(identifiers, props);
     }
 
     function findScopes() {
@@ -378,11 +404,9 @@ define(function(require, exports, module) {
             if (curScope.fnType) {
                 scopeNames.push(curScope.fnType);
             }
-            else {
-                scopeNames.push("global");
-            }
             curScope = curScope.prev;
         }
+        scopeNames.push("global");
         console.log(scopeNames);
     }
 
@@ -502,3 +526,88 @@ define(function(require, exports, module) {
     exports.setSession = setSession;
     exports.addCommands = addCommands;
 });
+
+// Commented Blocks
+// getAllIdentifiers
+        /*ASTWalker.simple(ast, {
+            Identifier: function(node) {
+                if (!identifiers.hasOwnProperty(node.name)) {
+                    identifiers[node.name] = true;
+                }
+            },
+            VariableDeclarator: function(node) {
+                if (!inThisScope.hasOwnProperty(node.id.name)) {
+                    inThisScope[node.id.name] = true;
+                }
+            }
+            // FunctionDeclaration: function(node) {
+            //     if (!inThisScope.hasOwnProperty(node.name)) {
+            //         inThisScope[node.id.name] = true;
+            //     }
+            // }
+        });*/
+
+
+
+        // var ret = [];
+        // if (includeIdentifiersInThisScope) {
+        //     for (var identifier in Object.assign(identifiers, inThisScope)) {
+        //         if (identifiers.hasOwnProperty(identifier) || inThisScope.hasOwnProperty(identifier)) {
+        //             ret.push(identifier);
+        //         }
+        //     }
+        // } else {
+            // for (var identifier in identifiers) {
+            //     if (identifiers.hasOwnProperty(identifier) && !inThisScope.hasOwnProperty(identifier)) {
+            //         ret.push(identifier);
+            //     }
+            // }
+        // }
+
+        // return ret;
+
+//findPassParams
+
+        // identifiers.forEach(function(identifier){
+        //     var passParam = false;
+        //     var scope = srcScope;
+        //     while (scope.id !== destScope.id) {
+        //         if (scope.props.hasOwnProperty(identifier)) {
+        //             passParam = true;
+        //             break;
+        //         }
+        //         scope = scope.prev;
+        //     }
+        //     if (passParam) {
+        //         params.push(identifier);
+        //     }
+        // });
+        // return params;
+
+//findRetParams
+
+            // FunctionDeclaration: function(node) {
+            //     if (!inThisScope.hasOwnProperty(node.name)) {
+            //         inThisScope[node.id.name] = true;
+            //     }
+            // }
+
+
+        /*ASTWalker.full(ast, function(node) {
+            if (node.type === "Identifier") console.log(node);
+            if (node.type === "MemberExpression") console.log(node);
+        });*/
+
+
+            // AssignmentExpression: function(node) {
+            //     var value = node.left;
+            //     var name = ;
+            //     if (srcScope.props.hasOwnProperty(name))
+            //     changedValues[name] = true;
+            // },
+            // UpdateExpression: function(node) {
+            //     var value = node.argument;
+            //     var name = text.substr(value.start, value.end - value.start);
+            //     if (srcScope.props.hasOwnProperty(name))
+            //     changedValues[name] = true;
+            // }

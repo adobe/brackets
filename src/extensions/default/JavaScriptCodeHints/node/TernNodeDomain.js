@@ -347,7 +347,7 @@ function getExtractData(fileInfo, start, end) {
 
                 if (scope) {
                     var strscope = JSON.stringify(scope, function(key, value) {
-                        if (key == "originNode" || key == "proto" ||
+                        if (key == "proto" ||
                         key == "propertyOf" || key == "sourceFile" ||
                         key == "onNewProp"  || key == "maybeProps") return undefined;
                         else if (key == "fnType") return value.name || "FunctionExpression";
@@ -357,6 +357,11 @@ function getExtractData(fileInfo, start, end) {
                                 value[key] = value[key].propertyName;
                             }
                             return value;
+                        } else if (key == "originNode") {
+                            return value && {
+                                start: value.start,
+                                end: value.end
+                            };
                         }
                         else return value;
                     });
