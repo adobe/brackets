@@ -227,10 +227,16 @@ define(function(require, exports, module) {
     function extractToFunction(text, srcScope, destScope) {
         var identifiers = getAllIdentifiers();
         var passParams = findPassParams(identifiers, srcScope, destScope);
+        
+        var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
+        var fnbody = text;
+        if (isExpression) {
+            fnbody = "return " + fnbody + ";";
+        }
 
-        var fnDeclaration = "function extracted(" + passParams.join(",") + ") {" +
-                            text +
-                            "}";
+        var fnDeclaration = "function extracted(" + passParams.join(",") + ") {\n" +
+                            fnbody + "\n" +
+                            "}\n";
         console.log(fnDeclaration);
         console.log(destScope);
     }
