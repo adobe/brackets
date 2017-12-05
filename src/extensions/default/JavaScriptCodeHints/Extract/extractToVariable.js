@@ -274,18 +274,32 @@ define(function(require, exports, module) {
 
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
+        var fnCall = "extracted(" + passParams.join(", ") + ")";
         if (isExpression) {
             fnbody = "return " + fnbody + ";";
         } else if (retParams && retParams.length) {
+            var retParamsStr;
+            if (retParams.length > 1) {
+                retParamsStr = '{' + retParams.join(", ") + '}';
+                fnCall = "var ret = extracted(" + passParams.join(", ") + ")\n" +
+                retParams.map(function(param) {
+                    return param + " = ret." + param + ";"
+                }).join("\n");
+            } else {
+                retParamsStr = retParams[0];
+                fnCall = "var " + retParams[0] + " = extracted(" + passParams.join(", ") + ")";
+            }
             fnbody = fnbody + "\n" +
-                     "return " +  retParams.join(",") + ";";
+                     "return " + retParamsStr  + ";";
+
         }
 
-        var fnDeclaration = "function extracted(" + passParams.join(",") + ") {\n" +
+        var fnDeclaration = "function extracted(" + passParams.join(", ") + ") {\n" +
                             fnbody + "\n" +
                             "}\n";
         console.log(fnDeclaration);
         console.log(srcScope);
+        console.log(fnCall);
     }
 
     function findAllExpressions(expn) {
@@ -321,7 +335,7 @@ define(function(require, exports, module) {
         if (!foundNode) return false;
 
         var expn = foundNode.node;
-        if (expn.start === startPos && expn.end === endPos) { // if selection is a whole expression node in ast
+        if (expn.start === startPos && expn.end === endPos) { //Math.abs(expn.end - endPos) <= 1 // if selection is a whole expression node in ast
             return expn;
         }
 
