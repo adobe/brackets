@@ -278,7 +278,9 @@ define(function(require, exports, module) {
 
     function getScopePos(srcScope, destScope) {
         if (srcScope.id === destScope.id) {
-            return start;
+            var ret = _.clone(start);
+            ret.ch = 0;
+            return ret;
         }
         while (srcScope.prev.id !== destScope.id) {
             srcScope = srcScope.prev;
@@ -330,7 +332,9 @@ define(function(require, exports, module) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
             doc.replaceRange(fnCall, start, end);
-            session.editor._codeMirror.indentLine(start.line, "smart");
+            for (var i = start.line; i <= start.line + numLines(fnCall); ++i) {
+                session.editor._codeMirror.indentLine(i, "smart");
+            }
         });
 
         console.log(fnDeclaration);
@@ -448,7 +452,6 @@ define(function(require, exports, module) {
     function findScopes() {
         var curScope = data.scope;
         var cnt = 0;
-        var scopeNames = [];
         var prevScope = {};
         var scopes = {};
         while (curScope) {
@@ -459,8 +462,11 @@ define(function(require, exports, module) {
                 curScope.id = cnt++;
                 scopes[curScope.id] = curScope;
                 if (curScope.fnType) {
-                    curScope.name = curScope.fnType;
-                    scopeNames.push(curScope.fnType);
+                    if (curScope.fnType === "FunctionExpression") {
+                        curScope.name = "function starting with " + doc.getText().substr(curScope.originNode.start, 15);
+                    } else {
+                        curScope.name = curScope.fnType;
+                    }
                 } else {
                     curScope.name = "global";
                 }
@@ -468,8 +474,6 @@ define(function(require, exports, module) {
             }
             curScope = curScope.prev;
         }
-        scopeNames.push("global");
-        console.log(scopeNames);
         return scopes;
     }
 
