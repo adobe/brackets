@@ -247,6 +247,8 @@ define(function(require, exports, module) {
             switch(node.type) {
                 case "AssignmentExpression": value = node.left;
                 break;
+                case "VariableDeclarator": value = node.init && node.id;
+                break;
                 case "UpdateExpression": value = node.argument;
                 break;
             }
