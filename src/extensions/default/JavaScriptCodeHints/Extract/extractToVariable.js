@@ -35,7 +35,7 @@ define(function(require, exports, module) {
         Dialogs             = brackets.getModule("widgets/Dialogs"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
-        CodeHintList        = brackets.getModule("editor/CodeHintList"),
+        Widget              = require("./widget").Widget,
         ScopeManager        = require("../ScopeManager");
 
 
@@ -228,6 +228,7 @@ define(function(require, exports, module) {
         var startPos = indexFromPos(start);
         var endPos = indexFromPos(end);
         var str = doc.getText().substr(srcScope.originNode.start, srcScope.originNode.end - srcScope.originNode.start);
+        console.log(str);
         str = str.substr(endPos - srcScope.originNode.start);
 
         var changedValues = {};
@@ -268,10 +269,21 @@ define(function(require, exports, module) {
         return _.intersection(_.keys(srcScope.props), _.keys(changedValues), _.keys(dependentValues));
     }
 
+    function getScopePos(srcScope, destScope) {
+        if (srcScope.id === destScope.id) {
+            return start;
+        }
+        while (srcScope.prev.id !== destScope.id) {
+            srcScope = srcScope.prev;
+        }
+        return posFromIndex(srcScope.originNode.start);
+    }
+
     function extractToFunction(text, srcScope, destScope) {
         var passParams = findPassParams(srcScope, destScope);
         var retParams = findRetParams(srcScope, destScope);
 
+        console.log(getScopePos(srcScope, destScope));
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
         var fnCall = "extracted(" + passParams.join(", ") + ")";
@@ -297,6 +309,7 @@ define(function(require, exports, module) {
         var fnDeclaration = "function extracted(" + passParams.join(", ") + ") {\n" +
                             fnbody + "\n" +
                             "}\n";
+
         console.log(fnDeclaration);
         console.log(srcScope);
         console.log(fnCall);
@@ -414,14 +427,19 @@ define(function(require, exports, module) {
         var cnt = 0;
         var scopeNames = [];
         var prevScope = {};
+        var scopes = {};
         while (curScope) {
             if ((curScope.isBlock || curScope.isCatch) && curScope.prev) {
                 curScope.prev.props = Object.assign(curScope.prev.props, curScope.props);
                 prevScope.prev = curScope.prev;
             } else {
                 curScope.id = cnt++;
+                scopes[curScope.id] = curScope;
                 if (curScope.fnType) {
+                    curScope.name = curScope.fnType;
                     scopeNames.push(curScope.fnType);
+                } else {
+                    curScope.name = "global";
                 }
                 prevScope = curScope;
             }
@@ -429,6 +447,7 @@ define(function(require, exports, module) {
         }
         scopeNames.push("global");
         console.log(scopeNames);
+        return scopes;
     }
 
     function getExtractData() {
@@ -510,8 +529,28 @@ define(function(require, exports, module) {
 
         // normalizeSelection(true);
         getExtractData().done(function() {
-            findScopes();
-            extractToFunction(text, data.scope, data.scope.prev);
+            var scopes = findScopes();
+            var widget = new Widget(session.editor);
+
+            var options = [];
+            for (var key in scopes) {
+                if (scopes.hasOwnProperty(key)) {
+                    options.push({id: scopes[key].id, name: scopes[key].name});
+                }
+            }
+
+            widget.open(options);
+
+            widget.onSelect(function (scopeId) {
+                extractToFunction(text, data.scope, scopes[scopeId]);
+                widget.close();
+            });
+
+            widget.onClose(function() {
+
+            });
+
+            console.log(scopes);
             // findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
         }).fail(function() {
             displayErrorMessage(TERN_FAILED);
