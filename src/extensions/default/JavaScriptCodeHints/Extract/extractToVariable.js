@@ -227,6 +227,8 @@ define(function(require, exports, module) {
     function findRetParams(srcScope) {
         var startPos = indexFromPos(start);
         var endPos = indexFromPos(end);
+        var thisPointerUsed = false;
+
         var str;
         if (srcScope.originNode) {
             str = doc.getText().substr(srcScope.originNode.start, srcScope.originNode.end - srcScope.originNode.start);
@@ -248,6 +250,8 @@ define(function(require, exports, module) {
                 case "AssignmentExpression": value = node.left;
                 break;
                 case "VariableDeclarator": value = node.init && node.id;
+                break;
+                case "ThisExpression": thisPointerUsed = true;
                 break;
                 case "UpdateExpression": value = node.argument;
                 break;
@@ -275,7 +279,10 @@ define(function(require, exports, module) {
                 }
             }
         });
-        return _.intersection(_.keys(srcScope.props), _.keys(changedValues), _.keys(dependentValues));
+        return {
+            retParams: _.intersection(_.keys(srcScope.props), _.keys(changedValues), _.keys(dependentValues)),
+            thisPointerUsed: thisPointerUsed
+        };
     }
 
     function getScopePos(srcScope, destScope) {
@@ -294,24 +301,29 @@ define(function(require, exports, module) {
 
     function extractToFunction(text, srcScope, destScope) {
         var passParams = findPassParams(srcScope, destScope);
-        var retParams = findRetParams(srcScope, destScope);
+        var retObj = findRetParams(srcScope, destScope);
+        var retParams = retObj.retParams;
+        var thisPointerUsed = retObj.thisPointerUsed;
 
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
-        var fnCall = "extracted(" + passParams.join(", ") + ")";
+        if (thisPointerUsed) passParams.unshift("this");
+        var fnCall = (thisPointerUsed? "extracted.call(": "extracted(") + passParams.join(", ") + ")";
+        if (thisPointerUsed) passParams.shift();
+
         if (isExpression) {
             fnbody = "return " + fnbody + ";";
         } else if (retParams && retParams.length) {
             var retParamsStr;
             if (retParams.length > 1) {
                 retParamsStr = '{' + retParams.join(", ") + '}';
-                fnCall = "var ret = extracted(" + passParams.join(", ") + ")\n" +
+                fnCall = "var ret = " + fnCall + "\n" +
                 retParams.map(function(param) {
                     return param + " = ret." + param + ";"
                 }).join("\n");
             } else {
                 retParamsStr = retParams[0];
-                fnCall = "var " + retParams[0] + " = extracted(" + passParams.join(", ") + ")";
+                fnCall = "var " + retParams[0] + " = " + fnCall;
             }
             fnbody = fnbody + "\n" +
                      "return " + retParamsStr  + ";";
@@ -563,7 +575,7 @@ define(function(require, exports, module) {
             widget.open(options);
 
             widget.onSelect(function (scopeId) {
-                extractToFunction(text, data.scope, scopes[scopeId]);
+                extractToFunction(text, scopes[0], scopes[scopeId]);
                 widget.close();
             });
 
