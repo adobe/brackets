@@ -99,7 +99,7 @@ define(function (require, exports, module) {
 
             $parent.append($ul);
 
-            this._setSelectedIndex(-1);
+            this._setSelectedIndex(0);
         }
     };
 
