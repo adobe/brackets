@@ -24,7 +24,7 @@ define(function (require, exports, module) {
             $("<li class='dropdown codehint-menu'></li>")
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
-                .append("<ul class='dropdown-menu'></ul>");
+                .append("<ul class='dropdown-menu'><p style='text-align: center; margin: 0; padding: 3px; background-color: #E0E0E0'>Choose Destination Scope</p></ul>");
 
         this._keydownHook = this._keydownHook.bind(this);
     }
