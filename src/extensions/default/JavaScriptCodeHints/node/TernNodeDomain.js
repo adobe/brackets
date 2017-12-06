@@ -344,7 +344,7 @@ function getExtractData(fileInfo, start, end) {
                 error = ternError.toString();
             } else {
                 var file = ternServer.findFile(fileInfo.name);
-                var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, end), file.scope);
+                var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, start), file.scope);
 
                 if (scope) {
                     var strscope = JSON.stringify(scope, function(key, value) {

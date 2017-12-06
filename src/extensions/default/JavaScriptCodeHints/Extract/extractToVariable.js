@@ -323,13 +323,13 @@ define(function(require, exports, module) {
             var retParamsStr;
             if (retParams.length > 1) {
                 retParamsStr = '{' + retParams.join(", ") + '}';
-                fnCall = "var ret = " + fnCall + "\n" +
+                fnCall = "var ret = " + fnCall + ";\n" +
                 retParams.map(function(param) {
                     return param + " = ret." + param + ";"
                 }).join("\n");
             } else {
                 retParamsStr = retParams[0];
-                fnCall = "var " + retParams[0] + " = " + fnCall;
+                fnCall = "var " + retParams[0] + " = " + fnCall + ";";
             }
             fnbody = fnbody + "\n" +
                      "return " + retParamsStr  + ";";
