@@ -38,8 +38,8 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         Strings              = brackets.getModule("strings"),
         ParameterHintManager = require("ParameterHintManager"),
-        HintUtils            = require("HintUtils"),
-        ScopeManager         = require("ScopeManager"),
+        HintUtils            = brackets.getModule("JSUtils/HintUtils"),
+        ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
         Session              = require("Session"),
         Acorn                = require("node_modules/acorn/dist/acorn");
 

@@ -65,7 +65,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var StringUtils      = brackets.getModule("utils/StringUtils");
+    var StringUtils      = require("utils/StringUtils");
 
     /**
      *  Convert an array of strings with optional wildcards, to an equivalent

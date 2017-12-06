@@ -30,8 +30,8 @@ define(function (require, exports, module) {
         TokenUtils      = brackets.getModule("utils/TokenUtils"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
-        HintUtils       = require("HintUtils"),
-        ScopeManager    = require("ScopeManager"),
+        HintUtils       = brackets.getModule("JSUtils/HintUtils"),
+        ScopeManager    = brackets.getModule("JSUtils/ScopeManager"),
         Acorn           = require("node_modules/acorn/dist/acorn"),
         Acorn_Loose     = require("node_modules/acorn/dist/acorn_loose");
 
