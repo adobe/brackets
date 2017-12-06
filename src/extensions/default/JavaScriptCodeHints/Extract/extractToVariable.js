@@ -227,9 +227,16 @@ define(function(require, exports, module) {
     function findRetParams(srcScope) {
         var startPos = indexFromPos(start);
         var endPos = indexFromPos(end);
-        var str = doc.getText().substr(srcScope.originNode.start, srcScope.originNode.end - srcScope.originNode.start);
-        console.log(str);
-        str = str.substr(endPos - srcScope.originNode.start);
+        var str;
+        if (srcScope.originNode) {
+            str = doc.getText().substr(srcScope.originNode.start, srcScope.originNode.end - srcScope.originNode.start);
+            console.log(str);
+            str = str.substr(endPos - srcScope.originNode.start);
+        } else {
+            str = doc.getText();
+            console.log(str);
+            str = str.substr(endPos);
+        }
 
         var changedValues = {};
         var dependentValues = {};
@@ -276,14 +283,15 @@ define(function(require, exports, module) {
         while (srcScope.prev.id !== destScope.id) {
             srcScope = srcScope.prev;
         }
-        return posFromIndex(srcScope.originNode.start);
+        var pos = posFromIndex(srcScope.originNode.start);
+        pos.ch = 0;
+        return pos;
     }
 
     function extractToFunction(text, srcScope, destScope) {
         var passParams = findPassParams(srcScope, destScope);
         var retParams = findRetParams(srcScope, destScope);
 
-        console.log(getScopePos(srcScope, destScope));
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
         var fnCall = "extracted(" + passParams.join(", ") + ")";
@@ -308,10 +316,25 @@ define(function(require, exports, module) {
 
         var fnDeclaration = "function extracted(" + passParams.join(", ") + ") {\n" +
                             fnbody + "\n" +
-                            "}\n";
+                            "}\n\n";
+
+        var scopePos = getScopePos(srcScope, destScope);
+
+
+        start = doc.adjustPosForChange(start, fnDeclaration.split("\n"), scopePos, scopePos);
+        end = doc.adjustPosForChange(end, fnDeclaration.split("\n"), scopePos, scopePos);
+
+        doc.batchOperation(function() {
+            doc.replaceRange(fnDeclaration, scopePos);
+            for (var i = scopePos.line; i <= scopePos.line + numLines(fnDeclaration); ++i) {
+                session.editor._codeMirror.indentLine(i, "smart");
+            }
+            doc.replaceRange(fnCall, start, end);
+            session.editor._codeMirror.indentLine(start.line, "smart");
+        });
 
         console.log(fnDeclaration);
-        console.log(srcScope);
+        console.log(scopePos);
         console.log(fnCall);
     }
 
@@ -480,10 +503,7 @@ define(function(require, exports, module) {
 
         normalizeSelection(true);
 
-        // normalizeSelection(true);
         getExtractData().done(function() {
-            // findScopes();
-            // findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
             var obj = getExpressions(start, end);
             var isSelection = obj.isSelection;
             var expns = obj.expns;
@@ -502,17 +522,12 @@ define(function(require, exports, module) {
                     parentStatement = findParentStatement(parentExpn)
                     extractToVariable(data.scope, parentStatement, [{start: indexFromPos(start), end: indexFromPos(end)}], text);
                 }
-                // console.log(findParentStatement(expns[0]));
             } else {
                 var x = expns.map(function(expn) {return doc.getText().substr(expn.start, expn.end - expn.start)});
                 for (var i = 0; i < x.length; ++i) {
                     console.log(i, x[i]);
                 }
             }
-            /*console.log(start);
-            console.log(end);
-            console.log(parentBlockStatement);
-            console.log(parentStatement);*/
         }).fail(function() {
             displayErrorMessage(TERN_FAILED);
         });
@@ -551,7 +566,6 @@ define(function(require, exports, module) {
             });
 
             console.log(scopes);
-            // findPassParams(getAllIdentifiers(), data.scope, data.scope.prev);
         }).fail(function() {
             displayErrorMessage(TERN_FAILED);
         });
