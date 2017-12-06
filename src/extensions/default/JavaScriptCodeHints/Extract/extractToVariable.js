@@ -413,10 +413,17 @@ define(function(require, exports, module) {
         var curScope = data.scope;
         var cnt = 0;
         var scopeNames = [];
+        var prevScope = {};
         while (curScope) {
-            curScope.id = cnt++;
-            if (curScope.fnType) {
-                scopeNames.push(curScope.fnType);
+            if ((curScope.isBlock || curScope.isCatch) && curScope.prev) {
+                curScope.prev.props = Object.assign(curScope.prev.props, curScope.props);
+                prevScope.prev = curScope.prev;
+            } else {
+                curScope.id = cnt++;
+                if (curScope.fnType) {
+                    scopeNames.push(curScope.fnType);
+                }
+                prevScope = curScope;
             }
             curScope = curScope.prev;
         }
