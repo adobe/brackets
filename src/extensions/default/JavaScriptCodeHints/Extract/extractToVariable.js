@@ -224,7 +224,7 @@ define(function(require, exports, module) {
             });
     }
 
-    function findRetParams(srcScope) {
+    function findRetParams(srcScope, destScope) {
         var startPos = indexFromPos(start);
         var endPos = indexFromPos(end);
         var thisPointerUsed = false;
@@ -279,8 +279,14 @@ define(function(require, exports, module) {
                 }
             }
         });
+
+        var props = {};
+        while (srcScope.id !== destScope.id) {
+            props = _.union(props, _.keys(srcScope.props));
+            srcScope = srcScope.prev;
+        }
         return {
-            retParams: _.intersection(_.keys(srcScope.props), _.keys(changedValues), _.keys(dependentValues)),
+            retParams: _.intersection(props, _.keys(changedValues), _.keys(dependentValues)),
             thisPointerUsed: thisPointerUsed
         };
     }
