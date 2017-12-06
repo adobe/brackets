@@ -329,8 +329,9 @@ function getExtractData(fileInfo, start, end) {
     // Create a new tern Server
     // Do not mess with existing tern server as it may
     // affect codehint and jump to def
+    ternOptions.plugins = {};
     var ternServer = new Tern.Server(ternOptions);
-    ternServer.addFile(fileInfo.name);
+    ternServer.addFile(fileInfo.name, fileInfo.text);
 
     var error;
     var request = buildRequest(fileInfo, "completions", start);
