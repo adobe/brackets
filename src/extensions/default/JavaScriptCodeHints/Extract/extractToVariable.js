@@ -228,6 +228,7 @@ define(function(require, exports, module) {
         var startPos = indexFromPos(start);
         var endPos = indexFromPos(end);
         var thisPointerUsed = false;
+        var variableDeclarations = {};
 
         var str;
         if (srcScope.originNode) {
@@ -247,20 +248,29 @@ define(function(require, exports, module) {
         ASTWalker.full(ast, function(node) {
             var value, name;
             switch(node.type) {
-                case "AssignmentExpression": value = node.left;
-                break;
-                case "VariableDeclarator": value = node.init && node.id;
-                break;
-                case "ThisExpression": thisPointerUsed = true;
-                break;
-                case "UpdateExpression": value = node.argument;
-                break;
+                case "AssignmentExpression":
+                    value = node.left;
+                    break;
+                case "VariableDeclarator":
+                    value = node.init && node.id;
+                    var foundNode = ASTWalker.findNodeAround(ast, node.start, function(pnodeType, pnode) {
+                        return pnodeType === "VariableDeclaration" && pnode.end >= node.end;
+                    });
+                    if (foundNode && foundNode.node)
+                        variableDeclarations[node.id.name] = foundNode.node.kind;
+                    break;
+                case "ThisExpression":
+                    thisPointerUsed = true;
+                    break;
+                case "UpdateExpression":
+                    value = node.argument;
+                    break;
             }
             if (value){
                 if (value.type === "MemberExpression") {
-                    name = text.substr(value.object.start, value.object.end - value.object.start);
+                    name = value.object.name;
                 } else {
-                    name = text.substr(value.start, value.end - value.start);
+                    name = value.name;
                 }
                 changedValues[name] = true;
             }
@@ -269,25 +279,29 @@ define(function(require, exports, module) {
         ast = Acorn.parse_dammit(str, {ecmaVersion: 9});
         ASTWalker.simple(ast, {
             Identifier: function(node) {
-                var name = str.substr(node.start, node.end - node.start);
+                var name = node.name;
                 dependentValues[name] = true;
             },
             Expression: function(node) {
                 if (node.type === "MemberExpression") {
-                    var name = str.substr(node.start, node.end - node.start);
+                    var name = node.object.name;
                     dependentValues[name] = true;
                 }
             }
         });
 
         var props = {};
-        while (srcScope.id !== destScope.id) {
+        while (true) {
             props = _.union(props, _.keys(srcScope.props));
+            if (srcScope.id === destScope.id) break;
             srcScope = srcScope.prev;
         }
+
+        var retParams = _.intersection(props, _.keys(changedValues), _.keys(dependentValues))
         return {
-            retParams: _.intersection(props, _.keys(changedValues), _.keys(dependentValues)),
-            thisPointerUsed: thisPointerUsed
+            retParams: retParams,
+            thisPointerUsed: thisPointerUsed,
+            variableDeclarations: _.pick(variableDeclarations, retParams)
         };
     }
 
@@ -310,12 +324,18 @@ define(function(require, exports, module) {
         var retObj = findRetParams(srcScope, destScope);
         var retParams = retObj.retParams;
         var thisPointerUsed = retObj.thisPointerUsed;
+        var variableDeclarations = retObj.variableDeclarations;
 
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
         if (thisPointerUsed) passParams.unshift("this");
         var fnCall = (thisPointerUsed? "extracted.call(": "extracted(") + passParams.join(", ") + ")";
         if (thisPointerUsed) passParams.shift();
+
+        function appendVarDeclaration(identifier) {
+            if (variableDeclarations.hasOwnProperty(identifier)) return variableDeclarations[identifier] + " " + identifier;
+            else return identifier;
+        }
 
         if (isExpression) {
             fnbody = "return " + fnbody + ";";
@@ -325,11 +345,11 @@ define(function(require, exports, module) {
                 retParamsStr = '{' + retParams.join(", ") + '}';
                 fnCall = "var ret = " + fnCall + ";\n" +
                 retParams.map(function(param) {
-                    return param + " = ret." + param + ";"
+                    return appendVarDeclaration(param) + " = ret." + param + ";"
                 }).join("\n");
             } else {
                 retParamsStr = retParams[0];
-                fnCall = "var " + retParams[0] + " = " + fnCall + ";";
+                fnCall = appendVarDeclaration(retParams[0]) + " = " + fnCall + ";";
             }
             fnbody = fnbody + "\n" +
                      "return " + retParamsStr  + ";";
