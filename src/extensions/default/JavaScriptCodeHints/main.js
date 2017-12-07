@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         ParameterHintManager = require("ParameterHintManager"),
         HintUtils            = brackets.getModule("JSUtils/HintUtils"),
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
-        Session              = require("Session"),
+        Session              = brackets.getModule("JSUtils/Session"),
         Acorn                = require("node_modules/acorn/dist/acorn");
 
     var session            = null,  // object that encapsulates the current session state

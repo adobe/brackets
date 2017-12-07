@@ -151,9 +151,7 @@ define(function (require, exports, module) {
     require("search/FindReplace");
 
     //Load common JS module
-    require("JSUtils/HintUtils");
-    require("JSUtils/MessageIds");
-    require("JSUtils/Preferences");
+    require("JSUtils/Session");
     require("JSUtils/ScopeManager");
 
     // Compatibility shim for PanelManager to WorkspaceManager migration

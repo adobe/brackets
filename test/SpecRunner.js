@@ -73,6 +73,7 @@ define(function (require, exports, module) {
     require("utils/NodeDomain");
     require("utils/ColorUtils");
     require("preferences/PreferencesBase");
+    require("JSUtils/Session");
     require("JSUtils/ScopeManager");
 
     // Load modules that self-register and just need to get included in the test-runner window
