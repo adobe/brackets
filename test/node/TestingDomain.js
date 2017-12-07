@@ -28,6 +28,18 @@
 
 var fs = require("fs-extra");
 
+function remove(path, cb) {
+    fs.remove(path, cb);
+}
+
+function copy(src, dest, cb) {
+    fs.copy(src, dest, cb);
+}
+
+function rename(src, dest, cb) {
+    fs.rename(src, dest, cb);
+}
+
 /**
  * Initialize the "testing" domain.
  * The testing domain provides utilities for tests.
@@ -39,7 +51,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "testing",
         "remove",
-        fs.remove,
+        remove,
         true,
         "Remove the directory at the path",
         [{
@@ -51,7 +63,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "testing",
         "copy",
-        fs.copy,
+        copy,
         true,
         "Copy a file or directory. The directory can have contents. Like cp -r.",
         [
@@ -70,7 +82,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "testing",
         "rename",
-        fs.rename,
+        rename,
         true,
         "Rename a file or directory.",
         [
