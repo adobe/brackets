@@ -80,7 +80,7 @@ define(function (require, exports, module) {
         initializeSession(editor);
 
 
-        if (editor.getModeForSelection() !== "javascript") {
+        if (!editor || editor.getModeForSelection() !== "javascript") {
             return;
         }
 
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         function requestFindReferences(session, offset) {
             var response = requestFindRefs(session, session.editor.document, offset);
 
-            if (response.hasOwnProperty("promise")) {
+            if (response || response.hasOwnProperty("promise")) {
                 response.promise.done(handleFindRefs).fail(function () {
                     result.reject();
                 });
@@ -107,20 +107,16 @@ define(function (require, exports, module) {
          */
         handleFindRefs = function (refsResp) {
             function isInSameFile(obj) {
-                if (obj && obj.file === refsResp.file) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return (obj && obj.file === refsResp.file);
             }
             
-            if (refsResp && refsResp.refs && refsResp.refs.refs) {
-                if (refsResp.refs.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.refs.refs.filter(isInSameFile));
+            if (refsResp && refsResp.references && refsResp.references.refs) {
+                if (refsResp.references.type === "local") {
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(isInSameFile));
                 } else {
-                    var isInSameFile = refsResp.refs.refs.filter(isInSameFile).length === refsResp.refs.refs.length;
+                    var isInSameFile = refsResp.references.refs.filter(isInSameFile).length === refsResp.references.refs.length;
                     if (isInSameFile) {
-                        EditorManager.getActiveEditor().setSelections(refsResp.refs.refs);
+                        EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
                     } else {
                         //TODO- Rename across Project
                     }

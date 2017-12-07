@@ -259,7 +259,7 @@ function buildRequest(fileInfo, query, offset) {
                 type: MessageIds.TERN_REFS,
                 file: fileInfo.name,
                 offset: offset,
-                refs: data
+                references: data
             };
             // Post a message back to the main thread with the results
             self.postMessage(response);
