@@ -438,27 +438,20 @@ define(function(require, exports, module) {
     function findScopes() {
         var curScope = data.scope;
         var cnt = 0;
-        var prevScope = {};
         var scopes = {};
         while (curScope) {
-            if ((curScope.isBlock || curScope.isCatch) && curScope.prev) {
-                curScope.prev.props = Object.assign(curScope.prev.props, curScope.props);
-                prevScope.prev = curScope.prev;
+          curScope.id = cnt++;
+          scopes[curScope.id] = curScope;
+          if (curScope.fnType) {
+            if (curScope.fnType === "FunctionExpression") {
+              curScope.name = "function starting with " + doc.getText().substr(curScope.originNode.start, 15);
             } else {
-                curScope.id = cnt++;
-                scopes[curScope.id] = curScope;
-                if (curScope.fnType) {
-                    if (curScope.fnType === "FunctionExpression") {
-                        curScope.name = "function starting with " + doc.getText().substr(curScope.originNode.start, 15);
-                    } else {
-                        curScope.name = curScope.fnType;
-                    }
-                } else {
-                    curScope.name = "global";
-                }
-                prevScope = curScope;
+              curScope.name = curScope.fnType;
             }
-            curScope = curScope.prev;
+          } else if (curScope.isBlock) curScope.name = "BlockScope";
+          else if (curScope.isCatch) curScope.name = "CatchScope";
+          else curScope.name = "global";
+          curScope = curScope.prev;
         }
         return scopes;
     }
@@ -539,7 +532,7 @@ define(function(require, exports, module) {
 
             var options = [];
             for (var key in scopes) {
-                if (scopes.hasOwnProperty(key)) {
+                if (scopes.hasOwnProperty(key) && (scopes[key].fnType || scopes[key].name === "global")) {
                     options.push({id: scopes[key].id, name: scopes[key].name});
                 }
             }
