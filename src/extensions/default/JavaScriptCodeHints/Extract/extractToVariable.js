@@ -119,83 +119,25 @@ define(function(require, exports, module) {
         return text.split("\n").length;
     }
 
-
-    function extract() {
-        var varType = "var",
-            varDeclaration,
-            insertStartIndex = this.parentExp.start,
-            insertEndIndex,
-            insertStartPos,
-            insertEndPos ,
-            startPos = this.posFromIndex(this.start),
-            endPos = this.posFromIndex(this.end),
-            self = this;
-
-        // Display Dialog for type
-        var $template = $(require("text!./dialog.html"));
-        Dialogs.showModalDialogUsingTemplate($template).done(function(id) {
-            if (id === "extract") {
-                varType = $template.find('input:radio[name=var-type]:checked').val();
-
-                // Var initializations
-                varDeclaration = varType + " test = " + self.text + ";\n";
-                insertEndIndex = insertStartIndex + varDeclaration.length;
-                insertStartPos = self.posFromIndex(insertStartIndex);
-                insertEndPos   = self.posFromIndex(insertEndIndex);
-
-                // Check if the expression is the only thing on this line.
-                // If it is, then append variable declaration to it.
-                if (self.parentExp.type === "ExpressionStatement" &&
-                // abs for semicolons TODO: change this
-                    self.parentExp.start === self.start && Math.abs(self.parentExp.end - self.end) <= 1) {
-                    self.doc.replaceRange(varType + " test = ", insertStartPos);
-                    self.editor.setSelection(
-                        {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
-                        {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1}
-                    );
-                    return;
-                }
-
-
-                startPos = self.doc.adjustPosForChange(startPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
-                endPos = self.doc.adjustPosForChange(endPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
-
-                var posToIndent = self.doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
-                self.doc.batchOperation(function() {
-                    self.doc.replaceRange(varDeclaration, insertStartPos);
-                    self.doc.replaceRange("test", startPos, endPos);
-
-                    // Set the multi selections for editing variable name
-                    self.editor.setSelections([
-                        {
-                            start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
-                            end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 5},
-                            primary: true
-                        },
-                        {
-                            start: startPos,
-                            end: {line: startPos.line, ch: startPos.ch + 4}
-                        }
-                    ]);
-
-                    self.editor._codeMirror.indentLine(posToIndent.line, "prev");
-                });
-            }
-        });
-    }
-
     function extractToVariable(scope, parentStatement, expns, text) {
         var varType = "var",
             varName = getUniqueIdentifierName(scope, "test"),
             varDeclaration = varType + " " + varName + " = " + text + "\n",
             insertStartPos = posFromIndex(parentStatement.start),
             selections = [],
+            posToIndent,
+            start = 0;
+
+            if (parentStatement.type === "ExpressionStatement" && parentStatement.expression.start === expns[0].start && parentStatement.expression.end === expns[0].end) {
+                varDeclaration = varType + " " + varName + " = ";
+                start = 1;
+            }
+
             posToIndent = doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
             console.log(varDeclaration);
-
             // adjust pos for change
-            for (var i = 0; i < expns.length; ++i) {
+            for (var i = start; i < expns.length; ++i) {
                 expns[i].start = posFromIndex(expns[i].start);
                 expns[i].end = posFromIndex(expns[i].end);
                 expns[i].start = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
@@ -210,7 +152,7 @@ define(function(require, exports, module) {
             doc.batchOperation(function() {
                 doc.replaceRange(varDeclaration, insertStartPos);
 
-                for (var i = 0; i < expns.length; ++i) {
+                for (var i = start; i < expns.length; ++i) {
                     doc.replaceRange(varName, expns[i].start, expns[i].end);
                 }
                 selections.push({
@@ -220,7 +162,7 @@ define(function(require, exports, module) {
                 });
 
                 session.editor.setSelections(selections);
-                session.editor._codeMirror.indentLine(posToIndent.line, "prev");
+                session.editor._codeMirror.indentLine(posToIndent.line, "smart");
             });
     }
 
@@ -417,6 +359,10 @@ define(function(require, exports, module) {
         var expn = foundNode.node;
         if (expn.start === startPos && expn.end === endPos) { //Math.abs(expn.end - endPos) <= 1 // if selection is a whole expression node in ast
             return expn;
+        }
+
+        if (!(["BinaryExpression", "LogicalExpression", "SequenceExpression"].includes(expn.type))) {
+            return false;
         }
 
         // Check subexpression
@@ -729,3 +675,69 @@ define(function(require, exports, module) {
             //     if (srcScope.props.hasOwnProperty(name))
             //     changedValues[name] = true;
             // }
+
+// extract
+
+    //function extract() {
+    //    var varType = "var",
+    //        varDeclaration,
+    //        insertStartIndex = this.parentExp.start,
+    //        insertEndIndex,
+    //        insertStartPos,
+    //        insertEndPos ,
+    //        startPos = this.posFromIndex(this.start),
+    //        endPos = this.posFromIndex(this.end),
+    //        self = this;
+//
+    //    // Display Dialog for type
+    //    var $template = $(require("text!./dialog.html"));
+    //    Dialogs.showModalDialogUsingTemplate($template).done(function(id) {
+    //        if (id === "extract") {
+    //            varType = $template.find('input:radio[name=var-type]:checked').val();
+//
+    //            // Var initializations
+    //            varDeclaration = varType + " test = " + self.text + ";\n";
+    //            insertEndIndex = insertStartIndex + varDeclaration.length;
+    //            insertStartPos = self.posFromIndex(insertStartIndex);
+    //            insertEndPos   = self.posFromIndex(insertEndIndex);
+//
+    //            // Check if the expression is the only thing on this line.
+    //            // If it is, then append variable declaration to it.
+    //            if (self.parentExp.type === "ExpressionStatement" &&
+    //            // abs for semicolons TODO: change this
+    //                self.parentExp.start === self.start && Math.abs(self.parentExp.end - self.end) <= 1) {
+    //                self.doc.replaceRange(varType + " test = ", insertStartPos);
+    //                self.editor.setSelection(
+    //                    {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
+    //                    {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1}
+    //                );
+    //                return;
+    //            }
+//
+//
+    //            startPos = self.doc.adjustPosForChange(startPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+    //            endPos = self.doc.adjustPosForChange(endPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+//
+    //            var posToIndent = self.doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+    //            self.doc.batchOperation(function() {
+    //                self.doc.replaceRange(varDeclaration, insertStartPos);
+    //                self.doc.replaceRange("test", startPos, endPos);
+//
+    //                // Set the multi selections for editing variable name
+    //                self.editor.setSelections([
+    //                    {
+    //                        start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
+    //                        end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 5},
+    //                        primary: true
+    //                    },
+    //                    {
+    //                        start: startPos,
+    //                        end: {line: startPos.line, ch: startPos.ch + 4}
+    //                    }
+    //                ]);
+//
+    //                self.editor._codeMirror.indentLine(posToIndent.line, "prev");
+    //            });
+    //        }
+    //    });
+    //}
