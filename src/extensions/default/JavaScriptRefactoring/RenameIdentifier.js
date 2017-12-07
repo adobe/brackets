@@ -31,8 +31,7 @@ define(function (require, exports, module) {
     
     
     var session             = null,  // object that encapsulates the current session state
-        refactorRename      = "javascript.renamereference",
-        editor;
+        refactorRename      = "javascript.renamereference";
 
     function initializeSession(editor) {
         session = new Session(editor);
@@ -76,10 +75,8 @@ define(function (require, exports, module) {
     }
         
     function handleRename() {
-        if (!editor) {
-            editor = EditorManager.getActiveEditor();
-        }
-        var offset, handleFindRefs;
+        var editor = EditorManager.getActiveEditor(),
+        offset, handleFindRefs;
         initializeSession(editor);
 
 
