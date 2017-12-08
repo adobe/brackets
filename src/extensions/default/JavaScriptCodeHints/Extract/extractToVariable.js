@@ -82,6 +82,8 @@ define(function(require, exports, module) {
             end -= (text.length - trimmedText.length);
         }
 
+        text = trimmedText;
+
         // Remove trailing semicolons
         if (removeTrailingSemiColons) {
             trimmedText = _.trimRight(text, ';');
