@@ -31,18 +31,22 @@ define(function (require, exports, module) {
         
 
     var MessageIds           = brackets.getModule("JSUtils/MessageIds"),
-        RenameIdentifier     = require("RenameIdentifier");
+        RenameIdentifier     = require("RenameIdentifier"),
+        WrapSelection        = require("WrapSelection");
     
     
-    var refactorRename = "javascript.renamereference",
+    var refactorRename          = "javascript.renamereference",
+        refactorWrapInTryCatch  = "refactoring.wrapintrycatch",
         editor;
 
 
     CommandManager.register("Rename", refactorRename, RenameIdentifier.handleRename);
+
+    CommandManager.register("Wrap in Try Catch", refactorWrapInTryCatch, WrapSelection.wrapInTryCatch)
     
     var menuLocation = Menus.AppMenuBar.NAVIGATE_MENU;
     
-    var keys = [
+    var keysRename = [
         {key: "Ctrl-R", platform:"mac"}, // don't translate to Cmd-R on mac
         {key: "Ctrl-R", platform:"win"},
         {key: "Ctrl-R", platform:"linux"}
@@ -56,14 +60,29 @@ define(function (require, exports, module) {
             var cm = editor._codeMirror,
             tokenType = TokenUtils.getTokenAt(cm, cm.getCursor()).type,
             renameInJSFile = CommandManager.get(refactorRename);
+
+            if (editor.getSelections().length > 1) {
+                editorCmenu.removeMenuItem(refactorRename);
+                editorCmenu.removeMenuItem(refactorWrapInTryCatch);
+            }
+
+            var sel = editor.getSelection();
+            if ((editor.getModeForSelection() === "javascript") && (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch)) {
+                editorCmenu.addMenuItem(refactorWrapInTryCatch);
+            } else {
+                editorCmenu.removeMenuItem(refactorWrapInTryCatch);
+            }
             
             if (editor.getModeForSelection() === "javascript" && (tokenType === "variable-2" || tokenType === "variable" || tokenType === "property" || tokenType === "def")) {
                 editorCmenu.addMenuItem(refactorRename);
             } else {
                 editorCmenu.removeMenuItem(refactorRename);
+                
             }
         });
     }
+
     
-    Menus.getMenu(menuLocation).addMenuItem(refactorRename, keys);
+    Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
+    Menus.getMenu(menuLocation).addMenuItem(refactorWrapInTryCatch);
 });

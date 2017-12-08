@@ -30,8 +30,7 @@ define(function (require, exports, module) {
         MessageIds           = brackets.getModule("JSUtils/MessageIds");
     
     
-    var session             = null,  // object that encapsulates the current session state
-        refactorRename      = "javascript.renamereference";
+    var session             = null;  // object that encapsulates the current session state
 
     function initializeSession(editor) {
         session = new Session(editor);
