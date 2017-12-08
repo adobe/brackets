@@ -275,9 +275,13 @@ define(function(require, exports, module) {
 
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
-        if (thisPointerUsed) passParams.unshift("this");
-        var fnCall = (thisPointerUsed? "extracted.call(": "extracted(") + passParams.join(", ") + ")";
-        if (thisPointerUsed) passParams.shift();
+        if (destScope.isClass) {
+            fnCall = "this.extracted(" + passParams.join(", ") + ")";
+        } else {
+            if (thisPointerUsed) passParams.unshift("this");
+            var fnCall = (thisPointerUsed? "extracted.call(": "extracted(") + passParams.join(", ") + ")";
+            if (thisPointerUsed) passParams.shift();
+        }
 
         function appendVarDeclaration(identifier) {
             if (variableDeclarations.hasOwnProperty(identifier)) return variableDeclarations[identifier] + " " + identifier;
@@ -467,6 +471,7 @@ define(function(require, exports, module) {
                       var newScope = {};
                       newScope.isClass = true;
                       newScope.name = "class " + found.node.id.name;
+                      newScope.originNode = found.node;
                       curScope.prev = newScope;
                       newScope.prev = temp;
                   }
