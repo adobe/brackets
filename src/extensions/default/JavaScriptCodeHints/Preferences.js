@@ -83,7 +83,7 @@ define(function (require, exports, module) {
         if (settings instanceof Array && settings.length > 0) {
 
             // Append base settings to user settings. The base
-            // settings are builtin and cannot be overridden.
+            // settings are built in and cannot be overridden.
             if (baseRegExp) {
                 settings.push("/" + baseRegExp.source + "/");
             }
