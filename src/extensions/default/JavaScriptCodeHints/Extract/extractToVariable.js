@@ -54,6 +54,11 @@ define(function(require, exports, module) {
         return session.editor._codeMirror.posFromIndex(index);
     }
 
+    // Checks whether two ast nodes are equal
+    function isEqual(a, b) {
+        return a.start === b.start && a.end === b.end;
+    }
+
     // Removes the leading and trailing spaces from selection and the trailing semicolons
     function normalizeSelection(removeTrailingSemiColons) {
         var trimmedText;
@@ -128,7 +133,7 @@ define(function(require, exports, module) {
             posToIndent,
             start = 0;
 
-            if (parentStatement.type === "ExpressionStatement" && parentStatement.expression.start === expns[0].start && parentStatement.expression.end === expns[0].end) {
+            if (parentStatement.type === "ExpressionStatement" && isEqual(parentStatement.expression, expns[0])) {
                 varDeclaration = varType + " " + varName + " = ";
                 start = 1;
             }
@@ -444,12 +449,36 @@ define(function(require, exports, module) {
           scopes[curScope.id] = curScope;
           if (curScope.fnType) {
             if (curScope.fnType === "FunctionExpression") {
-              curScope.name = "function starting with " + doc.getText().substr(curScope.originNode.start, 15);
+              // find class scope if any
+              var found = ASTWalker.findNodeAround(data.ast, curScope.originNode.start, function(nodeType, node) {
+                  return nodeType === "MethodDefinition" && node.end >= curScope.originNode.end;
+              });
+              // class scope found
+              if (found && found.node && isEqual(found.node.value, curScope.originNode)) {
+                  curScope.name = found.node.key.name;
+
+                  found = ASTWalker.findNodeAround(data.ast, found.node.start, function(nodeType, node) {
+                      return nodeType === "ClassDeclaration" && node.end >= found.node.end;
+                  });
+
+                  if (found && found.node) {
+                      // Class Declaration found add it to scopes
+                      var temp = curScope.prev;
+                      var newScope = {};
+                      newScope.isClass = true;
+                      newScope.name = "class " + found.node.id.name;
+                      curScope.prev = newScope;
+                      newScope.prev = temp;
+                  }
+              } else {
+                  curScope.name = "function starting with " + doc.getText().substr(curScope.originNode.start, 15);
+              }
             } else {
               curScope.name = curScope.fnType;
             }
           } else if (curScope.isBlock) curScope.name = "BlockScope";
           else if (curScope.isCatch) curScope.name = "CatchScope";
+          else if (curScope.isClass) ;
           else curScope.name = "global";
           curScope = curScope.prev;
         }
@@ -532,7 +561,7 @@ define(function(require, exports, module) {
 
             var options = [];
             for (var key in scopes) {
-                if (scopes.hasOwnProperty(key) && (scopes[key].fnType || scopes[key].name === "global")) {
+                if (scopes.hasOwnProperty(key) && (scopes[key].fnType || scopes[key].isClass || scopes[key].name === "global")) {
                     options.push({id: scopes[key].id, name: scopes[key].name});
                 }
             }
