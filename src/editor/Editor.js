@@ -119,7 +119,6 @@ define(function (require, exports, module) {
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
-        test1 = 40,
         MAX_SPACE_UNITS         = 10,
         MAX_TAB_SIZE            = 10;
 
@@ -1036,7 +1035,7 @@ define(function (require, exports, module) {
         this._codeMirror.on("focus", function () {
             self._focused = true;
             self.trigger("focus", self);
-            
+
         });
 
         this._codeMirror.on("blur", function () {
@@ -2222,7 +2221,7 @@ define(function (require, exports, module) {
             if (outerMode.name === 'htmlmixed' && primarySel.start.line === primarySel.end.line && primarySel.start.ch === primarySel.end.ch) {
                 var tagInfo = HTMLUtils.getTagInfo(this, primarySel.start, true),
                     tokenType = tagInfo.position.tokenType;
- 
+
                 if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name.toLowerCase() === 'style') {
                     return 'css';
                 }
@@ -2755,10 +2754,10 @@ define(function (require, exports, module) {
             $holder.toggleClass("show-line-padding", Boolean(showLinePadding));
         });
     };
-    
+
     Editor.LINE_NUMBER_GUTTER_PRIORITY = LINE_NUMBER_GUTTER_PRIORITY;
     Editor.CODE_FOLDING_GUTTER_PRIORITY = CODE_FOLDING_GUTTER_PRIORITY;
-    
+
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {
         PreferencesManager.on("change", prefName, function () {

@@ -40,8 +40,7 @@ var self = {
 };
 
 var Tern = require("tern"),
-    Infer = require("tern/lib/infer"),
-    util = require("util");
+    Infer = require("tern/lib/infer");
 
 require("tern/plugin/requirejs");
 require("tern/plugin/doc_comment");
@@ -289,41 +288,6 @@ function getJumptoDef(fileInfo, offset) {
         _reportError(e, fileInfo.name);
     }
 }
-
-function getExprType(fileInfo, offset, endOffset) {
-    var request = buildRequest(fileInfo, "type", offset, endOffset);
-
-    try {
-        var file = ternServer.findFile(fileInfo.name);
-        var expr = Tern.findQueryExpr(file, request.query);
-
-        console.log(expr);
-        if (expr) {
-            // Remove unwanted fields
-            expr.node.sourceFile = null;
-            var state = expr.state;
-            var newObj = expr.state = {};
-            while(state) {
-                if (state.props) {
-                    for (var x in state.props) {
-                        if (state.props.hasOwnProperty(x)) {
-                            state.props[x] = state.props[x].propertyName;
-                        }
-                    }
-                }
-                newObj.props = state.props;
-                newObj.prev = {};
-                newObj = newObj.prev;
-                state = state.prev;
-            }
-        }
-
-
-    } catch (e) {
-        _reportError(e, fileInfo.name);
-    }
-}
-
 
 function getExtractData(fileInfo, start, end) {
     // Create a new tern Server
