@@ -77,7 +77,7 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_JS_HINTS
     });
 
-    // This preference controls whether detailed type metadata will be desplayed within hint list. Deafults to true.
+    // This preference controls whether detailed type metadata will be displayed within hint list. Defaults to true.
     PreferencesManager.definePreference("jscodehints.typedetails", "boolean", true, {
         description: Strings.DESCRIPTION_JS_HINTS_TYPE_DETAILS
     });

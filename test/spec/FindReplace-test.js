@@ -1371,6 +1371,28 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should not replace string if document is read only", function () {
+                runs(function () {
+                    myEditor._codeMirror.options.readOnly = true;
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    enterSearchText("foo");
+
+                    expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0, 4);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
+
+                    enterReplaceText("bar");
+
+                    tw$("#replace-yes").click();
+                    expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0, 4);
+
+                    myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
+                    expect(/bar/i.test(myEditor.getSelectedText())).toBe(false);
+                });
+            });
+
             it("should use replace keyboard shortcut for single Replace while search bar open", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
@@ -1567,7 +1589,7 @@ define(function (require, exports, module) {
                 twFindInFiles._searchDone = false;
                 twFindInFiles._replaceDone = false;
             });
-            
+
             it("should find and replace all using replace all button", function () {
                 var searchText  = "require",
                     replaceText = "brackets.getModule";
