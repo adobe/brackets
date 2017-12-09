@@ -40,7 +40,7 @@ define(function(require, exports, module) {
 
 
     var session, doc, text, start, end, data = {},
-        parentBlockStatement, parentStatement, parentExpn;
+        parentBlockStatement, parentStatement, parentExpn, scopes;
 
     // Error messages
     var TERN_FAILED = "Unable to get data from Tern";
@@ -254,16 +254,21 @@ define(function(require, exports, module) {
         };
     }
 
+    function isFnScope(scope) {
+        return scope.fnType || scope.isClass || scope.name === "global";
+    }
+
     function getScopePos(srcScope, destScope) {
-        if (srcScope.id === destScope.id) {
-            var ret = _.clone(start);
-            ret.ch = 0;
-            return ret;
+        var pos = _.clone(start);
+        var fnScopes = scopes.filter(isFnScope);
+
+        for (var i = 0; i < fnScopes.length; ++i) {
+            if (fnScopes[i].id === destScope.id) {
+                if (fnScopes[i - 1]) pos = posFromIndex(fnScopes[i - 1].originNode.start);
+                break;
+            }
         }
-        while (srcScope.prev.id !== destScope.id) {
-            srcScope = srcScope.prev;
-        }
-        var pos = posFromIndex(srcScope.originNode.start);
+
         pos.ch = 0;
         return pos;
     }
@@ -449,10 +454,10 @@ define(function(require, exports, module) {
     function findScopes() {
         var curScope = data.scope;
         var cnt = 0;
-        var scopes = {};
+        var scopes = [];
         while (curScope) {
           curScope.id = cnt++;
-          scopes[curScope.id] = curScope;
+          scopes.push(curScope);
           if (curScope.fnType) {
             if (curScope.fnType === "FunctionExpression") {
               // find class scope if any
@@ -563,26 +568,19 @@ define(function(require, exports, module) {
 
         // normalizeSelection(true);
         getExtractData().done(function() {
-            var scopes = findScopes();
+            scopes = findScopes();
             var widget = new Widget(session.editor);
 
-            var options = [];
-            for (var key in scopes) {
-                if (scopes.hasOwnProperty(key) && (scopes[key].fnType || scopes[key].isClass || scopes[key].name === "global")) {
-                    options.push({id: scopes[key].id, name: scopes[key].name});
-                }
-            }
-
-            widget.open(options);
+            widget.open(scopes
+                .filter(isFnScope)
+            );
 
             widget.onSelect(function (scopeId) {
                 extractToFunction(text, scopes[0], scopes[scopeId]);
                 widget.close();
             });
 
-            widget.onClose(function() {
-
-            });
+            widget.onClose(function(){});
 
             console.log(scopes);
         }).fail(function() {
@@ -770,3 +768,17 @@ define(function(require, exports, module) {
     //        }
     //    });
     //}
+
+// getScopePos
+        //
+        //
+        // if (srcScope.id === destScope.id) {
+        //     pos.ch = 0;
+        //     return pos;
+        // }
+        // while (srcScope.prev.id !== destScope.id) {
+        //     srcScope = srcScope.prev;
+        // }
+        // pos = posFromIndex(srcScope.originNode.start);
+        // pos.ch = 0;
+        // return pos;
