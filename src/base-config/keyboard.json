@@ -18,7 +18,13 @@
         "Ctrl-S"
     ],
     "file.saveAll":  [
-        "Ctrl-Alt-S"
+        {
+           "key": "Ctrl-Alt-S"
+        },
+        {
+           "key":"Shift-Alt-S",
+           "platform": "linux"
+        }
     ],
     "file.saveAs":  [
         "Ctrl-Shift-S"
@@ -235,6 +241,7 @@
             "key": "Ctrl-+"
         }
     ],
+   
     "view.decreaseFontSize":  [
         {
             "key": "Ctrl--",
