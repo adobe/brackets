@@ -20,7 +20,7 @@ define(function (require, exports, module) {
         this.handleSelect = null;
         this.handleClose = null;
 
-        this.$hintMenu =
+        this.$widgetMenu =
             $("<li class='dropdown codehint-menu'></li>")
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     }
 
     Widget.prototype._setSelectedIndex = function (index) {
-        var items = this.$hintMenu.find("li");
+        var items = this.$widgetMenu.find("li");
 
         // Range check
         index = Math.max(-1, Math.min(index, items.length - 1));
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         // Highlight the new selected item, if necessary
         if (this.selectedIndex !== -1) {
             var $item = $(items[this.selectedIndex]);
-            var $view = this.$hintMenu.find("ul.dropdown-menu");
+            var $view = this.$widgetMenu.find("ul.dropdown-menu");
 
             $item.find("a").addClass("highlight");
             ViewUtils.scrollElementIntoView($view, $item, false);
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         };
 
         // clear the list
-        this.$hintMenu.find("li").remove();
+        this.$widgetMenu.find("li").remove();
 
         // if there are no hints then close the list; otherwise add them and
         // set the selection
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
             });
 
             // render code hint list
-            var $ul = this.$hintMenu.find("ul.dropdown-menu"),
+            var $ul = this.$widgetMenu.find("ul.dropdown-menu"),
                 $parent = $ul.parent();
 
             $ul.remove().append(Mustache.render(WidgetHTML, view));
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
             posLeft     = cursor.left,
             textHeight  = this.editor.getTextHeight(),
             $window     = $(window),
-            $menuWindow = this.$hintMenu.children("ul"),
+            $menuWindow = this.$widgetMenu.children("ul"),
             menuHeight  = $menuWindow.outerHeight();
 
         var bottomOverhang = posTop + menuHeight - $window.height();
@@ -182,8 +182,8 @@ define(function (require, exports, module) {
         // Calculate the number of items per scroll page.
         function _itemsPerPage() {
             var itemsPerPage = 1,
-                $items = self.$hintMenu.find("li"),
-                $view = self.$hintMenu.find("ul.dropdown-menu"),
+                $items = self.$widgetMenu.find("li"),
+                $view = self.$widgetMenu.find("ul.dropdown-menu"),
                 itemHeight;
 
             if ($items.length !== 0) {
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
                     (keyCode === KeyEvent.DOM_VK_RETURN ||
                     (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab))) {
 
-                $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
+                $(this.$widgetMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
                 return false;
             }
@@ -248,7 +248,7 @@ define(function (require, exports, module) {
     };
 
     Widget.prototype.isOpen = function () {
-        if (this.opened && !this.$hintMenu.hasClass("open")) {
+        if (this.opened && !this.$widgetMenu.hasClass("open")) {
             this.opened = false;
         }
 
@@ -262,11 +262,11 @@ define(function (require, exports, module) {
 
         if (this.options.length) {
             // Need to add the menu to the DOM before trying to calculate its ideal location.
-            $("#widget-menu-bar > ul").append(this.$hintMenu);
+            $("#widget-menu-bar > ul").append(this.$widgetMenu);
 
             var hintPos = this._calcHintListLocation();
 
-            this.$hintMenu.addClass("open")
+            this.$widgetMenu.addClass("open")
                 .css({"left": hintPos.left, "top": hintPos.top, "width": hintPos.width + "px"});
             this.opened = true;
 
@@ -281,10 +281,10 @@ define(function (require, exports, module) {
     Widget.prototype.close = function () {
         this.opened = false;
 
-        if (this.$hintMenu) {
-            this.$hintMenu.removeClass("open");
-            PopUpManager.removePopUp(this.$hintMenu);
-            this.$hintMenu.remove();
+        if (this.$widgetMenu) {
+            this.$widgetMenu.removeClass("open");
+            PopUpManager.removePopUp(this.$widgetMenu);
+            this.$widgetMenu.remove();
         }
 
         KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
