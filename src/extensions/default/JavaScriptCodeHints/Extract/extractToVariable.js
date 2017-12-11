@@ -240,9 +240,8 @@ define(function(require, exports, module) {
         });
 
         var props = {};
-        while (true) {
+        while (srcScope.id !== destScope.id) {
             props = _.union(props, _.keys(srcScope.props));
-            if (srcScope.id === destScope.id) break;
             srcScope = srcScope.prev;
         }
 
@@ -517,6 +516,19 @@ define(function(require, exports, module) {
         return result;
     }
 
+    // Check whether start and end represents a set of statements
+    function checkStatement(start, end) {
+        var foundNode1 = ASTWalker.findNodeAround(data.ast, start, function(nodeType, node) {
+            return nodeType === "Statement";
+        });
+
+        var foundNode2 = ASTWalker.findNodeAround(data.ast, end, function(nodeType, node) {
+            return nodeType === "Statement";
+        });
+
+        return foundNode1 && foundNode1.node.start === start && foundNode2 && foundNode2.node.end === end;
+    }
+
     function initExtractVariable() {
         var selection = session.editor.getSelection();
 
@@ -565,9 +577,13 @@ define(function(require, exports, module) {
         start = selection.start;
         end = selection.end;
 
+        normalizeSelection(false);
 
-        // normalizeSelection(true);
         getExtractData().done(function() {
+            if (!checkStatement(indexFromPos(start), indexFromPos(end))) {
+                displayErrorMessage("Selected block should represent set of statements or an expression");
+                return;
+            }
             scopes = findScopes();
             var widget = new Widget(session.editor);
 
