@@ -39,7 +39,7 @@ define(function(require, exports, module) {
         ScopeManager        = require("../ScopeManager");
 
 
-    var session, text, start, data = {}, scopes;
+    var session, start, data = {}, scopes;
 
     // Error messages
     var TERN_FAILED = "Unable to get data from Tern";
@@ -176,7 +176,7 @@ define(function(require, exports, module) {
     }
 
 
-    function analyzeCode(srcScope, destScope, start, end) { // pure
+    function analyzeCode(srcScope, destScope, start, end, text) { // pure
         var identifiers = {};
         var inThisScope = {};
         var thisPointerUsed = false;
@@ -279,7 +279,7 @@ define(function(require, exports, module) {
     }
 
     function extractToFunction(text, srcScope, destScope, start, end, isExpression) {
-        var retObj = analyzeCode(srcScope, destScope, start, end);
+        var retObj = analyzeCode(srcScope, destScope, start, end, text);
         var passParams = retObj.passParams;
         var retParams = retObj.retParams;
         var thisPointerUsed = retObj.thisPointerUsed;
@@ -523,9 +523,9 @@ define(function(require, exports, module) {
         var editor = session.editor;
 
         var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, true);
-        text = retObj.text;
+        var text = retObj.text;
         start = retObj.start;
-        end = retObj.end;
+        var end = retObj.end;
 
         getExtractData(start, end).done(function() {
             var expns = [],
@@ -571,7 +571,7 @@ define(function(require, exports, module) {
         var doc = session.editor.document;
 
         var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, false);
-        text = retObj.text;
+        var text = retObj.text;
         start = retObj.start;
         var end = retObj.end;
 
