@@ -278,6 +278,7 @@ define(function(require, exports, module) {
         var retParams = retObj.retParams;
         var thisPointerUsed = retObj.thisPointerUsed;
         var variableDeclarations = retObj.variableDeclarations;
+        var fnDeclaration;
 
         var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
         var fnbody = text;
@@ -313,9 +314,15 @@ define(function(require, exports, module) {
 
         }
 
-        var fnDeclaration = "function extracted(" + passParams.join(", ") + ") {\n" +
-                            fnbody + "\n" +
-                            "}\n\n";
+        if (destScope.isClass) {
+            fnDeclaration = "extracted(" + passParams.join(", ") + ") {\n" +
+                             fnbody + "\n" +
+                             "}\n\n";
+        } else {
+            fnDeclaration = "function extracted(" + passParams.join(", ") + ") {\n" +
+                             fnbody + "\n" +
+                             "}\n\n";
+        }
 
         var scopePos = getScopePos(srcScope, destScope);
 
