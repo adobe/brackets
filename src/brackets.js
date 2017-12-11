@@ -154,9 +154,6 @@ define(function (require, exports, module) {
     require("JSUtils/Session");
     require("JSUtils/ScopeManager");
 
-    // Compatibility shim for PanelManager to WorkspaceManager migration
-    require("view/PanelManager");
-
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
