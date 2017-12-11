@@ -39,7 +39,7 @@ define(function(require, exports, module) {
         ScopeManager        = require("../ScopeManager");
 
 
-    var session, start, data = {}, scopes;
+    var session, data = {}, scopes;
 
     // Error messages
     var TERN_FAILED = "Unable to get data from Tern";
@@ -134,7 +134,7 @@ define(function(require, exports, module) {
             insertStartPos = posFromIndex(parentStatement.start),
             selections = [],
             posToIndent,
-            doc = session.editor.document;
+            doc = session.editor.document,
             start = 0;
 
         if (parentStatement.type === "ExpressionStatement" && isEqual(parentStatement.expression, expns[0])) {
@@ -263,8 +263,8 @@ define(function(require, exports, module) {
         return scope.fnType || scope.isClass || scope.name === "global";
     }
 
-    function getScopePos(srcScope, destScope) { // requires start
-        var pos = _.clone(start);
+    function getScopePos(srcScope, destScope, initPos) { // requires start
+        var pos = _.clone(initPos);
         var fnScopes = scopes.filter(isFnScope);
 
         for (var i = 0; i < fnScopes.length; ++i) {
@@ -338,7 +338,7 @@ define(function(require, exports, module) {
                              "}\n\n";
         }
 
-        var scopePos = getScopePos(srcScope, destScope);
+        var scopePos = getScopePos(srcScope, destScope, start);
 
         doc.batchOperation(function() {
             doc.replaceRange(fnCall, start, end);
@@ -526,7 +526,7 @@ define(function(require, exports, module) {
 
         var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, true);
         var text = retObj.text;
-        start = retObj.start;
+        var start = retObj.start;
         var end = retObj.end;
 
         getExtractData(start, end).done(function() {
@@ -574,7 +574,7 @@ define(function(require, exports, module) {
 
         var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, false);
         var text = retObj.text;
-        start = retObj.start;
+        var start = retObj.start;
         var end = retObj.end;
 
         getExtractData(start, end).done(function() {
