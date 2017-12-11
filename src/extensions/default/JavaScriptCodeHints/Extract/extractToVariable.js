@@ -515,6 +515,9 @@ define(function(require, exports, module) {
 
     // Check whether start and end represents a set of statements
     function checkStatement(start, end) {
+        start = indexFromPos(start);
+        end = indexFromPos(end);
+
         var foundNode1 = ASTWalker.findNodeAround(data.ast, start, function(nodeType, node) {
             return nodeType === "Statement";
         });
