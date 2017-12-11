@@ -545,7 +545,7 @@ define(function(require, exports, module) {
             var isSelection = obj.isSelection;
             var expns = obj.expns;
             if (expns.length === 0) {
-                displayErrorMessage("No Expression");
+                session.editor.displayErrorMessageAtCursor("No Expression");
             }
             else if (isSelection) {
                 parentExpn = expns[0];
@@ -566,7 +566,7 @@ define(function(require, exports, module) {
                 }
             }
         }).fail(function() {
-            displayErrorMessage(TERN_FAILED);
+            session.editor.displayErrorMessageAtCursor(TERN_FAILED);
         });
     }
 
@@ -581,8 +581,8 @@ define(function(require, exports, module) {
         end = retObj.end;
 
         getExtractData().done(function() {
-            if (!checkStatement(indexFromPos(start), indexFromPos(end))) {
-                displayErrorMessage("Selected block should represent set of statements or an expression");
+            if (!checkStatement(start, end)) {
+                session.editor.displayErrorMessageAtCursor("Selected block should represent set of statements or an expression");
                 return;
             }
             scopes = findScopes();
@@ -601,12 +601,8 @@ define(function(require, exports, module) {
 
             console.log(scopes);
         }).fail(function() {
-            displayErrorMessage(TERN_FAILED);
+            session.editor.displayErrorMessageAtCursor(TERN_FAILED);
         });
-    }
-
-    function displayErrorMessage(errMsg) {
-        session.editor.displayErrorMessageAtCursor(errMsg);
     }
 
     function setSession(s) {
