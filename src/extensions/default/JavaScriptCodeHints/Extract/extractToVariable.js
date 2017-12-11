@@ -303,8 +303,11 @@ define(function(require, exports, module) {
             else return identifier;
         }
 
-        if (isExpression) {
-            fnbody = "return " + fnbody + ";";
+        if (expression) {
+            var parentStatement = findParentStatement(expression);
+            if (parentStatement.type !== "ExpressionStatement" || !isEqual(parentStatement.expression, parentStatement)) {
+                fnbody = "return " + fnbody + ";";
+            }
         } else if (retParams && retParams.length) {
             var retParamsStr;
             if (retParams.length > 1) {
@@ -335,6 +338,7 @@ define(function(require, exports, module) {
 
         doc.batchOperation(function() {
             doc.replaceRange(fnCall, start, end);
+            session.editor.setCursorPos(start);
             for (var i = start.line; i <= start.line + numLines(fnCall); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
