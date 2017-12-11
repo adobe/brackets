@@ -343,11 +343,11 @@ define(function(require, exports, module) {
         doc.batchOperation(function() {
             doc.replaceRange(fnCall, start, end);
             session.editor.setCursorPos(start);
-            for (var i = start.line; i <= start.line + numLines(fnCall); ++i) {
+            for (var i = start.line; i < start.line + numLines(fnCall); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
             doc.replaceRange(fnDeclaration, scopePos);
-            for (var i = scopePos.line; i <= scopePos.line + numLines(fnDeclaration); ++i) {
+            for (var i = scopePos.line; i < scopePos.line + numLines(fnDeclaration); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
         });
