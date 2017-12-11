@@ -39,28 +39,27 @@ define(function(require, exports, module) {
         ScopeManager        = require("../ScopeManager");
 
 
-    var session, doc, text, start, end, data = {},
-        scopes;
+    var session, text, start, data = {}, scopes;
 
     // Error messages
     var TERN_FAILED = "Unable to get data from Tern";
 
     // Utility functions
-    function indexFromPos(pos) {
+    function indexFromPos(pos) { // requires session
         return session.editor.indexFromPos(pos);
     }
 
-    function posFromIndex(index) {
+    function posFromIndex(index) { // requires session
         return session.editor._codeMirror.posFromIndex(index);
     }
 
     // Checks whether two ast nodes are equal
-    function isEqual(a, b) {
+    function isEqual(a, b) { // pure
         return a.start === b.start && a.end === b.end;
     }
 
     // Removes the leading and trailing spaces from selection and the trailing semicolons
-    function normalizeText(text, start, end, removeTrailingSemiColons) {
+    function normalizeText(text, start, end, removeTrailingSemiColons) { // pure
         var trimmedText;
 
         start = indexFromPos(start);
@@ -100,7 +99,7 @@ define(function(require, exports, module) {
         };
     }
 
-    function getUniqueIdentifierName(scope, prefix, num) {
+    function getUniqueIdentifierName(scope, prefix, num) { // pure
        if (!scope) return "extracted";
        num = num || "1";
        var name;
@@ -114,7 +113,7 @@ define(function(require, exports, module) {
        return name;
     }
 
-    function isStandAloneExpression(text) {
+    function isStandAloneExpression(text) { // pure
         var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text, {ecmaVersion: 9}), 0, text.length, function(nodeType, node) {
             if (nodeType === "Expression"){
                 return true;
@@ -124,17 +123,18 @@ define(function(require, exports, module) {
         return found && found.node;
     }
 
-    function numLines(text) {
+    function numLines(text) { // pure
         return text.split("\n").length;
     }
 
-    function extractToVariable(scope, parentStatement, expns, text) {
+    function extractToVariable(scope, parentStatement, expns, text) { // requires session
         var varType = "var",
             varName = getUniqueIdentifierName(scope, "test"),
             varDeclaration = varType + " " + varName + " = " + text + "\n",
             insertStartPos = posFromIndex(parentStatement.start),
             selections = [],
             posToIndent,
+            doc = session.editor.document;
             start = 0;
 
         if (parentStatement.type === "ExpressionStatement" && isEqual(parentStatement.expression, expns[0])) {
@@ -176,16 +176,17 @@ define(function(require, exports, module) {
     }
 
 
-    function analyzeCode(srcScope, destScope) {
+    function analyzeCode(srcScope, destScope, start, end) { // pure
         var identifiers = {};
         var inThisScope = {};
+        var thisPointerUsed = false;
         var startPos = indexFromPos(start);
         var endPos = indexFromPos(end);
-        var thisPointerUsed = false;
         var variableDeclarations = {};
         var changedValues = {};
         var dependentValues = {};
         var restScopeStr;
+        var doc = session.editor.document;
 
         var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
         ASTWalker.full(ast, function(node) {
@@ -258,11 +259,11 @@ define(function(require, exports, module) {
         };
     }
 
-    function isFnScope(scope) {
+    function isFnScope(scope) { // pure
         return scope.fnType || scope.isClass || scope.name === "global";
     }
 
-    function getScopePos(srcScope, destScope) {
+    function getScopePos(srcScope, destScope) { // requires start
         var pos = _.clone(start);
         var fnScopes = scopes.filter(isFnScope);
 
@@ -277,21 +278,23 @@ define(function(require, exports, module) {
         return pos;
     }
 
-    function extractToFunction(text, srcScope, destScope) {
-        var retObj = analyzeCode(srcScope, destScope);
+    function extractToFunction(text, srcScope, destScope, start, end) {
+        var retObj = analyzeCode(srcScope, destScope, start, end);
         var passParams = retObj.passParams;
         var retParams = retObj.retParams;
         var thisPointerUsed = retObj.thisPointerUsed;
         var variableDeclarations = retObj.variableDeclarations;
         var fnDeclaration;
+        var doc = session.editor.document;
+        var fnCall;
 
-        var isExpression = getSingleExpression(start, end);
+        var expression = getSingleExpression(start, end);
         var fnbody = text;
         if (destScope.isClass) {
             fnCall = "this.extracted(" + passParams.join(", ") + ")";
         } else {
             if (thisPointerUsed) passParams.unshift("this");
-            var fnCall = (thisPointerUsed? "extracted.call(": "extracted(") + passParams.join(", ") + ")";
+            fnCall = (thisPointerUsed? "extracted.call(": "extracted(") + passParams.join(", ") + ")";
             if (thisPointerUsed) passParams.shift();
         }
 
@@ -346,7 +349,8 @@ define(function(require, exports, module) {
         console.log(fnCall);
     }
 
-    function findAllExpressions(parentBlockStatement, expn) {
+    function findAllExpressions(parentBlockStatement, expn, text) {
+        var doc = session.editor.document;
         var obj = {};
         var expns = [];
         obj[expn.type] = function(node) {
@@ -358,23 +362,24 @@ define(function(require, exports, module) {
         return expns;
     }
 
-    function findParentBlockStatement(expn) {
+    function findParentBlockStatement(expn) { // requires data
         var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
             return (nodeType === "BlockStatement" || nodeType === "Program") && node.end >= expn.end;
         });
         return foundNode && foundNode.node;
     }
 
-    function findParentStatement(expn) {
+    function findParentStatement(expn) { // requires data
         var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
             return nodeType === "Statement" && node.end >= expn.end;
         });
         return foundNode && foundNode.node;
     }
 
-    function getSingleExpression(start, end) {
+    function getSingleExpression(start, end) { // requires data and session
         start = indexFromPos(start);
         end = indexFromPos(end);
+        var doc = session.editor.document;
 
         var foundNode = ASTWalker.findNodeAround(data.ast, start, function(nodeType, node) {
             return nodeType === "Expression" && node.end >= end;
@@ -401,7 +406,7 @@ define(function(require, exports, module) {
         return false;
     }
 
-    function getExpressions(start, end) {
+    function getExpressions(start, end) { // requires data
         var expns = [];
 
         start = indexFromPos(start);
@@ -421,10 +426,11 @@ define(function(require, exports, module) {
     }
 
 
-    function findScopes() {
+    function findScopes() { // requires scopes and data
         var curScope = data.scope;
         var cnt = 0;
         var scopes = [];
+        var doc = session.editor.document;
 
         while (curScope) {
           curScope.id = cnt++;
@@ -468,8 +474,9 @@ define(function(require, exports, module) {
         return scopes;
     }
 
-    function getExtractData(start, end) {
+    function getExtractData(start, end) { // requires session
         var response = ScopeManager.requestExtractData(session, start, end);
+        var doc = session.editor.document;
 
         var result = new $.Deferred;
 
@@ -487,7 +494,7 @@ define(function(require, exports, module) {
     }
 
     // Check whether start and end represents a set of statements
-    function checkStatement(start, end) {
+    function checkStatement(start, end) { // requires data
         start = indexFromPos(start);
         end = indexFromPos(end);
 
@@ -502,9 +509,9 @@ define(function(require, exports, module) {
         return foundNode1 && foundNode1.node.start === start && foundNode2 && foundNode2.node.end === end;
     }
 
-    function handleExtractToVariable() {
+    function handleExtractToVariable() { // requires session and data
         var selection = session.editor.getSelection(), start, end;
-        doc = session.editor.document;
+        var doc = session.editor.document;
         var editor = session.editor;
 
         var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, true);
@@ -525,7 +532,7 @@ define(function(require, exports, module) {
                 }
                 if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
                     var parentBlockStatement = findParentBlockStatement(parentExpn);
-                    var expns = findAllExpressions(parentBlockStatement, parentExpn);
+                    var expns = findAllExpressions(parentBlockStatement, parentExpn, text);
                     console.log(expns);
                     parentStatement = findParentStatement(expns[0]);
                     extractToVariable(data.scope, parentStatement, expns, text);
@@ -574,7 +581,7 @@ define(function(require, exports, module) {
             );
 
             widget.onSelect(function (scopeId) {
-                extractToFunction(text, scopes[0], scopes[scopeId]);
+                extractToFunction(text, scopes[0], scopes[scopeId], start, end);
                 widget.close();
             });
 
