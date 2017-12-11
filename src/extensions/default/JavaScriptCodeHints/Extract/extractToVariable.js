@@ -310,7 +310,7 @@ define(function(require, exports, module) {
             }
         } else {
             var retParamsStr;
-            if (retParams) {
+            if (retParams && retParams.length) {
                 if (retParams.length > 1) {
                     retParamsStr = '{' + retParams.join(", ") + '}';
                     fnCall = "var ret = " + fnCall + ";\n" +
@@ -514,7 +514,9 @@ define(function(require, exports, module) {
             return nodeType === "Statement";
         });
 
-        return foundNode1 && foundNode1.node.start === start && foundNode2 && foundNode2.node.end === end;
+        return foundNode1 && foundNode2 && foundNode1.node.start === start &&
+               foundNode1.node.end <= end && foundNode2.node.start >= start &&
+               foundNode2.node.end === end;
     }
 
     function handleExtractToVariable() { // requires session and data
