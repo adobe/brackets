@@ -40,7 +40,7 @@ define(function(require, exports, module) {
 
 
     var session, doc, text, start, end, data = {},
-        parentBlockStatement, parentStatement, parentExpn, scopes;
+        scopes;
 
     // Error messages
     var TERN_FAILED = "Unable to get data from Tern";
@@ -137,42 +137,42 @@ define(function(require, exports, module) {
             posToIndent,
             start = 0;
 
-            if (parentStatement.type === "ExpressionStatement" && isEqual(parentStatement.expression, expns[0])) {
-                varDeclaration = varType + " " + varName + " = ";
-                start = 1;
-            }
+        if (parentStatement.type === "ExpressionStatement" && isEqual(parentStatement.expression, expns[0])) {
+            varDeclaration = varType + " " + varName + " = ";
+            start = 1;
+        }
 
-            posToIndent = doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+        posToIndent = doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
-            console.log(varDeclaration);
-            // adjust pos for change
-            for (var i = start; i < expns.length; ++i) {
-                expns[i].start = posFromIndex(expns[i].start);
-                expns[i].end = posFromIndex(expns[i].end);
-                expns[i].start = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
-                expns[i].end = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+        console.log(varDeclaration);
+        // adjust pos for change
+        for (var i = start; i < expns.length; ++i) {
+            expns[i].start = posFromIndex(expns[i].start);
+            expns[i].end = posFromIndex(expns[i].end);
+            expns[i].start = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+            expns[i].end = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
-                selections.push({
-                    start: expns[i].start,
-                    end: {line: expns[i].start.line, ch: expns[i].start.ch + varName.length}
-                });
-            }
-
-            doc.batchOperation(function() {
-                doc.replaceRange(varDeclaration, insertStartPos);
-
-                for (var i = start; i < expns.length; ++i) {
-                    doc.replaceRange(varName, expns[i].start, expns[i].end);
-                }
-                selections.push({
-                        start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
-                        end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
-                        primary: true
-                });
-
-                session.editor.setSelections(selections);
-                session.editor._codeMirror.indentLine(posToIndent.line, "smart");
+            selections.push({
+                start: expns[i].start,
+                end: {line: expns[i].start.line, ch: expns[i].start.ch + varName.length}
             });
+        }
+
+        doc.batchOperation(function() {
+            doc.replaceRange(varDeclaration, insertStartPos);
+
+            for (var i = start; i < expns.length; ++i) {
+                doc.replaceRange(varName, expns[i].start, expns[i].end);
+            }
+            selections.push({
+                start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
+                end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
+                primary: true
+            });
+
+            session.editor.setSelections(selections);
+            session.editor._codeMirror.indentLine(posToIndent.line, "smart");
+        });
     }
 
     function findRetParams(srcScope, destScope) {
@@ -346,7 +346,7 @@ define(function(require, exports, module) {
         console.log(fnCall);
     }
 
-    function findAllExpressions(expn) {
+    function findAllExpressions(parentBlockStatement, expn) {
         var obj = {};
         var expns = [];
         obj[expn.type] = function(node) {
@@ -372,14 +372,17 @@ define(function(require, exports, module) {
         return foundNode && foundNode.node;
     }
 
-    function getSingleExpression(startPos, endPos) {
-        var foundNode = ASTWalker.findNodeAround(data.ast, startPos, function(nodeType, node) {
-            return nodeType === "Expression" && node.end >= endPos;
+    function getSingleExpression(start, end) {
+        start = indexFromPos(start);
+        end = indexFromPos(end);
+
+        var foundNode = ASTWalker.findNodeAround(data.ast, start, function(nodeType, node) {
+            return nodeType === "Expression" && node.end >= end;
         });
         if (!foundNode) return false;
 
         var expn = foundNode.node;
-        if (expn.start === startPos && expn.end === endPos) { //Math.abs(expn.end - endPos) <= 1 // if selection is a whole expression node in ast
+        if (expn.start === start && expn.end === end) { //Math.abs(expn.end - endPos) <= 1 // if selection is a whole expression node in ast
             return expn;
         }
 
@@ -400,30 +403,21 @@ define(function(require, exports, module) {
 
     function getExpressions(start, end) {
         var expns = [];
-        var startPos = indexFromPos(start);
-        var endPos = indexFromPos(end);
-        var isSelection = start.line !== end.line || start.ch !== end.ch;
-        var expn, foundNode;
 
-        if (isSelection) {
-            var expn = getSingleExpression(startPos, endPos);
-            if (expn) expns.push(expn);
-        } else {
-            while (true) {
-                var foundNode = ASTWalker.findNodeAround(data.ast, startPos, function(nodeType, node) {
-                    return nodeType === "Expression" && node.end >= endPos;
-                });
-                if (!foundNode) break;
-                var expn = foundNode.node;
-                expns.push(expn);
-                startPos = expn.start - 1;
-            }
+        start = indexFromPos(start);
+        end = indexFromPos(end);
+
+        while (true) {
+            var foundNode = ASTWalker.findNodeAround(data.ast, start, function(nodeType, node) {
+                return nodeType === "Expression" && node.end >= end;
+            });
+            if (!foundNode) break;
+            var expn = foundNode.node;
+            expns.push(expn);
+            start = expn.start - 1;
         }
 
-        return {
-            isSelection: isSelection,
-            expns: expns
-        };
+        return expns;
     }
 
     function getAllIdentifiers() {
@@ -458,6 +452,7 @@ define(function(require, exports, module) {
         var curScope = data.scope;
         var cnt = 0;
         var scopes = [];
+        
         while (curScope) {
           curScope.id = cnt++;
           scopes.push(curScope);
@@ -500,7 +495,7 @@ define(function(require, exports, module) {
         return scopes;
     }
 
-    function getExtractData() {
+    function getExtractData(start, end) {
         var response = ScopeManager.requestExtractData(session, start, end);
 
         var result = new $.Deferred;
@@ -515,8 +510,6 @@ define(function(require, exports, module) {
             })
         }
 
-        // data.ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
-        // result.resolve();
         return result;
     }
 
@@ -536,29 +529,30 @@ define(function(require, exports, module) {
         return foundNode1 && foundNode1.node.start === start && foundNode2 && foundNode2.node.end === end;
     }
 
-    function initExtractVariable() {
-        var selection = session.editor.getSelection();
-
+    function handleExtractToVariable() {
+        var selection = session.editor.getSelection(), start, end;
         doc = session.editor.document;
+        var editor = session.editor;
 
         var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, true);
         text = retObj.text;
         start = retObj.start;
         end = retObj.end;
 
+        getExtractData(start, end).done(function() {
+            var expns = [],
+                parentStatement,
+                parentExpn;
 
-        getExtractData().done(function() {
-            var obj = getExpressions(start, end);
-            var isSelection = obj.isSelection;
-            var expns = obj.expns;
-            if (expns.length === 0) {
-                session.editor.displayErrorMessageAtCursor("No Expression");
-            }
-            else if (isSelection) {
-                parentExpn = expns[0];
-                parentBlockStatement = findParentBlockStatement(parentExpn);
+            if (editor.hasSelection()) {
+                parentExpn = getSingleExpression(start, end);
+                if (!parentExpn) {
+                    session.editor.displayErrorMessageAtCursor("No Expression");
+                    return;
+                }
                 if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
-                    var expns = findAllExpressions(parentExpn);
+                    var parentBlockStatement = findParentBlockStatement(parentExpn);
+                    var expns = findAllExpressions(parentBlockStatement, parentExpn);
                     console.log(expns);
                     parentStatement = findParentStatement(expns[0]);
                     extractToVariable(data.scope, parentStatement, expns, text);
@@ -567,9 +561,16 @@ define(function(require, exports, module) {
                     extractToVariable(data.scope, parentStatement, [{start: indexFromPos(start), end: indexFromPos(end)}], text);
                 }
             } else {
-                var x = expns.map(function(expn) {return doc.getText().substr(expn.start, expn.end - expn.start)});
-                for (var i = 0; i < x.length; ++i) {
-                    console.log(i, x[i]);
+                expns = getExpressions(start, end);
+                if (expns && expns.length) {
+                    parentExpn = expns[0];
+                    var x = expns.map(function(expn) {return doc.getText().substr(expn.start, expn.end - expn.start)});
+                    for (var i = 0; i < x.length; ++i) {
+                        console.log(i, x[i]);
+                    }
+                } else {
+                    session.editor.displayErrorMessageAtCursor("No Expression");
+                    return;
                 }
             }
         }).fail(function() {
@@ -577,7 +578,7 @@ define(function(require, exports, module) {
         });
     }
 
-    function initExtractFunction() {
+    function handleExtractToFunction() {
         var selection = session.editor.getSelection();
 
         doc = session.editor.document;
@@ -618,18 +619,12 @@ define(function(require, exports, module) {
 
     function addCommands() {
         // Extract To Variable
-        CommandManager.register("Extract To Variable", "refactoring.extractToVariable", function () {
-            initExtractVariable();
-        });
-
+        CommandManager.register("Extract To Variable", "refactoring.extractToVariable", handleExtractToVariable);
         KeyBindingManager.addBinding("refactoring.extractToVariable", "Ctrl-Alt-V");
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extractToVariable");
 
         // Extract To Function
-        CommandManager.register("Extract To Function", "refactoring.extractToFunction", function () {
-            initExtractFunction();
-        });
-
+        CommandManager.register("Extract To Function", "refactoring.extractToFunction", handleExtractToFunction);
         KeyBindingManager.addBinding("refactoring.extractToFunction", "Ctrl-Alt-M");
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extractToFunction");
     }
