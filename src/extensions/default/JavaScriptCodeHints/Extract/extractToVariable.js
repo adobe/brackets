@@ -60,7 +60,7 @@ define(function(require, exports, module) {
     }
 
     // Removes the leading and trailing spaces from selection and the trailing semicolons
-    function normalizeSelection(removeTrailingSemiColons) {
+    function normalizeText(text, start, end, removeTrailingSemiColons) {
         var trimmedText;
 
         start = indexFromPos(start);
@@ -93,9 +93,11 @@ define(function(require, exports, module) {
             }
         }
 
-        text = trimmedText;
-        start = posFromIndex(start);
-        end = posFromIndex(end);
+        return {
+            text: trimmedText,
+            start: posFromIndex(start),
+            end: posFromIndex(end)
+        };
     }
 
     function getUniqueIdentifierName(scope, prefix, num) {
@@ -533,11 +535,12 @@ define(function(require, exports, module) {
         var selection = session.editor.getSelection();
 
         doc = session.editor.document;
-        text = session.editor.getSelectedText();
-        start = selection.start;
-        end = selection.end;
 
-        normalizeSelection(true);
+        var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, true);
+        text = retObj.text;
+        start = retObj.start;
+        end = retObj.end;
+
 
         getExtractData().done(function() {
             var obj = getExpressions(start, end);
@@ -573,11 +576,11 @@ define(function(require, exports, module) {
         var selection = session.editor.getSelection();
 
         doc = session.editor.document;
-        text = session.editor.getSelectedText();
-        start = selection.start;
-        end = selection.end;
 
-        normalizeSelection(false);
+        var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, false);
+        text = retObj.text;
+        start = retObj.start;
+        end = retObj.end;
 
         getExtractData().done(function() {
             if (!checkStatement(indexFromPos(start), indexFromPos(end))) {
