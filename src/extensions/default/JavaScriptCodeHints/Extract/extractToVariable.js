@@ -280,7 +280,7 @@ define(function(require, exports, module) {
         var variableDeclarations = retObj.variableDeclarations;
         var fnDeclaration;
 
-        var isExpression = getSingleExpression(indexFromPos(start), indexFromPos(end));
+        var isExpression = getSingleExpression(start, end);
         var fnbody = text;
         if (destScope.isClass) {
             fnCall = "this.extracted(" + passParams.join(", ") + ")";
@@ -325,7 +325,6 @@ define(function(require, exports, module) {
         }
 
         var scopePos = getScopePos(srcScope, destScope);
-
 
         start = doc.adjustPosForChange(start, fnDeclaration.split("\n"), scopePos, scopePos);
         end = doc.adjustPosForChange(end, fnDeclaration.split("\n"), scopePos, scopePos);
@@ -420,10 +419,11 @@ define(function(require, exports, module) {
         return expns;
     }
 
-    function getAllIdentifiers() {
+    function findPassParams(srcScope, destScope) {
         var identifiers = {};
         var inThisScope = {};
         var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+
         ASTWalker.full(ast, function(node) {
             if (node.type === "Identifier") {
                 identifiers[node.name] = true;
@@ -433,26 +433,18 @@ define(function(require, exports, module) {
             }
         });
 
-        return _.difference(_.keys(identifiers), _.keys(inThisScope));
-    }
-
-    function findPassParams(srcScope, destScope) {
-        var identifiers = getAllIdentifiers();
-        var params = [];
-        var scope = srcScope;
-
         var props = scopes.slice(srcScope.id, destScope.id).reduce(function(props, scope) {
             return _.union(props, _.keys(scope.props));
         }, []);
 
-        return _.intersection(identifiers, props);
+        return _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props);
     }
 
     function findScopes() {
         var curScope = data.scope;
         var cnt = 0;
         var scopes = [];
-        
+
         while (curScope) {
           curScope.id = cnt++;
           scopes.push(curScope);
@@ -588,7 +580,7 @@ define(function(require, exports, module) {
         start = retObj.start;
         end = retObj.end;
 
-        getExtractData().done(function() {
+        getExtractData(start, end).done(function() {
             if (!checkStatement(start, end)) {
                 session.editor.displayErrorMessageAtCursor("Selected block should represent set of statements or an expression");
                 return;
@@ -803,3 +795,22 @@ define(function(require, exports, module) {
         // pos = posFromIndex(srcScope.originNode.start);
         // pos.ch = 0;
         // return pos;
+
+// getAllIdentifiers
+
+
+    //function getAllIdentifiers() {
+    //    var identifiers = {};
+    //    var inThisScope = {};
+    //    var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+    //    ASTWalker.full(ast, function(node) {
+    //        if (node.type === "Identifier") {
+    //            identifiers[node.name] = true;
+    //        }
+    //        if (node.type === "VariableDeclarator") {
+    //            inThisScope[node.id.name] = true;
+    //        }
+    //    });
+//
+    //    return _.difference(_.keys(identifiers), _.keys(inThisScope));
+    //}
