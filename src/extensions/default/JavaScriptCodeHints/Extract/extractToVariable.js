@@ -278,7 +278,7 @@ define(function(require, exports, module) {
         return pos;
     }
 
-    function extractToFunction(text, srcScope, destScope, start, end) {
+    function extractToFunction(text, srcScope, destScope, start, end, isExpression) {
         var retObj = analyzeCode(srcScope, destScope, start, end);
         var passParams = retObj.passParams;
         var retParams = retObj.retParams;
@@ -288,7 +288,6 @@ define(function(require, exports, module) {
         var doc = session.editor.document;
         var fnCall;
 
-        var expression = getSingleExpression(start, end);
         var fnbody = text;
         if (destScope.isClass) {
             fnCall = "this.extracted(" + passParams.join(", ") + ")";
@@ -303,25 +302,30 @@ define(function(require, exports, module) {
             else return identifier;
         }
 
-        if (expression) {
+        if (isExpression) {
+            var expression = getSingleExpression(start, end);
             var parentStatement = findParentStatement(expression);
             if (parentStatement.type !== "ExpressionStatement" || !isEqual(parentStatement.expression, parentStatement)) {
                 fnbody = "return " + fnbody + ";";
             }
-        } else if (retParams && retParams.length) {
+        } else {
             var retParamsStr;
-            if (retParams.length > 1) {
-                retParamsStr = '{' + retParams.join(", ") + '}';
-                fnCall = "var ret = " + fnCall + ";\n" +
-                retParams.map(function(param) {
-                    return appendVarDeclaration(param) + " = ret." + param + ";"
-                }).join("\n");
+            if (retParams) {
+                if (retParams.length > 1) {
+                    retParamsStr = '{' + retParams.join(", ") + '}';
+                    fnCall = "var ret = " + fnCall + ";\n" +
+                    retParams.map(function(param) {
+                        return appendVarDeclaration(param) + " = ret." + param + ";"
+                    }).join("\n");
+                } else if (retParams.length === 1) {
+                    retParamsStr = retParams[0];
+                    fnCall = appendVarDeclaration(retParams[0]) + " = " + fnCall + ";";
+                }
+                fnbody = fnbody + "\n" +
+                         "return " + retParamsStr  + ";";
             } else {
-                retParamsStr = retParams[0];
-                fnCall = appendVarDeclaration(retParams[0]) + " = " + fnCall + ";";
+                fnCall += ";";
             }
-            fnbody = fnbody + "\n" +
-                     "return " + retParamsStr  + ";";
         }
 
         if (destScope.isClass) {
@@ -564,18 +568,21 @@ define(function(require, exports, module) {
 
     function handleExtractToFunction() {
         var selection = session.editor.getSelection();
-
-        doc = session.editor.document;
+        var doc = session.editor.document;
 
         var retObj = normalizeText(session.editor.getSelectedText(), selection.start, selection.end, false);
         text = retObj.text;
         start = retObj.start;
-        end = retObj.end;
+        var end = retObj.end;
 
         getExtractData(start, end).done(function() {
+            var isExpression = false;
             if (!checkStatement(start, end)) {
-                session.editor.displayErrorMessageAtCursor("Selected block should represent set of statements or an expression");
-                return;
+                isExpression = getSingleExpression(start, end);
+                if (!isExpression) {
+                    session.editor.displayErrorMessageAtCursor("Selected block should represent set of statements or an expression");
+                    return;
+                }
             }
             scopes = findScopes();
             var widget = new Widget(session.editor);
@@ -585,7 +592,7 @@ define(function(require, exports, module) {
             );
 
             widget.onSelect(function (scopeId) {
-                extractToFunction(text, scopes[0], scopes[scopeId], start, end);
+                extractToFunction(text, scopes[0], scopes[scopeId], start, end, isExpression);
                 widget.close();
             });
 
