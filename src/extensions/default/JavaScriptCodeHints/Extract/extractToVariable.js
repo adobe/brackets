@@ -175,25 +175,17 @@ define(function(require, exports, module) {
         });
     }
 
-    function findRetParams(srcScope, destScope) {
+
+    function analyzeCode(srcScope, destScope) {
+        var identifiers = {};
+        var inThisScope = {};
         var startPos = indexFromPos(start);
         var endPos = indexFromPos(end);
         var thisPointerUsed = false;
         var variableDeclarations = {};
-
-        var str;
-        if (srcScope.originNode) {
-            str = doc.getText().substr(srcScope.originNode.start, srcScope.originNode.end - srcScope.originNode.start);
-            console.log(str);
-            str = str.substr(endPos - srcScope.originNode.start);
-        } else {
-            str = doc.getText();
-            console.log(str);
-            str = str.substr(endPos);
-        }
-
         var changedValues = {};
         var dependentValues = {};
+        var restScopeStr;
 
         var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
         ASTWalker.full(ast, function(node) {
@@ -203,6 +195,7 @@ define(function(require, exports, module) {
                     value = node.left;
                     break;
                 case "VariableDeclarator":
+                    inThisScope[node.id.name] = true;
                     value = node.init && node.id;
                     var foundNode = ASTWalker.findNodeAround(ast, node.start, function(pnodeType, pnode) {
                         return pnodeType === "VariableDeclaration" && pnode.end >= node.end;
@@ -216,6 +209,9 @@ define(function(require, exports, module) {
                 case "UpdateExpression":
                     value = node.argument;
                     break;
+                case "Identifier":
+                    identifiers[node.name] = true;
+                    break;
             }
             if (value){
                 if (value.type === "MemberExpression") {
@@ -227,7 +223,14 @@ define(function(require, exports, module) {
             }
         });
 
-        ast = Acorn.parse_dammit(str, {ecmaVersion: 9});
+        if (srcScope.originNode) {
+            restScopeStr = doc.getText().substr(endPos, srcScope.originNode.end - endPos);
+        } else {
+            restScopeStr = doc.getText().substr(endPos);
+        }
+        console.log(restScopeStr);
+
+        ast = Acorn.parse_dammit(restScopeStr, {ecmaVersion: 9});
         ASTWalker.simple(ast, {
             Identifier: function(node) {
                 var name = node.name;
@@ -245,8 +248,10 @@ define(function(require, exports, module) {
             return _.union(props, _.keys(scope.props));
         }, []);
 
-        var retParams = _.intersection(props, _.keys(changedValues), _.keys(dependentValues))
+        var retParams = _.intersection(props, _.keys(changedValues), _.keys(dependentValues));
+
         return {
+            passParams: _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props),
             retParams: retParams,
             thisPointerUsed: thisPointerUsed,
             variableDeclarations: _.pick(variableDeclarations, retParams)
@@ -273,8 +278,8 @@ define(function(require, exports, module) {
     }
 
     function extractToFunction(text, srcScope, destScope) {
-        var passParams = findPassParams(srcScope, destScope);
-        var retObj = findRetParams(srcScope, destScope);
+        var retObj = analyzeCode(srcScope, destScope);
+        var passParams = retObj.passParams;
         var retParams = retObj.retParams;
         var thisPointerUsed = retObj.thisPointerUsed;
         var variableDeclarations = retObj.variableDeclarations;
@@ -311,7 +316,6 @@ define(function(require, exports, module) {
             }
             fnbody = fnbody + "\n" +
                      "return " + retParamsStr  + ";";
-
         }
 
         if (destScope.isClass) {
@@ -416,26 +420,6 @@ define(function(require, exports, module) {
         return expns;
     }
 
-    function findPassParams(srcScope, destScope) {
-        var identifiers = {};
-        var inThisScope = {};
-        var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
-
-        ASTWalker.full(ast, function(node) {
-            if (node.type === "Identifier") {
-                identifiers[node.name] = true;
-            }
-            if (node.type === "VariableDeclarator") {
-                inThisScope[node.id.name] = true;
-            }
-        });
-
-        var props = scopes.slice(srcScope.id, destScope.id).reduce(function(props, scope) {
-            return _.union(props, _.keys(scope.props));
-        }, []);
-
-        return _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props);
-    }
 
     function findScopes() {
         var curScope = data.scope;
@@ -811,3 +795,27 @@ define(function(require, exports, module) {
 //
     //    return _.difference(_.keys(identifiers), _.keys(inThisScope));
     //}
+
+
+// findPassParams
+
+    // function findPassParams(srcScope, destScope) {
+    //     var identifiers = {};
+    //     var inThisScope = {};
+    //     var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+    //
+    //     ASTWalker.full(ast, function(node) {
+    //         if (node.type === "Identifier") {
+    //             identifiers[node.name] = true;
+    //         }
+    //         if (node.type === "VariableDeclarator") {
+    //             inThisScope[node.id.name] = true;
+    //         }
+    //     });
+    //
+    //     var props = scopes.slice(srcScope.id, destScope.id).reduce(function(props, scope) {
+    //         return _.union(props, _.keys(scope.props));
+    //     }, []);
+    //
+    //     return _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props);
+    // }
