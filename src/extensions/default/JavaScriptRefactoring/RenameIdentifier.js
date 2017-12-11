@@ -75,7 +75,11 @@ define(function (require, exports, module) {
         
     function handleRename() {
         var editor = EditorManager.getActiveEditor(),
-        offset, handleFindRefs;
+            offset, handleFindRefs;
+
+        if (editor.getSelections().length > 1) {
+            editor.displayErrorMessageAtCursor("Rename doesn't work in case of multicursor");
+        }
         initializeSession(editor);
 
 
@@ -117,7 +121,7 @@ define(function (require, exports, module) {
                     if (isInSameFile) {
                         EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
                     } else {
-                        //TODO- Rename across Project
+                        editor.displayErrorMessageAtCursor("As of now Rename doesn't work across project");
                     }
                     
                 }

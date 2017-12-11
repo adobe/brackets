@@ -385,6 +385,11 @@ define(function (require, exports, module) {
      */
     function handleRename(response) {
 
+        if (response.error) {
+            EditorManager.getActiveEditor().displayErrorMessageAtCursor(response.error);
+            return;
+        }
+
         var file = response.file,
             offset = response.offset;
 

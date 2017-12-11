@@ -154,7 +154,7 @@ function initTernServer(env, files) {
         defs: env,
         async: true,
         getFile: getFile,
-        plugins: {requirejs: {}, doc_comment: true, angular: true}
+        plugins: {requirejs: {}, commonjs: true, doc_comment: true, angular: true}
     };
 
     // If a server is already created just reset the analysis data before marking it for GC
@@ -252,7 +252,12 @@ function buildRequest(fileInfo, query, offset) {
     try {
         ternServer.request(request, function (error, data) {
             if (error) {
-                _log("Error returned from Tern 'definition' request: " + error);
+                _log("Error returned from Tern 'refs' request: " + error);
+                var response = {
+                    type: MessageIds.TERN_REFS,
+                    error: error.message
+                };
+                self.postMessage(response);
                 return;
             }
             var response = {
