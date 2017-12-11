@@ -465,7 +465,7 @@ define(function(require, exports, module) {
                   curScope.name = found.node.key.name;
 
                   found = ASTWalker.findNodeAround(data.ast, found.node.start, function(nodeType, node) {
-                      return nodeType === "ClassDeclaration" && node.end >= found.node.end;
+                      return ["ClassDeclaration", "ClassExpression"].includes(nodeType) && node.end >= found.node.end;
                   });
 
                   if (found && found.node) {
@@ -473,7 +473,7 @@ define(function(require, exports, module) {
                       var temp = curScope.prev;
                       var newScope = {};
                       newScope.isClass = true;
-                      newScope.name = "class " + found.node.id.name;
+                      newScope.name = "class " + (found.node.id && found.node.id.name);
                       newScope.originNode = found.node;
                       curScope.prev = newScope;
                       newScope.prev = temp;
