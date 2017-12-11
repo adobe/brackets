@@ -75,7 +75,7 @@ module.exports = function (grunt) {
             done = _.after(dirs.length, _done);
         dirs.forEach(function (dir) {
             runNpmInstall(dir, function (err) {
-                return err ? done(false) : done();
+                return err ? _done(false) : done();
             });
         });
     });
