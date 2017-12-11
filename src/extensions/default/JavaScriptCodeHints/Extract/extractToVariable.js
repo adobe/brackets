@@ -326,16 +326,13 @@ define(function(require, exports, module) {
 
         var scopePos = getScopePos(srcScope, destScope);
 
-        start = doc.adjustPosForChange(start, fnDeclaration.split("\n"), scopePos, scopePos);
-        end = doc.adjustPosForChange(end, fnDeclaration.split("\n"), scopePos, scopePos);
-
         doc.batchOperation(function() {
-            doc.replaceRange(fnDeclaration, scopePos);
-            for (var i = scopePos.line; i <= scopePos.line + numLines(fnDeclaration); ++i) {
-                session.editor._codeMirror.indentLine(i, "smart");
-            }
             doc.replaceRange(fnCall, start, end);
             for (var i = start.line; i <= start.line + numLines(fnCall); ++i) {
+                session.editor._codeMirror.indentLine(i, "smart");
+            }
+            doc.replaceRange(fnDeclaration, scopePos);
+            for (var i = scopePos.line; i <= scopePos.line + numLines(fnDeclaration); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
         });
