@@ -31,14 +31,21 @@ define(function (require, exports, module) {
         
 
     var MessageIds           = brackets.getModule("JSUtils/MessageIds"),
-        RenameIdentifier     = require("RenameIdentifier");
+        RenameIdentifier     = require("RenameIdentifier"),
+        WrapSelection        = require("WrapSelection");
     
     
     var refactorRename          = "javascript.renamereference",
+        refactorWrapInTryCatch  = "refactoring.wrapintrycatch",
+        refactorWrapInCondition = "refactoring.wrapincondition",
         editor;
 
 
     CommandManager.register("Rename", refactorRename, RenameIdentifier.handleRename);
+
+    CommandManager.register("Wrap in Try Catch", refactorWrapInTryCatch, WrapSelection.wrapInTryCatch);
+
+    CommandManager.register("Wrap in Condition", refactorWrapInCondition, WrapSelection.wrapInCondition);
     
     var menuLocation = Menus.AppMenuBar.NAVIGATE_MENU;
     
@@ -55,6 +62,12 @@ define(function (require, exports, module) {
             editor = EditorManager.getActiveEditor();
             var cm = editor._codeMirror,
             tokenType = TokenUtils.getTokenAt(cm, cm.getCursor()).type;
+
+            var sel = editor.getSelection();
+            if ((editor.getModeForSelection() === "javascript") && (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch)) {
+                editorCmenu.addMenuItem(refactorWrapInTryCatch);
+                editorCmenu.addMenuItem(refactorWrapInCondition);
+            }
             
             if (editor.getModeForSelection() === "javascript" && (tokenType === "variable-2" ||
                 tokenType === "variable" || tokenType === "property" || tokenType === "def")) {
@@ -65,4 +78,6 @@ define(function (require, exports, module) {
 
     Menus.getMenu(menuLocation).addMenuDivider();
     Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
+    Menus.getMenu(menuLocation).addMenuItem(refactorWrapInTryCatch);
+    Menus.getMenu(menuLocation).addMenuItem(refactorWrapInCondition);
 });

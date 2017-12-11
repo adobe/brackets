@@ -45,8 +45,8 @@ define(function (require, exports, module) {
     };
     
     function getTextWrapedInTryCatch(text) {
-        var trytext = "try {\n \t",
-            catchText = "}\ catch (e) {\n \t console.log(e) }";
+        var trytext = "try {\n",
+            catchText = "\n} catch (e) {\nconsole.log(e);\n}";
         var formattedText = trytext + text + catchText;
         return formattedText;
     }
@@ -55,9 +55,61 @@ define(function (require, exports, module) {
         var editor = EditorManager.getActiveEditor(),
             selection   = editor.getSelection(),
             text        = editor.getSelectedText();
+
+            
+        if (editor.getSelections().length > 1) {
+            editor.displayErrorMessageAtCursor("Wrap in try catch doesn't work in case of multicursor");
+        }
+
+        var newText = getTextWrapedInTryCatch(text.trim()),
+            doc = editor.document,
+            start = editor.indexFromPos(selection.start),
+            end = editor.indexFromPos(selection.end),
+            startPos = editor._codeMirror.posFromIndex(start),
+            endPos = editor._codeMirror.posFromIndex(end);
+
+        doc.replaceRange(newText, startPos, endPos);
         
-        var newText = getTextWrapedInTryCatch(text);
+        var startLine = startPos.line,
+        endLine = startLine + newText.split("\n").length;
+        for (var i = startLine + 1; i < endLine; i++) {
+            editor._codeMirror.indentLine(i);
+        }
+    }
+
+    function getTextWrapedInCondition(text) {
+        var ifText = "if () {\n",
+            closeIf = "\n}";
+        var formattedText = ifText + text + closeIf;
+        return formattedText;
+    }
+
+
+    function wrapInCondition() {
+        var editor = EditorManager.getActiveEditor(),
+            selection   = editor.getSelection(),
+            text        = editor.getSelectedText();
+
+        if (editor.getSelections().length > 1) {
+            editor.displayErrorMessageAtCursor("Wrap in condition doesn't work in case of multicursor");
+        }
+
+        var newText = getTextWrapedInCondition(text.trim()),
+            doc = editor.document,
+            start = editor.indexFromPos(selection.start),
+            end = editor.indexFromPos(selection.end),
+            startPos = editor._codeMirror.posFromIndex(start),
+            endPos = editor._codeMirror.posFromIndex(end);
+
+        doc.replaceRange(newText, startPos, endPos);
+        
+        var startLine = startPos.line,
+        endLine = startLine + newText.split("\n").length;
+        for (var i = startLine + 1; i < endLine; i++) {
+            editor._codeMirror.indentLine(i);
+        }
     }
     
     exports.wrapInTryCatch = wrapInTryCatch;
+    exports.wrapInCondition = wrapInCondition;
 });
