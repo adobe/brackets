@@ -241,11 +241,9 @@ define(function(require, exports, module) {
             }
         });
 
-        var props = {};
-        while (srcScope.id !== destScope.id) {
-            props = _.union(props, _.keys(srcScope.props));
-            srcScope = srcScope.prev;
-        }
+        var props = scopes.slice(srcScope.id, destScope.id).reduce(function(props, scope) {
+            return _.union(props, _.keys(scope.props));
+        }, []);
 
         var retParams = _.intersection(props, _.keys(changedValues), _.keys(dependentValues))
         return {
@@ -440,14 +438,11 @@ define(function(require, exports, module) {
     function findPassParams(srcScope, destScope) {
         var identifiers = getAllIdentifiers();
         var params = [];
-        var props = [];
         var scope = srcScope;
 
-        // Find all scopes before destScope
-        while (scope.id !== destScope.id) {
-            props = _.union(props, _.keys(scope.props));
-            scope = scope.prev;
-        }
+        var props = scopes.slice(srcScope.id, destScope.id).reduce(function(props, scope) {
+            return _.union(props, _.keys(scope.props));
+        }, []);
 
         return _.intersection(identifiers, props);
     }
@@ -721,6 +716,12 @@ define(function(require, exports, module) {
             //     if (srcScope.props.hasOwnProperty(name))
             //     changedValues[name] = true;
             // }
+
+
+        // while (srcScope.id !== destScope.id) {
+        //     props = _.union(props, _.keys(srcScope.props));
+        //     srcScope = srcScope.prev;
+        // }
 
 // extract
 
