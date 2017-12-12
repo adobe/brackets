@@ -47,7 +47,7 @@ define(function (require, exports, module) {
 
     CommandManager.register("Wrap in Condition", refactorWrapInCondition, WrapSelection.wrapInCondition);
     
-    var menuLocation = Menus.AppMenuBar.NAVIGATE_MENU;
+    var menuLocation = Menus.AppMenuBar.EDIT_MENU;
     
     var keysRename = [
         {key: "Ctrl-R", platform:"mac"}, // don't translate to Cmd-R on mac

@@ -1,6 +1,0 @@
-{
-  "name": "brackets-javascript-code-refactoring",
-  "dependencies": {
-    "acorn": "3.3.0"
-  }
-}

@@ -24,90 +24,86 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var EditorManager        = brackets.getModule("editor/EditorManager"),
-        ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
-        Session              = brackets.getModule("JSUtils/Session"),
-        MessageIds           = brackets.getModule("JSUtils/MessageIds");
-    
-    
-    var session             = null;  // object that encapsulates the current session state
+    var EditorManager        = brackets.getModule("editor/EditorManager");
 
-    // Removes the leading and trailing spaces from selection and the trailing semicolons
-    function normalizeSelection() {
-        var selection   = this.editor.getSelection(),
-            text        = this.editor.getSelectedText(),
-            trimmedText;
-
-        // Remove leading spaces
-        trimmedText = text.trim();
-
-
-    };
-    
-    function getTextWrapedInTryCatch(text) {
-        var trytext = "try {\n",
-            catchText = "\n} catch (e) {\nconsole.log(e);\n}";
-        var formattedText = trytext + text + catchText;
-        return formattedText;
-    }
-        
-    function wrapInTryCatch() {
+    function _getPositionOfSelectedText() {
         var editor = EditorManager.getActiveEditor(),
-            selection   = editor.getSelection(),
-            text        = editor.getSelectedText();
-
-            
+            selection   = editor.getSelection();
+          
         if (editor.getSelections().length > 1) {
-            editor.displayErrorMessageAtCursor("Wrap in try catch doesn't work in case of multicursor");
+            editor.displayErrorMessageAtCursor("Wrap Selection doesn't work in case of multicursor");
+            return;
         }
 
-        var newText = getTextWrapedInTryCatch(text.trim()),
-            doc = editor.document,
-            start = editor.indexFromPos(selection.start),
+        var start = editor.indexFromPos(selection.start),
             end = editor.indexFromPos(selection.end),
             startPos = editor._codeMirror.posFromIndex(start),
             endPos = editor._codeMirror.posFromIndex(end);
 
-        doc.replaceRange(newText, startPos, endPos);
+        return {
+            start: startPos,
+            end: endPos
+        };
+    }
+    
+    function _getTextWrapedInTryCatch(text) {
+        var trytext = "try {\n",
+            catchText = "\n} catch (e) {\nconsole.log(e.message);\n}",
+            formattedText = trytext + text + catchText;
+
+        return formattedText;
+    }
         
-        var startLine = startPos.line,
-        endLine = startLine + newText.split("\n").length;
+    function wrapInTryCatch() {
+
+        var editor = EditorManager.getActiveEditor(),
+            newText = _getTextWrapedInTryCatch(editor.getSelectedText().trim()),
+            pos = _getPositionOfSelectedText();
+        
+        if (!pos) {
+            return;
+        }
+
+        editor.document.replaceRange(newText, pos.start, pos.end);
+        
+        var startLine = pos.start.line,
+            endLine = startLine + newText.split("\n").length;
+
         for (var i = startLine + 1; i < endLine; i++) {
             editor._codeMirror.indentLine(i);
         }
+
+        //Place cursor or selection
     }
 
-    function getTextWrapedInCondition(text) {
+    function _getTextWrapedInCondition(text) {
         var ifText = "if () {\n",
-            closeIf = "\n}";
-        var formattedText = ifText + text + closeIf;
+            closeIf = "\n}",
+            formattedText = ifText + text + closeIf;
+
         return formattedText;
     }
 
 
     function wrapInCondition() {
-        var editor = EditorManager.getActiveEditor(),
-            selection   = editor.getSelection(),
-            text        = editor.getSelectedText();
 
-        if (editor.getSelections().length > 1) {
-            editor.displayErrorMessageAtCursor("Wrap in condition doesn't work in case of multicursor");
+        var editor = EditorManager.getActiveEditor(),
+            newText = _getTextWrapedInCondition(editor.getSelectedText().trim()),
+            pos = _getPositionOfSelectedText();
+
+        if (!pos) {
+            return;
         }
 
-        var newText = getTextWrapedInCondition(text.trim()),
-            doc = editor.document,
-            start = editor.indexFromPos(selection.start),
-            end = editor.indexFromPos(selection.end),
-            startPos = editor._codeMirror.posFromIndex(start),
-            endPos = editor._codeMirror.posFromIndex(end);
-
-        doc.replaceRange(newText, startPos, endPos);
+        editor.document.replaceRange(newText, pos.start, pos.end);
         
-        var startLine = startPos.line,
+        var startLine = pos.start.line,
         endLine = startLine + newText.split("\n").length;
         for (var i = startLine + 1; i < endLine; i++) {
             editor._codeMirror.indentLine(i);
         }
+
+        //Place cursor at if
     }
     
     exports.wrapInTryCatch = wrapInTryCatch;

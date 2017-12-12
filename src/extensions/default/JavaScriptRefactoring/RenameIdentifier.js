@@ -79,6 +79,7 @@ define(function (require, exports, module) {
 
         if (editor.getSelections().length > 1) {
             editor.displayErrorMessageAtCursor("Rename doesn't work in case of multicursor");
+            return;
         }
         initializeSession(editor);
 
