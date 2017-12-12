@@ -179,7 +179,7 @@ define(function(require, exports, module) {
             });
 
             session.editor.setSelections(selections);
-            session.editor._codeMirror.indentLine(posToIndent.line, "smart");
+            session.editor._codeMirror.indentLine(posToIndent.line, "prev");
         });
     }
 
@@ -196,7 +196,8 @@ define(function(require, exports, module) {
         var restScopeStr;
         var doc = session.editor.document;
 
-        ASTWalker.full(Acorn.parse_dammit(text, {ecmaVersion: 9}), function(node) {
+        var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+        ASTWalker.full(ast, function(node) {
             var value, name;
             switch(node.type) {
                 case "AssignmentExpression":
@@ -559,7 +560,7 @@ define(function(require, exports, module) {
                     parentStatement = findParentStatement(parentExpn);
                     extractToVariable(data.scope, parentStatement, [{start: indexFromPos(start), end: indexFromPos(end)}], text);
                 }
-                
+
             } else {
                 expns = getExpressions(start, end);
                 if (expns && expns.length) {
