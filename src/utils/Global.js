@@ -41,7 +41,14 @@ define(function (require, exports, module) {
     // inside Node for CI testing) we use this trick to get the global object.
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
-        global.brackets = {};
+        // Earlier this initialization was happening inside appshell_extensions.js. But
+        // since the newer CEF versions have stronger JS checks render process was crashing 
+        // siting JS eval error. So moved the initialization to here.
+        if (appshell) {
+            global.brackets = appshell;
+        } else {
+            global.brackets = {};
+        }
     }
 
     // Parse URL params
