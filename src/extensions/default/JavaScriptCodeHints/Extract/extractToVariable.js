@@ -512,6 +512,20 @@ define(function(require, exports, module) {
         start = indexFromPos(start);
         end = indexFromPos(end);
 
+        // Do not allow function or class nodes
+        var doc = session.editor.document;
+        var notStatement = false;
+        ASTWalker.simple(Acorn.parse_dammit(doc.getText().substr(start, end - start), {ecmaVersion: 9}), {
+            Function: function(node) {
+                notStatement = true;
+            },
+            Class: function(node) {
+                notStatement = true;
+            }
+        });
+
+        if (notStatement) return false;
+
         var foundNode1 = ASTWalker.findNodeAround(data.ast, start, function(nodeType, node) {
             return nodeType === "Statement";
         });
