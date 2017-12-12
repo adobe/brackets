@@ -25,23 +25,23 @@ define(function(require, exports, module) {
     'use strict';
 
     var Acorn               = brackets.getModule("thirdparty/acorn/dist/acorn"),
-    ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
-    Menus               = brackets.getModule("command/Menus"),
-    CommandManager      = brackets.getModule("command/CommandManager"),
-    EditorManager       = brackets.getModule("editor/EditorManager"),
-    KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
-    _                   = brackets.getModule("thirdparty/lodash"),
-    DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
-    Dialogs             = brackets.getModule("widgets/Dialogs"),
-    StringMatch         = brackets.getModule("utils/StringMatch"),
-    StringUtils         = brackets.getModule("utils/StringUtils"),
-    Widget              = require("./widget").Widget,
-    ScopeManager        = require("../ScopeManager");
+        ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
+        Menus               = brackets.getModule("command/Menus"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
+        _                   = brackets.getModule("thirdparty/lodash"),
+        DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
+        Dialogs             = brackets.getModule("widgets/Dialogs"),
+        StringMatch         = brackets.getModule("utils/StringMatch"),
+        StringUtils         = brackets.getModule("utils/StringUtils"),
+        Widget              = require("./widget").Widget,
+        ScopeManager        = require("../ScopeManager");
 
 
     var session, // current editor session
-    data = {}, // contains the data got from tern
-    scopes;  // an array of all the scopes
+        data = {}, // contains the data got from tern
+        scopes;  // an array of all the scopes
 
 
     // Error messages
@@ -106,7 +106,7 @@ define(function(require, exports, module) {
 
     function getUniqueIdentifierName(scope, prefix, num) {
         if (!scope) {
-            return "extracted";
+            return prefix;
         }
         num = num || "1";
         var name;
@@ -120,7 +120,7 @@ define(function(require, exports, module) {
         return name;
     }
 
-    function isStandAloneExpression(text) { // pure
+    function isStandAloneExpression(text) { 
         var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text, {ecmaVersion: 9}), 0, text.length, function(nodeType, node) {
             if (nodeType === "Expression"){
                 return true;
@@ -130,31 +130,31 @@ define(function(require, exports, module) {
         return found && found.node;
     }
 
-    function numLines(text) { // pure
+    function numLines(text) { 
         return text.split("\n").length;
     }
 
-    function extractToVariable(scope, parentStatement, expns, text) { // requires session
+    function extractToVariable(scope, parentStatement, expns, text) { 
         var varType = "var",
-        varName = getUniqueIdentifierName(scope, "extracted"),
-        varDeclaration = varType + " " + varName + " = " + text + ";\n",
-        insertStartPos = posFromIndex(parentStatement.start),
-        selections = [],
-        posToIndent,
-        doc = session.editor.document,
-        start = 0;
+            varName = getUniqueIdentifierName(scope, "extracted"),
+            varDeclaration = varType + " " + varName + " = " + text + ";\n",
+            insertStartPos = posFromIndex(parentStatement.start),
+            selections = [],
+            posToIndent,
+            doc = session.editor.document,
+            replaceExpnIndex = 0;
 
         // If parent statement is expression statement, then just append var declaration
-        // Ex: add(1, 2) will become var extracted = add(1, 2)
+        // Ex: "add(1, 2)" will become "var extracted = add(1, 2)"
         if (parentStatement.type === "ExpressionStatement" && isEqual(parentStatement.expression, expns[0])) {
             varDeclaration = varType + " " + varName + " = ";
-            start = 1;
+            replaceExpnIndex = 1;
         }
 
         posToIndent = doc.adjustPosForChange(insertStartPos, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
         // adjust pos for change
-        for (var i = start; i < expns.length; ++i) {
+        for (var i = replaceExpnIndex; i < expns.length; ++i) {
             expns[i].start = posFromIndex(expns[i].start);
             expns[i].end = posFromIndex(expns[i].end);
             expns[i].start = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
@@ -169,7 +169,7 @@ define(function(require, exports, module) {
         doc.batchOperation(function() {
             doc.replaceRange(varDeclaration, insertStartPos);
 
-            for (var i = start; i < expns.length; ++i) {
+            for (var i = replaceExpnIndex; i < expns.length; ++i) {
                 doc.replaceRange(varName, expns[i].start, expns[i].end);
             }
             selections.push({
@@ -184,19 +184,19 @@ define(function(require, exports, module) {
     }
 
 
-    function analyzeCode(srcScope, destScope, start, end, text) { // pure
-        var identifiers = {};
-        var inThisScope = {};
-        var thisPointerUsed = false;
-        var startPos = indexFromPos(start);
-        var endPos = indexFromPos(end);
-        var variableDeclarations = {};
-        var changedValues = {};
-        var dependentValues = {};
-        var restScopeStr;
-        var doc = session.editor.document;
-
-        var ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+    function analyzeCode(srcScope, destScope, start, end, text) { 
+        var identifiers = {},
+            inThisScope = {},
+            thisPointerUsed = false,
+            startPos = indexFromPos(start),
+            endPos = indexFromPos(end),
+            variableDeclarations = {},
+            changedValues = {},
+            dependentValues = {},
+            restScopeStr,
+            doc = session.editor.document,
+            ast = Acorn.parse_dammit(text, { ecmaVersion: 9 });
+        
         ASTWalker.full(ast, function(node) {
             var value, name;
             switch(node.type) {
@@ -265,11 +265,11 @@ define(function(require, exports, module) {
         };
     }
 
-    function isFnScope(scope) { // pure
+    function isFnScope(scope) { 
         return !scope.isBlock && !scope.isCatch;
     }
 
-    function getScopePos(srcScope, destScope, initPos) { // requires start
+    function getScopePos(srcScope, destScope, initPos) { 
         var pos = _.clone(initPos);
         var fnScopes = scopes.filter(isFnScope);
 
@@ -376,21 +376,21 @@ define(function(require, exports, module) {
         return expns;
     }
 
-    function findParentBlockStatement(expn) { // requires data
+    function findParentBlockStatement(expn) { 
         var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
             return (nodeType === "BlockStatement" || nodeType === "Program") && node.end >= expn.end;
         });
         return foundNode && foundNode.node;
     }
 
-    function findParentStatement(expn) { // requires data
+    function findParentStatement(expn) { 
         var foundNode = ASTWalker.findNodeAround(data.ast, expn.start, function(nodeType, node) {
             return nodeType === "Statement" && node.end >= expn.end;
         });
         return foundNode && foundNode.node;
     }
 
-    function getSingleExpression(start, end) { // requires data and session
+    function getSingleExpression(start, end) { 
         start = indexFromPos(start);
         end = indexFromPos(end);
         var doc = session.editor.document;
@@ -420,7 +420,7 @@ define(function(require, exports, module) {
         return false;
     }
 
-    function getExpressions(start, end) { // requires data
+    function getExpressions(start, end) { 
         var expns = [];
 
         start = indexFromPos(start);
@@ -440,7 +440,7 @@ define(function(require, exports, module) {
     }
 
 
-    function findScopes() { // requires scopes and data
+    function findScopes() { 
         var curScope = data.scope;
         var cnt = 0;
         var scopes = [];
@@ -488,7 +488,7 @@ define(function(require, exports, module) {
         return scopes;
     }
 
-    function getExtractData(start, end) { // requires session
+    function getExtractData(start, end) { 
         var response = ScopeManager.requestExtractData(session, start, end);
         var doc = session.editor.document;
 
@@ -508,7 +508,7 @@ define(function(require, exports, module) {
     }
 
     // Check whether start and end represents a set of statements
-    function checkStatement(start, end) { // requires data
+    function checkStatement(start, end) { 
         start = indexFromPos(start);
         end = indexFromPos(end);
 
@@ -525,7 +525,7 @@ define(function(require, exports, module) {
         foundNode2.node.end === end;
     }
 
-    function handleExtractToVariable() { // requires session and data
+    function handleExtractToVariable() {
         var selection = session.editor.getSelection();
         var doc = session.editor.document;
         var editor = session.editor;
