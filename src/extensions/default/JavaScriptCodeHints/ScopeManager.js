@@ -350,15 +350,14 @@ define(function (require, exports, module) {
         return addPendingRequest(fileInfo.name, offset, MessageIds.TERN_JUMPTODEF_MSG);
     }
 
-    function getExtractData(fileInfo, start, end) {
+    function getScopeData(fileInfo, offset) {
         postMessage({
-            type: MessageIds.TERN_EXTRACTDATA_MSG,
+            type: MessageIds.TERN_SCOPEDATA_MSG,
             fileInfo: fileInfo,
-            start: start,
-            end: end
+            offset: offset
         });
 
-        return addPendingRequest(fileInfo.name, start, MessageIds.TERN_EXTRACTDATA_MSG);
+        return addPendingRequest(fileInfo.name, offset, MessageIds.TERN_SCOPEDATA_MSG);
     }
 
     /**
@@ -409,7 +408,7 @@ define(function (require, exports, module) {
         return {promise: ternPromise};
     }
 
-    function requestExtractData(session, start, end) {
+    function requestScopeData(session, offset) {
         var path = session.path,
             fileInfo = {
                 type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
@@ -418,7 +417,7 @@ define(function (require, exports, module) {
                 text: filterText(session.getJavascriptText())
             };
 
-        var ternPromise = getExtractData(fileInfo, start, end);
+        var ternPromise = getScopeData(fileInfo, offset);
 
         return {promise: ternPromise};
     }
@@ -442,12 +441,12 @@ define(function (require, exports, module) {
         }
     }
 
-    function handleExtractData(response) {
+    function handleScopeData(response) {
 
         var file = response.file,
-            offset = response.start;
+            offset = response.offset;
 
-        var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_EXTRACTDATA_MSG);
+        var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_SCOPEDATA_MSG);
 
         if ($deferredJump) {
             $deferredJump.resolveWith(null, [response]);
@@ -1125,8 +1124,8 @@ define(function (require, exports, module) {
                         handleTernGetFile(response);
                     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
                         handleJumptoDef(response);
-                    } else if (type === MessageIds.TERN_EXTRACTDATA_MSG) {
-                        handleExtractData(response);
+                    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+                        handleScopeData(response);
                     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
                         handlePrimePumpCompletion(response);
                     } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
@@ -1589,7 +1588,7 @@ define(function (require, exports, module) {
     exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
-    exports.requestExtractData = requestExtractData;
+    exports.requestScopeData = requestScopeData;
     exports.requestParameterHint = requestParameterHint;
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;

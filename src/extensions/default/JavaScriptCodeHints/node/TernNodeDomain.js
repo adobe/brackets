@@ -155,7 +155,6 @@ function initTernServer(env, files) {
         defs: env,
         async: true,
         getFile: getFile,
-        ecmaVersion: 9,
         plugins: {requirejs: {}, doc_comment: true, angular: true}
     };
 
@@ -212,14 +211,10 @@ function createEmptyUpdate(path) {
  * @param {string} query - the type of request being made
  * @param {{line: number, ch: number}} offset -
  */
-function buildRequest(fileInfo, query, offset, endOffset) {
+function buildRequest(fileInfo, query, offset) {
     query = {type: query};
     query.start = offset;
-    if (endOffset) {
-        query.end = endOffset;
-    } else {
-        query.end = offset;
-    }
+    query.end = offset;
     query.file = (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) ? "#0" : fileInfo.name;
     query.filter = false;
     query.sort = false;
@@ -289,16 +284,16 @@ function getJumptoDef(fileInfo, offset) {
     }
 }
 
-function getExtractData(fileInfo, start, end) {
+function getScopeData(fileInfo, offset) {
     // Create a new tern Server
-    // Do not mess with existing tern server as it may
-    // affect codehint and jump to def
+    // Existing tern server resolves all the required modules which might take time
+    // We only need to analyze single file for getting the scope
     ternOptions.plugins = {};
     var ternServer = new Tern.Server(ternOptions);
     ternServer.addFile(fileInfo.name, fileInfo.text);
 
     var error;
-    var request = buildRequest(fileInfo, "completions", start);
+    var request = buildRequest(fileInfo, "completions", offset); // for primepump
 
     try {
         // primepump
@@ -308,16 +303,17 @@ function getExtractData(fileInfo, start, end) {
                 error = ternError.toString();
             } else {
                 var file = ternServer.findFile(fileInfo.name);
-                var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, start), file.scope);
+                var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, offset), file.scope);
 
                 if (scope) {
-                    var strscope = JSON.stringify(scope, function(key, value) {
-                        if (key == "proto" ||
-                        key == "propertyOf" || key == "sourceFile" ||
-                        key == "onNewProp"  || key == "maybeProps") return undefined;
-                        else if (key == "fnType") return value.name || "FunctionExpression";
+                    scope = JSON.parse(JSON.stringify(scope, function(key, value) {
+                        if (["proto", "propertyOf", "onNewProp", "sourceFile", "maybeProps"].includes(key)) {
+                            return undefined;
+                        }
+                        else if (key == "fnType") {
+                             return value.name || "FunctionExpression";
+                        }
                         else if (key == "props") {
-                            console.log(value);
                             for (var key in value) {
                                 value[key] = value[key].propertyName;
                             }
@@ -328,17 +324,16 @@ function getExtractData(fileInfo, start, end) {
                                 end: value.end
                             };
                         }
-                        else return value;
-                    });
-                    scope = JSON.parse(strscope);
+
+                        return value;
+                    }));
                 }
 
                 self.postMessage({
-                    type: MessageIds.TERN_EXTRACTDATA_MSG,
+                    type: MessageIds.TERN_SCOPEDATA_MSG,
                     file: _getNormalizedFilename(fileInfo.name),
-                    start: start,
-                    end: end,
-                    scope: scope,
+                    offset: offset,
+                    scope: scope
                 });
             }
         });
@@ -813,10 +808,9 @@ function _requestTernServer(commandConfig) {
     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
         offset  = request.offset;
         getJumptoDef(request.fileInfo, offset);
-    } else if (type === MessageIds.TERN_EXTRACTDATA_MSG) {
-        start = request.start;
-        end = request.end;
-        getExtractData(request.fileInfo, start, end);
+    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+        offset  = request.offset;
+        getScopeData(request.fileInfo, offset);
     } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
         handleAddFiles(request.files);
     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {

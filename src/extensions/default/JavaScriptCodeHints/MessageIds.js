@@ -30,7 +30,7 @@ define(function (require, exports, module) {
         TERN_JUMPTODEF_MSG          = "JumptoDef",
         TERN_COMPLETIONS_MSG        = "Completions",
         TERN_GET_FILE_MSG           = "GetFile",
-        TERN_EXTRACTDATA_MSG        = "ExtractData",
+        TERN_SCOPEDATA_MSG          = "ScopeData",
         TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
         TERN_PRIME_PUMP_MSG         = "PrimePump",
         TERN_GET_GUESSES_MSG        = "GetGuesses",
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
     exports.TERN_COMPLETIONS_MSG        = TERN_COMPLETIONS_MSG;
     exports.TERN_INIT_MSG               = TERN_INIT_MSG;
     exports.TERN_GET_FILE_MSG           = TERN_GET_FILE_MSG;
-    exports.TERN_EXTRACTDATA_MSG        = TERN_EXTRACTDATA_MSG;
+    exports.TERN_SCOPEDATA_MSG          = TERN_SCOPEDATA_MSG;
     exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
     exports.TERN_PRIME_PUMP_MSG         = TERN_PRIME_PUMP_MSG;
     exports.TERN_GET_GUESSES_MSG        = TERN_GET_GUESSES_MSG;

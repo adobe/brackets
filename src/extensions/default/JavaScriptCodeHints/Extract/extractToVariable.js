@@ -488,8 +488,8 @@ define(function(require, exports, module) {
         return scopes;
     }
 
-    function getExtractData(start, end) { 
-        var response = ScopeManager.requestExtractData(session, start, end);
+    function getScopeData(offset) { 
+        var response = ScopeManager.requestScopeData(session, offset);
         var doc = session.editor.document;
 
         var result = new $.Deferred;
@@ -549,7 +549,7 @@ define(function(require, exports, module) {
         var start = retObj.start;
         var end = retObj.end;
 
-        getExtractData(start, end).done(function() {
+        getScopeData(start).done(function() {
             var expns = [],
             parentStatement,
             parentBlockStatement,
@@ -602,7 +602,7 @@ define(function(require, exports, module) {
         var start = retObj.start;
         var end = retObj.end;
 
-        getExtractData(start, end).done(function() {
+        getScopeData(start).done(function() {
             var isExpression = false;
             if (!checkStatement(start, end)) {
                 isExpression = getSingleExpression(start, end);
