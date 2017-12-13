@@ -50,6 +50,10 @@ define(function (require, exports, module) {
             $item.find("a").addClass("highlight");
             ViewUtils.scrollElementIntoView($view, $item, false);
         }
+
+        if (this.handleHover) {
+            this.handleHover(this.items[index].id);
+        }
     };
 
     InlineMenu.prototype._buildListView = function (items) {
@@ -298,6 +302,10 @@ define(function (require, exports, module) {
 
     InlineMenu.prototype.onSelect = function (callback) {
         this.handleSelect = callback;
+    };
+
+    InlineMenu.prototype.onHover = function (callback) {
+        this.handleHover = callback;
     };
 
     InlineMenu.prototype.onClose = function (callback) {

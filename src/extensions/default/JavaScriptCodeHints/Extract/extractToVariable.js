@@ -622,6 +622,10 @@ define(function(require, exports, module) {
 
                 var inlineMenu = new InlineMenu(session.editor, "Select expresion");
 
+                inlineMenu.onHover(function (expnId) {
+                    session.editor.setSelection(posFromIndex(expns[expnId].start), posFromIndex(expns[expnId].end));
+                });
+
                 inlineMenu.open(expns);
 
                 inlineMenu.onSelect(function (expnId) {
