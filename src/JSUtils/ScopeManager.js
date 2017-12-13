@@ -31,27 +31,27 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = brackets.getModule("thirdparty/lodash");
+    var _ = require("thirdparty/lodash");
 
-    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
-        DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
-        Dialogs             = brackets.getModule("widgets/Dialogs"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        FileSystem          = brackets.getModule("filesystem/FileSystem"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
-        Strings             = brackets.getModule("strings"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        NodeDomain          = brackets.getModule("utils/NodeDomain"),
-        InMemoryFile        = brackets.getModule("document/InMemoryFile");
+    var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
+        Dialogs             = require("widgets/Dialogs"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        ExtensionUtils      = require("utils/ExtensionUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        LanguageManager     = require("language/LanguageManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        ProjectManager      = require("project/ProjectManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        NodeDomain          = require("utils/NodeDomain"),
+        InMemoryFile        = require("document/InMemoryFile");
 
-    var HintUtils           = require("HintUtils"),
-        MessageIds          = require("MessageIds"),
-        Preferences         = require("Preferences");
+    var HintUtils           = require("./HintUtils"),
+        MessageIds          = require("./MessageIds"),
+        Preferences         = require("./Preferences");
 
     var ternEnvironment     = [],
         pendingTernRequests = {},
@@ -64,9 +64,11 @@ define(function (require, exports, module) {
         preferences         = null,
         deferredPreferences = null;
     
-    var _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
-        _nodePath       = "node/TernNodeDomain",
-        _domainPath     = [_modulePath, _nodePath].join("/");
+    var _bracketsPath       = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath         = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath           = "node/TernNodeDomain",
+        _absoluteModulePath = [_bracketsPath, _modulePath].join("/"),
+        _domainPath         = [_bracketsPath, _modulePath, _nodePath].join("/");
     
     
     var MAX_HINTS           = 30,  // how often to reset the tern server
@@ -89,7 +91,7 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = ExtensionUtils.getModulePath(module, "node/node_modules/tern/defs/"),
+        var path = [_absoluteModulePath, "node/node_modules/tern/defs/"].join("/"),
             files = builtinFiles,
             library;
 

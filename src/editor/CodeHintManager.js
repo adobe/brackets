@@ -249,7 +249,6 @@ define(function (require, exports, module) {
         codeHintsEnabled = true,
         codeHintOpened   = false;
 
-
     PreferencesManager.definePreference("showCodeHints", "boolean", true, {
         description: Strings.DESCRIPTION_SHOW_CODE_HINTS
     });

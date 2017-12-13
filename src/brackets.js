@@ -150,6 +150,10 @@ define(function (require, exports, module) {
     require("search/FindInFilesUI");
     require("search/FindReplace");
 
+    //Load common JS module
+    require("JSUtils/Session");
+    require("JSUtils/ScopeManager");
+
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
