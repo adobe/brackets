@@ -423,17 +423,31 @@ define(function(require, exports, module) {
     function getExpressions(start, end) { 
         var expns = [];
 
-        start = indexFromPos(start);
-        end = indexFromPos(end);
+        var pstart = indexFromPos(start);
+        var pend = indexFromPos(end);
 
         while (true) {
-            var foundNode = ASTWalker.findNodeAround(data.ast, start, function(nodeType, node) {
-                return nodeType === "Expression" && node.end >= end;
+            var foundNode = ASTWalker.findNodeAround(data.ast, pstart, function(nodeType, node) {
+                return nodeType === "Expression" && node.end >= pend;
             });
             if (!foundNode) break;
             var expn = foundNode.node;
             expns.push(expn);
-            start = expn.start - 1;
+            pstart = expn.start - 1;
+        }
+
+
+        pstart = indexFromPos(start);
+        pend = indexFromPos(end);
+
+        while (true) {
+            var foundNode = ASTWalker.findNodeAround(data.ast, pstart, function(nodeType, node) {
+                return nodeType === "Expression" && node.end >= pend;
+            });
+            if (!foundNode) break;
+            var expn = foundNode.node;
+            expns.push(expn);
+            pend = expn.end + 1; 
         }
 
         return expns;
@@ -538,6 +552,30 @@ define(function(require, exports, module) {
         foundNode1.node.end <= end && foundNode2.node.start >= start &&
         foundNode2.node.end === end;
     }
+    
+    function extractExpressionToVariable(start, end, text) {
+        var parentExpn = getSingleExpression(start, end);
+        var parentBlockStatement, parentStatement;
+        var doc = session.editor.document;
+        var expns = [];
+
+        if (!parentExpn) {
+            session.editor.displayErrorMessageAtCursor(EXTRACTVARIABLE_ERR_MSG);
+            return;
+        }
+
+        // Find all expressions only if selected expn is not a subexpression
+        // In case of subexpressions, ast cannot be used to find all expressions
+        if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
+            parentBlockStatement = findParentBlockStatement(parentExpn);
+            expns = findAllExpressions(parentBlockStatement, parentExpn, text);
+            parentStatement = findParentStatement(expns[0]);
+            extractToVariable(data.scope, parentStatement, expns, text);
+        } else {
+            parentStatement = findParentStatement(parentExpn);
+            extractToVariable(data.scope, parentStatement, [{ start: indexFromPos(start), end: indexFromPos(end) }], text);
+        }
+    }
 
     function handleExtractToVariable() {
         var selection = session.editor.getSelection();
@@ -550,43 +588,37 @@ define(function(require, exports, module) {
         var end = retObj.end;
 
         getScopeData(start).done(function() {
-            var expns = [],
-            parentStatement,
-            parentBlockStatement,
-            parentExpn;
+            var expns = [];
 
             if (editor.hasSelection()) {
-                parentExpn = getSingleExpression(start, end);
-
-                if (!parentExpn) {
-                    session.editor.displayErrorMessageAtCursor(EXTRACTVARIABLE_ERR_MSG);
-                    return;
-                }
-
-                // Find all expressions only if selected expn is not a subexpression
-                // In case of subexpressions, ast cannot be used to find all expressions
-                if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
-                    parentBlockStatement = findParentBlockStatement(parentExpn);
-                    expns = findAllExpressions(parentBlockStatement, parentExpn, text);
-                    parentStatement = findParentStatement(expns[0]);
-                    extractToVariable(data.scope, parentStatement, expns, text);
-                } else {
-                    parentStatement = findParentStatement(parentExpn);
-                    extractToVariable(data.scope, parentStatement, [{start: indexFromPos(start), end: indexFromPos(end)}], text);
-                }
+                extractExpressionToVariable(start, end, text);
 
             } else {
-                expns = getExpressions(start, end);
-                if (expns && expns.length) {
-                    parentExpn = expns[0];
-                    var x = expns.map(function(expn) {return doc.getText().substr(expn.start, expn.end - expn.start)});
-                    for (var i = 0; i < x.length; ++i) {
-                        console.log(i, x[i]);
-                    }
-                } else {
+                expns = getExpressions(start, end).filter(function(expn) {
+                    return numLines(doc.getText().substr(expn.start, expn.end - expn.start)) === 1;
+                });
+
+                if (!expns || !expns.length) {
                     session.editor.displayErrorMessageAtCursor(EXTRACTVARIABLE_ERR_MSG);
                     return;
                 }
+                expns.forEach(function(expn, index) {
+                    expn.id = index;
+                    expn.name = doc.getText().substr(expn.start, expn.end - expn.start);
+                });
+
+
+                
+                var widget = new Widget(session.editor, "Select expresion");
+
+                widget.open(expns);
+
+                widget.onSelect(function (expnId) {
+                    extractExpressionToVariable(posFromIndex(expns[expnId].start), posFromIndex(expns[expnId].end), expns[expnId].name);
+                    widget.close();
+                });
+
+                widget.onClose(function () { });
             }
         }).fail(function() {
             session.editor.displayErrorMessageAtCursor(TERN_FAILED);
@@ -613,7 +645,7 @@ define(function(require, exports, module) {
             }
             scopes = findScopes();
 
-            var widget = new Widget(session.editor);
+            var widget = new Widget(session.editor, "Choose destination scope");
 
             widget.open(scopes.filter(isFnScope));
 
