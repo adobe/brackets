@@ -446,8 +446,11 @@ define(function(require, exports, module) {
             });
             if (!foundNode) break;
             var expn = foundNode.node;
-            expns.push(expn);
             pend = expn.end + 1; 
+            if (expns.find(function(e) {
+                return e.start === expn.start && e.end === expn.end;
+            })) continue;
+            expns.push(expn);
         }
 
         return expns;
