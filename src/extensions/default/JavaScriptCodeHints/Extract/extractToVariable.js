@@ -35,7 +35,7 @@ define(function(require, exports, module) {
         Dialogs             = brackets.getModule("widgets/Dialogs"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
-        InlineMenu          = require("./widget").InlineMenu,
+        InlineMenu          = require("./InlineMenu").InlineMenu,
         ScopeManager        = require("../ScopeManager");
 
 
