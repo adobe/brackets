@@ -35,7 +35,7 @@ define(function(require, exports, module) {
         Dialogs             = brackets.getModule("widgets/Dialogs"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
-        Widget              = require("./widget").Widget,
+        InlineMenu          = require("./widget").InlineMenu,
         ScopeManager        = require("../ScopeManager");
 
 
@@ -620,16 +620,16 @@ define(function(require, exports, module) {
                     return;
                 }
 
-                var widget = new Widget(session.editor, "Select expresion");
+                var inlineMenu = new InlineMenu(session.editor, "Select expresion");
 
-                widget.open(expns);
+                inlineMenu.open(expns);
 
-                widget.onSelect(function (expnId) {
+                inlineMenu.onSelect(function (expnId) {
                     extractExpressionToVariable(posFromIndex(expns[expnId].start), posFromIndex(expns[expnId].end), expns[expnId].name);
-                    widget.close();
+                    inlineMenu.close();
                 });
 
-                widget.onClose(function () { });
+                inlineMenu.onClose(function () { });
             }
         }).fail(function() {
             session.editor.displayErrorMessageAtCursor(TERN_FAILED);
@@ -656,16 +656,16 @@ define(function(require, exports, module) {
             }
             scopes = findScopes();
 
-            var widget = new Widget(session.editor, "Choose destination scope");
+            var inlineMenu = new InlineMenu(session.editor, "Choose destination scope");
 
-            widget.open(scopes.filter(isFnScope));
+            inlineMenu.open(scopes.filter(isFnScope));
 
-            widget.onSelect(function (scopeId) {
+            inlineMenu.onSelect(function (scopeId) {
                 extractToFunction(text, scopes[0], scopes[scopeId], start, end, isExpression);
-                widget.close();
+                inlineMenu.close();
             });
 
-            widget.onClose(function(){});
+            inlineMenu.onClose(function(){});
         }).fail(function() {
             session.editor.displayErrorMessageAtCursor(TERN_FAILED);
         });

@@ -10,17 +10,17 @@ define(function (require, exports, module) {
         PopUpManager      = brackets.getModule("widgets/PopUpManager"),
         Mustache          = brackets.getModule("thirdparty/mustache/mustache");
 
-    var WidgetHTML  = require("text!./widget-list.html");
+    var MenuHTML  = require("text!./inline-menu.html");
 
-    function Widget(editor, menuText) {
-        this.options = [];
+    function InlineMenu(editor, menuText) {
+        this.items = [];
         this.selectedIndex = -1;
         this.opened = false;
         this.editor = editor;
         this.handleSelect = null;
         this.handleClose = null;
 
-        this.$widgetMenu =
+        this.$menu =
             $("<li class='dropdown codehint-menu'></li>")
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
@@ -29,8 +29,8 @@ define(function (require, exports, module) {
         this._keydownHook = this._keydownHook.bind(this);
     }
 
-    Widget.prototype._setSelectedIndex = function (index) {
-        var items = this.$widgetMenu.find("li");
+    InlineMenu.prototype._setSelectedIndex = function (index) {
+        var items = this.$menu.find("li");
 
         // Range check
         index = Math.max(-1, Math.min(index, items.length - 1));
@@ -45,62 +45,61 @@ define(function (require, exports, module) {
         // Highlight the new selected item, if necessary
         if (this.selectedIndex !== -1) {
             var $item = $(items[this.selectedIndex]);
-            var $view = this.$widgetMenu.find("ul.dropdown-menu");
+            var $view = this.$menu.find("ul.dropdown-menu");
 
             $item.find("a").addClass("highlight");
             ViewUtils.scrollElementIntoView($view, $item, false);
         }
     };
 
-    Widget.prototype._buildListView = function (options) {
+    InlineMenu.prototype._buildListView = function (items) {
         var self            = this,
-            view            = { options: [] },
-            _addHint;
+            view            = { items: [] },
+            _addItem;
 
-        this.options = options;
+        this.items = items;
 
-        _addHint = function (option) {
-            view.options.push({ formattedOption: "<span>" + option.name + "</span>"});
+        _addItem = function (item) {
+            view.items.push({ formattedItem: "<span>" + item.name + "</span>"});
         };
 
         // clear the list
-        this.$widgetMenu.find("li").remove();
+        this.$menu.find("li").remove();
 
-        // if there are no hints then close the list; otherwise add them and
+        // if there are no items then close the list; otherwise add them and
         // set the selection
-        if (this.options.length === 0) {
+        if (this.items.length === 0) {
             if (this.handleClose) {
                 this.handleClose();
             }
         } else {
-            this.options.some(function (item, index) {
-                _addHint(item);
+            this.items.some(function (item, index) {
+                _addItem(item);
             });
 
-            // render code hint list
-            var $ul = this.$widgetMenu.find("ul.dropdown-menu"),
+            var $ul = this.$menu.find("ul.dropdown-menu"),
                 $parent = $ul.parent();
 
-            $ul.remove().append(Mustache.render(WidgetHTML, view));
+            $ul.remove().append(Mustache.render(MenuHTML, view));
 
             $ul.children("li").each(function (index, element) {
-                var option      = self.options[index],
+                var item      = self.items[index],
                     $element    = $(element);
 
-                $element.data("optionid", option.id);
+                $element.data("itemid", item.id);
             });
 
             $ul.on("click", "li", function (e) {
                 e.stopPropagation();
                 if (self.handleSelect) {
-                    self.handleSelect($(this).data("optionid"));
+                    self.handleSelect($(this).data("itemid"));
                 }
             });
 
             $ul.on("mouseover", "li", function (e) {
                 e.stopPropagation();
-                self._setSelectedIndex(self.options.findIndex(function(element) {
-                    return element.id === $(e.currentTarget).data("optionid");
+                self._setSelectedIndex(self.items.findIndex(function(element) {
+                    return element.id === $(e.currentTarget).data("itemid");
                 }));
             });
 
@@ -110,13 +109,13 @@ define(function (require, exports, module) {
         }
     };
 
-    Widget.prototype._calcHintListLocation = function () {
+    InlineMenu.prototype._calcMenuLocation = function () {
         var cursor      = this.editor._codeMirror.cursorCoords(),
             posTop      = cursor.bottom,
             posLeft     = cursor.left,
             textHeight  = this.editor.getTextHeight(),
             $window     = $(window),
-            $menuWindow = this.$widgetMenu.children("ul"),
+            $menuWindow = this.$menu.children("ul"),
             menuHeight  = $menuWindow.outerHeight();
 
         var bottomOverhang = posTop + menuHeight - $window.height();
@@ -137,7 +136,7 @@ define(function (require, exports, module) {
     };
 
 
-    Widget.prototype.isHandlingKeyCode = function (keyCodeOrEvent) {
+    InlineMenu.prototype.isHandlingKeyCode = function (keyCodeOrEvent) {
         var keyCode = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.keyCode : keyCodeOrEvent;
         var ctrlKey = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.ctrlKey : false;
 
@@ -150,13 +149,13 @@ define(function (require, exports, module) {
                 );
     };
 
-    Widget.prototype._keydownHook = function (event, isFakeKeydown) {
+    InlineMenu.prototype._keydownHook = function (event, isFakeKeydown) {
         var keyCode,
             self = this;
 
         // positive distance rotates down; negative distance rotates up
         function _rotateSelection(distance) {
-            var len = self.options.length,
+            var len = self.items.length,
                 pos;
 
             if (self.selectedIndex < 0) {
@@ -189,8 +188,8 @@ define(function (require, exports, module) {
         // Calculate the number of items per scroll page.
         function _itemsPerPage() {
             var itemsPerPage = 1,
-                $items = self.$widgetMenu.find("li"),
-                $view = self.$widgetMenu.find("ul.dropdown-menu"),
+                $items = self.$menu.find("li"),
+                $view = self.$menu.find("ul.dropdown-menu"),
                 itemHeight;
 
             if ($items.length !== 0) {
@@ -241,7 +240,7 @@ define(function (require, exports, module) {
                     (keyCode === KeyEvent.DOM_VK_RETURN ||
                     (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab))) {
 
-                $(this.$widgetMenu.find("li")[this.selectedIndex]).trigger("click");
+                $(this.$menu.find("li")[this.selectedIndex]).trigger("click");
             } else {
                 return false;
             }
@@ -254,56 +253,56 @@ define(function (require, exports, module) {
         return false;
     };
 
-    Widget.prototype.isOpen = function () {
-        if (this.opened && !this.$widgetMenu.hasClass("open")) {
+    InlineMenu.prototype.isOpen = function () {
+        if (this.opened && !this.$menu.hasClass("open")) {
             this.opened = false;
         }
 
         return this.opened;
     };
 
-    Widget.prototype.open = function (options) {
+    InlineMenu.prototype.open = function (items) {
         Menus.closeAll();
 
-        this._buildListView(options);
+        this._buildListView(items);
 
-        if (this.options.length) {
+        if (this.items.length) {
             // Need to add the menu to the DOM before trying to calculate its ideal location.
-            $("#widget-menu-bar > ul").append(this.$widgetMenu);
+            $("#widget-menu-bar > ul").append(this.$menu);
 
-            var hintPos = this._calcHintListLocation();
+            var menuPos = this._calcMenuLocation();
 
-            this.$widgetMenu.addClass("open")
-                .css({"left": hintPos.left, "top": hintPos.top, "width": hintPos.width + "px"});
+            this.$menu.addClass("open")
+                .css({"left": menuPos.left, "top": menuPos.top, "width": menuPos.width + "px"});
             this.opened = true;
 
             KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
         }
     };
 
-    Widget.prototype.callMoveUp = function (event) {
+    InlineMenu.prototype.callMoveUp = function (event) {
         this._keydownHook(event, true);
     };
 
-    Widget.prototype.close = function () {
+    InlineMenu.prototype.close = function () {
         this.opened = false;
 
-        if (this.$widgetMenu) {
-            this.$widgetMenu.removeClass("open");
-            PopUpManager.removePopUp(this.$widgetMenu);
-            this.$widgetMenu.remove();
+        if (this.$menu) {
+            this.$menu.removeClass("open");
+            PopUpManager.removePopUp(this.$menu);
+            this.$menu.remove();
         }
 
         KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };
 
-    Widget.prototype.onSelect = function (callback) {
+    InlineMenu.prototype.onSelect = function (callback) {
         this.handleSelect = callback;
     };
 
-    Widget.prototype.onClose = function (callback) {
+    InlineMenu.prototype.onClose = function (callback) {
         this.handleClose = callback;
     };
 
-    exports.Widget = Widget;
+    exports.InlineMenu = InlineMenu;
 });
