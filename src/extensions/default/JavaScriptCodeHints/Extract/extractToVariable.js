@@ -682,12 +682,12 @@ define(function(require, exports, module) {
     function addCommands() {
         // Extract To Variable
         CommandManager.register("Extract To Variable", "refactoring.extractToVariable", handleExtractToVariable);
-        KeyBindingManager.addBinding("refactoring.extractToVariable", "Ctrl-Alt-V");
+        KeyBindingManager.addBinding("refactoring.extractToVariable", "Ctrl-Shift-V");
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extractToVariable");
 
         // Extract To Function
         CommandManager.register("Extract To Function", "refactoring.extractToFunction", handleExtractToFunction);
-        KeyBindingManager.addBinding("refactoring.extractToFunction", "Ctrl-Alt-M");
+        KeyBindingManager.addBinding("refactoring.extractToFunction", "Ctrl-Shift-M");
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extractToFunction");
     }
 
