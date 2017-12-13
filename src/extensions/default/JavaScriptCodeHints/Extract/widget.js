@@ -97,6 +97,13 @@ define(function (require, exports, module) {
                 }
             });
 
+            $ul.on("mouseover", "li", function (e) {
+                e.stopPropagation();
+                self._setSelectedIndex(self.options.findIndex(function(element) {
+                    return element.id === $(e.currentTarget).data("optionid");
+                }));
+            });
+
             $parent.append($ul);
 
             this._setSelectedIndex(0);
