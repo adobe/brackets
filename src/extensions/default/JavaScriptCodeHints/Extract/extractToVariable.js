@@ -179,7 +179,7 @@ define(function(require, exports, module) {
             });
 
             session.editor.setSelections(selections);
-            session.editor._codeMirror.indentLine(posToIndent.line, "prev");
+            session.editor._codeMirror.indentLine(posToIndent.line, "smart");
         });
     }
 
@@ -597,21 +597,29 @@ define(function(require, exports, module) {
                 extractExpressionToVariable(start, end, text);
 
             } else {
-                expns = getExpressions(start, end).filter(function(expn) {
-                    return numLines(doc.getText().substr(expn.start, expn.end - expn.start)) === 1;
-                });
+                expns = getExpressions(start, end);
 
-                if (!expns || !expns.length) {
-                    session.editor.displayErrorMessageAtCursor(EXTRACTVARIABLE_ERR_MSG);
-                    return;
-                }
                 expns.forEach(function(expn, index) {
-                    expn.id = index;
                     expn.name = doc.getText().substr(expn.start, expn.end - expn.start);
                 });
 
 
+                // Filter expns which span multiple lines and sort expressions by their length
+                expns = expns.filter(function(expn) {
+                    return numLines(expn.name) === 1;
+                }).sort(function(a, b) {
+                    return a.name.length >= b.name.length;
+                });
+
+                expns.forEach(function(expn, index) {
+                    expn.id = index;
+                });
                 
+                if (!expns || !expns.length) {
+                    session.editor.displayErrorMessageAtCursor(EXTRACTVARIABLE_ERR_MSG);
+                    return;
+                }
+
                 var widget = new Widget(session.editor, "Select expresion");
 
                 widget.open(expns);
