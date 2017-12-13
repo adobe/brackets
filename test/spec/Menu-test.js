@@ -914,6 +914,195 @@ define(function (require, exports, module) {
         });
 
 
+        describe("Context Submenus", function() {
+            var menuId, menu, subMenuId, subMenu;
+
+            function parentMenuItemDOM(menuItemId) {
+                return testWindow.$("#" + menuItemId);
+            }
+
+            function subMenuDOM(subMenuId) {
+                return testWindow.$("#" + subMenuId);
+            }
+
+            function getBounds(object) {
+                return {
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
+                };
+            }
+
+            function boundsInsideWindow(object) {
+                var bounds = getBounds(object);
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
+                       bounds.bottom <= $(testWindow).height();
+            }
+
+            it("open a context submenu", function() {
+                runs(function() {
+                    var openEvent = false;
+
+                    menuId = "context-menu-custom-openSubmenu-1";
+                    menu = Menus.registerContextMenu(menuId);
+
+                    subMenuId = "submenu-custom-openSubmenu-1";
+                    subMenu = menu.addSubMenu("submenu", subMenuId);
+
+                    CommandManager.register("Brackets Test Command Custom 56", "Menu-test.command56", function () {});
+                    subMenu.addMenuItem("Menu-test.command56");
+
+                    subMenu.on("beforeSubMenuOpen", function() {
+                        openEvent = true;
+                    });
+
+                    subMenu.open();
+
+
+                    var $submenu = testWindow.$(".dropdown.open > ul");
+                    expect($submenu.length).toBe(1);
+
+                    expect(openEvent).toBeTruthy();
+
+                    subMenu.close();
+                });
+            });
+
+            it("close a context submenu", function () {
+                runs(function() {
+                    menuId = "context-menu-custom-closeSubmenu-1";
+                    menu = Menus.registerContextMenu(menuId);
+
+                    subMenuId = "submenu-custom-closeSubmenu-1";
+                    subMenu = menu.addSubMenu("submenu", subMenuId);
+
+                    CommandManager.register("Brackets Test Command Custom 58", "Menu-test.command58", function () {});
+                    subMenu.addMenuItem("Menu-test.command58");
+
+                    subMenu.open();
+
+                    // verify dropdown is open
+                    var $submenu = testWindow.$(".dropdown.open");
+                    expect($submenu.length).toBe(1);
+
+                    // verify close event
+                    subMenu.close();
+
+                    // verify all dropdowns are closed
+                    $submenu = testWindow.$(".dropdown.open");
+                    expect($submenu.length).toBe(0);
+                });
+            });
+
+            it("context submenu is not clipped", function() {
+                runs(function() {
+                    var openEvent = false;
+
+                    menuId = "context-menu-custom-clipSubmenu-1";
+                    menu = Menus.registerContextMenu(menuId);
+
+                    subMenuId = "submenu-custom-clipSubmenu-1";
+                    subMenu = menu.addSubMenu("submenu", subMenuId);
+
+                    CommandManager.register("Brackets Test Command Custom 57", "Menu-test.command57", function () {});
+                    subMenu.addMenuItem("Menu-test.command57");
+
+                    subMenu.open();
+
+                    var $submenu = testWindow.$(".dropdown.open > ul");
+                    expect(boundsInsideWindow($submenu)).toBeTruthy();
+                });
+            });
+
+            describe("Add a context submenu", function() {
+                it("should add new context submenu", function() {
+                    runs(function() {
+                        menuId = "context-menu-custom-addSubmenu-1";
+                        menu = Menus.registerContextMenu(menuId);
+
+                        subMenuId = "submenu-custom-addSubmenu-1";
+                        subMenu = menu.addSubMenu("submenu", subMenuId);
+
+                        expect(subMenu).toBeTruthy();
+                        expect(subMenu.parentMenuItem).toBeTruthy();
+
+                        // check if new submenu is empty
+                        var children = testWindow.$("#submenu-custom-addSubmenu-1 > ul").children();
+                        expect(children.length).toBe(0);
+                    });
+                });
+                it("should not add duplicate context submenu", function() {
+                    runs(function() {
+                        menuId = "context-menu-custom-addSubmenu-2";
+                        menu = Menus.registerContextMenu(menuId);
+
+                        subMenuId = "submenu-custom-addSubmenu-2";
+                        subMenu = menu.addSubMenu("submenu", subMenuId);
+
+                        expect(subMenu).toBeTruthy();
+                        expect(subMenu.parentMenuItem).toBeTruthy();
+
+                        var subMenu2 = menu.addSubMenu("submenu", subMenuId);
+
+                        expect(subMenu2).toBeFalsy();
+                        expect(subMenu2).toBeNull();
+                    });
+                });
+            });
+
+            describe("Remove a context submenu", function() {
+                it("should add then remove new submenu to empty menu", function () {
+                    runs(function () {
+                        menuId = "context-menu-custom-removeSubmenu-1";
+                        menu = Menus.registerContextMenu(menuId);
+
+                        subMenuId = "submenu-custom-removeSubmenu-1";
+                        subMenu = menu.addSubMenu("submenu", subMenuId);
+                        expect(subMenu).toBeTruthy();
+                        expect(subMenu.parentMenuItem).toBeTruthy();
+
+                        var $subMenu = subMenuDOM(subMenuId);
+                        expect($subMenu.length).toBe(1);
+
+                        var $parentMenuItem = parentMenuItemDOM(subMenu.parentMenuItem.id);
+                        expect($parentMenuItem.length).toBe(1);
+
+                        menu.removeSubMenu(subMenuId);
+                        $subMenu = subMenuDOM(subMenuId);
+                        expect($subMenu.length).toBe(0);
+
+                        $parentMenuItem = parentMenuItemDOM(subMenu.parentMenuItem.id);
+                        expect($parentMenuItem.length).toBe(0);
+                    });
+                });
+
+                it("should gracefully handle someone trying to remove a submenu that doesn't exist", function () {
+                    runs(function () {
+                        menuId = "context-menu-custom-removeSubmenu-2";
+                        menu = Menus.registerContextMenu(menuId);
+
+                        subMenuId = "Menu-test";
+
+                        menu.removeSubMenu(subMenuId);
+                        expect(menu).toBeTruthy();
+                    });
+                });
+
+                it("should gracefully handle someone trying to remove a submenu without supplying the id", function () {
+                    runs(function () {
+                        menuId = "context-menu-custom-removeSubmenu-3";
+                        menu = Menus.registerContextMenu(menuId);
+
+                        menu.removeSubMenu();
+                        expect(menu).toBeTruthy();
+                    });
+                });
+            });
+        });
+
         describe("Menu Item synchronizing", function () {
 
             it("should have same state as command", function () {
@@ -1109,6 +1298,9 @@ define(function (require, exports, module) {
 
                 // verify close event
                 cmenu.close();
+
+                // verify context submenus are closed
+                expect(cmenu.openSubMenu).toBeFalsy();
 
                 // verify all dropdowns are closed
                 $menus = testWindow.$(".dropdown.open");
