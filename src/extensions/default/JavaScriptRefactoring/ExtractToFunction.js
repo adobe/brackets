@@ -59,13 +59,14 @@ define(function(require, exports, module) {
      *          varaibleDeclarations: {} // variable-name: kind
      * }}
      */
-    function analyzeCode(ast, text, scopes, srcScope, destScope, start, end) {
+    function analyzeCode(text, scopes, srcScope, destScope, start, end) {
         var identifiers          = {},
             inThisScope          = {},
             thisPointerUsed      = false,
             variableDeclarations = {},
             changedValues        = {},
             dependentValues      = {},
+            ast                  = Acorn.parse_dammit(text, { ecmaVersion: 9}),
             doc                  = session.editor.document,
             restScopeStr;
 
@@ -137,7 +138,7 @@ define(function(require, exports, module) {
      * and multi select function names
      */
     function extract(ast, text, scopes, srcScope, destScope, start, end, isExpression) {
-        var retObj               = analyzeCode(ast, text, scopes, srcScope, destScope, start, end),
+        var retObj               = analyzeCode(text, scopes, srcScope, destScope, start, end),
             passParams           = retObj.passParams,
             retParams            = retObj.retParams,
             thisPointerUsed      = retObj.thisPointerUsed,
