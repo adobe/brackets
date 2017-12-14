@@ -41,7 +41,7 @@ define(function(require, exports, module) {
         EXTRACTVARIABLE_ERR_MSG = "Selection does not form an expression";
 
     /*
-     * Does the actual extraction. i.e Replacing the text, Creating a variable 
+     * Does the actual extraction. i.e Replacing the text, Creating a variable
      * and multi select variable names
      */
     function extract(scope, parentStatement, expns, text) {
@@ -65,10 +65,10 @@ define(function(require, exports, module) {
 
         // adjust pos for change
         for (var i = replaceExpnIndex; i < expns.length; ++i) {
-            expns[i].start = session.editor.posFromIndex(expns[i].start);
-            expns[i].end = session.editor.posFromIndex(expns[i].end);
-            expns[i].start = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
-            expns[i].end = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+            expns[i].start  = session.editor.posFromIndex(expns[i].start);
+            expns[i].end    = session.editor.posFromIndex(expns[i].end);
+            expns[i].start  = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+            expns[i].end    = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
             selections.push({
                 start: expns[i].start,
@@ -85,7 +85,7 @@ define(function(require, exports, module) {
             }
             selections.push({
                 start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
-                end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
+                end:   {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
                 primary: true
             });
 
@@ -160,7 +160,7 @@ define(function(require, exports, module) {
     }
 
     /*
-     * Creates params needed for extraction and calls extract 
+     * Creates params needed for extraction and calls extract
      * extract() does the actual extraction
      */
     function extractToVariable(ast, start, end, text, scope) {
@@ -179,8 +179,8 @@ define(function(require, exports, module) {
         // In case of subexpressions, ast cannot be used to find all expressions
         if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
             parentBlockStatement = RefactoringUtils.findSurroundASTNode(ast, parentExpn, ["BlockStatement", "Program"]);
-            expns = findAllExpressions(parentBlockStatement, parentExpn, text);
-            parentStatement = RefactoringUtils.findSurroundASTNode(ast, expns[0], ["Statement"]);
+            expns                = findAllExpressions(parentBlockStatement, parentExpn, text);
+            parentStatement      = RefactoringUtils.findSurroundASTNode(ast, expns[0], ["Statement"]);
             extract(scope, parentStatement, expns, text);
         } else {
             parentStatement = RefactoringUtils.findSurroundASTNode(ast, parentExpn, ["Statement"]);

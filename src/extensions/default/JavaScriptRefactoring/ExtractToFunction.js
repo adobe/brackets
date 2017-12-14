@@ -47,7 +47,7 @@ define(function(require, exports, module) {
     /*
      * Analyzes the code and finds values required for extract to function
      * @param {!string} text - text to be extracted
-     * @param {!Array.<Scope>} - scopes 
+     * @param {!Array.<Scope>} - scopes
      * @param {!Scope} srcScope - source scope of the extraction
      * @param {!Scope} destScope - destination scope of the extraction
      * @param {!number} start - the start offset
@@ -60,15 +60,15 @@ define(function(require, exports, module) {
      * }}
      */
     function analyzeCode(text, scopes, srcScope, destScope, start, end) {
-        var identifiers = {},
-            inThisScope = {},
-            thisPointerUsed = false,
+        var identifiers          = {},
+            inThisScope          = {},
+            thisPointerUsed      = false,
             variableDeclarations = {},
-            changedValues = {},
-            dependentValues = {},
-            restScopeStr,
-            doc = session.editor.document,
-            ast = Acorn.parse_dammit(text, { ecmaVersion: 9 });
+            changedValues        = {},
+            dependentValues      = {},
+            doc                  = session.editor.document,
+            ast                  = Acorn.parse_dammit(text, { ecmaVersion: 9 }),
+            restScopeStr;
 
         ASTWalker.full(ast, function(node) {
             var value, name;
@@ -126,28 +126,11 @@ define(function(require, exports, module) {
         }, []);
 
         return {
-            passParams: _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props),
-            retParams: _.intersection( _.keys(changedValues), _.keys(dependentValues), props),
-            thisPointerUsed: thisPointerUsed,
+            passParams:           _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props),
+            retParams:            _.intersection( _.keys(changedValues), _.keys(dependentValues), props),
+            thisPointerUsed:      thisPointerUsed,
             variableDeclarations: variableDeclarations
         };
-    }
-
-    function getScopePos(scopes, destScope, initPos) {
-        var pos = _.clone(initPos);
-        var fnScopes = scopes.filter(RefactoringUtils.isFnScope);
-
-        for (var i = 0; i < fnScopes.length; ++i) {
-            if (fnScopes[i].id === destScope.id) {
-                if (fnScopes[i - 1]) {
-                     pos = session.editor.posFromIndex(fnScopes[i - 1].originNode.start);
-                }
-                break;
-            }
-        }
-
-        pos.ch = 0;
-        return pos;
     }
 
     /*
@@ -212,25 +195,36 @@ define(function(require, exports, module) {
         }
 
         start = session.editor.posFromIndex(start);
-        end = session.editor.posFromIndex(end);
+        end   = session.editor.posFromIndex(end);
 
-        var scopePos = getScopePos(scopes, destScope, start);
+        // Get the insertion pos for function declaration
+        var insertPos = _.clone(start);
+        var fnScopes = scopes.filter(RefactoringUtils.isFnScope);
 
+        for (var i = 0; i < fnScopes.length; ++i) {
+            if (fnScopes[i].id === destScope.id) {
+                if (fnScopes[i - 1]) {
+                     insertPos = session.editor.posFromIndex(fnScopes[i - 1].originNode.start);
+                }
+                break;
+            }
+        }
+        insertPos.ch = 0;
 
+        // Replace and indent
         doc.batchOperation(function() {
             doc.replaceRange(fnCall, start, end);
             session.editor.setCursorPos(start);
             for (var i = start.line; i < start.line + RefactoringUtils.numLines(fnCall); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
-            doc.replaceRange(fnDeclaration, scopePos);
-            for (var i = scopePos.line; i < scopePos.line + RefactoringUtils.numLines(fnDeclaration); ++i) {
+            doc.replaceRange(fnDeclaration, insertPos);
+            for (var i = insertPos.line; i < insertPos.line + RefactoringUtils.numLines(fnDeclaration); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
         });
 
         console.log(fnDeclaration);
-        console.log(scopePos);
         console.log(fnCall);
     }
 
@@ -245,16 +239,20 @@ define(function(require, exports, module) {
         }
         initializeSession(editor);
 
-        var selection = editor.getSelection();
-        var doc = editor.document;
-
-        var retObj = RefactoringUtils.normalizeText(editor.getSelectedText(), editor.indexFromPos(selection.start), editor.indexFromPos(selection.end));
-        var text = retObj.text;
-        var start = retObj.start;
-        var end = retObj.end;
+        var selection = editor.getSelection(),
+            doc       = editor.document,
+            retObj    = RefactoringUtils.normalizeText(editor.getSelectedText(), editor.indexFromPos(selection.start), editor.indexFromPos(selection.end)),
+            text      = retObj.text,
+            start     = retObj.start,
+            end       = retObj.end,
+            ast,
+            scopes,
+            expns,
+            inlineMenu;
 
         RefactoringUtils.getScopeData(session, editor.posFromIndex(start)).done(function(scope) {
-            var ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+            ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+
             var isExpression = false;
             if (!RefactoringUtils.checkStatement(ast, start, end, doc.getText())) {
                 isExpression = RefactoringUtils.getExpression(ast, start, end, doc.getText());
@@ -263,9 +261,9 @@ define(function(require, exports, module) {
                     return;
                 }
             }
-            var scopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText());
+            scopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText());
 
-            var inlineMenu = new InlineMenu(editor, "Choose destination scope");
+            inlineMenu = new InlineMenu(editor, "Choose destination scope");
 
             inlineMenu.open(scopes.filter(RefactoringUtils.isFnScope));
 
