@@ -21,7 +21,6 @@
  *
  */
 
-
 /**
  * Initializes the global "brackets" variable and it's properties.
  * Modules should not access the global.brackets object until either
@@ -45,7 +44,7 @@ define(function (require, exports, module) {
 
         // Earlier this initialization was happening inside appshell_extensions.js. But
         // since the newer CEF versions have stronger JS checks render process was crashing
-        // siting JS eval error. So moved the initialization from
+        // citing JS eval error. So moved the initialization from
         // https://github.com/adobe/brackets-shell/blob/908ed1503995c1b5ae013473c4b181a9aa64fd22/appshell/appshell_extensions.js#L945
         // to here.
         if (global.appshell) {
