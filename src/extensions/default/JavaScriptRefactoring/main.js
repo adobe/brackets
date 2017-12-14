@@ -31,9 +31,11 @@ define(function (require, exports, module) {
         
 
     var MessageIds           = brackets.getModule("JSUtils/MessageIds"),
-        RenameIdentifier     = require("RenameIdentifier");
-    
-    
+        RenameIdentifier     = require("RenameIdentifier"),
+        ExtractToVariable    = require("ExtractToVariable"),
+        ExtractToFunction    = require("ExtractToFunction");
+
+
     var refactorRename          = "javascript.renamereference",
         editor;
 
@@ -65,4 +67,7 @@ define(function (require, exports, module) {
 
     Menus.getMenu(menuLocation).addMenuDivider();
     Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
+
+    ExtractToVariable.addCommands();
+    ExtractToFunction.addCommands();
 });

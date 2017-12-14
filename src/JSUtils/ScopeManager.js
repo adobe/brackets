@@ -442,6 +442,17 @@ define(function (require, exports, module) {
         }
     }
 
+    function handleScopeData(response) {
+        var file = response.file,
+            offset = response.offset;
+
+        var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_SCOPEDATA_MSG);
+
+        if ($deferredJump) {
+            $deferredJump.resolveWith(null, [response]);
+        }
+    }
+
     /**
      * Get a Promise for the completions from TernJS, for the file & offset passed in.
      *
@@ -1114,6 +1125,8 @@ define(function (require, exports, module) {
                         handleTernGetFile(response);
                     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
                         handleJumptoDef(response);
+                    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+                        handleScopeData(response);
                     } else if (type === MessageIds.TERN_REFS) {
                         handleRename(response);
                     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {

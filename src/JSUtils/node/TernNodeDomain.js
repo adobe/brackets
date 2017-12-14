@@ -32,6 +32,7 @@
 var config = {};
 var _domainManager;
 var MessageIds;
+var ternOptions;
 var self = {
     postMessage: function (data) {
         _domainManager.emitEvent("TernNodeDomain", "data", [data]);
@@ -150,7 +151,7 @@ function getFile(name, next) {
  * @param {Array.<string>} files - a list of filenames tern should be aware of
  */
 function initTernServer(env, files) {
-    var ternOptions = {
+    ternOptions = {
         defs: env,
         async: true,
         getFile: getFile,
@@ -273,6 +274,68 @@ function buildRequest(fileInfo, query, offset) {
         _reportError(e, fileInfo.name);
     }
 }
+
+function getScopeData(fileInfo, offset) {
+    // Create a new tern Server
+    // Existing tern server resolves all the required modules which might take time
+    // We only need to analyze single file for getting the scope
+    ternOptions.plugins = {};
+    var ternServer = new Tern.Server(ternOptions);
+    ternServer.addFile(fileInfo.name, fileInfo.text);
+
+    var error;
+    var request = buildRequest(fileInfo, "completions", offset); // for primepump
+
+    try {
+        // primepump
+        ternServer.request(request, function (ternError, data) {
+            if (ternError) {
+                _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + ternError);
+                error = ternError.toString();
+            } else {
+                var file = ternServer.findFile(fileInfo.name);
+                var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, offset), file.scope);
+
+                if (scope) {
+                    scope = JSON.parse(JSON.stringify(scope, function(key, value) {
+                        if (["proto", "propertyOf", "onNewProp", "sourceFile", "maybeProps"].includes(key)) {
+                            return undefined;
+                        }
+                        else if (key == "fnType") {
+                             return value.name || "FunctionExpression";
+                        }
+                        else if (key == "props") {
+                            for (var key in value) {
+                                value[key] = value[key].propertyName;
+                            }
+                            return value;
+                        } else if (key == "originNode") {
+                            return value && {
+                                start: value.start,
+                                end: value.end
+                            };
+                        }
+
+                        return value;
+                    }));
+                }
+
+                self.postMessage({
+                    type: MessageIds.TERN_SCOPEDATA_MSG,
+                    file: _getNormalizedFilename(fileInfo.name),
+                    offset: offset,
+                    scope: scope
+                });
+            }
+        });
+    } catch (e) {
+        _reportError(e, path);
+    } finally {
+        ternServer.reset();
+        Infer.resetGuessing();
+    }
+}
+
 
 /**
  * Get definition location
@@ -783,6 +846,9 @@ function _requestTernServer(commandConfig) {
     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
         offset  = request.offset;
         getJumptoDef(request.fileInfo, offset);
+    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+        offset  = request.offset;
+        getScopeData(request.fileInfo, offset);
     } else if (type === MessageIds.TERN_REFS) {
         offset  = request.offset;
         getRefs(request.fileInfo, offset);

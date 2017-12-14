@@ -1,0 +1,19 @@
+{
+    "functionCall": {
+        "thisPointer": "{0}.call({1})",
+        "normal": "{0}({1})",
+        "class": "this.{0}({1})"
+    },
+
+    "functionDeclaration": {
+        "class" : "{0}({1}) {\n {2} \n}\n\n",
+        "normal": "function {0}({1}) {\n {2} \n}\n\n"
+    },
+
+    "returnStatement": {
+        "single": "return {0};\n",
+        "multiple": "return {{0}};\n"
+    },
+
+    "assignment": "{0} = {1};"
+}
