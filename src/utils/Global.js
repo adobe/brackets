@@ -42,11 +42,10 @@ define(function (require, exports, module) {
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
 
-        // Earlier this initialization was happening inside appshell_extensions.js. But
-        // since the newer CEF versions have stronger JS checks render process was crashing
-        // citing JS eval error. So moved the initialization from
-        // https://github.com/adobe/brackets-shell/blob/908ed1503995c1b5ae013473c4b181a9aa64fd22/appshell/appshell_extensions.js#L945
-        // to here.
+        // Earlier brackets object was initialized at 
+        // https://github.com/adobe/brackets-shell/blob/908ed1503995c1b5ae013473c4b181a9aa64fd22/appshell/appshell_extensions.js#L945.
+        // With the newer versions of CEF, the initialization was crashing the render process, citing
+        // JS eval error. So moved the brackets object initialization from appshell_extensions.js to here.
         if (global.appshell) {
             global.brackets = global.appshell;
         } else {
