@@ -21,7 +21,6 @@
  *
  */
 
- /*global appshell */
 
 /**
  * Initializes the global "brackets" variable and it's properties.
@@ -43,11 +42,14 @@ define(function (require, exports, module) {
     // inside Node for CI testing) we use this trick to get the global object.
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
+
         // Earlier this initialization was happening inside appshell_extensions.js. But
         // since the newer CEF versions have stronger JS checks render process was crashing
-        // siting JS eval error. So moved the initialization to here.
-        if (appshell) {
-            global.brackets = appshell;
+        // siting JS eval error. So moved the initialization from
+        // https://github.com/adobe/brackets-shell/blob/908ed1503995c1b5ae013473c4b181a9aa64fd22/appshell/appshell_extensions.js#L945
+        // to here.
+        if (global.appshell) {
+            global.brackets = global.appshell;
         } else {
             global.brackets = {};
         }
