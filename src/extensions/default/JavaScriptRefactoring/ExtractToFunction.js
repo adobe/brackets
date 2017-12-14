@@ -59,7 +59,7 @@ define(function(require, exports, module) {
      *          varaibleDeclarations: {} // variable-name: kind
      * }}
      */
-    function analyzeCode(text, scopes, srcScope, destScope, start, end) {
+    function analyzeCode(ast, text, scopes, srcScope, destScope, start, end) {
         var identifiers          = {},
             inThisScope          = {},
             thisPointerUsed      = false,
@@ -67,7 +67,6 @@ define(function(require, exports, module) {
             changedValues        = {},
             dependentValues      = {},
             doc                  = session.editor.document,
-            ast                  = Acorn.parse_dammit(text, { ecmaVersion: 9 }),
             restScopeStr;
 
         ASTWalker.full(ast, function(node) {
@@ -137,8 +136,8 @@ define(function(require, exports, module) {
      * Does the actual extraction. i.e Replacing the text, Creating a function
      * and multi select function names
      */
-    function extract(text, scopes, srcScope, destScope, start, end, isExpression) {
-        var retObj               = analyzeCode(text, scopes, srcScope, destScope, start, end),
+    function extract(ast, text, scopes, srcScope, destScope, start, end, isExpression) {
+        var retObj               = analyzeCode(ast, text, scopes, srcScope, destScope, start, end),
             passParams           = retObj.passParams,
             retParams            = retObj.retParams,
             thisPointerUsed      = retObj.thisPointerUsed,
@@ -211,21 +210,35 @@ define(function(require, exports, module) {
         }
         insertPos.ch = 0;
 
-        // Replace and indent
+        // Replace and multi-select and indent
         doc.batchOperation(function() {
+            // Replace
             doc.replaceRange(fnCall, start, end);
-            session.editor.setCursorPos(start);
+            doc.replaceRange(fnDeclaration, insertPos);
+
+            // Set selections
+            start = doc.adjustPosForChange(start, fnDeclaration.split("\n"), insertPos, insertPos);
+            end   = doc.adjustPosForChange(end, fnDeclaration.split("\n"), insertPos, insertPos);
+
+            session.editor.setSelections([
+                {
+                    start: session.editor.posFromIndex(session.editor.indexFromPos(start) + fnCall.indexOf(fnName)),
+                    end:   session.editor.posFromIndex(session.editor.indexFromPos(start) + fnCall.indexOf(fnName) + fnName.length)
+                },
+                {
+                    start: session.editor.posFromIndex(session.editor.indexFromPos(insertPos) + fnDeclaration.indexOf(fnName)),
+                    end:   session.editor.posFromIndex(session.editor.indexFromPos(insertPos) + fnDeclaration.indexOf(fnName) + fnName.length)
+                }
+            ]);
+
+            // indent
             for (var i = start.line; i < start.line + RefactoringUtils.numLines(fnCall); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
-            doc.replaceRange(fnDeclaration, insertPos);
             for (var i = insertPos.line; i < insertPos.line + RefactoringUtils.numLines(fnDeclaration); ++i) {
                 session.editor._codeMirror.indentLine(i, "smart");
             }
         });
-
-        console.log(fnDeclaration);
-        console.log(fnCall);
     }
 
     /*
@@ -268,7 +281,7 @@ define(function(require, exports, module) {
             inlineMenu.open(scopes.filter(RefactoringUtils.isFnScope));
 
             inlineMenu.onSelect(function (scopeId) {
-                extract(text, scopes, scopes[0], scopes[scopeId], start, end, isExpression);
+                extract(ast, text, scopes, scopes[0], scopes[scopeId], start, end, isExpression);
                 inlineMenu.close();
             });
 
