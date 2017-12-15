@@ -297,6 +297,7 @@ function getScopeData(fileInfo, offset) {
                 var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, offset), file.scope);
 
                 if (scope) {
+                    // Remove unwanted properties to remove cycles in the object
                     scope = JSON.parse(JSON.stringify(scope, function(key, value) {
                         if (["proto", "propertyOf", "onNewProp", "sourceFile", "maybeProps"].includes(key)) {
                             return undefined;
