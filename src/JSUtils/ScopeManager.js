@@ -419,6 +419,17 @@ define(function (require, exports, module) {
         }
     }
 
+    function handleScopeData(response) {
+        var file = response.file,
+            offset = response.offset;
+
+        var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_SCOPEDATA_MSG);
+
+        if ($deferredJump) {
+            $deferredJump.resolveWith(null, [response]);
+        }
+    }
+
     /**
      * Get a Promise for the completions from TernJS, for the file & offset passed in.
      *
@@ -1091,6 +1102,8 @@ define(function (require, exports, module) {
                         handleTernGetFile(response);
                     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
                         handleJumptoDef(response);
+                    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+                        handleScopeData(response);
                     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
                         handlePrimePumpCompletion(response);
                     } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
@@ -1557,5 +1570,7 @@ define(function (require, exports, module) {
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;
     exports._readyPromise = _readyPromise;
-
+    exports.filterText = filterText;
+    exports.postMessage = postMessage;
+    exports.addPendingRequest = addPendingRequest;
 });
