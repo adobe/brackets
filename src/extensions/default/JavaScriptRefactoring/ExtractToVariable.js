@@ -111,7 +111,7 @@ define(function(require, exports, module) {
             if (text === doc.getText().substr(node.start, node.end - node.start)) {
                 expns.push(node);
             }
-        }
+        };
         ASTWalker.simple(parentBlockStatement, obj);
 
         return expns;
@@ -127,10 +127,11 @@ define(function(require, exports, module) {
     function getExpressions(ast, start, end) {
         var expns = [],
             s     = start,
-            e     = end;
+            e     = end,
+            expn;
 
         while (true) {
-            var expn = RefactoringUtils.findSurroundASTNode(ast, {start: s, end: e}, ["Expression"]);
+            expn = RefactoringUtils.findSurroundASTNode(ast, {start: s, end: e}, ["Expression"]);
             if (!expn) {
                 break;
             }
@@ -141,15 +142,19 @@ define(function(require, exports, module) {
         s = start;
         e = end;
 
+        function checkExpnEquality(e) {
+            return e.start === expn.start && e.end === expn.end;
+        }
+
         while (true) {
-            var expn = RefactoringUtils.findSurroundASTNode(ast, {start: s, end: e}, ["Expression"]);
+            expn = RefactoringUtils.findSurroundASTNode(ast, {start: s, end: e}, ["Expression"]);
             if (!expn) {
                 break;
             }
             e = expn.end + 1;
 
             // if expn already added, continue
-            if (expns.find(function(e) { return e.start === expn.start && e.end === expn.end; })) {
+            if (expns.find(checkExpnEquality)) {
                  continue;
             }
 

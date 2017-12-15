@@ -53,7 +53,9 @@ define(function (require, exports, module) {
      */
     function getExpression(ast, start, end, fileText) {
         var expn = findSurroundASTNode(ast, {start: start, end: end}, ["Expression"]);
-        if (!expn) return false;
+        if (!expn) {
+             return false;
+        }
 
         // Class Expression also includes the trailing semicolon
         // Add special case for it
@@ -75,8 +77,8 @@ define(function (require, exports, module) {
         var parentExpStr = fileText.substr(parentExpn.start, parentExpn.end - parentExpn.start);
 
         // Check whether the parentExpn forms a valid expression after replacing the sub expression
-        var str = parentExpStr.substr(0, startPos - parentExpn.start) + "placeHolder" + parentExpStr.substr(endPos - parentExpn.start);
-        var node = RefactoringUtils.isStandAloneExpression(str);
+        var str = parentExpStr.substr(0, start - parentExpn.start) + "placeHolder" + parentExpStr.substr(end - parentExpn.start);
+        var node = isStandAloneExpression(str);
         if (node && node.type === parentExpn.type) {
             return parentExpn;
         }
@@ -104,7 +106,9 @@ define(function (require, exports, module) {
             }
         });
 
-        if (notStatement) return false;
+        if (notStatement) {
+             return false;
+        }
 
         var startStatement = findSurroundASTNode(ast, {start: start}, ["Statement"]);
         var endStatement   = findSurroundASTNode(ast, {start: end}, ["Statement"]);
@@ -184,7 +188,7 @@ define(function (require, exports, module) {
 
         var ternPromise = ScopeManager.addPendingRequest(fileInfo.name, offset, MessageIds.TERN_SCOPEDATA_MSG);
 
-        var result = new $.Deferred;
+        var result = new $.Deferred();
 
         ternPromise.done(function (response) {
             result.resolveWith(null, [response.scope]);

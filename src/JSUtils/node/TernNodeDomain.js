@@ -274,15 +274,15 @@ function getScopeData(fileInfo, offset) {
                         if (["proto", "propertyOf", "onNewProp", "sourceFile", "maybeProps"].includes(key)) {
                             return undefined;
                         }
-                        else if (key == "fnType") {
+                        else if (key === "fnType") {
                              return value.name || "FunctionExpression";
                         }
-                        else if (key == "props") {
+                        else if (key === "props") {
                             for (var key in value) {
                                 value[key] = value[key].propertyName;
                             }
                             return value;
-                        } else if (key == "originNode") {
+                        } else if (key === "originNode") {
                             return value && {
                                 start: value.start,
                                 end: value.end
@@ -302,7 +302,7 @@ function getScopeData(fileInfo, offset) {
             }
         });
     } catch (e) {
-        _reportError(e, path);
+        _reportError(e, fileInfo.name);
     } finally {
         ternServer.reset();
         Infer.resetGuessing();
