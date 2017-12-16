@@ -327,7 +327,7 @@ define(function (require, exports, module) {
         var currentNodeStart;
         var node = _findParentNode (ast, start);
         var childNode = ASTWalker.simple(node, {
-            Property(node) {
+            Property: function (node) {
                 currentNodeStart = node.start;
             }
         });
