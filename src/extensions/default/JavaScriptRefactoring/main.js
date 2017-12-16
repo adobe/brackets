@@ -38,6 +38,8 @@ define(function (require, exports, module) {
     var refactorRename          = "javascript.renamereference",
         refactorWrapInTryCatch  = "refactoring.wrapintrycatch",
         refactorWrapInCondition = "refactoring.wrapincondition",
+        refactorConvertToArrowFn = "refactoring.converttoarrowfunction",
+        refactorCreateGetSet = "refactoring.creategettersandsetters",
         editor;
 
 
@@ -46,6 +48,10 @@ define(function (require, exports, module) {
     CommandManager.register("Wrap in Try Catch", refactorWrapInTryCatch, WrapSelection.wrapInTryCatch);
 
     CommandManager.register("Wrap in Condition", refactorWrapInCondition, WrapSelection.wrapInCondition);
+
+    CommandManager.register("Convert to Arrow Function", refactorConvertToArrowFn, WrapSelection.convertToArrowFunction);
+
+    CommandManager.register("Create Getters Setters", refactorCreateGetSet, WrapSelection.createGettersAndSetters);
     
     var menuLocation = Menus.AppMenuBar.EDIT_MENU;
     
@@ -63,16 +69,16 @@ define(function (require, exports, module) {
             var cm = editor._codeMirror,
             tokenType = TokenUtils.getTokenAt(cm, cm.getCursor()).type;
 
-            var sel = editor.getSelection();
-            if ((editor.getModeForSelection() === "javascript") && (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch)) {
-                editorCmenu.addMenuItem(refactorWrapInTryCatch);
-                editorCmenu.addMenuItem(refactorWrapInCondition);
-            }
+            editorCmenu.addMenuItem(refactorWrapInTryCatch);
+            editorCmenu.addMenuItem(refactorWrapInCondition);
             
             if (editor.getModeForSelection() === "javascript" && (tokenType === "variable-2" ||
                 tokenType === "variable" || tokenType === "property" || tokenType === "def")) {
                 editorCmenu.addMenuItem(refactorRename);
             }
+
+            editorCmenu.addMenuItem(refactorConvertToArrowFn);
+            editorCmenu.addMenuItem(refactorCreateGetSet);
         });
     }
 
@@ -80,4 +86,6 @@ define(function (require, exports, module) {
     Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
     Menus.getMenu(menuLocation).addMenuItem(refactorWrapInTryCatch);
     Menus.getMenu(menuLocation).addMenuItem(refactorWrapInCondition);
+    Menus.getMenu(menuLocation).addMenuItem(refactorConvertToArrowFn);
+    Menus.getMenu(menuLocation).addMenuItem(refactorCreateGetSet);
 });
