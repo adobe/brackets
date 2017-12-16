@@ -86,7 +86,7 @@ define(function (require, exports, module) {
      */
     Current.prototype.createAstOfCurrentDoc = function () {
         return AcornLoose.parse_dammit(this.document.getText());
-    }
+    };
 
     /**
      * Initialize session 
@@ -170,7 +170,9 @@ define(function (require, exports, module) {
             }
         });
 
-        if (notStatement) return false;
+        if (notStatement) {
+            return false;
+        }
 
         var startStatement = findSurroundASTNode(ast, {start: start}, ["Statement"]);
         var endStatement   = findSurroundASTNode(ast, {start: end}, ["Statement"]);
@@ -240,7 +242,7 @@ define(function (require, exports, module) {
         this.document.batchOperation(function() {
             replaceTextFromTemplate(wrapperName, {body: selectedText}, pos);
         });
-    }
+    };
 
 
      //Wrap selected statements in try catch block   
@@ -259,7 +261,7 @@ define(function (require, exports, module) {
     function convertToArrowFunction() {
         initializeRefactoringSession();
         //Handle when there is no selected line
-        var funcExprNode = findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"])
+        var funcExprNode = findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"]);
 
         if (!funcExprNode || funcExprNode.type !== "FunctionExpression" || funcExprNode.id) {
             current.editor.displayErrorMessageAtCursor("Cursor is not inside function expression");
