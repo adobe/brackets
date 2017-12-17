@@ -674,6 +674,14 @@ define({
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
+
+    // extensions/default/JavaScriptRefactoring
+    "CMD_REFACTORING_RENAME"                    : "Rename",
+    "CMD_REFACTORING_TRY_CATCH"                 : "Wrap in Try Catch",
+    "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",
+    "CMD_REFACTORING_GETTERS_SETTERS"           : "Create Getters Setters",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 

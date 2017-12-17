@@ -28,240 +28,92 @@ define(function (require, exports, module) {
 
     var EditorManager        = brackets.getModule("editor/EditorManager"),
         TokenUtils           = brackets.getModule("utils/TokenUtils"),
-        StringUtils          = brackets.getModule("utils/StringUtils"),
-        AcornLoose           = brackets.getModule("thirdparty/acorn/dist/acorn_loose"),
-        ASTWalker            = brackets.getModule("thirdparty/acorn/dist/walk");
+        CommandManager       = brackets.getModule("command/CommandManager"),
+        Menus                = brackets.getModule("command/Menus"),
+        Strings              = brackets.getModule("strings"),
+        RefactoringSession   = require("RefactoringUtils");
 
-    var templates = JSON.parse(require("text!Templates.json"));
-
+    //Template keys mentioned in Templates.json
     var WRAP_IN_CONDITION       = "wrapCondition",
         ARROW_FUNCTION          = "arrowFunction",
         GETTERS_SETTERS         = "gettersSetters",
         TRY_CATCH               = "tryCatch";
 
+    //Commands
+    var refactorWrapInTryCatch  = "refactoring.wrapintrycatch",
+        refactorWrapInCondition = "refactoring.wrapincondition",
+        refactorConvertToArrowFn = "refactoring.converttoarrowfunction",
+        refactorCreateGetSet = "refactoring.creategettersandsetters";
 
+    //Active session which will contain information about editor, selection etc
     var current = null;
-    
-    /**
-     * Current objects encapsulate state associated with a refactoring session
-     * and This will help finding information around documents, selection,
-     * Position details, ast, and queries around AST nodes
-     *
-     * @constructor
-     * @param {Editor} editor - the editor context for the session
-     */
-    function Current(editor) {
-        this.editor = editor;
-        this.document = editor.document;
-        this.selection = editor.getSelection();
-        this.text = this.document.getText();
-        this.selectedText = editor.getSelectedText();
-        this.cm = editor._codeMirror;
-        this.startIndex = editor.indexFromPos(this.selection.start);
-        this.endIndex = editor.indexFromPos(this.selection.end);
-        this.startPos = this.selection.start;
-        this.endPos = this.selection.end;
-        this.ast = this.createAstOfCurrentDoc();
-    }
 
     /**
-     * Get the end position of given line
-     *
-     * @param {number} line - line number
-     * @return {{line: number, ch: number}} - line end position
-     */
-    Current.prototype.lineEndPosition = function (line) {
-        var lineText = this.document.getLine(line);
-
-        return {
-            line: line,
-            ch: lineText.length
-        };
-    };
-
-    /**
-     * Get the ast of current opened document in focused editor
-     *
-     * @return {Object} - Ast of current opened doc
-     */
-    Current.prototype.createAstOfCurrentDoc = function () {
-        return AcornLoose.parse_dammit(this.document.getText());
-    };
-
-    /**
-     * Initialize session 
+     * Initialize session
      */
     function initializeRefactoringSession() {
-        current = new Current(EditorManager.getActiveEditor());
-    }
-    
-    /**
-     * This will add template at given position/selection
-     *
-     * @param {string} template - name of templated defined in templates.json
-     * @param {Array} args- Check all arguments that exist in defined templated pass all that args as array
-     * @param {{line: number, ch: number}} rangeToReplace - Range which we want to rreplace
-     * @param {string} subTemplate - If template written under some category
-     */
-    function replaceTextFromTemplate(template, args, rangeToReplace, subTemplate) {
-        var editor = EditorManager.getActiveEditor();
-        
-        var templateText = templates[template];
-
-        if (subTemplate) {
-            templateText = templateText[subTemplate];
-        }
-
-        var compiled = _.template(templateText);
-        var formattedText = compiled(args);
-
-        if (!rangeToReplace) {
-            rangeToReplace = editor.getSelection();
-        }
-        
-        editor.document.replaceRange(formattedText, rangeToReplace.start, rangeToReplace.end);
-
-        var startLine = rangeToReplace.start.line,
-        endLine = startLine + formattedText.split("\n").length;
-
-        for (var i = startLine + 1; i < endLine; i++) {
-            editor._codeMirror.indentLine(i);
-        }
-    }
-
-    
-    /*
-     * Finds the surrounding ast node of the given expression of any of the given types
-     * @param {!ASTNode} ast
-     * @param {!{start: number, end: number}} expn - contains start and end offsets of expn
-     * @param {!Array.<string>} types
-     * @return {?ASTNode} 
-     */
-    function findSurroundASTNode(ast, expn, types) {
-        var foundNode = ASTWalker.findNodeAround(ast, expn.start, function (nodeType, node) {
-            if (expn.end) {
-                return types.includes(nodeType) && node.end >= expn.end;
-            } else {
-                return types.includes(nodeType);
-            }
-        });
-        return foundNode && foundNode.node;
-    }
-
-    /*
-     * Checks whether the text between start and end offsets form a valid set of statements
-     * @param {!ASTNode} ast - the ast of the complete file
-     * @param {!number} start - the start offset
-     * @param {!number} end - the end offset
-     * @param {!string} fileText - selected text
-     * @return {boolean}
-     */
-    function checkStatement(ast, start, end, selectedText, id) {
-        // Do not allow function or class nodes
-        var notStatement = false;
-        ASTWalker.simple(AcornLoose.parse_dammit(selectedText), {
-            Function: function (node) {
-                if (node.type === "FunctionDeclaration") {
-                    notStatement = true;
-                }
-            },
-            Class: function (node) {
-                notStatement = true;
-            }
-        });
-
-        if (notStatement) {
-            return false;
-        }
-
-        var startStatement = findSurroundASTNode(ast, {start: start}, ["Statement"]);
-        var endStatement   = findSurroundASTNode(ast, {start: end}, ["Statement"]);
-
-        return startStatement && endStatement && startStatement.start === start &&
-            startStatement.end <= end && endStatement.start >= start &&
-            endStatement.end === end;
+        current = new RefactoringSession(EditorManager.getActiveEditor());
     }
 
     /**
-     * Get Params of selected function
-     *
-     * @param {Object} ast - ast of whole file
-     * @param {number} start- start offset
-     * @param {number} end - end offset
-     * @param {string} selectedText - Create ast for only selected node
-     * @return {Array} param - Array of all parameters in function
-     */
-    function getParamsOfFunction(ast, start, end, selectedText) {
-        var param = [];
-        ASTWalker.simple(AcornLoose.parse_dammit(selectedText), {
-            Function: function (node) {
-                if (node.type === "FunctionDeclaration") {
-                    node.params.forEach(function (item) {
-                        param.push(item.name);
-                    });
-                }
-            }
-        });
-
-        return param;
-    }
-
-    /**
-     * Wrap selected statements 
+     * Wrap selected statements
      *
      * @param {string} wrapperName - template name where we want wrap selected statements
-     * @param {string} err- error message
+     * @param {string} err- error message if we can't wrap selected code
      */
-    Current.prototype.wrapSelectedStatements =  function (wrapperName, err) {
+    function _wrapSelectedStatements (wrapperName, err) {
         initializeRefactoringSession();
-        var selectedText;
 
-        var startIndex,
-            endIndex,
-            statementNode,
-            isStatements,
+        var startIndex = current.startIndex,
+            endIndex = current.endIndex,
+            selectedText = current.selectedText,
             pos;
 
-        if (this.selectedText.length === 0) {
-            statementNode = findSurroundASTNode(this.ast, {start: this.startIndex}, ["Statement"]);
-            selectedText = this.text.substr(statementNode.start, statementNode.end - statementNode.start);
+        if (selectedText.length === 0) {
+            var statementNode = current.findSurroundASTNode(current.ast, {start: startIndex}, ["Statement"]);
+            selectedText = current.text.substr(statementNode.start, statementNode.end - statementNode.start);
             startIndex = statementNode.start;
             endIndex = statementNode.end;
+        } else {
+            var selectionDetails = current.normalizeText(selectedText, startIndex, endIndex);
+            selectedText = selectionDetails.text;
+            startIndex = selectionDetails.start;
+            endIndex = selectionDetails.end;
         }
 
-        if (!checkStatement(this.ast, startIndex, endIndex, selectedText)) {
-            this.editor.displayErrorMessageAtCursor(err);
+        if (!current.checkStatement(current.ast, startIndex, endIndex, selectedText)) {
+            current.editor.displayErrorMessageAtCursor(err);
             return;
         }
 
         pos = {
-            "start": this.cm.posFromIndex(startIndex),
-            "end": this.cm.posFromIndex(endIndex)
+            "start": current.cm.posFromIndex(startIndex),
+            "end": current.cm.posFromIndex(endIndex)
         };
 
-        this.document.batchOperation(function() {
-            replaceTextFromTemplate(wrapperName, {body: selectedText}, pos);
+        current.document.batchOperation(function() {
+            current.replaceTextFromTemplate(wrapperName, {body: selectedText}, pos);
         });
-    };
-
-
-     //Wrap selected statements in try catch block   
-    function wrapInTryCatch() {
-        initializeRefactoringSession();
-        current.wrapSelectedStatements(TRY_CATCH, "Please select valid statements to wrap them in try catch block");
     }
 
-    //Wrap selected statements in try condition  
+
+     //Wrap selected statements in try catch block
+    function wrapInTryCatch() {
+        initializeRefactoringSession();
+        _wrapSelectedStatements(TRY_CATCH, "Please select valid statements to wrap them in try catch block");
+    }
+
+    //Wrap selected statements in try condition
     function wrapInCondition() {
         initializeRefactoringSession();
-        current.wrapSelectedStatements(WRAP_IN_CONDITION, "Please select valid statements to wrap them in condition");
+        _wrapSelectedStatements(WRAP_IN_CONDITION, "Please select valid statements to wrap them in condition");
     }
 
     //Convert function to arrow function
     function convertToArrowFunction() {
         initializeRefactoringSession();
         //Handle when there is no selected line
-        var funcExprNode = findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"]);
+        var funcExprNode = current.findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"]);
 
         if (!funcExprNode || funcExprNode.type !== "FunctionExpression" || funcExprNode.id) {
             current.editor.displayErrorMessageAtCursor("Cursor is not inside function expression");
@@ -269,9 +121,9 @@ define(function (require, exports, module) {
         }
         var noOfStatements = funcExprNode.body.body.length,
             selectedText = current.text.substr(funcExprNode.start, funcExprNode.end - funcExprNode.start),
-            param = getParamsOfFunction(current.ast, funcExprNode.start, funcExprNode.end, selectedText),
+            param = current.getParamsOfFunction(funcExprNode.start, funcExprNode.end, selectedText),
             loc = {
-                "fullFunctionScope" : {
+                "fullFunctionScope": {
                     start: funcExprNode.start,
                     end: funcExprNode.end
                 },
@@ -303,45 +155,37 @@ define(function (require, exports, module) {
 
         if (noOfStatements === 1) {
             current.document.batchOperation(function() {
-                funcExprNode.params.length === 1 ?  replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
-                replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "manyParamOneStament");
+                funcExprNode.params.length === 1 ?  current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
+                current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "manyParamOneStament");
 
             });
         } else {
             current.document.batchOperation(function() {
-                funcExprNode.params.length === 1 ?  replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
+                funcExprNode.params.length === 1 ?  current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
                 locPos.functionsDeclOnly, "oneParamManyStament") :
-                replaceTextFromTemplate(ARROW_FUNCTION, {params: param.join(", ")}, locPos.functionsDeclOnly, "manyParamManyStament");
+                current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param.join(", ")}, locPos.functionsDeclOnly, "manyParamManyStament");
             });
         }
 
         current.editor.setCursorPos(locPos.functionsDeclOnly.end.line, locPos.functionsDeclOnly.end.ch, false);
     }
 
-    function _findParentNode(ast, start) {
-        var foundNode = ASTWalker.findNodeAround(ast, start, function(nodeType, node) {
-            return (nodeType === "ObjectExpression");
-        });
-        return foundNode && foundNode.node;
-    }
-
-    function _isLastNodeInScope(ast, start) {
-        var currentNodeStart;
-        var node = _findParentNode (ast, start);
-        var childNode = ASTWalker.simple(node, {
-            Property: function (node) {
-                currentNodeStart = node.start;
-            }
-        });
-
-        return start >= currentNodeStart;
-    }
-
-    //Create gtteres and setters for a property
+    // Create gtteres and setters for a property
     function createGettersAndSetters() {
         initializeRefactoringSession();
-            
-        var token = TokenUtils.getTokenAt(current.cm, current.cm.getCursor()),
+
+        var startIndex = current.startIndex,
+            endIndex = current.endIndex,
+            selectedText = current.selectedText;
+
+        if (selectedText.length >= 1) {
+            var selectionDetails = current.normalizeText(selectedText, startIndex, endIndex);
+            selectedText = selectionDetails.text;
+            startIndex = selectionDetails.start;
+            endIndex = selectionDetails.end;
+        }
+
+        var token = TokenUtils.getTokenAt(current.cm, current.cm.posFromIndex(endIndex)),
             isLastNode,
             lineEndPos,
             templateParams;
@@ -351,14 +195,15 @@ define(function (require, exports, module) {
             current.editor.displayErrorMessageAtCursor("Cursor is not at property.");
             return;
         }
-   
-        if (!_findParentNode (current.ast, current.startIndex)) {
+
+        // Check if selected propery is child of a object expression
+        if (!current.getParentNode(current.ast, endIndex)) {
             current.editor.displayErrorMessageAtCursor("This property is not part of object expression");
             return;
         }
 
         //We have to add ',' so we need to find position of current property selected
-        isLastNode = _isLastNodeInScope(current.ast, current.startIndex);
+        isLastNode = current.isLastNodeInScope(current.ast, endIndex);
         lineEndPos = current.lineEndPosition(current.startPos.line);
         templateParams = {
             "getName": "get" + token.string,
@@ -367,30 +212,49 @@ define(function (require, exports, module) {
         };
 
         // Replace, setSelection, IndentLine
-        // We need this as indentLine don't have option to add origin as like replaceRange
-        current.editor.document.batchOperation(function() {
+        // We need to call batchOperation as indentLine don't have option to add origin as like replaceRange
+        current.document.batchOperation(function() {
             if (isLastNode) {
                 //Add ',' in the end of current line
-                current.editor.document.replaceRange(",", lineEndPos, lineEndPos);
-
-                // We can use getLineEnding defined in FileUtils but i feel this better, If we will do that way then we need to call indent code manually
-                // Sometime that doesn't work properly
+                current.document.replaceRange(",", lineEndPos, lineEndPos);
                 lineEndPos.ch++;
             }
 
             current.editor.setSelection(lineEndPos); //Selection on line end
 
-            //Add getters and setters for given token using template at current cursor position
-            replaceTextFromTemplate(GETTERS_SETTERS, templateParams);
+            // Add getters and setters for given token using template at current cursor position
+            current.replaceTextFromTemplate(GETTERS_SETTERS, templateParams);
 
             if (!isLastNode) {
-                current.editor.document.replaceRange(",", current.editor.getSelection().start, current.editor.getSelection().start);
+                // Add ',' at the end setter
+                current.document.replaceRange(",", current.editor.getSelection().start, current.editor.getSelection().start);
             }
         });
     }
-    
-    exports.wrapInTryCatch = wrapInTryCatch;
-    exports.wrapInCondition = wrapInCondition;
-    exports.convertToArrowFunction = convertToArrowFunction;
-    exports.createGettersAndSetters = createGettersAndSetters;
+
+
+    //Register commands and and menus in conext menu and main menus under 'Edit'
+    function addCommands() {
+        CommandManager.register(Strings.CMD_REFACTORING_TRY_CATCH, refactorWrapInTryCatch, wrapInTryCatch);
+        CommandManager.register(Strings.CMD_REFACTORING_CONDITION, refactorWrapInCondition, wrapInCondition);
+        CommandManager.register(Strings.CMD_REFACTORING_GETTERS_SETTERS, refactorConvertToArrowFn, convertToArrowFunction);
+        CommandManager.register(Strings.CMD_REFACTORING_ARROW_FUNCTION, refactorCreateGetSet, createGettersAndSetters);
+
+        var menuLocation = Menus.AppMenuBar.EDIT_MENU,
+            editorCmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+
+        if (editorCmenu) {
+            editorCmenu.addMenuItem(refactorWrapInTryCatch);
+            editorCmenu.addMenuItem(refactorWrapInCondition);
+            editorCmenu.addMenuItem(refactorConvertToArrowFn);
+            editorCmenu.addMenuItem(refactorCreateGetSet);
+        }
+
+        Menus.getMenu(menuLocation).addMenuItem(refactorWrapInTryCatch);
+        Menus.getMenu(menuLocation).addMenuItem(refactorWrapInCondition);
+        Menus.getMenu(menuLocation).addMenuItem(refactorConvertToArrowFn);
+        Menus.getMenu(menuLocation).addMenuItem(refactorCreateGetSet);
+    }
+
+    exports.addCommands = addCommands;
 });

@@ -27,15 +27,21 @@ define(function (require, exports, module) {
     var EditorManager        = brackets.getModule("editor/EditorManager"),
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
         Session              = brackets.getModule("JSUtils/Session"),
-        MessageIds           = brackets.getModule("JSUtils/MessageIds");
-    
-    
+        MessageIds           = brackets.getModule("JSUtils/MessageIds"),
+        CommandManager       = brackets.getModule("command/CommandManager"),
+        Menus                = brackets.getModule("command/Menus"),
+        Strings              = brackets.getModule("strings");
+        //Commands
+    var refactorRename          = "javascript.renamereference";
+
     var session             = null;  // object that encapsulates the current session state
 
+    //Create new session
     function initializeSession(editor) {
         session = new Session(editor);
     }
 
+    //Post message to tern node domain that will request tern server to find refs
     function getRefs(fileInfo, offset) {
         ScopeManager.postMessage({
             type: "getRefs",
@@ -46,7 +52,7 @@ define(function (require, exports, module) {
         return ScopeManager.addPendingRequest(fileInfo.name, offset, MessageIds.TERN_REFS);
     }
 
-    
+    //Create info required to find reference
     function requestFindRefs(session, document, offset) {
         var path    = document.file.fullPath,
             fileInfo = {
@@ -60,19 +66,8 @@ define(function (require, exports, module) {
 
         return {promise: ternPromise};
     }
-    
-    function doRename(response) {
 
-        var file = response.file,
-            offset = response.offset;
-
-        var $deferredFindRefs = ScopeManager.getPendingRequest(file, offset, MessageIds.TERN_REFS);
-
-        if ($deferredFindRefs) {
-            $deferredFindRefs.resolveWith(null, [response]);
-        }
-    }
-        
+    //Do rename of identifier which is at cursor
     function handleRename() {
         var editor = EditorManager.getActiveEditor(),
             offset, handleFindRefs;
@@ -113,7 +108,7 @@ define(function (require, exports, module) {
             function isInSameFile(obj) {
                 return (obj && obj.file === refsResp.file);
             }
-            
+
             if (refsResp && refsResp.references && refsResp.references.refs) {
                 if (refsResp.references.type === "local") {
                     EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(isInSameFile));
@@ -124,7 +119,6 @@ define(function (require, exports, module) {
                     } else {
                         editor.displayErrorMessageAtCursor("As of now Rename doesn't work across project");
                     }
-                    
                 }
             }
         };
@@ -134,6 +128,27 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-    
-    exports.handleRename = handleRename;
+
+    //Register command, add menus and context menu, key binding- Ctrl+R
+    function addCommands() {
+
+        CommandManager.register(Strings.CMD_REFACTORING_RENAME, refactorRename, handleRename);
+
+        var keysRename = [
+                {key: "Ctrl-R", platform: "mac"}, // don't translate to Cmd-R on mac
+                {key: "Ctrl-R", platform: "win"},
+                {key: "Ctrl-R", platform: "linux"}
+            ],
+            menuLocation = Menus.AppMenuBar.EDIT_MENU,
+            editorCmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+
+        if (editorCmenu) {
+            editorCmenu.addMenuItem(refactorRename);
+        }
+
+        Menus.getMenu(menuLocation).addMenuDivider();
+        Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
+    }
+
+    exports.addCommands = addCommands;
 });

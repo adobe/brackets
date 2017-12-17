@@ -24,68 +24,39 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var EditorManager        = brackets.getModule("editor/EditorManager"),
-        CommandManager       = brackets.getModule("command/CommandManager"),
-        TokenUtils           = brackets.getModule("utils/TokenUtils"),
-        Menus                = brackets.getModule("command/Menus");
-        
-
-    var MessageIds           = brackets.getModule("JSUtils/MessageIds"),
+    var AppInit              = brackets.getModule("utils/AppInit"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         RenameIdentifier     = require("RenameIdentifier"),
         WrapSelection        = require("WrapSelection");
-    
-    
-    var refactorRename          = "javascript.renamereference",
-        refactorWrapInTryCatch  = "refactoring.wrapintrycatch",
-        refactorWrapInCondition = "refactoring.wrapincondition",
-        refactorConvertToArrowFn = "refactoring.converttoarrowfunction",
-        refactorCreateGetSet = "refactoring.creategettersandsetters",
-        editor;
+
+    var jsRefactoringEnabled     = true;
 
 
-    CommandManager.register("Rename", refactorRename, RenameIdentifier.handleRename);
+    // This preference controls whether to create a session and process all JS files or not.
+    PreferencesManager.definePreference("refactoring.JSRefactoring", "boolean", true, {
+        description: "Enable JavaScript code refactoring"
+    });
 
-    CommandManager.register("Wrap in Try Catch", refactorWrapInTryCatch, WrapSelection.wrapInTryCatch);
 
-    CommandManager.register("Wrap in Condition", refactorWrapInCondition, WrapSelection.wrapInCondition);
-
-    CommandManager.register("Convert to Arrow Function", refactorConvertToArrowFn, WrapSelection.convertToArrowFunction);
-
-    CommandManager.register("Create Getters Setters", refactorCreateGetSet, WrapSelection.createGettersAndSetters);
-    
-    var menuLocation = Menus.AppMenuBar.EDIT_MENU;
-    
-    var keysRename = [
-        {key: "Ctrl-R", platform:"mac"}, // don't translate to Cmd-R on mac
-        {key: "Ctrl-R", platform:"win"},
-        {key: "Ctrl-R", platform:"linux"}
-    ];
-
-    var editorCmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-    if (editorCmenu) {
-        editorCmenu.on("beforeContextMenuOpen", function (e) {
-            
-            editor = EditorManager.getActiveEditor();
-            var cm = editor._codeMirror,
-            tokenType = TokenUtils.getTokenAt(cm, cm.getCursor()).type;
-
-            editorCmenu.addMenuItem(refactorWrapInTryCatch);
-            editorCmenu.addMenuItem(refactorWrapInCondition);
-            
-            if (editor.getModeForSelection() === "javascript" && (tokenType === "variable-2" ||
-                tokenType === "variable" || tokenType === "property" || tokenType === "def")) {
-                editorCmenu.addMenuItem(refactorRename);
-            }
-
-            editorCmenu.addMenuItem(refactorConvertToArrowFn);
-            editorCmenu.addMenuItem(refactorCreateGetSet);
-        });
+    /**
+     * Check whether any of refactoring hints preferences for JS Refactoring is disabled
+     * @return {boolean} enabled/disabled
+     */
+    function _isRefactoringEnabled() {
+        return (PreferencesManager.get("refactoring.JSRefactoring") !== false);
     }
 
-    Menus.getMenu(menuLocation).addMenuDivider();
-    Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
-    Menus.getMenu(menuLocation).addMenuItem(refactorWrapInTryCatch);
-    Menus.getMenu(menuLocation).addMenuItem(refactorWrapInCondition);
-    Menus.getMenu(menuLocation).addMenuItem(refactorConvertToArrowFn);
-    Menus.getMenu(menuLocation).addMenuItem(refactorCreateGetSet);
+    PreferencesManager.on("change", "refactoring.JSRefactoring", function () {
+        jsRefactoringEnabled = _isRefactoringEnabled();
+    });
+
+    AppInit.appReady(function () {
+
+
+        //TODO- Add submenus instead of context menu
+        if (jsRefactoringEnabled) {
+            RenameIdentifier.addCommands();
+            WrapSelection.addCommands();
+        }
+    });
 });
