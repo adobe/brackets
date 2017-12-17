@@ -1,6 +1,30 @@
+/*
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 define(function (require, exports, module) {
     "use strict";
 
+    // Load dependent modules
     var KeyBindingManager = brackets.getModule("command/KeyBindingManager"),
         Menus             = brackets.getModule("command/Menus"),
         KeyEvent          = brackets.getModule("utils/KeyEvent"),
@@ -12,14 +36,64 @@ define(function (require, exports, module) {
 
     var MenuHTML  = require("text!htmlContent/inline-menu.html");
 
+    /**
+     * Displays a popup list of items for a given editor context
+     *
+     * @constructor
+     * @param {Editor} editor
+     * @param {string} menuText
+     */
     function InlineMenu(editor, menuText) {
+        /**
+         * The list of items to display
+         *
+         * @type {Array.<{id: number, name: string>}
+         */
         this.items = [];
+
+        /**
+         * The selected position in the list; otherwise -1.
+         *
+         * @type {number}
+         */
         this.selectedIndex = -1;
+
+
+        /**
+         * Is the list currently open?
+         *
+         * @type {boolean}
+         */
         this.opened = false;
+
+
+        /**
+         * The editor context
+         *
+         * @type {Editor}
+         */
         this.editor = editor;
+
+
+        /**
+         * The menu selection callback function
+         *
+         * @type {Function}
+         */
         this.handleSelect = null;
+
+        /**
+         * The menu closure callback function
+         *
+         * @type {Function}
+         */
         this.handleClose = null;
 
+        /**
+         * The menu object
+         *
+         * @type {jQuery.Object}
+         */
         this.$menu =
             $("<li class='dropdown codehint-menu'></li>")
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
@@ -29,6 +103,13 @@ define(function (require, exports, module) {
         this._keydownHook = this._keydownHook.bind(this);
     }
 
+    /**
+     * Select the item in the menu at the specified index, or remove the
+     * selection if index < 0.
+     *
+     * @private
+     * @param {number} index
+     */
     InlineMenu.prototype._setSelectedIndex = function (index) {
         var items = this.$menu.find("li");
 
@@ -51,11 +132,17 @@ define(function (require, exports, module) {
             ViewUtils.scrollElementIntoView($view, $item, false);
         }
 
+        // Invoke handleHover callback if any
         if (this.handleHover) {
             this.handleHover(this.items[index].id);
         }
     };
 
+    /**
+     * Rebuilds the list items for the menu.
+     *
+     * @private
+     */
     InlineMenu.prototype._buildListView = function (items) {
         var self            = this,
             view            = { items: [] },
@@ -81,19 +168,25 @@ define(function (require, exports, module) {
                 _addItem(item);
             });
 
+            // render the menu list
             var $ul = this.$menu.find("ul.dropdown-menu"),
                 $parent = $ul.parent();
 
+            // remove list temporarily to save rendering time
             $ul.remove().append(Mustache.render(MenuHTML, view));
 
             $ul.children("li").each(function (index, element) {
                 var item      = self.items[index],
                     $element    = $(element);
 
+                // store id of item in the element
                 $element.data("itemid", item.id);
             });
 
+            // delegate list item events to the top-level ul list element
             $ul.on("click", "li", function (e) {
+                // Don't let the click propagate upward (otherwise it will
+                // hit the close handler in bootstrap-dropdown).
                 e.stopPropagation();
                 if (self.handleSelect) {
                     self.handleSelect($(this).data("itemid"));
@@ -102,6 +195,8 @@ define(function (require, exports, module) {
 
             $ul.on("mouseover", "li", function (e) {
                 e.stopPropagation();
+                // _setSelectedIndex sets the selected index and call handle hover
+                // callback funtion
                 self._setSelectedIndex(self.items.findIndex(function(element) {
                     return element.id === $(e.currentTarget).data("itemid");
                 }));
@@ -113,6 +208,13 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Computes top left location for menu so that the menu is not clipped by the window.
+     * Also computes the largest available width.
+     *
+     * @private
+     * @return {{left: number, top: number, width: number}}
+     */
     InlineMenu.prototype._calcMenuLocation = function () {
         var cursor      = this.editor._codeMirror.cursorCoords(),
             posTop      = cursor.bottom,
@@ -122,6 +224,8 @@ define(function (require, exports, module) {
             $menuWindow = this.$menu.children("ul"),
             menuHeight  = $menuWindow.outerHeight();
 
+        // TODO Ty: factor out menu repositioning logic so code hints and Context menus share code
+        // adjust positioning so menu is not clipped off bottom or right
         var bottomOverhang = posTop + menuHeight - $window.height();
         if (bottomOverhang > 0) {
             posTop -= (textHeight + 2 + menuHeight);
@@ -133,6 +237,7 @@ define(function (require, exports, module) {
         var availableWidth = menuWidth;
         var rightOverhang = posLeft + menuWidth - $window.width();
         if (rightOverhang > 0) {
+            // Right overhang is negative
             posLeft = Math.max(0, posLeft - rightOverhang);
         }
 
@@ -140,20 +245,29 @@ define(function (require, exports, module) {
     };
 
 
+    /**
+     * Check whether Event is one of the keys that we handle or not.
+     *
+     * @param {KeyBoardEvent|keyBoardEvent.keyCode} keyEvent
+     */
     InlineMenu.prototype.isHandlingKeyCode = function (keyCodeOrEvent) {
         var keyCode = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.keyCode : keyCodeOrEvent;
         var ctrlKey = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.ctrlKey : false;
 
 
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
-                keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
-                keyCode === KeyEvent.DOM_VK_RETURN ||
-                keyCode === KeyEvent.DOM_VK_CONTROL ||
-                keyCode === KeyEvent.DOM_VK_ESCAPE
-                );
+            keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
+            keyCode === KeyEvent.DOM_VK_RETURN ||
+            keyCode === KeyEvent.DOM_VK_ESCAPE
+        );
     };
 
-    InlineMenu.prototype._keydownHook = function (event, isFakeKeydown) {
+    /**
+     * Convert keydown events into hint list navigation actions.
+     *
+     * @param {KeyBoardEvent} keyEvent
+     */
+    InlineMenu.prototype._keydownHook = function (event) {
         var keyCode,
             self = this;
 
@@ -214,8 +328,8 @@ define(function (require, exports, module) {
             return false;
         }
 
-        // (page) up, (page) down, enter and tab key are handled by the list
-        if ((event.type === "keydown" || isFakeKeydown) && this.isHandlingKeyCode(event)) {
+        // (page) up, (page) down, enter are handled by the list
+        if ((event.type === "keydown") && this.isHandlingKeyCode(event)) {
             keyCode = event.keyCode;
 
             if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
@@ -233,17 +347,15 @@ define(function (require, exports, module) {
                 return false;
             } else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
-            } else if (keyCode === KeyEvent.DOM_VK_DOWN ||
-                    (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
+            } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
                 _rotateSelection.call(this, -_itemsPerPage());
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
                 _rotateSelection.call(this, _itemsPerPage());
             } else if (this.selectedIndex !== -1 &&
-                    (keyCode === KeyEvent.DOM_VK_RETURN ||
-                    (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab))) {
-
+                    (keyCode === KeyEvent.DOM_VK_RETURN)) {
+                // Trigger a click handler to commmit the selected item
                 $(this.$menu.find("li")[this.selectedIndex]).trigger("click");
             } else {
                 return false;
@@ -257,7 +369,15 @@ define(function (require, exports, module) {
         return false;
     };
 
+    /**
+     * Is the Inline menu open?
+     *
+     * @return {boolean}
+     */
     InlineMenu.prototype.isOpen = function () {
+        // We don't get a notification when the dropdown closes. The best
+        // we can do is keep an "opened" flag and check to see if we
+        // still have the "open" class applied.
         if (this.opened && !this.$menu.hasClass("open")) {
             this.opened = false;
         }
@@ -265,6 +385,11 @@ define(function (require, exports, module) {
         return this.opened;
     };
 
+    /**
+     * Displays the menu at the current cursor position
+     *
+     * @param {Array.<{id: number, name: string>} hints
+     */
     InlineMenu.prototype.open = function (items) {
         Menus.closeAll();
 
@@ -284,10 +409,9 @@ define(function (require, exports, module) {
         }
     };
 
-    InlineMenu.prototype.callMoveUp = function (event) {
-        this._keydownHook(event, true);
-    };
-
+    /**
+     * Closes the menu
+     */
     InlineMenu.prototype.close = function () {
         this.opened = false;
 
@@ -300,17 +424,33 @@ define(function (require, exports, module) {
         KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };
 
+    /**
+     * Set the menu selection callback function
+     *
+     * @param {Function} callback
+     */
     InlineMenu.prototype.onSelect = function (callback) {
         this.handleSelect = callback;
     };
 
+    /**
+     * Set the hover callback function
+     *
+     * @param {Function} callback
+     */
     InlineMenu.prototype.onHover = function (callback) {
         this.handleHover = callback;
     };
 
+    /**
+     * Set the menu closure callback function
+     *
+     * @param {Function} callback
+     */
     InlineMenu.prototype.onClose = function (callback) {
         this.handleClose = callback;
     };
 
+    // Define public API
     exports.InlineMenu = InlineMenu;
 });
