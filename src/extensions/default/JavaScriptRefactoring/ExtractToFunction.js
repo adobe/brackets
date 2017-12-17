@@ -125,13 +125,17 @@ define(function(require, exports, module) {
             }
         });
 
-        var props = scopes.slice(srcScope.id, destScope.id).reduce(function(props, scope) {
+        var passProps = scopes.slice(srcScope.id, destScope.id).reduce(function(props, scope) {
+            return _.union(props, _.keys(scope.props));
+        }, []);
+
+        var retProps = scopes.slice(srcScope.id, destScope.id + 1).reduce(function(props, scope) {
             return _.union(props, _.keys(scope.props));
         }, []);
 
         return {
-            passParams:           _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props),
-            retParams:            _.intersection( _.keys(changedValues), _.keys(dependentValues), props),
+            passParams:           _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), passProps),
+            retParams:            _.intersection( _.keys(changedValues), _.keys(dependentValues), retProps),
             thisPointerUsed:      thisPointerUsed,
             returnStatementUsed:  returnStatementUsed,
             variableDeclarations: variableDeclarations
