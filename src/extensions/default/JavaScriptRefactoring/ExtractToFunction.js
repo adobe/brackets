@@ -63,6 +63,7 @@ define(function(require, exports, module) {
         var identifiers          = {},
             inThisScope          = {},
             thisPointerUsed      = false,
+            returnStatementUsed  = false,
             variableDeclarations = {},
             changedValues        = {},
             dependentValues      = {},
@@ -90,6 +91,9 @@ define(function(require, exports, module) {
                     break;
                 case "Identifier":
                     identifiers[node.name] = true;
+                    break;
+                case "ReturnStatement":
+                    returnStatementUsed = true;
                     break;
             }
             if (value){
@@ -129,6 +133,7 @@ define(function(require, exports, module) {
             passParams:           _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), props),
             retParams:            _.intersection( _.keys(changedValues), _.keys(dependentValues), props),
             thisPointerUsed:      thisPointerUsed,
+            returnStatementUsed:  returnStatementUsed,
             variableDeclarations: variableDeclarations
         };
     }
@@ -142,6 +147,7 @@ define(function(require, exports, module) {
             passParams           = retObj.passParams,
             retParams            = retObj.retParams,
             thisPointerUsed      = retObj.thisPointerUsed,
+            returnStatementUsed  = retObj.returnStatementUsed,
             variableDeclarations = retObj.variableDeclarations,
             doc                  = session.editor.document,
             fnBody               = text,
@@ -167,6 +173,13 @@ define(function(require, exports, module) {
         } else {
             fnCall = StringUtils.format(template.functionCall.normal, fnName, passParams.join(", "));
         }
+
+        // Append return to the fnCall, if the extracted text contains return statement
+        // Ideally in this case retParams should be empty.
+        if (returnStatementUsed) {
+            fnCall = "return " + fnCall;
+        }
+
         if (isExpression) {
             fnBody = StringUtils.format(template.returnStatement.single, fnBody);
         } else {
