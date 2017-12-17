@@ -40,7 +40,7 @@ define(function(require, exports, module) {
     var TERN_FAILED             = "Unable to get data from Tern",
         EXTRACTVARIABLE_ERR_MSG = "Selection does not form an expression";
 
-    /*
+    /**
      * Does the actual extraction. i.e Replacing the text, Creating a variable
      * and multi select variable names
      */
@@ -94,7 +94,7 @@ define(function(require, exports, module) {
         });
     }
 
-    /*
+    /**
      * Find all expressions in the parentBlockStatement that are same as expn
      * @param {!ASTNode} parentBlockStatement
      * @param {!ASTNode} expn
@@ -117,7 +117,7 @@ define(function(require, exports, module) {
         return expns;
     }
 
-    /*
+    /**
      * Gets the surrounding expressions of start and end offset
      * @param {!ASTNode} ast - the ast of the complete file
      * @param {!number} start - the start offset
@@ -164,7 +164,7 @@ define(function(require, exports, module) {
         return expns;
     }
 
-    /*
+    /**
      * Creates params needed for extraction and calls extract
      * extract() does the actual extraction
      */
@@ -194,7 +194,7 @@ define(function(require, exports, module) {
     }
 
 
-    /*
+    /**
      * Main function that handles extract to variable
      */
     function handleExtractToVariable() {
@@ -267,14 +267,14 @@ define(function(require, exports, module) {
         });
     }
 
-    /*
+    /**
      * Creates a new session from editor and stores it in session global variable
      */
     function initializeSession(editor) {
         session = new Session(editor);
     }
 
-    /*
+    /**
      * Adds the commands for extract to variable
      */
     function addCommands() {

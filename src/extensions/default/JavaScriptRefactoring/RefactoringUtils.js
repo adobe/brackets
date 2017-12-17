@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         _             = brackets.getModule("thirdparty/lodash"),
         ScopeManager  = brackets.getModule("JSUtils/ScopeManager");
 
-    /*
+    /**
      * Checks whether two ast nodes are equal
      * @param {!ASTNode} a
      * @param {!ASTNode} b
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         return a.start === b.start && a.end === b.end;
     }
 
-    /*
+    /**
      * Gets a expression surrounding start and end (if any)
      * @param {!ASTNode} ast - the ast of the complete file
      * @param {!number} start - the start offset
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
         return false;
     }
 
-    /*
+    /**
      * Checks whether the text between start and end offsets form a valid set of statements
      * @param {!ASTNode} ast - the ast of the complete file
      * @param {!number} start - the start offset
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             endStatement.end === end;
     }
 
-    /*
+    /**
      * Gets a unique identifier name in the scope that starts with prefix
      * @param {!Scope} scope - scope returned from tern (contains 'props' with identifiers in that scope)
      * @param {!string} prefix - prefix of the identifier
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         return name;
     }
 
-    /*
+    /**
      * Returns the no of lines in the text
      * @param {!string} text
      * @return {number}
@@ -150,7 +150,7 @@ define(function (require, exports, module) {
         return text.split("\n").length;
     }
 
-    /*
+    /**
      * Checks whether the text forms a stand alone expression without considering the context of text
      * @param {!string} text
      * @return {boolean}
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
         return found && found.node;
     }
 
-    /*
+    /**
      * Requests scope data from tern
      * @param {!Session} session
      * @param {!{line: number, ch: number}} offset
@@ -200,7 +200,7 @@ define(function (require, exports, module) {
     }
 
 
-    /*
+    /**
      * Normalize text by removing leading and trailing whitespace characters
      * and moves the start and end offset to reflect the new offset
      * @param {!string} text
@@ -246,14 +246,14 @@ define(function (require, exports, module) {
         };
     }
 
-    /*
+    /**
      * Checks whether the scope is a function scope
      */
     function isFnScope(scope) {
         return !scope.isBlock && !scope.isCatch;
     }
 
-    /*
+    /**
      * Finds the surrounding ast node of the given expression of any of the given types
      * @param {!ASTNode} ast
      * @param {!{start: number, end: number}} expn - contains start and end offsets of expn
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
         return foundNode && foundNode.node;
     }
 
-    /*
+    /**
      * Converts the scopes returned from tern to an array of scopes and adds id and name to the scope
      * Also checks for class scopes
      * @param {!ASTNode} ast - ast of the complete file

@@ -419,6 +419,12 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Handle the response from the tern node domain when
+     * it responds with the scope data
+     *
+     * @param response - the response from the node domain
+     */
     function handleScopeData(response) {
         var file = response.file,
             offset = response.offset;

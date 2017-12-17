@@ -44,7 +44,7 @@ define(function(require, exports, module) {
     var TERN_FAILED             = "Unable to get data from Tern",
         EXTRACTFUNCTION_ERR_MSG = "Selected block should represent set of statements or an expression";
 
-    /*
+    /**
      * Analyzes the code and finds values required for extract to function
      * @param {!string} text - text to be extracted
      * @param {!Array.<Scope>} - scopes
@@ -138,7 +138,7 @@ define(function(require, exports, module) {
         };
     }
 
-    /*
+    /**
      * Does the actual extraction. i.e Replacing the text, Creating a function
      * and multi select function names
      */
@@ -255,7 +255,7 @@ define(function(require, exports, module) {
         });
     }
 
-    /*
+    /**
      * Main function that handles extract to function
      */
     function handleExtractToFunction() {
@@ -305,18 +305,17 @@ define(function(require, exports, module) {
         });
     }
 
-    /*
+    /**
      * Creates a new session from editor and stores it in session global variable
      */
     function initializeSession(editor) {
         session = new Session(editor);
     }
 
-    /*
+    /**
      * Adds the commands for extract to variable
      */
     function addCommands() {
-        // Extract To Function
         CommandManager.register("Extract To Function", "refactoring.extractToFunction", handleExtractToFunction);
         KeyBindingManager.addBinding("refactoring.extractToFunction", "Ctrl-Shift-M");
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extractToFunction");
