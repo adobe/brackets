@@ -35,6 +35,8 @@ define(function(require, exports, module) {
         Strings             = brackets.getModule("strings"),
         InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+
     var session = null;
 
     // Command id
@@ -279,7 +281,7 @@ define(function(require, exports, module) {
      */
     function addCommands() {
         CommandManager.register(Strings.CMD_EXTRACTTO_VARIABLE, EXTRACTTO_VARIABLE, handleExtractToVariable);
-        KeyBindingManager.addBinding(EXTRACTTO_VARIABLE, "Ctrl-Shift-V");
+        KeyBindingManager.addBinding(EXTRACTTO_VARIABLE, KeyboardPrefs.extractToVariable);
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(EXTRACTTO_VARIABLE);
     }
 

@@ -37,6 +37,8 @@ define(function(require, exports, module) {
         Strings             = brackets.getModule("strings"),
         InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+
     var template = JSON.parse(require("text!templates.json"));
 
     var session = null;
@@ -322,7 +324,7 @@ define(function(require, exports, module) {
      */
     function addCommands() {
         CommandManager.register(Strings.CMD_EXTRACTTO_FUNCTION, EXTRACTTO_FUNCTION, handleExtractToFunction);
-        KeyBindingManager.addBinding(EXTRACTTO_FUNCTION, "Ctrl-Shift-M");
+        KeyBindingManager.addBinding(EXTRACTTO_FUNCTION, KeyboardPrefs.extractToFunction);
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(EXTRACTTO_FUNCTION);
     }
 
