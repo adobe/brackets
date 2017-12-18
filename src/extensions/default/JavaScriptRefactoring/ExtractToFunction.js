@@ -267,6 +267,7 @@ define(function(require, exports, module) {
 
         if (editor.getSelections().length > 1) {
             editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_FUNCTION_MULTICURSORS);
+            return;
         }
         initializeSession(editor);
 
