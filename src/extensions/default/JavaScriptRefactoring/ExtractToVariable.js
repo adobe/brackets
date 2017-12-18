@@ -32,13 +32,13 @@ define(function(require, exports, module) {
         KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
         Session             = brackets.getModule("JSUtils/Session"),
         RefactoringUtils    = require("RefactoringUtils"),
+        Strings             = brackets.getModule("strings"),
         InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
     var session = null;
 
-    // Error messages
-    var TERN_FAILED             = "Unable to get data from Tern",
-        EXTRACTVARIABLE_ERR_MSG = "Selection does not form an expression";
+    // Command id
+    var EXTRACTTO_VARIABLE = "refactoring.extractToVariable";
 
     /**
      * Does the actual extraction. i.e Replacing the text, Creating a variable
@@ -176,7 +176,7 @@ define(function(require, exports, module) {
             parentStatement;
 
         if (!parentExpn) {
-            session.editor.displayErrorMessageAtCursor(EXTRACTVARIABLE_ERR_MSG);
+            session.editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_NOT_VALID);
             return;
         }
 
@@ -201,7 +201,7 @@ define(function(require, exports, module) {
         var editor = EditorManager.getActiveEditor();
 
         if (editor.getSelections().length > 1) {
-            editor.displayErrorMessageAtCursor("Extract to variable does not work in multicursors");
+            editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_MULTICURSORS);
             return;
         }
 
@@ -242,7 +242,7 @@ define(function(require, exports, module) {
                 });
 
                 if (!expns || !expns.length) {
-                    session.editor.displayErrorMessageAtCursor(EXTRACTVARIABLE_ERR_MSG);
+                    session.editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_NOT_VALID);
                     return;
                 }
 
@@ -263,7 +263,7 @@ define(function(require, exports, module) {
                 inlineMenu.onClose(function () { });
             }
         }).fail(function() {
-            editor.displayErrorMessageAtCursor(TERN_FAILED);
+            editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
         });
     }
 
@@ -278,9 +278,9 @@ define(function(require, exports, module) {
      * Adds the commands for extract to variable
      */
     function addCommands() {
-        CommandManager.register("Extract To Variable", "refactoring.extractToVariable", handleExtractToVariable);
-        KeyBindingManager.addBinding("refactoring.extractToVariable", "Ctrl-Shift-V");
-        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extractToVariable");
+        CommandManager.register(Strings.CMD_EXTRACTTO_VARIABLE, EXTRACTTO_VARIABLE, handleExtractToVariable);
+        KeyBindingManager.addBinding(EXTRACTTO_VARIABLE, "Ctrl-Shift-V");
+        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(EXTRACTTO_VARIABLE);
     }
 
     exports.addCommands = addCommands;

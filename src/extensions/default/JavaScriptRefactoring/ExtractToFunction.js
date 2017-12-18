@@ -34,15 +34,15 @@ define(function(require, exports, module) {
         StringUtils         = brackets.getModule("utils/StringUtils"),
         Session             = brackets.getModule("JSUtils/Session"),
         RefactoringUtils    = require("RefactoringUtils"),
+        Strings             = brackets.getModule("strings"),
         InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
     var template = JSON.parse(require("text!templates.json"));
 
     var session = null;
 
-    // Error messages
-    var TERN_FAILED             = "Unable to get data from Tern",
-        EXTRACTFUNCTION_ERR_MSG = "Selected block should represent set of statements or an expression";
+    // Command id
+    var EXTRACTTO_FUNCTION = "refactoring.extractToFunction";
 
     /**
      * Analyzes the code and finds values required for extract to function
@@ -266,7 +266,7 @@ define(function(require, exports, module) {
         var editor = EditorManager.getActiveEditor();
 
         if (editor.getSelections().length > 1) {
-            editor.displayErrorMessageAtCursor("Extract to function does not work in multicursors");
+            editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_FUNCTION_MULTICURSORS);
         }
         initializeSession(editor);
 
@@ -288,7 +288,7 @@ define(function(require, exports, module) {
             if (!RefactoringUtils.checkStatement(ast, start, end, doc.getText())) {
                 isExpression = RefactoringUtils.getExpression(ast, start, end, doc.getText());
                 if (!isExpression) {
-                    editor.displayErrorMessageAtCursor(EXTRACTFUNCTION_ERR_MSG);
+                    editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_FUNCTION_NOT_VALID);
                     return;
                 }
             }
@@ -305,7 +305,7 @@ define(function(require, exports, module) {
 
             inlineMenu.onClose(function(){});
         }).fail(function() {
-            editor.displayErrorMessageAtCursor(TERN_FAILED);
+            editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
         });
     }
 
@@ -320,9 +320,9 @@ define(function(require, exports, module) {
      * Adds the commands for extract to variable
      */
     function addCommands() {
-        CommandManager.register("Extract To Function", "refactoring.extractToFunction", handleExtractToFunction);
-        KeyBindingManager.addBinding("refactoring.extractToFunction", "Ctrl-Shift-M");
-        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem("refactoring.extractToFunction");
+        CommandManager.register(Strings.CMD_EXTRACTTO_FUNCTION, EXTRACTTO_FUNCTION, handleExtractToFunction);
+        KeyBindingManager.addBinding(EXTRACTTO_FUNCTION, "Ctrl-Shift-M");
+        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(EXTRACTTO_FUNCTION);
     }
 
     exports.addCommands = addCommands;
