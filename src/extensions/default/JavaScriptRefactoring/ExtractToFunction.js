@@ -34,7 +34,7 @@ define(function(require, exports, module) {
         StringUtils         = brackets.getModule("utils/StringUtils"),
         Session             = brackets.getModule("JSUtils/Session"),
         RefactoringUtils    = require("RefactoringUtils"),
-        InlineMenu          = require("InlineMenu").InlineMenu;
+        InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
     var template = JSON.parse(require("text!templates.json"));
 

@@ -25,14 +25,14 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var KeyBindingManager = brackets.getModule("command/KeyBindingManager"),
-        Menus             = brackets.getModule("command/Menus"),
-        KeyEvent          = brackets.getModule("utils/KeyEvent"),
-        StringUtils       = brackets.getModule("utils/StringUtils"),
-        ValidationUtils   = brackets.getModule("utils/ValidationUtils"),
-        ViewUtils         = brackets.getModule("utils/ViewUtils"),
-        PopUpManager      = brackets.getModule("widgets/PopUpManager"),
-        Mustache          = brackets.getModule("thirdparty/mustache/mustache");
+    var KeyBindingManager = require("command/KeyBindingManager"),
+        Menus             = require("command/Menus"),
+        KeyEvent          = require("utils/KeyEvent"),
+        StringUtils       = require("utils/StringUtils"),
+        ValidationUtils   = require("utils/ValidationUtils"),
+        ViewUtils         = require("utils/ViewUtils"),
+        PopUpManager      = require("widgets/PopUpManager"),
+        Mustache          = require("thirdparty/mustache/mustache");
 
     var MenuHTML  = require("text!htmlContent/inline-menu.html");
 

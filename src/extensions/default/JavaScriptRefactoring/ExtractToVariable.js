@@ -32,7 +32,7 @@ define(function(require, exports, module) {
         KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
         Session             = brackets.getModule("JSUtils/Session"),
         RefactoringUtils    = require("RefactoringUtils"),
-        InlineMenu          = require("InlineMenu").InlineMenu;
+        InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
     var session = null;
 
