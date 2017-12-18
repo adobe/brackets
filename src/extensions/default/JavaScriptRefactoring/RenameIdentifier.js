@@ -73,7 +73,7 @@ define(function (require, exports, module) {
             offset, handleFindRefs;
 
         if (editor.getSelections().length > 1) {
-            editor.displayErrorMessageAtCursor("Rename doesn't work in case of multicursor");
+            editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_MULTICURSOR);
             return;
         }
         initializeSession(editor);
@@ -111,14 +111,9 @@ define(function (require, exports, module) {
 
             if (refsResp && refsResp.references && refsResp.references.refs) {
                 if (refsResp.references.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(isInSameFile));
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
                 } else {
-                    var isInSameFile = refsResp.references.refs.filter(isInSameFile).length === refsResp.references.refs.length;
-                    if (isInSameFile) {
-                        EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
-                    } else {
-                        editor.displayErrorMessageAtCursor("As of now Rename doesn't work across project");
-                    }
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(isInSameFile));
                 }
             }
         };

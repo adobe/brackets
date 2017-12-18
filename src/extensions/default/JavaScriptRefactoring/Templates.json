@@ -1,5 +1,5 @@
 {
-    "wrapCondition": "if () {\n${body}\n}\n",
+    "wrapCondition": "if (x) {\n${body}\n}",
 
     "arrowFunction": {
         "oneParamOneStament": "${params} => ${statement}",
@@ -8,7 +8,7 @@
         "manyParamManyStament": "(${params}) => "
     },
 
-    "tryCatch": "try {\n${body}\n} catch (e) {\nconsole.log(e.message);\n}\n",
+    "tryCatch": "try {\n${body}\n} catch (e) {\nconsole.log(e.message);\n}",
 
     "gettersSetters": "\nget ${getName}() {\nreturn this.${tokenName};\n},\n\nset ${setName}(val) {\nthis.${tokenName} = val;\n}"
 }

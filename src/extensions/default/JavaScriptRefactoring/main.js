@@ -26,6 +26,7 @@ define(function (require, exports, module) {
 
     var AppInit              = brackets.getModule("utils/AppInit"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
+        Strings              = brackets.getModule("strings"),
         RenameIdentifier     = require("RenameIdentifier"),
         WrapSelection        = require("WrapSelection");
 
@@ -34,7 +35,7 @@ define(function (require, exports, module) {
 
     // This preference controls whether to create a session and process all JS files or not.
     PreferencesManager.definePreference("refactoring.JSRefactoring", "boolean", true, {
-        description: "Enable JavaScript code refactoring"
+        description: Strings.DESCRIPTION_CODE_REFACTORIG
     });
 
 

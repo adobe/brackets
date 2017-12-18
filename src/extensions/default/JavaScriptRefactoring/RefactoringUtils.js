@@ -32,14 +32,13 @@ define(function (require, exports, module) {
     var templates = JSON.parse(require("text!Templates.json"));
 
     /**
-     * Note - Don't use this if you are in a batch operation and you already made some changes
-     * like set selection or replace range. I you want to use this then reinitialize this after every
-     * setSelection or replaceRange, but
-     * You can use member function of RefactoringSession as those are using up to date va;ues of selection or text
-     *
+     * Note - To use these state defined in Refactoring Session,
+     * Please reinitialize this RefactoringSession after performing any of the below operations
+     * (i.e. replaceRange, setSelection or indentLine) 
+     * 
      * RefactoringSession objects encapsulate state associated with a refactoring session
      * and This will help finding information around documents, selection,
-     * Position details, ast, and queries around AST nodes
+     * position, ast, and queries around AST nodes
      *
      * @constructor
      * @param {Editor} editor - the editor context for the session

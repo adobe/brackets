@@ -94,19 +94,25 @@ define(function (require, exports, module) {
         current.document.batchOperation(function() {
             current.replaceTextFromTemplate(wrapperName, {body: selectedText}, pos);
         });
+
+        if (wrapperName === TRY_CATCH) {
+            current.editor.setSelection({"line": pos.start.line, "ch": pos.start.ch + 5});
+        } else if (wrapperName === WRAP_IN_CONDITION) {
+            current.editor.setSelection({"line": pos.start.line, "ch": pos.start.ch + 4}, {"line": pos.start.line, "ch": pos.start.ch + 5});
+        }
     }
 
 
      //Wrap selected statements in try catch block
     function wrapInTryCatch() {
         initializeRefactoringSession();
-        _wrapSelectedStatements(TRY_CATCH, "Please select valid statements to wrap them in try catch block");
+        _wrapSelectedStatements(TRY_CATCH, Strings.ERROR_TRY_CATCH);
     }
 
     //Wrap selected statements in try condition
     function wrapInCondition() {
         initializeRefactoringSession();
-        _wrapSelectedStatements(WRAP_IN_CONDITION, "Please select valid statements to wrap them in condition");
+        _wrapSelectedStatements(WRAP_IN_CONDITION, Strings.ERROR_WRAP_IN_CONDITION);
     }
 
     //Convert function to arrow function
@@ -116,7 +122,7 @@ define(function (require, exports, module) {
         var funcExprNode = current.findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"]);
 
         if (!funcExprNode || funcExprNode.type !== "FunctionExpression" || funcExprNode.id) {
-            current.editor.displayErrorMessageAtCursor("Cursor is not inside function expression");
+            current.editor.displayErrorMessageAtCursor(Strings.ERROR_ARROW_FUNCTION);
             return;
         }
         var noOfStatements = funcExprNode.body.body.length,
@@ -192,13 +198,13 @@ define(function (require, exports, module) {
 
         //Create getters and setters only if selected reference is a property
         if (token.type !== "property") {
-            current.editor.displayErrorMessageAtCursor("Cursor is not at property.");
+            current.editor.displayErrorMessageAtCursor(Strings.ERROR_GETTERS_SETTERS);
             return;
         }
 
         // Check if selected propery is child of a object expression
         if (!current.getParentNode(current.ast, endIndex)) {
-            current.editor.displayErrorMessageAtCursor("This property is not part of object expression");
+            current.editor.displayErrorMessageAtCursor(Strings.ERROR_GETTERS_SETTERS);
             return;
         }
 
@@ -237,8 +243,8 @@ define(function (require, exports, module) {
     function addCommands() {
         CommandManager.register(Strings.CMD_REFACTORING_TRY_CATCH, refactorWrapInTryCatch, wrapInTryCatch);
         CommandManager.register(Strings.CMD_REFACTORING_CONDITION, refactorWrapInCondition, wrapInCondition);
-        CommandManager.register(Strings.CMD_REFACTORING_GETTERS_SETTERS, refactorConvertToArrowFn, convertToArrowFunction);
-        CommandManager.register(Strings.CMD_REFACTORING_ARROW_FUNCTION, refactorCreateGetSet, createGettersAndSetters);
+        CommandManager.register(Strings.CMD_REFACTORING_ARROW_FUNCTION, refactorConvertToArrowFn, convertToArrowFunction);
+        CommandManager.register(Strings.CMD_REFACTORING_GETTERS_SETTERS, refactorCreateGetSet, createGettersAndSetters);
 
         var menuLocation = Menus.AppMenuBar.EDIT_MENU,
             editorCmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
