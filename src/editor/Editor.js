@@ -1272,6 +1272,10 @@ define(function (require, exports, module) {
         return this._codeMirror.indexFromPos(coords);
     };
 
+    Editor.prototype.posFromIndex = function (index) {
+        return this._codeMirror.posFromIndex(index);
+    };
+
     /**
      * Returns true if pos is between start and end (INclusive at start; EXclusive at end by default,
      * but overridable via the endInclusive flag).

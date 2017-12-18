@@ -1,0 +1,31 @@
+{
+    "wrapCondition": "if (x) {\n${body}\n}",
+
+    "arrowFunction": {
+        "oneParamOneStament": "${params} => ${statement}",
+        "oneParamManyStament": "${params} => ",
+        "manyParamOneStament": "(${params}) => ${statement}",
+        "manyParamManyStament": "(${params}) => "
+    },
+
+    "tryCatch": "try {\n${body}\n} catch (e) {\nconsole.log(e.message);\n}",
+
+    "gettersSetters": "\nget ${getName}() {\nreturn this.${tokenName};\n},\n\nset ${setName}(val) {\nthis.${tokenName} = val;\n}",
+    "functionCall": {
+        "thisPointer": "{0}.call({1})",
+        "normal": "{0}({1})",
+        "class": "this.{0}({1})"
+    },
+
+    "functionDeclaration": {
+        "class" : "{0}({1}) {\n {2} \n}\n\n",
+        "normal": "function {0}({1}) {\n {2} \n}\n\n"
+    },
+
+    "returnStatement": {
+        "single": "return {0};\n",
+        "multiple": "return {{0}};\n"
+    },
+
+    "assignment": "{0} = {1};"
+}

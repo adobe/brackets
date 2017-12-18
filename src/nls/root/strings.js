@@ -687,6 +687,13 @@ define({
     "ERROR_ARROW_FUNCTION"                      : "Place the cursor inside a function expression",
     "ERROR_GETTERS_SETTERS"                     : "Place the cursor at a member of an object expression",
     "ERROR_RENAME_MULTICURSOR"                  : "Cannot rename when using multi-cursors",
+    "CMD_EXTRACTTO_VARIABLE"                    : "Extract to Variable",
+    "CMD_EXTRACTTO_FUNCTION"                    : "Extract to Function",
+    "ERROR_TERN_FAILED"                         : "Unable to get data from Tern",
+    "ERROR_EXTRACTTO_VARIABLE_NOT_VALID"        : "Selection does not form an expression",
+    "ERROR_EXTRACTTO_FUNCTION_NOT_VALID"        : "Selected block should represent set of statements or an expression",
+    "ERROR_EXTRACTTO_VARIABLE_MULTICURSORS"     : "Extract to Variable does not work in multicursors",
+    "ERROR_EXTRACTTO_FUNCTION_MULTICURSORS"     : "Extract to Function does not work in multicursors",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

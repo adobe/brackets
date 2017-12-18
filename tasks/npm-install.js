@@ -70,9 +70,13 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask("npm-install-src", "Install node_modules to the src folder", function () {
-        var done = this.async();
-        runNpmInstall("src", function (err) {
-            return err ? done(false) : done();
+        var _done = this.async(),
+            dirs = ["src", "src/JSUtils", "src/JSUtils/node"],
+            done = _.after(dirs.length, _done);
+        dirs.forEach(function (dir) {
+            runNpmInstall(dir, function (err) {
+                return err ? _done(false) : done();
+            });
         });
     });
     

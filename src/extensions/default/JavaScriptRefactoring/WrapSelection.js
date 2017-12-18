@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         CommandManager       = brackets.getModule("command/CommandManager"),
         Menus                = brackets.getModule("command/Menus"),
         Strings              = brackets.getModule("strings"),
-        RefactoringSession   = require("RefactoringUtils");
+        RefactoringSession   = require("RefactoringUtils").RefactoringSession;
 
     //Template keys mentioned in Templates.json
     var WRAP_IN_CONDITION       = "wrapCondition",
@@ -212,8 +212,8 @@ define(function (require, exports, module) {
         isLastNode = current.isLastNodeInScope(current.ast, endIndex);
         lineEndPos = current.lineEndPosition(current.startPos.line);
         templateParams = {
-            "getName": "get" + token.string,
-            "setName": "set" + token.string,
+            "getName":  token.string,
+            "setName":  token.string,
             "tokenName": token.string
         };
 

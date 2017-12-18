@@ -124,6 +124,7 @@ define(function (require, exports, module) {
      * Other constants
      */
     var DIVIDER = "---";
+    var SUBMENU = "SUBMENU";
 
     /**
      * Error Codes from Brackets Shell
@@ -310,7 +311,7 @@ define(function (require, exports, module) {
         this.isDivider = (command === DIVIDER);
         this.isNative = false;
 
-        if (!this.isDivider) {
+        if (!this.isDivider && command !== SUBMENU) {
             // Bind event handlers
             this._enabledChanged = this._enabledChanged.bind(this);
             this._checkedChanged = this._checkedChanged.bind(this);
@@ -612,6 +613,11 @@ define(function (require, exports, module) {
                 $menuItem.on("click", function () {
                     menuItem._command.execute();
                 });
+
+                var self = this;
+                $menuItem.on("mouseenter", function () {
+                    self.closeSubMenu();
+                });
             }
 
             // Insert menu item
@@ -740,6 +746,160 @@ define(function (require, exports, module) {
     //     NOT IMPLEMENTED
     // };
 
+    /**
+     *
+     * Creates a new submenu and a menuItem and adds the menuItem of the submenu
+     * to the menu and returns the submenu.
+     *
+     * A submenu will have the same structure of a menu with a additional field
+     * parentMenuItem which has the reference of the submenu's parent menuItem.
+
+     * A submenu will raise the following events:
+     * - beforeSubMenuOpen
+     * - beforeSubMenuClose
+     *
+     * Note, This function will create only a context submenu.
+     *
+     * TODO: Make this function work for Menus
+     *
+     *
+     * @param {!string} name displayed in menu item of the submenu
+     * @param {!string} id
+     * @param {?string} position - constant defining the position of new MenuItem of the submenu relative to
+     *      other MenuItems. Values:
+     *          - With no relativeID, use Menus.FIRST or LAST (default is LAST)
+     *          - Relative to a command id, use BEFORE or AFTER (required)
+     *          - Relative to a MenuSection, use FIRST_IN_SECTION or LAST_IN_SECTION (required)
+     * @param {?string} relativeID - command id OR one of the MenuSection.* constants. Required
+     *      for all position constants except FIRST and LAST.
+     *
+     * @return {Menu} the newly created submenu
+     */
+    Menu.prototype.addSubMenu = function (name, id, position, relativeID) {
+
+        if (!name || !id) {
+            console.error("addSubMenu(): missing required parameters: name and id");
+            return null;
+        }
+
+        // Guard against duplicate context menu ids
+        if (contextMenuMap[id]) {
+            console.log("Context menu added with id of existing Context Menu: " + id);
+            return null;
+        }
+
+        var menu = new ContextMenu(id);
+        contextMenuMap[id] = menu;
+
+        var menuItemID = this.id + "-" + id;
+
+        if (menuItemMap[menuItemID]) {
+            console.log("MenuItem added with same id of existing MenuItem: " + id);
+            return null;
+        }
+
+        // create MenuItem
+        var menuItem = new MenuItem(menuItemID, SUBMENU);
+        menuItemMap[menuItemID] = menuItem;
+
+        menu.parentMenuItem = menuItem;
+
+        // create MenuItem DOM
+        if (_isHTMLMenu(this.id)) {
+            // Create the HTML MenuItem
+            var $menuItem = $("<li><a href='#' id='" + menuItemID + "'>"   +
+                             "<span class='menu-name'>" + name + "</span>" +
+                             "<span style='float: right'>&rtrif;</span>"   +
+                             "</a></li>");
+
+            var self = this;
+            $menuItem.on("mouseenter", function(e) {
+                if (self.openSubMenu && self.openSubMenu.id === menu.id) {
+                    return;
+                }
+                self.closeSubMenu();
+                self.openSubMenu = menu;
+                menu.open();
+            });
+
+            // Insert menu item
+            var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+            $menuItem, position, $relativeElement);
+        } else {
+            // TODO: add submenus for native menus
+        }
+        return menu;
+    };
+
+
+    /**
+     * Removes the specified submenu from this Menu.
+     *
+     * Note, this function will only remove context submenus
+     *
+     * TODO: Make this function work for Menus
+     *
+     * @param {!string} subMenuID - the menu id of the submenu to remove.
+     */
+    Menu.prototype.removeSubMenu = function (subMenuID) {
+        var subMenu,
+            parentMenuItem,
+            commandID = "";
+
+        if (!subMenuID) {
+            console.error("removeSubMenu(): missing required parameters: subMenuID");
+            return;
+        }
+
+        subMenu = getContextMenu(subMenuID);
+
+        if (!subMenu || !subMenu.parentMenuItem) {
+            console.error("removeSubMenu(): parameter subMenuID: %s is not a valid submenu id", subMenuID);
+            return;
+        }
+
+        parentMenuItem = subMenu.parentMenuItem;
+
+
+        if (!menuItemMap[parentMenuItem.id]) {
+            console.error("removeSubMenu(): parent menuItem not found in menuItemMap: %s", parentMenuItem.id);
+            return;
+        }
+
+        // Remove all of the menu items in the submenu
+        _.forEach(menuItemMap, function (value, key) {
+            if (_.startsWith(key, subMenuID)) {
+                if (value.isDivider) {
+                    subMenu.removeMenuDivider(key);
+                } else {
+                    commandID = value.getCommand();
+                    subMenu.removeMenuItem(commandID);
+                }
+            }
+        });
+
+        if (_isHTMLMenu(this.id)) {
+            $(_getHTMLMenuItem(parentMenuItem.id)).parent().remove(); // remove the menu item
+            $(_getHTMLMenu(subMenuID)).remove(); // remove the menu
+        } else {
+            // TODO: remove submenus for native menus
+        }
+
+
+        delete menuItemMap[parentMenuItem.id];
+        delete contextMenuMap[subMenuID];
+    };
+
+    /**
+     * Closes the submenu if the menu has a submenu open.
+     */
+    Menu.prototype.closeSubMenu = function() {
+        if (this.openSubMenu) {
+            this.openSubMenu.close();
+            this.openSubMenu = null;
+        }
+    };
     /**
      * Gets the Command associated with a MenuItem
      * @return {Command}
@@ -1038,17 +1198,24 @@ define(function (require, exports, module) {
 
     /**
      * Displays the ContextMenu at the specified location and dispatches the
-     * "beforeContextMenuOpen" event.The menu location may be adjusted to prevent
-     * clipping by the browser window. All other menus and ContextMenus will be closed
-     * bofore a new menu is shown.
+     * "beforeContextMenuOpen" event or "beforeSubMenuOpen" event (for submenus).
+     * The menu location may be adjusted to prevent clipping by the browser window.
+     * All other menus and ContextMenus will be closed before a new menu
+     * will be closed before a new menu is shown (if the new menu is not
+     * a submenu).
+     *
+     * In case of submenus, the parentMenu of the submenu will not be closed when the
+     * sub menu is open.
      *
      * @param {MouseEvent | {pageX:number, pageY:number}} mouseOrLocation - pass a MouseEvent
      *      to display the menu near the mouse or pass in an object with page x/y coordinates
-     *      for a specific location.
+     *      for a specific location.This paramter is not used for submenus. Submenus are always
+     *      displayed at a position relative to the parent menu.
      */
     ContextMenu.prototype.open = function (mouseOrLocation) {
 
-        if (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY")) {
+        if (!this.parentMenuItem &&
+           (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY"))) {
             console.error("ContextMenu open(): missing required parameter");
             return;
         }
@@ -1057,21 +1224,26 @@ define(function (require, exports, module) {
             escapedId = StringUtils.jQueryIdEscape(this.id),
             $menuAnchor = $("#" + escapedId),
             $menuWindow = $("#" + escapedId + " > ul"),
-            posTop  = mouseOrLocation.pageY,
-            posLeft = mouseOrLocation.pageX;
+            posTop,
+            posLeft;
 
         // only show context menu if it has menu items
         if ($menuWindow.children().length <= 0) {
             return;
         }
 
-        this.trigger("beforeContextMenuOpen");
-
-        // close all other dropdowns
-        closeAll();
 
         // adjust positioning so menu is not clipped off bottom or right
-        var elementRect = {
+        if (this.parentMenuItem) { // If context menu is a submenu
+
+            this.trigger("beforeSubMenuOpen");
+
+            var $parentMenuItem = $(_getHTMLMenuItem(this.parentMenuItem.id));
+
+            posTop = $parentMenuItem.offset().top;
+            posLeft = $parentMenuItem.offset().left + $parentMenuItem.outerWidth();
+
+            var elementRect = {
                 top:    posTop,
                 left:   posLeft,
                 height: $menuWindow.height() + 25,
@@ -1079,15 +1251,43 @@ define(function (require, exports, module) {
             },
             clip = ViewUtils.getElementClipSize($window, elementRect);
 
-        if (clip.bottom > 0) {
-            posTop = Math.max(0, posTop - clip.bottom);
-        }
-        posTop -= 30;   // shift top for hidden parent element
-        posLeft += 5;
+            if (clip.bottom > 0) {
+                posTop = Math.max(0, posTop + $parentMenuItem.height() - $menuWindow.height());
+            }
+
+            posTop -= 30;   // shift top for hidden parent element
+            posLeft += 3;
+
+            if (clip.right > 0) {
+                posLeft = Math.max(0, posLeft - 2 * $parentMenuItem.outerWidth());
+            }
+        } else {
+            this.trigger("beforeContextMenuOpen");
+
+            // close all other dropdowns
+            closeAll();
+
+            posTop  = mouseOrLocation.pageY;
+            posLeft = mouseOrLocation.pageX;
+
+            var elementRect = {
+                top:    posTop,
+                left:   posLeft,
+                height: $menuWindow.height() + 25,
+                width:  $menuWindow.width()
+            },
+            clip = ViewUtils.getElementClipSize($window, elementRect);
+
+            if (clip.bottom > 0) {
+                posTop = Math.max(0, posTop - clip.bottom);
+            }
+            posTop -= 30;   // shift top for hidden parent element
+            posLeft += 5;
 
 
-        if (clip.right > 0) {
-            posLeft = Math.max(0, posLeft - clip.right);
+            if (clip.right > 0) {
+                posLeft = Math.max(0, posLeft - clip.right);
+            }
         }
 
         // open the context menu at final location
@@ -1100,7 +1300,12 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
-        this.trigger("beforeContextMenuClose");
+        if (this.parentMenuItem) {
+            this.trigger("beforeSubMenuClose");
+        } else {
+            this.trigger("beforeContextMenuClose");
+        }
+        this.closeSubMenu();
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
 

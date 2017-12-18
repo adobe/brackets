@@ -1,0 +1,8 @@
+{
+    "extractToVariable":  [
+        "Ctrl-Shift-V"
+    ],
+    "extractToFunction":  [
+        "Ctrl-Shift-M"
+    ]
+}

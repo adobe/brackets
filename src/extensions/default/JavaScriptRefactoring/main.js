@@ -31,6 +31,9 @@ define(function (require, exports, module) {
         WrapSelection        = require("WrapSelection");
 
     var jsRefactoringEnabled     = true;
+    var ExtractToVariable = require("ExtractToVariable"),
+        ExtractToFunction = require("ExtractToFunction");
+
 
 
     // This preference controls whether to create a session and process all JS files or not.
@@ -58,6 +61,8 @@ define(function (require, exports, module) {
         if (jsRefactoringEnabled) {
             RenameIdentifier.addCommands();
             WrapSelection.addCommands();
+            ExtractToVariable.addCommands();
+            ExtractToFunction.addCommands();
         }
     });
 });
