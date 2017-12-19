@@ -95,10 +95,14 @@ define(function (require, exports, module) {
          * @type {jQuery.Object}
          */
         this.$menu =
-            $("<li class='dropdown codehint-menu'></li>")
+            $("<li class='dropdown inlinemenu-menu'></li>")
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
-                .append("<ul class='dropdown-menu'><p style='text-align: center; margin: 0; padding: 3px; background-color: #E0E0E0'>" + menuText + "</p></ul>");
+                .append("<ul class='dropdown-menu'>" +
+                            "<li class='inlinemenu-header'>" +
+                                "<a>" + menuText + "</a>" +
+                            "</li>" +
+                         "</ul>");
 
         this._keydownHook = this._keydownHook.bind(this);
     }
@@ -111,7 +115,7 @@ define(function (require, exports, module) {
      * @param {number} index
      */
     InlineMenu.prototype._setSelectedIndex = function (index) {
-        var items = this.$menu.find("li");
+        var items = this.$menu.find("li.inlinemenu-item");
 
         // Range check
         index = Math.max(-1, Math.min(index, items.length - 1));
@@ -155,7 +159,7 @@ define(function (require, exports, module) {
         };
 
         // clear the list
-        this.$menu.find("li").remove();
+        this.$menu.find("li.inlinemenu-item").remove();
 
         // if there are no items then close the list; otherwise add them and
         // set the selection
@@ -175,7 +179,7 @@ define(function (require, exports, module) {
             // remove list temporarily to save rendering time
             $ul.remove().append(Mustache.render(MenuHTML, view));
 
-            $ul.children("li").each(function (index, element) {
+            $ul.children("li.inlinemenu-item").each(function (index, element) {
                 var item      = self.items[index],
                     $element    = $(element);
 
@@ -184,7 +188,7 @@ define(function (require, exports, module) {
             });
 
             // delegate list item events to the top-level ul list element
-            $ul.on("click", "li", function (e) {
+            $ul.on("click", "li.inlinemenu-item", function (e) {
                 // Don't let the click propagate upward (otherwise it will
                 // hit the close handler in bootstrap-dropdown).
                 e.stopPropagation();
@@ -193,7 +197,7 @@ define(function (require, exports, module) {
                 }
             });
 
-            $ul.on("mouseover", "li", function (e) {
+            $ul.on("mouseover", "li.inlinemenu-item", function (e) {
                 e.stopPropagation();
                 // _setSelectedIndex sets the selected index and call handle hover
                 // callback funtion
@@ -224,7 +228,7 @@ define(function (require, exports, module) {
             $menuWindow = this.$menu.children("ul"),
             menuHeight  = $menuWindow.outerHeight();
 
-        // TODO Ty: factor out menu repositioning logic so code hints and Context menus share code
+        // TODO Ty: factor out menu repositioning logic so inline menu and Context menus share code
         // adjust positioning so menu is not clipped off bottom or right
         var bottomOverhang = posTop + menuHeight - $window.height();
         if (bottomOverhang > 0) {
@@ -306,7 +310,7 @@ define(function (require, exports, module) {
         // Calculate the number of items per scroll page.
         function _itemsPerPage() {
             var itemsPerPage = 1,
-                $items = self.$menu.find("li"),
+                $items = self.$menu.find("li.inlinemenu-item"),
                 $view = self.$menu.find("ul.dropdown-menu"),
                 itemHeight;
 
@@ -356,7 +360,7 @@ define(function (require, exports, module) {
             } else if (this.selectedIndex !== -1 &&
                     (keyCode === KeyEvent.DOM_VK_RETURN)) {
                 // Trigger a click handler to commmit the selected item
-                $(this.$menu.find("li")[this.selectedIndex]).trigger("click");
+                $(this.$menu.find("li.inlinemenu-item")[this.selectedIndex]).trigger("click");
             } else {
                 return false;
             }
@@ -397,7 +401,7 @@ define(function (require, exports, module) {
 
         if (this.items.length) {
             // Need to add the menu to the DOM before trying to calculate its ideal location.
-            $("#widget-menu-bar > ul").append(this.$menu);
+            $("#inlinemenu-menu-bar > ul").append(this.$menu);
 
             var menuPos = this._calcMenuLocation();
 
