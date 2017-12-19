@@ -91,7 +91,7 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
-        function isInSameFile(obj) {
+        function isInSameFile(obj, refsResp) {
             return (obj && obj.file === refsResp.file);
         }
 
@@ -102,9 +102,11 @@ define(function (require, exports, module) {
         function handleFindRefs (refsResp) {
             if (refsResp && refsResp.references && refsResp.references.refs) {
                 if (refsResp.references.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs, false, {scroll: false});
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs)
                 } else {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(isInSameFile));
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(function(element) {
+                        return isInSameFile(element, refsResp);
+                    }));
                 }
             }
         }
