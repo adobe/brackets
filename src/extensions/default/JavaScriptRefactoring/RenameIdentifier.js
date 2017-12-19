@@ -102,7 +102,7 @@ define(function (require, exports, module) {
         function handleFindRefs (refsResp) {
             if (refsResp && refsResp.references && refsResp.references.refs) {
                 if (refsResp.references.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs)
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
                 } else {
                     EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(function(element) {
                         return isInSameFile(element, refsResp);
