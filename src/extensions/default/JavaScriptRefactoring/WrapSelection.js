@@ -51,8 +51,8 @@ define(function (require, exports, module) {
     /**
      * Initialize session
      */
-    function initializeRefactoringSession() {
-        current = new RefactoringSession(EditorManager.getActiveEditor());
+    function initializeRefactoringSession(editor) {
+        current = new RefactoringSession(editor);
     }
 
     /**
@@ -62,7 +62,11 @@ define(function (require, exports, module) {
      * @param {string} err- error message if we can't wrap selected code
      */
     function _wrapSelectedStatements (wrapperName, err) {
-        initializeRefactoringSession();
+        var editor = EditorManager.getActiveEditor();
+        if (!editor) {
+            return;
+        }
+        initializeRefactoringSession(editor);
 
         var startIndex = current.startIndex,
             endIndex = current.endIndex,
@@ -96,28 +100,34 @@ define(function (require, exports, module) {
         });
 
         if (wrapperName === TRY_CATCH) {
-            current.editor.setSelection({"line": pos.start.line, "ch": pos.start.ch + 5});
+            var cursorLine = current.editor.getSelection().start.line - 1,
+                startCursorCh = current.document.getLine(cursorLine).indexOf("\/\/"),
+                endCursorCh = current.document.getLine(cursorLine).length;
+
+            current.editor.setSelection({"line": cursorLine, "ch": startCursorCh}, {"line": cursorLine, "ch": endCursorCh});
         } else if (wrapperName === WRAP_IN_CONDITION) {
-            current.editor.setSelection({"line": pos.start.line, "ch": pos.start.ch + 4}, {"line": pos.start.line, "ch": pos.start.ch + 5});
+            current.editor.setSelection({"line": pos.start.line, "ch": pos.start.ch + 4}, {"line": pos.start.line, "ch": pos.start.ch + 13});
         }
     }
 
 
      //Wrap selected statements in try catch block
     function wrapInTryCatch() {
-        initializeRefactoringSession();
         _wrapSelectedStatements(TRY_CATCH, Strings.ERROR_TRY_CATCH);
     }
 
     //Wrap selected statements in try condition
     function wrapInCondition() {
-        initializeRefactoringSession();
         _wrapSelectedStatements(WRAP_IN_CONDITION, Strings.ERROR_WRAP_IN_CONDITION);
     }
 
     //Convert function to arrow function
     function convertToArrowFunction() {
-        initializeRefactoringSession();
+        var editor = EditorManager.getActiveEditor();
+        if (!editor) {
+            return;
+        }
+        initializeRefactoringSession(editor);
         //Handle when there is no selected line
         var funcExprNode = current.findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"]);
 
@@ -127,8 +137,13 @@ define(function (require, exports, module) {
         }
         var noOfStatements = funcExprNode.body.body.length,
             selectedText = current.text.substr(funcExprNode.start, funcExprNode.end - funcExprNode.start),
-            param = current.getParamsOfFunction(funcExprNode.start, funcExprNode.end, selectedText),
-            loc = {
+            param = [];
+
+            funcExprNode.params.forEach(function (item) {
+                param.push(item.name);
+            });
+
+        var loc = {
                 "fullFunctionScope": {
                     start: funcExprNode.start,
                     end: funcExprNode.end
@@ -178,7 +193,11 @@ define(function (require, exports, module) {
 
     // Create gtteres and setters for a property
     function createGettersAndSetters() {
-        initializeRefactoringSession();
+        var editor = EditorManager.getActiveEditor();
+        if (!editor) {
+            return;
+        }
+        initializeRefactoringSession(editor);
 
         var startIndex = current.startIndex,
             endIndex = current.endIndex,

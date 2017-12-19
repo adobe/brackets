@@ -681,7 +681,7 @@ define({
     "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",
     "CMD_REFACTORING_GETTERS_SETTERS"           : "Create Getters Setters",
     "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
-    "DESCRIPTION_CODE_REFACTORIG"               : "Enable/disable JavaScript Code Refactoring",
+    "DESCRIPTION_CODE_REFACTORING"               : "Enable/disable JavaScript Code Refactoring",
     "ERROR_TRY_CATCH"                           : "Select valid code to wrap in a Try-catch block",
     "ERROR_WRAP_IN_CONDITION"                   : "Select valid code to wrap in a Condition block",
     "ERROR_ARROW_FUNCTION"                      : "Place the cursor inside a function expression",

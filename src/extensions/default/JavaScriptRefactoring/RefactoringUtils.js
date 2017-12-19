@@ -84,9 +84,9 @@ define(function (require, exports, module) {
     /**
      * This will add template at given position/selection
      *
-     * @param {string} template - name of templated defined in templates.json
+     * @param {string} template - name of the template defined in templates.json
      * @param {Array} args- Check all arguments that exist in defined templated pass all that args as array
-     * @param {{line: number, ch: number}} rangeToReplace - Range which we want to rreplace
+     * @param {{line: number, ch: number}} rangeToReplace - Range which we want to replace
      * @param {string} subTemplate - If template written under some category
      */
     RefactoringSession.prototype.replaceTextFromTemplate = function (template, args, rangeToReplace, subTemplate) {

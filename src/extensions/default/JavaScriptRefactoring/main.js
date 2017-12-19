@@ -35,7 +35,7 @@ define(function (require, exports, module) {
 
     // This preference controls whether to create a session and process all JS files or not.
     PreferencesManager.definePreference("refactoring.JSRefactoring", "boolean", true, {
-        description: Strings.DESCRIPTION_CODE_REFACTORIG
+        description: Strings.DESCRIPTION_CODE_REFACTORING
     });
 
 

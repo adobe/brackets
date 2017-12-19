@@ -44,7 +44,7 @@ define(function (require, exports, module) {
     //Post message to tern node domain that will request tern server to find refs
     function getRefs(fileInfo, offset) {
         ScopeManager.postMessage({
-            type: "getRefs",
+            type: MessageIds.TERN_REFS,
             fileInfo: fileInfo,
             offset: offset
         });
@@ -54,6 +54,9 @@ define(function (require, exports, module) {
 
     //Create info required to find reference
     function requestFindRefs(session, document, offset) {
+        if (!document || !session) {
+            return;
+        }
         var path    = document.file.fullPath,
             fileInfo = {
                 type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
@@ -61,7 +64,6 @@ define(function (require, exports, module) {
                 offsetLines: 0,
                 text: ScopeManager.filterText(session.getJavascriptText())
             };
-
         var ternPromise = getRefs(fileInfo, offset);
 
         return {promise: ternPromise};
@@ -71,6 +73,10 @@ define(function (require, exports, module) {
     function handleRename() {
         var editor = EditorManager.getActiveEditor(),
             offset, handleFindRefs;
+
+        if (!editor) {
+            return;
+        }
 
         if (editor.getSelections().length > 1) {
             editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_MULTICURSOR);
@@ -85,6 +91,24 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
+        function isInSameFile(obj) {
+            return (obj && obj.file === refsResp.file);
+        }
+
+        /**
+         * Check if references are in this file only
+         * If yes then select all references
+         */
+        function handleFindRefs (refsResp) {
+            if (refsResp && refsResp.references && refsResp.references.refs) {
+                if (refsResp.references.type === "local") {
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs, false, {scroll: false});
+                } else {
+                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(isInSameFile));
+                }
+            }
+        }
+
         /**
          * Make a find ref request.
          * @param {Session} session - the session
@@ -93,30 +117,12 @@ define(function (require, exports, module) {
         function requestFindReferences(session, offset) {
             var response = requestFindRefs(session, session.editor.document, offset);
 
-            if (response || response.hasOwnProperty("promise")) {
+            if (response && response.hasOwnProperty("promise")) {
                 response.promise.done(handleFindRefs).fail(function () {
                     result.reject();
                 });
             }
         }
-
-        /**
-         * Check if references are in this file only
-         * If yes then select all references
-         */
-        handleFindRefs = function (refsResp) {
-            function isInSameFile(obj) {
-                return (obj && obj.file === refsResp.file);
-            }
-
-            if (refsResp && refsResp.references && refsResp.references.refs) {
-                if (refsResp.references.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
-                } else {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(isInSameFile));
-                }
-            }
-        };
 
         offset = session.getOffset();
         requestFindReferences(session, offset);
