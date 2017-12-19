@@ -285,7 +285,11 @@ function getScopeData(fileInfo, offset) {
                         } else if (key === "originNode") {
                             return value && {
                                 start: value.start,
-                                end: value.end
+                                end: value.end,
+                                body: {
+                                    start: value.body.start,
+                                    end: value.body.end
+                                }
                             };
                         }
 

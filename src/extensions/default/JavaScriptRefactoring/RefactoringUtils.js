@@ -33,6 +33,9 @@ define(function (require, exports, module) {
         _             = brackets.getModule("thirdparty/lodash"),
         ScopeManager  = brackets.getModule("JSUtils/ScopeManager");
 
+    // Length of the function body used as function name for nameless functions
+    var FUNCTION_BODY_PREFIX_LENGTH = 30;
+
     /**
      * Checks whether two ast nodes are equal
      * @param {!ASTNode} a
@@ -309,7 +312,15 @@ define(function (require, exports, module) {
                             newScope.prev = temp;
                         }
                     } else {
-                        curScope.name = "function starting with " + fullText.substr(curScope.originNode.start, 15);
+                        // For function expressions, assign name to prefix of the function body
+                        curScope.name = "function starting with " +
+                            fullText.substr(
+                                curScope.originNode.body.start,
+                                Math.min(
+                                    FUNCTION_BODY_PREFIX_LENGTH,
+                                    curScope.originNode.body.end - curScope.originNode.body.start
+                                )
+                            );
                     }
                 } else {
                     curScope.name = curScope.fnType;
