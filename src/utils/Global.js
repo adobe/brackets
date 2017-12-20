@@ -41,7 +41,16 @@ define(function (require, exports, module) {
     // inside Node for CI testing) we use this trick to get the global object.
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
-        global.brackets = {};
+
+        // Earlier brackets object was initialized at 
+        // https://github.com/adobe/brackets-shell/blob/908ed1503995c1b5ae013473c4b181a9aa64fd22/appshell/appshell_extensions.js#L945.
+        // With the newer versions of CEF, the initialization was crashing the render process, citing
+        // JS eval error. So moved the brackets object initialization from appshell_extensions.js to here.
+        if (global.appshell) {
+            global.brackets = global.appshell;
+        } else {
+            global.brackets = {};
+        }
     }
 
     // Parse URL params
