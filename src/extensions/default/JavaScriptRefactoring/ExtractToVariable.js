@@ -232,11 +232,14 @@ define(function(require, exports, module) {
                     expn.name = doc.getText().substr(expn.start, expn.end - expn.start);
                 });
 
-                // Filter expns which span multiple lines and sort expressions by their length
+                // Filter expns which span multiple lines
                 expns = expns.filter(function(expn) {
                     return RefactoringUtils.numLines(expn.name) === 1;
-                }).sort(function(a, b) {
-                    return a.name.length >= b.name.length;
+                });
+
+                // Sort expressions by their length
+                expns.sort(function(a, b) {
+                    return a.name.length - b.name.length;
                 });
 
                 expns.forEach(function(expn, index) {
