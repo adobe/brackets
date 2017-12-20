@@ -297,7 +297,9 @@ define(function (require, exports, module) {
                     var methodDefinitionNode = findSurroundASTNode(ast, curScope.originNode, ["MethodDefinition"]);
                     // class scope found
                     if (methodDefinitionNode && isEqual(methodDefinitionNode.value, curScope.originNode)) {
+                        // Change curScope name and originNode to that of methodDefinitionNode
                         curScope.name = methodDefinitionNode.key.name;
+                        curScope.originNode = methodDefinitionNode;
 
                         var classNode = findSurroundASTNode(ast, methodDefinitionNode, ["ClassDeclaration", "ClassExpression"]);
 

@@ -286,6 +286,7 @@ function getScopeData(fileInfo, offset) {
                             return value && {
                                 start: value.start,
                                 end: value.end,
+                                type: value.type,
                                 body: {
                                     start: value.body.start,
                                     end: value.body.end

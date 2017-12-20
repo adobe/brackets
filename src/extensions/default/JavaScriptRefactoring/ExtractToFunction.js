@@ -224,10 +224,17 @@ define(function(require, exports, module) {
             if (fnScopes[i].id === destScope.id) {
                 if (fnScopes[i - 1]) {
                      insertPos = session.editor.posFromIndex(fnScopes[i - 1].originNode.start);
+                     // If the origin node of the destination scope is a function expression or a arrow function expression,
+                     // get the surrounding statement to get the position
+                     if (fnScopes[i - 1].originNode.type === "FunctionExpression" || fnScopes[i - 1].originNode.type === "ArrowFunctionExpression") {
+                         var surroundStatement = RefactoringUtils.findSurroundASTNode(ast, { start: session.editor.indexFromPos(insertPos)}, ["Statement"]);
+                         insertPos = session.editor.posFromIndex(surroundStatement.start);
+                     }
                 }
                 break;
             }
         }
+
         insertPos.ch = 0;
 
         // Replace and multi-select and indent
