@@ -674,6 +674,20 @@ define({
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
+
+    // extensions/default/JavaScriptRefactoring
+    "CMD_REFACTORING_RENAME"                    : "Rename",
+    "CMD_REFACTORING_TRY_CATCH"                 : "Wrap in Try Catch",
+    "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",
+    "CMD_REFACTORING_GETTERS_SETTERS"           : "Create Getters Setters",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
+    "DESCRIPTION_CODE_REFACTORING"               : "Enable/disable JavaScript Code Refactoring",
+    "ERROR_TRY_CATCH"                           : "Select valid code to wrap in a Try-catch block",
+    "ERROR_WRAP_IN_CONDITION"                   : "Select valid code to wrap in a Condition block",
+    "ERROR_ARROW_FUNCTION"                      : "Place the cursor inside a function expression",
+    "ERROR_GETTERS_SETTERS"                     : "Place the cursor at a member of an object expression",
+    "ERROR_RENAME_MULTICURSOR"                  : "Cannot rename when using multi-cursors",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 

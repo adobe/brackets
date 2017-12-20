@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         TERN_INFERENCE_TIMEDOUT     = "InferenceTimedOut",
         SET_CONFIG                  = "SetConfig",
         TERN_UPDATE_DIRTY_FILE      = "UpdateDirtyFileEntry",
+        TERN_REFS                   = "getRefs",
         TERN_CLEAR_DIRTY_FILES_LIST = "ClearDirtyFilesList";
 
     // Message parameter constants
@@ -62,6 +63,7 @@ define(function (require, exports, module) {
     exports.SET_CONFIG                  = SET_CONFIG;
     exports.TERN_UPDATE_DIRTY_FILE      = TERN_UPDATE_DIRTY_FILE;
     exports.TERN_CLEAR_DIRTY_FILES_LIST = TERN_CLEAR_DIRTY_FILES_LIST;
+    exports.TERN_REFS = TERN_REFS;
 });
 
 

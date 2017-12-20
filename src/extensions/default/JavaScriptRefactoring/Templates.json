@@ -1,0 +1,14 @@
+{
+    "wrapCondition": "if (Condition) {\n${body}\n}",
+
+    "arrowFunction": {
+        "oneParamOneStament": "${params} => ${statement}",
+        "oneParamManyStament": "${params} => ",
+        "manyParamOneStament": "(${params}) => ${statement}",
+        "manyParamManyStament": "(${params}) => "
+    },
+
+    "tryCatch": "try {\n${body}\n} catch (e) {\n\/\/Catch Statement\n}",
+
+    "gettersSetters": "\nget ${getName}() {\nreturn this.${tokenName};\n},\n\nset ${setName}(val) {\nthis.${tokenName} = val;\n}"
+}
