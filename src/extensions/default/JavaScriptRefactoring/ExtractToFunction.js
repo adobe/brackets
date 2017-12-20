@@ -297,7 +297,7 @@ define(function(require, exports, module) {
             }
             scopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText());
 
-            inlineMenu = new InlineMenu(editor, "Choose destination scope");
+            inlineMenu = new InlineMenu(editor, Strings.EXTRACTTO_FUNCTION_SELECT_SCOPE);
 
             inlineMenu.open(scopes.filter(RefactoringUtils.isFnScope));
 

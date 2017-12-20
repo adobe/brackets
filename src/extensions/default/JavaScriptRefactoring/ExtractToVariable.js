@@ -249,7 +249,7 @@ define(function(require, exports, module) {
                 }
 
                 // UI for extract to variable
-                inlineMenu = new InlineMenu(session.editor, "Select expresion");
+                inlineMenu = new InlineMenu(session.editor, Strings.EXTRACTTO_VARIABLE_SELECT_EXPRESSION);
 
                 inlineMenu.onHover(function (expnId) {
                     editor.setSelection(editor.posFromIndex(expns[expnId].start), editor.posFromIndex(expns[expnId].end));
