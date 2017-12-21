@@ -674,6 +674,20 @@ define({
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
 	"DETECTED_EXCLUSION_INFO": "{APP_NAME} で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、{APP_NAME} のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
 
+
+    // extensions/default/JavaScriptRefactoring
+	"CMD_REFACTORING_RENAME": "ファイル名変更",
+	"CMD_REFACTORING_TRY_CATCH": "Wrap in Try Catch",
+	"CMD_REFACTORING_CONDITION": "Wrap in Condition",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Create Getters Setters",
+	"CMD_REFACTORING_ARROW_FUNCTION": "Convert to Arrow Function",
+	"DESCRIPTION_CODE_REFACTORING": "Enable/disable JavaScript Code Refactoring",
+	"ERROR_TRY_CATCH": "Select valid code to wrap in a Try-catch block",
+	"ERROR_WRAP_IN_CONDITION": "Select valid code to wrap in a Condition block",
+	"ERROR_ARROW_FUNCTION": "Place the cursor inside a function expression",
+	"ERROR_GETTERS_SETTERS": "Place the cursor at a member of an object expression",
+	"ERROR_RENAME_MULTICURSOR": "Cannot rename when using multi-cursors",
+
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
 
@@ -812,5 +826,5 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "ライブプレビューでのリバースインスペクトを無効にするには false"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false to disable live preview reverse inspect"
 });
