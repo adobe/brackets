@@ -100,11 +100,27 @@ define(function (require, exports, module) {
          * If yes then select all references
          */
         function handleFindRefs (refsResp) {
+            var inlineWidget = EditorManager.getFocusedInlineWidget(),
+                editor = EditorManager.getActiveEditor();
+            //In case of inline widget if some references are outside widget's text range then don't allow for rename
+            if (inlineWidget) {
+                var isInTextRange = true;
+                refsResp.references.refs.forEach(function(item) {
+                    if (item.start.line < inlineWidget._startLine || item.end.line > inlineWidget._endLine) {
+                        isInTextRange = false;
+                    }
+                });
+                if (!isInTextRange) {
+                    editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_QUICKEDIT);
+                    return;
+                }
+            }
+
             if (refsResp && refsResp.references && refsResp.references.refs) {
                 if (refsResp.references.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
+                    editor.setSelections(refsResp.references.refs);
                 } else {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(function(element) {
+                    editor.setSelections(refsResp.references.refs.filter(function(element) {
                         return isInSameFile(element, refsResp);
                     }));
                 }
