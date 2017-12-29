@@ -38,7 +38,7 @@ define(function (require, exports, module) {
     //    so that we don't leave UI-blocking overlays up forever, etc. But this is hard: we'd have
     //    wrap every async callback (including low-level native ones that don't use [Super]Deferred)
     //    to catch exceptions, and then understand which Deferred(s) the code *would* have resolved/
-    //    rejected had it run to completion.
+    //    rejected had it runs to completion.
 
 
     /**
