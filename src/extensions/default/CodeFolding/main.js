@@ -86,7 +86,7 @@ define(function (require, exports, module) {
       * selection ranges in the viewState of the current document. Any selection range in the view state
       * that is folded in the prefs will be folded. Unlike other fold range finder, the only validation
       * on selection folds is to check that they satisfy the minimum fold range.
-      * @param {Editor} editor  the editor whose saved line folds should be restored
+      * @param {Editor} editor  the editor whose saved linefolds should be restored
       */
     function restoreLineFolds(editor) {
         /**
