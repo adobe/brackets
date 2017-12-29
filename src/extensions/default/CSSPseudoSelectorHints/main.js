@@ -58,7 +58,7 @@ define(function (require, exports, module) {
             //Test the previous token first
             TokenUtils.movePrevToken(ctx);
             if (ctx.token.string === PUNCTUATION_CHAR) {
-                //We are in pseudo elemnt context ('::')
+                //We are in pseudo element context ('::')
                 contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
             } else {
                 contextType = TOKEN_TYPE_PSEUDO_SELECTOR;
