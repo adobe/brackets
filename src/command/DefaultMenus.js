@@ -45,7 +45,7 @@ define(function (require, exports, module) {
             CommandManager.get(item).setEnabled(enabled);
         });
     }
-    
+
     /**
      * Checks if file saved and present on system and
      * disables menu items accordingly
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
                 if (err) {
                     return err;
                 }
-                _setContextMenuItemsVisible(isPresent, [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS]);   
+                _setContextMenuItemsVisible(isPresent, [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS]);
             });
         }
     }
@@ -159,6 +159,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_ACTIVE_LINE);
         menu.addMenuItem(Commands.TOGGLE_LINE_NUMBERS);
         menu.addMenuItem(Commands.TOGGLE_WORD_WRAP);
+        menu.addMenuItem(Commands.TOGGLE_ALWAYS_SHOW_FULL_FILE_PATH);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
         menu.addMenuDivider();
@@ -372,7 +373,7 @@ define(function (require, exports, module) {
         });
         // Check the visibility of context menu items before opening the context menu.
         // 'Rename', 'Show in file tree' and 'Show in explorer' items will be disabled for files that have not yet been saved to disk.
-        Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);        
+        Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
         Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
     });
 });

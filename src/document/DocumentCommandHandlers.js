@@ -141,6 +141,12 @@ define(function (require, exports, module) {
      * @type {function}
      */
     var handleFileSaveAs;
+    
+    function _buildPreferencesContext(fullPath) {
+        return PreferencesManager._buildContext(fullPath,
+            fullPath ? LanguageManager.getLanguageForPath(fullPath).getId() : undefined);
+    }
+
 
     /**
      * Updates the title bar with new file title or dirty indicator
@@ -183,8 +189,9 @@ define(function (require, exports, module) {
                 WorkspaceManager.recomputeLayout();
             }
         }
-
+        
         var projectRoot = ProjectManager.getProjectRoot();
+        
         if (projectRoot) {
             var projectName = projectRoot.name;
             // Construct shell/browser window title, e.g. "• index.html (myProject) — Brackets"
@@ -210,12 +217,15 @@ define(function (require, exports, module) {
      */
     function _shortTitleForDocument(doc) {
         var fullPath = doc.file.fullPath;
-
+        var showFullFilePath = PreferencesManager.get("alwaysShowFullFilePath", _buildPreferencesContext(fullPath));
+        
         // If the document is untitled then return the filename, ("Untitled-n.ext");
         // otherwise show the project-relative path if the file is inside the
         // current project or the full absolute path if it's not in the project.
         if (doc.isUntitled()) {
             return fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        } else if (showFullFilePath) {
+            return fullPath;  
         } else {
             return ProjectManager.makeProjectRelativeIfPossible(fullPath);
         }
