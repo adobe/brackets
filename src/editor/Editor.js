@@ -2710,7 +2710,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets alwaqys show full file path option.
+     * Sets always show full file path option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
      * @param {string=} fullPath Path to file to get preference for
