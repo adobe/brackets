@@ -265,7 +265,9 @@ define(function(require, exports, module) {
                     inlineMenu.close();
                 });
 
-                inlineMenu.onClose(function () { });
+                inlineMenu.onClose(function () {
+                    inlineMenu.close();
+                });
             }
         }).fail(function() {
             editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
