@@ -157,7 +157,7 @@ define(function(require, exports, module) {
             variableDeclarations = retObj.variableDeclarations,
             doc                  = session.editor.document,
             fnBody               = text,
-            fnName               = RefactoringUtils.getUniqueIdentifierName(destScope, "extracted"),
+            fnName               = RefactoringUtils.getUniqueIdentifierName(scopes, "extracted"),
             fnDeclaration,
             fnCall;
 

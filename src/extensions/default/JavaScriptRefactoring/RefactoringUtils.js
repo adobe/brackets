@@ -123,20 +123,30 @@ define(function (require, exports, module) {
 
     /**
      * Gets a unique identifier name in the scope that starts with prefix
-     * @param {!Scope} scope - scope returned from tern (contains 'props' with identifiers in that scope)
+     * @param {!Scope} scopes - an array of all scopes returned from tern (each element contains 'props' with identifiers
+     *  in that scope)
      * @param {!string} prefix - prefix of the identifier
      * @param {number} num - number to start checking for
      * @return {!string} identifier name
      */
-    function getUniqueIdentifierName(scope, prefix, num) {
-        if (!scope || !scope.props) {
+    function getUniqueIdentifierName(scopes, prefix, num) {
+        if (!scopes) {
             return prefix;
         }
+
+        var props = scopes.reduce(function(props, scope) {
+            return _.union(props, _.keys(scope.props));
+        }, []);
+
+        if (!props) {
+            return prefix;
+        }
+
         num = num || "1";
         var name;
         while (num < 100) { // limit search length
             name = prefix + num;
-            if (!scope.props.hasOwnProperty(name)) {
+            if (props.indexOf(name) === -1) {
                 break;
             }
             ++num;
