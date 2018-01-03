@@ -6,8 +6,8 @@
     },
 
     "functionDeclaration": {
-        "class" : "{0}({1}) {\n {2} \n}\n\n",
-        "normal": "function {0}({1}) {\n {2} \n}\n\n"
+        "class" : "{0}({1}) {\n {2}}\n\n",
+        "normal": "function {0}({1}) {\n {2}}\n\n"
     },
 
     "returnStatement": {
