@@ -308,7 +308,18 @@ define(function (require, exports, module) {
                             var temp = curScope.prev;
                             var newScope = {};
                             newScope.isClass = true;
-                            newScope.name = "class " + (classNode.id && classNode.id.name);
+
+                            // if the class is class expression, check if it has a name
+                            if (classNode.type === "ClassExpression") {
+                                var assignmentExpNode = findSurroundASTNode(ast, classNode, ["AssignmentExpression"]);
+                                if (assignmentExpNode && assignmentExpNode.left && assignmentExpNode.left.name) {
+                                    newScope.name = "class " + assignmentExpNode.left.name;
+                                } else {
+                                    newScope.name = "class null";
+                                }
+                            } else {
+                                newScope.name = "class " + (classNode.id && classNode.id.name);
+                            }
                             newScope.originNode = classNode;
                             curScope.prev = newScope;
                             newScope.prev = temp;
