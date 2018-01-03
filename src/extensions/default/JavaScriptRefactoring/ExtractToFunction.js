@@ -304,6 +304,12 @@ define(function(require, exports, module) {
             }
             scopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText());
 
+            // if only one scope, extract without menu
+            if (scopes.length === 1) {
+                extract(ast, text, scopes, scopes[0], scopes[0], start, end, isExpression);
+                return;
+            }
+
             inlineMenu = new InlineMenu(editor, Strings.EXTRACTTO_FUNCTION_SELECT_SCOPE);
 
             inlineMenu.open(scopes.filter(RefactoringUtils.isFnScope));
