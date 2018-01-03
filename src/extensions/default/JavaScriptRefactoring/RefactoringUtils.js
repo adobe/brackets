@@ -281,7 +281,7 @@ define(function (require, exports, module) {
                 return types.includes(nodeType);
             }
         });
-        return foundNode && foundNode.node;
+        return foundNode && _.clone(foundNode.node);
     }
 
     /**
