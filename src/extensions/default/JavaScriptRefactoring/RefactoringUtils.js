@@ -111,10 +111,10 @@ define(function (require, exports, module) {
         // Do not allow function or class nodes
         var notStatement = false;
         ASTWalker.simple(getAST(fileText.substr(start, end - start)), {
-            Function: function (node) {
+            FunctionDeclaration: function (node) {
                 notStatement = true;
             },
-            Class: function (node) {
+            ClassDeclaration: function (node) {
                 notStatement = true;
             }
         });
