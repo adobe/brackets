@@ -238,6 +238,11 @@ define(function(require, exports, module) {
                     return a.value.length - b.value.length;
                 });
 
+                if (!expns || !expns.length) {
+                    session.editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_NOT_VALID);
+                    return;
+                }
+
                 // Filter expns based on length of first surrounding expression
                 var firstExpnLength = RefactoringUtils.numLines(expns[0].value);
                 expns = expns.filter(function(expn) {
@@ -253,11 +258,6 @@ define(function(require, exports, module) {
                         expn.name = expn.value;
                     }
                 });
-
-                if (!expns || !expns.length) {
-                    session.editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_NOT_VALID);
-                    return;
-                }
 
                 // If only one surround expression, extract
                 if (expns.length === 1) {
