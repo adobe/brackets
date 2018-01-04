@@ -366,7 +366,12 @@ define(function (require, exports, module) {
                                 if (assignmentExpNode && assignmentExpNode.left && assignmentExpNode.left.name) {
                                     newScope.name = "class " + assignmentExpNode.left.name;
                                 } else {
-                                    newScope.name = "class null";
+                                    var varDeclaratorNode = findSurroundASTNode(ast, classNode, ["VariableDeclarator"]);
+                                    if (varDeclaratorNode && varDeclaratorNode.id && varDeclaratorNode.id.name) {
+                                        newScope.name = "class " + varDeclaratorNode.id.name;
+                                    } else {
+                                        newScope.name = "class null";
+                                    }
                                 }
                             } else {
                                 newScope.name = "class " + (classNode.id && classNode.id.name);
