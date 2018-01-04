@@ -55,7 +55,7 @@ define(function (require, exports, module) {
      * @return {ASTNode|boolean}
      */
     function getExpression(ast, start, end, fileText) {
-        var expn = findSurroundASTNode(ast, {start: start, end: end}, ["Expression"]);
+        var expn = findSurroundExpression(ast, {start: start, end: end});
         if (!expn) {
              return false;
         }
@@ -276,6 +276,37 @@ define(function (require, exports, module) {
         return !scope.isBlock && !scope.isCatch;
     }
 
+    function findSurroundExpression(ast, expn) {
+        var start = expn.start;
+        var end = expn.end;
+        var surroundExpn;
+
+        while (true) {
+            surroundExpn = findSurroundASTNode(ast, {start: start, end: end}, ["Expression"]);
+
+            if (!surroundExpn) {
+                return null;
+            }
+
+            // Do not allow sequence expressions
+            if (surroundExpn.type === "SequenceExpression") {
+                start = surroundExpn.start - 1;
+            }
+            else if (surroundExpn.type === "FunctionExpression") { // Do not allow method definition expressions
+                var methodDefinitionNode = findSurroundASTNode(ast, surroundExpn, ["MethodDefinition"]);
+                if (methodDefinitionNode && isEqual(methodDefinitionNode.value, surroundExpn)) {
+                    start = surroundExpn.start - 1;
+                } else {
+                    return surroundExpn;
+                }
+            } else {
+                return surroundExpn;
+            }
+        }
+
+        return surroundExpn;
+    }
+
     /**
      * Finds the surrounding ast node of the given expression of any of the given types
      * @param {!ASTNode} ast
@@ -392,4 +423,5 @@ define(function (require, exports, module) {
     exports.checkStatement = checkStatement;
     exports.findSurroundASTNode = findSurroundASTNode;
     exports.getAST = getAST;
+    exports.findSurroundExpression = findSurroundExpression;
 });

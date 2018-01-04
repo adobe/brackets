@@ -132,7 +132,7 @@ define(function(require, exports, module) {
             expn;
 
         while (true) {
-            expn = RefactoringUtils.findSurroundASTNode(ast, {start: s, end: e}, ["Expression"]);
+            expn = RefactoringUtils.findSurroundExpression(ast, {start: s, end: e});
             if (!expn) {
                 break;
             }
@@ -148,7 +148,7 @@ define(function(require, exports, module) {
         }
 
         while (true) {
-            expn = RefactoringUtils.findSurroundASTNode(ast, {start: s, end: e}, ["Expression"]);
+            expn = RefactoringUtils.findSurroundExpression(ast, {start: s, end: e});
             if (!expn) {
                 break;
             }
@@ -230,27 +230,44 @@ define(function(require, exports, module) {
                 expns = getExpressions(ast, start, end);
 
                 expns.forEach(function(expn, index) {
-                    expn.name = doc.getText().substr(expn.start, expn.end - expn.start);
-                });
-
-                // Filter expns which span multiple lines
-                expns = expns.filter(function(expn) {
-                    return RefactoringUtils.numLines(expn.name) === 1;
+                    expn.value = doc.getText().substr(expn.start, expn.end - expn.start);
                 });
 
                 // Sort expressions by their length
                 expns.sort(function(a, b) {
-                    return a.name.length - b.name.length;
+                    return a.value.length - b.value.length;
                 });
 
+                // Filter expns based on length of first surrounding expression
+                var firstExpnLength = RefactoringUtils.numLines(expns[0].value);
+                expns = expns.filter(function(expn) {
+                    return RefactoringUtils.numLines(expn.value) === firstExpnLength;
+                });
+
+                // Add name for the expression based on its value
                 expns.forEach(function(expn, index) {
-                    expn.id = index;
+                    // If expn name is multi-line, display only first line
+                    if (RefactoringUtils.numLines(expn.value) > 1) {
+                        expn.name = expn.value.substr(0, expn.value.indexOf("\n")) + "...";
+                    } else {
+                        expn.name = expn.value;
+                    }
                 });
 
                 if (!expns || !expns.length) {
                     session.editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_NOT_VALID);
                     return;
                 }
+
+                // If only one surround expression, extract
+                if (expns.length === 1) {
+                    extractToVariable(ast, expns[0].start, expns[0].end, expns[0].value, scopes);
+                    return;
+                }
+
+                expns.forEach(function(expn, index) {
+                    expn.id = index;
+                });
 
                 // UI for extract to variable
                 inlineMenu = new InlineMenu(session.editor, Strings.EXTRACTTO_VARIABLE_SELECT_EXPRESSION);
@@ -262,7 +279,7 @@ define(function(require, exports, module) {
                 inlineMenu.open(expns);
 
                 inlineMenu.onSelect(function (expnId) {
-                    extractToVariable(ast, expns[expnId].start, expns[expnId].end, expns[expnId].name, scopes);
+                    extractToVariable(ast, expns[expnId].start, expns[expnId].end, expns[expnId].value, scopes);
                     inlineMenu.close();
                 });
 
