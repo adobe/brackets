@@ -356,7 +356,19 @@ define(function (require, exports, module) {
                             );
                     }
                 } else {
-                    curScope.name = curScope.fnType;
+                    // Acorn parse_dammit marks name with '✖' under erroneous declarations, check it
+                    if (curScope.fnType === "✖") {
+                        curScope.name = "function starting with " +
+                            fullText.substr(
+                                curScope.originNode.body.start,
+                                Math.min(
+                                    FUNCTION_BODY_PREFIX_LENGTH,
+                                    curScope.originNode.body.end - curScope.originNode.body.start
+                                )
+                            );
+                    } else {
+                        curScope.name = curScope.fnType;
+                    }
                 }
             } else if (!curScope.originNode) {
                 curScope.name = "global";
