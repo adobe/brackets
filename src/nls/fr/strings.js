@@ -140,8 +140,8 @@ define({
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé du disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
     // Window unload warning messages
-	"WINDOW_UNLOAD_WARNING": "Are you sure you want to navigate to a different URL and leave Brackets?",
-	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
+	"WINDOW_UNLOAD_WARNING": "Voulez-vous vraiment accéder à une autre URL et quitter Brackets ?",
+	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "Certaines modifications n’ont pas été enregistrées. Voulez-vous vraiment accéder à une autre URL et quitter Brackets ?",
 
     // Generic dialog/button labels
 	"DONE": "Terminé",
@@ -677,16 +677,16 @@ define({
 
     // extensions/default/JavaScriptRefactoring
 	"CMD_REFACTORING_RENAME": "Renommer",
-	"CMD_REFACTORING_TRY_CATCH": "Wrap in Try Catch",
-	"CMD_REFACTORING_CONDITION": "Wrap in Condition",
-	"CMD_REFACTORING_GETTERS_SETTERS": "Create Getters Setters",
-	"CMD_REFACTORING_ARROW_FUNCTION": "Convert to Arrow Function",
-	"DESCRIPTION_CODE_REFACTORING": "Enable/disable JavaScript Code Refactoring",
-	"ERROR_TRY_CATCH": "Select valid code to wrap in a Try-catch block",
-	"ERROR_WRAP_IN_CONDITION": "Select valid code to wrap in a Condition block",
-	"ERROR_ARROW_FUNCTION": "Place the cursor inside a function expression",
-	"ERROR_GETTERS_SETTERS": "Place the cursor at a member of an object expression",
-	"ERROR_RENAME_MULTICURSOR": "Cannot rename when using multi-cursors",
+	"CMD_REFACTORING_TRY_CATCH": "Envelopper dans Try/Catch",
+	"CMD_REFACTORING_CONDITION": "Envelopper dans Condition",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Créer des accesseurs (getters) et mutateurs (setters)",
+	"CMD_REFACTORING_ARROW_FUNCTION": "Convertir en fonction de flèche",
+	"DESCRIPTION_CODE_REFACTORING": "Activer/désactiver le remaniement de code JavaScript",
+	"ERROR_TRY_CATCH": "Sélectionner un code valide à envelopper dans un bloc Try/Catch",
+	"ERROR_WRAP_IN_CONDITION": "Sélectionner un code valide à envelopper dans un bloc Condition",
+	"ERROR_ARROW_FUNCTION": "Placer le curseur à l’intérieur d’une expression de fonction",
+	"ERROR_GETTERS_SETTERS": "Placer le curseur au niveau d’un membre d’une expression d’objet",
+	"ERROR_RENAME_MULTICURSOR": "Impossible de renommer en cas d’utilisation de plusieurs curseurs",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
@@ -826,5 +826,5 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Paramètres de surbrillance de l'Aperçu en direct",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false to disable live preview reverse inspect"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l’inspection inverse de l’aperçu en direct"
 });
