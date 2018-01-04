@@ -24,8 +24,7 @@
 define(function(require, exports, module) {
     'use strict';
 
-    var Acorn               = brackets.getModule("thirdparty/acorn/dist/acorn"),
-        ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
+    var ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
         Menus               = brackets.getModule("command/Menus"),
         CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
@@ -222,7 +221,7 @@ define(function(require, exports, module) {
             inlineMenu;
 
         RefactoringUtils.getScopeData(session, editor.posFromIndex(start)).done(function(scope) {
-            ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+            ast = RefactoringUtils.getAST(doc.getText());
             scopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText());
 
             if (editor.hasSelection()) {

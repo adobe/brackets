@@ -24,8 +24,7 @@
 define(function(require, exports, module) {
     'use strict';
 
-    var Acorn               = brackets.getModule("thirdparty/acorn/dist/acorn"),
-        ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
+    var ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
         Menus               = brackets.getModule("command/Menus"),
         CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
@@ -69,7 +68,7 @@ define(function(require, exports, module) {
             variableDeclarations = {},
             changedValues        = {},
             dependentValues      = {},
-            ast                  = Acorn.parse_dammit(text, { ecmaVersion: 9}),
+            ast                  = RefactoringUtils.getAST(text),
             doc                  = session.editor.document,
             restScopeStr;
 
@@ -114,7 +113,7 @@ define(function(require, exports, module) {
             restScopeStr = doc.getText().substr(end);
         }
 
-        ASTWalker.simple(Acorn.parse_dammit(restScopeStr, {ecmaVersion: 9}), {
+        ASTWalker.simple(RefactoringUtils.getAST(restScopeStr), {
             Identifier: function(node) {
                 var name = node.name;
                 dependentValues[name] = true;
@@ -292,7 +291,7 @@ define(function(require, exports, module) {
             inlineMenu;
 
         RefactoringUtils.getScopeData(session, editor.posFromIndex(start)).done(function(scope) {
-            ast = Acorn.parse_dammit(doc.getText(), {ecmaVersion: 9});
+            ast = RefactoringUtils.getAST(doc.getText());
 
             var isExpression = false;
             if (!RefactoringUtils.checkStatement(ast, start, end, doc.getText())) {

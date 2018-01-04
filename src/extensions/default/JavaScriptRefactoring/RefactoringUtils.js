@@ -89,6 +89,16 @@ define(function (require, exports, module) {
         return false;
     }
 
+    function getAST(text) {
+        var ast;
+        try {
+            ast = Acorn.parse(text, {ecmaVersion: 9});
+        } catch(e) {
+            ast = Acorn.parse_dammit(text, {ecmaVersion: 9});
+        }
+        return ast;
+    }
+
     /**
      * Checks whether the text between start and end offsets form a valid set of statements
      * @param {!ASTNode} ast - the ast of the complete file
@@ -100,7 +110,7 @@ define(function (require, exports, module) {
     function checkStatement(ast, start, end, fileText) {
         // Do not allow function or class nodes
         var notStatement = false;
-        ASTWalker.simple(Acorn.parse_dammit(fileText.substr(start, end - start), { ecmaVersion: 9 }), {
+        ASTWalker.simple(getAST(fileText.substr(start, end - start)), {
             Function: function (node) {
                 notStatement = true;
             },
@@ -169,7 +179,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     function isStandAloneExpression(text) {
-        var found = ASTWalker.findNodeAt(Acorn.parse_dammit(text, { ecmaVersion: 9 }), 0, text.length, function (nodeType, node) {
+        var found = ASTWalker.findNodeAt(getAST(text), 0, text.length, function (nodeType, node) {
             if (nodeType === "Expression") {
                 return true;
             }
@@ -369,4 +379,5 @@ define(function (require, exports, module) {
     exports.getAllScopes = getAllScopes;
     exports.checkStatement = checkStatement;
     exports.findSurroundASTNode = findSurroundASTNode;
+    exports.getAST = getAST;
 });
