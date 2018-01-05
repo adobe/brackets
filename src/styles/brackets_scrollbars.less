@@ -67,29 +67,26 @@
     }
 
     .dragging ::-webkit-scrollbar-thumb,
-    :hover::-webkit-scrollbar-thumb,
-    :focus::-webkit-scrollbar-thumb {
+    :-webkit-any(:hover, :focus)::-webkit-scrollbar-thumb {
         border-radius: 999px;
         box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6) inset;
         border: 2px solid transparent;
     }
 
     .dragging ::-webkit-scrollbar-thumb,
-    :hover::-webkit-scrollbar-thumb:vertical,
-    :focus::-webkit-scrollbar-thumb:vertical {
+    :-webkit-any(:hover, :focus)::-webkit-scrollbar-thumb:vertical {
         min-height: 20px;
     }
 
     .dragging :-webkit-scrollbar-thumb,
-    :hover::-webkit-scrollbar-thumb:horizontal,
-    :focus::-webkit-scrollbar-thumb:horizontal {
+    :-webkit-any(:hover, :focus)::-webkit-scrollbar-thumb:horizontal {
         min-width: 20px;
     }
 }
 
 .platform-linux {
     // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
-    
+
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
@@ -120,33 +117,32 @@
 
 .platform-win {
     // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
-    
+
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
         background-color: @win-scrollbar-track;
     }
-    
+
     ::-webkit-scrollbar-thumb {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb inset;
     }
 
     .dragging ::-webkit-scrollbar-thumb,
-    ::-webkit-scrollbar-thumb:hover,
-    ::-webkit-scrollbar-thumb:focus {
+    ::-webkit-scrollbar-thumb:-webkit-any(:hover, :focus) {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb-hover inset;
     }
     ::-webkit-scrollbar-thumb:active {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb-active inset;
     }
-    
+
     ::-webkit-scrollbar-thumb:vertical {
         min-height: 20px;
     }
     ::-webkit-scrollbar-thumb:horizontal {
         min-width: 20px;
     }
-    
+
     ::-webkit-scrollbar-corner {
         background: none;
     }
@@ -172,8 +168,7 @@
         ::-webkit-scrollbar-thumb {
             box-shadow: 0 0 0 12px rgb(49, 49, 49) inset;
         }
-        ::-webkit-scrollbar-thumb:hover,
-        ::-webkit-scrollbar-thumb:focus {
+        ::-webkit-scrollbar-thumb:-webkit-any(:hover, :focus) {
             box-shadow: 0 0 0 12px rgb(89, 89, 89) inset;
         }
         ::-webkit-scrollbar-thumb:active {

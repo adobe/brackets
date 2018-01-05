@@ -34,7 +34,7 @@
     height: 300px;
     width: 149px;
     margin: 0 0 0 25px;
-    background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 30%, #fff 70%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(270deg, rgba(255, 255, 255, 0) 0, #fff 30%, #fff 70%, rgba(255, 255, 255, 0) 100%);
     background-position: 2px 0;
     position: absolute;
     top: 0;
@@ -48,7 +48,6 @@
     top: 75px;
     width: 149px;
     height: 149px;
-    -moz-box-sizing: content-box;
     box-sizing: content-box;
 }
 
@@ -59,10 +58,9 @@
     left: 0;
     width: 100%;
     padding: .3em .5em;
-    
-    -moz-box-sizing: border-box;
+
     box-sizing: border-box;
-    
+
     color: #454545;
     font-size: 11px;
     line-height: 1;
@@ -70,16 +68,8 @@
 
 .bezier-curve-editor .coordinate-plane:before {
     border-bottom: 1px solid transparent;
-       -moz-transform: rotate(-90deg);
-        -ms-transform: rotate(-90deg);
-         -o-transform: rotate(-90deg);
-    -webkit-transform: rotate(-90deg);
-            transform: rotate(-90deg);
-       -moz-transform-origin: bottom left;
-        -ms-transform-origin: bottom left;
-         -o-transform-origin: bottom left;
-    -webkit-transform-origin: bottom left;
-            transform-origin: bottom left;
+    transform: rotate(-90deg);
+    transform-origin: bottom left;
     white-space: nowrap;
 }
 
@@ -189,7 +179,6 @@
     top: 0;
     width: 179px;
     height: 190px;
-    -moz-box-sizing: content-box;
     box-sizing: content-box;
 }
 
@@ -199,10 +188,9 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    
-    -moz-box-sizing: border-box;
+
     box-sizing: border-box;
-    
+
     color: #454545;
     font-size: 11px;
     line-height: 1;
@@ -210,25 +198,17 @@
 
 .step-editor .coordinate-plane:before {
     border-bottom: 1px solid transparent;
-       -moz-transform: rotate(-90deg);
-        -ms-transform: rotate(-90deg);
-         -o-transform: rotate(-90deg);
-    -webkit-transform: rotate(-90deg);
-            transform: rotate(-90deg);
-       -moz-transform-origin: top left;
-        -ms-transform-origin: top left;
-         -o-transform-origin: top left;
-    -webkit-transform-origin: top left;
-            transform-origin: top left;
+    transform: rotate(-90deg);
+    transform-origin: top left;
     white-space: nowrap;
-    
+
     padding: .3em .5em 0 1.3em;
 }
 
 .step-editor .coordinate-plane:after {
     margin-left: 15px;
     white-space: nowrap;
-    
+
     bottom: 0.9em;
     padding: 0 .5em 0 0.2em;
 }
@@ -351,7 +331,7 @@
     }
 
     .bezier-curve-editor:after {
-        background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, @dark-bc-input-bg 30%, @dark-bc-input-bg 70%, rgba(255, 255, 255, 0) 100%);
+        background: linear-gradient(270deg, rgba(255, 255, 255, 0) 0, @dark-bc-input-bg 30%, @dark-bc-input-bg 70%, rgba(255, 255, 255, 0) 100%);
     }
 
     .step-editor {
@@ -361,7 +341,7 @@
             background: #3D3D3D;
             color: white;
         }
-        
+
         .coordinate-plane {
             background: #2c2c2c;
         }
@@ -371,11 +351,11 @@
             color: @dark-bc-text;
         }
     }
-    
+
     .bezier-curve-editor,
     .step-editor {
         code {
             color: @dark-bc-text-alt;
-        }        
+        }
     }
 }

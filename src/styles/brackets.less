@@ -511,8 +511,7 @@ a, img {
             margin-bottom: 0;
             .sprite-icon(0, 0, 13px, 13px, "images/flip-view-icons.svg");
             background-origin: content-box;
-            -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
-            transform: translateZ(0); // future proofing
+            transform: translateZ(0); // forces GPU mode for better filter rendering on retina
             z-index: 1;
             vertical-align: middle;
 
@@ -837,9 +836,7 @@ a, img {
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
     background-origin: content-box;  // center image within the 13x13 area - ignore button's padding
-    -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
-    transform: translateZ(0); // future proofing
-    -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
+    transform: translateZ(0); // forces GPU mode for better filter rendering on retina
     filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
     z-index: 1;
 }
@@ -1059,30 +1056,22 @@ a, img {
 */
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
-    -webkit-transform: translateZ(0) rotate(90deg);
     transform: translateZ(0) rotate(90deg);
-    transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
     transition: transform 190ms cubic-bezier(.01, .91, 0, .99);
-    -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
     filter: drop-shadow(1px 0 1px @bc-shadow);
 
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
         filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
-    -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
-    transform: translateZ(0);
-    transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
     transition: transform 90ms cubic-bezier(.01, .91, 0, .99);
-    -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
     filter: drop-shadow(1px 0 1px @bc-shadow);
 
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
         filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
@@ -1150,7 +1139,6 @@ a, img {
 
     &.animating {
         // Make the animation use the GPU--especially important for retina.
-        -webkit-transform: translateZ(0);
         transform: translateZ(0);
 
         transition: height 250ms cubic-bezier(0, 1.02, 0.6, 1);
@@ -1477,7 +1465,6 @@ a, img {
     &.expanded {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        -webkit-transform: translateZ(0) rotate(90deg);
         transform: translateZ(0) rotate(90deg);
     }
 }
@@ -1495,9 +1482,7 @@ a, img {
     overflow: visible;  // needed for .error popup
     padding: 5px 4px 4px 14px;
 
-    -webkit-transform: translate(0, 0); // Prefix still required.
     transform: translate(0, 0);
-    transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     transition: transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
 
@@ -1524,9 +1509,7 @@ a, img {
     }
 
     &.offscreen {
-        -webkit-transform: translate(0, -100%);
         transform: translate(0, -100%);
-        transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
         transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
     }
 
@@ -1696,7 +1679,7 @@ a, img {
         border-bottom-right-radius: 3px;
         border-left: none;
         border-right: 1px solid @bc-btn-border;
-        
+
         .dark & {
             border-right-color: @dark-bc-btn-border;
         }
@@ -1890,9 +1873,7 @@ textarea.exclusions-editor {
     opacity: 0;
 
     .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99));
-    -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
-    -webkit-transform-origin: 0 0;
     transform-origin: 0 0;
 
     padding: 0;
@@ -1959,10 +1940,6 @@ textarea.exclusions-editor {
     }
 }
 
-@-webkit-keyframes autocomplete {
-    0%   { opacity: 0.6; -webkit-transform: translate3d(0, 0, 0) scale(0.6); }
-    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
-}
 @keyframes autocomplete {
     0%   { opacity: 0.6; transform: translate3d(0, 0, 0) scale(0.6); }
     100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
@@ -2025,7 +2002,6 @@ textarea.exclusions-editor {
     }
 
     &.spin {
-        -webkit-animation: spinner-rotateplane 1.2s infinite ease-in-out;
         animation: spinner-rotateplane 1.2s infinite ease-in-out;
         visibility: visible;
     }
@@ -2061,11 +2037,6 @@ textarea.exclusions-editor {
     }
 }
 
-@-webkit-keyframes spinner-rotateplane {
-    0% { -webkit-transform: perspective(120px); }
-    50% { -webkit-transform: perspective(120px) rotateY(180deg); }
-    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg); }
-}
 @keyframes spinner-rotateplane {
     0% { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
     50% { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
@@ -2174,7 +2145,6 @@ label input {
     z-index: @z-index-brackets-inline-editor-error;
     opacity: 1.0;
 
-    -webkit-transform: scale(0);
     transform: scale(0);
 
     .text {
@@ -2215,21 +2185,16 @@ label input {
         }
     }
     &.animateOpen {
-        transition: -webkit-transform 125ms;
         transition: transform 125ms;
-        -webkit-transform: scale(1);
         transform: scale(1);
     }
     &.animateClose {
         // Make the animation use the GPU--especially important for retina.
-        -webkit-transform: translateZ(0);
         transform: translateZ(0);
-        transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
         transition: opacity 500ms 5s ease-in, transform 500ms 5s;
         opacity: 0.0;
     }
     &.open {
-        -webkit-transform: scale(1);
         transform: scale(1);
     }
 }

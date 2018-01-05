@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 .color-editor {
@@ -53,7 +53,6 @@
     display: inline-block;
     position: relative;
     overflow: hidden;
-    -webkit-background-clip: padding-box;
     background-clip: padding-box;
     border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
@@ -164,7 +163,7 @@
 .color-editor section .slider {
     border-radius: 3px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);      
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
     width: 12px;
     height: 156px;
     margin-right: 13px;
@@ -197,7 +196,7 @@
 .color-editor section .slider.opacity-slider {
     background-image: url("../img/color_thumb_back.png");
     background-size: 8px;
-    margin-right: 0px;  
+    margin-right: 0;
 }
 .color-editor section .hue-slider {
     background-image: linear-gradient(#f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
@@ -238,7 +237,7 @@
     border: 1px solid #2893ef;
     z-index: 911;
 }
-@media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
+@media (min-resolution: 2dppx) {
     .color-editor aside header .large-swatches {
         background-image: url("../img/color_thumb_back@2x.png");
     }
@@ -291,7 +290,7 @@
     border: 1px solid #b2b5b5;
     border-right: 1px solid transparent;
     margin-left: -3px;
-    
+
     box-shadow: inset 0 1px 0 #f3f3f3;
 }
 
@@ -357,7 +356,7 @@
     .color-editor section .slider.opacity-slider {
         background-image: @dark-swatch-bg;
     }
-    
+
     .color-editor aside header .large-swatches {
         border-bottom: 1px solid @dark-bc-highlight;
     }
@@ -442,7 +441,7 @@
     }
 }
 
-@media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
+@media (min-resolution: 2dppx) {
     .dark {
         .color-editor aside header .large-swatches {
             background-image: @dark-swatch-bg-2x;

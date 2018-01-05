@@ -155,7 +155,6 @@ a:focus {
             //max-height: calc(~"100vh - 34px"); doesn't seem to work...
             max-height: 90vh;
             overflow-y: auto;
-            -webkit-animation: none;
             animation: none;
         }
     }
@@ -282,7 +281,6 @@ a:focus {
 // Dropdown Menu Animation
 .dropdown-menu {
     .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99));
-    -webkit-transform-origin: 0 0;
     transform-origin: 0 0;
     border: none;
     border-radius: @bc-border-radius;
@@ -292,10 +290,6 @@ a:focus {
     }
 }
 
-@-webkit-keyframes dropdown {
-    0%   { opacity: 0.5; -webkit-transform: translate3d(0, 0, 0) scale(0.5); }
-    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
-}
 @keyframes dropdown {
     0%   { opacity: 0.5; transform: translate3d(0, 0, 0) scale(0.5); }
     100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
@@ -304,7 +298,6 @@ a:focus {
 // Code hints don't need scaling navigation so we're removing it
 
 .codehint-menu.open .dropdown-menu {
-    -webkit-animation: none;
     animation: none;
 }
 
@@ -372,7 +365,6 @@ a:focus {
         // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
         // the menu item label and keyboard shortcut. This takes away the "gotta get narrower" pressure.
         // This technique won't work on all browsers; see comments in #4593 for alternative options.
-        width: -webkit-max-content;
         width: -moz-max-content;
         width: max-content;
 
@@ -679,7 +671,6 @@ a:focus {
 
 /* Status bar language picker's DropdownButton */
 .dropdownbutton-popup.dropdown-status-bar {
-    -webkit-transform-origin: 0 100%;
     transform-origin: 0 100%;
     height: auto;
     max-height: 80%;
@@ -868,19 +859,11 @@ a:focus {
     }
 }
 
-@-webkit-keyframes backdrop {
-    0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0); }
-    100% { opacity: 0.4; -webkit-transform: translate3d(0, 0, 0); }
-}
 @keyframes backdrop {
     0%   { opacity: 0; transform: translate3d(0, 0, 0); }
     100% { opacity: 0.4; transform: translate3d(0, 0, 0); }
 }
 
-@-webkit-keyframes modal {
-    0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0) scale(0); }
-    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
-}
 @keyframes modal {
     0%   { opacity: 0; transform: translate3d(0, 0, 0) scale(0); }
     100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }

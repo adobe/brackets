@@ -14,9 +14,9 @@
 /* Overall inline widget content container */
 .css-prop-defn {
     margin-left: 20px;
-    
+
     color: @bc-text-thin-quiet;
-    
+
     /* Enable text selection */
     cursor: auto;
     -webkit-user-select: text;
@@ -25,14 +25,14 @@
     -ms-user-select: text;
     -o-user-select: text;
     user-select: text;
-    
+
     &:focus {
         outline: none;
     }
-    
+
     font-family: SourceSansPro;
     font-size: 14px;
-    
+
     h1 {
         color: @bc-text;
         font-size: 16px;
@@ -40,11 +40,11 @@
         line-height: normal;
         margin: 15px 0 9px 0;
     }
-    
+
     a {
         color: @bc-text-link;
     }
-    
+
     code {
         font-family: SourceCodePro;
         font-size: 12px;
@@ -53,7 +53,7 @@
         padding: 0;
         white-space: normal;
     }
-    
+
     b {
         font-weight: @font-weight-semibold;
     }
@@ -75,9 +75,8 @@
     padding-left: 20px;
     width: 35%;
     word-wrap: break-word;
-    -webkit-hyphens: auto;
     hyphens: auto;
-    
+
     p {
         line-height: 18px;
     }
@@ -88,31 +87,31 @@
 
 /* Right-hand column */
 .css-prop-values {
-    box-sizing: border-box; //for exact dimension        
+    box-sizing: border-box; //for exact dimension
     float: right;
     width: 60%;
-    
+
     .scroller {
         max-height: 300px;
         overflow-y: auto;
-        
+
         margin: 20px (@scrollbar-wid + 4px) 0 0;
-        
+
         &:focus {
             outline: none;
         }
     }
-        
+
     dl {
         margin-top: 0px;
-        
+
         dt {
             color: @bc-text;
             font-size: 13px;
             font-weight: @font-weight-semibold;
             margin-bottom: 3px;
         }
-        
+
         dd {
             // some styles must specifically be on <p> to override Bootstrap
             p, li, b {
@@ -148,7 +147,7 @@
     .css-prop-summary {
         width: 95%;
     }
-    
+
     .css-prop-values, .divider-holder {
         display: none;
     }
@@ -166,17 +165,17 @@ a.more-info {
     bottom: 0px;
     right: (33px + @scrollbar-wid);
     padding: 4px 10px 4px 28px;
-    
+
     background: @bc-btn-bg url("logo.svg");
     background-repeat: no-repeat;
     background-size: 15px 15px;
     background-position: 8px 4px;
-    
+
     border: 1px solid @bc-btn-border;
     border-radius: 3px 3px 0 0;
     border-bottom: none;
     box-shadow: inset 0 1px 0 @bc-highlight;  // white chisel along top edge
-    
+
     font-size: 12px;
     font-weight: @font-weight-semibold;
     color: @bc-text;
@@ -198,7 +197,7 @@ a.more-info {
 .dark {
     .css-prop-defn {
         color: @dark-bc-text-thin-quiet;
-        
+
         h1, b {
             color: @dark-bc-text;
         }
