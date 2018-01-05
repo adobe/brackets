@@ -28,8 +28,6 @@ define(function (require, exports, module) {
 
     var EditorManager        = brackets.getModule("editor/EditorManager"),
         TokenUtils           = brackets.getModule("utils/TokenUtils"),
-        CommandManager       = brackets.getModule("command/CommandManager"),
-        Menus                = brackets.getModule("command/Menus"),
         Strings              = brackets.getModule("strings"),
         RefactoringUtils     = require("RefactoringUtils"),
         RefactoringSession   = RefactoringUtils.RefactoringSession;
@@ -39,12 +37,6 @@ define(function (require, exports, module) {
         ARROW_FUNCTION          = "arrowFunction",
         GETTERS_SETTERS         = "gettersSetters",
         TRY_CATCH               = "tryCatch";
-
-    //Commands
-    var refactorWrapInTryCatch  = "refactoring.wrapintrycatch",
-        refactorWrapInCondition = "refactoring.wrapincondition",
-        refactorConvertToArrowFn = "refactoring.converttoarrowfunction",
-        refactorCreateGetSet = "refactoring.creategettersandsetters";
 
     //Active session which will contain information about editor, selection etc
     var current = null;
@@ -258,29 +250,8 @@ define(function (require, exports, module) {
         });
     }
 
-
-    //Register commands and and menus in conext menu and main menus under 'Edit'
-    function addCommands() {
-        CommandManager.register(Strings.CMD_REFACTORING_TRY_CATCH, refactorWrapInTryCatch, wrapInTryCatch);
-        CommandManager.register(Strings.CMD_REFACTORING_CONDITION, refactorWrapInCondition, wrapInCondition);
-        CommandManager.register(Strings.CMD_REFACTORING_ARROW_FUNCTION, refactorConvertToArrowFn, convertToArrowFunction);
-        CommandManager.register(Strings.CMD_REFACTORING_GETTERS_SETTERS, refactorCreateGetSet, createGettersAndSetters);
-
-        var menuLocation = Menus.AppMenuBar.EDIT_MENU,
-            editorCmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-
-        if (editorCmenu) {
-            editorCmenu.addMenuItem(refactorWrapInTryCatch);
-            editorCmenu.addMenuItem(refactorWrapInCondition);
-            editorCmenu.addMenuItem(refactorConvertToArrowFn);
-            editorCmenu.addMenuItem(refactorCreateGetSet);
-        }
-
-        Menus.getMenu(menuLocation).addMenuItem(refactorWrapInTryCatch);
-        Menus.getMenu(menuLocation).addMenuItem(refactorWrapInCondition);
-        Menus.getMenu(menuLocation).addMenuItem(refactorConvertToArrowFn);
-        Menus.getMenu(menuLocation).addMenuItem(refactorCreateGetSet);
-    }
-
-    exports.addCommands = addCommands;
+    exports.wrapInCondition         = wrapInCondition;
+    exports.wrapInTryCatch          = wrapInTryCatch;
+    exports.convertToArrowFunction  = convertToArrowFunction;
+    exports.createGettersAndSetters = createGettersAndSetters;
 });

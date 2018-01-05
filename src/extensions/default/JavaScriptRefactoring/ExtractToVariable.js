@@ -25,21 +25,13 @@ define(function(require, exports, module) {
     'use strict';
 
     var ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
-        Menus               = brackets.getModule("command/Menus"),
-        CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
-        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
         Session             = brackets.getModule("JSUtils/Session"),
         RefactoringUtils    = require("RefactoringUtils"),
         Strings             = brackets.getModule("strings"),
         InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-
     var session = null;
-
-    // Command id
-    var EXTRACTTO_VARIABLE = "refactoring.extractToVariable";
 
     /**
      * Does the actual extraction. i.e Replacing the text, Creating a variable
@@ -299,14 +291,5 @@ define(function(require, exports, module) {
         session = new Session(editor);
     }
 
-    /**
-     * Adds the commands for extract to variable
-     */
-    function addCommands() {
-        CommandManager.register(Strings.CMD_EXTRACTTO_VARIABLE, EXTRACTTO_VARIABLE, handleExtractToVariable);
-        KeyBindingManager.addBinding(EXTRACTTO_VARIABLE, KeyboardPrefs.extractToVariable);
-        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(EXTRACTTO_VARIABLE);
-    }
-
-    exports.addCommands = addCommands;
+    exports.handleExtractToVariable = handleExtractToVariable;
 });

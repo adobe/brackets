@@ -25,10 +25,7 @@ define(function(require, exports, module) {
     'use strict';
 
     var ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
-        Menus               = brackets.getModule("command/Menus"),
-        CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
-        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
         _                   = brackets.getModule("thirdparty/lodash"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
         Session             = brackets.getModule("JSUtils/Session"),
@@ -36,14 +33,9 @@ define(function(require, exports, module) {
         Strings             = brackets.getModule("strings"),
         InlineMenu          = brackets.getModule("widgets/InlineMenu").InlineMenu;
 
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-
     var template = JSON.parse(require("text!Templates.json"));
 
     var session = null;
-
-    // Command id
-    var EXTRACTTO_FUNCTION = "refactoring.extractToFunction";
 
     /**
      * Analyzes the code and finds values required for extract to function
@@ -333,14 +325,5 @@ define(function(require, exports, module) {
         session = new Session(editor);
     }
 
-    /**
-     * Adds the commands for extract to variable
-     */
-    function addCommands() {
-        CommandManager.register(Strings.CMD_EXTRACTTO_FUNCTION, EXTRACTTO_FUNCTION, handleExtractToFunction);
-        KeyBindingManager.addBinding(EXTRACTTO_FUNCTION, KeyboardPrefs.extractToFunction);
-        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(EXTRACTTO_FUNCTION);
-    }
-
-    exports.addCommands = addCommands;
+    exports.handleExtractToFunction = handleExtractToFunction;
 });
