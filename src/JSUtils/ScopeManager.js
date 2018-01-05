@@ -377,7 +377,28 @@ define(function (require, exports, module) {
         return text;
     }
 
+    /**
+     * Handle the response from the tern node domain when
+     * it responds with the references
+     *
+     * @param response - the response from the node domain
+     */
+    function handleRename(response) {
 
+        if (response.error) {
+            EditorManager.getActiveEditor().displayErrorMessageAtCursor(response.error);
+            return;
+        }
+
+        var file = response.file,
+            offset = response.offset;
+
+        var $deferredFindRefs = getPendingRequest(file, offset, MessageIds.TERN_REFS);
+
+        if ($deferredFindRefs) {
+            $deferredFindRefs.resolveWith(null, [response]);
+        }
+    }
 
     /**
      * Request Jump-To-Definition from Tern.
@@ -390,10 +411,12 @@ define(function (require, exports, module) {
      */
     function requestJumptoDef(session, document, offset) {
         var path    = document.file.fullPath,
-            fileInfo = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
+            fileInfo = {
+                type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
                 offsetLines: 0,
-                text: filterText(session.getJavascriptText())};
+                text: filterText(session.getJavascriptText())
+            };
 
         var ternPromise = getJumptoDef(fileInfo, offset);
 
@@ -1110,6 +1133,8 @@ define(function (require, exports, module) {
                         handleJumptoDef(response);
                     } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
                         handleScopeData(response);
+                    } else if (type === MessageIds.TERN_REFS) {
+                        handleRename(response);
                     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
                         handlePrimePumpCompletion(response);
                     } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {

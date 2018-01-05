@@ -238,6 +238,44 @@ function buildRequest(fileInfo, query, offset) {
     return request;
 }
 
+
+/**
+ * Get all References location
+ * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+ * - type of update, name of file, and the text of the update.
+ * For "full" updates, the whole text of the file is present. For "part" updates,
+ * the changed portion of the text. For "empty" updates, the file has not been modified
+ * and the text is empty.
+ * @param {{line: number, ch: number}} offset - the offset into the
+ * file for cursor
+ */
+ function getRefs(fileInfo, offset) {
+    var request = buildRequest(fileInfo, "refs", offset);
+    try {
+        ternServer.request(request, function (error, data) {
+            if (error) {
+                _log("Error returned from Tern 'refs' request: " + error);
+                var response = {
+                    type: MessageIds.TERN_REFS,
+                    error: error.message
+                };
+                self.postMessage(response);
+                return;
+            }
+            var response = {
+                type: MessageIds.TERN_REFS,
+                file: fileInfo.name,
+                offset: offset,
+                references: data
+            };
+            // Post a message back to the main thread with the results
+            self.postMessage(response);
+        });
+    } catch (e) {
+        _reportError(e, fileInfo.name);
+    }
+}
+
 /**
  * Get scope at the offset in the file
  * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
@@ -828,6 +866,9 @@ function _requestTernServer(commandConfig) {
     } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
         offset  = request.offset;
         getScopeData(request.fileInfo, offset);
+    } else if (type === MessageIds.TERN_REFS) {
+        offset  = request.offset;
+        getRefs(request.fileInfo, offset);
     } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
         handleAddFiles(request.files);
     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {

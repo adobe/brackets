@@ -38,7 +38,7 @@ define(function(require, exports, module) {
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
 
-    var template = JSON.parse(require("text!templates.json"));
+    var template = JSON.parse(require("text!Templates.json"));
 
     var session = null;
 

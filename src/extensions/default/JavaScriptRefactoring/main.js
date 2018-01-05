@@ -24,9 +24,45 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var ExtractToVariable = require("ExtractToVariable"),
-        ExtractToFunction = require("ExtractToFunction");
 
-    ExtractToVariable.addCommands();
-    ExtractToFunction.addCommands();
+    var AppInit              = brackets.getModule("utils/AppInit"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
+        Strings              = brackets.getModule("strings"),
+        RenameIdentifier     = require("RenameIdentifier"),
+        ExtractToVariable    = require("ExtractToVariable"),
+        ExtractToFunction    = require("ExtractToFunction"),
+        WrapSelection        = require("WrapSelection");
+
+    var jsRefactoringEnabled     = true;
+
+
+    // This preference controls whether to create a session and process all JS files or not.
+    PreferencesManager.definePreference("refactoring.JSRefactoring", "boolean", true, {
+        description: Strings.DESCRIPTION_CODE_REFACTORING
+    });
+
+
+    /**
+     * Check whether any of refactoring hints preferences for JS Refactoring is disabled
+     * @return {boolean} enabled/disabled
+     */
+    function _isRefactoringEnabled() {
+        return (PreferencesManager.get("refactoring.JSRefactoring") !== false);
+    }
+
+    PreferencesManager.on("change", "refactoring.JSRefactoring", function () {
+        jsRefactoringEnabled = _isRefactoringEnabled();
+    });
+
+    AppInit.appReady(function () {
+
+
+        //TODO- Add submenus instead of context menu
+        if (jsRefactoringEnabled) {
+            RenameIdentifier.addCommands();
+            WrapSelection.addCommands();
+            ExtractToVariable.addCommands();
+            ExtractToFunction.addCommands();
+        }
+    });
 });
