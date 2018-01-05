@@ -155,7 +155,8 @@ function initTernServer(env, files) {
         defs: env,
         async: true,
         getFile: getFile,
-        plugins: {requirejs: {}, doc_comment: true, angular: true}
+        plugins: {requirejs: {}, doc_comment: true, angular: true},
+        ecmaVersion: 9
     };
 
     // If a server is already created just reset the analysis data before marking it for GC
