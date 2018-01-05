@@ -675,6 +675,7 @@ define({
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
     // extensions/default/JavascriptRefactoring
+    "CMD_REFACTOR"                              : "Refactor",
     "CMD_EXTRACTTO_VARIABLE"                    : "Extract to Variable",
     "CMD_EXTRACTTO_FUNCTION"                    : "Extract to Function",
     "ERROR_TERN_FAILED"                         : "Unable to get data from Tern",

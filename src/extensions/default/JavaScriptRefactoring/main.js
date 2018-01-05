@@ -33,8 +33,7 @@ define(function (require, exports, module) {
         ExtractToFunction    = require("ExtractToFunction"),
         WrapSelection        = require("WrapSelection"),
         CommandManager       = brackets.getModule("command/CommandManager"),
-        Menus                = brackets.getModule("command/Menus"),
-        KeyBindingManager    = brackets.getModule("command/KeyBindingManager");
+        Menus                = brackets.getModule("command/Menus");
 
     var jsRefactoringEnabled     = true;
 
@@ -70,7 +69,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
 
         if (jsRefactoringEnabled) {
-            var subMenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addSubMenu("Refactor", "test");
+            var subMenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addSubMenu(Strings.CMD_REFACTOR, "refactor-submenu");
 
             var menuLocation = Menus.AppMenuBar.EDIT_MENU;
 
@@ -78,19 +77,16 @@ define(function (require, exports, module) {
 
             // Rename Identifier
             CommandManager.register(Strings.CMD_REFACTORING_RENAME, REFACTOR_RENAME, RenameIdentifier.handleRename);
-            KeyBindingManager.addBinding(REFACTOR_RENAME, KeyboardPrefs.renameIdentifier);
             subMenu.addMenuItem(REFACTOR_RENAME);
             Menus.getMenu(menuLocation).addMenuItem(REFACTOR_RENAME, KeyboardPrefs.renameIdentifier);
 
             // Extract to Variable
             CommandManager.register(Strings.CMD_EXTRACTTO_VARIABLE, EXTRACTTO_VARIABLE, ExtractToVariable.handleExtractToVariable);
-            KeyBindingManager.addBinding(EXTRACTTO_VARIABLE, KeyboardPrefs.extractToVariable);
             subMenu.addMenuItem(EXTRACTTO_VARIABLE);
             Menus.getMenu(menuLocation).addMenuItem(EXTRACTTO_VARIABLE, KeyboardPrefs.extractToVariable);
 
             // Extract to Function
             CommandManager.register(Strings.CMD_EXTRACTTO_FUNCTION, EXTRACTTO_FUNCTION, ExtractToFunction.handleExtractToFunction);
-            KeyBindingManager.addBinding(EXTRACTTO_FUNCTION, KeyboardPrefs.extractToFunction);
             subMenu.addMenuItem(EXTRACTTO_FUNCTION);
             Menus.getMenu(menuLocation).addMenuItem(EXTRACTTO_FUNCTION, KeyboardPrefs.extractToFunction);
 
