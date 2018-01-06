@@ -1,12 +1,12 @@
 {
-    "@charset"            : "Defines the character set used by the style sheet.",
-    "@counter-style"      : "Defines specific counter styles that are not part of the predefined set of styles.",
-    "@font-face"          : "Describes the aspect of an external font to be downloaded.",
+    "@charset":             "Defines the character set used by the style sheet.",
+    "@counter-style":       "Defines specific counter styles that are not part of the predefined set of styles.",
+    "@font-face":           "Describes the aspect of an external font to be downloaded.",
     "@font-feature-values": "Define common names in font-variant-alternates for feature activated differently in OpenType.",
-    "@import"             : "Tells the CSS engine to include an external style sheet.",
-    "@keyframes"          : "Describes the aspect of intermediate steps in a CSS animation sequence.",
-    "@media"              : "A conditional group rule which will apply its content if the device meets the criteria of the condition defined using a media query.",
-    "@namespace"          : "Tells the CSS engine that all its content must be considered prefixed with an XML namespace.",
-    "@page"               : "Describes the aspect of layout changes which will be applied when printing the document.",
-    "@supports"           : "A conditional group rule which will apply its content if the browser meets the criteria of the given condition."
+    "@import":              "Tells the CSS engine to include an external style sheet.",
+    "@keyframes":           "Describes the aspect of intermediate steps in a CSS animation sequence.",
+    "@media":               "A conditional group rule which will apply its content if the device meets the criteria of the condition defined using a media query.",
+    "@namespace":           "Tells the CSS engine that all its content must be considered prefixed with an XML namespace.",
+    "@page":                "Describes the aspect of layout changes which will be applied when printing the document.",
+    "@supports":            "A conditional group rule which will apply its content if the browser meets the criteria of the given condition."
 }
