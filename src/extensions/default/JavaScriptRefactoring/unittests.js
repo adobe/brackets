@@ -357,15 +357,6 @@ define(function (require, exports, module) {
                     expect(testDoc.getLine(127)).toBe("    var x = extracted2;");
                 });
             });
-
-            it("should display error for invalid expression", function() {
-                testEditor.setSelection({line: 11, ch: 2}, {line: 11, ch: 8});
-
-                var prevDocLength = testDoc.getText().length;
-
-                ExtractToVariable.handleExtractToVariable();
-                console.log($("body"));
-            });
         });
     });
 });
