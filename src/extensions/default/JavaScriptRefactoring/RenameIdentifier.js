@@ -111,12 +111,10 @@ define(function (require, exports, module) {
 
             //In case of inline widget if some references are outside widget's text range then don't allow for rename
             if (inlineWidget) {
-                var isInTextRange = true;
-                refs.forEach(function(item) {
-                    if (item.start.line < inlineWidget._startLine || item.end.line > inlineWidget._endLine) {
-                        isInTextRange = false;
-                    }
+                var isInTextRange  = !refs.find(function(item) {
+                    return (item.start.line < inlineWidget._startLine || item.end.line > inlineWidget._endLine);
                 });
+                
                 if (!isInTextRange) {
                     editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_QUICKEDIT);
                     return;
