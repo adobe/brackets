@@ -243,7 +243,7 @@ define({
     "CMD_SPLITVIEW_VERTICAL"    : "왼쪽/오른쪽으로 분할",
     "CMD_SPLITVIEW_HORIZONTAL"  : "위/아래로 분할",
     "SPLITVIEW_MENU_TOOLTIP"    : "에디터를 왼쪽/오른쪽 또는 위/아래로 분할합니다",
-    "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
+    "GEAR_MENU_TOOLTIP"         : "작업 집합 구성",
 
     "SPLITVIEW_INFO_TITLE"              : "이미 열려있는 파일",
     "SPLITVIEW_MULTIPANE_WARNING"       : "이 파일은 이미 다른 패널에서 열려있습니다. 이름이 같은 파일을 여러 패널에서 여는 기능은 곧 지원될 예정입니다. 그 전에는 이미 열려있던 파일은 해당 패널에서 보게될 것입니다.<br /><br />(이 메시지는 한 번만 나타납니다.)",
@@ -575,7 +575,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE": "업데이트",
 
     "INLINE_EDITOR_NO_MATCHES": "일치하는 항목이 없습니다.",
-    "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "모든 일치 항목이 축소되었습니다. 일치하는 항목을 보려면 오른쪽에 나열된 파일을 확장하십시오.",
     "CSS_QUICK_EDIT_NO_MATCHES": "선택 일치하는 기존 CSS 규칙이 없습니다. <br> 「새 규칙」을 클릭하여 규칙을 작성하세요.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS": "프로젝트에는 스타일 시트가 없습니다. <br> 스타일 시트를 작성하여 CSS 규칙에 추가하세요.",
 
@@ -630,9 +630,9 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME": "시간",
     "INLINE_TIMING_EDITOR_PROGRESSION": "진행",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 선택한 지점 이동 <br><kbd class='text'>Shift</kbd> 10 단위 이동 <br><kbd class='text'>Tab</kbd> 전환점",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> 단계 높이기 또는 줄이기<br><kbd>←</kbd><kbd>→</kbd> '시작'또는 '끝'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "<code> {0} </ code> 이전 값은 유효하지 않으므로 표시된 기능이 <code> {1} </ code>로 변경되었습니다. 문서는 첫 번째 편집으로 업데이트됩니다.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "현재색",
