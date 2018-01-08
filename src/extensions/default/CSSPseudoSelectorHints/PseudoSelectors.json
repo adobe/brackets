@@ -1,5 +1,5 @@
 {
-    "selectors": {
+    "classes": {
         "active":              {"desc": "Selects the link being pressed"},
         "any-link":            {"desc": "Selects every hyperlink, e.g., <a>, <area> and <link> with href attribute"},
         "checked":             {"desc": "Selects every checked checkbox"},
