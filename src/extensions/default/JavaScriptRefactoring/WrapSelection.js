@@ -147,16 +147,32 @@ define(function (require, exports, module) {
 
         var noOfStatements = funcExprNode.body.body.length,
             selectedText = current.text.substr(funcExprNode.start, funcExprNode.end - funcExprNode.start),
-            param = [];
+            param = [],
+            dontChangeParam = false,
+            numberOFParams = funcExprNode.params.length,
+            treatAsManyParam = false;
 
             funcExprNode.params.forEach(function (item) {
                 if (item.type === "Identifier") {
                     param.push(item.name);
-                } else if (item.type === "AssignmentPattern" && item.left && item.right) {
-                    param.push(item.left.name + " = " + item.right.raw);
+                } else if (item.type === "AssignmentPattern") {
+                    dontChangeParam = true;
                 }
-                
             });
+
+        //In case defaults params keep params as it is
+        if (dontChangeParam) {
+            if (numberOFParams >= 1) {
+                param.splice(0,param.length);
+                param.push(current.text.substr(funcExprNode.params[0].start, funcExprNode.params[numberOFParams-1].end - funcExprNode.params[0].start));
+                // In case default param, treat them as many paramater because to use
+                // one parameter template, That param should be an identifier
+                if (numberOFParams === 1) {
+                    treatAsManyParam = true;
+                }
+            }
+            dontChangeParam = false;
+        }
 
         var loc = {
                 "fullFunctionScope": {
@@ -198,13 +214,13 @@ define(function (require, exports, module) {
 
         if (noOfStatements === 1) {
             current.document.batchOperation(function() {
-                funcExprNode.params.length === 1 ?  current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
+                (numberOFParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
                 current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "manyParamOneStament");
 
             });
         } else {
             current.document.batchOperation(function() {
-                funcExprNode.params.length === 1 ?  current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
+                (numberOFParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
                 locPos.functionsDeclOnly, "oneParamManyStament") :
                 current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param.join(", ")}, locPos.functionsDeclOnly, "manyParamManyStament");
             });
