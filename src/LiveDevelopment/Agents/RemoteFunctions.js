@@ -171,7 +171,7 @@ function RemoteFunctions(config, remoteWSPort) {
             // draw the background
             this.body.style.setProperty("background", "#fff");
             this.body.style.setProperty("border", "1px solid #888");
-            this.body.style.setProperty("-webkit-box-shadow", "2px 2px 6px 0px #ccc");
+            this.body.style.setProperty("box-shadow", "2px 2px 6px 0 #ccc");
             this.body.style.setProperty("border-radius", "6px");
             this.body.style.setProperty("padding", "6px");
         },

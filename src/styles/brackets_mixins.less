@@ -98,10 +98,9 @@
     content: "";
     .sprite-icon(@x-offset, @y-offset, @width, @height, @sprite-sheet);
     background-size: @background-width @background-height;
-    @media only screen and (-webkit-min-device-pixel-ratio: 2),
-        only screen and (min-device-pixel-ratio: 2) {
-            background-image: url("@{sprite-sheet-2x}");
-        }
+    @media (min-resolution: 2dppx) {
+        background-image: url("@{sprite-sheet-2x}");
+    }
 }
 
 /* Changes an element that's already showing one area of a spritesheet to show a different area of the same size.
