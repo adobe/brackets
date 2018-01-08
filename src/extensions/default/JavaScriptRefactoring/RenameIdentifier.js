@@ -30,6 +30,7 @@ define(function (require, exports, module) {
         MessageIds           = brackets.getModule("JSUtils/MessageIds"),
         CommandManager       = brackets.getModule("command/CommandManager"),
         Menus                = brackets.getModule("command/Menus"),
+        TokenUtils           = brackets.getModule("utils/TokenUtils"),
         Strings              = brackets.getModule("strings");
         //Commands
     var refactorRename          = "javascript.renamereference";
@@ -72,7 +73,7 @@ define(function (require, exports, module) {
     //Do rename of identifier which is at cursor
     function handleRename() {
         var editor = EditorManager.getActiveEditor(),
-            offset, handleFindRefs;
+            offset, handleFindRefs, token;
 
         if (!editor) {
             return;
@@ -86,6 +87,13 @@ define(function (require, exports, module) {
 
 
         if (!editor || editor.getModeForSelection() !== "javascript") {
+            return;
+        }
+
+        token = TokenUtils.getTokenAt(editor._codeMirror, editor._codeMirror.posFromIndex(session.getOffset()));
+
+        if (token.string === "require" || token.string === "exports" || token.string === "module") {
+            editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_GENERAL);
             return;
         }
 

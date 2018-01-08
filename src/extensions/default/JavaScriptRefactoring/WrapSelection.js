@@ -128,19 +128,34 @@ define(function (require, exports, module) {
             return;
         }
         initializeRefactoringSession(editor);
-        //Handle when there is no selected line
-        var funcExprNode = current.findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"]);
+        
+        var funcExprNode = current.findSurroundASTNode(current.ast, {start: current.startIndex}, ["Function"]);
 
         if (!funcExprNode || funcExprNode.type !== "FunctionExpression" || funcExprNode.id) {
             current.editor.displayErrorMessageAtCursor(Strings.ERROR_ARROW_FUNCTION);
             return;
         }
+
+        if (funcExprNode === "FunctionDeclaration") {
+            current.editor.displayErrorMessageAtCursor(Strings.ERROR_ARROW_FUNCTION);
+            return;
+        }
+
+        if (!funcExprNode.body) {
+            return;
+        }
+
         var noOfStatements = funcExprNode.body.body.length,
             selectedText = current.text.substr(funcExprNode.start, funcExprNode.end - funcExprNode.start),
             param = [];
 
             funcExprNode.params.forEach(function (item) {
-                param.push(item.name);
+                if (item.type === "Identifier") {
+                    param.push(item.name);
+                } else if (item.type === "AssignmentPattern" && item.left && item.right) {
+                    param.push(item.left.name + " = " + item.right.raw);
+                }
+                
             });
 
         var loc = {
@@ -163,8 +178,15 @@ define(function (require, exports, module) {
                     "end": current.cm.posFromIndex(loc.functionsDeclOnly.end)
                 }
             },
-            isReturnStatement = funcExprNode.body.body[0].type === "ReturnStatement",
+            isReturnStatement = (noOfStatements >= 1 && funcExprNode.body.body[0].type === "ReturnStatement"),
             bodyStatements = funcExprNode.body.body[0],
+            params;
+
+            // If there is nothing in function body, then get the text b/w curly braces
+            // In this case, We will update params only as per Arrow function expression
+            if (!bodyStatements) {
+                bodyStatements = funcExprNode.body;
+            }
             params = {
                 "params": param.join(", "),
                 "statement": _.trimRight(current.text.substr(bodyStatements.start, bodyStatements.end - bodyStatements.start), ";")
