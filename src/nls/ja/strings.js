@@ -140,8 +140,8 @@ define({
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
     // Window unload warning messages
-	"WINDOW_UNLOAD_WARNING": "Are you sure you want to navigate to a different URL and leave Brackets?",
-	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
+	"WINDOW_UNLOAD_WARNING": "別の URL に移動し、Brackets を終了しますか?",
+	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "変更が保存されていません。別の URL に移動し、Brackets を終了しますか?",
 
     // Generic dialog/button labels
 	"DONE": "完了",
@@ -674,6 +674,20 @@ define({
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
 	"DETECTED_EXCLUSION_INFO": "{APP_NAME} で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、{APP_NAME} のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
 
+
+    // extensions/default/JavaScriptRefactoring
+	"CMD_REFACTORING_RENAME": "ファイル名変更",
+	"CMD_REFACTORING_TRY_CATCH": "Try Catch で囲む",
+	"CMD_REFACTORING_CONDITION": "Condition で囲む",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Getters Setters を作成",
+	"CMD_REFACTORING_ARROW_FUNCTION": "Arrow Function へ変換",
+	"DESCRIPTION_CODE_REFACTORING": "JavaScript のコードリファクタリングを有効化または無効化します",
+	"ERROR_TRY_CATCH": "有効なコードを選択して、Try-catch ブロックで囲みます",
+	"ERROR_WRAP_IN_CONDITION": "有効なコードを選択して、Condition ブロックで囲みます",
+	"ERROR_ARROW_FUNCTION": "関数式の中にカーソルを置きます",
+	"ERROR_GETTERS_SETTERS": "オブジェクト式のメンバーにカーソルを置きます",
+	"ERROR_RENAME_MULTICURSOR": "複数のカーソルを使用して名前を変更することはできません",
+
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
 
@@ -812,5 +826,5 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "ライブプレビューでのリバースインスペクトを無効にするには false"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false にすると、ライブプレビューでのリバースインスペクトが無効になります"
 });
