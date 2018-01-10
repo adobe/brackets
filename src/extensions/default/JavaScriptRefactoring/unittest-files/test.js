@@ -126,3 +126,45 @@ function testUniqueName() {
     var extracted1 = 23;
     var x = 45;
 }
+
+
+//Test Cases For Rename/Wrap Selection
+
+function addNumbers(a, b) {
+    return a + b;
+}
+
+function playWithNumbers() {
+    var a = 7,
+        b = 7,
+        c = 6;
+    return addNumbers(a, c) * b;
+}
+
+//Test for Convert to arrow function
+
+var sum = function (a, b) {
+        return a+b;
+    };
+
+var num = function (a) {
+        return a;
+    };
+
+var sumAll = function (a, b) {
+        var c = a + b;
+        return c;
+    };
+
+//Create Getters and Setters
+
+test = {
+    docCurrent         : "mydoc",
+    isReadOnly  : false
+};
+
+var myVar = 7;
+
+function getVar() {
+    return myVar;
+}

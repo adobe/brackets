@@ -31,7 +31,10 @@ define(function (require, exports, module) {
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
-        ExtractToVariable    = require("ExtractToVariable");
+        ExtractToVariable    = require("ExtractToVariable"),
+        TokenUtils           = brackets.getModule("utils/TokenUtils"),
+        WrapSelection        = require("WrapSelection"),
+        RenameIdentifier     = require("RenameIdentifier");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/test.js",
@@ -64,9 +67,20 @@ define(function (require, exports, module) {
             testDoc = null;
         }
 
-        function _waitForExtract(prevDocLength, callback) {
+        function _waitForRefactoring(prevDocLength, numberOfLines, callback) {
+            if (!callback || numberOfLines instanceof Function) {
+                callback = numberOfLines;
+                numberOfLines = null;
+            }
             waitsFor(function() {
-                return testDoc.getText().length !== prevDocLength;
+                return (testDoc.getText().length !== prevDocLength || (numberOfLines && testDoc.getText().split("\n").length !== numberOfLines));
+            }, 3000);
+            runs(function() {callback();});
+        }
+
+        function _waitForRename(prevSelections, callback) {
+            waitsFor(function() {
+                return testEditor.getSelections().length !== prevSelections;
             }, 3000);
             runs(function() {callback();});
         }
@@ -87,7 +101,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(11)).toBe("var extracted1 = 923;");
                     expect(testDoc.getLine(12)).toBe("x = extracted1;");
                 });
@@ -100,7 +114,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(14)).toBe("var extracted1 = [1, 2, 3];");
                     expect(testDoc.getLine(15)).toBe("x = extracted1;");
                 });
@@ -113,7 +127,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getRange({line: 17, ch: 0}, {line: 20, ch: 2}))
                         .toBe(
                             "var extracted1 = {\n" +
@@ -132,7 +146,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(23)).toBe("var extracted1 = x.test1;");
                     expect(testDoc.getLine(24)).toBe("x = extracted1;");
                 });
@@ -145,7 +159,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getRange({line: 26, ch: 0}, {line: 28, ch: 2}))
                         .toBe(
                             "var extracted1 = function() {\n"      +
@@ -163,7 +177,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(31)).toBe("var extracted1 = ++y;");
                     expect(testDoc.getLine(32)).toBe("x = extracted1;");
                 });
@@ -176,7 +190,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(34)).toBe("var extracted1 = 1 + 2 + 3;");
                     expect(testDoc.getLine(35)).toBe("x = extracted1;");
                 });
@@ -189,7 +203,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(38)).toBe("var extracted1 = x = 23;");
                 });
             });
@@ -201,7 +215,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(41)).toBe("var extracted1 = true || false;");
                     expect(testDoc.getLine(42)).toBe("x = extracted1;");
                 });
@@ -214,7 +228,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(44)).toBe("var extracted1 = (2 < 3)? 34: 45;");
                     expect(testDoc.getLine(45)).toBe("x = extracted1;");
                 });
@@ -227,7 +241,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(50)).toBe("var extracted1 = new Square();");
                     expect(testDoc.getLine(51)).toBe("x = extracted1;");
                 });
@@ -240,7 +254,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(56)).toBe("var extracted1 = y => y ** 2;");
                     expect(testDoc.getLine(57)).toBe("x = extracted1;");
                 });
@@ -253,7 +267,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(62)).toBe("var extracted1 = `Template Literal`;");
                     expect(testDoc.getLine(63)).toBe("x = extracted1;");
                 });
@@ -266,7 +280,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(65)).toBe("var extracted1 = String.raw`Hi${2 + 3}!`;");
                     expect(testDoc.getLine(66)).toBe("x = extracted1;");
                 });
@@ -279,7 +293,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(77)).toBe("    var extracted1 = await resolveAfter2Seconds(10);");
                     expect(testDoc.getLine(78)).toBe("    var x = extracted1;");
                 });
@@ -292,7 +306,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(84)).toBe("        var extracted1 = yield saleList[i];");
                 });
             });
@@ -304,7 +318,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(103)).toBe("        var extracted1 = super(length, length);");
                 });
             });
@@ -316,7 +330,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getRange({line: 109, ch: 0}, {line: 114, ch: 2}))
                     .toBe(
                         "var extracted1 = class {\n"          +
@@ -337,7 +351,7 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(118)).toBe("    var extracted1 = 34;");
                     expect(testDoc.getLine(119)).toBe("    var x = extracted1;");
                     expect(testDoc.getLine(120)).toBe("    var y = extracted1;");
@@ -352,9 +366,186 @@ define(function (require, exports, module) {
 
                 ExtractToVariable.handleExtractToVariable();
 
-                _waitForExtract(prevDocLength, function() {
+                _waitForRefactoring(prevDocLength, function() {
                     expect(testDoc.getLine(126)).toBe("    var extracted2 = 45;");
                     expect(testDoc.getLine(127)).toBe("    var x = extracted2;");
+                });
+            });
+        });
+
+        describe("Rename", function () {
+            beforeEach(function () {
+                setupTest(testPath, false);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            it("should rename function name", function() {
+                testEditor.setSelection({line: 140, ch: 17}, {line: 140, ch: 17});
+
+                var selections = testEditor.getSelections();
+
+                RenameIdentifier.handleRename();
+
+
+                _waitForRename(selections.length, function() {
+                    var selections = testEditor.getSelections(),
+                        token1 = TokenUtils.getTokenAt(testEditor._codeMirror,{line: 132, ch: 14}, {line: 132, ch: 14}),
+                        token2 = TokenUtils.getTokenAt(testEditor._codeMirror, {line: 140, ch: 17}, {line: 140, ch: 17});
+
+                    expect(selections[0].start.line).toEqual(132);
+                    expect(selections[1].start.line).toEqual(140);
+                });
+            });
+
+            it("should rename variable name", function() {
+                testEditor.setSelection({line: 165, ch: 6}, {line: 165, ch: 6});
+
+                var selections = testEditor.getSelections();
+
+                RenameIdentifier.handleRename();
+
+
+                _waitForRename(selections.length, function() {
+                    var selections = testEditor.getSelections(),
+                        token1 = TokenUtils.getTokenAt(testEditor._codeMirror,{line: 149, ch: 6}, {line: 149, ch: 6}),
+                        token2 = TokenUtils.getTokenAt(testEditor._codeMirror, {line: 150, ch: 13}, {line: 150, ch: 13});
+
+                    expect(selections[0].start.line).toEqual(165);
+                    expect(selections[1].start.line).toEqual(168);
+                });
+            });
+        });
+
+        describe("Wrap Selection", function () {
+            beforeEach(function () {
+                setupTest(testPath, false);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            it("should wrap selection in Try-Catch block", function() {
+                testEditor.setSelection({line: 140, ch: 17}, {line: 140, ch: 17});
+
+                var prevDocLength = testDoc.getText().length;
+
+                WrapSelection.wrapInTryCatch();
+
+                _waitForRefactoring(prevDocLength, function() {
+                    expect(testDoc.getLine(140)).toBe("    try {");
+                    expect(testDoc.getLine(141)).toBe("        return addNumbers(a, c) * b;");
+                    expect(testDoc.getLine(142)).toBe("    } catch (e) {");
+                    expect(testDoc.getLine(143)).toBe("        //Catch Statement");
+                    expect(testDoc.getLine(144)).toBe("    }");
+                });
+            });
+
+            it("should wrap selection in Condition block", function() {
+                testEditor.setSelection({line: 140, ch: 17}, {line: 140, ch: 17});
+
+                var prevDocLength = testDoc.getText().length;
+
+                WrapSelection.wrapInCondition();
+
+                _waitForRefactoring(prevDocLength, function() {
+                    expect(testDoc.getLine(140)).toBe("    if (Condition) {");
+                    expect(testDoc.getLine(141)).toBe("        return addNumbers(a, c) * b;");
+                    expect(testDoc.getLine(142)).toBe("    }");
+                });
+            });
+        });
+
+        describe("Arrow Function", function () {
+            beforeEach(function () {
+                setupTest(testPath, false);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            it("should convert selected function to arrow function with two param and one return statement", function() {
+                testEditor.setSelection({line: 146, ch: 6}, {line: 146, ch: 6});
+
+                var prevDoc = testDoc.getText();
+
+                WrapSelection.convertToArrowFunction();
+
+                _waitForRefactoring(prevDoc.length, prevDoc.split("\n").length, function() {
+                    expect(testDoc.getLine(145)).toBe("var sum = (a, b) => a+b;");
+                });
+            });
+
+            it("should convert selected function to arrow function with one param and one return statement", function() {
+                testEditor.setSelection({line: 150, ch: 6}, {line: 150, ch: 6});
+
+                var prevDoc = testDoc.getText();
+
+                WrapSelection.convertToArrowFunction();
+
+                _waitForRefactoring(prevDoc.length, prevDoc.split("\n").length, function() {
+                    expect(testDoc.getLine(149)).toBe("var num = a => a;");
+                });
+            });
+
+            it("should convert selected function to arrow function with two param and two statements", function() {
+                testEditor.setSelection({line: 154, ch: 6}, {line: 154, ch: 6});
+
+                var prevDoc = testDoc.getText();
+
+                WrapSelection.convertToArrowFunction();
+
+                _waitForRefactoring(prevDoc.length, prevDoc.split("\n").length, function() {
+                    expect(testDoc.getLine(153)).toBe("var sumAll = (a, b) => {");
+                });
+            });
+        });
+
+        describe("Getters-Setters", function () {
+            beforeEach(function () {
+                setupTest(testPath, false);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            it("should create Getters Setters for selected property", function() {
+                testEditor.setSelection({line: 161, ch: 12}, {line: 161, ch: 12});
+
+                var prevDoc = testDoc.getText();
+
+                WrapSelection.createGettersAndSetters();
+
+                _waitForRefactoring(prevDoc.length, prevDoc.split("\n").length, function() {
+                    expect(testDoc.getLine(162)).toBe("    get docCurrent() {");
+                    expect(testDoc.getLine(163)).toBe("        return this.docCurrent;");
+                    expect(testDoc.getLine(164)).toBe("    },");
+                    expect(testDoc.getLine(166)).toBe("    set docCurrent(val) {");
+                    expect(testDoc.getLine(167)).toBe("        this.docCurrent = val;");
+                    expect(testDoc.getLine(168)).toBe("    },");
+                });
+            });
+
+            it("should create Getters Setters for last property in context", function() {
+                testEditor.setSelection({line: 162, ch: 12}, {line: 162, ch: 12});
+
+                var prevDoc = testDoc.getText();
+
+                WrapSelection.createGettersAndSetters();
+
+                _waitForRefactoring(prevDoc.length, prevDoc.split("\n").length, function() {
+                    expect(testDoc.getLine(162)).toBe("    isReadOnly  : false,");
+                    expect(testDoc.getLine(163)).toBe("    get isReadOnly() {");
+                    expect(testDoc.getLine(164)).toBe("        return this.isReadOnly;");
+                    expect(testDoc.getLine(165)).toBe("    },");
+                    expect(testDoc.getLine(167)).toBe("    set isReadOnly(val) {");
+                    expect(testDoc.getLine(168)).toBe("        this.isReadOnly = val;");
+                    expect(testDoc.getLine(169)).toBe("    }");
                 });
             });
         });
