@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         //Commands
     var refactorRename          = "javascript.renamereference";
 
-    var session             = null;  // object that encapsulates the current session state
+    var session             = null,  // object that encapsulates the current session state
+        keywords = ["define", "alert", "exports", "require", "module", "arguments"];
 
     //Create new session
     function initializeSession(editor) {
@@ -92,7 +93,7 @@ define(function (require, exports, module) {
 
         token = TokenUtils.getTokenAt(editor._codeMirror, editor._codeMirror.posFromIndex(session.getOffset()));
 
-        if (token.string === "require" || token.string === "exports" || token.string === "module") {
+        if (keywords.indexOf(token.string) >= 0) {
             editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_GENERAL);
             return;
         }
