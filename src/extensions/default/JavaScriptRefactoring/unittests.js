@@ -31,7 +31,10 @@ define(function (require, exports, module) {
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
-        ExtractToVariable    = require("ExtractToVariable");
+        Strings              = brackets.getModule("strings"),
+        KeyEvent             = brackets.getModule("utils/KeyEvent"),
+        ExtractToVariable    = require("ExtractToVariable"),
+        ExtractToFunction    = require("ExtractToFunction");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/test.js",
@@ -355,6 +358,173 @@ define(function (require, exports, module) {
                 _waitForExtract(prevDocLength, function() {
                     expect(testDoc.getLine(126)).toBe("    var extracted2 = 45;");
                     expect(testDoc.getLine(127)).toBe("    var x = extracted2;");
+                });
+            });
+        });
+
+        describe("Extract to function", function () {
+            beforeEach(function () {
+                setupTest(testPath, false);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            it("should display correct scopes for line inside a function declaration", function () {
+                testEditor.setSelection({line: 7, ch: 4}, {line: 7, ch: 28});
+
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                   scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu.items.length).toBe(2);
+                    expect(scopeMenu.items[0].name).toBe("test");
+                    expect(scopeMenu.items[1].name).toBe("global");
+                });
+            });
+
+            it("should display correct scopes for line inside a function expression", function () {
+                testEditor.setSelection({line: 27, ch: 4}, {line: 27, ch: 31});
+
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                   scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu.items.length).toBe(2);
+                    expect(scopeMenu.items[0].name).toBe("x");
+                    expect(scopeMenu.items[1].name).toBe("global");
+                });
+            });
+
+            it("should display correct scopes for line inside a arrow function", function () {
+                testEditor.setSelection({line: 58, ch: 4}, {line: 58, ch: 17});
+
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                   scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu.items.length).toBe(2);
+                    expect(scopeMenu.items[0].name).toBe("x");
+                    expect(scopeMenu.items[1].name).toBe("global");
+                });
+            });
+
+            it("should display correct scopes for line inside a nested function", function () {
+                testEditor.setSelection({line: 71, ch: 12}, {line: 71, ch: 23});
+
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                   scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu.items.length).toBe(4);
+                    expect(scopeMenu.items[0].name).toBe("function starting with {\n            resolve(x);\n    ");
+                    expect(scopeMenu.items[1].name).toBe("function starting with {\n        setTimeout(() => {\n ");
+                    expect(scopeMenu.items[2].name).toBe("resolveAfter2Seconds");
+                    expect(scopeMenu.items[3].name).toBe("global");
+                });
+            });
+
+            it("should display correct scopes for line inside a class declaration", function () {
+                testEditor.setSelection({line: 93, ch: 8}, {line: 93, ch: 27});
+
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                   scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu.items.length).toBe(3);
+                    expect(scopeMenu.items[0].name).toBe("constructor");
+                    expect(scopeMenu.items[1].name).toBe("class Polygon");
+                    expect(scopeMenu.items[2].name).toBe("global");
+                });
+            });
+
+            it("should display correct scopes for line inside a class expression", function () {
+                testEditor.setSelection({line: 112, ch: 8}, {line: 112, ch: 23});
+
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                    scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu.items.length).toBe(3);
+                    expect(scopeMenu.items[0].name).toBe("constructor");
+                    expect(scopeMenu.items[1].name).toBe("class x");
+                    expect(scopeMenu.items[2].name).toBe("global");
+                });
+            });
+
+            it("should extract line in global scope without displaying scopes", function () {
+                testEditor.setSelection({line: 4, ch: 0}, {line: 4, ch: 11});
+
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                    scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu).toBeUndefined();
+                    expect(testDoc.getRange({line: 4, ch: 0}, {line: 7, ch: 1}))
+                        .toBe(
+                            "function extracted1() {\n" +
+                            "    var y = 34;\n"     +
+                            "    return y;\n"      +
+                            "}"
+                        );
+                    expect(testDoc.getLine(9)).toBe("var y = extracted1();");
+                });
+            });
+
+            it("should extract a line inside a function declaration", function () {
+                testEditor.setSelection({line: 7, ch: 4}, {line: 7, ch: 27});
+
+                var prevDocLength = testDoc.getText().length;
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                    scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu).toBeDefined();
+                    var scopeElement = scopeMenu.$menu.find(".inlinemenu-item")[0];
+                    expect(scopeElement).toBeDefined();
+                    $(scopeElement).trigger("click");
+                });
+
+                _waitForExtract(prevDocLength, function() {
+                    expect(testDoc.getRange({line: 7, ch: 0}, {line: 9, ch: 6}))
+                        .toBe(
+                            "    function extracted1() {\n"       +
+                            "        console.log(\"Testing\");\n" +
+                            "    }"
+                        );
                 });
             });
         });
