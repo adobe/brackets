@@ -527,6 +527,64 @@ define(function (require, exports, module) {
                         );
                 });
             });
+
+            it("should extract a line inside a class to a class method", function () {
+                testEditor.setSelection({line: 104, ch: 8}, {line: 104, ch: 29});
+
+                var prevDocLength = testDoc.getText().length;
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                    scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu).toBeDefined();
+                    var scopeElement = scopeMenu.$menu.find(".inlinemenu-item")[1];
+                    expect(scopeElement).toBeDefined();
+                    $(scopeElement).trigger("click");
+                });
+
+                _waitForExtract(prevDocLength, function() {
+                    expect(testDoc.getRange({line: 101, ch: 0}, {line: 103, ch: 6}))
+                        .toBe(
+                            "    extracted1() {\n"            +
+                            "        this.name = 'Square';\n" +
+                            "    }"
+                        );
+                    expect(testDoc.getLine(108)).toBe("        this.extracted1();");
+                });
+            });
+
+            it("should extract a line inside a class to global scope", function () {
+                testEditor.setSelection({line: 104, ch: 8}, {line: 104, ch: 29});
+
+                var prevDocLength = testDoc.getText().length;
+                var result = ExtractToFunction.handleExtractToFunction();
+                var scopeMenu;
+
+                waitsForDone(result.then(function(inlineMenu) {
+                    scopeMenu = inlineMenu;
+                }), "Scope not displayed in extract to function", 3000);
+
+                runs(function() {
+                    expect(scopeMenu).toBeDefined();
+                    var scopeElement = scopeMenu.$menu.find(".inlinemenu-item")[2];
+                    expect(scopeElement).toBeDefined();
+                    $(scopeElement).trigger("click");
+                });
+
+                _waitForExtract(prevDocLength, function() {
+                    expect(testDoc.getRange({line: 100, ch: 0}, {line: 102, ch: 2}))
+                        .toBe(
+                            "function extracted1() {\n"            +
+                            "    this.name = 'Square';\n" +
+                            "}"
+                        );
+                    expect(testDoc.getLine(108)).toBe("        extracted1.call(this);");
+                });
+            });
         });
     });
 });
