@@ -200,7 +200,7 @@ define(function (require, exports, module) {
      * Make an index request object
      * @param {boolean} requestIndex - true to request an index, false if not
      * @param {number} index - the index to request
-     * @return {indexRequested:boolean, index:number} an object that can be pased to
+     * @return {indexRequested:boolean, index:number} an object that can be passed to
      * {@link Pane#addToViewList} to insert the item at a specific index
      * @see Pane#addToViewList
      */
