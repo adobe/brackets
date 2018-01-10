@@ -264,9 +264,11 @@ define(function(require, exports, module) {
      */
     function handleExtractToFunction() {
         var editor = EditorManager.getActiveEditor();
+        var result = new $.Deferred(); // used only for testing purpose
 
         if (editor.getSelections().length > 1) {
             editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_FUNCTION_MULTICURSORS);
+            result.resolve(Strings.ERROR_EXTRACTTO_FUNCTION_MULTICURSORS);
             return;
         }
         initializeSession(editor);
@@ -290,6 +292,7 @@ define(function(require, exports, module) {
                 isExpression = RefactoringUtils.getExpression(ast, start, end, doc.getText());
                 if (!isExpression) {
                     editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_FUNCTION_NOT_VALID);
+                    result.resolve(Strings.ERROR_EXTRACTTO_FUNCTION_NOT_VALID);
                     return;
                 }
             }
@@ -298,12 +301,15 @@ define(function(require, exports, module) {
             // if only one scope, extract without menu
             if (scopes.length === 1) {
                 extract(ast, text, scopes, scopes[0], scopes[0], start, end, isExpression);
+                result.resolve();
                 return;
             }
 
             inlineMenu = new InlineMenu(editor, Strings.EXTRACTTO_FUNCTION_SELECT_SCOPE);
 
             inlineMenu.open(scopes.filter(RefactoringUtils.isFnScope));
+
+            result.resolve(inlineMenu);
 
             inlineMenu.onSelect(function (scopeId) {
                 extract(ast, text, scopes, scopes[0], scopes[scopeId], start, end, isExpression);
@@ -315,7 +321,10 @@ define(function(require, exports, module) {
             });
         }).fail(function() {
             editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
+            result.resolve(Strings.ERROR_TERN_FAILED);
         });
+
+        return result.promise();
     }
 
     /**
