@@ -96,14 +96,33 @@ define(function (require, exports, module) {
          * If yes then select all references
          */
         function handleFindRefs (refsResp) {
-            if (refsResp && refsResp.references && refsResp.references.refs) {
-                if (refsResp.references.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
-                } else {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(function(element) {
-                        return isInSameFile(element, refsResp);
-                    }));
+            if (!refsResp || !refsResp.references || !refsResp.references.refs) {
+                return;
+            }
+
+            var inlineWidget = EditorManager.getFocusedInlineWidget(),
+                editor = EditorManager.getActiveEditor(),
+                refs = refsResp.references.refs,
+                type = refsResp.references.type;
+
+            //In case of inline widget if some references are outside widget's text range then don't allow for rename
+            if (inlineWidget) {
+                var isInTextRange  = !refs.find(function(item) {
+                    return (item.start.line < inlineWidget._startLine || item.end.line > inlineWidget._endLine);
+                });
+                
+                if (!isInTextRange) {
+                    editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_QUICKEDIT);
+                    return;
                 }
+            }
+
+            if (type === "local") {
+                editor.setSelections(refs);
+            } else {
+                editor.setSelections(refs.filter(function(element) {
+                    return isInSameFile(element, refsResp);
+                }));
             }
         }
 
