@@ -157,7 +157,7 @@ define(function (require, exports, module) {
         if (dontChangeParam) {
             if (numberOfParams >= 1) {
                 param.splice(0,param.length);
-                param.push(current.text.substr(funcExprNode.params[0].start, funcExprNode.params[numberOFParams-1].end - funcExprNode.params[0].start));
+                param.push(current.text.substr(funcExprNode.params[0].start, funcExprNode.params[numberOfParams-1].end - funcExprNode.params[0].start));
                 // In case default param, treat them as many paramater because to use
                 // one parameter template, That param should be an identifier
                 if (numberOfParams === 1) {
