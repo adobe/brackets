@@ -27,7 +27,7 @@ define(function (require, exports, module) {
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         PerfUtils       = brackets.getModule("utils/PerfUtils");
 
-    // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+    // https://paulirish.com/2011/requestanimationframe-for-smart-animating/
     // shim layer with setTimeout fallback
     var requestAnimFrame = (function () {
         return window.requestAnimationFrame    ||
