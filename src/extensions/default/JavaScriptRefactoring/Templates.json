@@ -1,4 +1,22 @@
 {
+    "functionCall": {
+        "thisPointer": "{0}.call({1})",
+        "normal": "{0}({1})",
+        "class": "this.{0}({1})"
+    },
+
+    "functionDeclaration": {
+        "class" : "{0}({1}) {\n {2}}\n\n",
+        "normal": "function {0}({1}) {\n {2}}\n\n"
+    },
+
+    "returnStatement": {
+        "single": "return {0};\n",
+        "multiple": "return {{0}};\n"
+    },
+
+    "assignment": "{0} = {1};",
+
     "wrapCondition": "if (Condition) {\n${body}\n}",
 
     "arrowFunction": {
