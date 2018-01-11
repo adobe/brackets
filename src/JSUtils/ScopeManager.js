@@ -443,6 +443,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Handle the response from the tern node domain when
+     * it responds with the scope data
+     *
+     * @param response - the response from the node domain
+     */
+    function handleScopeData(response) {
+        var file = response.file,
+            offset = response.offset;
+
+        var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_SCOPEDATA_MSG);
+
+        if ($deferredJump) {
+            $deferredJump.resolveWith(null, [response]);
+        }
+    }
+
+    /**
      * Get a Promise for the completions from TernJS, for the file & offset passed in.
      *
      * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
@@ -1114,6 +1131,8 @@ define(function (require, exports, module) {
                         handleTernGetFile(response);
                     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
                         handleJumptoDef(response);
+                    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+                        handleScopeData(response);
                     } else if (type === MessageIds.TERN_REFS) {
                         handleRename(response);
                     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
@@ -1585,5 +1604,4 @@ define(function (require, exports, module) {
     exports.filterText = filterText;
     exports.postMessage = postMessage;
     exports.addPendingRequest = addPendingRequest;
-
 });
