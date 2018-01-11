@@ -696,6 +696,7 @@ define({
     "ERROR_ARROW_FUNCTION"                      : "Place the cursor inside a function expression",
     "ERROR_GETTERS_SETTERS"                     : "Place the cursor at a member of an object expression",
     "ERROR_RENAME_MULTICURSOR"                  : "Cannot rename when using multi-cursors",
+    "ERROR_RENAME_QUICKEDIT"                    : "Cannot rename this identifier, as it is referenced elsewhere outside this function",
     "ERROR_RENAME_GENERAL"                      : "Cannot rename selected text",
 
     // extensions/default/JSLint
