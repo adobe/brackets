@@ -28,12 +28,8 @@ define(function (require, exports, module) {
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
         Session              = brackets.getModule("JSUtils/Session"),
         MessageIds           = brackets.getModule("JSUtils/MessageIds"),
-        CommandManager       = brackets.getModule("command/CommandManager"),
-        Menus                = brackets.getModule("command/Menus"),
         TokenUtils           = brackets.getModule("utils/TokenUtils"),
         Strings              = brackets.getModule("strings");
-        //Commands
-    var refactorRename          = "javascript.renamereference";
 
     var session             = null,  // object that encapsulates the current session state
         keywords = ["define", "alert", "exports", "require", "module", "arguments"];
@@ -141,26 +137,5 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    //Register command, add menus and context menu, key binding- Ctrl+R
-    function addCommands() {
-
-        CommandManager.register(Strings.CMD_REFACTORING_RENAME, refactorRename, handleRename);
-
-        var keysRename = [
-                {key: "Ctrl-R", platform: "mac"}, // don't translate to Cmd-R on mac
-                {key: "Ctrl-R", platform: "win"},
-                {key: "Ctrl-R", platform: "linux"}
-            ],
-            menuLocation = Menus.AppMenuBar.EDIT_MENU,
-            editorCmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-
-        if (editorCmenu) {
-            editorCmenu.addMenuItem(refactorRename);
-        }
-
-        Menus.getMenu(menuLocation).addMenuDivider();
-        Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
-    }
-
-    exports.addCommands = addCommands;
+    exports.handleRename = handleRename;
 });

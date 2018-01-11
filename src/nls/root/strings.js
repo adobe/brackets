@@ -674,8 +674,17 @@ define({
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
-
-    // extensions/default/JavaScriptRefactoring
+    // extensions/default/JavascriptRefactoring
+    "CMD_REFACTOR"                              : "Refactor",
+    "CMD_EXTRACTTO_VARIABLE"                    : "Extract to Variable",
+    "CMD_EXTRACTTO_FUNCTION"                    : "Extract to Function",
+    "ERROR_TERN_FAILED"                         : "Unable to get data from Tern",
+    "ERROR_EXTRACTTO_VARIABLE_NOT_VALID"        : "Selection does not form an expression",
+    "ERROR_EXTRACTTO_FUNCTION_NOT_VALID"        : "Selected block should represent set of statements or an expression",
+    "ERROR_EXTRACTTO_VARIABLE_MULTICURSORS"     : "Extract to Variable does not work in multicursors",
+    "ERROR_EXTRACTTO_FUNCTION_MULTICURSORS"     : "Extract to Function does not work in multicursors",
+    "EXTRACTTO_FUNCTION_SELECT_SCOPE"           : "Choose destination scope",
+    "EXTRACTTO_VARIABLE_SELECT_EXPRESSION"      : "Select a expression",
     "CMD_REFACTORING_RENAME"                    : "Rename",
     "CMD_REFACTORING_TRY_CATCH"                 : "Wrap in Try Catch",
     "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",

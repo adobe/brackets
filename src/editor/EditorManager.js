@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         //    but reason it could not create InlineWidget
         //
         // Keep looping until a provider is found. If a provider is not found,
-        // display highest priority error message that was found, otherwise display
+        // display the highest priority error message that was found, otherwise display
         // default error message
         for (i = 0; i < providers.length && !inlinePromise; i++) {
             var provider = providers[i].provider;
