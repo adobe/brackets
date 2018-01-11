@@ -674,8 +674,17 @@ define({
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
 	"DETECTED_EXCLUSION_INFO": "{APP_NAME} で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、{APP_NAME} のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
 
-
-    // extensions/default/JavaScriptRefactoring
+    // extensions/default/JavascriptRefactoring
+	"CMD_REFACTOR": "Refactor",
+	"CMD_EXTRACTTO_VARIABLE": "Extract to Variable",
+	"CMD_EXTRACTTO_FUNCTION": "Extract to Function",
+	"ERROR_TERN_FAILED": "Unable to get data from Tern",
+	"ERROR_EXTRACTTO_VARIABLE_NOT_VALID": "Selection does not form an expression",
+	"ERROR_EXTRACTTO_FUNCTION_NOT_VALID": "Selected block should represent set of statements or an expression",
+	"ERROR_EXTRACTTO_VARIABLE_MULTICURSORS": "Extract to Variable does not work in multicursors",
+	"ERROR_EXTRACTTO_FUNCTION_MULTICURSORS": "Extract to Function does not work in multicursors",
+	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "Choose destination scope",
+	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "Select a expression",
 	"CMD_REFACTORING_RENAME": "ファイル名変更",
 	"CMD_REFACTORING_TRY_CATCH": "Try Catch で囲む",
 	"CMD_REFACTORING_CONDITION": "Condition で囲む",
