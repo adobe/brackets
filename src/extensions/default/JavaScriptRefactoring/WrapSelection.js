@@ -142,7 +142,7 @@ define(function (require, exports, module) {
             selectedText = current.text.substr(funcExprNode.start, funcExprNode.end - funcExprNode.start),
             param = [],
             dontChangeParam = false,
-            numberOFParams = funcExprNode.params.length,
+            numberOfParams = funcExprNode.params.length,
             treatAsManyParam = false;
 
             funcExprNode.params.forEach(function (item) {
@@ -155,12 +155,12 @@ define(function (require, exports, module) {
 
         //In case defaults params keep params as it is
         if (dontChangeParam) {
-            if (numberOFParams >= 1) {
+            if (numberOfParams >= 1) {
                 param.splice(0,param.length);
                 param.push(current.text.substr(funcExprNode.params[0].start, funcExprNode.params[numberOFParams-1].end - funcExprNode.params[0].start));
                 // In case default param, treat them as many paramater because to use
                 // one parameter template, That param should be an identifier
-                if (numberOFParams === 1) {
+                if (numberOfParams === 1) {
                     treatAsManyParam = true;
                 }
             }
@@ -207,13 +207,13 @@ define(function (require, exports, module) {
 
         if (noOfStatements === 1) {
             current.document.batchOperation(function() {
-                (numberOFParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
+                (numberOfParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
                 current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "manyParamOneStament");
 
             });
         } else {
             current.document.batchOperation(function() {
-                (numberOFParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
+                (numberOfParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
                 locPos.functionsDeclOnly, "oneParamManyStament") :
                 current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param.join(", ")}, locPos.functionsDeclOnly, "manyParamManyStament");
             });
