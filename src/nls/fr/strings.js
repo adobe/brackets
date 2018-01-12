@@ -696,6 +696,7 @@ define({
 	"ERROR_ARROW_FUNCTION": "Placer le curseur à l’intérieur d’une expression de fonction",
 	"ERROR_GETTERS_SETTERS": "Placer le curseur au niveau d’un membre d’une expression d’objet",
 	"ERROR_RENAME_MULTICURSOR": "Impossible de renommer en cas d’utilisation de plusieurs curseurs",
+	"ERROR_RENAME_QUICKEDIT": "Cannot rename this identifier, as it is referenced elsewhere outside this function",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

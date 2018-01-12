@@ -696,6 +696,7 @@ define({
 	"ERROR_ARROW_FUNCTION": "関数式の中にカーソルを置きます",
 	"ERROR_GETTERS_SETTERS": "オブジェクト式のメンバーにカーソルを置きます",
 	"ERROR_RENAME_MULTICURSOR": "複数のカーソルを使用して名前を変更することはできません",
+	"ERROR_RENAME_QUICKEDIT": "Cannot rename this identifier, as it is referenced elsewhere outside this function",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
