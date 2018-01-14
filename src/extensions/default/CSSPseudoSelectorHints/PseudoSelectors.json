@@ -19,7 +19,6 @@
         "indeterminate":       {"desc": "Selects every indeterminate checkbox, radio button or progress bar"},
         "invalid":             {"desc": "Selects all input elements with an invalid value"},
         "lang(languages)":     {"desc": "Selects every element whose language is contained by the 'languages' list", "text": "lang()"},
-        "last":                {"desc": "With @page, selects the last page of a printed document"},
         "last-child":          {"desc": "Selects every element that is the last child of its parent"},
         "last-of-type":        {"desc": "Selects every element that is the last element of the specific type of its parent"},
         "left":                {"desc": "With @page, selects every left-hand page of a printed document"},
