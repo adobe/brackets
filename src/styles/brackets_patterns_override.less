@@ -295,13 +295,12 @@ a:focus {
     100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
-// Code hints don't need scaling navigation so we're removing it
-
-.codehint-menu.open .dropdown-menu {
+// Code hints and inlinemenu don't need scaling navigation so we're removing it
+.codehint-menu.open .dropdown-menu, .inlinemenu-menu .dropdown-menu {
     animation: none;
 }
 
-.toolbar .nav, .context-menu, .codehint-menu {
+.toolbar .nav, .context-menu, .codehint-menu, .inlinemenu-menu {
 
     // The 1px adjustments here are to account for the border around the top-level menu items.
     margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
@@ -461,7 +460,7 @@ a:focus {
 /* Context menu styles */
 
 
-.context-menu, .codehint-menu {
+.context-menu, .codehint-menu, .inlinemenu-menu {
     position: absolute;
     z-index: @z-index-brackets-context-menu-base;
     list-style-type: none;
@@ -480,7 +479,7 @@ a:focus {
     }
 }
 
-.codehint-menu {
+.codehint-menu, .inlinemenu-menu {
     opacity: 0;
     .dropdown-menu {
         box-shadow: 0 3px 9px @bc-shadow;
@@ -490,6 +489,23 @@ a:focus {
 
         .dark & {
             box-shadow: 0 3px 9px @dark-bc-shadow;
+        }
+
+        // Styles used for inlinemenu widget header
+        li.inlinemenu-header a {
+            background-color: @bc-inlinemenu-bg;
+
+            .dark & {
+                background-color: @dark-bc-inlinemenu-bg;
+            }
+
+            &:hover {
+                background-color: @bc-inlinemenu-bg;
+
+                .dark & {
+                    background-color: @dark-bc-inlinemenu-bg;
+                }
+            }
         }
 
         li {
@@ -543,12 +559,12 @@ a:focus {
     }
 }
 
-.codehint-menu.open {
+.codehint-menu.open, .inlinemenu-menu.open {
     opacity: 1;
     transition: opacity 67ms cubic-bezier(0.03, 0.78, 0.17, 0.97);
 }
 
-.codehint-menu.apply-transition {
+.codehint-menu.apply-transition, .inlinemenu.apply-transition {
     transition: right 167ms, left 167ms;
 }
 

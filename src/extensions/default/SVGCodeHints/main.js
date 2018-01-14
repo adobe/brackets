@@ -145,7 +145,7 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor An instance of Editor
      * @param {string} implicitChar A single character that was inserted by the
-     * user or null if the request was explicity made to start hinting session.
+     * user or null if the request was explicitly made to start hinting session.
      *
      * @return {boolean} Determines whether or not hints are available in the current context.
      */

@@ -1,0 +1,19 @@
+{
+    "extractToVariable":  [
+        "Ctrl-Shift-V"
+    ],
+    "extractToFunction":  [
+        "Ctrl-Shift-M"
+    ],
+    "renameIdentifier": [
+        {
+            "key": "Ctrl-R", "platform": "mac"
+        },
+        {
+            "key": "Ctrl-R", "platform": "win"
+        },
+        {
+            "key": "Ctrl-R", "platform": "linux"
+        }
+    ]
+}

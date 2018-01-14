@@ -28,11 +28,7 @@ define(function (require, exports, module) {
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
         Session              = brackets.getModule("JSUtils/Session"),
         MessageIds           = brackets.getModule("JSUtils/MessageIds"),
-        CommandManager       = brackets.getModule("command/CommandManager"),
-        Menus                = brackets.getModule("command/Menus"),
         Strings              = brackets.getModule("strings");
-        //Commands
-    var refactorRename          = "javascript.renamereference";
 
     var session             = null;  // object that encapsulates the current session state
 
@@ -100,14 +96,33 @@ define(function (require, exports, module) {
          * If yes then select all references
          */
         function handleFindRefs (refsResp) {
-            if (refsResp && refsResp.references && refsResp.references.refs) {
-                if (refsResp.references.type === "local") {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs);
-                } else {
-                    EditorManager.getActiveEditor().setSelections(refsResp.references.refs.filter(function(element) {
-                        return isInSameFile(element, refsResp);
-                    }));
+            if (!refsResp || !refsResp.references || !refsResp.references.refs) {
+                return;
+            }
+
+            var inlineWidget = EditorManager.getFocusedInlineWidget(),
+                editor = EditorManager.getActiveEditor(),
+                refs = refsResp.references.refs,
+                type = refsResp.references.type;
+
+            //In case of inline widget if some references are outside widget's text range then don't allow for rename
+            if (inlineWidget) {
+                var isInTextRange  = !refs.find(function(item) {
+                    return (item.start.line < inlineWidget._startLine || item.end.line > inlineWidget._endLine);
+                });
+                
+                if (!isInTextRange) {
+                    editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_QUICKEDIT);
+                    return;
                 }
+            }
+
+            if (type === "local") {
+                editor.setSelections(refs);
+            } else {
+                editor.setSelections(refs.filter(function(element) {
+                    return isInSameFile(element, refsResp);
+                }));
             }
         }
 
@@ -132,26 +147,5 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    //Register command, add menus and context menu, key binding- Ctrl+R
-    function addCommands() {
-
-        CommandManager.register(Strings.CMD_REFACTORING_RENAME, refactorRename, handleRename);
-
-        var keysRename = [
-                {key: "Ctrl-R", platform: "mac"}, // don't translate to Cmd-R on mac
-                {key: "Ctrl-R", platform: "win"},
-                {key: "Ctrl-R", platform: "linux"}
-            ],
-            menuLocation = Menus.AppMenuBar.EDIT_MENU,
-            editorCmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-
-        if (editorCmenu) {
-            editorCmenu.addMenuItem(refactorRename);
-        }
-
-        Menus.getMenu(menuLocation).addMenuDivider();
-        Menus.getMenu(menuLocation).addMenuItem(refactorRename, keysRename);
-    }
-
-    exports.addCommands = addCommands;
+    exports.handleRename = handleRename;
 });

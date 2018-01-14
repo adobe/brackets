@@ -237,7 +237,7 @@ define(function (require, exports, module) {
      * that will be fulfilled with the result of the script, if any.
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should evaluate
      *      the script.
-     * @param {string} script The script to evalute.
+     * @param {string} script The script to evaluate.
      * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
      *      to the evaluation.
      */
