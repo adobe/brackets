@@ -68,6 +68,10 @@ define(function (require, exports, module) {
 
         if (selectedText.length === 0) {
             var statementNode = RefactoringUtils.findSurroundASTNode(current.ast, {start: startIndex}, ["Statement"]);
+            if (!statementNode) {
+                current.editor.displayErrorMessageAtCursor(err);
+                return;
+            }
             selectedText = current.text.substr(statementNode.start, statementNode.end - statementNode.start);
             startIndex = statementNode.start;
             endIndex = statementNode.end;
