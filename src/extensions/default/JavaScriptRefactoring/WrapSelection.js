@@ -68,6 +68,10 @@ define(function (require, exports, module) {
 
         if (selectedText.length === 0) {
             var statementNode = RefactoringUtils.findSurroundASTNode(current.ast, {start: startIndex}, ["Statement"]);
+            if (!statementNode) {
+                current.editor.displayErrorMessageAtCursor(err);
+                return;
+            }
             selectedText = current.text.substr(statementNode.start, statementNode.end - statementNode.start);
             startIndex = statementNode.start;
             endIndex = statementNode.end;
@@ -121,20 +125,51 @@ define(function (require, exports, module) {
             return;
         }
         initializeRefactoringSession(editor);
-        //Handle when there is no selected line
-        var funcExprNode = RefactoringUtils.findSurroundASTNode(current.ast, {start: current.startIndex}, ["FunctionExpression"]);
+        
+        var funcExprNode = RefactoringUtils.findSurroundASTNode(current.ast, {start: current.startIndex}, ["Function"]);
 
         if (!funcExprNode || funcExprNode.type !== "FunctionExpression" || funcExprNode.id) {
             current.editor.displayErrorMessageAtCursor(Strings.ERROR_ARROW_FUNCTION);
             return;
         }
+
+        if (funcExprNode === "FunctionDeclaration") {
+            current.editor.displayErrorMessageAtCursor(Strings.ERROR_ARROW_FUNCTION);
+            return;
+        }
+
+        if (!funcExprNode.body) {
+            return;
+        }
+
         var noOfStatements = funcExprNode.body.body.length,
             selectedText = current.text.substr(funcExprNode.start, funcExprNode.end - funcExprNode.start),
-            param = [];
+            param = [],
+            dontChangeParam = false,
+            numberOfParams = funcExprNode.params.length,
+            treatAsManyParam = false;
 
             funcExprNode.params.forEach(function (item) {
-                param.push(item.name);
+                if (item.type === "Identifier") {
+                    param.push(item.name);
+                } else if (item.type === "AssignmentPattern") {
+                    dontChangeParam = true;
+                }
             });
+
+        //In case defaults params keep params as it is
+        if (dontChangeParam) {
+            if (numberOfParams >= 1) {
+                param.splice(0,param.length);
+                param.push(current.text.substr(funcExprNode.params[0].start, funcExprNode.params[numberOfParams-1].end - funcExprNode.params[0].start));
+                // In case default param, treat them as many paramater because to use
+                // one parameter template, That param should be an identifier
+                if (numberOfParams === 1) {
+                    treatAsManyParam = true;
+                }
+            }
+            dontChangeParam = false;
+        }
 
         var loc = {
                 "fullFunctionScope": {
@@ -156,8 +191,15 @@ define(function (require, exports, module) {
                     "end": current.cm.posFromIndex(loc.functionsDeclOnly.end)
                 }
             },
-            isReturnStatement = funcExprNode.body.body[0].type === "ReturnStatement",
+            isReturnStatement = (noOfStatements >= 1 && funcExprNode.body.body[0].type === "ReturnStatement"),
             bodyStatements = funcExprNode.body.body[0],
+            params;
+
+            // If there is nothing in function body, then get the text b/w curly braces
+            // In this case, We will update params only as per Arrow function expression
+            if (!bodyStatements) {
+                bodyStatements = funcExprNode.body;
+            }
             params = {
                 "params": param.join(", "),
                 "statement": _.trimRight(current.text.substr(bodyStatements.start, bodyStatements.end - bodyStatements.start), ";")
@@ -169,13 +211,13 @@ define(function (require, exports, module) {
 
         if (noOfStatements === 1) {
             current.document.batchOperation(function() {
-                funcExprNode.params.length === 1 ?  current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
+                (numberOfParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "oneParamOneStament") :
                 current.replaceTextFromTemplate(ARROW_FUNCTION, params, locPos.fullFunctionScope, "manyParamOneStament");
 
             });
         } else {
             current.document.batchOperation(function() {
-                funcExprNode.params.length === 1 ?  current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
+                (numberOfParams === 1 && !treatAsManyParam) ?  current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param},
                 locPos.functionsDeclOnly, "oneParamManyStament") :
                 current.replaceTextFromTemplate(ARROW_FUNCTION, {params: param.join(", ")}, locPos.functionsDeclOnly, "manyParamManyStament");
             });

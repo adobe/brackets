@@ -28,9 +28,11 @@ define(function (require, exports, module) {
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
         Session              = brackets.getModule("JSUtils/Session"),
         MessageIds           = brackets.getModule("JSUtils/MessageIds"),
+        TokenUtils           = brackets.getModule("utils/TokenUtils"),
         Strings              = brackets.getModule("strings");
 
-    var session             = null;  // object that encapsulates the current session state
+    var session             = null,  // object that encapsulates the current session state
+        keywords = ["define", "alert", "exports", "require", "module", "arguments"];
 
     //Create new session
     function initializeSession(editor) {
@@ -68,7 +70,7 @@ define(function (require, exports, module) {
     //Do rename of identifier which is at cursor
     function handleRename() {
         var editor = EditorManager.getActiveEditor(),
-            offset, handleFindRefs;
+            offset, handleFindRefs, token;
 
         if (!editor) {
             return;
@@ -82,6 +84,13 @@ define(function (require, exports, module) {
 
 
         if (!editor || editor.getModeForSelection() !== "javascript") {
+            return;
+        }
+
+        token = TokenUtils.getTokenAt(editor._codeMirror, editor._codeMirror.posFromIndex(session.getOffset()));
+
+        if (keywords.indexOf(token.string) >= 0) {
+            editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_GENERAL);
             return;
         }
 
