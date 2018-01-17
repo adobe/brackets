@@ -679,7 +679,7 @@ define({
 	"CMD_EXTRACTTO_VARIABLE": "変数に抽出",
 	"CMD_EXTRACTTO_FUNCTION": "関数に抽出",
 	"ERROR_TERN_FAILED": "Tern からデータを取得できません",
-	"ERROR_EXTRACTTO_VARIABLE_NOT_VALID": "選択内容で式が形成されません",
+	"ERROR_EXTRACTTO_VARIABLE_NOT_VALID": "選択内容は式になっていません",
 	"ERROR_EXTRACTTO_FUNCTION_NOT_VALID": "選択したブロックは、ステートメントセットまたは式を表す必要があります",
 	"ERROR_EXTRACTTO_VARIABLE_MULTICURSORS": "変数に抽出は複数カーソルでは機能しません",
 	"ERROR_EXTRACTTO_FUNCTION_MULTICURSORS": "関数に抽出は複数カーソルでは機能しません",
