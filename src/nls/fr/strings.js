@@ -686,7 +686,7 @@ define({
 	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "Choisir la portée cible",
 	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "Sélectionner une expression",
 	"CMD_REFACTORING_RENAME": "Renommer",
-	"CMD_REFACTORING_TRY_CATCH": "Envelopper dans Try/Catch",
+	"CMD_REFACTORING_TRY_CATCH": "Encapsuler dans Try/Catch",
 	"CMD_REFACTORING_CONDITION": "Encapsuler dans Condition",
 	"CMD_REFACTORING_GETTERS_SETTERS": "Créer des getters/setters",
 	"CMD_REFACTORING_ARROW_FUNCTION": "Convertir en fonction de flèche",
