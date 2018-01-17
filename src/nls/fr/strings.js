@@ -140,8 +140,8 @@ define({
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé du disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
     // Window unload warning messages
-	"WINDOW_UNLOAD_WARNING": "Voulez-vous vraiment accéder à une autre URL et quitter Brackets ?",
-	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "Certaines modifications n’ont pas été enregistrées. Voulez-vous vraiment accéder à une autre URL et quitter Brackets ?",
+	"WINDOW_UNLOAD_WARNING": "Are you sure you want to navigate to a different URL and leave Brackets?",
+	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
 
     // Generic dialog/button labels
 	"DONE": "Terminé",
@@ -686,18 +686,18 @@ define({
 	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "Choisir la portée cible",
 	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "Sélectionner une expression",
 	"CMD_REFACTORING_RENAME": "Renommer",
-	"CMD_REFACTORING_TRY_CATCH": "Envelopper dans Try/Catch",
-	"CMD_REFACTORING_CONDITION": "Envelopper dans Condition",
+	"CMD_REFACTORING_TRY_CATCH": "Encapsuler dans Try/Catch",
+	"CMD_REFACTORING_CONDITION": "Encapsuler dans Condition",
 	"CMD_REFACTORING_GETTERS_SETTERS": "Créer des getters/setters",
 	"CMD_REFACTORING_ARROW_FUNCTION": "Convertir en fonction de flèche",
 	"DESCRIPTION_CODE_REFACTORING": "Activer/désactiver le remaniement de code JavaScript",
 	"ERROR_TRY_CATCH": "Sélectionner un code valide à encapsuler dans un bloc Try/Catch",
-	"ERROR_WRAP_IN_CONDITION": "Sélectionner un code valide à envelopper dans un bloc Condition",
+	"ERROR_WRAP_IN_CONDITION": "Sélectionner un code valide à encapsuler dans un bloc Condition",
 	"ERROR_ARROW_FUNCTION": "Placer le curseur à l’intérieur d’une expression de fonction",
 	"ERROR_GETTERS_SETTERS": "Placer le curseur au niveau d’un membre d’une expression d’objet",
 	"ERROR_RENAME_MULTICURSOR": "Impossible de renommer en cas d’utilisation de plusieurs curseurs",
 	"ERROR_RENAME_QUICKEDIT": "Impossible de renommer cet identifiant, car il est référencé ailleurs en dehors de cette fonction.",
-	"ERROR_RENAME_GENERAL": "Cannot rename selected text",
+	"ERROR_RENAME_GENERAL": "Impossible de renommer le texte sélectionné",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

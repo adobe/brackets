@@ -140,8 +140,8 @@ define({
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
     // Window unload warning messages
-	"WINDOW_UNLOAD_WARNING": "別の URL に移動し、Brackets を終了しますか?",
-	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "変更が保存されていません。別の URL に移動し、Brackets を終了しますか?",
+	"WINDOW_UNLOAD_WARNING": "Are you sure you want to navigate to a different URL and leave Brackets?",
+	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
 
     // Generic dialog/button labels
 	"DONE": "完了",
@@ -697,7 +697,7 @@ define({
 	"ERROR_GETTERS_SETTERS": "オブジェクト式のメンバーにカーソルを置きます",
 	"ERROR_RENAME_MULTICURSOR": "複数のカーソルを使用して名前を変更することはできません",
 	"ERROR_RENAME_QUICKEDIT": "この識別子は、この関数以外の場所で参照されているため名前変更できません",
-	"ERROR_RENAME_GENERAL": "Cannot rename selected text",
+	"ERROR_RENAME_GENERAL": "選択したテキストの名前を変更できません",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
