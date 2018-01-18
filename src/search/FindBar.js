@@ -725,7 +725,7 @@ define(function (require, exports, module) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = (!lastTypedTextWasRegexp && getInitialQueryFromSelection(editor)) || lastQueriedText || lastTypedText;
+                query = (!lastTypedTextWasRegexp && selection) || lastQueriedText || lastTypedText;
             }
         }
 
