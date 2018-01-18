@@ -21,15 +21,15 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true, forin: true */
-/*global $, define, document */
+/*jslint regexp: true */
+
 define(function (require, exports, module) {
     'use strict';
 
     var _ = require("thirdparty/lodash");
 
     var BootstrapReporterView = function (doc, reporter) {
-        doc = doc || document;
+        doc = doc || window.document;
 
         $(reporter)
             .on("runnerStart", this._handleRunnerStart.bind(this))

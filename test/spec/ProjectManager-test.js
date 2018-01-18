@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
+/*global describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -52,7 +50,7 @@ define(function (require, exports, module) {
 
             // copy files to temp directory
             runs(function () {
-                waitsForDone(SpecRunnerUtils.copy(testPath, tempDir), "copy temp files");
+                waitsForDone(SpecRunnerUtils.copyPath(testPath, tempDir), "copy temp files");
             });
 
             runs(function () {

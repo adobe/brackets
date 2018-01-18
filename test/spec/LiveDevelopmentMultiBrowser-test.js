@@ -21,7 +21,7 @@
  *
  */
 
-/*global define, describe, beforeEach, runs, afterEach, waitsFor, it, xit, waitsForDone, expect */
+/*global describe, beforeEach, runs, afterEach, waitsFor, it, xit, waitsForDone, expect */
 
 define(function (require, exports, module) {
     "use strict";
@@ -269,6 +269,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
+                        // In LiveDocument._updateBrowser, we replace relative url()s with an absolute equivalent
+                        // Strip the leading http://127.0.0.1:port part so we can compare browser and editor text
+                        browserText = browserText.replace(/url\('http:\/\/127\.0\.0\.1:\d+\/import1\.css'\);/, "url('import1.css');");
                     }).always(function () {
                         doneSyncing = true;
                     });
@@ -277,6 +280,51 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
+                });
+            });
+
+            it("should make CSS-relative URLs absolute", function () {
+                var localText,
+                    browserText,
+                    liveDoc,
+                    curDoc;
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["index.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                });
+
+                waitsForLiveDevelopmentToOpen();
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["sub/test.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
+                });
+                runs(function () {
+                    curDoc =  DocumentManager.getCurrentDocument();
+                    localText = curDoc.getText();
+                    localText += "\n .testClass { background-color:#090; }\n";
+                    curDoc.setText(localText);
+                });
+                runs(function () {
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testFolder + "/sub/test.css");
+                });
+                var doneSyncing = false;
+                runs(function () {
+                    liveDoc.getSourceFromBrowser().done(function (text) {
+                        browserText = text;
+                    }).always(function () {
+                        doneSyncing = true;
+                    });
+                });
+                waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 5000);
+
+                runs(function () {
+                    // Drop the port from 127.0.0.1:port so it's easier to work with
+                    browserText = browserText.replace(/127\.0\.0\.1:\d+/, "127.0.0.1");
+
+                    // expect relative URL to have been made absolute
+                    expect(browserText).toContain(".main { background: url(http://127.0.0.1/sub/icon_chevron.png); }");
+                    // expect absolute URL to stay unchanged
+                    expect(browserText).toContain(".sub { background: url(file:///fake.png); }");
                 });
             });
 

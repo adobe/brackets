@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Doriți să salvați modificările făcute în documentul <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Doriți să salvați modificările din următoarele fișiere?",
     "EXT_MODIFIED_TITLE"                : "Modificări externe",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmare ștergere dosar",
+    "CONFIRM_DELETE_TITLE"              : "Confirmare ștergere dosar",
     "CONFIRM_FOLDER_DELETE"             : "Sunteți sigur că doriți să ștergeți dosarul <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fișier șters",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> a fost modificat pe disc.<br /><br />Doriți să salvați fișierul și să suprascrieți aceste modificări?",
@@ -436,7 +433,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentația și sursa se găsesc la <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Creat cu \u2764 și JavaScript de:",
     "ABOUT_TEXT_LINE6"                     : "O mulțime de oameni (dar avem dificultăți la încărcarea datelor despre ei acum).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs și logotipul Web Platform sunt licențiați sub licența Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs și logotipul MDN sunt licențiați sub licența Creative Commons Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Există o versiune nouă {APP_NAME} disponibilă! Clic aici pentru detalii.",
     "UPDATE_AVAILABLE_TITLE"               : "Înnoire disponibilă",
     "UPDATE_MESSAGE"                       : "Hei, o nouă versiune {APP_NAME} disponibilă. Aici sunt o parte din noile posibilități:",
@@ -620,7 +617,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proiecte recente",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Vezi mai mult"
 });
 

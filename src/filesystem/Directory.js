@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -170,9 +166,9 @@ define(function (require, exports, module) {
                 names.forEach(function (name, index) {
                     var entryPath = this.fullPath + name;
 
-                    if (this._fileSystem._indexFilter(entryPath, name)) {
-                        var entryStats = stats[index],
-                            entry;
+                    var entryStats = stats[index];
+                    if (this._fileSystem._indexFilter(entryPath, name, entryStats)) {
+                        var entry;
 
                         // Note: not all entries necessarily have associated stats.
                         if (typeof entryStats === "string") {

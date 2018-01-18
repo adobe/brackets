@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -144,7 +141,7 @@ define(function (require, exports, module) {
         if (!_model.exists(path)) {
             cb(FileSystemError.NOT_FOUND);
         } else {
-            cb(null, _model.readFile(path), _model.stat(path));
+            cb(null, _model.readFile(path), "UTF-8", false, _model.stat(path));
         }
     }
 
@@ -188,14 +185,14 @@ define(function (require, exports, module) {
         _offlineCallback = offlineCallback;
     }
 
-    function watchPath(path, callback) {
+    function watchPath(path, ignored, callback) {
         var cb = _getCallback("watchPath", path, callback);
 
         _model.watchPath(path);
         cb(null);
     }
 
-    function unwatchPath(path, callback) {
+    function unwatchPath(path, ignored, callback) {
         var cb = _getCallback("unwatchPath", path, callback);
         _model.unwatchPath(path);
         cb(null);

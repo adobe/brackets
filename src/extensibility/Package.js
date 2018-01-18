@@ -21,10 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true,
-indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*jslint regexp: true */
 
 /**
  * Functions for working with extension packages
@@ -39,10 +36,16 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         ExtensionLoader      = require("utils/ExtensionLoader"),
         NodeConnection       = require("utils/NodeConnection"),
-        PreferencesManager   = require("preferences/PreferencesManager");
+        PreferencesManager   = require("preferences/PreferencesManager"),
+        PathUtils            = require("thirdparty/path-utils/path-utils");
 
     PreferencesManager.definePreference("proxy", "string", undefined, {
         description: Strings.DESCRIPTION_PROXY
+    });
+
+    var PREF_EXTENSIONS_DEFAULT_DISABLED = "extensions.default.disabled";
+    PreferencesManager.definePreference(PREF_EXTENSIONS_DEFAULT_DISABLED, "array", [], {
+        description: Strings.DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS
     });
 
     var Errors = {
@@ -107,7 +110,12 @@ define(function (require, exports, module) {
     function validate(path, options) {
         return _extensionManagerCall(function (extensionManager) {
             var d = new $.Deferred();
-
+            
+            // make sure proxy is attached to options before calling validate
+            // so npm can use it in the domain
+            options = options || {};
+            options.proxy = PreferencesManager.get("proxy");
+            
             extensionManager.validate(path, options)
                 .done(function (result) {
                     d.resolve({
@@ -159,7 +167,8 @@ define(function (require, exports, module) {
                 disabledDirectory: disabledDirectory,
                 systemExtensionDirectory: systemDirectory,
                 apiVersion: brackets.metadata.apiVersion,
-                nameHint: nameHint
+                nameHint: nameHint,
+                proxy: PreferencesManager.get("proxy")
             })
                 .done(function (result) {
                     result.keepFile = false;
@@ -433,6 +442,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * This function manages the PREF_EXTENSIONS_DEFAULT_DISABLED preference
+     * holding an array of default extension paths that should not be loaded
+     * on Brackets startup
+     */
+    function toggleDefaultExtension(path, enabled) {
+        var arr = PreferencesManager.get(PREF_EXTENSIONS_DEFAULT_DISABLED);
+        if (!Array.isArray(arr)) { arr = []; }
+        var io = arr.indexOf(path);
+        if (enabled === true && io !== -1) {
+            arr.splice(io, 1);
+        } else if (enabled === false && io === -1) {
+            arr.push(path);
+        }
+        PreferencesManager.set(PREF_EXTENSIONS_DEFAULT_DISABLED, arr);
+    }
+
+    /**
      * Disables the extension at the given path.
      *
      * @param {string} path The absolute path to the extension to disable.
@@ -442,12 +468,19 @@ define(function (require, exports, module) {
     function disable(path) {
         var result = new $.Deferred(),
             file = FileSystem.getFileForPath(path + "/.disabled");
+
+        var defaultExtensionPath = ExtensionLoader.getDefaultExtensionPath();
+        if (file.fullPath.indexOf(defaultExtensionPath) === 0) {
+            toggleDefaultExtension(path, false);
+            result.resolve();
+            return result.promise();
+        }
+
         file.write("", function (err) {
             if (err) {
-                result.reject(err);
-            } else {
-                result.resolve();
+                return result.reject(err);
             }
+            result.resolve();
         });
         return result.promise();
     }
@@ -462,14 +495,25 @@ define(function (require, exports, module) {
     function enable(path) {
         var result = new $.Deferred(),
             file = FileSystem.getFileForPath(path + "/.disabled");
-        file.unlink(function (err) {
-            if (err) {
-                result.reject(err);
-                return;
-            }
+
+        function afterEnable() {
             ExtensionLoader.loadExtension(FileUtils.getBaseName(path), { baseUrl: path }, "main")
                 .done(result.resolve)
                 .fail(result.reject);
+        }
+
+        var defaultExtensionPath = ExtensionLoader.getDefaultExtensionPath();
+        if (file.fullPath.indexOf(defaultExtensionPath) === 0) {
+            toggleDefaultExtension(path, true);
+            afterEnable();
+            return result.promise();
+        }
+
+        file.unlink(function (err) {
+            if (err) {
+                return result.reject(err);
+            }
+            afterEnable();
         });
         return result.promise();
     }

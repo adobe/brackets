@@ -3,9 +3,25 @@ Thumbs.db
 # ignore jenkins build info
 /build.prop
 
+# package-lock.json
+package-lock.json
+
 # ignore node_modules created by grunt, but not more deeply-nested node_modules
 /node_modules
 /npm-debug.log
+
+# ignore node_modules inside src
+/src/node_modules
+
+# ignore files copied from node_modules to src/thirdparty
+/src/thirdparty/CodeMirror
+/src/thirdparty/less.min.js
+/src/thirdparty/preact
+/src/thirdparty/preact-compat
+/src/thirdparty/preact-test-utils
+/src/thirdparty/simulate-event
+/src/thirdparty/xtend
+/src/thirdparty/acorn
 
 # ignore compiled files
 /dist
@@ -16,18 +32,23 @@ Thumbs.db
 # ignore everything in the dev extension directory EXCEPT the README
 # (so that the directory is non-empty and can be in git)
 /src/extensions/dev/*
-!/src/extensions/dev/README
+!/src/extensions/dev/README.*
+/src/extensions/default/brackets-eslint
 
 /src/extensions/disabled
 
 # ignore .disabled file for default extensions
 /src/extensions/default/*/.disabled
 
+# generate through grunt
+/src/config.json
+
 #OSX .DS_Store files
 .DS_Store
 
 # unit test working directory
 /test/results
+/test/temp
 
 # Netbeans
 /nbproject
@@ -38,3 +59,5 @@ Thumbs.db
 # Files that can be automatically downloaded that we don't want to ship with our builds
 /src/extensibility/node/node_modules/request/tests/
 
+# Files build by scripts
+/src/thirdparty/semver.browser.js

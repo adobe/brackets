@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -102,7 +99,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložiť zmeny, ktoré ste spravili v dokumente <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložiť zmeny v následujúcich súboroch?",
     "EXT_MODIFIED_TITLE"                : "Externé zmeny",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdte odstránenie",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdte odstránenie",
     "CONFIRM_FOLDER_DELETE"             : "Ste si istý zmazaním priečinku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Súbor odstránený",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> bol upravený na disku, ale tiež ma neuložené zmeny in {APP_NAME}.<br /><br />Ktorú verziu chcete ponechať?",
@@ -281,7 +278,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentácia a zdrojový kód na <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Vytvorené s \u2764 a JavaScript týmito ľuďmi:",
     "ABOUT_TEXT_LINE6"                     : "Veľa ľudí (ale práve máme problém s načítaním údajov).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a the Web Platform grafické logo sú licencované pod Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs a the MDN grafické logo sú licencované pod Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{MDN_DOCS_LICENSE}\">CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Je dostupná nová verzia {APP_NAME}! Kliknite sem pre viac detailov.",
     "UPDATE_AVAILABLE_TITLE"               : "Dostupná aktualizácia",
     "UPDATE_MESSAGE"                       : "Hey, je dostupná nová verzia {APP_NAME}. Zoznam niektorých nových vylepšení:",
@@ -408,6 +405,6 @@ define({
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Rýchly náhľad",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Viac"
 });

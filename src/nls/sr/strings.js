@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Да ли желите да сачувате измене које сте направили у документу <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Да ли желите да сачувате Ваше измене над следећим датотекама?",
     "EXT_MODIFIED_TITLE"                : "Екстерне измене",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Потврди брисање",
+    "CONFIRM_DELETE_TITLE"              : "Потврди брисање",
     "CONFIRM_FOLDER_DELETE"             : "Да ли сте сигурни да желите обрисати директоријум <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Датотека обрисана",
     "EXT_MODIFIED_WARNING"              : "Датотека <span class='dialog-filename'>{0}</span> је измењена на диску.<br /><br />Да ли желите да сачувате датотеку и преснимите те измене?",
@@ -436,7 +433,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Документација и изворни кôд на <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Направили са \u2764 и JavaScript-ом:",
     "ABOUT_TEXT_LINE6"                     : "Много људи (али тренутно имамо потешкоћа да учитамо те податке).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "\"Web Platform Docs\" и \"Web Platform\" логотип су заштићени \"Creative Commons Attribution\" лиценцом, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "\"MDN Docs\" и \"MDN\" логотип су заштићени \"Creative Commons Attribution\" лиценцом, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Објављена је нова верзија {APP_NAME}-а! Кликните овде за више информација.",
     "UPDATE_AVAILABLE_TITLE"               : "Нова верзија доступна",
     "UPDATE_MESSAGE"                       : "Хеј, нова верзија {APP_NAME}-а је доступна. Ово су нека од најновијих унапређења:",
@@ -620,7 +617,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Недавни пројекти",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Прочитај више"
 });
 

@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets, Mustache  */
-
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
@@ -45,7 +41,8 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         paneListTemplate      = require("text!htmlContent/working-set.html"),
         Strings               = require("strings"),
-        _                     = require("thirdparty/lodash");
+        _                     = require("thirdparty/lodash"),
+        Mustache              = require("thirdparty/mustache/mustache");
 
     /**
      * Open view dictionary
@@ -337,7 +334,6 @@ define(function (require, exports, module) {
                     gTop,
                     gHeight,
                     gBottom,
-                    deltaY,
                     containerOffset,
                     scrollerTopArea,
                     scrollerBottomArea;
@@ -412,7 +408,6 @@ define(function (require, exports, module) {
                 gTop = $ghost.offset().top;
                 gHeight = $ghost.height();
                 gBottom = gTop + gHeight;
-                deltaY = pageY - e.pageY;
 
                 // data to help us determine if we have a scroller
                 hasScroller = $item.length && $container.length && $container[0].scrollHeight > $container[0].clientHeight;
@@ -1469,12 +1464,40 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $workingFilesContainer =  $("#working-set-list-container");
     });
+    
+    /*
+     * To be used by other modules/default-extensions which needs to borrow working set entry icons
+     * @param {!object} data - contains file info {fullPath, name, isFile}
+     * @param {!jQuery} $element - jquery fn wrap for the list item
+     */
+    function useIconProviders(data, $element) {
+        _iconProviders.forEach(function (provider) {
+            var icon = provider(data);
+            if (icon) {
+                $element.prepend($(icon));
+            }
+        });
+    }
 
-
+    /*
+     * To be used by other modules/default-extensions which needs to borrow working set entry custom classes
+     * @param {!object} data - contains file info {fullPath, name, isFile}
+     * @param {!jQuery} $element - jquery fn wrap for the list item
+     */
+    function useClassProviders(data, $element) {
+        _classProviders.forEach(function (provider) {
+            $element.addClass(provider(data));
+        });
+    }
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
+    
+    // API to be used only by default extensions
+    exports.useIconProviders              = useIconProviders;
+    exports.useClassProviders               = useClassProviders;
 });

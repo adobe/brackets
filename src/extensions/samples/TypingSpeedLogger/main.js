@@ -21,17 +21,13 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, window */
-
 define(function (require, exports, module) {
     "use strict";
 
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         PerfUtils       = brackets.getModule("utils/PerfUtils");
 
-    // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+    // https://paulirish.com/2011/requestanimationframe-for-smart-animating/
     // shim layer with setTimeout fallback
     var requestAnimFrame = (function () {
         return window.requestAnimationFrame    ||

@@ -21,11 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
-maxerr: 50, browser: true */
-/*global $, define, brackets */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -38,7 +33,7 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Prefences manager for this extension
+     * Preferences manager for this extension
      */
     var _prefs = PreferencesManager.getExtensionPrefs("staticserver");
 

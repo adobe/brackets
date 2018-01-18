@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell, window */
+/*global appshell */
 
 define(function (require, exports, module) {
     "use strict";
@@ -80,29 +78,16 @@ define(function (require, exports, module) {
      * Enqueue a file change event for eventual reporting back to the FileSystem.
      *
      * @param {string} changedPath The path that was changed
-     * @param {boolean} needsStats Whether or not the eventual change event should include stats
+     * @param {object} stats Stats coming from the underlying watcher, if available
      * @private
      */
-    function _enqueueChange(changedPath, needsStats) {
-        _pendingChanges[changedPath] = _pendingChanges[changedPath] || needsStats;
-
+    function _enqueueChange(changedPath, stats) {
+        _pendingChanges[changedPath] = stats;
         if (!_changeTimeout) {
             _changeTimeout = window.setTimeout(function () {
                 if (_changeCallback) {
                     Object.keys(_pendingChanges).forEach(function (path) {
-                        var needsStats = _pendingChanges[path];
-                        if (needsStats) {
-                            exports.stat(path, function (err, stats) {
-                                if (err) {
-                                    // warning has been removed due to spamming the console - see #7332
-                                    // console.warn("Unable to stat changed path: ", path, err);
-                                    return;
-                                }
-                                _changeCallback(path, stats);
-                            });
-                        } else {
-                            _changeCallback(path);
-                        }
+                        _changeCallback(path, _pendingChanges[path]);
                     });
                 }
 
@@ -116,25 +101,32 @@ define(function (require, exports, module) {
      * Event handler for the Node fileWatcher domain's change event.
      *
      * @param {jQuery.Event} The underlying change event
-     * @param {string} path The path that is reported to have changed
-     * @param {string} event The type of the event: either "change" or "rename"
-     * @param {string=} filename The name of the file that changed.
+     * @param {string} event The type of the event: "changed", "created" or "deleted"
+     * @param {string} parentDirPath The path to the directory holding entry that has changed
+     * @param {string=} entryName The name of the file/directory that has changed
+     * @param {object} statsObj Object that can be used to construct FileSystemStats
      * @private
      */
-    function _fileWatcherChange(evt, path, event, filename) {
+    function _fileWatcherChange(evt, event, parentDirPath, entryName, statsObj) {
         var change;
-
-        if (event === "change") {
-            // Only register change events if filename is passed
-            if (filename) {
-                // an existing file was modified; stats are needed
-                change = path + filename;
-                _enqueueChange(change, true);
+        switch (event) {
+        case "changed":
+            // an existing file/directory was modified; stats are passed if available
+            var fsStats;
+            if (statsObj) {
+                fsStats = new FileSystemStats(statsObj);
+            } else {
+                console.warn("FileWatcherDomain was expected to deliver stats for changed event!");
             }
-        } else if (event === "rename") {
-            // a new file was created; no stats are needed
-            change = path;
-            _enqueueChange(change, false);
+            _enqueueChange(parentDirPath + entryName, fsStats);
+            break;
+        case "created":
+        case "deleted":
+            // file/directory was created/deleted; fire change on parent to reload contents
+            _enqueueChange(parentDirPath, null);
+            break;
+        default:
+            console.error("Unexpected 'change' event:", event);
         }
     }
 
@@ -168,6 +160,12 @@ define(function (require, exports, module) {
             return FileSystemError.OUT_OF_SPACE;
         case appshell.fs.ERR_FILE_EXISTS:
             return FileSystemError.ALREADY_EXISTS;
+        case appshell.fs.ERR_ENCODE_FILE_FAILED:
+            return FileSystemError.ENCODE_FILE_FAILED;
+        case appshell.fs.ERR_DECODE_FILE_FAILED:
+            return FileSystemError.DECODE_FILE_FAILED;
+        case appshell.fs.ERR_UNSUPPORTED_UTF16_ENCODING:
+            return FileSystemError.UNSUPPORTED_UTF16_ENCODING;
         }
         return FileSystemError.UNKNOWN;
     }
@@ -371,11 +369,11 @@ define(function (require, exports, module) {
             if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
-                appshell.fs.readFile(path, encoding, function (_err, _data) {
+                appshell.fs.readFile(path, encoding, function (_err, _data, encoding, preserveBOM) {
                     if (_err) {
                         callback(_mapError(_err));
                     } else {
-                        callback(null, _data, stat);
+                        callback(null, _data, encoding, preserveBOM, stat);
                     }
                 });
             }
@@ -411,10 +409,11 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
-        var encoding = options.encoding || "utf8";
+        var encoding = options.encoding || "utf8",
+            preserveBOM = options.preserveBOM;
 
         function _finishWrite(created) {
-            appshell.fs.writeFile(path, data, encoding, function (err) {
+            appshell.fs.writeFile(path, data, encoding, preserveBOM, function (err) {
                 if (err) {
                     callback(_mapError(err));
                 } else {
@@ -522,9 +521,10 @@ define(function (require, exports, module) {
      * when the recursiveWatch property of this module is true.
      *
      * @param {string} path
+     * @param {Array<string>} ignored
      * @param {function(?string)=} callback
      */
-    function watchPath(path, callback) {
+    function watchPath(path, ignored, callback) {
         if (_isRunningOnWindowsXP) {
             callback(FileSystemError.NOT_SUPPORTED);
             return;
@@ -538,7 +538,7 @@ define(function (require, exports, module) {
                 }
                 return;
             }
-            _nodeDomain.exec("watchPath", path)
+            _nodeDomain.exec("watchPath", path, ignored)
                 .then(callback, callback);
         });
     }
@@ -546,11 +546,14 @@ define(function (require, exports, module) {
      * Stop providing change notifications for the file or directory at the
      * given path, calling back asynchronously with a possibly null FileSystemError
      * string when the operation is complete.
+     * This function needs to mirror the signature of watchPath
+     * because of FileSystem.prototype._watchOrUnwatchEntry implementation.
      *
      * @param {string} path
+     * @param {Array<string>} ignored
      * @param {function(?string)=} callback
      */
-    function unwatchPath(path, callback) {
+    function unwatchPath(path, ignored, callback) {
         _nodeDomain.exec("unwatchPath", path)
             .then(callback, callback);
     }
@@ -587,11 +590,11 @@ define(function (require, exports, module) {
 
     /**
      * Indicates whether or not recursive watching notifications are supported
-     * by the watchPath call. Currently, only Darwin supports recursive watching.
+     * by the watchPath call.
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = (appshell.platform === "mac" || appshell.platform === "win");
+    exports.recursiveWatch = true;
 
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC

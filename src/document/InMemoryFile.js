@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * Represents a file that will never exist on disk - a placeholder backing file for untitled Documents. NO ONE
  * other than DocumentManager should create instances of InMemoryFile. It is valid to test for one (`instanceof
@@ -33,7 +29,7 @@
  * Attempts to read/write an InMemoryFile will always fail, and exists() always yields false. InMemoryFile.fullPath
  * is just a placeholder, and should not be displayed anywhere in the UI; fullPath IS guaranteed to be unique, however.
  *
- * An InMemoryFile is not added to the filesystem index, so if you ask the the filesystem anything about this
+ * An InMemoryFile is not added to the filesystem index, so if you ask the filesystem anything about this
  * object, it won't know what you're talking about (`filesystem.getFileForPath(someInMemFile.fullPath)` will not
  * return someInMemFile).
  */
@@ -74,7 +70,7 @@ define(function (require, exports, module) {
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
      * @param {!function (err, object)} callback Callback that is passed the
-     *              error code and the file's new stats if the write is sucessful.
+     *              error code and the file's new stats if the write is successful.
      */
     InMemoryFile.prototype.write = function (data, encoding, callback) {
         if (typeof (encoding) === "function") {

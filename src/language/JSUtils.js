@@ -21,16 +21,16 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * Set of utilities for simple parsing of JS text.
  */
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = require("thirdparty/lodash");
+    var _          = require("thirdparty/lodash"),
+        Acorn      = require("thirdparty/acorn/dist/acorn"),
+        AcornLoose = require("thirdparty/acorn/dist/acorn_loose"),
+        ASTWalker  = require("thirdparty/acorn/dist/walk");
 
     // Load brackets modules
     var CodeMirror              = require("thirdparty/CodeMirror/lib/codemirror"),
@@ -49,17 +49,6 @@ define(function (require, exports, module) {
     var _changedDocumentTracker = new ChangedDocumentTracker();
 
     /**
-     * Function matching regular expression. Recognizes the forms:
-     * "function functionName()", "functionName = function()", and
-     * "functionName: function()".
-     *
-     * Note: JavaScript identifier matching is not strictly to spec. This
-     * RegExp matches any sequence of characters that is not whitespace.
-     * @type {RegExp}
-     */
-    var _functionRegExp = /(function\s+([$_A-Za-z\u007F-\uFFFF][$_A-Za-z0-9\u007F-\uFFFF]*)\s*(\([^)]*\)))|(([$_A-Za-z\u007F-\uFFFF][$_A-Za-z0-9\u007F-\uFFFF]*)\s*[:=]\s*function\s*(\([^)]*\)))/g;
-
-    /**
      * @private
      * Return an object mapping function name to offset info for all functions in the specified text.
      * Offset info is an array, since multiple functions of the same name can exist.
@@ -67,21 +56,112 @@ define(function (require, exports, module) {
      * @return {Object.<string, Array.<{offsetStart: number, offsetEnd: number}>}
      */
     function _findAllFunctionsInText(text) {
-        var results = {},
+        var AST,
+            results = {},
             functionName,
+            resultNode,
+            memberPrefix,
             match;
-
+   
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
-
-        while ((match = _functionRegExp.exec(text)) !== null) {
-            functionName = (match[2] || match[5]).trim();
-
+        
+        try {
+            AST = Acorn.parse(text, {locations: true});
+        } catch (e) {
+            AST = AcornLoose.parse_dammit(text, {locations: true});
+        }
+        
+        function _addResult(node, offset, prefix) {
+            memberPrefix = prefix ? prefix + " - " : "";
+            resultNode = node.id || node.key || node;
+            functionName = resultNode.name;
             if (!Array.isArray(results[functionName])) {
                 results[functionName] = [];
             }
 
-            results[functionName].push({offsetStart: match.index});
+            results[functionName].push(
+                {
+                    offsetStart: offset || node.start,
+                    label: memberPrefix ? memberPrefix + functionName : null,
+                    location: resultNode.loc
+                }
+            );
         }
+        
+        ASTWalker.simple(AST, {
+            /*
+                function <functionName> () {}
+            */
+            FunctionDeclaration: function (node) {
+                // As acorn_loose marks identifier names with '✖' under erroneous declarations
+                // we should have a check to discard such 'FunctionDeclaration' nodes
+                if (node.id.name !== '✖') {
+                    _addResult(node);
+                }
+            },
+            /*
+                class <className> () {}
+            */
+            ClassDeclaration: function (node) {
+                _addResult(node);
+                ASTWalker.simple(node, {
+                    /*
+                        class <className> () {
+                            <methodName> () {
+                            
+                            }
+                        }
+                    */
+                    MethodDefinition: function (methodNode) {
+                        _addResult(methodNode, methodNode.key.start, node.id.name);
+                    }
+                });
+            },
+            /*
+                var <functionName> = function () {} 
+                
+                or 
+                
+                var <functionName> = () => {}
+            */
+            VariableDeclarator: function (node) {
+                if (node.init && (node.init.type === "FunctionExpression" || node.init.type === "ArrowFunctionExpression")) {
+                    _addResult(node);
+                }
+            },
+            /*
+                SomeFunction.prototype.<functionName> = function () {}
+            */
+            AssignmentExpression: function (node) {
+                if (node.right && node.right.type === "FunctionExpression") {
+                    if (node.left && node.left.type === "MemberExpression" && node.left.property) {
+                        _addResult(node.left.property);
+                    }
+                }
+            },
+            /*
+                {
+                    <functionName>: function() {}
+                }
+            */
+            Property: function (node) {
+                if (node.value && node.value.type === "FunctionExpression") {
+                    if (node.key && node.key.type === "Identifier") {
+                        _addResult(node.key);
+                    }
+                }
+            },
+            /*
+                <functionName>: function() {}
+            */
+            LabeledStatement: function (node) {
+                if (node.body && node.body.type === "FunctionDeclaration") {
+                    if (node.label) {
+                        _addResult(node.label);
+                    }
+                }
+            }
+        });
 
         PerfUtils.addMeasurement(PerfUtils.JSUTILS_REGEXP);
 
@@ -138,7 +218,7 @@ define(function (require, exports, module) {
         }
 
         while (nextToken()) {
-            if (style !== "comment" && style !== "regexp" && style !== "string") {
+            if (style !== "comment" && style !== "regexp" && style !== "string" && style !== "string-2") {
                 if (token === "{") {
                     foundStartBrace = true;
                     blockCount++;
@@ -416,8 +496,13 @@ define(function (require, exports, module) {
                     var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
                     result.push({
                         name: functionName,
+                        label: funcEntry.label,
                         lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
-                        lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+                        lineEnd: StringUtils.offsetToLineNum(lines, endOffset),
+                        nameLineStart: funcEntry.location.start.line - 1,
+                        nameLineEnd: funcEntry.location.end.line - 1,
+                        columnStart: funcEntry.location.start.column,
+                        columnEnd: funcEntry.location.end.column
                     });
                 });
             }

@@ -20,18 +20,32 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global module, require, process*/
-module.exports = function (grunt) {
-    "use strict";
 
+/*eslint-env node */
+/*jslint node: true */
+"use strict";
+
+module.exports = function (grunt) {
     var common  = require("./lib/common")(grunt),
         build   = require("./build")(grunt);
 
     // task: write-config
     grunt.registerTask("write-config", "Merge package.json and src/brackets.config.json into src/config.json", function () {
-        var packageJSON = grunt.file.readJSON("package.json"),
-            appConfigJSON = grunt.file.readJSON("src/brackets.config.json");
+        var name = "dev";
+        if (this.flags.dist === true) {
+            name = "dist";
+        }
 
+        var appConfigJSON = grunt.file.readJSON("src/brackets.config.json"),
+            appConfigEnvJSON = grunt.file.readJSON("src/brackets.config." + name + ".json"),
+            key;
+        for (key in appConfigEnvJSON) {
+            if (appConfigEnvJSON.hasOwnProperty(key)) {
+                appConfigJSON.config[key] = appConfigEnvJSON[key];
+            }
+        }
+
+        var packageJSON = grunt.file.readJSON("package.json");
         Object.keys(packageJSON).forEach(function (key) {
             if (appConfigJSON[key] === undefined) {
                 appConfigJSON[key] = packageJSON[key];

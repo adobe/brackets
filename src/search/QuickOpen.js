@@ -21,8 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: QuickOpen*/
 
 /*
@@ -654,6 +652,7 @@ define(function (require, exports, module) {
 
         this.searchField = new QuickSearchField(this.$searchField, {
             maxResults: 20,
+            firstHighlightIndex: 0,
             verticalAdjust: this.modalBar.getRoot().outerHeight(),
             resultProvider: this._filterCallback,
             formatter: this._resultsFormatterCallback,

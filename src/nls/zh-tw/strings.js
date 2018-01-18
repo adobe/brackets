@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "您想要儲存 <span class='dialog-filename'>{0}</span> 檔案的變更嗎?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "您想要儲存下列檔案的變更嗎?",
     "EXT_MODIFIED_TITLE"                : "外部變更",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "確定刪除",
+    "CONFIRM_DELETE_TITLE"              : "確定刪除",
     "CONFIRM_FOLDER_DELETE"             : "您確定要刪除 <span class='dialog-filename'>{0}</span> 資料夾嗎?",
     "FILE_DELETED_TITLE"                : "檔案已刪除",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> 在 {APP_NAME} 外被修改過了。<br /><br />您想要儲存檔案並覆寫蓋掉外部的變更嗎?",
@@ -447,7 +444,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "說明文件及原始碼都在 <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> 上。",
     "ABOUT_TEXT_LINE5"                     : "用 \u2764 跟 JavaScript 打造。工匠名錄:",
     "ABOUT_TEXT_LINE6"                     : "一大票人馬 (只可惜我們現在沒辦法正常載入名單)。",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform 文件及 Web Platform 圖示皆以 Creative Commons Attribution 授權條款 <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a> 授權。",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN 文件及 MDN 圖示皆以 Creative Commons Attribution 授權條款 <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a> 授權。",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有新版的 {APP_NAME}! 點這裡了解詳情。",
     "UPDATE_AVAILABLE_TITLE"               : "有新版",
     "UPDATE_MESSAGE"                       : "嗨! 新版的 {APP_NAME} 已經可以下載。新功能有:",
@@ -655,7 +652,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "最近開啟的專案",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "更多資訊",
 
     // extensions/default/CodeFolding

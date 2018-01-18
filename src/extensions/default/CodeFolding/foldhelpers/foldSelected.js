@@ -3,12 +3,12 @@
  * @author Patrick Oladimeji
  * @date 31/07/2015 00:11:53
  */
-/*global define*/
+
 define(function (require, exports, module) {
     "use strict";
 
     /**
-     * This helper returns the start and end range represeting the current selection in the editor.
+     * This helper returns the start and end range representing the current selection in the editor.
      * @param   {Object} cm    The Codemirror instance
      * @param   {Object} start A Codemirror.Pos object {line, ch} representing the current line we are
      *                          checking for fold ranges

@@ -21,11 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
     // Relative to the samples folder
     "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_tr/",
-    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.tr"
+    "MDN_DOCS_LICENSE"          : "http://creativecommons.org/licenses/by-sa/2.5/deed.tr"
 });

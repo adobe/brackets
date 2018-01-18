@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -101,7 +97,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns a list of avaliable HtmlSpecialChar hints if possible for the current
+     * Returns a list of available HtmlSpecialChar hints if possible for the current
      * editor context.
      *
      * @param {string} implicitChar

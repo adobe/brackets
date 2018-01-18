@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, describe, beforeEach, afterEach, it, expect */
+/*global describe, beforeEach, afterEach, it, expect */
 
 define(function (require, exports, module) {
     "use strict";
@@ -87,7 +86,7 @@ define(function (require, exports, module) {
             expect(hints[0]).toBe(expectedHint);
         }
 
-        // Verifies the exclution of an unexpected hint.
+        // Verifies the exclusion of an unexpected hint.
         function verifyHintsExcluded(hintList, unexpectedHint) {
             var hints = extractHintList(hintList);
             expect(hints.indexOf(unexpectedHint)).toBe(-1);
@@ -108,11 +107,19 @@ define(function (require, exports, module) {
             expect(token.type).toBe(type);
         }
 
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+
         // Used to test cursor position.
         function expectCursorAt(pos) {
             var selection = testEditor.getSelection();
-            expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
+            expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
+            expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
 
         describe("Tag Hinting", function () {
@@ -460,7 +467,9 @@ define(function (require, exports, module) {
                 var hints = expectHints(SVGCodeHints.hintProvider);
                 verifyHints(hints, "aliceblue"); // first hint should be aliceblue
                 expect(hints[0].find(".color-swatch").length).toBe(1);
-                expect(hints[0].find(".color-swatch").css("backgroundColor")).toBe("rgb(240, 248, 255)");
+                // CEF 2623 will output "aliceblue" whereas earlier versions give "rgb(240, 248, 255)",
+                // so we need this ugly hack to make sure this test passes on both
+                expect(hints[0].find(".color-swatch").css("backgroundColor")).toMatch(/^rgb\(240, 248, 255\)$|aliceblue/);
             });
 
             it("should always include transparent and currentColor and they should not have a swatch, but class no-swatch-margin", function () {

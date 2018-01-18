@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
-
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
  * functionality and provides APIs that cleanly pass through the bits of CodeMirror that the rest
@@ -79,15 +75,18 @@ define(function (require, exports, module) {
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
+        HTMLUtils          = require("language/HTMLUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         MainViewManager    = require("view/MainViewManager"),
         _                  = require("thirdparty/lodash");
 
     /** Editor preferences */
+
     var CLOSE_BRACKETS      = "closeBrackets",
         CLOSE_TAGS          = "closeTags",
         DRAG_DROP           = "dragDropText",
         HIGHLIGHT_MATCHES   = "highlightMatches",
+        LINEWISE_COPY_CUT   = "lineWiseCopyCut",
         SCROLL_PAST_END     = "scrollPastEnd",
         SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
         SHOW_LINE_NUMBERS   = "showLineNumbers",
@@ -100,8 +99,17 @@ define(function (require, exports, module) {
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
         AUTO_HIDE_SEARCH    = "autoHideSearch",
-        INDENT_LINE_COMMENT   = "indentLineComment";
-    
+        INDENT_LINE_COMMENT   = "indentLineComment",
+        INDENT_LINE_COMMENT = "indentLineComment",
+        INPUT_STYLE         = "inputStyle";
+
+
+    /**
+      * A list of gutter name and priorities currently registered for editors.
+      * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
+      * @type {Array.<{name: string, priority: number, languageIds: Array}}
+      */
+    var registeredGutters = [];
 
     var cmOptions         = {};
 
@@ -116,11 +124,16 @@ define(function (require, exports, module) {
         MAX_SPACE_UNITS         = 10,
         MAX_TAB_SIZE            = 10;
 
+    var LINE_NUMBER_GUTTER = "CodeMirror-linenumbers",
+        LINE_NUMBER_GUTTER_PRIORITY     = 100,
+        CODE_FOLDING_GUTTER_PRIORITY    = 1000;
+
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
     cmOptions[DRAG_DROP]          = "dragDrop";
     cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
+    cmOptions[LINEWISE_COPY_CUT]  = "lineWiseCopyCut";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
     cmOptions[SHOW_CURSOR_SELECT] = "showCursorWhenSelecting";
     cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
@@ -130,10 +143,14 @@ define(function (require, exports, module) {
     cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
+    cmOptions[INPUT_STYLE]        = "inputStyle";
 
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
+
+    // CodeMirror, html mode, set some tags do not close automatically.
+    // We do not initialize "dontCloseTags" because otherwise we would overwrite the default behavior of CodeMirror.
     PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [] }, {
         description: Strings.DESCRIPTION_CLOSE_TAGS,
         keys: {
@@ -175,6 +192,9 @@ define(function (require, exports, module) {
             }
         }
     });
+    PreferencesManager.definePreference(LINEWISE_COPY_CUT,  "boolean", true, {
+        description: Strings.DESCRIPTION_LINEWISE_COPY_CUT
+    });
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false, {
         description: Strings.DESCRIPTION_SCROLL_PAST_END
     });
@@ -210,14 +230,18 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
+  
     PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
         description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
+
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
-    
-    
+    PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
+        description: Strings.DESCRIPTION_INPUT_STYLE
+    });
+
     var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
@@ -252,6 +276,7 @@ define(function (require, exports, module) {
     function _checkTopBoundary(options) {
         return (options !== BOUNDARY_IGNORE_TOP);
     }
+
     function _checkBottomBoundary(options) {
         return true;
     }
@@ -341,7 +366,7 @@ define(function (require, exports, module) {
 
         // To track which pane the editor is being attached to if it's a full editor
         this._paneId = null;
-        
+
         // To track the parent editor ( host editor at that time of creation) of an inline editor
         this._hostEditor = null;
 
@@ -402,8 +427,9 @@ define(function (require, exports, module) {
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
-            inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
+            inputStyle                  : currentOptions[INPUT_STYLE],
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
+            lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
             lineWrapping                : currentOptions[WORD_WRAP],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
@@ -422,6 +448,8 @@ define(function (require, exports, module) {
 
         this._installEditorListeners();
 
+        this._renderGutters();
+
         this.on("cursorActivity", function (event, editor) {
             self._handleCursorActivity(event);
         });
@@ -430,6 +458,15 @@ define(function (require, exports, module) {
         });
         this.on("change", function (event, editor, changeList) {
             self._handleEditorChange(changeList);
+        });
+        this.on("focus", function (event, editor) {
+            if (self._hostEditor) {
+                // Mark the host editor as the master editor for the hosting document
+                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
+            } else {
+                // Set this full editor as master editor for the document
+                self.document._toggleMasterEditor(self);
+            }
         });
 
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
@@ -471,6 +508,10 @@ define(function (require, exports, module) {
 
     Editor.prototype.markPaneId = function (paneId) {
         this._paneId = paneId;
+
+        // Also add this to the pool of full editors
+        this.document._associateEditor(this);
+
         // In case this Editor is initialized not as the first full editor for the document
         // and the document is already dirty and present in another working set, make sure
         // to add this documents to the new panes working set.
@@ -983,6 +1024,9 @@ define(function (require, exports, module) {
         this._codeMirror.on("cursorActivity", function (instance) {
             self.trigger("cursorActivity", self);
         });
+        this._codeMirror.on("beforeSelectionChange", function (instance, selectionObj) {
+            self.trigger("beforeSelectionChange", selectionObj);
+        });
         this._codeMirror.on("scroll", function (instance) {
             // If this editor is visible, close all dropdowns on scroll.
             // (We don't want to do this if we're just scrolling in a non-visible editor
@@ -996,14 +1040,6 @@ define(function (require, exports, module) {
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
-            if (self._hostEditor) {
-                // Mark the host editor as the master editor for the hosting document
-                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
-            } else {
-                // Set this full editor as master editor for the document
-                self.document._toggleMasterEditor(self);
-            }
-            
             self._focused = true;
             self.trigger("focus", self);
             
@@ -1030,10 +1066,10 @@ define(function (require, exports, module) {
         });
         // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
         this._codeMirror.on("renderLine", function (cm, line, elt) {
-            var charWidth = self._codeMirror.defaultCharWidth(), basePadding = 4;
+            var charWidth = self._codeMirror.defaultCharWidth();
             var off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
             elt.style.textIndent = "-" + off + "px";
-            elt.style.paddingLeft = (basePadding + off) + "px";
+            elt.style.paddingLeft = off + "px";
         });
     };
 
@@ -1043,6 +1079,16 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
+        var currentText = this._codeMirror.getValue();
+
+        // compare with ignoring line-endings, issue #11826
+        var textLF = text ? text.replace(/(\r\n|\r|\n)/g, "\n") : null;
+        var currentTextLF = currentText ? currentText.replace(/(\r\n|\r|\n)/g, "\n") : null;
+        if (textLF === currentTextLF) {
+            // there's nothing to reset
+            return;
+        }
+
         var perfTimerName = PerfUtils.markStart("Editor._resetText()\t" + (!this.document || this.document.file.fullPath));
 
         var cursorPos = this.getCursorPos(),
@@ -1231,6 +1277,10 @@ define(function (require, exports, module) {
      */
     Editor.prototype.indexFromPos = function (coords) {
         return this._codeMirror.indexFromPos(coords);
+    };
+
+    Editor.prototype.posFromIndex = function (index) {
+        return this._codeMirror.posFromIndex(index);
     };
 
     /**
@@ -1453,7 +1503,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Gets the total number of lines in the the document (includes lines not visible in the viewport)
+     * Gets the total number of lines in the document (includes lines not visible in the viewport)
      * @return {!number}
      */
     Editor.prototype.lineCount = function () {
@@ -2174,6 +2224,19 @@ define(function (require, exports, module) {
             isMixed     = (outerMode.name !== startMode.name);
 
         if (isMixed) {
+            // This is the magic code to let the code view know that we are in 'css' context
+            // if the CodeMirror outermode is 'htmlmixed' and we are in 'style' attributes
+            // value context. This has to be done as CodeMirror doesn't yet think this as 'css'
+            // This magic is executed only when user is having a cursor and not selection
+            // We will enable selection handling one we figure a way out to handle mixed scope selection
+            if (outerMode.name === 'htmlmixed' && primarySel.start.line === primarySel.end.line && primarySel.start.ch === primarySel.end.ch) {
+                var tagInfo = HTMLUtils.getTagInfo(this, primarySel.start, true),
+                    tokenType = tagInfo.position.tokenType;
+ 
+                if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name.toLowerCase() === 'style') {
+                    return 'css';
+                }
+            }
             // Shortcut the first check to avoid getModeAt(), which can be expensive
             if (primarySel.start.line !== primarySel.end.line || primarySel.start.ch !== primarySel.end.ch) {
                 var endMode = TokenUtils.getModeAt(this._codeMirror, primarySel.end);
@@ -2232,7 +2295,7 @@ define(function (require, exports, module) {
     /**
      * The Editor's last known width.
      * Used in conjunction with updateLayout to recompute the layout
-     * if the the parent container changes its size since our last layout update.
+     * if the parent container changes its size since our last layout update.
      * @type {?number}
      */
     Editor.prototype._lastEditorWidth = null;
@@ -2320,6 +2383,11 @@ define(function (require, exports, module) {
             } else if (prefName === SHOW_LINE_NUMBERS) {
                 Editor._toggleLinePadding(!newValue);
                 this._codeMirror.setOption(cmOptions[SHOW_LINE_NUMBERS], newValue);
+                if (newValue) {
+                    Editor.registerGutter(LINE_NUMBER_GUTTER, LINE_NUMBER_GUTTER_PRIORITY);
+                } else {
+                    Editor.unregisterGutter(LINE_NUMBER_GUTTER);
+                }
                 this.refreshAll();
             } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
@@ -2375,6 +2443,129 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Clears all marks from the gutter with the specified name.
+     * @param {string} name The name of the gutter to clear.
+     */
+    Editor.prototype.clearGutter = function (name) {
+        this._codeMirror.clearGutter(name);
+    };
+
+    /**
+     * Renders all registered gutters
+     * @private
+     */
+    Editor.prototype._renderGutters = function () {
+        var languageId = this.document.getLanguage().getId();
+
+        function _filterByLanguages(gutter) {
+            return !gutter.languages || gutter.languages.indexOf(languageId) > -1;
+        }
+
+        function _sortByPriority(a, b) {
+            return a.priority - b.priority;
+        }
+
+        function _getName(gutter) {
+            return gutter.name;
+        }
+
+        var gutters = registeredGutters.map(_getName),
+            rootElement = this.getRootElement();
+
+        // If the line numbers gutter has not been explicitly registered and the CodeMirror lineNumbes option is
+        // set to true, we explicitly add the line numbers gutter. This case occurs the first time the editor loads
+        // and showLineNumbers is set to true in preferences
+        if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0 && this._codeMirror.getOption(cmOptions[SHOW_LINE_NUMBERS])) {
+            registeredGutters.push({name: LINE_NUMBER_GUTTER, priority: LINE_NUMBER_GUTTER_PRIORITY});
+        }
+
+        gutters = registeredGutters.sort(_sortByPriority)
+            .filter(_filterByLanguages)
+            .map(_getName);
+
+        this._codeMirror.setOption("gutters", gutters);
+        this._codeMirror.refresh();
+
+        if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0) {
+            $(rootElement).addClass("linenumber-disabled");
+        } else {
+            $(rootElement).removeClass("linenumber-disabled");
+        }
+    };
+
+    /**
+     * Sets the marker for the specified gutter on the specified line number
+     * @param   {string}   lineNumber The line number for the inserted gutter marker
+     * @param   {string}   gutterName The name of the gutter
+     * @param   {object}   marker     The dom element representing the marker to the inserted in the gutter
+     */
+    Editor.prototype.setGutterMarker = function (lineNumber, gutterName, marker) {
+        var gutterNameRegistered = registeredGutters.some(function (gutter) {
+            return gutter.name === gutterName;
+        });
+
+        if (!gutterNameRegistered) {
+            console.warn("Gutter name must be registered before calling editor.setGutterMarker");
+            return;
+        }
+
+        this._codeMirror.setGutterMarker(lineNumber, gutterName, marker);
+    };
+
+    /**
+     * Returns the list of gutters current registered on all editors.
+     * @return {!Array.<{name: string, priority: number}>}
+     */
+    Editor.getRegisteredGutters = function () {
+        return registeredGutters;
+    };
+
+    /**
+     * Registers the gutter with the specified name at the given priority.
+     * @param {string} name    The name of the gutter.
+     * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than LINE_NUMBER_GUTTER_PRIORITY appear after the line numbers. Priority less than LINE_NUMBER_GUTTER_PRIORITY appear before.
+     * @param {?Array<string>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
+     */
+    Editor.registerGutter = function (name, priority, languageIds) {
+        if (isNaN(priority)) {
+            console.warn("A non-numeric priority value was passed to registerGutter. The value will default to 0.");
+            priority = 0;
+        }
+
+        if (!name || typeof name !== "string") {
+            console.error("The name of the registered gutter must be a string.");
+            return;
+        }
+
+        var gutter = {name: name, priority: priority, languages: languageIds},
+            gutterExists = registeredGutters.some(function (gutter) {
+                return gutter.name === name;
+            });
+
+        if (!gutterExists) {
+            registeredGutters.push(gutter);
+        }
+
+        Editor.forEveryEditor(function (editor) {
+            editor._renderGutters();
+        });
+    };
+
+    /**
+     * Unregisters the gutter with the specified name and removes it from the UI.
+     * @param {string} name The name of the gutter to be unregistered.
+     */
+    Editor.unregisterGutter = function (name) {
+        var i, gutter;
+        registeredGutters = registeredGutters.filter(function (gutter) {
+            return gutter.name !== name;
+        });
+
+        Editor.forEveryEditor(function (editor) {
+            editor._renderGutters();
+        });
+    };
 
     // Global settings that affect Editor instances that share the same preference locations
 
@@ -2525,8 +2716,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets lineCommentIndent option.
-     * 
+     * Sets indentLineComment option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
@@ -2535,16 +2726,16 @@ define(function (require, exports, module) {
         var options = fullPath && {context: fullPath};
         return PreferencesManager.set(INDENT_LINE_COMMENT, value, options);
     };
-    
+
     /**
-     * Returns true if word wrap is enabled for the specified or current file
+     * Returns true if indentLineComment is enabled for the specified or current file
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
     Editor.getIndentLineComment = function (fullPath) {
         return PreferencesManager.get(INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
     };
-    
+
     /**
      * Runs callback for every Editor instance that currently exists
      * @param {!function(!Editor)} callback
@@ -2574,7 +2765,10 @@ define(function (require, exports, module) {
             $holder.toggleClass("show-line-padding", Boolean(showLinePadding));
         });
     };
-
+    
+    Editor.LINE_NUMBER_GUTTER_PRIORITY = LINE_NUMBER_GUTTER_PRIORITY;
+    Editor.CODE_FOLDING_GUTTER_PRIORITY = CODE_FOLDING_GUTTER_PRIORITY;
+    
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {
         PreferencesManager.on("change", prefName, function () {
@@ -2583,21 +2777,6 @@ define(function (require, exports, module) {
             });
         });
     });
-
-    /**
-     * @private
-     *
-     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
-     */
-    function _convertPreferences() {
-        var rules = {};
-        editorOptions.forEach(function (setting) {
-            rules[setting] = "user";
-        });
-        PreferencesManager.convertPreferences(module, rules);
-    }
-
-    _convertPreferences();
 
     // Define public API
     exports.Editor                  = Editor;

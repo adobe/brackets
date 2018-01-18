@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, brackets, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -35,7 +32,7 @@ define(function (require, exports, module) {
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"),
         HintsUtils2     = require("HintUtils2"),
-        ScopeManager    = require("ScopeManager");
+        ScopeManager    = brackets.getModule("JSUtils/ScopeManager");
 
 
     /** @const {string} Show Function Hint command ID */

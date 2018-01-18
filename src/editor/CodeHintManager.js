@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /*
  * __CodeHintManager Overview:__
  *
@@ -132,7 +129,7 @@
  *     into the editor;
  *  2. match, a string that the manager may use to emphasize substrings of
  *     hints in the hint list (case-insensitive); and
- *  3. selectInitial, a boolean that indicates whether or not the the
+ *  3. selectInitial, a boolean that indicates whether or not the
  *     first hint in the list should be selected by default.
  *  4. handleWideResults, a boolean (or undefined) that indicates whether
  *     to allow result string to stretch width of display.
@@ -249,8 +246,8 @@ define(function (require, exports, module) {
         hintList         = null,
         deferredHints    = null,
         keyDownEditor    = null,
-        codeHintsEnabled = true;
-
+        codeHintsEnabled = true,
+        codeHintOpened   = false;
 
     PreferencesManager.definePreference("showCodeHints", "boolean", true, {
         description: Strings.DESCRIPTION_SHOW_CODE_HINTS
@@ -379,6 +376,7 @@ define(function (require, exports, module) {
         }
         hintList.close();
         hintList = null;
+        codeHintOpened = false;
         keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;
@@ -410,17 +408,23 @@ define(function (require, exports, module) {
         }
         return false;
     }
-
     /**
      * From an active hinting session, get hints from the current provider and
      * render the hint list window.
      *
      * Assumes that it is called when a session is active (i.e. sessionProvider is not null).
      */
-    function _updateHintList() {
+    function _updateHintList(callMoveUpEvent) {
+
+        callMoveUpEvent = typeof callMoveUpEvent === "undefined" ? false : callMoveUpEvent;
+
         if (deferredHints) {
             deferredHints.reject();
             deferredHints = null;
+        }
+
+        if (callMoveUpEvent) {
+            return hintList.callMoveUp(callMoveUpEvent);
         }
 
         var response = sessionProvider.getHints(lastChar);
@@ -433,6 +437,7 @@ define(function (require, exports, module) {
             // if the response is true, end the session and begin another
             if (response === true) {
                 var previousEditor = sessionEditor;
+
                 _endSession();
                 _beginSession(previousEditor);
             } else if (response.hasOwnProperty("hints")) { // a synchronous response
@@ -469,6 +474,7 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     _beginSession = function (editor) {
+
         if (!codeHintsEnabled) {
             return;
         }
@@ -500,7 +506,6 @@ define(function (require, exports, module) {
             }
 
             sessionEditor = editor;
-
             hintList = new CodeHintList(sessionEditor, insertHintOnTab, maxCodeHints);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
@@ -517,26 +522,6 @@ define(function (require, exports, module) {
             lastChar = null;
         }
     };
-
-    /**
-     * Explicitly start a new session. If we have an existing session,
-     * then close the current one and restart a new one.
-     * @param {Editor} editor
-     */
-    function _startNewSession(editor) {
-        if (!editor) {
-            editor = EditorManager.getFocusedEditor();
-        }
-
-        if (editor) {
-            lastChar = null;
-            if (_inSession(editor)) {
-                _endSession();
-            }
-            // Begin a new explicit session
-            _beginSession(editor);
-        }
-    }
 
     /**
      * Handles keys related to displaying, searching, and navigating the hint list.
@@ -574,7 +559,8 @@ define(function (require, exports, module) {
     function _handleKeyupEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
         if (_inSession(editor)) {
-            if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
+          if (event.keyCode === KeyEvent.DOM_VK_HOME || 
+                  event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
                        event.keyCode === KeyEvent.DOM_VK_RIGHT ||
@@ -583,6 +569,8 @@ define(function (require, exports, module) {
                 // We do this in "keyup" because we want the cursor position to be updated before
                 // we redraw the list.
                 _updateHintList();
+            } else if (event.ctrlKey && event.keyCode === KeyEvent.DOM_VK_SPACE) {
+                _updateHintList(event);
             }
         }
     }
@@ -668,6 +656,30 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Explicitly start a new session. If we have an existing session,
+     * then close the current one and restart a new one.
+     * @param {Editor} editor
+     */
+    function _startNewSession(editor) {
+        if (isOpen()) {
+            return;
+        }
+
+        if (!editor) {
+            editor = EditorManager.getFocusedEditor();
+        }
+        if (editor) {
+            lastChar = null;
+            if (_inSession(editor)) {
+                _endSession();
+            }
+
+            // Begin a new explicit session
+            _beginSession(editor);
+        }
+    }
+
+    /**
      * Expose CodeHintList for unit testing
      */
     function _getCodeHintList() {
@@ -696,12 +708,16 @@ define(function (require, exports, module) {
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
     EditorManager.on("activeEditorChange", activeEditorChangeHandler);
-
-    // Dismiss code hints before executing any command since the command
+ 
+    // Dismiss code hints before executing any command other than showing code hints since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is
-    // pointless to keep the hint list since the user wants to view the Quick Doc.
-    CommandManager.on("beforeExecuteCommand", _endSession);
+    // pointless to keep the hint list since the user wants to view the Quick Doc
+    CommandManager.on("beforeExecuteCommand", function (event, commandId) {
+        if (commandId !== Commands.SHOW_CODE_HINTS) {
+            _endSession();
+        }
+    });
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 

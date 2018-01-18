@@ -21,8 +21,6 @@
  *
  */
 
-/*global define */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -113,6 +111,7 @@ define(function (require, exports, module) {
      * Clears out the model to an empty state.
      */
     SearchModel.prototype.clear = function () {
+        var numMatchesBefore = this.numMatches;
         this.results = {};
         this.queryInfo = null;
         this.queryExpr = null;
@@ -122,7 +121,9 @@ define(function (require, exports, module) {
         this.numMatches = 0;
         this.foundMaximum = false;
         this.exceedsMaximum = false;
-        this.fireChanged();
+        if (numMatchesBefore !== 0) {
+            this.fireChanged();
+        }
     };
 
     /**

@@ -1,0 +1,6 @@
+{
+  "name": "brackets-javascript-code-utils",
+  "dependencies": {
+    "acorn": "3.3.0"
+  }
+}

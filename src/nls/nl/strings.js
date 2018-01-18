@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wil je de wijzigingen opslaan die je maakte in het document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wil je je wijzigingen van de volgende bestanden opslaan?",
     "EXT_MODIFIED_TITLE"                : "Externe wijzigingen",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bevestig verwijderen",
+    "CONFIRM_DELETE_TITLE"              : "Bevestig verwijderen",
     "CONFIRM_FOLDER_DELETE"             : "Ben je zeker dat je de map <span class='dialog-filename'>{0}</span> wil verwijderen?",
     "FILE_DELETED_TITLE"                : "Bestand verwijderd",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> is gewijzigd op de schijf buiten {APP_NAME}.<br /><br />Wil je het bestand overschrijven evenals de wijzigingen buiten {APP_NAME} om?",
@@ -439,7 +436,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentatie en broncode op <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Gemaakt met \u2764 en JavaScript door:",
     "ABOUT_TEXT_LINE6"                     : "Veel mensen (maar we hebben problemen met het laden van die data op dit moment).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs en het Web Platform logo zijn gelicentieerd onder een Creative Commons Attribution licentie, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs en het MDN logo zijn gelicentieerd onder een Creative Commons Attribution licentie, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Er is een nieuwe versie van {APP_NAME} beschikbaar! Klik hier voor details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update beschikbaar",
     "UPDATE_MESSAGE"                       : "Hey, er is een nieuwe versie van {APP_NAME} beschikbaar. Hier zijn een aantal van de nieuwe functies:",
@@ -640,7 +637,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recente projecten",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Lees meer",
 
     //extensions/default/CodeFolding

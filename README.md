@@ -30,10 +30,6 @@ How to install and run Brackets
 
 Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
 
-The Linux version has most of the features of the Mac and Windows versions, but
-is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
-for a list of known issues and to find out how you can help.
-
 #### Usage
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
@@ -47,7 +43,7 @@ for a list of new features and known issues in each build.
 
 In addition to the core features built into Brackets, there is a large and growing
 community of developers building extensions that add all sorts of useful functionality.
-See the [Brackets Extension Registry](https://brackets-registry.aboutweb.com/)
+See the [Brackets Extension Registry](https://registry.brackets.io/)
 for a list of available extensions. For installation instructions,
 see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
 
@@ -56,7 +52,6 @@ see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-E
 Having problems starting Brackets the first time, or not sure how to use Brackets?  Please 
 review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps 
 you to fix common problems and find extra help if needed.
-
 
 Helping Brackets
 ----------------
@@ -118,3 +113,6 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
 * **Blog:** http://blog.brackets.io/
 * **IRC:** [#brackets on freenode](http://webchat.freenode.net/?channels=brackets)
 
+---
+
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/adobe/brackets/blob/master/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.

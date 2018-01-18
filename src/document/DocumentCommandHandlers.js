@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, WebSocket */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -57,6 +55,7 @@ define(function (require, exports, module) {
         UrlParams           = require("utils/UrlParams").UrlParams,
         StatusBar           = require("widgets/StatusBar"),
         WorkspaceManager    = require("view/WorkspaceManager"),
+        LanguageManager     = require("language/LanguageManager"),
         _                   = require("thirdparty/lodash");
 
     /**
@@ -323,6 +322,22 @@ define(function (require, exports, module) {
             });
 
             var file = FileSystem.getFileForPath(fullPath);
+            if (options && options.encoding) {
+                file._encoding = options.encoding;
+            } else {
+                var projectRoot = ProjectManager.getProjectRoot(),
+                    context = {
+                        location : {
+                            scope: "user",
+                            layer: "project",
+                            layerID: projectRoot.fullPath
+                        }
+                    };
+                var encoding = PreferencesManager.getViewState("encoding", context);
+                if (encoding && encoding[fullPath]) {
+                    file._encoding = encoding[fullPath];
+                }
+            }
             MainViewManager._open(paneId, file, options)
                 .done(function () {
                     result.resolve(file);
@@ -452,7 +467,7 @@ define(function (require, exports, module) {
 
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
-                HealthLogger.fileOpened(fileInfo.path);
+                HealthLogger.fileOpened(file._path, false, file._encoding);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
@@ -627,10 +642,8 @@ define(function (require, exports, module) {
         // If a file is currently selected in the tree, put it next to it.
         // If a directory is currently selected in the tree, put it in it.
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
-        // (Note: 'selected' may be an item that's selected in the workingset and not the tree; but in that case
-        // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDirEntry,
-            selected = ProjectManager.getSelectedItem();
+            selected = ProjectManager.getFileTreeContext();
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
@@ -903,7 +916,21 @@ define(function (require, exports, module) {
             doc.isSaving = true;    // mark that we're saving the document
 
             // First, write document's current text to new file
+            if (doc.file._encoding && doc.file._encoding !== "UTF-8") {
+                var projectRoot = ProjectManager.getProjectRoot(),
+                    context = {
+                        location : {
+                            scope: "user",
+                            layer: "project",
+                            layerID: projectRoot.fullPath
+                        }
+                    };
+                var encoding = PreferencesManager.getViewState("encoding", context);
+                encoding[path] = doc.file._encoding;
+                PreferencesManager.setViewState("encoding", encoding, context);
+            }
             newFile = FileSystem.getFileForPath(path);
+            newFile._encoding = doc.file._encoding;
 
             // Save as warns you when you're about to overwrite a file, so we
             // explicitly allow "blind" writes to the filesystem in this case,
@@ -954,6 +981,16 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
+            var file = FileSystem.getFileForPath(origPath);
+            if (file instanceof InMemoryFile) {
+                var language = LanguageManager.getLanguageForPath(origPath);
+                if (language) {
+                    var fileExtensions = language.getFileExtensions();
+                    if (fileExtensions && fileExtensions.length > 0) {
+                        defaultName += "." + fileExtensions[0];
+                    }
+                }
+            }
             FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
                 if (!err) {
                     if (selectedPath) {
@@ -1377,8 +1414,6 @@ define(function (require, exports, module) {
                     console.error(ex);
                 }
 
-                PreferencesManager.savePreferences();
-
                 postCloseHandler();
             })
             .fail(function () {
@@ -1525,35 +1560,31 @@ define(function (require, exports, module) {
     /** Delete file command handler  **/
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem();
-        if (entry.isDirectory) {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_EXT_DELETED,
-                Strings.CONFIRM_FOLDER_DELETE_TITLE,
-                StringUtils.format(
-                    Strings.CONFIRM_FOLDER_DELETE,
-                    StringUtils.breakableUrl(entry.name)
-                ),
-                [
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
-                    },
-                    {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.DELETE
-                    }
-                ]
-            )
-                .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_OK) {
-                        ProjectManager.deleteItem(entry);
-                    }
-                });
-        } else {
-            ProjectManager.deleteItem(entry);
-        }
+        Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_EXT_DELETED,
+            Strings.CONFIRM_DELETE_TITLE,
+            StringUtils.format(
+                entry.isFile ? Strings.CONFIRM_FILE_DELETE : Strings.CONFIRM_FOLDER_DELETE,
+                StringUtils.breakableUrl(entry.name)
+            ),
+            [
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                    id        : Dialogs.DIALOG_BTN_CANCEL,
+                    text      : Strings.CANCEL
+                },
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id        : Dialogs.DIALOG_BTN_OK,
+                    text      : Strings.DELETE
+                }
+            ]
+        )
+            .done(function (id) {
+                if (id === Dialogs.DIALOG_BTN_OK) {
+                    ProjectManager.deleteItem(entry);
+                }
+            });
     }
 
     /** Show the selected sidebar (tree or workingset) item in Finder/Explorer */
@@ -1687,6 +1718,32 @@ define(function (require, exports, module) {
 
     /** Reload Without Extensions commnad handler **/
     var handleReloadWithoutExts = _.partial(handleReload, true);
+
+    /**
+     * Attach a beforeunload handler to notify user about unsaved changes and URL redirection in CEF.
+     * Prevents data loss in scenario reported under #13708
+    **/
+    window.onbeforeunload = function(e) {
+        if (window.location.pathname.indexOf('SpecRunner') > -1) {
+            return;
+        }
+
+        var openDocs = DocumentManager.getAllOpenDocuments();
+
+        // Detect any unsaved changes
+        openDocs = openDocs.filter(function(doc) {
+            return doc && doc.isDirty;
+        });
+
+        // Ensure we are not in normal app-quit or reload workflow
+        if (!_isReloading && !_windowGoingAway) {
+            if (openDocs.length > 0) {
+                return Strings.WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES;
+            } else {
+                return Strings.WINDOW_UNLOAD_WARNING;
+            }
+        }
+    };
 
     /** Do some initialization when the DOM is ready **/
     AppInit.htmlReady(function () {

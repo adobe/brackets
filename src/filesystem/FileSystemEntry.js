@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /*
  * To ensure cache coherence, current and future asynchronous state-changing
  * operations of FileSystemEntry and its subclasses should implement the

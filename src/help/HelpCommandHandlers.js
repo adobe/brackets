@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -39,7 +35,8 @@ define(function (require, exports, module) {
         StringUtils             = require("utils/StringUtils"),
         UpdateNotification      = require("utils/UpdateNotification"),
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
-        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html"),
+        Mustache                = require("thirdparty/mustache/mustache");
     // make sure the global brackets variable is loaded
     require("utils/Global");
 

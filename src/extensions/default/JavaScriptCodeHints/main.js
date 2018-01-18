@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -41,10 +38,10 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         Strings              = brackets.getModule("strings"),
         ParameterHintManager = require("ParameterHintManager"),
-        HintUtils            = require("HintUtils"),
-        ScopeManager         = require("ScopeManager"),
-        Session              = require("Session"),
-        Acorn                = require("thirdparty/acorn/acorn");
+        HintUtils            = brackets.getModule("JSUtils/HintUtils"),
+        ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
+        Session              = brackets.getModule("JSUtils/Session"),
+        Acorn                = require("node_modules/acorn/dist/acorn");
 
     var session            = null,  // object that encapsulates the current session state
         cachedCursor       = null,  // last cursor of the current hinting session
@@ -80,7 +77,7 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_JS_HINTS
     });
 
-    // This preference controls whether detailed type metadata will be desplayed within hint list. Deafults to true.
+    // This preference controls whether detailed type metadata will be displayed within hint list. Defaults to true.
     PreferencesManager.definePreference("jscodehints.typedetails", "boolean", true, {
         description: Strings.DESCRIPTION_JS_HINTS_TYPE_DETAILS
     });
@@ -593,8 +590,8 @@ define(function (require, exports, module) {
             // to check this, run the hint through Acorns tokenizer
             // it should result in one token, and that token should either be
             // a 'name' or a 'keyword', as javascript allows keywords as property names
-            var tokenizer = Acorn.tokenize(completion);
-            var currentToken = tokenizer();
+            var tokenizer = Acorn.tokenizer(completion);
+            var currentToken = tokenizer.getToken();
 
             // the name is invalid if the hint is not a 'name' or 'keyword' token
             if (currentToken.type !== Acorn.tokTypes.name && !currentToken.type.keyword) {
@@ -602,7 +599,7 @@ define(function (require, exports, module) {
             } else {
                 // check for a second token - if there is one (other than 'eof')
                 // then the hint isn't a valid property name either
-                currentToken = tokenizer();
+                currentToken = tokenizer.getToken();
                 if (currentToken.type !== Acorn.tokTypes.eof) {
                     invalidPropertyName = true;
                 }

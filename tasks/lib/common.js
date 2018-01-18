@@ -20,18 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*jslint nomen:true */
-/*global module, require, process */
-module.exports = function (grunt) {
-    "use strict";
 
+/*eslint-env node */
+/*jslint node: true */
+"use strict";
+
+module.exports = function (grunt) {
     var common      = {},
         path        = require("path"),
         _platform;
-
-    function writeJSON(grunt, path, obj) {
-        grunt.file.write(path, JSON.stringify(obj, null, "    "));
-    }
 
     function resolve(relPath) {
         return path.resolve(process.cwd(), relPath);
@@ -49,6 +46,14 @@ module.exports = function (grunt) {
         }
 
         return _platform;
+    }
+    
+    function writeJSON(grunt, path, obj) {
+        var content = JSON.stringify(obj, null, "    ");
+        if (platform() === "win") {
+            content = content.split("\n").join("\r\n");
+        }
+        grunt.file.write(path, content);
     }
 
     common.writeJSON    = writeJSON;

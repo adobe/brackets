@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -115,7 +112,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Ønsker du at gemme ændringerne i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Ønsker du at gemme ændringerne i følgende filer?",
     "EXT_MODIFIED_TITLE"                : "Eksterne ændringer",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekræft sletning",
+    "CONFIRM_DELETE_TITLE"              : "Bekræft sletning",
     "CONFIRM_FOLDER_DELETE"             : "Er du sikker på at du vil slette mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fil slettet",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> er blevet ændret på disken.<br /><br />Ønsker du at gemme filen og overskrive disse ændringer?",
@@ -396,7 +393,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentation og kildekode på <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Skabt med \u2764 og JavaScript af:",
     "ABOUT_TEXT_LINE6"                     : "En masse mennesker (men vi har problemer med at hente det data i øjeblikket).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Dokumentationen og det grafiske logo fra Web Platform er udgivet under en Creative Commons Attribution licens, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "Dokumentationen og det grafiske logo fra MDN er udgivet under en Creative Commons Attribution licens, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Der ligger en ny version af {APP_NAME} klar! Klik her for at læse mere.",
     "UPDATE_AVAILABLE_TITLE"               : "Opdatering klar",
     "UPDATE_MESSAGE"                       : "Hey! Der er en ny version af {APP_NAME} tilgængelig. Her er nogen af de nye funktioner:",
@@ -558,7 +555,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Seneste projekter",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Læs mere"
 });
 

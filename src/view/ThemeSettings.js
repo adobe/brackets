@@ -21,13 +21,11 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, Mustache */
-
 define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
+        Mustache            = require("thirdparty/mustache/mustache"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
@@ -70,6 +68,7 @@ define(function (require, exports, module) {
 
         result.fontFamily = ViewCommandHandlers.getFontFamily();
         result.fontSize   = ViewCommandHandlers.getFontSize();
+        result.validFontSizeRegExp = ViewCommandHandlers.validFontSizeRegExp;
         return result;
     }
 
@@ -102,10 +101,25 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.is(":checked");
             })
-            .on("input", "[data-target]:text", function () {
-                var $target = $(this);
-                var attr = $target.attr("data-target");
-                newSettings[attr] = $target.val();
+            .on("input", "[data-target='fontSize']", function () {
+                var target = this;
+                var targetValue = $(this).val();
+                var $btn = $("#theme-settings-done-btn")[0];
+
+                // Make sure that the font size is expressed in terms
+                // we can handle (px or em). If not, 'done' button is
+                // disabled until input has been corrected.
+
+                if (target.checkValidity() === true) {
+                    $btn.disabled = false;
+                    newSettings["fontSize"] = targetValue;
+                } else {
+                    $btn.disabled = true;
+                }
+            })
+            .on("input", "[data-target='fontFamily']", function () {
+                var targetValue = $(this).val();
+                newSettings["fontFamily"] = targetValue;
             })
             .on("change", "select", function () {
                 var $target = $(":selected", this);
@@ -128,7 +142,7 @@ define(function (require, exports, module) {
                         // Figure out if the setting is in the ViewCommandHandlers, which means it is
                         // a font setting
                         setterFn = "set" + setting[0].toLocaleUpperCase() + setting.substr(1);
-                        if (typeof ViewCommandHandlers[setterFn] === 'function') {
+                        if (typeof ViewCommandHandlers[setterFn] === "function") {
                             ViewCommandHandlers[setterFn](newSettings[setting]);
                         }
                     }

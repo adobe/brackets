@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -46,7 +43,7 @@ define(function (require, exports, module) {
      * @param {number} offset Offset in current token
      * @param {Array.<string>} exclusionList List of attributes of a tag or attribute options used by an attribute
      * @param {string} tagName Name of the current tag
-     * @param {string} attrName Name of the curent attribute
+     * @param {string} attrName Name of the current attribute
      * @param {boolean} shouldReplace true if we don't want to append ="" to an attribute
      * @return {!{token: Token, tokenType: int, offset: int, exclusionList: Array.<string>, tagName: string, attrName: string, shouldReplace: boolean}}
      */

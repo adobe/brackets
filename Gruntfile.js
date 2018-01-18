@@ -20,12 +20,21 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global module, require*/
-module.exports = function (grunt) {
-    'use strict';
 
+/*eslint-env node */
+/*jslint node: true */
+'use strict';
+
+module.exports = function (grunt) {
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-eslint']});
+    require('load-grunt-tasks')(grunt, {
+        pattern: [
+            'grunt-*',
+            '!grunt-cli',
+            '!grunt-lib-phantomjs',
+            '!grunt-template-jasmine-requirejs'
+        ]
+    });
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -60,6 +69,7 @@ module.exports = function (grunt) {
                             'dependencies.js',
                             'thirdparty/requirejs/require.js',
                             'LiveDevelopment/launch.html',
+                            'LiveDevelopment/transports/**',
                             'LiveDevelopment/MultiBrowserImpl/transports/**',
                             'LiveDevelopment/MultiBrowserImpl/launchers/**'
                         ]
@@ -71,6 +81,7 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             'extensibility/node/**',
+                            'JSUtils/node/**',
                             '!extensibility/node/spec/**',
                             '!extensibility/node/node_modules/**/{test,tst}/**/*',
                             '!extensibility/node/node_modules/**/examples/**/*',
@@ -94,13 +105,7 @@ module.exports = function (grunt) {
                             '!extensions/default/*/thirdparty/**/*.htm{,l}',
                             'extensions/dev/*',
                             'extensions/samples/**/*',
-                            'thirdparty/CodeMirror/addon/{,*/}*',
-                            'thirdparty/CodeMirror/keymap/{,*/}*',
-                            'thirdparty/CodeMirror/lib/{,*/}*',
-                            'thirdparty/CodeMirror/mode/{,*/}*',
-                            '!thirdparty/CodeMirror/mode/**/*.html',
-                            '!thirdparty/CodeMirror/**/*test.js',
-                            'thirdparty/CodeMirror/theme/{,*/}*',
+                            'thirdparty/CodeMirror/**',
                             'thirdparty/i18n/*.js',
                             'thirdparty/text/*.js'
                         ]
@@ -113,6 +118,67 @@ module.exports = function (grunt) {
                         src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*', 'brackets.min.css*']
                     }
                 ]
+            },
+            thirdparty: {
+                files: [
+                    {
+                        expand: true,
+                        dest: 'src/thirdparty/CodeMirror',
+                        cwd: 'src/node_modules/codemirror',
+                        src: [
+                            'addon/{,*/}*',
+                            'keymap/{,*/}*',
+                            'lib/{,*/}*',
+                            'mode/{,*/}*',
+                            'theme/{,*/}*'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty',
+                        cwd: 'src/node_modules',
+                        src: [
+                            'less/dist/less.min.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/preact-compat',
+                        cwd: 'src/node_modules/preact-compat',
+                        src: [
+                            'dist/preact-compat.min.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/simulate-event',
+                        cwd: 'src/node_modules/simulate-event',
+                        src: [
+                            'simulate-event.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/xtend',
+                        cwd: 'src/node_modules/xtend',
+                        src: [
+                            'mutable.js',
+                            'immutable.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        dest: 'src/thirdparty/acorn',
+                        cwd: 'src/node_modules/acorn',
+                        src: [
+                            'dist/{,*/}*'
+                          ]
+                    }
+                ]
             }
         },
         cleanempty: {
@@ -120,7 +186,7 @@ module.exports = function (grunt) {
                 force: true,
                 files: false
             },
-            src: ['dist/**/*'],
+            src: ['dist/**/*']
         },
         less: {
             dist: {
@@ -239,21 +305,20 @@ module.exports = function (grunt) {
             ]
         },
         watch: {
-            all : {
-                files: ['**/*', '!**/node_modules/**'],
-                tasks: ['eslint']
-            },
-            grunt : {
-                files: ['<%= meta.grunt %>', 'tasks/**/*'],
+            grunt: {
+                files: ['<%= meta.grunt %>'],
                 tasks: ['eslint:grunt']
             },
-            src : {
-                files: ['<%= meta.src %>', 'src/**/*'],
+            src: {
+                files: ['<%= meta.src %>'],
                 tasks: ['eslint:src']
             },
-            test : {
-                files: ['<%= meta.test %>', 'test/**/*'],
+            test: {
+                files: ['<%= meta.test %>'],
                 tasks: ['eslint:test']
+            },
+            options: {
+                spawn: false
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -267,16 +332,12 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
+                    // For reference to why this polyfill is needed see Issue #7951.
+                    // The need for this should go away once the version of phantomjs gets upgraded to 2.0
+                    'test/polyfills.js',
+
                     'src/thirdparty/jquery-2.1.3.min.js',
-                    'src/thirdparty/CodeMirror/lib/codemirror.js',
-                    'src/thirdparty/CodeMirror/lib/util/dialog.js',
-                    'src/thirdparty/CodeMirror/lib/util/searchcursor.js',
-                    'src/thirdparty/CodeMirror/addon/edit/closetag.js',
-                    'src/thirdparty/CodeMirror/addon/selection/active-line.js',
-                    'src/thirdparty/mustache/mustache.js',
-                    'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-2.5.1.min.js'
+                    'src/thirdparty/less.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -316,7 +377,13 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config', 'less']);
+    grunt.registerTask('install', [
+        'write-config:dev',
+        'less',
+        'npm-download-default-extensions',
+        'npm-install-source',
+        'pack-web-dependencies'
+    ]);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
@@ -324,10 +391,11 @@ module.exports = function (grunt) {
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
-    grunt.registerTask('set-release', ['update-release-number', 'write-config']);
+    grunt.registerTask('set-release', ['update-release-number', 'write-config:dev']);
 
     // task: build
     grunt.registerTask('build', [
+        'write-config:dist',
         'eslint:src',
         'jasmine',
         'clean',
@@ -339,7 +407,8 @@ module.exports = function (grunt) {
         'concat',
         /*'cssmin',*/
         /*'uglify',*/
-        'copy',
+        'copy:dist',
+        'npm-install',
         'cleanempty',
         'usemin',
         'build-config'

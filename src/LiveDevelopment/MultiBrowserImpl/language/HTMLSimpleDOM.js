@@ -21,9 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
@@ -269,7 +266,7 @@ define(function (require, exports, module) {
      */
     Builder.prototype.build = function (strict, markCache) {
         var self = this;
-        var token, lastClosedTag, lastTextNode, lastIndex = 0;
+        var token, lastClosedTag, lastTextNode;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};
@@ -444,7 +441,6 @@ define(function (require, exports, module) {
                     newNode.update();
                 }
             }
-            lastIndex = token.end;
         }
 
         // If we have any tags hanging open (e.g. html or body), fail the parse if we're in strict mode,

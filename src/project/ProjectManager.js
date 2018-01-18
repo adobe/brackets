@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
-
 /**
  * ProjectManager glues together the project model and file tree view and integrates as needed with other parts
  * of Brackets. It is responsible for creating and updating the project tree when projects are opened
@@ -132,8 +129,8 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Reference to the container of the React component. Everything in this
-     * node is managed by React.
+     * Reference to the container of the Preact component. Everything in this
+     * node is managed by Preact.
      * @type {Element}
      */
     var fileTreeViewContainer;
@@ -385,6 +382,15 @@ define(function (require, exports, module) {
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
+    
+    /**
+     * Returns the File or Directory corresponding to the item that was right-clicked on in the file tree menu.
+     * @return {?(File|Directory)}
+     */
+    function getFileTreeContext() {
+        var selectedEntry = model.getContext();
+        return selectedEntry;
+    }
 
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
@@ -394,8 +400,8 @@ define(function (require, exports, module) {
      * @return {?(File|Directory)}
      */
     function getSelectedItem() {
-        // Prefer file tree context, then selection, else use working set
-        var selectedEntry = model.getContext();
+        // Prefer file tree context, then file tree selection, else use working set
+        var selectedEntry = getFileTreeContext();
         if (!selectedEntry) {
             selectedEntry = model.getSelected();
         }
@@ -741,7 +747,7 @@ define(function (require, exports, module) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), ProjectModel._shouldShowName, function (err) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), ProjectModel._shouldShowName, ProjectModel.defaultIgnoreGlobs, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
                 if (!_projectWarnedForTooManyFiles) {
                     _showErrorDialog(ERR_TYPE_MAX_FILES);
@@ -1066,7 +1072,10 @@ define(function (require, exports, module) {
         baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
-            return model.createAtPath(baseDir + initialName, isFolder);
+            if(isFolder) {
+                return model.createAtPath(baseDir + initialName + "/");
+            }
+            return model.createAtPath(baseDir + initialName);
         }
         return actionCreator.startCreating(baseDir, initialName, isFolder);
     }
@@ -1166,7 +1175,7 @@ define(function (require, exports, module) {
      */
     function _setFileTreeSelectionWidth(width) {
         model.setSelectionWidth(width);
-        _renderTree();
+        _renderTreeSync();
     }
 
     // Initialize variables and listeners that depend on the HTML DOM
@@ -1225,49 +1234,10 @@ define(function (require, exports, module) {
         ViewUtils.addScrollerShadow($projectTreeContainer[0]);
     });
 
-    /**
-     * @private
-     * Examine each preference key for migration of project tree states.
-     * If the key has a prefix of "projectTreeState_/", then it is a project tree states
-     * preference from old preference model.
-     *
-     * @param {string} key The key of the preference to be examined
-     *      for migration of project tree states.
-     * @return {?string} - the scope to which the preference is to be migrated
-     */
-    function _checkPreferencePrefix(key) {
-        var pathPrefix = "projectTreeState_",
-            projectPath;
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "projectTreeState_".
-            projectPath = key.substr(pathPrefix.length);
-            return "user project.treeState " + projectPath;
-        }
-
-        pathPrefix = "projectBaseUrl_";
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "projectBaseUrl_[Directory "
-            // and "]".
-            projectPath = key.substr(key.indexOf(" ") + 1);
-            projectPath = projectPath.substr(0, projectPath.length - 1);
-            return "user project.baseUrl " + projectPath;
-        }
-
-        return null;
-    }
-
-
     EventDispatcher.makeEventDispatcher(exports);
 
     // Init default project path to welcome project
     PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
-
-    PreferencesManager.convertPreferences(module, {
-        "projectPath": "user",
-        "projectTreeState_": "user",
-        "welcomeProjects": "user",
-        "projectBaseUrl_": "user"
-    }, true, _checkPreferencePrefix);
 
     exports.on("projectOpen", _reloadProjectPreferencesScope);
     exports.on("projectOpen", _saveProjectPath);
@@ -1388,11 +1358,11 @@ define(function (require, exports, module) {
      * Adds an icon provider. The callback is invoked before each tree item is rendered, and can
      * return content to prepend to the item.
      *
-     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|React.DOM.ins} callback
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|Preact.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
-     * Return a string of HTML text, a React.DOM.ins instance, a jQuery object, or a DOM node; or undefined
+     * Return a string of HTML text, a Preact.DOM.ins instance, a jQuery object, or a DOM node; or undefined
      * to prepend nothing.
      */
     function addIconProvider(callback) {
@@ -1438,6 +1408,7 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
     exports.openProject                   = openProject;
+    exports.getFileTreeContext            = getFileTreeContext;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
     exports.getInitialProjectPath         = getInitialProjectPath;

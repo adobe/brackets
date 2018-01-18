@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
-
 /**
  * Provides the protocol that Brackets uses to talk to a browser instance for live development.
  * Protocol methods are converted to a JSON message format, which is then sent over a provided
@@ -48,8 +45,11 @@ define(function (require, exports, module) {
 
     // Text of the script we'll inject into the browser that handles protocol requests.
     var LiveDevProtocolRemote = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/LiveDevProtocolRemote.js"),
-        DocumentObserver = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/DocumentObserver.js"),
-        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
+        DocumentObserver      = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/DocumentObserver.js"),
+        RemoteFunctions       = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
+        EditorManager         = require("editor/EditorManager"),
+        LiveDevMultiBrowser   = require("LiveDevelopment/LiveDevMultiBrowser"),
+        HTMLInstrumentation   = require("language/HTMLInstrumentation");
 
     /**
      * @private
@@ -111,6 +111,12 @@ define(function (require, exports, module) {
                 } else {
                     deferred.resolve(msg);
                 }
+            }
+        } else if (msg.tagId) {
+            var editor = EditorManager.getActiveEditor(),
+                position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(msg.tagId, 10));
+            if (position) {
+                editor.setCursorPos(position.line, position.ch, true);
             }
         } else {
             // enrich received message with clientId
@@ -208,7 +214,7 @@ define(function (require, exports, module) {
         // Inject DocumentObserver into the browser (tracks related documents)
         script += DocumentObserver;
         // Inject remote functions into the browser.
-        script += "window._LD=(" + RemoteFunctions + "())";
+        script += "window._LD=(" + RemoteFunctions + "(" + JSON.stringify(LiveDevMultiBrowser.config) + "))";
         return "<script>\n" + script + "</script>\n";
     }
 
@@ -231,7 +237,7 @@ define(function (require, exports, module) {
      * that will be fulfilled with the result of the script, if any.
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should evaluate
      *      the script.
-     * @param {string} script The script to evalute.
+     * @param {string} script The script to evaluate.
      * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
      *      to the evaluation.
      */

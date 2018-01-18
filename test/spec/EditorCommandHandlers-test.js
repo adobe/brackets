@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
+/*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -92,21 +91,37 @@ define(function (require, exports, module) {
             }
         });
 
-
         // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+        function fixSel(sel) {
+            fixPos(sel.start);
+            fixPos(sel.end);
+            if (!("reversed" in sel)) {
+                sel.reversed = false;
+            }
+            return sel;
+        }
+        function fixSels(sels) {
+            sels.forEach(function (sel) {
+                fixSel(sel);
+            });
+            return sels;
+        }
         function expectCursorAt(pos) {
             var selection = myEditor.getSelection();
             expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
+            expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
         function expectSelection(sel) {
-            if (!sel.reversed) {
-                sel.reversed = false;
-            }
-            expect(myEditor.getSelection()).toEqual(sel);
+            expect(fixSel(myEditor.getSelection())).toEqual(fixSel(sel));
         }
         function expectSelections(sels) {
-            expect(myEditor.getSelections()).toEqual(sels);
+            expect(fixSels(myEditor.getSelections())).toEqual(fixSels(sels));
         }
         function contentWithDeletedLines(lineNums) {
             var lines = defaultContent.split("\n");
@@ -215,7 +230,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor();
-                PreferencesManager.set("indentLineComment",true);
+                PreferencesManager.set("indentLineComment", true);
             });
 
             afterEach(function () {
@@ -345,10 +360,7 @@ define(function (require, exports, module) {
             it("should do nothing on whitespace line", function () {
                 myEditor.setCursorPos(2, 8);
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectCursorAt({line: 2, ch: 8});
+                testToggleLine(defaultContent, {line: 2, ch: 8});
             });
 
             it("should do nothing when only whitespace lines selected", function () {
@@ -360,10 +372,7 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 2, ch: 4}, {line: 4, ch: 4});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(startingContent);
-                myEditor.setSelection({line: 2, ch: 4}, {line: 4, ch: 4});
+                testToggleLine(startingContent, {start: {line: 2, ch: 4}, end: {line: 4, ch: 4}});
             });
 
             it("should comment/uncomment after select all", function () {
@@ -436,10 +445,7 @@ define(function (require, exports, module) {
                 // select lines 1-5
                 myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+                testToggleLine(defaultContent, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
 
             it("should uncomment ragged partial comments with empty lines in-between", function () {
@@ -461,10 +467,7 @@ define(function (require, exports, module) {
                 lines[4] = "";
                 var expectedText = lines.join("\n");
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
 
             it("should uncomment ragged partial comments", function () {
@@ -481,16 +484,13 @@ define(function (require, exports, module) {
                 // select lines 1-5
                 myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+                testToggleLine(defaultContent, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
 
             describe("with multiple selections", function () {
                 it("should toggle comments on separate lines with cursor selections", function () {
 
-                   myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
                                         {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
 
                     var lines = defaultContent.split("\n");
@@ -555,9 +555,9 @@ define(function (require, exports, module) {
                                         {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, reversed: true}]);
 
                     var lines = defaultContent.split("\n");
-                    lines[1]= "    //function bar() {";
-                    lines[2]= "    //    ";
-                    lines[3]= "        //a();";
+                    lines[1] = "    //function bar() {";
+                    lines[2] = "    //    ";
+                    lines[3] = "        //a();";
 
 
                     var expectedText = lines.join("\n");
@@ -622,7 +622,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor();
-                PreferencesManager.set("indentLineComment",false);
+                PreferencesManager.set("indentLineComment", false);
             });
 
             afterEach(function () {
@@ -920,6 +920,217 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Line comment/uncomment in languages with only block comments and with indentLineComment enabled", function () {
+            var htmlContent = "<html>\n" +
+                              "    <body>\n" +
+                              "        <p>Hello</p>\n" +
+                              "    </body>\n" +
+                              "</html>";
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentLineComment", true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+            });
+
+            it("should comment/uncomment a single line, cursor at start", function () {
+                myEditor.setCursorPos(2, 0);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "        <!--<p>Hello</p>-->";
+                var expectedText = lines.join("\n");
+
+                testToggleLine(expectedText, {line: 2, ch: 0});
+
+                // Uncomment
+                testToggleLine(htmlContent, {line: 2, ch: 0});
+            });
+
+            it("should comment/uncomment a block", function () {
+                myEditor.setSelection({line: 1, ch: 7}, {line: 3, ch: 7});
+
+                var expectedText = "<html>\n" +
+                                   "    <!--\n" +
+                                   "    <body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "    </body>\n" +
+                                   "    -->\n" +
+                                   "</html>";
+
+                testToggleLine(expectedText, {start: {line: 2, ch: 7}, end: {line: 4, ch: 7}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 7}, end: {line: 3, ch: 7}});
+            });
+
+            it("should comment/uncomment a block with not closing tag ", function () {
+                myEditor.setSelection({line: 1, ch: 7}, {line: 2, ch: 7});
+
+                var expectedText = "<html>\n" +
+                                   "    <!--\n" +
+                                   "    <body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "        -->\n" +
+                                   "    </body>\n" +
+                                   "</html>";
+
+                testToggleLine(expectedText, {start: {line: 2, ch: 7}, end: {line: 3, ch: 7}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 7}, end: {line: 2, ch: 7}});
+            });
+
+            it("should comment/uncomment a block with not closing tag at end of file", function () {
+                myEditor.setSelection({line: 3, ch: 9}, {line: 4, ch: 5});
+
+                var expectedText = "<html>\n" +
+                                   "    <body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "    <!--\n" +
+                                   "    </body>\n" +
+                                   "</html>-->\n";
+
+                testToggleLine(expectedText, {start: {line: 4, ch: 9}, end: {line: 5, ch: 5}});
+
+                // Uncomment
+                testToggleLine(htmlContent + "\n", {start: {line: 3, ch: 9}, end: {line: 4, ch: 5}});
+            });
+        });
+
+        describe("Line comment/uncomment in languages with only block comments and with indentLineComment enabled and use of Tabs", function () {
+            var htmlContent = "<html>\n" +
+                              "\t<body>\n" +
+                              "\t\t<p>Hello</p>\n" +
+                              "\t</body>\n" +
+                              "</html>";
+
+            var shouldUseTabChar = Editor.getUseTabChar();
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentLineComment", true);
+                PreferencesManager.set("useTabChar", true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                PreferencesManager.set("useTabChar", shouldUseTabChar);
+            });
+
+            it("should comment/uncomment a single line, cursor at start", function () {
+                myEditor.setCursorPos(2, 0);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "\t\t<!--<p>Hello</p>-->";
+                var expectedText = lines.join("\n");
+
+                testToggleLine(expectedText, {line: 2, ch: 0});
+            });
+
+            it("should comment/uncomment a block", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 4});
+
+                var expectedText = "<html>\n" +
+                                   "\t<!--\n" +
+                                   "\t<body>\n" +
+                                   "\t\t<p>Hello</p>\n" +
+                                   "\t</body>\n" +
+                                   "\t-->\n" +
+                                   "</html>";
+
+                testToggleLine(expectedText, {start: {line: 2, ch: 4}, end: {line: 4, ch: 4}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 4}, end: {line: 3, ch: 4}});
+            });
+
+            it("should comment/uncomment a block with not closing tag ", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 2, ch: 7});
+
+                var expectedText = "<html>\n" +
+                                   "\t<!--\n" +
+                                   "\t<body>\n" +
+                                   "\t\t<p>Hello</p>\n" +
+                                   "\t\t-->\n" +
+                                   "\t</body>\n" +
+                                   "</html>";
+
+                testToggleLine(expectedText, {start: {line: 2, ch: 4}, end: {line: 3, ch: 7}});
+
+                // Uncomment
+                testToggleLine(htmlContent, {start: {line: 1, ch: 4}, end: {line: 2, ch: 7}});
+            });
+
+            it("should comment/uncomment a block with not closing tag at end of file", function () {
+                myEditor.setSelection({line: 3, ch: 6}, {line: 4, ch: 2});
+
+                var expectedText = "<html>\n" +
+                                   "\t<body>\n" +
+                                   "\t\t<p>Hello</p>\n" +
+                                   "\t<!--\n" +
+                                   "\t</body>\n" +
+                                   "</html>-->\n";
+
+                testToggleLine(expectedText, {start: {line: 4, ch: 6}, end: {line: 5, ch: 2}});
+
+                // Uncomment
+                testToggleLine(htmlContent + "\n", {start: {line: 3, ch: 6}, end: {line: 4, ch: 2}});
+            });
+        });
+
+        // The "block comment" command should be unaffected by indentLineComment preference.
+        describe("Block comment/uncomment in languages with only block comments and with indentLineComment enabled", function () {
+            var htmlContent = "<html>\n" +
+                              "    <body>\n" +
+                              "        <p>Hello</p>\n" +
+                              "    </body>\n" +
+                              "</html>";
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentLineComment", true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+            });
+
+            it("should comment/uncomment a single line, cursor at start", function () {
+                myEditor.setCursorPos(2, 0);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "<!---->        <p>Hello</p>";
+                var expectedText = lines.join("\n");
+
+                testToggleBlock(expectedText, {line: 2, ch: 4});
+            });
+
+            it("should comment/uncomment a single line, cursor at end", function () {
+                myEditor.setCursorPos(2, 20);
+
+                var lines = htmlContent.split("\n");
+                lines[2] = "        <p>Hello</p><!---->";
+                var expectedText = lines.join("\n");
+
+                testToggleBlock(expectedText, {line: 2, ch: 24});
+            });
+
+            it("should comment/uncomment a block", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 11});
+
+                var expectedText = "<html>\n" +
+                                   "    <!--<body>\n" +
+                                   "        <p>Hello</p>\n" +
+                                   "    </body>-->\n" +
+                                   "</html>";
+
+                testToggleBlock(expectedText, {start: {line: 1, ch: 8}, end: {line: 3, ch: 11}});
+            });
+        });
+
         describe("Line comment in languages with mutiple line comment prefixes", function () {
             // Define a special version of JavaScript for testing purposes
             LanguageManager.defineLanguage("javascript2", {
@@ -937,15 +1148,12 @@ define(function (require, exports, module) {
                 // select first 2 lines
                 myEditor.setSelection({line: 0, ch: 4}, {line: 1, ch: 12});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = defaultContent.split("\n");
                 lines[0] = "//function foo() {";
                 lines[1] = "//    function bar() {";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 0, ch: 6}, end: {line: 1, ch: 14}});
+                testToggleLine(expectedText, {start: {line: 0, ch: 6}, end: {line: 1, ch: 14}});
             });
 
             it("should uncomment every prefix", function () {
@@ -962,10 +1170,7 @@ define(function (require, exports, module) {
                 // select lines 1-5
                 myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+                testToggleLine(defaultContent, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
 
             it("should only uncomment the first prefix", function () {
@@ -986,10 +1191,7 @@ define(function (require, exports, module) {
                 // select lines 1-3
                 myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+                testToggleLine(expectedContent, {start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
             });
         });
 
@@ -1001,52 +1203,43 @@ define(function (require, exports, module) {
             it("should properly restore the cursor", function () {
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 4});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 4}});
+                testToggleLine(defaultContent, {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}});
             });
 
             it("should properly restore the range selection", function () {
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 6});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 6}});
+                testToggleLine(defaultContent, {start: {line: 1, ch: 4}, end: {line: 1, ch: 6}});
             });
 
             it("should properly restore the cursors", function () {
                 myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
                                         {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: false},
-                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: true}]);
+                testToggleLine(defaultContent, [
+                    {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                    {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: true}
+                ]);
             });
 
             it("should properly restore the range selections", function () {
                 myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}},
                                         {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}}]);
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}, reversed: false, primary: false},
-                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, reversed: false, primary: true}]);
+                testToggleLine(defaultContent, [
+                    {start: {line: 1, ch: 4}, end: {line: 1, ch: 6}, reversed: false, primary: false},
+                    {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, reversed: false, primary: true}
+                ]);
             });
 
             it("should properly restore primary/reversed range selections", function () {
                 myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
                                         {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true}]);
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: true},
-                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true, primary: false}]);
+                testToggleLine(defaultContent, [
+                    {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: true},
+                    {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true, primary: false}
+                ]);
             });
         });
 
@@ -1100,10 +1293,7 @@ define(function (require, exports, module) {
                 // put cursor within block
                 myEditor.setCursorPos(1, 18);
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectCursorAt({line: 1, ch: 16});
+                testToggleBlock(defaultContent, {line: 1, ch: 16});
             });
 
             it("should block uncomment, cursor within existing block comment suffix", function () {
@@ -1116,10 +1306,7 @@ define(function (require, exports, module) {
                 // put cursor within block
                 myEditor.setCursorPos(1, 21);
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectCursorAt({line: 1, ch: 18});
+                testToggleBlock(defaultContent, {line: 1, ch: 18});
             });
 
             it("should block uncomment, selection covering whole sub-line block comment", function () {
@@ -1132,10 +1319,7 @@ define(function (require, exports, module) {
                 // select whole comment
                 myEditor.setSelection({line: 1, ch: 13}, {line: 1, ch: 22});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 13}, end: {line: 1, ch: 18}}); // just text that was uncommented
+                testToggleBlock(defaultContent, {start: {line: 1, ch: 13}, end: {line: 1, ch: 18}}); // just text that was uncommented
             });
 
             it("should block comment/uncomment, selection from mid-line end of line", function () {
@@ -1211,15 +1395,12 @@ define(function (require, exports, module) {
 
                 myEditor.setCursorPos(3, 2); // middle of blank line
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = BLOCK_CONTAINING_WS.split("\n");
                 lines.splice(5, 1);  // removes delimiter lines
                 lines.splice(1, 1);
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 2, ch: 2});
+                testToggleBlock(expectedText, {line: 2, ch: 2});
             });
 
             it("should block uncomment, selection in whitespace within block comment", function () {
@@ -1227,15 +1408,12 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 3, ch: 0}, {line: 3, ch: 4});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = BLOCK_CONTAINING_WS.split("\n");
                 lines.splice(5, 1);  // removes delimiter lines
                 lines.splice(1, 1);
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 0}, end: {line: 2, ch: 4}});
+                testToggleBlock(expectedText, {start: {line: 2, ch: 0}, end: {line: 2, ch: 4}});
             });
 
             // Selections mixing whitespace and existing block comments
@@ -1253,15 +1431,12 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 10});  // start of blank line to end of block comment
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = WS_SURROUNDING_BLOCK.split("\n");
                 lines[2] = "    a();";
                 lines[4] = "    b();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 8}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 4, ch: 8}});
             });
 
             it("should block uncomment, selection covers block comment plus whitespace after", function () {
@@ -1269,15 +1444,12 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 2, ch: 4}, {line: 5, ch: 4});  // start of block comment to end of blank line
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = WS_SURROUNDING_BLOCK.split("\n");
                 lines[2] = "    a();";
                 lines[4] = "    b();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 4}, end: {line: 5, ch: 4}});
+                testToggleBlock(expectedText, {start: {line: 2, ch: 4}, end: {line: 5, ch: 4}});
             });
 
             it("should block uncomment, selection covers part of block comment plus whitespace before", function () {
@@ -1285,15 +1457,12 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 4});  // start of blank line to middle of block comment
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = WS_SURROUNDING_BLOCK.split("\n");
                 lines[2] = "    a();";
                 lines[4] = "    b();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 4}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 3, ch: 4}});
             });
 
             it("should block uncomment, selection covers part of block comment plus whitespace after", function () {
@@ -1301,15 +1470,12 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 3, ch: 4}, {line: 5, ch: 4});  // middle of block comment to end of blank line
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = WS_SURROUNDING_BLOCK.split("\n");
                 lines[2] = "    a();";
                 lines[4] = "    b();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 3, ch: 4}, end: {line: 5, ch: 4}});
+                testToggleBlock(expectedText, {start: {line: 3, ch: 4}, end: {line: 5, ch: 4}});
             });
 
             it("should block uncomment, selection covers block comment plus whitespace on both sides", function () {
@@ -1317,15 +1483,12 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 5, ch: 4});  // start of first blank line to end of last blank line
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = WS_SURROUNDING_BLOCK.split("\n");
                 lines[2] = "    a();";
                 lines[4] = "    b();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 5, ch: 4}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 5, ch: 4}});
             });
 
             // Selections mixing uncommented text and existing block comments
@@ -1340,10 +1503,7 @@ define(function (require, exports, module) {
                 // select more of line 1
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 24});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 20}}); // range endpoints still align with same text
+                testToggleBlock(defaultContent, {start: {line: 1, ch: 4}, end: {line: 1, ch: 20}}); // range endpoints still align with same text
             });
 
             it("should block uncomment, selection covers multi-line block comment plus other text", function () {
@@ -1358,15 +1518,12 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 0, ch: 5}, {line: 5, ch: 5});  // middle of first line of code to middle of line following comment
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[2] = "    a();";
                 lines[4] = "    b();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 0, ch: 5}, end: {line: 5, ch: 5}});
+                testToggleBlock(expectedText, {start: {line: 0, ch: 5}, end: {line: 5, ch: 5}});
             });
 
             // Selections including multiple separate block comments
@@ -1382,10 +1539,7 @@ define(function (require, exports, module) {
                 // select end of 1st comment, start of 2nd comment, and the space between them
                 myEditor.setSelection({line: 1, ch: 9}, {line: 1, ch: 22});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(startingContent);
-                expectSelection({start: {line: 1, ch: 9}, end: {line: 1, ch: 22}}); // no change
+                testToggleBlock(startingContent, {start: {line: 1, ch: 9}, end: {line: 1, ch: 22}}); // no change
             });
 
             it("should do nothing, selection covers all of multiple block comments", function () {
@@ -1398,10 +1552,7 @@ define(function (require, exports, module) {
                 // select both block comments and the space between them, but nothing else
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 26});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(startingContent);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 26}}); // no change
+                testToggleBlock(startingContent, {start: {line: 1, ch: 4}, end: {line: 1, ch: 26}}); // no change
             });
 
             it("should do nothing, selection covers multiple block comments & nothing else", function () {
@@ -1414,10 +1565,7 @@ define(function (require, exports, module) {
                 // select both block comments, but nothing else
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 25});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(startingContent);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 25}}); // no change
+                testToggleBlock(startingContent, {start: {line: 1, ch: 4}, end: {line: 1, ch: 25}}); // no change
             });
 
             it("should do nothing, selection covers multiple block comments plus other text", function () {
@@ -1430,10 +1578,7 @@ define(function (require, exports, module) {
                 // select all of line 1 (but not newline)
                 myEditor.setSelection({line: 1, ch: 0}, {line: 1, ch: 28});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(startingContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 1, ch: 28}}); // no change
+                testToggleBlock(startingContent, {start: {line: 1, ch: 0}, end: {line: 1, ch: 28}}); // no change
             });
 
             describe("with multiple selections", function () {
@@ -1456,13 +1601,14 @@ define(function (require, exports, module) {
 
                     myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 18}, reversed: true}]);
-                    CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
 
                     lines.splice(1, 0, "*/");
                     lines.splice(0, 0, "/*");
-                    expect(myDocument.getText()).toEqual(lines.join("\n"));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
-                                                              {start: {line: 6, ch: 0}, end: {line: 6, ch: 18}, primary: true, reversed: true}]);
+
+                    testToggleBlock(lines.join("\n"), [
+                        {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 18}, primary: true, reversed: true}
+                    ]);
                 });
             });
         });
@@ -1484,10 +1630,7 @@ define(function (require, exports, module) {
 
                 myEditor.setCursorPos(1, 18);
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectCursorAt({line: 1, ch: 16});
+                testToggleBlock(defaultContent, {line: 1, ch: 16});
             });
 
             it("should switch to line uncomment, cursor in whitespace to left of line comment", function () { // #2342
@@ -1499,10 +1642,7 @@ define(function (require, exports, module) {
 
                 myEditor.setCursorPos(1, 0);
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectCursorAt({line: 1, ch: 0});
+                testToggleBlock(defaultContent, {line: 1, ch: 0});
             });
 
             it("should switch to line uncomment, some of line-comment selected (only whitespace to left)", function () {
@@ -1513,14 +1653,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 6}, {line: 1, ch: 13}); // just " Commen"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "     Comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 11}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 4}, end: {line: 1, ch: 11}});
             });
 
             it("should switch to line uncomment, some of line-comment selected including last char (only whitespace to left)", function () { // #2337
@@ -1531,14 +1668,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 6}, {line: 1, ch: 14}); // everything but leading "//"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "     Comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 12}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 4}, end: {line: 1, ch: 12}});
             });
 
             it("should switch to line uncomment, all of line-comment selected (only whitespace to left)", function () { // #2342
@@ -1549,14 +1683,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 14}); // include "//"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "     Comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 12}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 4}, end: {line: 1, ch: 12}});
             });
 
             // Selections that don't mix code & line-comment, but are on a line that does contain both
@@ -1570,14 +1701,11 @@ define(function (require, exports, module) {
 
                 myEditor.setCursorPos(1, 24); // between space and "c"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 lines = defaultContent.split("\n");
                 lines[1] = "    function bar() { // /**/comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 26});
+                testToggleBlock(expectedText, {line: 1, ch: 26});
             });
 
             it("should insert block comment, cursor in code to left of line comment", function () {
@@ -1589,13 +1717,10 @@ define(function (require, exports, module) {
 
                 myEditor.setCursorPos(1, 12);
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 lines[1] = "    function/**/ bar() { // comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 14});
+                testToggleBlock(expectedText, {line: 1, ch: 14});
             });
 
             it("should block comment, some of line-comment selected (with code to left)", function () {
@@ -1606,14 +1731,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 11}, {line: 1, ch: 18}); // just " Commen"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "    f(); ///* Commen*/t";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 13}, end: {line: 1, ch: 20}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 13}, end: {line: 1, ch: 20}});
             });
 
             it("should block comment, some of line-comment selected including last char (with code to left)", function () { // #2337
@@ -1624,14 +1746,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 11}, {line: 1, ch: 19}); // everything but leading "//"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "    f(); ///* Comment*/";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 13}, end: {line: 1, ch: 21}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 13}, end: {line: 1, ch: 21}});
             });
 
             it("should block comment, all of line-comment selected (with code to left)", function () { // #2342
@@ -1642,14 +1761,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 9}, {line: 1, ch: 19}); // include "//"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "    f(); /*// Comment*/";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 11}, end: {line: 1, ch: 21}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 11}, end: {line: 1, ch: 21}});
             });
 
             // Full-line/multiline selections containing only line comments and whitespace
@@ -1662,14 +1778,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "     Comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
             });
 
             it("should switch to line uncomment, all of line-comment line selected (following line is whitespace)", function () {
@@ -1681,14 +1794,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "     Comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
             });
 
             it("should switch to line uncomment, all of line-comment line selected (following line is line comment)", function () {
@@ -1700,14 +1810,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "     Comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
             });
 
             it("should switch to line uncomment, all of line-comment line selected (following line is block comment)", function () {
@@ -1719,14 +1826,11 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[1] = "     Comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
             });
 
             it("should line uncomment, multiple line comments selected", function () {
@@ -1742,10 +1846,7 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(defaultContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+                testToggleBlock(defaultContent, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
 
             // Selections mixing uncommented code & line comments
@@ -1771,143 +1872,113 @@ define(function (require, exports, module) {
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 4});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[2] = "     Floating comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 4}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 3, ch: 4}});
             });
 
             it("should switch to line uncomment mode, selection starts in whitespace & ends in middle of line comment", function () { // #2342
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 2, ch: 2}, {line: 2, ch: 10}); // stops with "Flo"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[2] = "     Floating comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 2}, end: {line: 2, ch: 8}});
+                testToggleBlock(expectedText, {start: {line: 2, ch: 2}, end: {line: 2, ch: 8}});
             });
 
             it("should switch to line uncomment mode, selection starts in whitespace & ends at end of line comment", function () { // #2337, #2342
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 2, ch: 2}, {line: 2, ch: 23});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[2] = "     Floating comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 2}, end: {line: 2, ch: 21}});
+                testToggleBlock(expectedText, {start: {line: 2, ch: 2}, end: {line: 2, ch: 21}});
             });
 
             it("should block comment, selection starts in code & ends in middle of line comment", function () { // #2342
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 7, ch: 8}, {line: 7, ch: 20}); // stops at end of "post"
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[7] = "        /*b(); // post*/ comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 7, ch: 10}, end: {line: 7, ch: 22}});
+                testToggleBlock(expectedText, {start: {line: 7, ch: 10}, end: {line: 7, ch: 22}});
             });
 
             it("should block comment, selection starts in middle of code & ends at end of line comment", function () { // #2342
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 7, ch: 9}, {line: 7, ch: 28});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[7] = "        b/*(); // post comment*/";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 7, ch: 11}, end: {line: 7, ch: 30}});
+                testToggleBlock(expectedText, {start: {line: 7, ch: 11}, end: {line: 7, ch: 30}});
             });
 
             it("should block comment, selection starts in code & ends at end of line comment", function () { // #2337
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 7, ch: 8}, {line: 7, ch: 28});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[7] = "        /*b(); // post comment*/";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 7, ch: 10}, end: {line: 7, ch: 30}});
+                testToggleBlock(expectedText, {start: {line: 7, ch: 10}, end: {line: 7, ch: 30}});
             });
 
             it("should block comment, selection starts at col 0 of code & ends at end of line comment", function () {
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 28});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[7] = "/*        b(); // post comment*/";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 7, ch: 2}, end: {line: 7, ch: 30}});
+                testToggleBlock(expectedText, {start: {line: 7, ch: 2}, end: {line: 7, ch: 30}});
             });
 
             it("should block comment, selection starts on line with line comment", function () {
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 4, ch: 0}, {line: 9, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines.splice(9, 0, "*/");
                 lines.splice(4, 0, "/*");
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 5, ch: 0}, end: {line: 10, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 5, ch: 0}, end: {line: 10, ch: 0}});
             });
 
             it("should block comment, selection ends on line with line comment", function () {
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 10, ch: 0}, {line: 12, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines.splice(12, 0, "*/");
                 lines.splice(10, 0, "/*");
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 11, ch: 0}, end: {line: 13, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 11, ch: 0}, end: {line: 13, ch: 0}});
             });
 
             it("should line uncomment, selection covers several line comments separated by whitespace", function () {
                 myDocument.setText(lineCommentCode);
                 myEditor.setSelection({line: 11, ch: 0}, {line: 14, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                 var lines = lineCommentCode.split("\n");
                 lines[11] = "     Attached above";
                 lines[13] = "     Final floating comment";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 11, ch: 0}, end: {line: 14, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 11, ch: 0}, end: {line: 14, ch: 0}});
             });
 
             describe("with multiple selections", function () {
@@ -1920,15 +1991,14 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
                                             {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}}]);
 
-                    CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                     // Line 1 should no longer have a line comment, and line 3 should have a block comment.
                     lines[1] = lines[1].substr(2);
                     lines[3] = lines[3].substr(0, 4) + "/*" + lines[3].substr(4, 8) + "*/" + lines[3].substr(12);
 
-                    expect(myDocument.getText()).toEqual(lines.join("\n"));
-                    expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
-                                      {start: {line: 3, ch: 6}, end: {line: 3, ch: 14}, primary: false, reversed: false}]);
+                    testToggleBlock(lines.join("\n"), [
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
+                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 14}, primary: false, reversed: false}
+                    ]);
                 });
 
                 it("should handle multiple selections where several of them are in the same line comment, preserving the ignored selections", function () {
@@ -1940,14 +2010,13 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
                                             {start: {line: 1, ch: 6}, end: {line: 1, ch: 6}}]);
 
-                    CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
                     // Line 1 should no longer have a line comment
                     lines[1] = lines[1].substr(2);
 
-                    expect(myDocument.getText()).toEqual(lines.join("\n"));
-                    expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
-                                      {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false}]);
+                    testToggleBlock(lines.join("\n"), [
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
+                        {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false}
+                    ]);
                 });
             });
         });
@@ -1969,125 +2038,98 @@ define(function (require, exports, module) {
             it("should block-comment entire line that cursor is in", function () {
                 myEditor.setCursorPos(1, 4);
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = cssContent.split("\n");
                 lines[1] = "/*    color: red;*/";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 6});
+                testToggleLine(expectedText, {line: 1, ch: 6});
             });
 
             it("should block-comment entire line that sub-line selection is in", function () {
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 9});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = cssContent.split("\n");
                 lines[1] = "/*    color: red;*/";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 6}, end: {line: 1, ch: 11}});
+                testToggleLine(expectedText, {start: {line: 1, ch: 6}, end: {line: 1, ch: 11}});
             });
 
             it("should block-comment full multi-line selection", function () {
                 myEditor.setSelection({line: 0, ch: 0}, {line: 3, ch: 0});
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var lines = cssContent.split("\n");
                 lines.splice(3, 0, "*/");
                 lines.splice(0, 0, "/*");
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
             });
 
             it("should block-comment partial multi-line selection as if it were full", function () {
                 myEditor.setSelection({line: 0, ch: 3}, {line: 1, ch: 10});
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var lines = cssContent.split("\n");
                 lines.splice(2, 0, "*/");
                 lines.splice(0, 0, "/*");
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 10}});  // range endpoints still align with same text
+                testToggleLine(expectedText, {start: {line: 1, ch: 3}, end: {line: 2, ch: 10}});  // range endpoints still align with same text
             });
 
             it("should uncomment multi-line block comment selection, selected exactly", function () {
                 myEditor.setSelection({line: 4, ch: 0}, {line: 6, ch: 3});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = cssContent.split("\n");
                 lines[4] = "span {";
                 lines[6] = "}";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 4, ch: 0}, end: {line: 6, ch: 1}});
+                testToggleLine(expectedText, {start: {line: 4, ch: 0}, end: {line: 6, ch: 1}});
             });
 
             it("should uncomment multi-line block comment selection, selected including trailing newline", function () { // #2339
                 myEditor.setSelection({line: 4, ch: 0}, {line: 7, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = cssContent.split("\n");
                 lines[4] = "span {";
                 lines[6] = "}";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 4, ch: 0}, end: {line: 7, ch: 0}});
+                testToggleLine(expectedText, {start: {line: 4, ch: 0}, end: {line: 7, ch: 0}});
             });
 
             it("should uncomment multi-line block comment selection, only start selected", function () {
                 myEditor.setSelection({line: 4, ch: 0}, {line: 5, ch: 8});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = cssContent.split("\n");
                 lines[4] = "span {";
                 lines[6] = "}";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 4, ch: 0}, end: {line: 5, ch: 8}});
+                testToggleLine(expectedText, {start: {line: 4, ch: 0}, end: {line: 5, ch: 8}});
             });
 
             it("should uncomment multi-line block comment selection, only middle selected", function () {
                 myEditor.setSelection({line: 5, ch: 0}, {line: 5, ch: 8});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = cssContent.split("\n");
                 lines[4] = "span {";
                 lines[6] = "}";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 5, ch: 0}, end: {line: 5, ch: 8}});
+                testToggleLine(expectedText, {start: {line: 5, ch: 0}, end: {line: 5, ch: 8}});
             });
 
             it("should uncomment multi-line block comment selection, only end selected", function () { // #2339
                 myEditor.setSelection({line: 5, ch: 8}, {line: 6, ch: 3});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = cssContent.split("\n");
                 lines[4] = "span {";
                 lines[6] = "}";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 5, ch: 8}, end: {line: 6, ch: 1}});
+                testToggleLine(expectedText, {start: {line: 5, ch: 8}, end: {line: 6, ch: 1}});
             });
 
             it("should uncomment multi-line block comment selection, only end selected, ends at EOF", function () {
@@ -2097,29 +2139,23 @@ define(function (require, exports, module) {
 
                 myEditor.setSelection({line: 5, ch: 8}, {line: 6, ch: 3});
 
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
                 var lines = content.split("\n");
                 lines[4] = "span {";
                 lines[6] = "}";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 5, ch: 8}, end: {line: 6, ch: 1}});
+                testToggleLine(expectedText, {start: {line: 5, ch: 8}, end: {line: 6, ch: 1}});
             });
 
             it("should uncomment multi-line block comment that cursor is in", function () {
                 myEditor.setCursorPos(5, 4);
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var lines = cssContent.split("\n");
                 lines[4] = "span {";
                 lines[6] = "}";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 5, ch: 4});
+                testToggleLine(expectedText, {line: 5, ch: 4});
             });
         });
 
@@ -2148,7 +2184,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
-                PreferencesManager.set("indentLineComment",false);
+                PreferencesManager.set("indentLineComment", false);
             });
 
             afterEach(function () {
@@ -2178,23 +2214,16 @@ define(function (require, exports, module) {
             });
 
             it("should line comment/uncomment generic JS code", function () {
-                
                 myEditor.setCursorPos(10, 0);
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var lines = htmlContent.split("\n");
                 lines[10] = "//                    a();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 10, ch: 2});
+                testToggleLine(expectedText, {line: 10, ch: 2});
 
                 // Uncomment
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-                expect(myDocument.getText()).toEqual(htmlContent);
-                expectCursorAt({line: 10, ch: 0});
-                
+                testToggleLine(htmlContent, {line: 10, ch: 0});
             });
 
             it("should block comment/uncomment generic JS code", function () {
@@ -2222,16 +2251,13 @@ define(function (require, exports, module) {
             it("shouldn't comment anything when selection mixes modes", function () {
                 myEditor.setSelection({line: 3, ch: 0}, {line: 11, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(htmlContent);
-                expectSelection({start: {line: 3, ch: 0}, end: {line: 11, ch: 0}});
+                testToggleBlock(htmlContent, {start: {line: 3, ch: 0}, end: {line: 11, ch: 0}});
             });
 
             describe("with multiple selections", function () {
                 
                 beforeEach(function () {
-                    PreferencesManager.set("indentLineComment",false);
+                    PreferencesManager.set("indentLineComment", false);
                 });
 
                 afterEach(function () {
@@ -2316,7 +2342,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
-                PreferencesManager.set("indentLineComment",true);
+                PreferencesManager.set("indentLineComment", true);
             });
 
             afterEach(function () {
@@ -2324,54 +2350,55 @@ define(function (require, exports, module) {
             });
 
             it("should line comment/uncomment generic JS code", function () {
-                
                 myEditor.setCursorPos(10, 0);
-
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var lines = htmlContent.split("\n");
                 lines[10] = "                    //a();";
                 var expectedText = lines.join("\n");
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 10, ch: 0});
+                testToggleLine(expectedText, {line: 10, ch: 0});
 
                 // Uncomment
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-                expect(myDocument.getText()).toEqual(htmlContent);
-                expectCursorAt({line: 10, ch: 0});
-             
+                testToggleLine(htmlContent, {line: 10, ch: 0});
+            });
+
+            it("should line comment/uncomment and indent HTML code", function () {
+                myEditor.setCursorPos(16, 8);
+
+                var lines = htmlContent.split("\n");
+                lines[16] = "        <!--<p>Hello</p>-->";
+                var expectedText = lines.join("\n");
+
+                testToggleLine(expectedText, {line: 16, ch: 12});
+
+                // Uncomment
+                testToggleLine(htmlContent, {line: 16, ch: 8});
             });
 
             describe("with multiple selections", function () {
-                
                 beforeEach(function () {
-                    PreferencesManager.set("indentLineComment",true);
+                    PreferencesManager.set("indentLineComment", true);
                 });
 
                 afterEach(function () {
                     PreferencesManager.set("indentLineComment", shouldIndentLineComment);
                 });
-                
 
                 it("should handle multiple selections in different regions, toggling line selection (but falling back to block selection in HTML/CSS)", function () {
-                    
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
                                         {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
                                         {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}}]);
 
                     var lines = htmlContent.split("\n");
-                    lines[1] = "<!--    <head>-->";
-                    lines[4] = "/*                font-size: 15px;*/";
+                    lines[1] = "    <!--<head>-->";
+                    lines[4] = "                /*font-size: 15px;*/";
                     lines[10] = "                    //a();";
 
                     testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8 }, end: {line: 1, ch: 14 }, reversed: false, primary: false},
                                                       {start: {line: 4, ch: 18 }, end: {line: 4, ch: 34 }, reversed: false, primary: false},
                                                       {start: {line: 10, ch: 0 }, end: {line: 10, ch: 0 }, reversed: false, primary: true}]);
-                    
                 });
             });
-
         });
 
 
@@ -2424,30 +2451,21 @@ define(function (require, exports, module) {
                 myDocument.setText(getContentCommented(1, 3));
                 myEditor.setSelection({line: 1, ch: 0}, {line: 5, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(coffeeContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
+                testToggleBlock(coffeeContent, {start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
             });
 
             it("should block uncomment when selecting only the prefix", function () {
                 myDocument.setText(getContentCommented(1, 3));
                 myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(coffeeContent);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 1, ch: 0}});
+                testToggleBlock(coffeeContent, {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}});
             });
 
             it("should block uncomment when selecting only the suffix", function () {
                 myDocument.setText(getContentCommented(1, 3));
                 myEditor.setSelection({line: 4, ch: 0}, {line: 5, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(coffeeContent);
-                expectSelection({start: {line: 3, ch: 0}, end: {line: 3, ch: 0}});
+                testToggleBlock(coffeeContent, {start: {line: 3, ch: 0}, end: {line: 3, ch: 0}});
             });
 
             it("should do nothing when selecting from a suffix to a prefix", function () {
@@ -2455,10 +2473,7 @@ define(function (require, exports, module) {
                 myDocument.setText(expectedText);
                 myEditor.setSelection({line: 2, ch: 0}, {line: 7, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 0}, end: {line: 7, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 2, ch: 0}, end: {line: 7, ch: 0}});
             });
 
             it("should block uncomment with line comments around the block comment", function () {
@@ -2470,10 +2485,7 @@ define(function (require, exports, module) {
                 myDocument.setText(getContentCommented(1, 3, expectedText));
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
             });
 
             it("should block uncomment when the lines inside the block comment are line commented", function () {
@@ -2484,10 +2496,7 @@ define(function (require, exports, module) {
                 myDocument.setText(getContentCommented(1, 3, expectedText));
                 myEditor.setSelection({line: 3, ch: 0}, {line: 4, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 0}, end: {line: 3, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}});
             });
 
             it("should block uncomment a second block comment", function () {
@@ -2495,10 +2504,7 @@ define(function (require, exports, module) {
                 myDocument.setText(getContentCommented(6, 7, expectedText));
                 myEditor.setSelection({line: 7, ch: 0}, {line: 8, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText + "\n");
-                expectSelection({start: {line: 6, ch: 0}, end: {line: 7, ch: 0}});
+                testToggleBlock(expectedText + "\n", {start: {line: 6, ch: 0}, end: {line: 7, ch: 0}});
             });
 
             it("should block uncomment with line comments in between the block comments", function () {
@@ -2511,10 +2517,7 @@ define(function (require, exports, module) {
                 myDocument.setText(getContentCommented(6, 7, expectedText));
                 myEditor.setSelection({line: 7, ch: 0}, {line: 8, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText + "\n");
-                expectSelection({start: {line: 6, ch: 0}, end: {line: 7, ch: 0}});
+                testToggleBlock(expectedText + "\n", {start: {line: 6, ch: 0}, end: {line: 7, ch: 0}});
             });
 
             it("should block comment on an empty line around comments", function () {
@@ -2530,10 +2533,7 @@ define(function (require, exports, module) {
                 myDocument.setText(text);
                 myEditor.setCursorPos(3, 0);
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 3, ch: 3});
+                testToggleBlock(expectedText, {line: 3, ch: 3});
             });
 
             it("should block uncomment on an empty line inside a block comment", function () {
@@ -2550,10 +2550,7 @@ define(function (require, exports, module) {
                 myDocument.setText(text);
                 myEditor.setCursorPos(2, 0);
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 2, ch: 0});
+                testToggleBlock(expectedText, {line: 2, ch: 0});
             });
 
             it("should line uncomment on line comments around a block comment", function () {
@@ -2568,10 +2565,7 @@ define(function (require, exports, module) {
                 myDocument.setText(text);
                 myEditor.setSelection({line: 5, ch: 0}, {line: 6, ch: 0});
 
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 5, ch: 0}, end: {line: 6, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 5, ch: 0}, end: {line: 6, ch: 0}});
             });
 
             it("should line comment block commented lines", function () {
@@ -2585,10 +2579,8 @@ define(function (require, exports, module) {
 
                 myDocument.setText(text);
                 myEditor.setSelection({line: 2, ch: 0}, {line: 2, ch: 5});
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 2, ch: 0}, end: {line: 2, ch: 6}});
+                testToggleLine(expectedText, {start: {line: 2, ch: 0}, end: {line: 2, ch: 6}});
             });
 
             it("should line comment in block comment prefix or sufix starting lines", function () {
@@ -2596,23 +2588,22 @@ define(function (require, exports, module) {
                 lines[0] = "#foo = 42";
                 lines[3] = "#number = -42";
                 var text = getContentCommented(1, 3, lines.join("\n"));
+                myDocument.setText(text);
 
                 lines = text.split("\n");
                 lines[0] = "##foo = 42";
                 lines[1] = "####";
-                lines[4] = "####";
-                lines[5] = "##number = -42";
                 var expectedText = lines.join("\n");
 
-                myDocument.setText(text);
                 myEditor.setSelection({line: 0, ch: 0}, {line: 2, ch: 0});
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                testToggleLine(expectedText, {start: {line: 0, ch: 0}, end: {line: 2, ch: 0}});
+
+                lines[4] = "####";
+                lines[5] = "##number = -42";
+                expectedText = lines.join("\n");
 
                 myEditor.setSelection({line: 4, ch: 0}, {line: 6, ch: 0});
-                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 4, ch: 0}, end: {line: 6, ch: 0}});
+                testToggleLine(expectedText, {start: {line: 4, ch: 0}, end: {line: 6, ch: 0}});
             });
         });
 
@@ -3382,9 +3373,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should delete lines containing any range in a multiple selection", function () {
@@ -3394,9 +3387,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should handle multiple cursors/selections on the same line (only deleting the line once)", function () {
@@ -3407,9 +3402,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should handle multiple selections that span multiple lines", function () {
@@ -3418,8 +3415,10 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 3, 4]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should delete the rest of a selection that starts on a line previously deleted", function () {
@@ -3428,7 +3427,9 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 2, 3]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: true, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: true, reversed: false}
+                    ]);
                 });
 
                 it("should merge the primary selection into another selection on the same line", function () {
@@ -3439,9 +3440,11 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                     expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false},
-                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: false, reversed: false}]);
+                    expectSelections([
+                        {start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false},
+                        {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: false, reversed: false}
+                    ]);
                 });
             });
         });
@@ -3504,9 +3507,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
                 expect(myDocument.getText()).toEqual(contentWithDeletedLines([1, 3, 6]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 3, ch: 5}, end: {line: 3, ch: 5}, primary: true, reversed: false}]);
+                expectSelections([
+                    {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 5}, end: {line: 3, ch: 5}, primary: true, reversed: false}
+                ]);
             });
         });
 
@@ -4213,9 +4218,10 @@ define(function (require, exports, module) {
                     });
                     runs(function () {
                         selection = myEditor.getSelection();
-                        expect(selection).toEqual({start: {line: 0, ch: 9},
-                                                   end: {line: 0, ch: 15},
-                                                   reversed: false});
+                        expect(fixSel(selection)).toEqual(fixSel({
+                            start: {line: 0, ch: 9},
+                            end: {line: 0, ch: 15}
+                        }));
                     });
                 });
             });

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $*/
-
 /**
  *  Utilities functions related to Health Data logging
  */
@@ -132,7 +129,7 @@ define(function (require, exports, module) {
      * @param {boolean} addedToWorkingSet set to true if extensions of files added to the
      *                                    working set needs to be logged
      */
-    function fileOpened(filePath, addedToWorkingSet) {
+    function fileOpened(filePath, addedToWorkingSet, encoding) {
         if (!shouldLogHealthData()) {
             return;
         }
@@ -142,7 +139,8 @@ define(function (require, exports, module) {
             fileExtCountMap = [];
         healthData.fileStats = healthData.fileStats || {
             openedFileExt     : {},
-            workingSetFileExt : {}
+            workingSetFileExt : {},
+            openedFileEncoding: {}
         };
         if (language.getId() !== "unknown") {
             fileExtCountMap = addedToWorkingSet ? healthData.fileStats.workingSetFileExt : healthData.fileStats.openedFileExt;
@@ -150,6 +148,18 @@ define(function (require, exports, module) {
                 fileExtCountMap[fileExtension] = 0;
             }
             fileExtCountMap[fileExtension]++;
+            setHealthData(healthData);
+        }
+        if (encoding) {
+            var fileEncCountMap = healthData.fileStats.openedFileEncoding;
+            if (!fileEncCountMap) {
+                healthData.fileStats.openedFileEncoding = {};
+                fileEncCountMap = healthData.fileStats.openedFileEncoding;
+            }
+            if (!fileEncCountMap[encoding]) {
+                fileEncCountMap[encoding] = 0;
+            }
+            fileEncCountMap[encoding]++;
             setHealthData(healthData);
         }
     }

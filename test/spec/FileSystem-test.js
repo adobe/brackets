@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, window, jasmine, spyOn */
+/*global describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, jasmine, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -57,9 +56,10 @@ define(function (require, exports, module) {
         }
 
         function readCallback() {
-            var callback = function (err, data, stat) {
+            var callback = function (err, data, encoding, stat) {
                 callback.error = err;
                 callback.data = data;
+                callback.encoding = "utf8";
                 callback.stat = stat;
                 callback.wasCalled = true;
             };

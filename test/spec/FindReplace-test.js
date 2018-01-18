@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, $, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, jasmine */
+/*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
@@ -48,6 +47,28 @@ define(function (require, exports, module) {
                          "    }\n" +
                          "\n" +
                          "}";
+
+    // Helper functions for testing cursor position / selection range
+    function fixPos(pos) {
+        if (!("sticky" in pos)) {
+            pos.sticky = null;
+        }
+        return pos;
+    }
+    function fixSel(sel) {
+        fixPos(sel.start);
+        fixPos(sel.end);
+        if (!("reversed" in sel)) {
+            sel.reversed = false;
+        }
+        return sel;
+    }
+    function fixSels(sels) {
+        sels.forEach(function (sel) {
+            fixSel(sel);
+        });
+        return sels;
+    }
 
     describe("FindReplace - Unit", function () {
         var editor, doc;
@@ -105,59 +126,74 @@ define(function (require, exports, module) {
             it("should do nothing if the cursor is in non-word/whitespace", function () {
                 editor.setSelection({line: 8, ch: 4});
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 8, ch: 4}, end: {line: 8, ch: 4}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 8, ch: 4}, end: {line: 8, ch: 4}, primary: true, reversed: false}
+                ]));
             });
 
             it("should expand a single cursor to the containing word without adding a new selection", function () {
                 editor.setSelection({line: 2, ch: 26});
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: true, reversed: false}
+                ]));
             });
 
             it("should add the next match for a single word selection as a new primary selection", function () {
                 editor.setSelection({line: 2, ch: 23}, {line: 2, ch: 30});
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}
+                ]));
             });
 
             it("should add the next match for an existing range that isn't actually a word", function () {
                 editor.setSelection({line: 2, ch: 14}, {line: 2, ch: 22}); // "require("
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 14}, end: {line: 2, ch: 22}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 22}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 22}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 22}, primary: true, reversed: false}
+                ]));
             });
 
             it("should find the next match case-insensitively", function () {
                 editor.setSelection({line: 6, ch: 17}, {line: 6, ch: 20}); // "Foo" in "callFoo" - should next find "foo" in "foo()"
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 6, ch: 17}, end: {line: 6, ch: 20}, primary: false, reversed: false},
-                                                        {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}, primary: true, reversed: false}]);
-
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}, primary: false, reversed: false},
+                    {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}, primary: true, reversed: false}
+                ]));
             });
 
             it("should expand two cursors without adding a new selection", function () {
                 editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
                                       {start: {line: 3, ch: 16}, end: {line: 3, ch: 16}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false}
+                ]));
             });
 
             it("should, when one cursor and one range are selected, expand the cursor and add the next match for the range to the selection", function () {
                 editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
                                       {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}
+                ]));
             });
 
             it("should wrap around the end of the document and add the next instance at the beginning of the document", function () {
                 editor.setSelection({line: 4, ch: 14}, {line: 4, ch: 21}); // "require"
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}
+                ]));
             });
 
             it("should skip over matches that are already in the selection", function () {
@@ -166,10 +202,12 @@ define(function (require, exports, module) {
                                       {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
                                       {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: true, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: true, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}
+                ]));
             });
 
             it("should do nothing if all instances are already selected", function () {
@@ -178,10 +216,12 @@ define(function (require, exports, module) {
                                       {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
                                       {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}
+                ]));
             });
         });
 
@@ -189,27 +229,35 @@ define(function (require, exports, module) {
             it("should remove a single range selection and select the next instance", function () {
                 editor.setSelection({line: 2, ch: 23}, {line: 2, ch: 30});
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
-                expect(editor.getSelections()).toEqual([{start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}
+                ]));
             });
 
             it("should expand a single cursor to a range, then change the selection to the next instance of that range", function () {
                 editor.setSelection({line: 2, ch: 26}, {line: 2, ch: 26});
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
-                expect(editor.getSelections()).toEqual([{start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}
+                ]));
             });
 
             it("should, when one cursor and one range are selected, expand the cursor and change the range selection to its next match", function () {
                 editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
                                       {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
-                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}
+                ]));
             });
 
             it("should wrap around the end of the document and switch to the next instance at the beginning of the document", function () {
                 editor.setSelection({line: 4, ch: 14}, {line: 4, ch: 21}); // "require"
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false}
+                ]));
             });
 
             it("should skip over matches that are already in the selection (but still remove the current one)", function () {
@@ -218,9 +266,11 @@ define(function (require, exports, module) {
                                       {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
                                       {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: true, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: true, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false}
+                ]));
             });
 
             it("should just remove the primary selection if all instances are already selected", function () {
@@ -229,9 +279,11 @@ define(function (require, exports, module) {
                                       {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
                                       {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false}
+                ]));
             });
         });
 
@@ -239,55 +291,67 @@ define(function (require, exports, module) {
             it("should find all instances of a selected range when first instance is selected, keeping it primary", function () {
                 editor.setSelection({line: 1, ch: 17}, {line: 1, ch: 24});
                 FindReplace._findAllAndSelect(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}
+                ]));
             });
 
             it("should find all instances of a selected range when instance other than first is selected, keeping it primary", function () {
                 editor.setSelection({line: 3, ch: 14}, {line: 3, ch: 21});
                 FindReplace._findAllAndSelect(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}
+                ]));
             });
 
             it("should throw away selections other than the primary selection", function () {
                 editor.setSelections([{start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true},
                                       {start: {line: 6, ch: 4}, end: {line: 6, ch: 6}}]);
                 FindReplace._findAllAndSelect(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}
+                ]));
             });
 
             it("should expand cursor to range, then find other instances", function () {
                 editor.setSelection({line: 3, ch: 18}, {line: 3, ch: 18});
                 FindReplace._findAllAndSelect(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
-                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
-                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}
+                ]));
             });
 
             it("should find all case insensitively", function () {
                 editor.setSelection({line: 8, ch: 10}, {line: 8, ch: 10}); // inside "foo", should also find "Foo"s
                 FindReplace._findAllAndSelect(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, primary: false, reversed: false},
-                                                        {start: {line: 2, ch: 31}, end: {line: 2, ch: 34}, primary: false, reversed: false},
-                                                        {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}, primary: false, reversed: false},
-                                                        {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, primary: false, reversed: false},
+                    {start: {line: 2, ch: 31}, end: {line: 2, ch: 34}, primary: false, reversed: false},
+                    {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}, primary: false, reversed: false},
+                    {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}, primary: true, reversed: false}
+                ]));
             });
 
             it("should not change the selection if the primary selection is a cursor inside a non-word", function () {
                 editor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
                                       {start: {line: 8, ch: 0}, end: {line: 8, ch: 0}}]);
                 FindReplace._findAllAndSelect(editor);
-                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}, primary: false, reversed: false},
-                                                        {start: {line: 8, ch: 0}, end: {line: 8, ch: 0}, primary: true, reversed: false}]);
+                expect(editor.getSelections()).toEqual(fixSels([
+                    {start: {line: 1, ch: 4}, end: {line: 1, ch: 10}, primary: false, reversed: false},
+                    {start: {line: 8, ch: 0}, end: {line: 8, ch: 0}, primary: true, reversed: false}
+                ]));
             });
         });
     });
@@ -326,7 +390,7 @@ define(function (require, exports, module) {
             if (!sel.reversed) {
                 sel.reversed = false;
             }
-            expect(myEditor.getSelection()).toEqual(sel);
+            expect(fixSel(myEditor.getSelection())).toEqual(fixSel(sel));
         }
         function expectMatchIndex(index, count) {
             var matchInfo = StringUtils.format(Strings.FIND_MATCH_INDEX, index + 1, count);
@@ -347,8 +411,8 @@ define(function (require, exports, module) {
                 selections.forEach(function (location, index) {
                     var textMarker = searchState.marked[index];
                     var markerLocation = textMarker.find();
-                    expect(markerLocation.from).toEqual(location.start);
-                    expect(markerLocation.to).toEqual(location.end);
+                    expect(fixPos(markerLocation.from)).toEqual(fixPos(location.start));
+                    expect(fixPos(markerLocation.to)).toEqual(fixPos(location.end));
                 });
             }
 
@@ -516,17 +580,19 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(0, 0);
 
                 twCommandManager.execute(Commands.CMD_FIND);
+                // The previous search term "b" was pre-filled, so the editor was centered there already
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
                 expectMatchIndex(1, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(3);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
                 expectMatchIndex(2, 4);
@@ -539,24 +605,26 @@ define(function (require, exports, module) {
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(6);
             });
 
             it("should find all case-insensitive matches with mixed-case text", function () {
                 myEditor.setCursorPos(0, 0);
 
                 twCommandManager.execute(Commands.CMD_FIND);
+                // The previous search term "foo" was pre-filled, so the editor was centered there already
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 enterSearchText("Foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
                 expectMatchIndex(1, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(3);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
                 expectMatchIndex(2, 4);
@@ -569,7 +637,7 @@ define(function (require, exports, module) {
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(6);
             });
 
             it("should find all case-sensitive matches with mixed-case text", function () {
@@ -637,6 +705,8 @@ define(function (require, exports, module) {
                     myEditor.setCursorPos(0, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
+                    // The previous search term "Foo" was pre-filled, so the editor was centered there already
+                    expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                     enterSearchText("foo");
                     pressEscape();
@@ -647,12 +717,12 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
-                    expect(myEditor.centerOnCursor.calls.length).toEqual(1);
+                    expect(myEditor.centerOnCursor.calls.length).toEqual(2);
 
                     // Simple linear Find Next
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
-                    expect(myEditor.centerOnCursor.calls.length).toEqual(2);
+                    expect(myEditor.centerOnCursor.calls.length).toEqual(3);
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
                     expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
@@ -745,13 +815,13 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("shouldn't Find Next after search bar reopened", function () {
+            it("should remember the last search query", function () {
                 runs(function () {
                     myEditor.setCursorPos(0, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
 
-                    enterSearchText("foo");
+                    enterSearchText("Foo");
                     pressEscape();
                 });
 
@@ -764,20 +834,40 @@ define(function (require, exports, module) {
 
                     expectSearchBarOpen();
 
+                    expect(getSearchField().val()).toEqual("Foo");
+                    expectHighlightedMatches(capitalFooSelections);
+                    expectSelection(capitalFooSelections[0]);
+                    expectMatchIndex(0, 3);
+                    expect(myEditor.centerOnCursor.calls.length).toEqual(3);
+
                     expect(myEditor).toHaveCursorPosition(8, 8, true);
                     
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
+
                     expect(myEditor).toHaveCursorPosition(8, 8, true);
+                    expectSelection(capitalFooSelections[1]);
+                    expectMatchIndex(1, 3);
                 });
             });
 
             it("should open search bar on Find Next with no previous search", function () {
-                myEditor.setCursorPos(0, 0);
+                runs(function () {
+                    // Make sure we have no previous query
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    enterSearchText("");
+                    pressEscape();
+                });
 
-                twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                waitsForSearchBarClose();
 
-                expectSearchBarOpen();
-                expect(myEditor).toHaveCursorPosition(0, 0);
+                runs(function () {
+                    myEditor.setCursorPos(0, 0);
+
+                    twCommandManager.execute(Commands.CMD_FIND_NEXT);
+
+                    expectSearchBarOpen();
+                    expect(myEditor).toHaveCursorPosition(0, 0);
+                });
             });
 
             it("should select-all without affecting search state if Find invoked while search bar open", function () {  // #2478
@@ -856,16 +946,38 @@ define(function (require, exports, module) {
             });
 
             it("should use empty initial query for single cursor selection", function () {
-                myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START});
-                twCommandManager.execute(Commands.CMD_FIND);
-                expect(getSearchField().val()).toEqual("");
+                runs(function () {
+                    // Make sure we have no previous query
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    enterSearchText("");
+                    pressEscape();
+                });
+
+                waitsForSearchBarClose();
+
+                runs(function () {
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START});
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    expect(getSearchField().val()).toEqual("");
+                });
             });
 
             it("should use empty initial query for multiple cursor selection", function () {
-                myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
-                                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
-                twCommandManager.execute(Commands.CMD_FIND);
-                expect(getSearchField().val()).toEqual("");
+                runs(function () {
+                    // Make sure we have no previous query
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    enterSearchText("");
+                    pressEscape();
+                });
+
+                waitsForSearchBarClose();
+
+                runs(function () {
+                    myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
+                                            {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    expect(getSearchField().val()).toEqual("");
+                });
             });
 
             it("should get single selection as initial query", function () {
@@ -959,6 +1071,15 @@ define(function (require, exports, module) {
         describe("Terminating search", function () {
             it("shouldn't change selection on Escape after typing text, no Find Nexts", function () {
                 runs(function () {
+                    // Make sure we have no previous query
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    enterSearchText("");
+                    pressEscape();
+                });
+
+                waitsForSearchBarClose();
+
+                runs(function () {
                     myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
@@ -982,9 +1103,6 @@ define(function (require, exports, module) {
                     myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
-                    expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
-
-                    enterSearchText("require");
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
 
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
@@ -1001,13 +1119,24 @@ define(function (require, exports, module) {
             });
 
             it("should no-op on Find Next with blank search", function () {
-                myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
+                runs(function () {
+                    // Make sure we have no previous query
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    enterSearchText("");
+                    pressEscape();
+                });
 
-                twCommandManager.execute(Commands.CMD_FIND);
-                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
+                waitsForSearchBarClose();
 
-                twCommandManager.execute(Commands.CMD_FIND_NEXT);
-                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
+                runs(function () {
+                    myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
+
+                    twCommandManager.execute(Commands.CMD_FIND);
+                    expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
+
+                    twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                    expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
+                });
 
             });
         });
@@ -1247,6 +1376,28 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should not replace string if document is read only", function () {
+                runs(function () {
+                    myEditor._codeMirror.options.readOnly = true;
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    enterSearchText("foo");
+
+                    expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0, 4);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
+
+                    enterReplaceText("bar");
+
+                    tw$("#replace-yes").click();
+                    expectSelection(fooExpectedMatches[0]);
+                    expectMatchIndex(0, 4);
+
+                    myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
+                    expect(/bar/i.test(myEditor.getSelectedText())).toBe(false);
+                });
+            });
+
             it("should use replace keyboard shortcut for single Replace while search bar open", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
@@ -1444,7 +1595,7 @@ define(function (require, exports, module) {
                 twFindInFiles._replaceDone = false;
             });
 
-            it("should find and replace all", function () {
+            it("should find and replace all using replace all button", function () {
                 var searchText  = "require",
                     replaceText = "brackets.getModule";
                 runs(function () {
@@ -1457,6 +1608,37 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
+                });
+
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
+                    // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
+                    //       but not first instance of "require" in text
+                    expectTextAtPositions(replaceText, [
+                        {line: 1, ch: 17},
+                        {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START}
+                    ]);
+                });
+            });
+
+            it("should find and replace all using batch replace button", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
+                runs(function () {
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    enterSearchText(searchText);
+                    enterReplaceText(replaceText);
+
+                    expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
+                    expect(myEditor.getSelectedText()).toBe(searchText);
+
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1494,8 +1676,8 @@ define(function (require, exports, module) {
                     expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
                     expect(myEditor.getSelectedText()).toBe(searchText);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1520,8 +1702,8 @@ define(function (require, exports, module) {
                     expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
                     expect(myEditor.getSelectedText()).toBe(searchText);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1573,8 +1755,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1613,8 +1795,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1653,8 +1835,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1693,8 +1875,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1733,8 +1915,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {
@@ -1773,8 +1955,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$("#replace-batch").is(":enabled")).toBe(true);
+                    tw$("#replace-batch").click();
                 });
 
                 waitsFor(function () {

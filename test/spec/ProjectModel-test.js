@@ -21,8 +21,8 @@
  *
  */
 
-/* unittests: ProjectModel */
-/*global $, define, describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*global describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*unittests: ProjectModel */
 
 define(function (require, exports, module) {
     "use strict";
@@ -752,7 +752,7 @@ define(function (require, exports, module) {
                 it("adjusts the selection if a parent folder is renamed", function () {
                     spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
                     model.setSelected("/foo/afile.js");
-                    model.startRename("/foo");
+                    model.startRename("/foo/");
                     model.setRenameValue("bar");
                     model.performRename();
                     expect(model._selections.selected).toBe("/bar/afile.js");
@@ -761,7 +761,7 @@ define(function (require, exports, module) {
                 it("does not adjust the selection if renaming a parent folder fails", function () {
                     spyOn(model, "_renameItem").andReturn(new $.Deferred().reject().promise());
                     model.setSelected("/foo/afile.js");
-                    model.startRename("/foo");
+                    model.startRename("/foo/");
                     model.setRenameValue("bar");
                     model.performRename();
                     expect(model._selections.selected).toBe("/foo/afile.js");
@@ -789,7 +789,7 @@ define(function (require, exports, module) {
                     expect(vm._treeData.get("subdir1")).toBeUndefined();
                     expect(vm._treeData.get("somethingelse")).toBeDefined();
                     expect(vm._treeData.getIn(["somethingelse", "open"])).toBe(true);
-                    expect(model._renameItem).toHaveBeenCalledWith("/foo/subdir1/", "/foo/somethingelse/");
+                    expect(model._renameItem).toHaveBeenCalledWith("/foo/subdir1/", "/foo/somethingelse/", "somethingelse");
                 });
 
                 it("fails for invalid filenames", function () {

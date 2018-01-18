@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, $, beforeEach, afterEach, beforeFirst, afterLast, jasmine, brackets */
+/*global beforeEach, afterEach, beforeFirst, afterLast, jasmine */
 
 // Set the baseUrl to brackets/src
 require.config({
@@ -33,13 +32,18 @@ require.config({
         "spec"                          : "../test/spec",
         "text"                          : "thirdparty/text/text",
         "i18n"                          : "thirdparty/i18n/i18n",
-        "react"                         : "thirdparty/react",
         "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
-        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
+        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl",
+        "preact-compat"                 : "thirdparty/preact-compat/preact-compat.min",
+        "preact"                        : "thirdparty/preact/preact",
+        "preact-test-utils"             : "thirdparty/preact-test-utils/preact-test-utils",
+        "simulate-event"                : "thirdparty/simulate-event/simulate-event",
+        "xtend"                         : "thirdparty/xtend"
     },
     map: {
         "*": {
-            "thirdparty/react":	"react"
+            "thirdparty/preact"            : "preact-compat",
+            "thirdparty/preact-test-utils" : "preact-test-utils"
         }
     }
 });
@@ -69,6 +73,9 @@ define(function (require, exports, module) {
     require("utils/NodeDomain");
     require("utils/ColorUtils");
     require("preferences/PreferencesBase");
+    require("JSUtils/Session");
+    require("JSUtils/ScopeManager");
+    require("widgets/InlineMenu");
 
     // Load modules that self-register and just need to get included in the test-runner window
     require("document/ChangedDocumentTracker");
@@ -265,11 +272,11 @@ define(function (require, exports, module) {
         // Initiailize unit test preferences for each spec
         beforeEach(function () {
             // Unique key for unit testing
-            localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
+            window.localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
 
             // Reset preferences from previous test runs
-            localStorage.removeItem("doLoadPreferences");
-            localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
+            window.localStorage.removeItem("doLoadPreferences");
+            window.localStorage.removeItem(SpecRunnerUtils.TEST_PREFERENCES_KEY);
 
             SpecRunnerUtils.runBeforeFirst();
         });
@@ -277,7 +284,7 @@ define(function (require, exports, module) {
         // Revert unit test preferences after each spec
         afterEach(function () {
             // Clean up preferencesKey
-            localStorage.removeItem("preferencesKey");
+            window.localStorage.removeItem("preferencesKey");
 
             SpecRunnerUtils.runAfterLast();
         });
@@ -294,7 +301,7 @@ define(function (require, exports, module) {
     }
 
     function init() {
-        selectedSuites = (params.get("suite") || localStorage.getItem("SpecRunner.suite") || "unit").split(",");
+        selectedSuites = (params.get("suite") || window.localStorage.getItem("SpecRunner.suite") || "unit").split(",");
 
         // Create a top-level filter to show/hide performance and extensions tests
         var runAll = (selectedSuites.indexOf("all") >= 0);
@@ -365,10 +372,10 @@ define(function (require, exports, module) {
             // Jasmine this is part of the reporter, but we separate them out so that
             // we can more easily grab just the model data for output during automatic
             // testing.)
-            reporterView = new BootstrapReporterView(document, reporter);
+            reporterView = new BootstrapReporterView(window.document, reporter);
 
             // remember the suite for the next unit test window launch
-            localStorage.setItem("SpecRunner.suite", selectedSuites);
+            window.localStorage.setItem("SpecRunner.suite", selectedSuites);
 
             $(window.document).ready(_documentReadyHandler);
         });

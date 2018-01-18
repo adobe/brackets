@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define(function (require, exports, module) {
 
     "use strict";
@@ -34,6 +31,7 @@ define(function (require, exports, module) {
     // TODO: dynamically populate the local prefix list below?
     module.exports = {
         root: true,
+        "bg": true,
         "cs": true,
         "da": true,
         "de": true,
@@ -54,6 +52,7 @@ define(function (require, exports, module) {
         "sv": true,
         "zh-cn": true,
         "zh-tw": true,
-        "tr": true
+        "tr": true,
+        "uk": true
     };
 });

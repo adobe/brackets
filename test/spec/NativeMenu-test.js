@@ -21,17 +21,15 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets */
+/*global describe, it, expect, beforeEach, afterEach, waitsFor, runs */
 
 define(function (require, exports, module) {
     'use strict';
 
     require("utils/Global");
 
-    // Don't run tests when running in browser or linux
-    if (brackets.inBrowser || brackets.platform === "linux") {
+    // Don't run tests when running in browser
+    if (brackets.inBrowser) {
         return;
     }
 

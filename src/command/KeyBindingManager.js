@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*jslint regexp: true */
 /*unittests: KeyBindingManager */
 
 /**
@@ -577,7 +575,7 @@ define(function (require, exports, module) {
         var normalizedKey = normalizeKeyDescriptorString(key);
 
         if (!normalizedKey) {
-            console.log("Fail to nomalize " + key);
+            console.log("Failed to normalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
             var binding = _keyMap[normalizedKey],
                 command = CommandManager.get(binding.commandID),
@@ -646,7 +644,7 @@ define(function (require, exports, module) {
             bindingsToDelete = [],
             existing;
 
-        // For platform: "all", use explicit current plaform
+        // For platform: "all", use explicit current platform
         if (explicitPlatform && explicitPlatform !== "all") {
             targetPlatform = explicitPlatform;
         } else {

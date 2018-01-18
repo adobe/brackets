@@ -20,9 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, maxerr: 50 */
-/*global $, jasmine, define, describe, it, expect, beforeEach, afterEach, runs, waitsFor */
+/*global jasmine, describe, it, expect, beforeEach, afterEach, runs, waitsFor */
 
 define(function (require, exports, module) {
     'use strict';
@@ -51,7 +49,8 @@ define(function (require, exports, module) {
                 formatter: function (item) { return "<li>" + item + "</li>"; },
                 resultProvider: function (query) { return provider(query); },
                 onCommit: function (item, query) { return onCommit(item, query); },
-                onHighlight: jasmine.createSpy()
+                onHighlight: jasmine.createSpy(),
+                firstHighlightIndex: 0
             };
             searchField = new QuickSearchField($mockInput, options);
 

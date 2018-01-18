@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
-
 /**
  * Initializes the default brackets menu items.
  */
@@ -34,7 +30,37 @@ define(function (require, exports, module) {
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
         Menus           = require("command/Menus"),
-        Strings         = require("strings");
+        Strings         = require("strings"),
+        MainViewManager = require("view/MainViewManager"),
+        CommandManager  = require("command/CommandManager");
+
+    /**
+     * Disables menu items present in items if enabled is true.
+     * enabled is true if file is saved and present on user system.
+     * @param {boolean} enabled
+     * @param {array} items
+     */
+    function _setContextMenuItemsVisible(enabled, items) {
+        items.forEach(function (item) {
+            CommandManager.get(item).setEnabled(enabled);
+        });
+    }
+    
+    /**
+     * Checks if file saved and present on system and
+     * disables menu items accordingly
+     */
+    function _setMenuItemsVisible() {
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
+        if (file) {
+            file.exists(function (err, isPresent) {
+                if (err) {
+                    return err;
+                }
+                _setContextMenuItemsVisible(isPresent, [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS]);   
+            });
+        }
+    }
 
     AppInit.htmlReady(function () {
         /*
@@ -256,6 +282,12 @@ define(function (require, exports, module) {
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
+        editor_cmenu.addMenuDivider();
+        editor_cmenu.addMenuItem(Commands.EDIT_CUT);
+        editor_cmenu.addMenuItem(Commands.EDIT_COPY);
+        editor_cmenu.addMenuItem(Commands.EDIT_PASTE);
+
+        editor_cmenu.addMenuDivider();
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
         var inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
@@ -284,17 +316,13 @@ define(function (require, exports, module) {
                     inlineWidget = EditorManager.getFocusedInlineWidget();
 
                 if (editor) {
-                    // If there's just an insertion point select the word token at the cursor pos so
-                    // it's more clear what the context menu applies to.
-                    if (!editor.hasSelection()) {
-                        editor.selectWordAt(editor.getCursorPos());
-
+                    //if (!editor.hasSelection()) {
                         // Prevent menu from overlapping text by moving it down a little
                         // Temporarily backout this change for now to help mitigate issue #1111,
                         // which only happens if mouse is not over context menu. Better fix
                         // requires change to bootstrap, which is too risky for now.
                         //e.pageY += 6;
-                    }
+                    //}
 
                     // Inline text editors have a different context menu (safe to assume it's not some other
                     // type of inline widget since we already know an Editor has focus)
@@ -343,5 +371,9 @@ define(function (require, exports, module) {
                 $(this).addClass("open");
             }
         });
+        // Check the visibility of context menu items before opening the context menu.
+        // 'Rename', 'Show in file tree' and 'Show in explorer' items will be disabled for files that have not yet been saved to disk.
+        Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);        
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
     });
 });

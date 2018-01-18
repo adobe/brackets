@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst */
+/*global describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst */
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {
@@ -878,6 +877,32 @@ define(function (require, exports, module) {
                 expect(pm.get("spaceUnits")).toBe(2);
                 expect(pm.get("useTabChar")).toBe(true);
                 expect(pm.get("tabSize")).toBe(8);
+            });
+            
+            it("should extend Preference Objects from base", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                pm.definePreference("closeTags", "object", {
+                    "dontCloseTags": [],
+                    "indentTags": [],
+                    "whenClosing": true,
+                    "whenOpening": true
+                });
+                var userScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage());
+                pm.addScope("user", userScope);
+
+                var userLocation = {
+                    location: {
+                        scope: "user"
+                    }
+                };
+                pm.set("closeTags", { "whenOpening": false }, userLocation);
+
+                expect(pm.get("closeTags")).toEqual({
+                    "dontCloseTags": [],
+                    "indentTags": [],
+                    "whenClosing": true,
+                    "whenOpening": false
+                });
             });
 
             it("handles asynchronously loaded scopes", function () {

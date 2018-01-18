@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -118,7 +115,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "¿Queres gardar os cambios existentes no documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Queres gardar os teus cambios nos seguintes documentos?",
     "EXT_MODIFIED_TITLE"                : "Cambios externos",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
+    "CONFIRM_DELETE_TITLE"              : "Confirmar eliminación",
     "CONFIRM_FOLDER_DELETE"             : "¿Está seguro de que desexa eliminar o directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Arquivo eliminado",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> foi modificado no disco.<br /><br />¿Desexa gardar o arquivo e sobrescribir eses cambios?",
@@ -425,7 +422,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Podes atopar a documentación e código fonte en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Feito con \u2764 e JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Moita xente (pero agora mesmo estamos tendo problemas para cargar eses datos).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "O contido de Web Platform Docs e o logo de Web Platform están dispoñibles baixo unha Licencia de Recoñecemento de Creative Commons, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "O contido de MDN Docs e o logo de MDN están dispoñibles baixo unha Licencia de Recoñecemento de Creative Commons, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hai unha nova versión de {APP_NAME} dispoñible! Fai click aquí para máis detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización dispoñible",
     "UPDATE_MESSAGE"                       : "¡Hai unha nova versión de {APP_NAME} dispoñible! Éstas son algunas das novas características:",
@@ -608,7 +605,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proxectos recentes",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Máis"
 });
 

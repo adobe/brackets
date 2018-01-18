@@ -21,12 +21,9 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
     // Relative to the samples folder
     "GETTING_STARTED"           : "sv/Kom igang",
     "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_sv/",
-    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.sv"
+    "MDN_DOCS_LICENSE"          : "http://creativecommons.org/licenses/by-sa/2.5/deed.sv"
 });

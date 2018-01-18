@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * Implements a jQuery-like event dispatch pattern for non-DOM objects:
  *  - Listeners are attached via on()/one() & detached via off()
@@ -132,7 +128,7 @@ define(function (require, exports, module) {
     /**
      * Removes one or more handler functions based on the space-separated 'events' list. Each item in
      * 'events' can be: bare event name, bare .namespace, or event.namespace pair. This yields a set of
-     * matching handlers. If 'fn' is ommitted, all these handlers are removed. If 'fn' is provided,
+     * matching handlers. If 'fn' is omitted, all these handlers are removed. If 'fn' is provided,
      * only handlers exactly equal to 'fn' are removed (there may still be >1, if duplicates were added).
      * @param {string} events
      * @param {?function(!{type:string, target:!Object}, ...)} fn

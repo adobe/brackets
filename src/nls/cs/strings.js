@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložit změny v souboru <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložit změny v následujících souborech?",
     "EXT_MODIFIED_TITLE"                : "Externí změny",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdit smazání",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdit smazání",
     "CONFIRM_FOLDER_DELETE"             : "Opravdu chcete smazat složku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Soubor smazán",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> byl změněn mimo {APP_NAME}.<br /><br />Chcete uložit soubor a přepsat tyto změny?",
@@ -451,7 +448,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na stránce <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScriptu těmito lidmi:",
     "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a Web Platform logo využívají licenci Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs a MDN logo využívají licenci Creative Commons Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Je dostupná nová verze {APP_NAME}! Klikněte zde pro více informací.",
     "UPDATE_AVAILABLE_TITLE"               : "Dostupná aktualizace",
     "UPDATE_MESSAGE"                       : "Nová verze {APP_NAME} je dostupná. Seznam některých vylepšení:",
@@ -662,7 +659,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Více",
 
     // extensions/default/CodeFolding

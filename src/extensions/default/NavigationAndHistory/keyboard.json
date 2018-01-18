@@ -1,0 +1,49 @@
+{
+    "recent-files.show": [
+        "Alt-O"
+    ],
+    "recent-files.next":  [
+        {
+            "key": "Ctrl-Tab"
+        },
+        {
+            "key": "Ctrl-Tab",
+            "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-]",
+            "platform": "mac"
+        }
+    ],
+    "recent-files.prev":  [
+        {
+            "key": "Ctrl-Shift-Tab"
+        },
+        {
+            "key": "Ctrl-Shift-Tab",
+            "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-[",
+            "platform": "mac"
+        }
+    ],
+    "navigation.jump.back":  [
+        {
+            "key": "Alt-I"
+        },
+        {
+            "key": "Cmd-Alt-Left",
+            "platform": "mac"
+        }
+    ],
+    "navigation.jump.fwd":  [
+        {
+            "key": "Alt-Shift-I"
+        },
+        {
+            "key": "Cmd-Alt-Right",
+            "platform": "mac"
+        }
+    ]
+}
