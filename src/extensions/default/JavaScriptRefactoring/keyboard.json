@@ -1,9 +1,9 @@
 {
     "extractToVariable":  [
-        "Ctrl-Shift-V"
+        "Ctrl-Alt-V"
     ],
     "extractToFunction":  [
-        "Ctrl-Shift-M"
+        "Ctrl-Alt-M"
     ],
     "renameIdentifier": [
         {

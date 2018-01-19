@@ -501,17 +501,25 @@ a:focus {
 
         // Styles used for inlinemenu widget header
         li.inlinemenu-header a {
-            background-color: @bc-inlinemenu-bg;
+            background-color: @bc-bg-tool-bar;
+            color: @bc-inlinemenu-text;
+            padding-bottom: 5px;
 
             .dark & {
-                background-color: @dark-bc-inlinemenu-bg;
+                background-color: @dark-bc-bg-tool-bar;
+                color: @dark-bc-inlinemenu-text;
+                padding-bottom: 5px;
             }
 
             &:hover {
-                background-color: @bc-inlinemenu-bg;
+                background-color: @bc-bg-tool-bar;
+                color: @bc-inlinemenu-text;
+                padding-bottom: 5px;
 
                 .dark & {
-                    background-color: @dark-bc-inlinemenu-bg;
+                    background-color: @dark-bc-bg-tool-bar;
+                    color: @dark-bc-inlinemenu-text;
+                    padding-bottom: 5px;
                 }
             }
         }
@@ -520,7 +528,7 @@ a:focus {
             a {
                 // Less padding than on menus. More padding on top than bottom
                 // to center font within its bg highlight better.
-                padding: 2px 20px 0 0;
+                padding: 2px 20px 4px 0;
 
                 // Don't show highlighting on hover for code hints...
                 &:hover {
