@@ -688,7 +688,7 @@ define({
 	"CMD_REFACTORING_RENAME": "ファイル名変更",
 	"CMD_REFACTORING_TRY_CATCH": "Try Catch で囲む",
 	"CMD_REFACTORING_CONDITION": "Condition で囲む",
-	"CMD_REFACTORING_GETTERS_SETTERS": "Create Getters/Setters",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Getters Setters を作成",
 	"CMD_REFACTORING_ARROW_FUNCTION": "Arrow Function へ変換",
 	"DESCRIPTION_CODE_REFACTORING": "JavaScript のコードリファクタリングを有効化または無効化します",
 	"ERROR_TRY_CATCH": "有効なコードを選択して、Try-catch ブロックで囲みます",

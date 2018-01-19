@@ -688,7 +688,7 @@ define({
 	"CMD_REFACTORING_RENAME": "Renommer",
 	"CMD_REFACTORING_TRY_CATCH": "Encapsuler dans Try/Catch",
 	"CMD_REFACTORING_CONDITION": "Encapsuler dans Condition",
-	"CMD_REFACTORING_GETTERS_SETTERS": "Create Getters/Setters",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Créer des getters/setters",
 	"CMD_REFACTORING_ARROW_FUNCTION": "Convertir en fonction de flèche",
 	"DESCRIPTION_CODE_REFACTORING": "Activer/désactiver le remaniement de code JavaScript",
 	"ERROR_TRY_CATCH": "Sélectionner un code valide à encapsuler dans un bloc Try/Catch",
