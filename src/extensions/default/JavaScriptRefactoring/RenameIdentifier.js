@@ -97,7 +97,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         function isInSameFile(obj, refsResp) {
-            return (obj && obj.file === refsResp.file);
+            // In case of unsaved files, After renameing once Tern is returning filename without forward slash
+            return (obj && (obj.file === refsResp.file || obj.file === refsResp.file.slice(1, refsResp.file.length)));
         }
 
         /**
