@@ -26,7 +26,12 @@
 
 "use strict";
 
-var fs = require("fs-extra");
+var fs = require("fs-extra"),
+    os = require("os");
+
+function getSystemTempDir(cb) {
+    cb(null, os.tmpdir());
+}
 
 function remove(path, cb) {
     fs.remove(path, cb);
@@ -95,6 +100,20 @@ function init(domainManager) {
                 name: "dest",
                 type: "string",
                 description: "destination path"
+            }
+        ]
+    );
+    domainManager.registerCommand(
+        "testing",
+        "tmpdir",
+        getSystemTempDir,
+        true,
+        "The default os tmpdir",
+        [
+            {
+                name: "tmpdir",
+                type: "string",
+                description: "default temp directory"
             }
         ]
     );

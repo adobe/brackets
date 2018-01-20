@@ -45,12 +45,13 @@ define(function (require, exports, module) {
         EDITOR_SPACE_UNITS      = 4,
         OPEN_TAG                = "{{",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
-        absPathPrefix           = (brackets.platform === "win" ? "c:/" : "/"),
         _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
+    
+    var _systemTempDir;
 
     MainViewManager._initialize($("#mock-main-view"));
 
@@ -147,6 +148,35 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Determine the system temp directory.
+     *
+     * @return {string} path to system temp directory
+     */
+    function getSystemTmpDir() {
+        return testDomain().tmpdir();
+    }
+
+    /**
+     * Determine the system temp directory and sets the global var.
+     * This will be called before the test run starts from SpecRunner.js
+     */
+    function initializeSystemTempDirectory() {
+        var result = new $.Deferred();
+
+        runs(function () {
+            getSystemTmpDir().done(function (tmpDir) {
+                _systemTempDir = tmpDir;
+
+                result.resolve(tmpDir);
+            }).fail( function (err) {
+                result.reject(err);
+            });
+        });
+
+        waitsForDone(result.promise(), "Set the system temp directory");
+    }
+
+    /**
      * Resolves a path string to a File or Directory
      * @param {!string} path Path to a file or directory
      * @return {$.Promise} A promise resolved when the file/directory is found or
@@ -165,7 +195,6 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-
 
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
@@ -200,7 +229,7 @@ define(function (require, exports, module) {
         });
         waitsFor(function () {
             return promise.state() === "rejected";
-        }, "failure " + operationName, timeout);
+        }, "failure [" + operationName + "]", timeout);
     };
 
     /**
@@ -335,6 +364,47 @@ define(function (require, exports, module) {
         return path.join("/");
     }
 
+    function createTempFile(file) {
+        var deferred = new $.Deferred();
+
+        runs(function () {
+            var parentPath = _getFileSystem().getDirectoryForPath(file.parentPath);
+
+            parentPath.create(function (err) {
+                if (err) {
+                    deferred.reject(err);
+                } else {
+                    FileUtils.writeText(file, "").then(deferred.resolve, deferred.reject);
+                }
+            });
+        });
+
+        waitsForDone(deferred.promise(), "Create temp file");
+    }
+
+    /**
+     * Generate a test document directory name.
+     */
+    function getTestDocumentsTempFolder() {
+        return _systemTempDir + "/_unitTestDummyPath_/";
+    }
+
+    /**
+     * Remove the test document temp directory after we are done with the tests
+     *
+     * This function will be called from SpecRunner.js after the tests have finished.
+     */
+    function removeTestDocumentsTempFolder() {
+        var deferred = new $.Deferred();
+
+        runs(function () {
+            var path = _getFileSystem().getDirectoryForPath(getTestDocumentsTempFolder());
+            remove(path.fullPath.slice(0, path.fullPath.length - 1)).then(deferred.resolve, deferred.reject);
+        });
+
+        waitsForDone(deferred.promise(), "Remove test documents temp directory");
+    }
+
     /**
      * Returns a Document suitable for use with an Editor in isolation, but that can be registered with
      * DocumentManager via addRef() so it is maintained for global updates like name and language changes.
@@ -347,11 +417,17 @@ define(function (require, exports, module) {
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
-            filename    = options.filename || (absPathPrefix + "_unitTestDummyPath_/_dummyFile_" + Date.now() + "." + language._fileExtensions[0]),
+            filename    = options.filename || (getTestDocumentsTempFolder() + "_dummyFile_" + Date.now() + "." + language._fileExtensions[0]),
             content     = options.content || "";
+
+        // always create test files in temp folder
+        if (options.filename) {
+            filename = getTestDocumentsTempFolder() + options.filename;
+        }
 
         // Use unique filename to avoid collissions in open documents list
         var dummyFile = _getFileSystem().getFileForPath(filename);
+        createTempFile(dummyFile);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
 
         // Prevent adding doc to working set by not dispatching "dirtyFlagChange".
@@ -1431,4 +1507,6 @@ define(function (require, exports, module) {
     exports.removeTempDirectory             = removeTempDirectory;
     exports.setUnitTestReporter             = setUnitTestReporter;
     exports.resizeEditor                    = resizeEditor;
+    exports.initializeSystemTempDirectory   = initializeSystemTempDirectory;
+    exports.removeTestDocumentsTempFolder   = removeTestDocumentsTempFolder;
 });

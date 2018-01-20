@@ -292,11 +292,13 @@ define(function (require, exports, module) {
         // Delete temp folder before running the first test
         beforeFirst(function () {
             SpecRunnerUtils.removeTempDirectory();
+            SpecRunnerUtils.initializeSystemTempDirectory();
         });
 
         // Delete temp folder after running the last test
         afterLast(function () {
             SpecRunnerUtils.removeTempDirectory();
+            SpecRunnerUtils.removeTestDocumentsTempFolder();
         });
     }
 
@@ -379,7 +381,6 @@ define(function (require, exports, module) {
 
             $(window.document).ready(_documentReadyHandler);
         });
-
 
         // Prevent clicks on any link from navigating to a different page (which could lose unsaved
         // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
