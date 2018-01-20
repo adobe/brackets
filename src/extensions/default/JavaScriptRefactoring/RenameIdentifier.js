@@ -89,7 +89,7 @@ define(function (require, exports, module) {
 
         function isInSameFile(obj, refsResp) {
             // In case of unsaved files, After renameing once Tern is returning filename without forward slash
-            return (obj && (obj.file === refsResp.file || (obj.file === refsResp.file.slice(1, refsResp.file.length))));
+            return (obj && (obj.file === refsResp.file || obj.file === refsResp.file.slice(1, refsResp.file.length)));
         }
 
         /**
