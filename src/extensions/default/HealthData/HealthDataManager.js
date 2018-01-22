@@ -24,7 +24,6 @@
 /*global define, $, brackets,navigator, console, appshell */
 define(function (require, exports, module) {
     "use strict";
-
     var AppInit             = brackets.getModule("utils/AppInit"),
         HealthLogger        = brackets.getModule("utils/HealthLogger"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
@@ -51,7 +50,7 @@ define(function (require, exports, module) {
     function getHealthData() {
         var result = new $.Deferred(),
             oneTimeHealthData = {};
-
+         
         oneTimeHealthData.snapshotTime = Date.now();
         oneTimeHealthData.os = brackets.platform;
         oneTimeHealthData.userAgent = window.navigator.userAgent;
@@ -59,7 +58,6 @@ define(function (require, exports, module) {
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
         $.extend(oneTimeHealthData, HealthLogger.getAggregatedHealthData());
-
         HealthDataUtils.getUserInstalledExtensions()
             .done(function (userInstalledExtensions) {
                 oneTimeHealthData.installedExtensions = userInstalledExtensions;
@@ -121,15 +119,60 @@ define(function (require, exports, module) {
 
                                 PreferencesManager.setViewState("UUID",      oneTimeHealthData.uuid);
                                 PreferencesManager.setViewState("OlderUUID", oneTimeHealthData.olderuuid);
-
                                 return result.resolve(oneTimeHealthData);
                             }
                         }
                     });
 
             });
-
         return result.promise();
+    }
+    
+    //Get Analytics data
+    
+    function getAnalyticsData(category, subcategory, type, subtype) {
+        var userUuid = PreferencesManager.getViewState("UUID"),
+            olderUuid = PreferencesManager.getViewState("OlderUUID"),
+            isoDate = new Date().toISOString(),
+            userAgent = window.navigator.userAgent,
+            isNeedToSetViewState = false;
+        if (!userUuid) {
+            userUuid = uuid.v4();
+            isNeedToSetViewState = true;
+        }
+        if (olderUuid !== userUuid && olderUuid) {
+            userUuid = olderUuid;
+            isNeedToSetViewState = true;
+        } else {
+            olderUuid = userUuid;
+        }
+        if (isNeedToSetViewState) {
+            PreferencesManager.setViewState("UUID", userUuid);
+            PreferencesManager.setViewState("OlderUUID", olderUuid);
+        }
+        if (!userAgent) {
+            userAgent = "";
+        }
+        return {
+            project: brackets.config.projectName,
+            environment: "stage",
+            time: isoDate,
+            ingesttype: "dunamis",
+            data: {
+                "event.guid": uuid.v4(),
+                "event.user_guid": userUuid,
+                "event.dts_end": isoDate,
+                "event.category": category,
+                "event.subcategory": subcategory,
+                "event.type": type,
+                "event.subtype": subtype,
+                "event.user_agent": userAgent,
+                "event.language": brackets.app.language,
+                "source.name": brackets.metadata.version,
+                "source.platform": brackets.platform,
+                "source.version": brackets.metadata.version
+            }
+        };
     }
 
     /**
@@ -164,7 +207,19 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-
+    // Send the Analytics data to Server
+    function sendAnalyticsDataToServer(category, subcategory, type, subtype) {
+        var healthData = getAnalyticsData(category, subcategory, type, subtype),
+            xhr = new XMLHttpRequest(),
+            url = brackets.config.analyticsDataServerURL,
+            body;
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("x-api-key", brackets.config.projectName);
+        body =  {events: [healthData]};
+        xhr.send(JSON.stringify(body));
+    }
+    
     /*
      * Check if the Health Data is to be sent to the server. If the user has enabled tracking, Health Data will be sent once every 24 hours.
      * Send Health Data to the server if the period is more than 24 hours.
@@ -179,6 +234,7 @@ define(function (require, exports, module) {
 
         HealthLogger.setHealthLogsEnabled(isHDTracking);
         window.clearTimeout(timeoutVar);
+         sendAnalyticsDataToServer("pingData", "", "", "");
         if (isHDTracking) {
             nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime");
             currentTime    = Date.now();
@@ -195,6 +251,9 @@ define(function (require, exports, module) {
                 // Bump up nextHealthDataSendTime now to avoid any chance of sending data again before 24 hours, e.g. if the server request fails
                 // or the code below crashes
                 PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
+                try {
+                    sendAnalyticsDataToServer("pingData", "", "", "");
+                } catch (e) {}
 
                 sendHealthDataToServer()
                     .done(function () {
@@ -238,5 +297,6 @@ define(function (require, exports, module) {
     });
 
     exports.getHealthData = getHealthData;
+    exports.getAnalyticsData = getAnalyticsData;
     exports.checkHealthDataSend = checkHealthDataSend;
 });
