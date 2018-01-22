@@ -98,7 +98,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_TOGGLE_LINE_NUMBERS, Commands.TOGGLE_LINE_NUMBERS, _getToggler(SHOW_LINE_NUMBERS));
     CommandManager.register(Strings.CMD_TOGGLE_ACTIVE_LINE, Commands.TOGGLE_ACTIVE_LINE, _getToggler(STYLE_ACTIVE_LINE));
     CommandManager.register(Strings.CMD_TOGGLE_WORD_WRAP, Commands.TOGGLE_WORD_WRAP, _getToggler(WORD_WRAP));
-    CommandManager.register("Always show full file path", Commands.TOGGLE_ALWAYS_SHOW_FULL_FILE_PATH, _getToggler(ALWAYS_SHOW_FULL_FILE_PATH));
+    CommandManager.register(Strings.CMD_ALWAYS_SHOW_FULL_FILE_PATH, Commands.TOGGLE_ALWAYS_SHOW_FULL_FILE_PATH, _getToggler(ALWAYS_SHOW_FULL_FILE_PATH));
     CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _getToggler(CLOSE_BRACKETS));
 
     AppInit.htmlReady(_init);
