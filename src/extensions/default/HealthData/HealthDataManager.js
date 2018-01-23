@@ -250,14 +250,12 @@ define(function (require, exports, module) {
                 // Bump up nextHealthDataSendTime now to avoid any chance of sending data again before 24 hours, e.g. if the server request fails
                 // or the code below crashes
                 PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
-                try {
-                    sendAnalyticsDataToServer("pingData", "", "", "");
-                } catch (e) {}
-
                 sendHealthDataToServer()
                     .done(function () {
-                        // We have already sent the health data, so can clear all health data
-                        // Logged till now
+                    // We have already sent the health data, so can clear all health data
+                    // Logged till now
+                        try { sendAnalyticsDataToServer("pingData", "", "", "");
+                            } catch (e) {}
                         HealthLogger.clearHealthData();
                         result.resolve();
                     })
