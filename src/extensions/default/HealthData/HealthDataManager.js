@@ -154,7 +154,7 @@ define(function (require, exports, module) {
             userAgent = "";
         }
         return {
-            project: brackets.config.projectName,
+            project: brackets.config.serviceKey,
             environment: "stage",
             time: isoDate,
             ingesttype: "dunamis",
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
             body;
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.setRequestHeader("x-api-key", brackets.config.projectName);
+        xhr.setRequestHeader("x-api-key", brackets.config.serviceKey);
         body =  {events: [healthData]};
         xhr.send(JSON.stringify(body));
     }
