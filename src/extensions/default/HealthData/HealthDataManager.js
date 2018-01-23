@@ -136,7 +136,7 @@ define(function (require, exports, module) {
 
         return {
             project: brackets.config.serviceKey,
-            environment: "stage",
+            environment: "production",
             time: new Date().toISOString(),
             ingesttype: "dunamis",
             data: {
