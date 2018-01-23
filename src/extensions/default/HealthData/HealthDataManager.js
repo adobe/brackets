@@ -155,7 +155,7 @@ define(function (require, exports, module) {
         }
         return {
             project: brackets.config.serviceKey,
-            environment: "stage",
+            environment: "production",
             time: isoDate,
             ingesttype: "dunamis",
             data: {
