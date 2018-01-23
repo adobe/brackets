@@ -28,6 +28,7 @@ define(function (require, exports, module) {
         HealthLogger        = brackets.getModule("utils/HealthLogger"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
+        Async               = brackets.getModule("utils/Async"),
         Strings             = brackets.getModule("strings"),
         HealthDataUtils     = require("HealthDataUtils"),
         uuid                = require("thirdparty/uuid"),
@@ -128,45 +129,25 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    //Get Analytics data
-    
-    function getAnalyticsData(category, subcategory, type, subtype) {
+    // Get Analytics data
+    function getAnalyticsData() {
         var userUuid = PreferencesManager.getViewState("UUID"),
-            olderUuid = PreferencesManager.getViewState("OlderUUID"),
-            isoDate = new Date().toISOString(),
-            userAgent = window.navigator.userAgent,
-            isNeedToSetViewState = false;
-        if (!userUuid) {
-            userUuid = uuid.v4();
-            isNeedToSetViewState = true;
-        }
-        if (olderUuid !== userUuid && olderUuid) {
-            userUuid = olderUuid;
-            isNeedToSetViewState = true;
-        } else {
-            olderUuid = userUuid;
-        }
-        if (isNeedToSetViewState) {
-            PreferencesManager.setViewState("UUID", userUuid);
-            PreferencesManager.setViewState("OlderUUID", olderUuid);
-        }
-        if (!userAgent) {
-            userAgent = "";
-        }
+            olderUuid = PreferencesManager.getViewState("OlderUUID");
+
         return {
             project: brackets.config.serviceKey,
             environment: "stage",
-            time: isoDate,
+            time: new Date().toISOString(),
             ingesttype: "dunamis",
             data: {
                 "event.guid": uuid.v4(),
-                "event.user_guid": userUuid,
-                "event.dts_end": isoDate,
-                "event.category": category,
-                "event.subcategory": subcategory,
-                "event.type": type,
-                "event.subtype": subtype,
-                "event.user_agent": userAgent,
+                "event.user_guid": olderUuid || userUuid,
+                "event.dts_end": new Date().toISOString(),
+                "event.category": "pingData",
+                "event.subcategory": "",
+                "event.type": "",
+                "event.subtype": "",
+                "event.user_agent": window.navigator.userAgent || "",
                 "event.language": brackets.app.language,
                 "source.name": brackets.metadata.version,
                 "source.platform": brackets.platform,
@@ -207,17 +188,30 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-    // Send the Analytics data to Server
-    function sendAnalyticsDataToServer(category, subcategory, type, subtype) {
-        var healthData = getAnalyticsData(category, subcategory, type, subtype),
-            xhr = new XMLHttpRequest(),
-            url = brackets.config.analyticsDataServerURL,
-            body;
-        xhr.open("POST", url, true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.setRequestHeader("x-api-key", brackets.config.serviceKey);
-        body =  {events: [healthData]};
-        xhr.send(JSON.stringify(body));
+
+    // Send Analytics data to Server
+    function sendAnalyticsDataToServer() {
+        var result = new $.Deferred();
+
+        var analyticsData = getAnalyticsData();
+        $.ajax({
+            url: brackets.config.analyticsDataServerURL,
+            type: "POST",
+            data: JSON.stringify({events: [analyticsData]}),
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": brackets.config.serviceKey
+            }
+        })
+            .done(function () {
+                result.resolve();
+            })
+            .fail(function (jqXHR, status, errorThrown) {
+                console.error("Error in sending Adobe Analytics Data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
+                result.reject();
+            });
+
+        return result.promise();
     }
     
     /*
@@ -247,15 +241,13 @@ define(function (require, exports, module) {
             }
 
             if (currentTime >= nextTimeToSend) {
-                // Bump up nextHealthDataSendTime now to avoid any chance of sending data again before 24 hours, e.g. if the server request fails
-                // or the code below crashes
-                PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
-                sendHealthDataToServer()
+                // Bump up nextHealthDataSendTime at the begining of chaining to avoid any chance of sending data again before 24 hours, // e.g. if the server request fails or the code below crashes
+                Async.doSequentially([sendHealthDataToServer, sendAnalyticsDataToServer], function () {
+                    PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
+                })
                     .done(function () {
-                    // We have already sent the health data, so can clear all health data
-                    // Logged till now
-                        try { sendAnalyticsDataToServer("pingData", "", "", "");
-                            } catch (e) {}
+                        // We have already sent the health data, so can clear all health data
+                        // Logged till now
                         HealthLogger.clearHealthData();
                         result.resolve();
                     })
