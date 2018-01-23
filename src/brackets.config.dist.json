@@ -1,3 +1,5 @@
 {
-    "healthDataServerURL"        : "https://health.brackets.io/healthDataLog"
+    "healthDataServerURL"        : "https://health.brackets.io/healthDataLog",
+	"analyticsDataServerURL"     : "https://cc-api-data.adobe.io/ingest",
+    "projectName"                : "brackets-service" 
 }

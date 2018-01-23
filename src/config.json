@@ -22,7 +22,7 @@
         "build_timestamp": "",
         "healthDataServerURL": "https://healthdev.brackets.io/healthDataLog",
         "analyticsDataServerURL" : "https://cc-api-data-stage.adobe.io/ingest/",
-        "projectName" : "brackets-service" 
+        "projectName": "brackets-service"
     },
     "name": "Brackets",
     "version": "1.12.0-0",
