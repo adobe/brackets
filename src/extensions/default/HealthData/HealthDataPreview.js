@@ -48,7 +48,6 @@ define(function (require, exports, module) {
             var combinedHealthAnalyticsData = HealthDataManager.getAnalyticsData("pingData", "", "", ""),
                 content;
             combinedHealthAnalyticsData = [healthDataObject, combinedHealthAnalyticsData ];
-            combinedHealthAnalyticsData.join("\n\n");
             content = JSON.stringify(combinedHealthAnalyticsData, null, 4);
             content = _.escape(content);
             content = content.replace(/ /g, "&nbsp;");

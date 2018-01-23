@@ -234,7 +234,6 @@ define(function (require, exports, module) {
 
         HealthLogger.setHealthLogsEnabled(isHDTracking);
         window.clearTimeout(timeoutVar);
-         sendAnalyticsDataToServer("pingData", "", "", "");
         if (isHDTracking) {
             nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime");
             currentTime    = Date.now();
