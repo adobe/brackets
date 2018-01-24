@@ -244,8 +244,8 @@ define(function (require, exports, module) {
             if (currentTime >= nextTimeToSend || forceSend) {
                 // Bump up nextHealthDataSendTime at the begining of chaining to avoid any chance of sending data again before 24 hours, // e.g. if the server request fails or the code below crashes
                 PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
-                sendAnalyticsDataToServer().always(function() {
-                    sendHealthDataToServer()
+                sendHealthDataToServer().always(function() {
+                    sendAnalyticsDataToServer()
                     .done(function () {
                         // We have already sent the health data, so can clear all health data
                         // Logged till now
