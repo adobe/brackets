@@ -21,7 +21,7 @@
  *
  */
 
-/*global define, $, brackets,navigator, console, appshell */
+/*global define, $, brackets, console, appshell */
 define(function (require, exports, module) {
     "use strict";
     var AppInit             = brackets.getModule("utils/AppInit"),
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
     function getHealthData() {
         var result = new $.Deferred(),
             oneTimeHealthData = {};
-         
+
         oneTimeHealthData.snapshotTime = Date.now();
         oneTimeHealthData.os = brackets.platform;
         oneTimeHealthData.userAgent = window.navigator.userAgent;
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
             });
         return result.promise();
     }
-    
+
     // Get Analytics data
     function getAnalyticsData() {
         var userUuid = PreferencesManager.getViewState("UUID"),
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
 
         return {
             project: brackets.config.serviceKey,
-            environment: "production",
+            environment: brackets.config.environment,
             time: new Date().toISOString(),
             ingesttype: "dunamis",
             data: {
@@ -213,14 +213,15 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-    
+
     /*
      * Check if the Health Data is to be sent to the server. If the user has enabled tracking, Health Data will be sent once every 24 hours.
      * Send Health Data to the server if the period is more than 24 hours.
      * We are sending the data as soon as the user launches brackets. The data will be sent to the server only after the notification dialog
      * for opt-out/in is closed.
+     @param forceSend Flag for sending analytics data for testing purpose
      */
-    function checkHealthDataSend() {
+    function checkHealthDataSend(forceSend) {
         var result         = new $.Deferred(),
             isHDTracking   = prefs.get("healthDataTracking"),
             nextTimeToSend,
@@ -240,10 +241,11 @@ define(function (require, exports, module) {
                 // don't return yet though - still want to set the timeout below
             }
 
-            if (currentTime >= nextTimeToSend) {
+            if (currentTime >= nextTimeToSend || forceSend) {
                 // Bump up nextHealthDataSendTime at the begining of chaining to avoid any chance of sending data again before 24 hours, // e.g. if the server request fails or the code below crashes
                 Async.doSequentially([sendHealthDataToServer, sendAnalyticsDataToServer], function () {
                     PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
+                    return (new $.Deferred()).resolve().promise();
                 })
                     .done(function () {
                         // We have already sent the health data, so can clear all health data
