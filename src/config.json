@@ -21,7 +21,7 @@
         "linting.enabled_by_default": true,
         "build_timestamp": "",
         "healthDataServerURL": "https://health.brackets.io/healthDataLog",
-        "analyticsDataServerURL": "https://cc-api-data.adobe.io/ingest",
+        "analyticsDataServerURL": "https://cc-api-data-stage.adobe.io/ingest",
         "serviceKey": "brackets-service",
         "environment": "stage"
     },

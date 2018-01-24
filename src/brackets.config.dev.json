@@ -1,6 +1,6 @@
 {
     "healthDataServerURL"        : "https://healthdev.brackets.io/healthDataLog",
-    "analyticsDataServerURL"     : "https://cc-api-data.adobe.io/ingest",
+    "analyticsDataServerURL"     : "https://cc-api-data-stage.adobe.io/ingest",
     "serviceKey"                 : "brackets-service",
     "environment"                : "stage"
 }

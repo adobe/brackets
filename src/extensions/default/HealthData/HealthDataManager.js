@@ -29,7 +29,6 @@ define(function (require, exports, module) {
         HealthLogger        = brackets.getModule("utils/HealthLogger"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
-        Async               = brackets.getModule("utils/Async"),
         Strings             = brackets.getModule("strings"),
         HealthDataUtils     = require("HealthDataUtils"),
         uuid                = require("thirdparty/uuid"),
@@ -244,10 +243,9 @@ define(function (require, exports, module) {
 
             if (currentTime >= nextTimeToSend || forceSend) {
                 // Bump up nextHealthDataSendTime at the begining of chaining to avoid any chance of sending data again before 24 hours, // e.g. if the server request fails or the code below crashes
-                Async.doSequentially([sendHealthDataToServer, sendAnalyticsDataToServer], function () {
-                    PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
-                    return (new $.Deferred()).resolve().promise();
-                })
+                PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
+                sendAnalyticsDataToServer().always(function() {
+                    sendHealthDataToServer()
                     .done(function () {
                         // We have already sent the health data, so can clear all health data
                         // Logged till now
@@ -260,7 +258,7 @@ define(function (require, exports, module) {
                     .always(function () {
                         timeoutVar = setTimeout(checkHealthDataSend, ONE_DAY);
                     });
-
+                });
             } else {
                 timeoutVar = setTimeout(checkHealthDataSend, nextTimeToSend - currentTime);
                 result.reject();
