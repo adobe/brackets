@@ -20,10 +20,10 @@
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
         "build_timestamp": "",
-        "environment": "production",
         "healthDataServerURL": "https://health.brackets.io/healthDataLog",
         "analyticsDataServerURL": "https://cc-api-data.adobe.io/ingest",
-        "serviceKey": "brackets-service"
+        "serviceKey": "brackets-service",
+        "environment": "stage"
     },
     "name": "Brackets",
     "version": "1.12.0-0",

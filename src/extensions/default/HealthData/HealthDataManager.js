@@ -25,6 +25,7 @@
 define(function (require, exports, module) {
     "use strict";
     var AppInit             = brackets.getModule("utils/AppInit"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
         HealthLogger        = brackets.getModule("utils/HealthLogger"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
@@ -270,6 +271,15 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+
+    // Expose a command to test data sending capability, but limit it to dev environment only
+    CommandManager.register("Sends health data and Analytics data for testing purpose", "sendHealthData", function() {
+        if (brackets.config.environment === "stage") {
+            return checkHealthDataSend(true);
+        } else {
+            return $.Deferred().reject().promise();
+        }
+    });
 
     prefs.on("change", "healthDataTracking", function () {
         checkHealthDataSend();
