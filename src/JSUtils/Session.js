@@ -26,12 +26,12 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var StringMatch     = brackets.getModule("utils/StringMatch"),
-        TokenUtils      = brackets.getModule("utils/TokenUtils"),
-        LanguageManager = brackets.getModule("language/LanguageManager"),
-        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
-        HintUtils       = require("HintUtils"),
-        ScopeManager    = require("ScopeManager"),
+    var StringMatch     = require("utils/StringMatch"),
+        TokenUtils      = require("utils/TokenUtils"),
+        LanguageManager = require("language/LanguageManager"),
+        HTMLUtils       = require("language/HTMLUtils"),
+        HintUtils       = require("JSUtils/HintUtils"),
+        ScopeManager    = require("JSUtils/ScopeManager"),
         Acorn           = require("node_modules/acorn/dist/acorn"),
         Acorn_Loose     = require("node_modules/acorn/dist/acorn_loose");
 

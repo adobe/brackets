@@ -674,6 +674,31 @@ define({
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
+    // extensions/default/JavascriptRefactoring
+    "CMD_REFACTOR"                              : "Refactor",
+    "CMD_EXTRACTTO_VARIABLE"                    : "Extract to Variable",
+    "CMD_EXTRACTTO_FUNCTION"                    : "Extract to Function",
+    "ERROR_TERN_FAILED"                         : "Unable to get data from Tern",
+    "ERROR_EXTRACTTO_VARIABLE_NOT_VALID"        : "Selection does not form an expression",
+    "ERROR_EXTRACTTO_FUNCTION_NOT_VALID"        : "Selected block should represent set of statements or an expression",
+    "ERROR_EXTRACTTO_VARIABLE_MULTICURSORS"     : "Extract to Variable does not work in multicursors",
+    "ERROR_EXTRACTTO_FUNCTION_MULTICURSORS"     : "Extract to Function does not work in multicursors",
+    "EXTRACTTO_FUNCTION_SELECT_SCOPE"           : "Choose destination scope",
+    "EXTRACTTO_VARIABLE_SELECT_EXPRESSION"      : "Select a expression",
+    "CMD_REFACTORING_RENAME"                    : "Rename",
+    "CMD_REFACTORING_TRY_CATCH"                 : "Wrap in Try Catch",
+    "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",
+    "CMD_REFACTORING_GETTERS_SETTERS"           : "Create Getters/Setters",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
+    "DESCRIPTION_CODE_REFACTORING"              : "Enable/disable JavaScript Code Refactoring",
+    "ERROR_TRY_CATCH"                           : "Select valid code to wrap in a Try-catch block",
+    "ERROR_WRAP_IN_CONDITION"                   : "Select valid code to wrap in a Condition block",
+    "ERROR_ARROW_FUNCTION"                      : "Place the cursor inside a function expression",
+    "ERROR_GETTERS_SETTERS"                     : "Place the cursor at a member of an object expression",
+    "ERROR_RENAME_MULTICURSOR"                  : "Cannot rename when using multi-cursors",
+    "ERROR_RENAME_QUICKEDIT"                    : "Cannot rename this identifier, as it is referenced elsewhere outside this function",
+    "ERROR_RENAME_GENERAL"                      : "Cannot rename selected text",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
@@ -812,5 +837,5 @@ define({
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
     "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
-    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inpsect"
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect"
 });

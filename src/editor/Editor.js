@@ -1272,6 +1272,10 @@ define(function (require, exports, module) {
         return this._codeMirror.indexFromPos(coords);
     };
 
+    Editor.prototype.posFromIndex = function (index) {
+        return this._codeMirror.posFromIndex(index);
+    };
+
     /**
      * Returns true if pos is between start and end (INclusive at start; EXclusive at end by default,
      * but overridable via the endInclusive flag).
@@ -1492,7 +1496,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Gets the total number of lines in the the document (includes lines not visible in the viewport)
+     * Gets the total number of lines in the document (includes lines not visible in the viewport)
      * @return {!number}
      */
     Editor.prototype.lineCount = function () {
@@ -2284,7 +2288,7 @@ define(function (require, exports, module) {
     /**
      * The Editor's last known width.
      * Used in conjunction with updateLayout to recompute the layout
-     * if the the parent container changes its size since our last layout update.
+     * if the parent container changes its size since our last layout update.
      * @type {?number}
      */
     Editor.prototype._lastEditorWidth = null;

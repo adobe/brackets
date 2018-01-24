@@ -954,7 +954,7 @@ define(function (require, exports, module) {
                 waitForLiveDoc(tempDir + "/simple1.css", function (doc) { liveDoc = doc; });
 
                 runs(function () {
-                    // Inpsector.Page.reload should not be called when saving an HTML file
+                    // Inspector.Page.reload should not be called when saving an HTML file
                     expect(Inspector.Page.reload).not.toHaveBeenCalled();
                     updatedNode = DOMAgent.nodeAtLocation(501);
 

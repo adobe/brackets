@@ -674,6 +674,31 @@ define({
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
 	"DETECTED_EXCLUSION_INFO": "{APP_NAME} で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、{APP_NAME} のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
 
+    // extensions/default/JavascriptRefactoring
+	"CMD_REFACTOR": "リファクタリング",
+	"CMD_EXTRACTTO_VARIABLE": "変数に抽出",
+	"CMD_EXTRACTTO_FUNCTION": "関数に抽出",
+	"ERROR_TERN_FAILED": "Tern からデータを取得できません",
+	"ERROR_EXTRACTTO_VARIABLE_NOT_VALID": "選択内容は式になっていません",
+	"ERROR_EXTRACTTO_FUNCTION_NOT_VALID": "選択したブロックは、ステートメントセットまたは式を表す必要があります",
+	"ERROR_EXTRACTTO_VARIABLE_MULTICURSORS": "変数に抽出は複数カーソルでは機能しません",
+	"ERROR_EXTRACTTO_FUNCTION_MULTICURSORS": "関数に抽出は複数カーソルでは機能しません",
+	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "対象範囲を選択",
+	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "式を選択",
+	"CMD_REFACTORING_RENAME": "ファイル名変更",
+	"CMD_REFACTORING_TRY_CATCH": "Try Catch で囲む",
+	"CMD_REFACTORING_CONDITION": "Condition で囲む",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Getters Setters を作成",
+	"CMD_REFACTORING_ARROW_FUNCTION": "Arrow Function へ変換",
+	"DESCRIPTION_CODE_REFACTORING": "JavaScript のコードリファクタリングを有効化または無効化します",
+	"ERROR_TRY_CATCH": "有効なコードを選択して、Try-catch ブロックで囲みます",
+	"ERROR_WRAP_IN_CONDITION": "有効なコードを選択して、Condition ブロックで囲みます",
+	"ERROR_ARROW_FUNCTION": "関数式の中にカーソルを置きます",
+	"ERROR_GETTERS_SETTERS": "オブジェクト式のメンバーにカーソルを置きます",
+	"ERROR_RENAME_MULTICURSOR": "複数のカーソルを使用して名前を変更することはできません",
+	"ERROR_RENAME_QUICKEDIT": "この識別子は、この関数以外の場所で参照されているため名前変更できません",
+	"ERROR_RENAME_GENERAL": "選択したテキストの名前を変更できません",
+
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
 
@@ -812,5 +837,5 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "ライブプレビューでのリバースインスペクトを無効にするには false"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false にすると、ライブプレビューでのリバースインスペクトが無効になります"
 });

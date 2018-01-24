@@ -36,6 +36,9 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Anda tidak memiliki izin untuk melakukan perubahan.",
     "CONTENTS_MODIFIED_ERR"             : "File telah dimodifikasi di luar {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} saat ini hanya mendukung file teks yang di-encode dengan UTF-8.",
+    "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} tidak dapat mengenkoding konten pada berkas.",
+    "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} tidak dapat mendekoding konten pada berkas.",
+    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} saat ini tidak mendukung berkas teks dengan enkoding UTF-16.",
     "FILE_EXISTS_ERR"                   : "File atau direktori sudah ada.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
@@ -62,6 +65,7 @@ define({
     "ERROR_SAVING_FILE"                 : "Terjadi kesalahan saat mencoba menyimpan file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Gagal Mengubah Nama {0}",
     "ERROR_RENAMING_FILE"               : "Terjadi kesalahan saat mencoba mengubah nama {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Berkas atau direktori ini tidak termasuk dalam proyek yang dibuka saat ini. Sayangnya, hanya berkas dalam proyek yang dapat diganti namanya saat ini.",
     "ERROR_DELETING_FILE_TITLE"         : "Gagal Menghapus {0}",
     "ERROR_DELETING_FILE"               : "Terjadi kesalahan saat mencoba menghapus {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "{0} Tidak Valid",
@@ -621,4 +625,4 @@ define({
     // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Baca selengkapnya"
 });
-/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */
+/* Last translated for c96c8bc3b55f518a91ebb6625e24347812fe9a1b */

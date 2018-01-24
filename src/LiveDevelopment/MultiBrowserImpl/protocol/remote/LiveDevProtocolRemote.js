@@ -293,7 +293,7 @@
             overlay.style.width = "100%";
             overlay.style.height = "100%";
             overlay.style.zIndex = 2227;
-            overlay.style.position = "absolute";
+            overlay.style.position = "fixed";
             overlay.style.top = 0;
             overlay.style.left = 0;
 
@@ -301,7 +301,7 @@
             background.style.opacity = 0.5;
             background.style.width = "100%";
             background.style.height = "100%";
-            background.style.position = "absolute";
+            background.style.position = "fixed";
             background.style.top = 0;
             background.style.left = 0;
 
@@ -309,7 +309,7 @@
             status.style.width = "100%";
             status.style.color = "#fff";
             status.style.backgroundColor = "#666";
-            status.style.position = "absolute";
+            status.style.position = "fixed";
             status.style.top = 0;
             status.style.left = 0;
             status.style.padding = "0.2em";

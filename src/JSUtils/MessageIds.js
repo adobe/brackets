@@ -30,6 +30,7 @@ define(function (require, exports, module) {
         TERN_JUMPTODEF_MSG          = "JumptoDef",
         TERN_COMPLETIONS_MSG        = "Completions",
         TERN_GET_FILE_MSG           = "GetFile",
+        TERN_SCOPEDATA_MSG          = "ScopeData",
         TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
         TERN_PRIME_PUMP_MSG         = "PrimePump",
         TERN_GET_GUESSES_MSG        = "GetGuesses",
@@ -37,6 +38,7 @@ define(function (require, exports, module) {
         TERN_INFERENCE_TIMEDOUT     = "InferenceTimedOut",
         SET_CONFIG                  = "SetConfig",
         TERN_UPDATE_DIRTY_FILE      = "UpdateDirtyFileEntry",
+        TERN_REFS                   = "getRefs",
         TERN_CLEAR_DIRTY_FILES_LIST = "ClearDirtyFilesList";
 
     // Message parameter constants
@@ -50,6 +52,7 @@ define(function (require, exports, module) {
     exports.TERN_COMPLETIONS_MSG        = TERN_COMPLETIONS_MSG;
     exports.TERN_INIT_MSG               = TERN_INIT_MSG;
     exports.TERN_GET_FILE_MSG           = TERN_GET_FILE_MSG;
+    exports.TERN_SCOPEDATA_MSG          = TERN_SCOPEDATA_MSG;
     exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
     exports.TERN_PRIME_PUMP_MSG         = TERN_PRIME_PUMP_MSG;
     exports.TERN_GET_GUESSES_MSG        = TERN_GET_GUESSES_MSG;
@@ -62,6 +65,7 @@ define(function (require, exports, module) {
     exports.SET_CONFIG                  = SET_CONFIG;
     exports.TERN_UPDATE_DIRTY_FILE      = TERN_UPDATE_DIRTY_FILE;
     exports.TERN_CLEAR_DIRTY_FILES_LIST = TERN_CLEAR_DIRTY_FILES_LIST;
+    exports.TERN_REFS = TERN_REFS;
 });
 
 

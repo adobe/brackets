@@ -674,6 +674,31 @@ define({
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
 	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
 
+    // extensions/default/JavascriptRefactoring
+	"CMD_REFACTOR": "Remanier",
+	"CMD_EXTRACTTO_VARIABLE": "Extraire vers variable",
+	"CMD_EXTRACTTO_FUNCTION": "Extraire vers fonction",
+	"ERROR_TERN_FAILED": "Impossible d’obtenir des données depuis Tern",
+	"ERROR_EXTRACTTO_VARIABLE_NOT_VALID": "La sélection ne forme pas une expression",
+	"ERROR_EXTRACTTO_FUNCTION_NOT_VALID": "Le bloc sélectionné doit représenter un ensemble d’instructions ou une expression",
+	"ERROR_EXTRACTTO_VARIABLE_MULTICURSORS": "L’option Extraire vers variable ne fonctionne pas en cas de curseurs multiples",
+	"ERROR_EXTRACTTO_FUNCTION_MULTICURSORS": "L’option Extraire vers fonction ne fonctionne pas en cas de curseurs multiples",
+	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "Choisir la portée cible",
+	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "Sélectionner une expression",
+	"CMD_REFACTORING_RENAME": "Renommer",
+	"CMD_REFACTORING_TRY_CATCH": "Encapsuler dans Try/Catch",
+	"CMD_REFACTORING_CONDITION": "Encapsuler dans Condition",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Créer des getters/setters",
+	"CMD_REFACTORING_ARROW_FUNCTION": "Convertir en fonction de flèche",
+	"DESCRIPTION_CODE_REFACTORING": "Activer/désactiver le remaniement de code JavaScript",
+	"ERROR_TRY_CATCH": "Sélectionner un code valide à encapsuler dans un bloc Try/Catch",
+	"ERROR_WRAP_IN_CONDITION": "Sélectionner un code valide à encapsuler dans un bloc Condition",
+	"ERROR_ARROW_FUNCTION": "Placer le curseur à l’intérieur d’une expression de fonction",
+	"ERROR_GETTERS_SETTERS": "Placer le curseur au niveau d’un membre d’une expression d’objet",
+	"ERROR_RENAME_MULTICURSOR": "Impossible de renommer en cas d’utilisation de plusieurs curseurs",
+	"ERROR_RENAME_QUICKEDIT": "Impossible de renommer cet identifiant, car il est référencé ailleurs en dehors de cette fonction.",
+	"ERROR_RENAME_GENERAL": "Impossible de renommer le texte sélectionné",
+
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
 
@@ -812,5 +837,5 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Paramètres de surbrillance de l'Aperçu en direct",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l'inspection inverse de l'aperçu en direct"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l’inspection inverse de l’Aperçu en direct"
 });

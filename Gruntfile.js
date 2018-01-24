@@ -81,6 +81,7 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             'extensibility/node/**',
+                            'JSUtils/node/**',
                             '!extensibility/node/spec/**',
                             '!extensibility/node/node_modules/**/{test,tst}/**/*',
                             '!extensibility/node/node_modules/**/examples/**/*',
