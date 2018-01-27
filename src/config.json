@@ -26,8 +26,8 @@
         "environment": "stage"
     },
     "name": "Brackets",
-    "version": "1.12.0-0",
-    "apiVersion": "1.12.0",
+    "version": "1.13.0-0",
+    "apiVersion": "1.13.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
