@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>PRIMEIROS PASOS NO BRACKETS</title>
+        <meta name="description" content="Unha guía interactiva nos primeiros pasos no Brackets.">
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
+
+        <h1>PRIMEIROS PASOS NO BRACKETS</h1>
+        <h2>Esta é a túa guía!</h2>
+        
+        <!--
+            FEITO CON <3 E JAVASCRIPT
+        -->
+
+        <p>
+            Benvido/a ó Brackets! un novo editor de código aberto para o deseño web. É un editor de código
+            lixeiro e potente ao tempo que inclúe ferramentas visuais para que poidas obter axuda, a que
+            precises e cando a precises.
+        </p>
+
+        <!--
+            QUÉ É BRACKETS?
+        -->
+        <p>
+            <em>Brackets é un editor diferente.</em>
+            Brackets ten varias características únicas como a Edición rápida e a Vista previa dinámica xunto con
+            moitas máis que non atoparás noutros editores. Ademais, Brackets está creado en JavaScript, HTML e CSS.
+            Isto significa que a maioría dos que empregan o Brackets teñen a capacidade necesaria para modificar e
+            ampliar o editor. De feito, nós mesmos empregamos o Brackets tódolos días para desenvolver o Brackets.
+            Para saber máis canto a como empregar estas características únicas, sigue a ler.
+        </p>
+        
+        <!--
+            COMEZA COS TEUS PROPIOS FICHEIROS
+        -->
+        
+        <h3>Proxectos no Brackets</h3>
+        <p>
+            Para poder editar o teu propio código no Brackets, simplemente podes abrir o cartafol que contén os
+            ficheiros. Brackets considera o cartafol aberto como o "proxecto"; características como as Suxestións
+            de código, a Vista previa dinámica e a Edición rápida só empregan os ficheiros contidos dentro do
+            cartafol aberto nese intre.
+        </p>
+        
+        <samp>
+            Unha vez que esteas listo para saír do proxecto de exemplo e editar o teu propio código, podes empregar
+            o menú despregábel na barra da esquerda para trocar o cartafol. Neste intre, o menú despregábel amosa
+            "Primeiros Pasos" - que é o cartafol que contén o ficheiro que estás a ver nese momento. Fai clic no
+            menú despregábel e selecciona "Abrir cartafol..." para abrir o teu cartafol.
+            Tamén podes empregar o menú despregábel para abrir os cartafoles abertos hai pouco, incluíndo este 
+            proxecto de exemplo.
+        </samp>
+        
+        <h2>Estamos a crear algunhas cousas novas</h2>
+        
+        <!--
+            A RELACIÓN ENTRE HTML, CSS E JAVASCRIPT
+        -->
+        <h3>Edición rápida de CSS e JavaScript</h3>
+        <p>
+            Acabouse o de estar a saltar de documento en documento e perder de vista o que estás a facer. Mentres estás
+            escribindo código HTML, emprega o atallo de teclado <kbd>Cmd/Ctrl + E</kbd> para abrir un editor rápido en
+            liña con todo o contido CSS relacionado. Modifica o CSS e preme <kbd>ESC</kbd> para volver ao teu HTML,
+            o tan só mantén as regras CSS abertas para que pasen a formar parte do teu editor de HTML. Se premes
+            <kbd>ESC</kbd> fora dun editor rápido, pecharanse todos á vez. A edición rápida tamén funciona con ficheiros
+            LESS e SCSS, incluíndo as regras aniñadas.
+        </p>
+
+        <samp>
+            Quérelo ver funcionando? Coloca o cursor sobre a etiqueta <!-- <samp> --> e preme <kbd>Cmd/Ctrl + E</kbd>.
+            Terías que ver aparecer un editor rápido de CSS máis arriba, amosando a regra CSS que lle afecta.
+            A edición rápida tamén funciona cos atributos de tipo class e id. Tamén podes empregalo cos teus
+            ficheiros LESS ou SCSS.
+            
+            Podes crear regras da mesma forma. Fai clic nunha das etiquetas <!-- <p> --> de máis arriba
+            e preme <kbd>Cmd/Ctrl + E</kbd>. Aínda non hai regras para ese elememto, pero podes facer clic
+            no botón "Nova Regra" para engadir unha nova regra ás etiquetas <!-- <p> -->.
+        </samp>
+        
+        <a href="screenshots/quick-edit.png">
+            <img alt="Unha captura de pantalla cun Editor Rápido de CSS" src="screenshots/quick-edit.png" />
+        </a>
+        
+        <p>
+            Tamén podes empregar o mesmo atallo para editar outras cousas --como funcións de Javascript, cores e
+            funcións de temporización de animacións--. E estamos a engadir máis e máis continuamente.
+        </p>
+        <p>
+            Polo de agora, non é posíbel aniñar editores en liña, polo que só podes empregar a característica
+            de Edición Rápida cando o cursor está nun editor "completo".
+        </p>
+
+        <!--
+            LIVE PREVIEW
+        -->
+        <h3>Visualiza os trocos nos ficheiros HTML e CSS ao vivo no navegador</h3>
+        <p>
+            Coñeces ese baile de "gardar/recargar" que hai anos que facemos? Ese no que fas trocos
+            no teu editor, premes gardar, mudas para o navegador e volves cargar para poder ver os 
+            resultados? Grazas ao Brackets xa non terás que volver facelo.
+        </p>
+        <p>
+            Brackets abrirá unha <em>conexión ao vivo</em> co teu navegador enviándolle os trocos nos 
+            ficheiros HTML e CSS conforme escribas! Pode que xa esteas a facer algo semellante coas
+            herramientas de desenvolvemento do navegador, pero co Brackets xa non precisas copiar e
+            pegar o código final ao volver ao teu editor.
+            O teu código execútase no navegador, pero vive no teu editor!
+        </p>
+        
+        <h3>Resaltado ao vivo de elementos HTML e regras CSS</h3>
+        <p>
+            Brackets axudate a ver como os trocos no HTML e CSS afectan á túa páxina. Cando o cursor se atope
+            sobre unha regra CSS, Brackets resaltará tódolos elementos afectados no navegador. Da mesma forma,
+            cando esteas a editar un ficheiro HTML, Brackets tamén resaltará os elementos correspondentes no navegador.
+        </p>
+
+        <samp>
+            Se tes instalado o Google Chrome, podes probalo ti mesmo. Fai clic sobre a icona do raio da parte
+            superior dereita ou preme <kbd>Cmd/Ctrl + Alt + P</kbd>. Cando a Vista previa dinámica está a 
+            funcionar nun documento HTML, tódolos documentos CSS relacionados pódense editar en tempo real.
+            A icona pasará dun gris a un dorado cando Brackets consiga estabelecer unha conexión co teu navegador.
+            
+            Agora, coloca o cursor sobre a etiqueta <!-- <img> --> que se atopa un pouco máis arriba. Observa
+            como aparece un resaltado azul arredor da imaxe no Chrome. Logo, preme <kbd>Cmd/Ctrl + E</kbd>
+            para abrir as regras CSS existentes. Tenta mudar o tamaño do bordo de 10px a 20px o a cor do fondo 
+            de "transparent" a "hotpink". Se Brackets e o teu navegador están funcionando en paralelo, verás
+            os trocos no navegador de forma instantánea. Xenial, non si?
+        </samp>
+        
+        <p class="note">
+            Na actualidade, Brackets só soporta a Vista previa dinámica para HTML e CSS. Aínda así, na versión
+            actual, os trocos nos ficheiros JavaScript volvense cargar automaticamente no navegador ao se gardar.
+            Neste intre estamos a traballar no soporte da Vista previa dinámica para JavaScript. As actualizacións
+            automáticas só están dispoñíbeis no Google Chrome, pero agardamos poder fornecer esta funcionalidade
+            nos outros grandes navegadores.
+        </p>
+        
+        <h3>Vista Rápida</h3>
+        <p>
+            Para aqueles que aínda non memorizaron as equivalencias de cor entre Hex e RGB, Brackets permite ver
+            exactamente que cor se está a utilizar dun xeito rápido e doado. Tanto no CSS coma no HTML, só tes que
+            mover o cursor sobre calquera valor de cor ou gradiente e Brackets amosará unha vista previa do mesmo
+            dun xeito automático. Mesmo serve para imaxes: só tes que pasar o cursor sobre a ligazón dunha imaxe no
+            Brackets, e iste amosará unha vista en miniatura da mesma.
+        </p>
+        
+        <samp>
+            Para probar la previsualización tú mismo, coloca el cursor en la etiqueta <!-- <body> --> al principio de
+            este documento y oprime <kbd>Cmd/Ctrl + E</kbd> para abrir un editor CSS. Ahora, simplemente mueve el
+            cursor sobre cualquiera de los colores dentro del CSS. También puedes verlo funcionando en gradientes
+            abriendo un editor de CSS en la etiqueta <!-- <html> --> y pasando el cursor por cualquiera de los valores
+            para las imágenes de fondo. Para probar la vista previa de imágenes, coloca el cursor sobre la imagen
+            incluida antes en éste documento.
+        </samp>
+        
+        <h3>Precisas algo máis?, Proba unha extensión!</h3>
+        <p>
+            Ademais de tódalas bondades naturais do Brackets, a nosa extensa e crecente comunidade de desenvolvedores
+            de extensións teñen creado moreas delas engadindo ao Brackets máis funcionalidades. Se hai algunha cousa 
+            que precises e que Brackets non soporte, é moi probábel que alguén teña creado unha extensión para dar 
+            soporte a esa funcionalidade. Para navegar ou pescudar na listaxe de extensións dispoñíbeis, selecciona
+            <strong>Ficheiro >Xestionar extensións...</strong> e fai clic na lapela "Dispoñíbeis". Cando atopes a que
+            precises, só terás que premer no botón "Instalar" situado á dereita.
+        </p>
+        
+        <!--
+            FAINOS SABER O QUE PENSAS
+        -->
+        <h2>Implícate</h2>
+        <p>
+            Brackets é un proxecto de código aberto. Desenvolvedores web de todo o mundo contribúen na
+            creación dun mellor editor de código. Fainos saber o que pensas, comparte as túas ideas ou
+            contribúe directamente no proxecto.
+        </p>
+        <ul>
+            <li><a href="http://brackets.io">Brackets.io</a></li>
+            <li><a href="http://blog.brackets.io">Blog da equipa do Brackets</a></li>
+            <li><a href="https://github.com/adobe/brackets">Brackets no GitHub</a></li>
+            <li><a href="https://brackets-registry.aboutweb.com">Rexistro de Extensións do Brackets</a></li>
+            <li><a href="https://github.com/adobe/brackets/wiki">Wiki do Brackets</a></li>
+            <li><a href="https://groups.google.com/forum/#!forum/brackets-dev">Listaxe de correo dos desenvolvedores do Brackets</a></li>
+            <li><a href="https://twitter.com/brackets">@brackets no Twitter</a></li>
+            <li>Fala cos desenvolvedores do Brackets polo IRC no <a href="http://webchat.freenode.net/?channels=brackets&uio=d4">#brackets do Freenode</a></li>
+        </ul>
+
+    </body>
+</html>
+<!--
+
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io  ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+
+-->
