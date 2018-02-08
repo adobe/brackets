@@ -265,7 +265,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a 'https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Készítve \u2764 és JavaScript-el a következők által:",
     "ABOUT_TEXT_LINE6"                     : "Sok ember (de ezt az adatot nem tudjuk megjeleníteni jelenleg).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "A Web Platform Dokumentáció és a  Web Platform grafikai logó a Creative Commons Attribution license alatt vannak licencelve, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "A MDN Dokumentáció és a  MDN grafikai logó a Creative Commons Attribution license alatt vannak licencelve, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Új {APP_NAME} verzió elérhető! Kattints ide a részletekért.",
     "UPDATE_AVAILABLE_TITLE"               : "Új verzió elérhető",
     "UPDATE_MESSAGE"                       : "Hé, új {APP_NAME} verzió elérhető. Íme néhány kulcsfontosságú frissítés:",
@@ -383,6 +383,6 @@ define({
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Gyors Nézet rámutatáskor",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Olvasd tovább"
 });

@@ -200,7 +200,7 @@ define(function (require, exports, module) {
      * Make an index request object
      * @param {boolean} requestIndex - true to request an index, false if not
      * @param {number} index - the index to request
-     * @return {indexRequested:boolean, index:number} an object that can be pased to
+     * @return {indexRequested:boolean, index:number} an object that can be passed to
      * {@link Pane#addToViewList} to insert the item at a specific index
      * @see Pane#addToViewList
      */
@@ -1006,7 +1006,7 @@ define(function (require, exports, module) {
      * Traverses the list and returns the File object of the next item in the MRU order
      * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
      * @param {string=} current - the fullPath of the item where traversal is to start.
-     *                              If this paramater is ommitted then the path of the current view is used.
+     *                              If this parameter is omitted then the path of the current view is used.
      *                              If the current view is a temporary view then the first item in the MRU list is returned
      * @return {?File}  The File object of the next item in the travesal order or null if there isn't one.
      */

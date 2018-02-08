@@ -86,7 +86,7 @@ define(function (require, exports, module) {
             expect(hints[0]).toBe(expectedHint);
         }
 
-        // Verifies the exclution of an unexpected hint.
+        // Verifies the exclusion of an unexpected hint.
         function verifyHintsExcluded(hintList, unexpectedHint) {
             var hints = extractHintList(hintList);
             expect(hints.indexOf(unexpectedHint)).toBe(-1);

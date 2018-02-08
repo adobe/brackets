@@ -37,22 +37,13 @@ var Errors = {
  * Private function to run "npm install --production" command in the extension directory.
  *
  * @param {string} installDirectory Directory to remove
+ * @param {array} npmOptions can contain additional options like `--production` or `--proxy http://127.0.0.1:8888`
  * @param {function} callback NodeJS style callback to call after finish
  */
 function _performNpmInstall(installDirectory, npmOptions, callback) {
     var npmPath = path.resolve(path.dirname(require.resolve("npm")), "..", "bin", "npm-cli.js");
-    var args = [npmPath, "install"];
-    
-    // npmOptions can contain additional args like { "production": true, "proxy": "http://127.0.0.1:8888" }
-    Object.keys(npmOptions).forEach(function (key) {
-        var value = npmOptions[key];
-        if (value === true) {
-            args.push("--" + key);
-        } else if (typeof value === "string" && value.length > 0) {
-            args.push("--" + key, value);
-        }
-    });
-    
+    var args = [npmPath, "install"].concat(npmOptions);
+
     console.log("running npm " + args.slice(1).join(" ") + " in " + installDirectory);
 
     var child = spawn(process.execPath, args, { cwd: installDirectory });
@@ -114,7 +105,7 @@ function performNpmInstallIfRequired(npmOptions, validationResult, callback) {
         packageJson = null;
     }
 
-    if (!packageJson || !packageJson.dependencies) {
+    if (!packageJson || !packageJson.dependencies || !Object.keys(packageJson.dependencies).length) {
         return finish();
     }
 

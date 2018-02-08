@@ -35,7 +35,10 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
-    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} currently only supports UTF-8 encoded text files.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Unknown encoding format",
+    "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to encode the contents of file.",
+    "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to decode the contents of file.",
+    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} currently doesn't support UTF-16 encoded text files.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
@@ -135,6 +138,10 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    
+    // Window unload warning messages
+    "WINDOW_UNLOAD_WARNING"                      : "Are you sure you want to navigate to a different URL and leave Brackets?",
+    "WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES" : "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
 
     // Generic dialog/button labels
     "DONE"                              : "Done",
@@ -291,6 +298,7 @@ define({
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Click to toggle report panel.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
+    "STATUSBAR_ENCODING_TOOLTIP"            : "Select the encoding",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -415,6 +423,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "New Rule",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_NAVIGATE_BACKWARD"               : "Navigate Backward",
+    "CMD_NAVIGATE_FORWARD"                : "Navigate Forward",
     "CMD_NEXT_DOC_LIST_ORDER"             : "Next Document in List",
     "CMD_PREV_DOC_LIST_ORDER"             : "Previous Document in List",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
@@ -455,7 +465,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs and the MDN graphical logo are licensed under a Creative Commons Attribution license, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
@@ -580,6 +590,7 @@ define({
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_DEFAULT_TITLE"             : "Default",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
@@ -663,6 +674,31 @@ define({
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
+    // extensions/default/JavascriptRefactoring
+    "CMD_REFACTOR"                              : "Refactor",
+    "CMD_EXTRACTTO_VARIABLE"                    : "Extract to Variable",
+    "CMD_EXTRACTTO_FUNCTION"                    : "Extract to Function",
+    "ERROR_TERN_FAILED"                         : "Unable to get data from Tern",
+    "ERROR_EXTRACTTO_VARIABLE_NOT_VALID"        : "Selection does not form an expression",
+    "ERROR_EXTRACTTO_FUNCTION_NOT_VALID"        : "Selected block should represent set of statements or an expression",
+    "ERROR_EXTRACTTO_VARIABLE_MULTICURSORS"     : "Extract to Variable does not work in multicursors",
+    "ERROR_EXTRACTTO_FUNCTION_MULTICURSORS"     : "Extract to Function does not work in multicursors",
+    "EXTRACTTO_FUNCTION_SELECT_SCOPE"           : "Choose destination scope",
+    "EXTRACTTO_VARIABLE_SELECT_EXPRESSION"      : "Select a expression",
+    "CMD_REFACTORING_RENAME"                    : "Rename",
+    "CMD_REFACTORING_TRY_CATCH"                 : "Wrap in Try Catch",
+    "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",
+    "CMD_REFACTORING_GETTERS_SETTERS"           : "Create Getters/Setters",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
+    "DESCRIPTION_CODE_REFACTORING"              : "Enable/disable JavaScript Code Refactoring",
+    "ERROR_TRY_CATCH"                           : "Select valid code to wrap in a Try-catch block",
+    "ERROR_WRAP_IN_CONDITION"                   : "Select valid code to wrap in a Condition block",
+    "ERROR_ARROW_FUNCTION"                      : "Place the cursor inside a function expression",
+    "ERROR_GETTERS_SETTERS"                     : "Place the cursor at a member of an object expression",
+    "ERROR_RENAME_MULTICURSOR"                  : "Cannot rename when using multi-cursors",
+    "ERROR_RENAME_QUICKEDIT"                    : "Cannot rename this identifier, as it is referenced elsewhere outside this function",
+    "ERROR_RENAME_GENERAL"                      : "Cannot rename selected text",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
@@ -672,7 +708,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Read more",
 
     // extensions/default/CodeFolding
@@ -703,6 +739,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Minimum lines before a collapsible section icon appears",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true to remember collapsed sections if you close and reopen a file or project",
     "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true to enable code folding on selected text in the editor",
+    "DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS"        : "Default extensions that are disabled",
     "DESCRIPTION_ATTR_HINTS"                         : "Enable/disable HTML attribute hints",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Enable/disable CSS/LESS/SCSS property hints",
     "DESCRIPTION_JS_HINTS"                           : "Enable/disable JavaScript code hints",
@@ -753,6 +790,7 @@ define({
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Additional mappings from file extension to language name",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Additional mappings from file name to language name",
     "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Doing copy and cut when there's no selection will copy or cut the whole lines that have cursors in them",
+    "DESCRIPTION_INPUT_STYLE"                        : "Selects the way CodeMirror handles input and focus. It can be textarea, which is the default, or contenteditable which is better for screen readers (unstable)",
     "DESCRIPTION_LINTING_ENABLED"                    : "true to enable Code Inspection",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "The time in milliseconds after which asynchronous linters time out",
     "DESCRIPTION_LINTING_PREFER"                     : "Array of linters to run first",
@@ -797,5 +835,7 @@ define({
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
-    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview"
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
+    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect"
 });

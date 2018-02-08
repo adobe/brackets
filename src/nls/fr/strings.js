@@ -35,7 +35,10 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
-	"UNSUPPORTED_ENCODING_ERR": "Pour le moment, {APP_NAME} ne prend en charge que les fichiers texte avec encodage UTF-8.",
+	"UNSUPPORTED_ENCODING_ERR": "Format de codage inconnu",
+	"ENCODE_FILE_FAILED_ERR": "{APP_NAME} n’a pas pu coder le contenu du fichier.",
+	"DECODE_FILE_FAILED_ERR": "{APP_NAME} n’a pas pu décoder le contenu du fichier.",
+	"UNSUPPORTED_UTF16_ENCODING_ERR": "Actuellement, {APP_NAME} ne prend pas en charge les fichiers texte codés UTF-16.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"FILE_TITLE": "Fichier",
@@ -135,6 +138,10 @@ define({
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé du disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
+    
+    // Window unload warning messages
+	"WINDOW_UNLOAD_WARNING": "Are you sure you want to navigate to a different URL and leave Brackets?",
+	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
 
     // Generic dialog/button labels
 	"DONE": "Terminé",
@@ -152,6 +159,7 @@ define({
 	"FIND_MATCH_INDEX": "{0} sur {1}",
 	"FIND_NO_RESULTS": "Aucun résultat",
 	"FIND_QUERY_PLACEHOLDER": "Rechercher\u2026",
+	"FIND_HISTORY_MAX_COUNT": "Nombre maximal d'éléments de recherche dans l'historique des recherches",
 	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
 	"BUTTON_REPLACE_ALL": "Tout remplacer",
 	"BUTTON_REPLACE_BATCH": "Traiter par lots\u2026",
@@ -290,6 +298,7 @@ define({
 	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}. Cliquez pour afficher/masquer le panneau des rapports.",
 	"STATUSBAR_DEFAULT_LANG": "(par défaut)",
 	"STATUSBAR_SET_DEFAULT_LANG": "Utiliser par défaut pour les fichiers .{0}",
+	"STATUSBAR_ENCODING_TOOLTIP": "Sélectionner le codage",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
@@ -414,6 +423,8 @@ define({
 	"CMD_CSS_QUICK_EDIT_NEW_RULE": "Nouvelle règle",
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
+	"CMD_NAVIGATE_BACKWARD": "Naviguer vers l’arrière",
+	"CMD_NAVIGATE_FORWARD": "Naviguer vers l’avant",
 	"CMD_NEXT_DOC_LIST_ORDER": "Document suivant de la liste",
 	"CMD_PREV_DOC_LIST_ORDER": "Document précédent de la liste",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
@@ -454,7 +465,7 @@ define({
 	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
-	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo Web Platform font l’objet d’une licence Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+	"ABOUT_TEXT_MDN_DOCS": "MDN Docs et le logo graphique MDN sont sous licence Creative Commons Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
@@ -579,6 +590,7 @@ define({
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
 	"REGISTRY_SANITY_CHECK_WARNING": "REMARQUE : ces extensions peuvent provenir d’autres sources que l’application {APP_NAME} elle-même. Les extensions ne sont pas contrôlées et disposent de privilèges locaux complets. Soyez prudents lorsque vous installez des extensions provenant d’une source inconnue.",
 	"EXTENSIONS_INSTALLED_TITLE": "Installées",
+	"EXTENSIONS_DEFAULT_TITLE": "Par défaut",
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_THEMES_TITLE": "Thèmes",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
@@ -600,7 +612,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
-	"ERRORS": "Erreurs",
+	"ERRORS": "Erreurs ",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
@@ -662,6 +674,31 @@ define({
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
 	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
 
+    // extensions/default/JavascriptRefactoring
+	"CMD_REFACTOR": "Remanier",
+	"CMD_EXTRACTTO_VARIABLE": "Extraire vers variable",
+	"CMD_EXTRACTTO_FUNCTION": "Extraire vers fonction",
+	"ERROR_TERN_FAILED": "Impossible d’obtenir des données depuis Tern",
+	"ERROR_EXTRACTTO_VARIABLE_NOT_VALID": "La sélection ne forme pas une expression",
+	"ERROR_EXTRACTTO_FUNCTION_NOT_VALID": "Le bloc sélectionné doit représenter un ensemble d’instructions ou une expression",
+	"ERROR_EXTRACTTO_VARIABLE_MULTICURSORS": "L’option Extraire vers variable ne fonctionne pas en cas de curseurs multiples",
+	"ERROR_EXTRACTTO_FUNCTION_MULTICURSORS": "L’option Extraire vers fonction ne fonctionne pas en cas de curseurs multiples",
+	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "Choisir la portée cible",
+	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "Sélectionner une expression",
+	"CMD_REFACTORING_RENAME": "Renommer",
+	"CMD_REFACTORING_TRY_CATCH": "Encapsuler dans Try/Catch",
+	"CMD_REFACTORING_CONDITION": "Encapsuler dans Condition",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Créer des getters/setters",
+	"CMD_REFACTORING_ARROW_FUNCTION": "Convertir en fonction de flèche",
+	"DESCRIPTION_CODE_REFACTORING": "Activer/désactiver le remaniement de code JavaScript",
+	"ERROR_TRY_CATCH": "Sélectionner un code valide à encapsuler dans un bloc Try/Catch",
+	"ERROR_WRAP_IN_CONDITION": "Sélectionner un code valide à encapsuler dans un bloc Condition",
+	"ERROR_ARROW_FUNCTION": "Placer le curseur à l’intérieur d’une expression de fonction",
+	"ERROR_GETTERS_SETTERS": "Placer le curseur au niveau d’un membre d’une expression d’objet",
+	"ERROR_RENAME_MULTICURSOR": "Impossible de renommer en cas d’utilisation de plusieurs curseurs",
+	"ERROR_RENAME_QUICKEDIT": "Impossible de renommer cet identifiant, car il est référencé ailleurs en dehors de cette fonction.",
+	"ERROR_RENAME_GENERAL": "Impossible de renommer le texte sélectionné",
+
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
 
@@ -671,7 +708,7 @@ define({
     // extensions/default/RecentProjects
 	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
 	"DOCS_MORE_LINK": "En savoir plus",
 
     // extensions/default/CodeFolding
@@ -702,6 +739,7 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "Nombre minimum de lignes pour qu’une icône de section réductible apparaisse",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "vrai pour mémoriser les sections réduites si vous fermez et rouvrez un fichier ou un projet",
 	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "vrai pour activer le pliage de code sur le texte sélectionné dans l’éditeur",
+	"DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS": "Extensions par défaut qui sont désactivées",
 	"DESCRIPTION_ATTR_HINTS": "Activer/désactiver les indicateurs d’attribut HTML",
 	"DESCRIPTION_CSS_PROP_HINTS": "Activer/désactiver les indicateurs de propriété CSS/LESS/SCSS",
 	"DESCRIPTION_JS_HINTS": "Activer/désactiver les indicateurs de code JavaScript",
@@ -752,6 +790,7 @@ define({
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "Mappages supplémentaires entre extension de fichier et nom de langue",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "Mappages supplémentaires entre nom de fichier et nom de langue",
 	"DESCRIPTION_LINEWISE_COPY_CUT": "En cas d’absence de sélection, un couper-copier coupe ou copie les lignes entières comportant des curseurs.",
+	"DESCRIPTION_INPUT_STYLE": "Sélectionne la manière dont CodeMirror gère l'entrée et la mise au point. Il peut s'agir de zone de texte, qui est la sélection par défaut, ou de contenu modifiable, qui est la meilleure méthode pour les lecteurs d'écran (instable)",
 	"DESCRIPTION_LINTING_ENABLED": "vrai pour activer l’inspection de code",
 	"DESCRIPTION_ASYNC_TIMEOUT": "Durée, en millisecondes, après laquelle les utilitaires lint asynchrones échouent",
 	"DESCRIPTION_LINTING_PREFER": "Ensemble d’utilitaires lint à exécuter en premier",
@@ -796,5 +835,7 @@ define({
 	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}",
 	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
 	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
-	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct"
+	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
+	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Paramètres de surbrillance de l'Aperçu en direct",
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l’inspection inverse de l’Aperçu en direct"
 });

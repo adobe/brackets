@@ -129,8 +129,8 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Reference to the container of the React component. Everything in this
-     * node is managed by React.
+     * Reference to the container of the Preact component. Everything in this
+     * node is managed by Preact.
      * @type {Element}
      */
     var fileTreeViewContainer;
@@ -382,6 +382,15 @@ define(function (require, exports, module) {
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
+    
+    /**
+     * Returns the File or Directory corresponding to the item that was right-clicked on in the file tree menu.
+     * @return {?(File|Directory)}
+     */
+    function getFileTreeContext() {
+        var selectedEntry = model.getContext();
+        return selectedEntry;
+    }
 
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
@@ -391,8 +400,8 @@ define(function (require, exports, module) {
      * @return {?(File|Directory)}
      */
     function getSelectedItem() {
-        // Prefer file tree context, then selection, else use working set
-        var selectedEntry = model.getContext();
+        // Prefer file tree context, then file tree selection, else use working set
+        var selectedEntry = getFileTreeContext();
         if (!selectedEntry) {
             selectedEntry = model.getSelected();
         }
@@ -1063,7 +1072,10 @@ define(function (require, exports, module) {
         baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
-            return model.createAtPath(baseDir + initialName, isFolder);
+            if(isFolder) {
+                return model.createAtPath(baseDir + initialName + "/");
+            }
+            return model.createAtPath(baseDir + initialName);
         }
         return actionCreator.startCreating(baseDir, initialName, isFolder);
     }
@@ -1346,11 +1358,11 @@ define(function (require, exports, module) {
      * Adds an icon provider. The callback is invoked before each tree item is rendered, and can
      * return content to prepend to the item.
      *
-     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|React.DOM.ins} callback
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|Preact.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
-     * Return a string of HTML text, a React.DOM.ins instance, a jQuery object, or a DOM node; or undefined
+     * Return a string of HTML text, a Preact.DOM.ins instance, a jQuery object, or a DOM node; or undefined
      * to prepend nothing.
      */
     function addIconProvider(callback) {
@@ -1396,6 +1408,7 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
     exports.openProject                   = openProject;
+    exports.getFileTreeContext            = getFileTreeContext;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
     exports.getInitialProjectPath         = getInitialProjectPath;

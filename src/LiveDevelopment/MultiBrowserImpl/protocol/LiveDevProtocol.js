@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         DocumentObserver      = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/DocumentObserver.js"),
         RemoteFunctions       = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         EditorManager         = require("editor/EditorManager"),
+        LiveDevMultiBrowser   = require("LiveDevelopment/LiveDevMultiBrowser"),
         HTMLInstrumentation   = require("language/HTMLInstrumentation");
 
     /**
@@ -213,7 +214,7 @@ define(function (require, exports, module) {
         // Inject DocumentObserver into the browser (tracks related documents)
         script += DocumentObserver;
         // Inject remote functions into the browser.
-        script += "window._LD=(" + RemoteFunctions + "())";
+        script += "window._LD=(" + RemoteFunctions + "(" + JSON.stringify(LiveDevMultiBrowser.config) + "))";
         return "<script>\n" + script + "</script>\n";
     }
 
@@ -236,7 +237,7 @@ define(function (require, exports, module) {
      * that will be fulfilled with the result of the script, if any.
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should evaluate
      *      the script.
-     * @param {string} script The script to evalute.
+     * @param {string} script The script to evaluate.
      * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
      *      to the evaluation.
      */

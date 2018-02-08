@@ -81,6 +81,7 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             'extensibility/node/**',
+                            'JSUtils/node/**',
                             '!extensibility/node/spec/**',
                             '!extensibility/node/node_modules/**/{test,tst}/**/*',
                             '!extensibility/node/node_modules/**/examples/**/*',
@@ -140,6 +141,42 @@ module.exports = function (grunt) {
                         src: [
                             'less/dist/less.min.js'
                         ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/preact-compat',
+                        cwd: 'src/node_modules/preact-compat',
+                        src: [
+                            'dist/preact-compat.min.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/simulate-event',
+                        cwd: 'src/node_modules/simulate-event',
+                        src: [
+                            'simulate-event.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'src/thirdparty/xtend',
+                        cwd: 'src/node_modules/xtend',
+                        src: [
+                            'mutable.js',
+                            'immutable.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        dest: 'src/thirdparty/acorn',
+                        cwd: 'src/node_modules/acorn',
+                        src: [
+                            'dist/{,*/}*'
+                          ]
                     }
                 ]
             }
@@ -268,21 +305,20 @@ module.exports = function (grunt) {
             ]
         },
         watch: {
-            all : {
-                files: ['**/*', '!**/node_modules/**'],
-                tasks: ['eslint']
-            },
-            grunt : {
-                files: ['<%= meta.grunt %>', 'tasks/**/*'],
+            grunt: {
+                files: ['<%= meta.grunt %>'],
                 tasks: ['eslint:grunt']
             },
-            src : {
-                files: ['<%= meta.src %>', 'src/**/*'],
+            src: {
+                files: ['<%= meta.src %>'],
                 tasks: ['eslint:src']
             },
-            test : {
-                files: ['<%= meta.test %>', 'test/**/*'],
+            test: {
+                files: ['<%= meta.test %>'],
                 tasks: ['eslint:test']
+            },
+            options: {
+                spawn: false
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -341,7 +377,13 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config:dev', 'less', 'npm-install-source', 'pack-web-dependencies']);
+    grunt.registerTask('install', [
+        'write-config:dev',
+        'less',
+        'npm-download-default-extensions',
+        'npm-install-source',
+        'pack-web-dependencies'
+    ]);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);

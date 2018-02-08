@@ -446,7 +446,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentação e código-fonte em <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Feito com \u2764 e JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Várias pessoas (mas não estamos conseguindo carregar estes dados no momento).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs e logo gráfico Web Platform são licenciados sob a licença Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs e logo gráfico MDN são licenciados sob a licença Creative Commons Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Há uma nova versão do {APP_NAME} disponível! Clique aqui para mais detalhes.",
     "UPDATE_AVAILABLE_TITLE"               : "Atualização Disponível",
     "UPDATE_MESSAGE"                       : "Ei, há uma nova versão do {APP_NAME} disponível. Aqui estão alguns dos novos recursos:",
@@ -654,7 +654,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Projetos Recentes",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Leia mais",
 
     //extensions/default/CodeFolding

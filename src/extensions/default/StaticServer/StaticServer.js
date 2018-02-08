@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Prefences manager for this extension
+     * Preferences manager for this extension
      */
     var _prefs = PreferencesManager.getExtensionPrefs("staticserver");
 
