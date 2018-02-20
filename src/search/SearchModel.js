@@ -55,7 +55,7 @@ define(function (require, exports, module) {
 
     /**
      * The query that generated these results.
-     * @type {{query: string, caseSensitive: boolean, isRegexp: boolean}}
+     * @type {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}}
      */
     SearchModel.prototype.queryInfo = null;
 
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
 
     /**
      * Sets the given query info and stores a compiled RegExp query in this.queryExpr.
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
+     * @param {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
      * @return {boolean} true if the query was valid and properly set, false if it was
      *      invalid or empty.
      */

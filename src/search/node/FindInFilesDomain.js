@@ -298,7 +298,7 @@ function regexEscape(str) {
 
 /**
  * Parses the given query into a regexp, and returns whether it was valid or not.
- * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
+ * @param {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
  * @return {{queryExpr: RegExp, valid: boolean, empty: boolean, error: string}}
  *      queryExpr - the regexp representing the query
  *      valid - set to true if query is a nonempty string or a valid regexp.
@@ -325,10 +325,15 @@ function parseQueryInfo(queryInfo) {
     // Is it a (non-blank) regex?
     if (queryInfo.isRegexp) {
         try {
+            if (queryInfo.isWholeWord) {
+                queryExpr = "\\b" + queryInfo.query + "\\b";
+            }
             queryExpr = new RegExp(queryInfo.query, flags);
         } catch (e) {
             return {valid: false, error: e.message};
         }
+    } else if (queryInfo.isWholeWord) {
+        queryExpr = new RegExp("\\b" + regexEscape(queryInfo.query) + "\\b", flags);
     } else {
         // Query is a plain string. Turn it into a regexp
         queryExpr = new RegExp(regexEscape(queryInfo.query), flags);
