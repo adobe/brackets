@@ -409,6 +409,7 @@ define({
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
+    "CMD_TOGGLE_SEARCH_AUTOHIDE"          : "Automatically close search",
 
     // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -813,6 +814,7 @@ define({
     "DESCRIPTION_USE_TAB_CHAR"                       : "true to use tabs instead of spaces",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true to generate uppercase hex colors in Inline Color Editor",
     "DESCRIPTION_WORD_WRAP"                          : "Wrap lines that exceed the viewport width",
+    "DESCRIPTION_SEARCH_AUTOHIDE"                    : "Close the search as soon as the editor is focused",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "A list of files that have been detected to cause Tern to run out of control",
     "DESCRIPTION_INFERENCE_TIMEOUT"                  : "The amount of time after which Tern will time out when trying to understand files",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true to show errors in status bar",

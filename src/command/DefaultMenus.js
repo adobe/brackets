@@ -151,6 +151,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
+        menu.addMenuItem(Commands.TOGGLE_SEARCH_AUTOHIDE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);
         menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE);
