@@ -833,13 +833,18 @@ define(function (require, exports, module) {
                     twCommandManager.execute(Commands.CMD_FIND);
 
                     expectSearchBarOpen();
+
                     expect(getSearchField().val()).toEqual("Foo");
                     expectHighlightedMatches(capitalFooSelections);
                     expectSelection(capitalFooSelections[0]);
                     expectMatchIndex(0, 3);
                     expect(myEditor.centerOnCursor.calls.length).toEqual(3);
 
+                    expect(myEditor).toHaveCursorPosition(8, 8, true);
+                    
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
+
+                    expect(myEditor).toHaveCursorPosition(8, 8, true);
                     expectSelection(capitalFooSelections[1]);
                     expectMatchIndex(1, 3);
                 });
