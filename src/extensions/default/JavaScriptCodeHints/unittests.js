@@ -37,9 +37,9 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         JSCodeHints          = require("main"),
-        Preferences          = require("Preferences"),
-        ScopeManager         = require("ScopeManager"),
-        HintUtils            = require("HintUtils"),
+        Preferences          = brackets.getModule("JSUtils/Preferences"),
+        ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
+        HintUtils            = brackets.getModule("JSUtils/HintUtils"),
         HintUtils2           = require("HintUtils2"),
         ParameterHintManager = require("ParameterHintManager");
 

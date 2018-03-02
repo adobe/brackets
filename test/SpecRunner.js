@@ -32,13 +32,18 @@ require.config({
         "spec"                          : "../test/spec",
         "text"                          : "thirdparty/text/text",
         "i18n"                          : "thirdparty/i18n/i18n",
-        "react"                         : "thirdparty/react",
         "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
-        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
+        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl",
+        "preact-compat"                 : "thirdparty/preact-compat/preact-compat.min",
+        "preact"                        : "thirdparty/preact/preact",
+        "preact-test-utils"             : "thirdparty/preact-test-utils/preact-test-utils",
+        "simulate-event"                : "thirdparty/simulate-event/simulate-event",
+        "xtend"                         : "thirdparty/xtend"
     },
     map: {
         "*": {
-            "thirdparty/react": "react"
+            "thirdparty/preact"            : "preact-compat",
+            "thirdparty/preact-test-utils" : "preact-test-utils"
         }
     }
 });
@@ -68,6 +73,9 @@ define(function (require, exports, module) {
     require("utils/NodeDomain");
     require("utils/ColorUtils");
     require("preferences/PreferencesBase");
+    require("JSUtils/Session");
+    require("JSUtils/ScopeManager");
+    require("widgets/InlineMenu");
 
     // Load modules that self-register and just need to get included in the test-runner window
     require("document/ChangedDocumentTracker");

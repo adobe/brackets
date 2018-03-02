@@ -115,7 +115,6 @@
       var $tip
         , pos
         , actualWidth
-        , actualHeight
         , placement
         , tp
         , e = $.Event('show')
@@ -143,7 +142,6 @@
         pos = this.getPosition()
 
         actualWidth = $tip[0].offsetWidth
-        actualHeight = $tip[0].offsetHeight
 
         switch (placement) {
           case 'bottom':

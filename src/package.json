@@ -1,7 +1,11 @@
 {
   "name": "brackets-src",
   "dependencies": {
-    "codemirror": "5.25.2",
-    "less": "2.7.2"
+    "acorn": "5.1.1",
+    "codemirror": "5.30.0",
+    "less": "2.7.2",
+    "preact": "8.2.1",
+    "preact-test-utils": "0.1.3",
+    "preact-compat": "adobe/preact-compat"
   }
 }

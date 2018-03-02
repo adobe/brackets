@@ -332,7 +332,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentation και πηγαίος κώδικας στο <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Φτιαγμένο με \u2764 και JavaScript από:",
     "ABOUT_TEXT_LINE6"                     : "Πολλούς ανθρώπους (απλά αντιμετωπίζουμε ένα πρόβλημα με την φόρτωση των δεδομένων αυτήν την στιγμή).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Τα Web Platform Docs και το Web Platform γραφικό logo είναι αδειοδοτημένα κάτω από την άδεια Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "Τα MDN Docs και το MDN γραφικό logo είναι αδειοδοτημένα κάτω από την άδεια Creative Commons Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Υπάρχει ένα νέο build του {APP_NAME} διαθέσιμο! Πατήστε εδώ για λεπτομέρειες.",
     "UPDATE_AVAILABLE_TITLE"               : "Διαθέσιμη Αναβάθμιση",
     "UPDATE_MESSAGE"                       : "Ψιτ, υπάρχει ένα νέο build του {APP_NAME} διαθέσιμο. Μερικές από τις καινούργιες λειτουργίες:",

@@ -1040,6 +1040,9 @@ define(function (require, exports, module) {
         this._codeMirror.on("cursorActivity", function (instance) {
             self.trigger("cursorActivity", self);
         });
+        this._codeMirror.on("beforeSelectionChange", function (instance, selectionObj) {
+            self.trigger("beforeSelectionChange", selectionObj);
+        });
         this._codeMirror.on("scroll", function (instance) {
             // If this editor is visible, close all dropdowns on scroll.
             // (We don't want to do this if we're just scrolling in a non-visible editor
@@ -1292,6 +1295,10 @@ define(function (require, exports, module) {
         return this._codeMirror.indexFromPos(coords);
     };
 
+    Editor.prototype.posFromIndex = function (index) {
+        return this._codeMirror.posFromIndex(index);
+    };
+
     /**
      * Returns true if pos is between start and end (INclusive at start; EXclusive at end by default,
      * but overridable via the endInclusive flag).
@@ -1512,7 +1519,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Gets the total number of lines in the the document (includes lines not visible in the viewport)
+     * Gets the total number of lines in the document (includes lines not visible in the viewport)
      * @return {!number}
      */
     Editor.prototype.lineCount = function () {
@@ -2327,7 +2334,7 @@ define(function (require, exports, module) {
     /**
      * The Editor's last known width.
      * Used in conjunction with updateLayout to recompute the layout
-     * if the the parent container changes its size since our last layout update.
+     * if the parent container changes its size since our last layout update.
      * @type {?number}
      */
     Editor.prototype._lastEditorWidth = null;

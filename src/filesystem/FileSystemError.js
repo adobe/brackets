@@ -48,7 +48,10 @@ define(function (require, exports, module) {
         CONTENTS_MODIFIED           : "ContentsModified",
         ROOT_NOT_WATCHED            : "RootNotBeingWatched",
         EXCEEDS_MAX_FILE_SIZE       : "ExceedsMaxFileSize",
-        NETWORK_DRIVE_NOT_SUPPORTED : "NetworkDriveNotSupported"
+        NETWORK_DRIVE_NOT_SUPPORTED : "NetworkDriveNotSupported",
+        ENCODE_FILE_FAILED          : "EncodeFileFailed",
+        DECODE_FILE_FAILED          : "DecodeFileFailed",
+        UNSUPPORTED_UTF16_ENCODING  : "UnsupportedUTF16Encoding"
 
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };

@@ -30,13 +30,6 @@ How to install and run Brackets
 
 Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
 
-The Linux version has most of the features of the Mac and Windows versions, but
-is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
-for a list of known issues and to find out how you can help.
-
-Additionally, for a list of common Linux installation issues and workarounds you can [visit this guide](https://github.com/adobe/brackets/wiki/Brackets-Linux-Guide).
-
-
 #### Usage
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
@@ -50,7 +43,7 @@ for a list of new features and known issues in each build.
 
 In addition to the core features built into Brackets, there is a large and growing
 community of developers building extensions that add all sorts of useful functionality.
-See the [Brackets Extension Registry](https://brackets-registry.aboutweb.com/)
+See the [Brackets Extension Registry](https://registry.brackets.io/)
 for a list of available extensions. For installation instructions,
 see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
 

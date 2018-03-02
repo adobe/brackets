@@ -561,7 +561,9 @@ define(function (require, exports, module) {
             $livedataPanel.hide();
             $(".connected-tools").hide();
             DocumentManager.off("dirtyFlagChange", _handleDirtyFlagChange);
-            currentSourceEditor._codeMirror.off("changes", _handleSourceEdit);
+            if (currentSourceEditor) {
+                currentSourceEditor._codeMirror.off("changes", _handleSourceEdit);
+            }
             currentSourceEditor = null;
         }
     }

@@ -643,11 +643,15 @@ define(function (require, exports, module) {
         }
         
         if (_isInPropName(ctx)) {
-            return _getPropNameInfo(ctx, ctx.editor);
+            return _getPropNameInfo(ctx);
         }
         
         if (_isInPropValue(ctx)) {
             return _getRuleInfoStartingFromPropValue(ctx, ctx.editor);
+        }
+
+        if (_isInAtRule(ctx)) {
+            return _getImportUrlInfo(ctx, editor);
         }
 
         return createInfo();

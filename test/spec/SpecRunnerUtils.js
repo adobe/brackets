@@ -583,7 +583,7 @@ define(function (require, exports, module) {
 
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
 
-            // Displays the primary console messages from the test window in the the
+            // Displays the primary console messages from the test window in the
             // test runner's console as well.
             ["debug", "log", "info", "warn", "error"].forEach(function (method) {
                 var originalMethod = _testWindow.console[method];

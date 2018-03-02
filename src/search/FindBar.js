@@ -227,7 +227,7 @@ define(function (require, exports, module) {
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
     };
-    
+
     /**
      * @private
      * Adds element to the search history queue.
@@ -270,7 +270,7 @@ define(function (require, exports, module) {
         templateVars.Strings = Strings;
         templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
         templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
-        
+
         self._addElementToSearchHistory(this._options.initialQuery);
 
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
@@ -327,7 +327,7 @@ define(function (require, exports, module) {
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
-                        // we still keep the intrval timer up as instant search could get enabled/disabled based on node busy state
+                        // we still keep the interval timer up as instant search could get enabled/disabled based on node busy state
                         return;
                     }
                     if (self._closed) {
@@ -444,6 +444,7 @@ define(function (require, exports, module) {
         this.searchField = new QuickSearchField(searchFieldInput, {
             verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
             maxResults: 20,
+            firstHighlightIndex: null,
             resultProvider: function (query) {
                 var asyncResult = new $.Deferred();
                 asyncResult.resolve(PreferencesManager.getViewState("searchHistory"));
@@ -691,7 +692,7 @@ define(function (require, exports, module) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = getInitialQueryFromSelection(editor) || lastTypedText;
+                query = getInitialQueryFromSelection(editor) || lastQueriedText || lastTypedText;
             }
         }
 

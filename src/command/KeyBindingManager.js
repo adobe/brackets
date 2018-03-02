@@ -644,7 +644,7 @@ define(function (require, exports, module) {
             bindingsToDelete = [],
             existing;
 
-        // For platform: "all", use explicit current plaform
+        // For platform: "all", use explicit current platform
         if (explicitPlatform && explicitPlatform !== "all") {
             targetPlatform = explicitPlatform;
         } else {

@@ -499,6 +499,13 @@ define(function (require, exports, module) {
     function register(languageId, provider) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
+        } else {
+            // Check if provider with same name exists for the given language
+            // If yes, remove the provider before inserting the most recently loaded one
+            var indexOfProvider = _.findIndex(_providers[languageId], function(entry) { return entry.name === provider.name; });
+            if (indexOfProvider !== -1) {
+                _providers[languageId].splice(indexOfProvider, 1);
+            }
         }
 
         _providers[languageId].push(provider);

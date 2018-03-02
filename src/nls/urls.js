@@ -52,6 +52,7 @@ define(function (require, exports, module) {
         "sv": true,
         "zh-cn": true,
         "zh-tw": true,
-        "tr": true
+        "tr": true,
+        "uk": true
     };
 });

@@ -141,7 +141,9 @@ define(function (require, exports, module) {
                     var hintList = expectHints(CSSAtRuleCodeHints.restrictedBlockHints);
                     verifyFirstEntry(hintList, "@charset");  // filtered on "empty string"
                     verifyListsAreIdentical(hintList, ["@charset",
+                                                       "@counter-style",
                                                        "@font-face",
+                                                       "@font-feature-values",
                                                        "@import",
                                                        "@keyframes",
                                                        "@media",

@@ -311,17 +311,111 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("isValidPath", function () {
+            it("returns true for UNIX style file path", function () {
+                expect(ProjectModel.isValidPath("/tmp/src/test/")).toBe(true);
+            });
+
+            it("returns true for WINDOWS style file path", function () {
+                expect(ProjectModel.isValidPath("C:\\tmp\\src\\test\\")).toBe(true);
+            });
+
+            it("returns false for path that contains an invalid char \'..\'", function () {
+                expect(ProjectModel.isValidPath("../tmp/src/test/")).toBe(false);
+            });
+
+            it("returns false for path that contains an invalid char \'../..\'", function () {
+                expect(ProjectModel.isValidPath("../../tmp/src/test/")).toBe(false);
+            });
+
+            it("returns false for path that contains an invalid char \'..\\..\'", function () {
+                expect(ProjectModel.isValidPath("..\\..\\tmp\\src\\test\\")).toBe(false);
+            });
+        });
+
         describe("isValidFilename", function () {
-            it("returns true for filenames with nothing invalid", function () {
-                expect(ProjectModel.isValidFilename("foo.txt", "*")).toBe(true);
+            it("returns true for simple filename", function () {
+                expect(ProjectModel.isValidFilename("foo.txt")).toBe(true);
             });
 
-            it("returns false for filenames that match the invalid characters", function () {
-                expect(ProjectModel.isValidFilename("foo*txt", "|*")).toBe(false);
+            it("returns true for filename that starts with a '\.\'", function () {
+                expect(ProjectModel.isValidFilename(".tmp")).toBe(true);
             });
 
-            it("returns false for filenames that match the internal list of disallowed names", function () {
-                expect(ProjectModel.isValidFilename("/test/prn")).toBe(false);
+            it("returns false for filenames that has ends with a \'.\'", function () {
+                expect(ProjectModel.isValidFilename("dummy.")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'?\'", function () {
+                expect(ProjectModel.isValidFilename("foo?txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'*\'", function () {
+                expect(ProjectModel.isValidFilename("foo\*txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\|\'", function () {
+                expect(ProjectModel.isValidFilename("foo\|txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\:\'", function () {
+                expect(ProjectModel.isValidFilename("foo\:txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\<\'", function () {
+                expect(ProjectModel.isValidFilename("foo\<txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\>\'", function () {
+                expect(ProjectModel.isValidFilename("foo\>txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'/\'", function () {
+                expect(ProjectModel.isValidFilename("directory/foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'//\'", function () {
+                expect(ProjectModel.isValidFilename("directory//foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\\\'", function () {
+                expect(ProjectModel.isValidFilename("directory\\foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\\\\\'", function () {
+                expect(ProjectModel.isValidFilename("directory\\\\foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'..\'", function () {
+                expect(ProjectModel.isValidFilename("..foo")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'..\\..\'", function () {
+                expect(ProjectModel.isValidFilename("..\\foo")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'com1\'", function () {
+                expect(ProjectModel.isValidFilename("com1")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'lpt\'", function () {
+                expect(ProjectModel.isValidFilename("lpt1")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'nul\'", function () {
+                expect(ProjectModel.isValidFilename("nul")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'con\'", function () {
+                expect(ProjectModel.isValidFilename("con")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'prn\'", function () {
+                expect(ProjectModel.isValidFilename("prn")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'aux\'", function () {
+                expect(ProjectModel.isValidFilename("aux")).toBe(false);
             });
 
         });

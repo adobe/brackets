@@ -158,7 +158,7 @@ define(function (require, exports, module) {
      *
      * @param {string} content is the css/less string to be processed
      * @param {Theme} theme is the object the css/less corresponds to
-     * @return {$.Promise} promsie with the processed css/less as the resolved value
+     * @return {$.Promise} promise with the processed css/less as the resolved value
      */
     function lessifyTheme(content, theme) {
         var deferred = new $.Deferred();
