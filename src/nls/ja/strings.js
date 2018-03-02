@@ -409,6 +409,7 @@ define({
 	"CMD_WORKINGSET_SORT_BY_TYPE": "種類順",
 	"CMD_WORKING_SORT_TOGGLE_AUTO": "自動ソート",
 	"CMD_THEMES": "テーマ\u2026",
+	"CMD_TOGGLE_SEARCH_AUTOHIDE": "Automatically close search",
 
     // Navigate menu commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -813,6 +814,7 @@ define({
 	"DESCRIPTION_USE_TAB_CHAR": "スペースの代わりにタブを使用するには true",
 	"DESCRIPTION_UPPERCASE_COLORS": "Inline Color Editor で大文字の 16 進カラーを生成するには true",
 	"DESCRIPTION_WORD_WRAP": "ビューポートの幅を超える行を折り返す",
+	"DESCRIPTION_SEARCH_AUTOHIDE": "Close the search as soon as the editor is focused",
 	"DESCRIPTION_DETECTED_EXCLUSIONS": "Tern が制御不能になる原因として検出されたファイルの一覧",
 	"DESCRIPTION_INFERENCE_TIMEOUT": "ファイルの認識時に Tern がタイムアウトするまでの時間",
 	"DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示するには true",
