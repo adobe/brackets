@@ -88,7 +88,8 @@ define(function (require, exports, module) {
      *
      * @type {string}
      */
-    var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
+    var SORT_DIRECTORIES_FIRST     = "sortDirectoriesFirst",
+        SET_SEARCH_PANEL_POSITION  = "setSearchPanelPosition";
 
     /**
      * @private
@@ -1252,6 +1253,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
+    CommandManager.register(Strings.CMD_SET_SEARCH_PANEL_POSITION, Commands.CMD_SET_SEARCH_PANEL_POSITION, setSearchPanelPosition);
 
     // Define the preference to decide how to sort the Project Tree files
     PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac", {
@@ -1260,6 +1262,11 @@ define(function (require, exports, module) {
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
+
+
+    PreferencesManager.definePreference(SET_SEARCH_PANEL_POSITION, "string", "top", {
+        description: Strings.DESCRIPTION_SET_SEARCH_PANEL_POSITION
+    });
 
     actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
 
@@ -1392,6 +1399,11 @@ define(function (require, exports, module) {
         _renderTree(true);
     }
 
+    function setSearchPanelPosition(prefName) {
+        return function() {
+            PreferencesManager.set(prefName, 'top');
+        };
+    }
 
     // Private API helpful in testing
     exports._actionCreator                = actionCreator;
@@ -1425,4 +1437,5 @@ define(function (require, exports, module) {
     exports.addIconProvider               = addIconProvider;
     exports.addClassesProvider            = addClassesProvider;
     exports.rerenderTree                  = rerenderTree;
+    exports.setSearchPanelPosition        = setSearchPanelPosition;
 });
