@@ -842,5 +842,5 @@ define({
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
     "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
     "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect",
-    "DESCRIPTION_SET_SEARCH_PANEL_POSITION"          : "Set the search panel position. Default is top"
+    "DESCRIPTION_SET_SEARCH_PANEL_POSITION"          : "Set the search panel position to top/bottom. Default is top"
 });
