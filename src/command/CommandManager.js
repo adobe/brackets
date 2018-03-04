@@ -172,7 +172,6 @@ define(function (require, exports, module) {
     };
 
 
-
     /**
      * Registers a global command.
      * @param {string} name - text that will be displayed in the UI to represent command
