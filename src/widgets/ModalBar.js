@@ -67,7 +67,7 @@ define(function (require, exports, module) {
             if(prefSetSearchPanelPosition === "top") {
                 return searchBar.insertBefore("#editor-holder");
             }
-            else if(prefSetSearchPanelPosition === "bottom") {
+            else {
                 return searchBar.insertAfter("#editor-holder");
             }
         };          

@@ -37,7 +37,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var KeyEvent = require("utils/KeyEvent");
+    var KeyEvent        =  require("utils/KeyEvent"),
+    PreferencesManager  =  brackets.getModule("preferences/PreferencesManager");
 
 
     /**
@@ -93,11 +94,27 @@ define(function (require, exports, module) {
 
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
-        
+
         // For search History this value is set to null
         this._firstHighlightIndex = options.firstHighlightIndex;
 
-        this._dropdownTop = $input.offset().top + $input.height() + (options.verticalAdjust || 0);
+        this._quickSearchFieldCss = ((
+            function () {
+                var searchPanelPositon = PreferencesManager.get("setSearchPanelPosition");
+                var cssObject = {
+                    position: "absolute",
+                    left: $input.offset().left,
+                    width: $input.outerWidth()
+                };
+                if (searchPanelPositon === 'top') {
+                    cssObject['top'] = $input.offset().top + $input.height() + (options.verticalAdjust || 0);
+                }
+                else {
+                    cssObject['bottom'] = $(window).height() - $input.offset().top - (options.verticalAdjust || 0);
+                }
+                return cssObject;
+            }
+        )());
     }
 
     /** @type {!Object} */
@@ -256,12 +273,7 @@ define(function (require, exports, module) {
         if (!this._$dropdown) {
             var self = this;
             this._$dropdown = $("<ol class='quick-search-container'/>").appendTo("body")
-                .css({
-                    position: "absolute",
-                    top: this._dropdownTop,
-                    left: this.$input.offset().left,
-                    width: this.$input.outerWidth()
-                })
+                .css(this._quickSearchFieldCss)
                 .click(function (event) {
                     // Unlike the Enter key, where we wait to catch up with typing, clicking commits immediately
                     var $item = $(event.target).closest("li");
