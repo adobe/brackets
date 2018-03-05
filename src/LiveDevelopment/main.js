@@ -49,7 +49,8 @@ define(function main(require, exports, module) {
         ExtensionUtils          = require("utils/ExtensionUtils"),
         StringUtils             = require("utils/StringUtils"),
         WorkspaceManager        = require("view/WorkspaceManager"),
-        Mustache                = require("thirdparty/mustache/mustache");
+        Mustache                = require("thirdparty/mustache/mustache"),
+        LiveDataHandler         = require("LiveDevelopment/LiveDataHandler");
         
 
     var params = new UrlParams();
@@ -311,6 +312,7 @@ define(function main(require, exports, module) {
         _setupGoLiveMenu();
         // toggle the menu
         _toggleLivePreviewMultiBrowser(multibrowser);
+        LiveDataHandler.setLiveDevImpl(LiveDevImpl);
     }
 
     /** Setup window references to useful LiveDevelopment modules */

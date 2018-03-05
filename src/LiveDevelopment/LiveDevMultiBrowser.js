@@ -899,6 +899,10 @@ define(function (require, exports, module) {
         };
     }
 
+    function getTransportModule() {
+        return NodeSocketTransport;
+    }
+
     /**
      * @private
      * Returns the base URL of the current server serving the active live document, or null if
@@ -936,4 +940,5 @@ define(function (require, exports, module) {
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
     exports.setTransport        = setTransport;
     exports.setLauncher         = setLauncher;
+    exports.getTransportModule  = getTransportModule;
 });

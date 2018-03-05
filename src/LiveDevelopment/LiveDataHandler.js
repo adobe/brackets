@@ -28,7 +28,6 @@ define(function (require, exports, module) {
         NodeDomain          = require("utils/NodeDomain"),
         AppInit             = require("utils/AppInit"),
         EditorManager       = require("editor/EditorManager"),
-        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         Commands            = require('command/Commands'),
         CommandManager      = require('command/CommandManager'),
         FileSystem          = require('filesystem/FileSystem'),
@@ -54,8 +53,9 @@ define(function (require, exports, module) {
     var relatedFiles = [];
     var relatedFilesToDOMNodeMap = {};
     
-    var WebSocketTransport = require("LiveDevelopment/transports/WebSocketTransport"),
-        WebSocketTransportDomain = WebSocketTransport.WebSocketTransportDomain;
+    var WebSocketTransport, //= require("LiveDevelopment/transports/WebSocketTransport"),
+        WebSocketTransportDomain, //= WebSocketTransport.WebSocketTransportDomain,
+        LiveDevelopment;
         
     var inlineInfo, lastVisitedPath;
     var $livedataPanel, $relatedFilesPanel, $breadCrumb;
@@ -67,6 +67,15 @@ define(function (require, exports, module) {
     var FileNameTemplate = '<a class="filename" title=""><div class="dirty-indicator" style="width: 16px;">•</div> {{fileName}} : <span class="line-number">{{line}}</span></a>';
     var RelatedFileEntryTemplate = '<li></li>';
     
+
+    function setLiveDevImpl(liveDevImpl) {
+        LiveDevelopment = liveDevImpl;
+        WebSocketTransport = liveDevImpl.getTransportModule();
+        WebSocketTransportDomain = WebSocketTransport.getNodeDomain();
+        _setupMessageHandler();
+        LiveDevelopment.on("statusChange", _handleLiveViewStatus);
+    }
+
     function _jumpToNode(editor, position) {
         if (position) {
             editor.setCursorPos(position.line, position.ch, true);
@@ -464,37 +473,39 @@ define(function (require, exports, module) {
         _overlayContentbox(boxModel.content);
     }
     
-    WebSocketTransportDomain.on("livedata", function (obj, message) {
-        message = JSON.parse(message);
-        if (message.pageSource) {
-            DocumentManager.getDocumentForPath(_currentInspectedSource).done(function (doc) {
-                doc.setText(message.pageSource);
-            });
-        } else if (message.relatedFiles) {
-            if (message.source) {
-                var sourcePathInProject = ProjectManager.getProjectRoot()._path + message.source.substring(1);
-                if (sourcePathInProject !== _currentInspectedSource) {
-                    _currentInspectedSource = sourcePathInProject;
-                    LiveDevelopment.agents.network.liveSourceSync = true;
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: _currentInspectedSource}).done(function () {
-                        //LiveDevelopment.reload();
+    function _setupMessageHandler() {
+        WebSocketTransportDomain.on("livedata", function (obj, message) {
+            message = JSON.parse(message);
+            if (message.pageSource) {
+                DocumentManager.getDocumentForPath(_currentInspectedSource).done(function (doc) {
+                    doc.setText(message.pageSource);
+                });
+            } else if (message.relatedFiles) {
+                if (message.source) {
+                    var sourcePathInProject = ProjectManager.getProjectRoot()._path + message.source.substring(1);
+                    if (sourcePathInProject !== _currentInspectedSource) {
+                        _currentInspectedSource = sourcePathInProject;
                         LiveDevelopment.agents.network.liveSourceSync = true;
-                    });
-                } else {
-                    _handleRelatedFilesView(message.relatedFiles);
+                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: _currentInspectedSource}).done(function () {
+                            //LiveDevelopment.reload();
+                            LiveDevelopment.agents.network.liveSourceSync = true;
+                        });
+                    } else {
+                        _handleRelatedFilesView(message.relatedFiles);
+                    }
+                }
+            } else {
+                if (lastVisitedPath !== message.path || message.refresh) {
+                    lastVisitedPath = message.path;
+                    _processNodePath(JSON.parse(message.path));
+                    _processLiveData(JSON.parse(message.data));
+                    _processBoxModelMarker(message.boxmodel);
+                } else if (message.livedataRefresh) {
+                    _processBoxModelMarker(message.boxmodel);
                 }
             }
-        } else {
-            if (lastVisitedPath !== message.path || message.refresh) {
-                lastVisitedPath = message.path;
-                _processNodePath(JSON.parse(message.path));
-                _processLiveData(JSON.parse(message.data));
-                _processBoxModelMarker(message.boxmodel);
-            } else if (message.livedataRefresh) {
-                _processBoxModelMarker(message.boxmodel);
-            }
-        }
-    });
+        });
+    }
     
     ProjectManager.addClassesProvider(function (data) {
         if ($("#inspect-toggle").is(":checked") && relatedFiles.length) {
@@ -532,12 +543,12 @@ define(function (require, exports, module) {
     var currentSourceEditor;
     
     function _handleLiveViewStatus(event, status, reason) {
-        if (status === 3) {
+        if (status === LiveDevelopment.STATUS_ACTIVE) {
             $("#inspect-toggle").on("change", _handleInspectToggle);
             $("#toggle-reverse-inspect").on("click", _handleReverseInspectToggle);
             $("body").addClass("connected");
             $breadCrumb.show();
-            $('#status-info').detach().appendTo('#status-indicators');
+            //$('#status-info').detach().appendTo('#status-indicators');
             _currentInspectedSource = DocumentManager.getCurrentDocument().file.fullPath;
             if ($("#inspect-toggle").is(":checked")) {
                 $livedataPanel.show();
@@ -557,7 +568,7 @@ define(function (require, exports, module) {
             $("#inspect-toggle").off("change", _handleInspectToggle);
             $("#toggle-reverse-inspect").off("click", _handleReverseInspectToggle);
             $("body").removeClass("connected");
-            $('#status-info').detach().prependTo('#status-bar');
+            //$('#status-info').detach().prependTo('#status-bar');
             $livedataPanel.hide();
             $(".connected-tools").hide();
             DocumentManager.off("dirtyFlagChange", _handleDirtyFlagChange);
@@ -569,14 +580,14 @@ define(function (require, exports, module) {
     }
     
     AppInit.appReady(function () {
-        LiveDevelopment.on("statusChange", _handleLiveViewStatus);
-        
         // Create bottom panel for connected tools
         $livedataPanel = WorkspaceManager.createBottomPanel("livedata-tools", $(Mustache.render(ConnectedToolsTemplate, Strings)), 100);
         
         $relatedFilesPanel = $('<div id="related-files-container"><ul class="nav nav-tabs"></ul></div>').appendTo(".content");
         
-        $breadCrumb = $('<ul id="breadcrumb"></ul>').prependTo("#status-bar");
+        $breadCrumb = $("#breadcrumb"); //$('<ul id="breadcrumb"></ul>').prependTo("#status-bar");
     });
     
+    exports.setLiveDevImpl = setLiveDevImpl;
+
 });

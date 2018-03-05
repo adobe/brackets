@@ -70,8 +70,13 @@ define(function (require, exports, module) {
         WebSocketTransportDomain.exec("send", data);
     }
     
+    function getNodeDomain() {
+        return WebSocketTransportDomain;
+    }
+
     exports.WebSocketTransportDomain = WebSocketTransportDomain;
     exports.createWebSocketServer = createWebSocketServer;
     exports.closeWebSocketServer  = closeWebSocketServer;
     exports.sendDataToBrowser  = sendDataToBrowser;
+    exports.getNodeDomain = getNodeDomain;
 });

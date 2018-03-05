@@ -114,6 +114,23 @@ function _createServer() {
                     } else {
                         console.error("nodeSocketTransport: Couldn't locate client for message: " + msg);
                     }
+                } else if (msgObj.type === "livedata") {
+                    _domainManager.emitEvent("nodeSocketTransport", "livedata", msgObj.message);
+                } else {
+                    console.error("nodeSocketTransport: Got bad socket message type: " + msg);
+                }
+            }).on("livedata", function (msg) {
+                console.log("NodeSocketServer - received - " + msg);
+                var livedataObj;
+                try {
+                    livedataObj = JSON.parse(msg);
+                } catch (e) {
+                    console.error("nodeSocketTransport: Error parsing livedata: " + msg);
+                    return;
+                }
+
+                if (livedataObj.type === "livedata") {
+                    _domainManager.emitEvent("nodeSocketTransport", "livedata", livedataObj.message);
                 } else {
                     console.error("nodeSocketTransport: Got bad socket message type: " + msg);
                 }
@@ -230,6 +247,17 @@ function init(domainManager) {
         [
             {name: "clientID", type: "number", description: "ID of live preview page sending message"},
             {name: "msg", type: "string", description: "JSON message from client page"}
+        ]
+    );
+    domainManager.registerEvent(
+        "nodeSocketTransport",
+        "livedata",
+        [
+            {
+                name: "msg",
+                type: "string",
+                description: "JSON message from client page"
+            }
         ]
     );
     domainManager.registerEvent(

@@ -75,6 +75,14 @@ define(function (require, exports, module) {
     // Exports
     exports.getRemoteScript = getRemoteScript;
 
+    exports.sendDataToBrowser = function (data) {
+        NodeSocketTransportDomain.exec("send", data);
+    };
+
+    exports.getNodeDomain = function () {
+        return NodeSocketTransportDomain;
+    };
+
     // Proxy the node domain methods directly through, since they have exactly the same
     // signatures as the ones we're supposed to provide.
     ["start", "send", "close"].forEach(function (method) {

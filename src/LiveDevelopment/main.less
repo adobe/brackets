@@ -39,24 +39,10 @@
     display:block;
 }
 
-.connected div#status-file {
-    display:none;
-}
-
-.connected #status-info {
-    float:right;
-    position: static;
-}
-
-.connected #sidebar {
-    min-width: 180px !important;
-}
-
 #inspect-toolbar {
-    width:100%;
     display:none;
-    height:30px;
-    padding-top: 7px;
+    height:28px;
+    padding-top: 1px !important;
     padding-left: 5px;
 }
 
@@ -80,23 +66,34 @@
     background: #2c2c2c;
 }
 
-#status-bar {
+#livedata-tools {
+
+    @baseColor: #cecece;
+    @contrast1: #c0c0c0;
+    @contrast2: #aaa;
+    @contrast3: #aaa;
+    @textColor: #000;
+
     #breadcrumb {
         position:absolute;
         list-style: none;
-        display: inline-block;
-        width:900px;
-        left: 10px;
-        top:3px;
+        left:0px;
+        top:0px;
+        height:28px;
+        width:100%;
+        margin-top: 0px;
         margin-left: 0px;
+        padding: 4px 10px 4px 10px;
+        box-sizing: border-box;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
     }
     #breadcrumb li {
       float: left;
     }
     #breadcrumb li a {
-      color: #fff;
+      color: @textColor;
       display: block;
-      background: #3498db;
+      background: @baseColor;
       text-decoration: none;
       position: relative;
       height: 20px;
@@ -106,14 +103,14 @@
       margin-right: 23px;
     }
     #breadcrumb li:nth-child(even) a {
-      background-color: #2980b9;
+      background-color: @contrast1;
     }
     #breadcrumb li:nth-child(even) a:before {
-      border-color: #2980b9;
+      border-color: @contrast1;
       border-left-color: transparent;
     }
     #breadcrumb li:nth-child(even) a:after {
-      border-left-color: #2980b9;
+      border-left-color: @contrast1;
     }
     #breadcrumb li:first-child a {
       padding-left: 15px;
@@ -137,7 +134,7 @@
       content: "";
       position: absolute;
       top: 0;
-      border: 0 solid #3498db;
+      border: 0 solid @baseColor;
       border-width: 10px 10px;
       width: 0;
       height: 0;
@@ -149,27 +146,27 @@
     #breadcrumb li a:after {
       left: 100%;
       border-color: transparent;
-      border-left-color: #3498db;
+      border-left-color: @baseColor;
     }
     #breadcrumb li a:hover {
-      background-color: #1abc9c;
+      background-color: @contrast2;
     }
     #breadcrumb li a:hover:before {
-      border-color: #1abc9c;
+      border-color: @contrast2;
       border-left-color: transparent;
     }
     #breadcrumb li a:hover:after {
-      border-left-color: #1abc9c;
+      border-left-color: @contrast2;
     }
     #breadcrumb li a:active {
-      background-color: #16a085;
+      background-color: @contrast3;
     }
     #breadcrumb li a:active:before {
-      border-color: #16a085;
+      border-color: @contrast3;
       border-left-color: transparent;
     }
     #breadcrumb li a:active:after {
-      border-left-color: #16a085;
+      border-left-color: @contrast3;
     }
 }
 

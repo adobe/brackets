@@ -96,7 +96,6 @@ define(function LiveDevelopment(require, exports, module) {
         StringUtils          = require("utils/StringUtils"),
         UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer,
         WebSocketTransport   = require("LiveDevelopment/transports/WebSocketTransport"),
-        LiveDataHandler      = require("LiveDevelopment/LiveDataHandler"),
         PreferencesManager   = require("preferences/PreferencesManager");
 
     // Inspector
@@ -1512,6 +1511,10 @@ define(function LiveDevelopment(require, exports, module) {
         _setStatus(STATUS_INACTIVE);
     }
 
+    function getTransportModule() {
+        return WebSocketTransport;
+    }
+
     function _getServer() {
         return _server;
     }
@@ -1543,4 +1546,5 @@ define(function LiveDevelopment(require, exports, module) {
     exports.init                = init;
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
     exports.getServerBaseUrl    = getServerBaseUrl;
+    exports.getTransportModule  = getTransportModule;
 });

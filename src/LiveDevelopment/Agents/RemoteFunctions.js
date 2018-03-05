@@ -1091,6 +1091,7 @@ function RemoteFunctions(config, remoteWSPort) {
     
     function _sendDataOverSocket(data) {
         if (_ws && _ws.readyState === WebSocket.OPEN) {
+            console.warn("Sending data", data);
             _ws.send(data);
         }
     }
@@ -1126,9 +1127,22 @@ function RemoteFunctions(config, remoteWSPort) {
                 function getSheetRules(stylesheet) {
                     var sheet_media = stylesheet.media && stylesheet.media.mediaText;
                     // if this sheet is disabled skip it
-                    if ( stylesheet.disabled ) return [];
+                    if ( stylesheet.disabled ) {
+                        return [];
+                    }
                     // if this sheet's media is specified and doesn't match the viewport then skip it
-                    if ( sheet_media && sheet_media.length && ! window.matchMedia(sheet_media).matches ) return [];
+                    if ( sheet_media && sheet_media.length && ! window.matchMedia(sheet_media).matches ) {
+                        return [];
+                    }
+
+                    try {
+                        if (!stylesheet.cssRules) {
+                            return [];
+                        }
+                    } catch(e) {
+                        return [];
+                    }
+
                     // get the style rules of this sheet
                     return toArray(stylesheet.cssRules);
                 }
@@ -1233,7 +1247,7 @@ function RemoteFunctions(config, remoteWSPort) {
                                 // insert the contained rules of this media rule to the beginning of this stylesheet's rules
                                 rules = getSheetRules(rule).concat(rules);
                                 // and skip it
-                                continue
+                                continue;
                             }
 
                             // check if this element matches this rule's selector
