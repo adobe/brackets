@@ -1271,7 +1271,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            DocumentManager.getDocumentForPath(file.fullPath)
+            DocumentManager.getDocumentForPath(file.fullPath, file)
                 .done(function (doc) {
                     if (doc) {
                         _edit(paneId, doc, $.extend({}, options, {
