@@ -1728,10 +1728,6 @@ define(function (require, exports, module) {
     var isTestWindow = (new window.URLSearchParams(window.location.search || "")).get("testEnvironment");
     if (!isTestWindow) {
         window.onbeforeunload = function(e) {
-            if (window.location.pathname.indexOf('SpecRunner') > -1) {
-                return;
-            }
-
             var openDocs = DocumentManager.getAllOpenDocuments();
 
             // Detect any unsaved changes
