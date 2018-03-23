@@ -183,7 +183,7 @@ define(function (require, exports, module) {
      * for more detail on the transport.
      * @param {{start: function(string), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string}} transport
      */
-    function setTransport(transport) {
+    function setTransport(transport, socketPort) {
         if (_transport) {
             _transport.off(".livedev");
         }
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
             .on("close.livedev", function (event, msg) {
                 _close(msg[0]);
             });
-        _transport.start();
+        _transport.start(socketPort);
     }
 
 

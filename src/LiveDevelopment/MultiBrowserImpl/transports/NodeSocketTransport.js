@@ -29,9 +29,10 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var FileUtils       = require("file/FileUtils"),
-        EventDispatcher = require("utils/EventDispatcher"),
-        NodeDomain      = require("utils/NodeDomain");
+    var FileUtils          = require("file/FileUtils"),
+        EventDispatcher    = require("utils/EventDispatcher"),
+        NodeDomain         = require("utils/NodeDomain"),
+        PreferencesManager = require("preferences/PreferencesManager");
 
     // The script that will be injected into the previewed HTML to handle the other side of the socket connection.
     var NodeSocketTransportRemote = require("text!LiveDevelopment/MultiBrowserImpl/transports/remote/NodeSocketTransportRemote.js");
@@ -42,18 +43,16 @@ define(function (require, exports, module) {
 
     var NodeSocketTransportDomain = new NodeDomain("nodeSocketTransport", domainPath);
 
-    // This must match the port declared in NodeSocketTransportDomain.js.
-    // TODO: randomize this?
-    var SOCKET_PORT = 8123;
-
     /**
      * Returns the script that should be injected into the browser to handle the other end of the transport.
      * @return {string}
      */
     function getRemoteScript() {
-        return "<script>\n" +
-            NodeSocketTransportRemote +
-            "this._Brackets_LiveDev_Socket_Transport_URL = 'ws://localhost:" + SOCKET_PORT + "';\n" +
+        // This must match the port declared in NodeSocketTransportDomain.js.
+        var SOCKET_PORT = parseInt(PreferencesManager.get("livedevmulti.socketPort"), 10);
+        return "<script src=\"http://localhost:" + SOCKET_PORT + "/socket.io/socket.io.js\"></script>\n" +
+            "<script>\n" +  NodeSocketTransportRemote +
+            "this._Brackets_LiveDev_Socket_Transport_URL = 'http://localhost:" + SOCKET_PORT + "';\n" +
             "</script>\n";
     }
 

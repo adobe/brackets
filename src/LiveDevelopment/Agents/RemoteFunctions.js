@@ -407,12 +407,13 @@ function RemoteFunctions(config, remoteWSPort) {
                     // Applies to every visualisationElement (padding or margin div)
                     arr[i]["transform"] = "none";
                     var el = window.document.createElement("div"),
-                        styles = Object.assign(
-                        {},
-                        config,
-                        arr[i]
-                    );
-
+                        styles ={};
+                    for(var key in config){
+                        styles[key] = config[key];
+                    }
+                    for(var key in arr[i]){
+                        styles[key] = arr[i][key];
+                    }
                     _setStyleValues(styles, el.style);
 
                     highlight.appendChild(el);
@@ -464,7 +465,13 @@ function RemoteFunctions(config, remoteWSPort) {
                 "border-color": config.remoteHighlight.borderColor
             };
             
-            var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
+            var mergedStyles = {};
+            for(var key in stylesToSet){
+                mergedStyles[key] = stylesToSet[key];
+            }
+            for(var key in config.remoteHighlight.stylesToSet){
+                mergedStyles[key] = config.remoteHighlight.stylesToSet[key];
+            }
 
             var animateStartValues = config.remoteHighlight.animateStartValue;
 

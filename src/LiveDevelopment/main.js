@@ -61,7 +61,8 @@ define(function main(require, exports, module) {
             marginColor:  {r: 246, g: 178, b: 107, a: 0.66},
             paddingColor: {r: 147, g: 196, b: 125, a: 0.66},
             showInfo: true
-        }
+        },
+        socketPort: 8123
     };
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
     var _status,
@@ -336,6 +337,7 @@ define(function main(require, exports, module) {
         // it can be enable by setting 'livedev.multibrowser' preference to true.
         // It has to be initiated at this point in case of dynamically switching
         // by changing the preference value.
+        config.socketPort = parseInt(PreferencesManager.get("livedevmulti.socketPort", 10));
         MultiBrowserLiveDev.init(config);
 
         _loadStyles();

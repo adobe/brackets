@@ -85,11 +85,16 @@ define(function (require, exports, module) {
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NodeSocketTransport  = require("LiveDevelopment/MultiBrowserImpl/transports/NodeSocketTransport"),
         LiveDevProtocol      = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol"),
-        DefaultLauncher      = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher");
+        DefaultLauncher      = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher"),
+        PreferencesManager   = require("preferences/PreferencesManager");
 
     // Documents
     var LiveCSSDocument      = require("LiveDevelopment/MultiBrowserImpl/documents/LiveCSSDocument"),
         LiveHTMLDocument     = require("LiveDevelopment/MultiBrowserImpl/documents/LiveHTMLDocument");
+
+    PreferencesManager.definePreference("livedevmulti.socketPort", "number", 8123, {
+        description: Strings.DESCRIPTION_LIVEDEV_MULTIBROWSER_SOCKET_PORT
+    });
 
     /**
      * @private
@@ -604,8 +609,7 @@ define(function (require, exports, module) {
         _createLiveDocumentForFrame(initialDoc);
 
         // start listening for requests
-        _server.start();
-
+        _server.start(parseInt(PreferencesManager.get("livedevmulti.socketPort")));
         // open browser to the url
         _open(initialDoc);
     }
@@ -791,8 +795,8 @@ define(function (require, exports, module) {
      *
      * @param {{launch: function(string), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string}} transport
      */
-    function setTransport(transport) {
-        _protocol.setTransport(transport);
+    function setTransport(transport, socketPort) {
+        _protocol.setTransport(transport, socketPort);
     }
 
     /**
@@ -826,7 +830,7 @@ define(function (require, exports, module) {
             .on("beforeProjectClose beforeAppClose", close);
 
         // Default transport for live connection messages - can be changed
-        setTransport(NodeSocketTransport);
+        setTransport(NodeSocketTransport, config.socketPort);
 
         // Default launcher for preview browser - can be changed
         setLauncher(DefaultLauncher);
