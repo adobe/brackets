@@ -32,8 +32,8 @@ define(function (require, exports, module) {
         EventDispatcher  = require("utils/EventDispatcher"),
         KeyEvent         = require("utils/KeyEvent"),
         AnimationUtils   = require("utils/AnimationUtils"),
-        WorkspaceManager = require("view/WorkspaceManager");
-
+        WorkspaceManager = require("view/WorkspaceManager"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
     /**
      * Creates a modal bar whose contents are the given template.
      *
@@ -60,10 +60,19 @@ define(function (require, exports, module) {
 
         this._handleKeydown = this._handleKeydown.bind(this);
         this._handleFocusChange = this._handleFocusChange.bind(this);
+        var prefSetSearchPanelPosition = PreferencesManager.get("setSearchPanelPosition");
+        var insertSearchBar = function() {
+            var searchBar = $("<div class='modal-bar'/>")
+        .html(template);
+            if(prefSetSearchPanelPosition === "top") {
+                return searchBar.insertBefore("#editor-holder");
+            }
+            else {
+                return searchBar.insertAfter("#editor-holder");
+            }
+        };          
 
-        this._$root = $("<div class='modal-bar'/>")
-            .html(template)
-            .insertBefore("#editor-holder");
+        this._$root = insertSearchBar();
 
         if (animate) {
             this._$root.addClass("popout offscreen");

@@ -347,6 +347,8 @@ define({
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
+    "CMD_SET_SEARCH_PANEL_POSITION"       : " Set Search Panel",
+
 
     // Edit menu commands
     "EDIT_MENU"                           : "Edit",
@@ -839,5 +841,6 @@ define({
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
     "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
-    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect"
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect",
+    "DESCRIPTION_SET_SEARCH_PANEL_POSITION"          : "Set the search panel position to top/bottom. Default is top"
 });
