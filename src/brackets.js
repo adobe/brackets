@@ -175,6 +175,7 @@ define(function (require, exports, module) {
         // and would not have access to the app html/css.
         brackets.test = {
             CodeHintManager         : require("editor/CodeHintManager"),
+            CodeRefactoringManager  : require("editor/CodeRefactoringManager"),
             CodeInspection          : require("language/CodeInspection"),
             CommandManager          : require("command/CommandManager"),
             Commands                : require("command/Commands"),
