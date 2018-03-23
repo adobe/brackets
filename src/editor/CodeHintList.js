@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
          *
          * @type {number}
          */
-        this.maxResults = ValidationUtils.isIntegerInRange(maxResults, 1, 1000) ? maxResults : 50;
+        this.maxResults = 500;
 
         /**
          * Is the list currently open?
@@ -396,7 +396,7 @@ define(function (require, exports, module) {
             if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 event.stopImmediatePropagation();
                 this.handleClose();
-                
+
                 return false;
             } else if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
