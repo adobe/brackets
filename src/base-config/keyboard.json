@@ -293,6 +293,15 @@
             "platform": "mac"
         }
     ],
+    "navigate.gotoRelatedFiles":  [
+        {
+            "key": "Ctrl-Shift-T"
+        },
+        {
+            "key": "Cmd-Shift-T",
+            "platform": "mac"
+        }
+    ],
     "navigate.nextDocListOrder":  [
         {
             "key": "Ctrl-PageDown"
