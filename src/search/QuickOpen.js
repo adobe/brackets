@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
         QuickSearchField    = require("search/QuickSearchField").QuickSearchField,
+        RelatedFilesManager = require("search/RelatedFilesManager"),
         StringMatch         = require("utils/StringMatch");
 
 
@@ -282,7 +283,7 @@ define(function (require, exports, module) {
             self = this;
 
         // Delegate to current plugin
-        if (currentPlugin) {
+        if (currentPlugin && query !== "#") {
             currentPlugin.itemSelect(selectedItem, query);
         } else {
             // Extract line/col number, if any
@@ -524,7 +525,12 @@ define(function (require, exports, module) {
                 displayName += "<span class='" + matchClass + "'>";
             }
 
-            var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
+            var includeFirstSegment = false;
+            if (range.includesFirstSegment) {
+                includeFirstSegment = range.includesFirstSegment;
+            }
+            
+            var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, includeFirstSegment, range.text) : range.text;
             displayName += StringUtils.breakableUrl(rangeText);
 
             if (range.matched) {
@@ -543,10 +549,19 @@ define(function (require, exports, module) {
 
     function _filenameResultsFormatter(item, query) {
         // For main label, we just want filename: drop most of the string
-        function fileNameFilter(includesLastSegment, rangeText) {
+        function fileNameFilter(includesLastSegment, includesFirstSegment, rangeText) {
             if (includesLastSegment) {
                 var rightmostSlash = rangeText.lastIndexOf('/');
                 return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
+            } else if (includesFirstSegment) {
+                var start = rangeText.indexOf("//");
+                if (start !== -1) {
+                    var firstSlash = rangeText.indexOf('/', start + 2);
+                    if (firstSlash !== -1) {
+                        return rangeText.substring(0, firstSlash);   
+                    }
+                }
+                return rangeText;
             } else {
                 return "";
             }
@@ -565,7 +580,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._resultsFormatterCallback = function (item, query) {
         var formatter;
 
-        if (currentPlugin) {
+        if (currentPlugin && query !== "#") {
             // Plugins use their own formatter or the default formatter
             formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
         } else {
@@ -612,6 +627,9 @@ define(function (require, exports, module) {
                 break;
             case "@":
                 dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
+                break;
+             case "#":
+                dialogLabel = Strings.CMD_GOTO_RELATED_FILES + "\u2026";
                 break;
             default:
                 dialogLabel = "";

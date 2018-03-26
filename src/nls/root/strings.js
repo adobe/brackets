@@ -417,6 +417,7 @@ define({
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
     "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Problem",
+    "CMD_GOTO_RELATED_FILES"              : "Quick Find Related Files",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",

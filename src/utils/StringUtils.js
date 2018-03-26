@@ -168,9 +168,14 @@ define(function (require, exports, module) {
         var escUrl = _.escape(url);
 
         // Inject zero-width space character (U+200B) near path separators (/) to allow line breaking there
-        return escUrl.replace(
+        escUrl.replace(
             new RegExp(regexEscape("/"), "g"),
             "/" + "&#8203;"
+        );
+        
+         // Inject zero-width space character (U+200B) near parameters separators (&) to allow line breaking there
+        return escUrl.replace(
+            new RegExp(regexEscape("&"), "g"), "&" + "&#8203;"
         );
     }
 
