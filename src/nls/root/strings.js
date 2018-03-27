@@ -857,7 +857,7 @@ define({
     "INTERNET_UNAVAILABLE"                           : "No Internet connection available.",
     "UPDATEDIR_READ_FAILED"                          : "Update directory could not be read.",
     "UPDATEDIR_CLEAN_FAILED"                         : "Update directory could not be cleaned.",
-	"INITIAL_DOWNLOAD"							 	 : "Downloading Update...",
+	"INITIAL_DOWNLOAD"								 : "Downloading Update...",
 	"RETRY_DOWNLOAD"								 : "Download failed. Retrying...Attempt ",
 	"VALIDATING_INSTALLER"							 : "Download complete! Validating Installer...",
 	"CHECKSUM_DID_NOT_MATCH"						 : "Checksum didn't match.",
@@ -865,5 +865,5 @@ define({
 	"DOWNLOAD_ERROR"								 : "Error occurred while downloading.",
     
     // Strings for Related Files
-    "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
+    "CMD_FIND_RELATED_FILES"						 : "Find Related Files"
 });
