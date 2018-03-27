@@ -839,5 +839,31 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Paramètres de surbrillance de l'Aperçu en direct",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l’inspection inverse de l’Aperçu en direct"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l’inspection inverse de l’Aperçu en direct",
+    
+    // Strings for Auto Update
+	"DOWNLOAD_FAILED": "Download failed.",
+	"DOWNLOAD_COMPLETE": "Download complete!",
+	"UPDATE_SUCCESSFUL": "Update successful!",
+	"UPDATE_FAILED": "Update failed!",
+	"VALIDATION_FAILED": "Validation failed!",
+	"INITIALISATION_FAILED": "Initialization failed!",
+	"CLEANUP_FAILED": "Clean-up failed!",
+	"WARNING_TYPE": "Warning!",
+	"CLICK_RESTART_TO_UPDATE": "Click Restart to update Brackets.",
+	"UPDATE_ON_NEXT_LAUNCH": "The update will be applied on relaunch.",
+	"VALIDATE_EXTENSIONS": "Please validate all your extensions.",
+	"GO_TO_SITE" = "Go to <a href: \"http://brackets.io/\"> brackets.io </a> to retry.",
+	"INTERNET_UNAVAILABLE": "No Internet connection available.",
+	"UPDATEDIR_READ_FAILED": "Update directory could not be read.",
+	"UPDATEDIR_CLEAN_FAILED": "Update directory could not be cleaned.",
+	"INITIAL_DOWNLOAD": "Downloading Update...",
+	"RETRY_DOWNLOAD": "Download failed. Retrying...Attempt ",
+	"VALIDATING_INSTALLER": "Download complete! Validating Installer...",
+	"CHECKSUM_DID_NOT_MATCH": "Checksum didn't match.",
+	"INSTALLER_NOT_FOUND": "Installer not found.",
+	"DOWNLOAD_ERROR": "Error occurred while downloading.",
+    
+    // Strings for Related Files
+	"CMD_FIND_RELATED_FILES": "Find Related Files"
 });
