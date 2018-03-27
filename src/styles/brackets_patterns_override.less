@@ -983,23 +983,35 @@ a[href^="http"] {
 }
 
 /* Update dialog */
-.update-dialog .modal-body {
+.update-dialog .modal-header {
     position: relative;
     .update-icon {
         position: absolute;
-        left: 30px; // relative to border of modal-body
-        top: 20px;
-        width: 80px;
-        height: 80px;
+        left: 15px; // relative to border of modal-body
+        top: 10px;
+        width: 28px;
+        height: 28px;
     }
+     .dialog-title {
+        // Icon is 28px, so we need at least that much left padding/margin to avoid overlap
+        margin-left: 34px;
+     }	     
+}
+
+.update-dialog .modal-body {
+        position: relative;
+    
     .update-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
-        margin-left: 130px;
+        margin-left: 29px;
 
-        padding-top: 20px;
+        padding-top: 21px;
         max-height: 280px;
         overflow: auto;
 
+        .dialog-message {
+           font-size: 16px;
+        }
         .update-info {
             margin-right: 10px;
             // Enable text selection
@@ -1009,6 +1021,7 @@ a[href^="http"] {
             h3 {
                 font-weight: normal;
                 margin: 0 0 10px;
+                font-size: 20px;
             }
 
             ul {

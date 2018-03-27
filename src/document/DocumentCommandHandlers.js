@@ -143,6 +143,11 @@ define(function (require, exports, module) {
     var handleFileSaveAs;
 
     /**
+    Event triggerred when Auto update is in progress, and user clicks Cancel in File Save prompt, after clicking UpdateNow
+    */
+    var DIRTY_FILESAVE_CANCELLED = "dirtyFileSaveCancelled";
+
+    /**
      * Updates the title bar with new file title or dirty indicator
      * @private
      */
@@ -217,8 +222,8 @@ define(function (require, exports, module) {
         if (doc.isUntitled()) {
             return fullPath.substring(fullPath.lastIndexOf("/") + 1);
         } else {
-            return ProjectManager.makeProjectRelativeIfPossible(fullPath);
-        }
+        return ProjectManager.makeProjectRelativeIfPossible(fullPath);
+    }
     }
 
     /**
@@ -327,7 +332,7 @@ define(function (require, exports, module) {
             } else {
                 var projectRoot = ProjectManager.getProjectRoot(),
                     context = {
-                        location : {
+                        location: {
                             scope: "user",
                             layer: "project",
                             layerID: projectRoot.fullPath
@@ -743,19 +748,19 @@ define(function (require, exports, module) {
                 ),
                 [
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id        : Dialogs.DIALOG_BTN_SAVE_AS,
-                        text      : Strings.SAVE_AS
+                        className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id: Dialogs.DIALOG_BTN_SAVE_AS,
+                        text: Strings.SAVE_AS
                     },
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
+                        className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id: Dialogs.DIALOG_BTN_CANCEL,
+                        text: Strings.CANCEL
                     },
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.SAVE_AND_OVERWRITE
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id: Dialogs.DIALOG_BTN_OK,
+                        text: Strings.SAVE_AND_OVERWRITE
                     }
                 ]
             )
@@ -849,6 +854,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Checks and handles if auto update is currently in progress
+     */
+    function checkIfAutoUpdateInProgress() {
+        brackets.app.isAutoUpdateInProgress(function (err, isAutoUpdateInProgress) {
+            if (isAutoUpdateInProgress) {
+                CommandManager.trigger(exports.DIRTY_FILESAVE_CANCELLED);
+            }
+        //AutoUpdate : TODO : Effective handling in case of err
+        });
+    }
+
+    /**
      * Opens the native OS save as dialog and saves document.
      * The original document is reverted in case it was dirty.
      * Text selection and cursor position from the original document
@@ -919,7 +936,7 @@ define(function (require, exports, module) {
             if (doc.file._encoding && doc.file._encoding !== "UTF-8") {
                 var projectRoot = ProjectManager.getProjectRoot(),
                     context = {
-                        location : {
+                        location: {
                             scope: "user",
                             layer: "project",
                             layerID: projectRoot.fullPath
@@ -996,6 +1013,7 @@ define(function (require, exports, module) {
                     if (selectedPath) {
                         _doSaveAfterSaveDialog(selectedPath);
                     } else {
+                        checkIfAutoUpdateInProgress();
                         result.reject(USER_CANCELED);
                     }
                 } else {
@@ -1033,8 +1051,8 @@ define(function (require, exports, module) {
 
                 return _doSaveAs(doc, settings);
             } else {
-                return doSave(doc);
-            }
+            return doSave(doc);
+        }
         }
 
         return $.Deferred().reject().promise();
@@ -1081,8 +1099,8 @@ define(function (require, exports, module) {
                     return savePromise;
                 } else {
                     // workingset entry that was never actually opened - ignore
-                    filesAfterSave.push(file);
-                    return (new $.Deferred()).resolve().promise();
+                filesAfterSave.push(file);
+                return (new $.Deferred()).resolve().promise();
                 }
             },
             false  // if any save fails, continue trying to save other files anyway; then reject at end
@@ -1199,24 +1217,25 @@ define(function (require, exports, module) {
                 ),
                 [
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
-                        text      : Strings.DONT_SAVE
+                        className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id: Dialogs.DIALOG_BTN_DONTSAVE,
+                        text: Strings.DONT_SAVE
                     },
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
+                        className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id: Dialogs.DIALOG_BTN_CANCEL,
+                        text: Strings.CANCEL
                     },
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.SAVE
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id: Dialogs.DIALOG_BTN_OK,
+                        text: Strings.SAVE
                     }
                 ]
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        checkIfAutoUpdateInProgress();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
@@ -1304,24 +1323,25 @@ define(function (require, exports, module) {
                 message,
                 [
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id        : Dialogs.DIALOG_BTN_DONTSAVE,
-                        text      : Strings.DONT_SAVE
+                        className: Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id: Dialogs.DIALOG_BTN_DONTSAVE,
+                        text: Strings.DONT_SAVE
                     },
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
+                        className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id: Dialogs.DIALOG_BTN_CANCEL,
+                        text: Strings.CANCEL
                     },
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.SAVE
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id: Dialogs.DIALOG_BTN_OK,
+                        text: Strings.SAVE
                     }
                 ]
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        checkIfAutoUpdateInProgress();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
@@ -1522,7 +1542,7 @@ define(function (require, exports, module) {
 
             MainViewManager.beginTraversal();
             CommandManager.execute(Commands.FILE_OPEN, {fullPath: file.fullPath,
-                                                        paneId: paneId });
+                paneId: paneId });
 
             // Listen for ending of Ctrl+Tab sequence
             if (!_addedNavKeyHandler) {
@@ -1569,14 +1589,14 @@ define(function (require, exports, module) {
             ),
             [
                 {
-                    className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                    id        : Dialogs.DIALOG_BTN_CANCEL,
-                    text      : Strings.CANCEL
+                    className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                    id: Dialogs.DIALOG_BTN_CANCEL,
+                    text: Strings.CANCEL
                 },
                 {
-                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                    id        : Dialogs.DIALOG_BTN_OK,
-                    text      : Strings.DELETE
+                    className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id: Dialogs.DIALOG_BTN_OK,
+                    text: Strings.DELETE
                 }
             ]
         )
@@ -1740,8 +1760,8 @@ define(function (require, exports, module) {
             if (openDocs.length > 0) {
                 return Strings.WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES;
             } else {
-                return Strings.WINDOW_UNLOAD_WARNING;
-            }
+            return Strings.WINDOW_UNLOAD_WARNING;
+        }
         }
     };
 
@@ -1783,6 +1803,7 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.showFileOpenError = showFileOpenError;
+    exports.DIRTY_FILESAVE_CANCELLED = DIRTY_FILESAVE_CANCELLED;
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6524 384 18 18">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ff13dc;
+        opacity: 0;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="Smock_Alert_18_N_1x" data-name="Smock_Alert_18_N@1x" transform="translate(-6524 384)">
+    <rect id="ToDelete" class="cls-1" width="18" height="18"/>
+    <path id="Path_5" data-name="Path 5" class="cls-2" d="M8.564,1.289.2,16.256A.5.5,0,0,0,.636,17H17.364a.5.5,0,0,0,.436-.744L9.436,1.289a.5.5,0,0,0-.872,0ZM10,14.75a.25.25,0,0,1-.25.25H8.25A.25.25,0,0,1,8,14.75v-1.5A.25.25,0,0,1,8.25,13h1.5a.25.25,0,0,1,.25.25Zm0-3a.25.25,0,0,1-.25.25H8.25A.25.25,0,0,1,8,11.75v-6a.25.25,0,0,1,.25-.25h1.5a.25.25,0,0,1,.25.25Z"/>
+  </g>
+</svg>

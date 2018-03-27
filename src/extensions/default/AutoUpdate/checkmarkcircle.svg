@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6524 312 18 18">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ff13dc;
+        opacity: 0;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="Smock_CheckmarkCircle_18_N_1x" data-name="Smock_CheckmarkCircle_18_N@1x" transform="translate(-6524 312)">
+    <rect id="ToDelete" class="cls-1" width="18" height="18"/>
+    <path id="Path_6" data-name="Path 6" class="cls-2" d="M8,1a8,8,0,1,0,8,8A8,8,0,0,0,8,1Zm5.333,4.54L7.009,13.67a.6.6,0,0,1-.437.23H6.535a.6.6,0,0,1-.425-.176l-3.893-3.9a.6.6,0,0,1,0-.849l.663-.663a.6.6,0,0,1,.848,0L6.4,10.991l5.256-6.754a.6.6,0,0,1,.843-.1l.728.566A.6.6,0,0,1,13.333,5.54Z"/>
+  </g>
+</svg>
