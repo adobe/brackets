@@ -44,6 +44,8 @@ package-lock.json
 
 # generate through grunt
 /src/config.json
+# the '/' at the front of above line is probably not working?
+src/config.json
 
 #OSX .DS_Store files
 .DS_Store
