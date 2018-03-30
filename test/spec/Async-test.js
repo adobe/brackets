@@ -113,7 +113,8 @@ define(function (require, exports, module) {
                         expect(false).toBe(shouldSucceed);
                         responseComparator(arguments);
                     });
-                    setTimeout(function() {
+                    // use 'window.setTimeout', not setTimeout, by convention
+                    window.setTimeout(function() {
                         expect(isItDone).toBeTrue();
                         done();
                     }, 100);
