@@ -92,33 +92,32 @@ define(function (require, exports, module) {
                 };
             }
 
+            // this function is given as 2nd param to it function
             function expectChainHelper(functions, args, shouldSucceed, responseComparator) {
-                var done = false;
-                var success = false;
-                var response = null;
-                runs(function () {
-                    var result = Async.chain(
-                        functions,
-                        args
-                    );
+                // when a function has 'done' as a param jasmine knows it's supposed to be asynchronous
+                // https://jasmine.github.io/api/edge/global.html#implementationCallback
+                return function(done) {
+                    var isItDone = false;
+                    // Async.chain invokes 1st fn in functions with args, passes result
+                    // to 2nd fn in functions, then 3rd, ..., last function, returns rslt
+                    var result = Async.chain(functions, args);
                     result.done(function () {
-                        done = true;
-                        success = true;
-                        response = arguments;
+                        // callback, invoked when result is finished computing
+                        isItDone = true;
+                        expect(true).toBe(shouldSucceed);
+                        responseComparator(arguments);
                     });
                     result.fail(function () {
-                        done = true;
-                        success = false;
-                        response = arguments;
+                        // callback, invoked when result is rejected (error or throw in the underlying chain)
+                        isItDone = true;
+                        expect(false).toBe(shouldSucceed);
+                        responseComparator(arguments);
                     });
-                });
-                waitsFor(function () {
-                    return done;
-                }, "The chain should complete", 100);
-                runs(function () {
-                    expect(success).toBe(shouldSucceed);
-                    responseComparator(response);
-                });
+                    setTimeout(function() {
+                        expect(isItDone).toBeTrue();
+                        done();
+                    }, 100);
+                };
             }
 
             describe("Zero-argument deferreds", function () {
