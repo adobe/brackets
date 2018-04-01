@@ -409,6 +409,7 @@ define({
 	"CMD_WORKINGSET_SORT_BY_TYPE": "Trier par type",
 	"CMD_WORKING_SORT_TOGGLE_AUTO": "Tri automatique",
 	"CMD_THEMES": "Thèmes\u2026",
+	"CMD_TOGGLE_SEARCH_AUTOHIDE": "Automatically close search",
 
     // Navigate menu commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -813,6 +814,7 @@ define({
 	"DESCRIPTION_USE_TAB_CHAR": "vrai pour utiliser des tabulations au lieu d’espaces",
 	"DESCRIPTION_UPPERCASE_COLORS": "vrai pour générer des couleurs hexadécimales en majuscules dans l’éditeur de couleur intégré",
 	"DESCRIPTION_WORD_WRAP": "Renvoyer à la ligne automatiquement en cas de dépassement de la largeur de la fenêtre",
+	"DESCRIPTION_SEARCH_AUTOHIDE": "Close the search as soon as the editor is focused",
 	"DESCRIPTION_DETECTED_EXCLUSIONS": "Liste de fichiers qui ont été identifiés comme provoquant une perte de contrôle de Tern",
 	"DESCRIPTION_INFERENCE_TIMEOUT": "Laps de temps au bout duquel le processus Tern expire quand il tente d’interpréter des fichiers",
 	"DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR": "vrai pour afficher les erreurs dans la barre d’état",

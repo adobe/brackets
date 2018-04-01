@@ -409,6 +409,7 @@ define({
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
+    "CMD_TOGGLE_SEARCH_AUTOHIDE"          : "Automatically close search",
 
     // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -813,6 +814,7 @@ define({
     "DESCRIPTION_USE_TAB_CHAR"                       : "true to use tabs instead of spaces",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true to generate uppercase hex colors in Inline Color Editor",
     "DESCRIPTION_WORD_WRAP"                          : "Wrap lines that exceed the viewport width",
+    "DESCRIPTION_SEARCH_AUTOHIDE"                    : "Close the search as soon as the editor is focused",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "A list of files that have been detected to cause Tern to run out of control",
     "DESCRIPTION_INFERENCE_TIMEOUT"                  : "The amount of time after which Tern will time out when trying to understand files",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true to show errors in status bar",
@@ -837,5 +839,31 @@ define({
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
     "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
-    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect"
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect",
+    
+    // Strings for Auto Update
+    "DOWNLOAD_FAILED"                                : "Download failed.",
+    "DOWNLOAD_COMPLETE"                              : "Download complete!",
+    "UPDATE_SUCCESSFUL"                              : "Update successful!",
+    "UPDATE_FAILED"                                  : "Update failed!",
+    "VALIDATION_FAILED"                              : "Validation failed!",
+    "INITIALISATION_FAILED"                          : "Initialization failed!",
+    "CLEANUP_FAILED"                                 : "Clean-up failed!",
+    "WARNING_TYPE"                                   : "Warning!",
+    "CLICK_RESTART_TO_UPDATE"                        : "Click Restart to update Brackets.",
+    "UPDATE_ON_NEXT_LAUNCH"                          : "The update will be applied on relaunch.",
+    "VALIDATE_EXTENSIONS"                            : "Please validate all your extensions.",
+    "GO_TO_SITE"                                     : "Go to <a href = \"http://brackets.io/\"> brackets.io </a> to retry.",
+    "INTERNET_UNAVAILABLE"                           : "No Internet connection available.",
+    "UPDATEDIR_READ_FAILED"                          : "Update directory could not be read.",
+    "UPDATEDIR_CLEAN_FAILED"                         : "Update directory could not be cleaned.",
+    "INITIAL_DOWNLOAD"                               : "Downloading Update...",
+    "RETRY_DOWNLOAD"                                 : "Download failed. Retrying...Attempt ",
+    "VALIDATING_INSTALLER"                           : "Download complete! Validating Installer...",
+    "CHECKSUM_DID_NOT_MATCH"                         : "Checksum didn't match.",
+    "INSTALLER_NOT_FOUND"                            : "Installer not found.",
+    "DOWNLOAD_ERROR"                                 : "Error occurred while downloading.",
+    
+    // Strings for Related Files
+    "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
 });
