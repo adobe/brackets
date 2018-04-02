@@ -863,6 +863,8 @@ define({
     "CHECKSUM_DID_NOT_MATCH"                         : "Checksum didn't match.",
     "INSTALLER_NOT_FOUND"                            : "Installer not found.",
     "DOWNLOAD_ERROR"                                 : "Error occurred while downloading.",
+    "RESTART_BUTTON"                                 : "Restart",
+    "LATER_BUTTON"                                   : "Later",
     
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
