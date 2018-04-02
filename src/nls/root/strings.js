@@ -852,7 +852,6 @@ define({
     "WARNING_TYPE"                                   : "Warning!",
     "CLICK_RESTART_TO_UPDATE"                        : "Click Restart to update Brackets.",
     "UPDATE_ON_NEXT_LAUNCH"                          : "The update will be applied on relaunch.",
-    "VALIDATE_EXTENSIONS"                            : "Please validate all your extensions.",
     "GO_TO_SITE"                                     : "Go to <a href = \"http://brackets.io/\"> brackets.io </a> to retry.",
     "INTERNET_UNAVAILABLE"                           : "No Internet connection available.",
     "UPDATEDIR_READ_FAILED"                          : "Update directory could not be read.",
