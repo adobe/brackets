@@ -24,15 +24,18 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit     = brackets.getModule("utils/AppInit"),
-        FileSystem  = brackets.getModule("filesystem/FileSystem"),
-        RemoteFile  = require("RemoteFile");
+    var AppInit         = brackets.getModule("utils/AppInit"),
+        FileSystem      = brackets.getModule("filesystem/FileSystem"),
+        QuickOpen       = brackets.getModule("search/QuickOpen"),
+        PathUtils       = brackets.getModule("thirdparty/path-utils/path-utils"),
+        CommandManager  = brackets.getModule("command/CommandManager"),
+        Commands        = brackets.getModule("command/Commands"),
+        RemoteFile      = require("RemoteFile");
 
     var HTTP_PROTOCOL = "http:",
         HTTPS_PROTOCOL = "https:";
 
-    AppInit.htmlReady(function() {
-
+    AppInit.htmlReady(function () {
         var protocolAdapter = {
             priority: 0, // Default priority
             fileImpl: RemoteFile,
@@ -40,6 +43,27 @@ define(function (require, exports, module) {
                 return true; // Always claim true, we are the default adpaters
             }
         };
+
+        QuickOpen.addQuickOpenPlugin(
+            {
+                name: "Remote file URI input",
+                languageIds: [], // for all language modes
+                search: function () {
+                    return $.Deferred().resolve([arguments[0]]);
+                },
+                match: function (query) {
+                    var protocol = PathUtils.parseUrl(query).protocol;
+                    return [HTTP_PROTOCOL, HTTPS_PROTOCOL].indexOf(protocol) !== -1;
+                },
+                itemFocus: function (query) {
+                    console.log(" in focus" + arguments);
+                }, // no op
+                itemSelect: function () {
+                    console.log(arguments);
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: arguments[0]});
+                }
+            }
+        );
 
         FileSystem.registerProtocolAdapter(HTTP_PROTOCOL, protocolAdapter);
         FileSystem.registerProtocolAdapter(HTTPS_PROTOCOL, protocolAdapter);
