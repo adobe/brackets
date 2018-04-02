@@ -56,10 +56,8 @@ define(function (require, exports, module) {
                     return [HTTP_PROTOCOL, HTTPS_PROTOCOL].indexOf(protocol) !== -1;
                 },
                 itemFocus: function (query) {
-                    console.log(" in focus" + arguments);
                 }, // no op
                 itemSelect: function () {
-                    console.log(arguments);
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: arguments[0]});
                 }
             }
