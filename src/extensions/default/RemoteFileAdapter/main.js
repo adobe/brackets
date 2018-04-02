@@ -44,6 +44,11 @@ define(function (require, exports, module) {
             }
         };
 
+        // Register the custom object as HTTP and HTTPS protocol adapter
+        FileSystem.registerProtocolAdapter(HTTP_PROTOCOL, protocolAdapter);
+        FileSystem.registerProtocolAdapter(HTTPS_PROTOCOL, protocolAdapter);
+
+        // Register as quick open plugin for file URI's having HTTP:|HTTPS: protocol
         QuickOpen.addQuickOpenPlugin(
             {
                 name: "Remote file URI input",
@@ -62,9 +67,6 @@ define(function (require, exports, module) {
                 }
             }
         );
-
-        FileSystem.registerProtocolAdapter(HTTP_PROTOCOL, protocolAdapter);
-        FileSystem.registerProtocolAdapter(HTTPS_PROTOCOL, protocolAdapter);
     });
 
 });

@@ -103,9 +103,17 @@ define(function (require, exports, module) {
     var _fileProtocolPlugins = {};
 
     /**
+     * Typical signature of a file protocol adapter.
+     * @typedef {Object} FileProtocol~Adapter
+     * @property {Number} priority - Indicates the priority.
+     * @property {Object} fileImpl - Handle for the custom file implementation prototype.
+     * @property {function} canRead - To check if this impl can read a file for a given path.
+     */
+
+    /**
      * FileSystem hook to register file protocol adapter
      * @param {string} protocol ex: "https:"|"http:"|"ftp:"|"file:"
-     * @param {object} adapter adapter wrapper over file implementation
+     * @param {...FileProtocol~Adapter} adapter wrapper over file implementation
      */
     function registerProtocolAdapter(protocol, adapter) {
         var adapters;

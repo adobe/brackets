@@ -29,7 +29,7 @@ define(function (require, exports, module) {
 
     var SESSION_START_TIME = new Date();
 
-    /*
+    /**
      * Create a new file stat. See the FileSystemStats class for more details.
      *
      * @param {!string} fullPath The full path for this File.
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         });
     }
 
-    /*
+    /**
      * Model for a RemoteFile.
      *
      * This class should *not* be instantiated directly. Use FileSystem.getFileForPath
