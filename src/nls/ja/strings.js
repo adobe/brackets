@@ -852,7 +852,6 @@ define({
 	"WARNING_TYPE": "警告",
 	"CLICK_RESTART_TO_UPDATE": "Brackets をアップデートするには、「再起動」をクリックしてください。",
 	"UPDATE_ON_NEXT_LAUNCH": "アップデートは再起動時に適用されます。",
-	"VALIDATE_EXTENSIONS": "すべての拡張機能を検証してください。",
 	"GO_TO_SITE": "<a href=\"http://brackets.io/\">brackets.io</a> に移動して、再試行します。",
 	"INTERNET_UNAVAILABLE": "インターネットに接続されていません.",
 	"UPDATEDIR_READ_FAILED": "アップデートディレクトリを読み込めませんでした。",
@@ -863,6 +862,8 @@ define({
 	"CHECKSUM_DID_NOT_MATCH": "チェックサムが一致しませんでした。",
 	"INSTALLER_NOT_FOUND": "インストーラーが見つかりません。",
 	"DOWNLOAD_ERROR": "ダウンロード中にエラーが発生しました。",
+	"RESTART_BUTTON": "再起動",
+	"LATER_BUTTON": "保留",
     
     // Strings for Related Files
 	"CMD_FIND_RELATED_FILES": "関連するファイルを検索"

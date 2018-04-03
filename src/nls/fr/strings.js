@@ -852,7 +852,6 @@ define({
 	"WARNING_TYPE": "Avertissement !",
 	"CLICK_RESTART_TO_UPDATE": "Cliquez sur Redémarrer pour mettre à jour Brackets.",
 	"UPDATE_ON_NEXT_LAUNCH": "La mise à jour sera appliquée au prochain lancement de l’application.",
-	"VALIDATE_EXTENSIONS": "Merci de valider toutes vos extensions.",
 	"GO_TO_SITE": "Rendez-vous sur <a href=\"http://brackets.io/\"> brackets.io </a> pour réessayer.",
 	"INTERNET_UNAVAILABLE": "Aucune connexion Internet disponible.",
 	"UPDATEDIR_READ_FAILED": "Impossible de lire le répertoire de mise à jour.",
@@ -863,6 +862,8 @@ define({
 	"CHECKSUM_DID_NOT_MATCH": "La somme de contrôle ne correspond pas.",
 	"INSTALLER_NOT_FOUND": "Programme d’installation non trouvé.",
 	"DOWNLOAD_ERROR": "Erreur lors du téléchargement.",
+	"RESTART_BUTTON": "Recommencer",
+	"LATER_BUTTON": "Plus tard",
     
     // Strings for Related Files
 	"CMD_FIND_RELATED_FILES": "Trouver les fichiers associés"
