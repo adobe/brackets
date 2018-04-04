@@ -351,8 +351,9 @@ define(function (require, exports, module) {
      * Initiates the update process, when user clicks UpdateNow in the update popup
      * @param {string} formattedInstallerPath - formatted path to the latest installer
      * @param {string} formattedLogFilePath  - formatted path to the installer log file
+     * @param {string} installStatusFilePath  -  path to the install status log file
      */
-    function initiateUpdateProcess(formattedInstallerPath, formattedLogFilePath) {
+    function initiateUpdateProcess(formattedInstallerPath, formattedLogFilePath, installStatusFilePath) {
         function getAdditionalParams() {
             var retval = {};
             var installDir = FileUtils.getNativeBracketsDirectoryPath();
@@ -378,7 +379,8 @@ define(function (require, exports, module) {
         var updateCB = function () {
             var infoObj = {
                 installerPath: formattedInstallerPath,
-                logFilePath: formattedLogFilePath
+                logFilePath: formattedLogFilePath,
+                installStatusFilePath: installStatusFilePath
             };
             if (brackets.platform === "mac") {
                 var additionalParams = getAdditionalParams();
@@ -401,9 +403,9 @@ define(function (require, exports, module) {
     /**
      * Handles the installer validation callback from Node
      * @param {object} statusObj - json containing - {
-     *                        valid - (boolean)true for a valid installer, false otherwise,
-     *                        installerPath, logFilePath - for a valid installer,
-     *                        err - for an invalid installer }
+     *                           valid - (boolean)true for a valid installer, false otherwise,
+     *                           installerPath, logFilePath, installStatusFilePath - for a valid       *                             installer,
+     *                           err - for an invalid installer }
      */
     function handleValidationStatus(statusObj) {
         enableCheckForUpdateEntry(true);
@@ -412,9 +414,11 @@ define(function (require, exports, module) {
             var statusValidCB = function(){
 
                 var restartBtnClicked = function() {
-                    initiateUpdateProcess(statusObj.installerPath, statusObj.logFilePath);
+                    MainViewManager.off(UpdateInfoBar.RESTART_BTN_CLICKED);
+                    initiateUpdateProcess(statusObj.installerPath, statusObj.logFilePath, statusObj.installStatusFilePath);
                 };
                 var laterBtnClicked = function() {
+                    MainViewManager.off(UpdateInfoBar.LATER_BTN_CLICKED);
                     setUpdateStateInJSON('updateInitiatedInPrevSession', false);
                 };
                 MainViewManager.on(UpdateInfoBar.RESTART_BTN_CLICKED, restartBtnClicked);

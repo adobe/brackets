@@ -34,10 +34,17 @@
         fs = require('fs-extra'),
         crypto = require('crypto');
 
+    // Current Date and Time needed for log filenames
+    var curDate = Date.now().toString();
+
     //AUTOUPDATE_PRERELEASE
     //Installer log file
-    var logFile = Date.now().toString() + 'update.logs',
+    var logFile = curDate + 'update.logs',
         logFilePath;
+
+    //Install status file
+    var installStatusFile = curDate + 'installStatus.logs',
+        installStatusFilePath;
 
     var updateDir,
         _updateParams;
@@ -132,13 +139,15 @@
                         status = {
                             valid: true,
                             installerPath: installerPath,
-                            logFilePath: logFilePath
+                            logFilePath: logFilePath,
+                            installStatusFilePath: installStatusFilePath
                         };
                     } else if (process.platform === "win32") {
                         status = {
                             valid: true,
                             installerPath: quoteAndConvert(installerPath, true),
-                            logFilePath: quoteAndConvert(logFilePath, true)
+                            logFilePath: quoteAndConvert(logFilePath, true),
+                            installStatusFilePath: installStatusFilePath
                         };
                     }
                 } else {
@@ -289,6 +298,7 @@
         MessageIds = initObj.messageIds;
         updateDir = path.resolve(initObj.updateDir);
         logFilePath = path.resolve(updateDir, logFile);
+        installStatusFilePath = path.resolve(updateDir, installStatusFile);
         registerNodeFunctions();
         postMessageToBrackets(MessageIds.REGISTER_BRACKETS_FUNCTIONS);
     }
