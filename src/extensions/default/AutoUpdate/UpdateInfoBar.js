@@ -24,11 +24,18 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var MainViewManager = brackets.getModule("view/MainViewManager"),
-        Mustache = brackets.getModule("thirdparty/mustache/mustache"),
-        ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
-        UpdateBarHtml = require("text!htmlContent/updateBar.html");
+    var MainViewManager     = brackets.getModule("view/MainViewManager"),
+        Mustache            = brackets.getModule("thirdparty/mustache/mustache"),
+        UpdateBarHtml       = require("text!htmlContent/updateBar.html"),
+        Strings             = brackets.getModule("strings");
 
+    /** Event triggered when Restart button is clicked on the update bar
+    */
+    var RESTART_BTN_CLICKED = "restartBtnClicked";
+
+    /** Event triggered when Later button is clicked on the update bar
+    */
+    var LATER_BTN_CLICKED = "laterBtnClicked";
 
     /**
      * Generates the json to be used by Mustache for rendering
@@ -45,11 +52,11 @@ define(function (require, exports, module) {
         if (msgObj.needButtons) {
             msgJsonObj.buttons = [{
                 "id": "restart",
-                "value": "Restart",
+                "value": Strings.RESTART_BUTTON,
                 "tIndex": "'0'"
             }, {
                 "id": "later",
-                "value": "Later",
+                "value": Strings.LATER_BUTTON,
                 "tIndex": "'0'"
             }];
             msgJsonObj.needButtons = msgObj.needButtons;
@@ -61,71 +68,89 @@ define(function (require, exports, module) {
      * Removes and cleans up the update bar from DOM
      */
     function cleanUpdateBar() {
-        $('#update-bar').remove();
+        var $updateBar = $('#update-bar');
+        if($updateBar.length > 0) {
+            $updateBar.remove();
+        }
         $(window.document).off("keydown.AutoUpdate");
     }
 
     /**
      * Displays the Update Bar UI
      * @param   {object} msgObj - json object containing message info to be displayed
-     * @returns {$.Deferred} - a deferred jquery promise, that is resolved or rejected with the action performed on the bar UI. 
+     *
      */
     function showUpdateBar(msgObj) {
         var jsonToMustache = generateJsonForMustache(msgObj),
-            $updateBar = $(Mustache.render(UpdateBarHtml, jsonToMustache)),
-            result = new $.Deferred();
+            $updateBarElement = $(Mustache.render(UpdateBarHtml, jsonToMustache));
 
         cleanUpdateBar(); //Remove an already existing update bar, if any
-        $updateBar.prependTo(".content");
+        $updateBarElement.prependTo(".content");
 
-        if ($('#update-bar #content-container #update-content')[0].scrollWidth > $('#update-bar #content-container #update-content').innerWidth()) {
+        var $updateBar = $('#update-bar'),
+            $updateContent = $updateBar.find('#update-content'),
+            $contentContainer = $updateBar.find('#content-container'),
+            $heading = $updateBar.find('#heading'),
+            $description = $updateBar.find('#description'),
+            $restart = $updateBar.find('#update-btn-restart'),
+            $later = $updateBar.find('#update-btn-later'),
+            $closeIcon = $updateBar.find('#close-icon');
+
+        if($updateContent.length > 0) {
+            if ($updateContent[0].scrollWidth > $updateContent.innerWidth()) {
             //Text has over-flown, show the update content as tooltip message
-            $('#update-bar #content-container').attr("title", $('#update-bar #content-container #update-content #heading').text() + $('#update-bar #content-container #update-content #description').text());
+                if($contentContainer.length > 0 &&
+                   $heading.length > 0 &&
+                   $description.length > 0) {
+                    $contentContainer.attr("title", $heading.text() + $description.text());
+                }
+            }
         }
 
-
         //Event handlers on the Update Bar
-        $("#update-bar #button-container #update-btn-restart").click(function () {
-            //Resolve the promise if user clicked Restart button
-            result.resolve(true);
-            cleanUpdateBar();
-        });
 
-        $("#update-bar #button-container #update-btn-restart").keyup(function (e) {
-            if (e.which === 32) { //32 is the keycode for space key
+        if($restart.length > 0) {
+            $restart.click(function () {
+                cleanUpdateBar();
+                MainViewManager.trigger(exports.RESTART_BTN_CLICKED);
+            });
+
+            $restart.keyup(function (e) {
+                if (e.which === 32) { //32 is the keycode for space key
                 // Keyboard input of space key on Restart button triggers a click
-                $("#update-bar #button-container #update-btn-restart").trigger('click');
-            }
-        });
+                    $restart.trigger('click');
+                }
+            });
+        }
 
-        $("#update-bar #button-container #update-btn-later").click(function () {
-            // Reject the promise if user clicked Later button
-            cleanUpdateBar();
-            MainViewManager.focusActivePane();
-            result.resolve(false);
-        });
+        if($later.length > 0) {
+            $later.click(function () {
+                cleanUpdateBar();
+                MainViewManager.focusActivePane();
+                MainViewManager.trigger(exports.LATER_BTN_CLICKED);
+            });
 
-        $("#update-bar #button-container #update-btn-later").keyup(function (e) {
-            if (e.which === 32) { //32 is the keycode for space key
+            $later.keyup(function (e) {
+                if (e.which === 32) { //32 is the keycode for space key
                 // Keyboard input of space key on Later button triggers a click
-                $("#update-bar #button-container #update-btn-later").trigger('click');
-            }
-        });
+                    $later.trigger('click');
+                }
+            });
+        }
 
-        $("#update-bar #close-icon-container #close-icon").click(function () {
-            // Reject the promise if user clicked on close icon
-            cleanUpdateBar();
-            MainViewManager.focusActivePane();
-            result.resolve(false);
-        });
+        if($closeIcon.length > 0) {
+            $closeIcon.click(function () {
+                cleanUpdateBar();
+                MainViewManager.focusActivePane();
+            });
 
-        $("#update-bar #close-icon-container #close-icon").keyup(function (e) {
-            if (e.which === 32) { //32 is the keycode for space key
+            $closeIcon.keyup(function (e) {
+                if (e.which === 32) { //32 is the keycode for space key
                 // Keyboard input of space key on close icon triggers a click
-                $("#update-bar #close-icon-container #close-icon").trigger('click');
-            }
-        });
-
+                    $closeIcon.trigger('click');
+                }
+            });
+        }
         $(window.document).on("keydown.AutoUpdate", function (e) {
             var code = e.which;
             if (code === 27) { // escape key maps to keycode `27`
@@ -133,10 +158,10 @@ define(function (require, exports, module) {
                 cleanUpdateBar();
                 MainViewManager.focusActivePane();
                 e.stopImmediatePropagation();
-                result.resolve(false);
             }
         });
-        return result.promise();
     }
     exports.showUpdateBar = showUpdateBar;
+    exports.RESTART_BTN_CLICKED = RESTART_BTN_CLICKED;
+    exports.LATER_BTN_CLICKED = LATER_BTN_CLICKED;
 });

@@ -61,7 +61,7 @@
     float: left;
 }
 #update-bar #icon-container #update-icon {
-    background: url("info.svg") no-repeat 0 0;
+    background: url("../images/info.svg") no-repeat 0 0;
     width: 16px;
     height: 16px;
     display: block;
@@ -170,7 +170,7 @@
     background-color: #EAEAEA;
     color: #202020;
 }
-/*TODO : Do we need only an active state too?*/
+
 .update-btn:focus:active {
     border: 1px solid #B5B5B5;
     background-color: #CCCCCC;
@@ -198,7 +198,7 @@
 
 #update-bar.warning #icon-container #update-icon,
 #update-bar.error #icon-container #update-icon {
-    background: url("alert.svg") no-repeat 0 0;
+    background: url("../images/alert.svg") no-repeat 0 0;
 }
 
 /*Error message in Update Bar*/
@@ -219,7 +219,7 @@
 }
 
 #update-bar.success #icon-container #update-icon{
-    background: url("checkmarkcircle.svg") no-repeat 0 0;
+    background: url("../images/checkmarkcircle.svg") no-repeat 0 0;
 }
 
 

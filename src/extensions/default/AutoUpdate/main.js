@@ -25,6 +25,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager          = brackets.getModule("command/CommandManager"),
+        MainViewManager         = brackets.getModule("view/MainViewManager"),
         Commands                = brackets.getModule("command/Commands"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         UpdateNotification      = brackets.getModule("utils/UpdateNotification"),
@@ -32,9 +33,9 @@ define(function (require, exports, module) {
         FileSystem              = brackets.getModule("filesystem/FileSystem"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         Strings                 = brackets.getModule("strings"),
-        StateHandler            = require("./StateHandler").StateHandler,
+        StateHandler            = require("StateHandler"),
         DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
-        MessageIds              = require("./MessageIds"),
+        MessageIds              = require("MessageIds"),
         UpdateStatus            = require("UpdateStatus"),
         UpdateInfoBar           = require("UpdateInfoBar");
 
@@ -48,7 +49,7 @@ define(function (require, exports, module) {
         updateDir = appSupportDirectory + '/updateTemp',
         updateJsonPath = updateDir + '/' + 'updateHelper.json';
 
-    var updateJsonHandler = new StateHandler(updateJsonPath);
+    var updateJsonHandler = new StateHandler.StateHandler(updateJsonPath);
 
     var MAX_DOWNLOAD_ATTEMPTS = 6,
         downloadAttemptsRemaining;
@@ -162,7 +163,7 @@ define(function (require, exports, module) {
                 var directory = FileSystem.getDirectoryForPath(updateDir);
                 directory.create(function (error) {
                     if (error) {
-                        console.log('AutoUpdate : Error in creating update directory in Appdata');
+                        console.error('AutoUpdate : Error in creating update directory in Appdata');
                         result.reject();
                     } else {
                         result.resolve();
@@ -191,38 +192,74 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Resets the update state in updatehelper.json in case of failure,
+     * and logs an error with the message
+     * @param {string} message - the message to be logged onto console
+     */
+    function resetStateInFailure(message) {
+        updateJsonHandler.reset();
+        UpdateInfoBar.showUpdateBar({
+            type: "error",
+            title: Strings.UPDATE_FAILED,
+            description: ""
+        });
+        console.error(message);
+    }
+
+    /**
+     * Sets the update state in updateHelper.json in Appdata
+     * @param {string} key   - key to be set
+     * @param {string} value  - value to be set
+     * @param {function} callback - the callback function
+     *                            to be called in case of
+     *                            successful setting of update state
+     */
+    function setUpdateStateInJSON(key, value, callback) {
+        var cb = callback || function() {};
+        updateJsonHandler.set(key, value)
+        .done(function() {
+            cb();
+        })
+        .fail(function(){
+            resetStateInFailure("AutoUpdate : Could not modify updatehelper.json");
+        });
+    }
+
+    /**
      * Handles a safe download of the latest installer,
      * safety is ensured by cleaning up any pre-existing installers
      * from update directory before beginning a fresh download
      */
     function handleSafeToDownload() {
-        updateJsonHandler.set('downloadCompleted', false);
 
-        if (isFirstIterationDownload()) {
+        var downloadCB = function() {
+            if (isFirstIterationDownload()) {
             // For the first iteration of download, show download status info in Status bar, and pass download to node
-            UpdateStatus.showUpdateStatus("initial-download");
-            postMessageToNode(MessageIds.DOWNLOAD_INSTALLER, true);
-        } else {
+                UpdateStatus.showUpdateStatus("initial-download");
+                postMessageToNode(MessageIds.DOWNLOAD_INSTALLER, true);
+            } else {
             /* For the retry iterations of download, modify the
             download status info in Status bar, and pass download to node */
-            var attempt = (MAX_DOWNLOAD_ATTEMPTS - downloadAttemptsRemaining);
-            if (attempt > 1) {
-                var info = attempt.toString() + "/5";
-                var status = {
-                    target: "retry-download",
-                    spans: [{
-                        id: "attempt",
-                        val: info
-                    }]
-                };
-                UpdateStatus.modifyUpdateStatus(status);
-            } else {
-                UpdateStatus.showUpdateStatus("retry-download");
+                var attempt = (MAX_DOWNLOAD_ATTEMPTS - downloadAttemptsRemaining);
+                if (attempt > 1) {
+                    var info = attempt.toString() + "/5";
+                    var status = {
+                        target: "retry-download",
+                        spans: [{
+                            id: "attempt",
+                            val: info
+                        }]
+                    };
+                    UpdateStatus.modifyUpdateStatus(status);
+                } else {
+                    UpdateStatus.showUpdateStatus("retry-download");
+                }
+                postMessageToNode(MessageIds.DOWNLOAD_INSTALLER, false);
             }
-            postMessageToNode(MessageIds.DOWNLOAD_INSTALLER, false);
-        }
 
-        --downloadAttemptsRemaining;
+            --downloadAttemptsRemaining;
+        };
+        setUpdateStateInJSON('downloadCompleted', false, downloadCB);
     }
 
     /**
@@ -337,24 +374,28 @@ define(function (require, exports, module) {
             }
             return retval;
         }
-        updateJsonHandler.set('updateInitiatedInPrevSession', true);
-        var infoObj = {
-            installerPath: formattedInstallerPath,
-            logFilePath: formattedLogFilePath
-        };
-        if (brackets.platform === "mac") {
-            var additionalParams = getAdditionalParams();
-            infoObj.installDir = additionalParams.installDir;
-            infoObj.appName = additionalParams.appName;
-            infoObj.updateDir = additionalParams.updateDir;
 
-        }
-        brackets.app.setUpdateParamsAndQuit(JSON.stringify(infoObj), function (err) {
-            if (err === 0) {
-                CommandManager.execute(Commands.FILE_QUIT);
+        var updateCB = function () {
+            var infoObj = {
+                installerPath: formattedInstallerPath,
+                logFilePath: formattedLogFilePath
+            };
+            if (brackets.platform === "mac") {
+                var additionalParams = getAdditionalParams();
+                infoObj.installDir = additionalParams.installDir;
+                infoObj.appName = additionalParams.appName;
+                infoObj.updateDir = additionalParams.updateDir;
+
             }
-            //TODO : ELSE : showUpdatePopup for failure, and reset the state
-        });
+            brackets.app.setUpdateParamsAndQuit(JSON.stringify(infoObj), function (err) {
+                if (err === 0) {
+                    CommandManager.execute(Commands.FILE_QUIT);
+                } else {
+                    resetStateInFailure("AutoUpdate : Update parameters could not be set for the installer. Error encountered: " + err);
+                }
+            });
+        };
+        setUpdateStateInJSON('updateInitiatedInPrevSession', true, updateCB);
     }
 
     /**
@@ -368,28 +409,32 @@ define(function (require, exports, module) {
         enableCheckForUpdateEntry(true);
         UpdateStatus.cleanUpdateStatus();
         if (statusObj.valid) {
-            updateJsonHandler.set('downloadCompleted', true);
-            UpdateInfoBar.showUpdateBar(
-                {
+            var statusValidCB = function(){
+
+                var restartBtnClicked = function() {
+                    initiateUpdateProcess(statusObj.installerPath, statusObj.logFilePath);
+                };
+                var laterBtnClicked = function() {
+                    setUpdateStateInJSON('updateInitiatedInPrevSession', false);
+                };
+                MainViewManager.on(UpdateInfoBar.RESTART_BTN_CLICKED, restartBtnClicked);
+                MainViewManager.on(UpdateInfoBar.LATER_BTN_CLICKED, laterBtnClicked);
+                UpdateInfoBar.showUpdateBar({
                     title: Strings.DOWNLOAD_COMPLETE,
                     description: Strings.CLICK_RESTART_TO_UPDATE,
                     needButtons: true
-                }
-            )
-                .done(function (updateNow) {
-                    if (updateNow) {
-                        //AUTOUPDATE_PRERELEASE
-                        initiateUpdateProcess(statusObj.installerPath, statusObj.logFilePath);
-                    } else {
-                        updateJsonHandler.set('updateInitiatedInPrevSession', false);
-                    }
                 });
+            };
+            setUpdateStateInJSON('downloadCompleted', true, statusValidCB);
         } else {
             if (updateJsonHandler.get("downloadCompleted")) {
                 updateJsonHandler.reset();
-                updateJsonHandler.set('downloadCompleted', false);
-                downloadAttemptsRemaining = MAX_DOWNLOAD_ATTEMPTS;
-                getLatestInstaller();
+                var statusInvalidCB = function() {
+                    downloadAttemptsRemaining = MAX_DOWNLOAD_ATTEMPTS;
+                    getLatestInstaller();
+                };
+                setUpdateStateInJSON('downloadCompleted', false, statusInvalidCB);
+
             } else {
                 var descriptionMessage;
                 switch (statusObj.err) {
@@ -400,13 +445,11 @@ define(function (require, exports, module) {
                     descriptionMessage = Strings.INSTALLER_NOT_FOUND;
                     break;
                 }
-                UpdateInfoBar.showUpdateBar(
-                    {
-                        type: "error",
-                        title: Strings.VALIDATION_FAILED,
-                        description: descriptionMessage
-                    }
-                );
+                UpdateInfoBar.showUpdateBar({
+                    type: "error",
+                    title: Strings.VALIDATION_FAILED,
+                    description: descriptionMessage
+                });
             }
         }
     }
@@ -427,13 +470,11 @@ define(function (require, exports, module) {
             if (message === _nodeErrorMessages.DOWNLOAD_ERROR) {
                 descriptionMessage = Strings.DOWNLOAD_ERROR;
             }
-            UpdateInfoBar.showUpdateBar(
-                {
-                    type: "error",
-                    title: Strings.DOWNLOAD_FAILED,
-                    description: descriptionMessage
-                }
-            );
+            UpdateInfoBar.showUpdateBar({
+                type: "error",
+                title: Strings.DOWNLOAD_FAILED,
+                description: descriptionMessage
+            });
         }
 
     }
@@ -455,13 +496,11 @@ define(function (require, exports, module) {
                 postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
             })
             .fail(function () {
-                UpdateInfoBar.showUpdateBar(
-                    {
-                        type: "error",
-                        title: Strings.INITIALISATION_FAILED,
-                        description: ""
-                    }
-                );
+                UpdateInfoBar.showUpdateBar({
+                    type: "error",
+                    title: Strings.INITIALISATION_FAILED,
+                    description: ""
+                });
             });
     }
 
@@ -486,6 +525,12 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * Handles the scenario where auto update in progress check returns error
+     */
+    function handleAutoUpdateError() {
+        resetStateInFailure("AutoUpdate : Error returned in auto update in progress check");
+    }
 
     /**
      * Handles Download completion callback from Node
@@ -523,6 +568,7 @@ define(function (require, exports, module) {
 
     UpdateNotification.on(UpdateNotification.GET_AUTOUPDATE_INSTALLER, handleGetNow);
     CommandManager.on(DocumentCommandHandlers.DIRTY_FILESAVE_CANCELLED, dirtyFileSaveCancelled);
+    CommandManager.on(DocumentCommandHandlers.AUTOUPDATE_ERROR, handleAutoUpdateError);
 
     updateDomain.exec('initNode', {
         messageIds: MessageIds,
@@ -534,6 +580,24 @@ define(function (require, exports, module) {
         updateJsonHandler.parse()
             .done(function () {
                 checkUpdateStatus();
+            })
+            .fail(function (code) {
+                var logMsg;
+                switch(code) {
+                case StateHandler.FILE_NOT_FOUND :
+                    logMsg = "AutoUpdate : updateHelper.json cannot be parsed, does not exist";
+                    break;
+                case StateHandler.FILE_NOT_READ :
+                    logMsg = "AutoUpdate : updateHelper.json could not be read";
+                    break;
+                case StateHandler.FILE_PARSE_EXCEPTION :
+                    logMsg = "AutoUpdate : updateHelper.json could not be parsed, exception encountered";
+                    break;
+                case StateHandler.FILE_READ_FAIL :
+                    logMsg = "AutoUpdate : updateHelper.json could not be parsed";
+                    break;
+                }
+                console.log(logMsg);
             });
     });
 

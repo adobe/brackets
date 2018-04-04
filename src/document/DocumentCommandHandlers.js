@@ -143,9 +143,15 @@ define(function (require, exports, module) {
     var handleFileSaveAs;
 
     /**
-    Event triggerred when Auto update is in progress, and user clicks Cancel in File Save prompt, after clicking UpdateNow
+    Event triggerred when Auto update is in progress, and
+    user clicks Cancel in File Save prompt, after clicking UpdateNow
     */
     var DIRTY_FILESAVE_CANCELLED = "dirtyFileSaveCancelled";
+
+    /**
+    Event triggered when error is returned when tried to check if Auto Update is progress
+    */
+    var AUTOUPDATE_ERROR = "autoUpdateError";
 
     /**
      * Updates the title bar with new file title or dirty indicator
@@ -221,9 +227,9 @@ define(function (require, exports, module) {
         // current project or the full absolute path if it's not in the project.
         if (doc.isUntitled()) {
             return fullPath.substring(fullPath.lastIndexOf("/") + 1);
-        } else {
+        }
         return ProjectManager.makeProjectRelativeIfPossible(fullPath);
-    }
+
     }
 
     /**
@@ -858,10 +864,11 @@ define(function (require, exports, module) {
      */
     function checkIfAutoUpdateInProgress() {
         brackets.app.isAutoUpdateInProgress(function (err, isAutoUpdateInProgress) {
-            if (isAutoUpdateInProgress) {
+            if (err === 0 && isAutoUpdateInProgress) {
                 CommandManager.trigger(exports.DIRTY_FILESAVE_CANCELLED);
+            } else if(err) {
+                CommandManager.trigger(exports.AUTOUPDATE_ERROR);
             }
-        //AutoUpdate : TODO : Effective handling in case of err
         });
     }
 
@@ -1050,9 +1057,9 @@ define(function (require, exports, module) {
                 }
 
                 return _doSaveAs(doc, settings);
-            } else {
+            }
             return doSave(doc);
-        }
+
         }
 
         return $.Deferred().reject().promise();
@@ -1097,11 +1104,11 @@ define(function (require, exports, module) {
                             }
                         });
                     return savePromise;
-                } else {
+                }
                     // workingset entry that was never actually opened - ignore
                 filesAfterSave.push(file);
                 return (new $.Deferred()).resolve().promise();
-                }
+
             },
             false  // if any save fails, continue trying to save other files anyway; then reject at end
         ).then(function () {
@@ -1759,9 +1766,9 @@ define(function (require, exports, module) {
         if (!_isReloading && !_windowGoingAway) {
             if (openDocs.length > 0) {
                 return Strings.WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES;
-            } else {
+            }
             return Strings.WINDOW_UNLOAD_WARNING;
-        }
+
         }
     };
 
@@ -1804,6 +1811,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.showFileOpenError = showFileOpenError;
     exports.DIRTY_FILESAVE_CANCELLED = DIRTY_FILESAVE_CANCELLED;
+    exports.AUTOUPDATE_ERROR = AUTOUPDATE_ERROR;
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);

@@ -27,6 +27,10 @@ define(function (require, exports, module) {
     var FileSystem = brackets.getModule("filesystem/FileSystem"),
         FileUtils = brackets.getModule("file/FileUtils");
 
+    var FILE_NOT_FOUND = 0,
+        FILE_NOT_READ = 1,
+        FILE_PARSE_EXCEPTION = 2,
+        FILE_READ_FAIL = 3;
 
     /**
      * @constructor
@@ -80,21 +84,19 @@ define(function (require, exports, module) {
                                 self.state = JSON.parse(text);
                                 result.resolve();
                             } else {
-                                result.reject();
+                                result.reject(FILE_READ_FAIL);
                             }
                         } catch (error) {
-                            result.reject();
+                            result.reject(FILE_PARSE_EXCEPTION);
                         }
                     })
                     .fail(function () {
-                        result.reject();
-                        console.log("AutoUpdate : updateHelper.json could not be read");
+                        result.reject(FILE_NOT_READ);
                     });
 
             })
             .fail(function () {
-                result.reject();
-                console.log("AutoUpdate : updateHelper.json cannot be parsed, does not exist");
+                result.reject(FILE_NOT_FOUND);
             });
 
         return result.promise();
@@ -111,33 +113,6 @@ define(function (require, exports, module) {
         this.state[key] = value;
 
         return this.write(true);
-    };
-
-    /**
-     * Reads the value of a key from a json file.
-     * @param   {string} key - key for which the value is to be read
-     * @returns {$.Deferred} - a jquery deferred promise, that is resolved
-     *                       with the read value or read failure.
-     */
-    StateHandler.prototype.read = function (key) {
-        var result = $.Deferred(),
-            self = this;
-
-        self.parse()
-            .done(function () {
-                if (self.state && self.state[key]) {
-                    result.resolve(self.state[key]);
-                } else {
-                    result.reject();
-                    console.log("AutoUpdate : key " + key + " in updateHelper.json could not be read");
-                }
-            })
-            .fail(function () {
-                result.reject();
-                console.log("AutoUpdate : updateHelper.json could not be parsed, key could not be read");
-            });
-
-        return result.promise();
     };
 
     /**
@@ -208,8 +183,8 @@ define(function (require, exports, module) {
                     writePromise(self.path, content);
                 })
 			.done(function (){
-				result.reject();
-			});
+    result.reject();
+});
         }
 
         return result.promise();
@@ -223,4 +198,8 @@ define(function (require, exports, module) {
     };
 
     exports.StateHandler = StateHandler;
+    exports.FILE_NOT_FOUND = FILE_NOT_FOUND;
+    exports.FILE_NOT_READ = FILE_NOT_READ;
+    exports.FILE_PARSE_EXCEPTION = FILE_PARSE_EXCEPTION;
+    exports.FILE_READ_FAIL = FILE_READ_FAIL;
 });

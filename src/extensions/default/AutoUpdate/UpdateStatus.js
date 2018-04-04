@@ -25,19 +25,11 @@ define(function (require, exports, module) {
     "use strict";
 
     var UpdateStatusHtml = require("text!htmlContent/updateStatus.html"),
-        ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
-        Mustache = brackets.getModule("thirdparty/mustache/mustache");
+        ExtensionUtils   = brackets.getModule("utils/ExtensionUtils"),
+        Mustache         = brackets.getModule("thirdparty/mustache/mustache"),
+        Strings          = brackets.getModule("strings");
 
-    var $statusIndicator = $('#status-indicators');
-
-    ExtensionUtils.loadStyleSheet(module, "styles.css");
-
-    //AutoUpdate TODO : The strings need to be externalized
-    var statusStrings = {
-        INITIAL_DOWNLOAD: "Downloading Update...",
-        RETRY_DOWNLOAD: "Downloading Failed. Retrying...Attempt ",
-        VALIDATING_INSTALLER: "Download Completed. Validating Installer..."
-    };
+    ExtensionUtils.loadStyleSheet(module, "styles/styles.css");
 
     /**
      * Cleans up status information from Status Bar
@@ -53,9 +45,7 @@ define(function (require, exports, module) {
     function showUpdateStatus(id) {
         cleanUpdateStatus();
 
-        var $updateStatus = $(Mustache.render(UpdateStatusHtml, {
-            "Strings": statusStrings
-        }));
+        var $updateStatus = $(Mustache.render(UpdateStatusHtml, {"Strings": Strings}));
         $updateStatus.appendTo('#status-bar');
         $('#update-status #' + id).show();
     }

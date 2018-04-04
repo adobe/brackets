@@ -540,6 +540,7 @@ define(function (require, exports, module) {
                         Strings.ERROR_FETCHING_UPDATE_INFO_MSG
                     );
                 }
+                _addedClickHandler = false;
                 result.reject();
             });
 
