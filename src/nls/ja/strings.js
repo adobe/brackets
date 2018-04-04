@@ -160,7 +160,7 @@ define({
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"FIND_HISTORY_MAX_COUNT": "検索履歴内の検索項目の最大数",
-	"REPLACE_PLACEHOLDER": "\u2026 に置換",
+	"REPLACE_PLACEHOLDER": " に置換\u2026",
 	"BUTTON_REPLACE_ALL": "すべて置換",
 	"BUTTON_REPLACE_BATCH": "バッチ\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
@@ -409,7 +409,7 @@ define({
 	"CMD_WORKINGSET_SORT_BY_TYPE": "種類順",
 	"CMD_WORKING_SORT_TOGGLE_AUTO": "自動ソート",
 	"CMD_THEMES": "テーマ\u2026",
-	"CMD_TOGGLE_SEARCH_AUTOHIDE": "Automatically close search",
+	"CMD_TOGGLE_SEARCH_AUTOHIDE": "検索を自動的に閉じる",
 
     // Navigate menu commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -814,7 +814,7 @@ define({
 	"DESCRIPTION_USE_TAB_CHAR": "スペースの代わりにタブを使用するには true",
 	"DESCRIPTION_UPPERCASE_COLORS": "Inline Color Editor で大文字の 16 進カラーを生成するには true",
 	"DESCRIPTION_WORD_WRAP": "ビューポートの幅を超える行を折り返す",
-	"DESCRIPTION_SEARCH_AUTOHIDE": "Close the search as soon as the editor is focused",
+	"DESCRIPTION_SEARCH_AUTOHIDE": "エディターがフォーカスされるとすぐに検索を閉じる",
 	"DESCRIPTION_DETECTED_EXCLUSIONS": "Tern が制御不能になる原因として検出されたファイルの一覧",
 	"DESCRIPTION_INFERENCE_TIMEOUT": "ファイルの認識時に Tern がタイムアウトするまでの時間",
 	"DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示するには true",
@@ -839,5 +839,31 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false にすると、ライブプレビューでのリバースインスペクトが無効になります"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false にすると、ライブプレビューでのリバースインスペクトが無効になります",
+    
+    // Strings for Auto Update
+	"DOWNLOAD_FAILED": "ダウンロードに失敗しました。",
+	"DOWNLOAD_COMPLETE": "ダウンロードが完了しました。",
+	"UPDATE_SUCCESSFUL": "アップデートが正常に完了しました。",
+	"UPDATE_FAILED": "アップデートに失敗しました。",
+	"VALIDATION_FAILED": "検証に失敗しました。",
+	"INITIALISATION_FAILED": "初期化に失敗しました。",
+	"CLEANUP_FAILED": "クリーンアップに失敗しました。",
+	"WARNING_TYPE": "警告",
+	"CLICK_RESTART_TO_UPDATE": "Brackets をアップデートするには、「再起動」をクリックしてください。",
+	"UPDATE_ON_NEXT_LAUNCH": "アップデートは再起動時に適用されます。",
+	"VALIDATE_EXTENSIONS": "すべての拡張機能を検証してください。",
+	"GO_TO_SITE": "<a href=\"http://brackets.io/\">brackets.io</a> に移動して、再試行します。",
+	"INTERNET_UNAVAILABLE": "インターネットに接続されていません.",
+	"UPDATEDIR_READ_FAILED": "アップデートディレクトリを読み込めませんでした。",
+	"UPDATEDIR_CLEAN_FAILED": "アップデートディレクトリを空にできませんでした。",
+	"INITIAL_DOWNLOAD": "アップデートをダウンロード中...",
+	"RETRY_DOWNLOAD": "ダウンロードに失敗しました。再試行...試行",
+	"VALIDATING_INSTALLER": "ダウンロードが完了しました。インストーラーを検証中...",
+	"CHECKSUM_DID_NOT_MATCH": "チェックサムが一致しませんでした。",
+	"INSTALLER_NOT_FOUND": "インストーラーが見つかりません。",
+	"DOWNLOAD_ERROR": "ダウンロード中にエラーが発生しました。",
+    
+    // Strings for Related Files
+	"CMD_FIND_RELATED_FILES": "関連するファイルを検索"
 });
