@@ -492,7 +492,7 @@ define(function (require, exports, module) {
 
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update
-                    if (force || allUpdates[0].buildNumber > lastNotifiedBuildNumber) {
+                    if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
                         _showUpdateNotificationDialog(allUpdates);
 
                         // Update prefs with the last notified build number
@@ -540,7 +540,6 @@ define(function (require, exports, module) {
                         Strings.ERROR_FETCHING_UPDATE_INFO_MSG
                     );
                 }
-                _addedClickHandler = false;
                 result.reject();
             });
 
