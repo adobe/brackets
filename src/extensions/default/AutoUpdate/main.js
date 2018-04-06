@@ -34,7 +34,6 @@ define(function (require, exports, module) {
         FileUtils               = brackets.getModule("file/FileUtils"),
         Strings                 = brackets.getModule("strings"),
         StateHandlerModule      = require("StateHandler"),
-        DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
         MessageIds              = require("MessageIds"),
         UpdateStatus            = require("UpdateStatus"),
         UpdateInfoBar           = require("UpdateInfoBar");
@@ -214,6 +213,7 @@ define(function (require, exports, module) {
             title: Strings.UPDATE_FAILED,
             description: ""
         });
+        enableCheckForUpdateEntry(true);
         console.error(message);
     }
 

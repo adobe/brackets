@@ -177,12 +177,7 @@ define(function (require, exports, module) {
 
         var content = self.state;
         if (overwrite) {
-            self.exists()
-                .fail(function () {
-                    writePromise(self.path, content);
-                }).done(function (){
-                    writePromise(self.path, content);
-                });
+            writePromise(self.path, content);
         } else {
             //check for existence
             self.exists()

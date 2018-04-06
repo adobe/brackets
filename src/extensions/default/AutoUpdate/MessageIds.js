@@ -36,5 +36,4 @@ define(function (require, exports, module) {
     exports.NOTIFY_INITIALIZATION_COMPLETE  = "brackets.notifyinitializationComplete";
     exports.NOTIFY_VALIDATION_STATUS        = "brackets.notifyvalidationStatus";
     exports.REGISTER_BRACKETS_FUNCTIONS     = "brackets.registerBracketsFunctions";
-    exports.REGISTER_BRACKETS_FUNCTIONS_AND_UTILS     = "brackets.registerBracketsFunctionsAndUtils";
 });
