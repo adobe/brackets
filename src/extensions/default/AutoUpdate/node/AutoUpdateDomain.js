@@ -374,7 +374,6 @@
     }
 
     exports.init = init;
-    exports.initNode = initNode;
 
 }());
 

@@ -37,6 +37,10 @@ define(function (require, exports, module) {
     */
     var LATER_BTN_CLICKED = "laterBtnClicked";
 
+    // Key handlers for buttons in UI
+    var SPACE_KEY = 32, // keycode for space key
+        ESC_KEY   = 27; // keycode for escape key
+
     /**
      * Generates the json to be used by Mustache for rendering
      * @param   {object}   msgObj - json object containing message information to be displayed
@@ -109,20 +113,21 @@ define(function (require, exports, module) {
 
         //Event handlers on the Update Bar
 
+        // Click and key handlers on Restart button
         if($restart.length > 0) {
             $restart.click(function () {
                 cleanUpdateBar();
                 MainViewManager.trigger(exports.RESTART_BTN_CLICKED);
             });
 
-            $restart.keyup(function (e) {
-                if (e.which === 32) { //32 is the keycode for space key
-                // Keyboard input of space key on Restart button triggers a click
+            $restart.keyup(function (event) {
+                if (event.which === SPACE_KEY) {
                     $restart.trigger('click');
                 }
             });
         }
 
+        // Click and key handlers on Later button
         if($later.length > 0) {
             $later.click(function () {
                 cleanUpdateBar();
@@ -130,34 +135,33 @@ define(function (require, exports, module) {
                 MainViewManager.trigger(exports.LATER_BTN_CLICKED);
             });
 
-            $later.keyup(function (e) {
-                if (e.which === 32) { //32 is the keycode for space key
-                // Keyboard input of space key on Later button triggers a click
+            $later.keyup(function (event) {
+                if (event.which === SPACE_KEY) {
                     $later.trigger('click');
                 }
             });
         }
 
+        // Click and key handlers on Close button
         if($closeIcon.length > 0) {
             $closeIcon.click(function () {
                 cleanUpdateBar();
                 MainViewManager.focusActivePane();
             });
 
-            $closeIcon.keyup(function (e) {
-                if (e.which === 32) { //32 is the keycode for space key
-                // Keyboard input of space key on close icon triggers a click
+            $closeIcon.keyup(function (event) {
+                if (event.which === SPACE_KEY) {
                     $closeIcon.trigger('click');
                 }
             });
         }
-        $(window.document).on("keydown.AutoUpdate", function (e) {
-            var code = e.which;
-            if (code === 27) { // escape key maps to keycode `27`
+        $(window.document).on("keydown.AutoUpdate", function (event) {
+            var code = event.which;
+            if (code === ESC_KEY) {
                 // Keyboard input of Esc key on Update Bar dismisses and removes the bar
                 cleanUpdateBar();
                 MainViewManager.focusActivePane();
-                e.stopImmediatePropagation();
+                event.stopImmediatePropagation();
             }
         });
     }

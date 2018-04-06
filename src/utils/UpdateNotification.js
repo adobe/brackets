@@ -54,6 +54,18 @@ define(function (require, exports, module) {
     // Event trigger for Auto Update
     var GET_AUTOUPDATE_INSTALLER = "getUpdateInstaller";
 
+    /**
+    Event triggerred when Auto update is in progress, and
+    user clicks Cancel in File Save prompt, after clicking UpdateNow
+    */
+    var DIRTY_FILESAVE_CANCELLED = "dirtyFileSaveCancelled";
+
+    /**
+    Event triggered when error is returned when trying to check if Auto Update is progress
+    */
+    var AUTOUPDATE_ERROR = "autoUpdateError";
+
+
     //Parameters containing update information
     var updateParams = {};
 
@@ -561,6 +573,8 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.GET_AUTOUPDATE_INSTALLER = GET_AUTOUPDATE_INSTALLER;
+    exports.DIRTY_FILESAVE_CANCELLED = DIRTY_FILESAVE_CANCELLED;
+    exports.AUTOUPDATE_ERROR = AUTOUPDATE_ERROR;
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
 });

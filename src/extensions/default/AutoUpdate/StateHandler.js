@@ -55,7 +55,9 @@ define(function (require, exports, module) {
             _file = FileSystem.getFileForPath(this.path);
 
         _file.exists(function (err, exists) {
-            if (exists) {
+            if(err) {
+                result.reject();
+            } else if(exists) {
                 result.resolve();
             } else {
                 result.reject();
@@ -175,16 +177,20 @@ define(function (require, exports, module) {
 
         var content = self.state;
         if (overwrite) {
-            writePromise(self.path, content);
+            self.exists()
+                .fail(function () {
+                    writePromise(self.path, content);
+                }).done(function (){
+                    writePromise(self.path, content);
+                });
         } else {
             //check for existence
             self.exists()
                 .fail(function () {
                     writePromise(self.path, content);
-                })
-			.done(function (){
-    result.reject();
-});
+                }).done(function (){
+                    result.reject();
+                });
         }
 
         return result.promise();
@@ -198,8 +204,10 @@ define(function (require, exports, module) {
     };
 
     exports.StateHandler = StateHandler;
-    exports.FILE_NOT_FOUND = FILE_NOT_FOUND;
-    exports.FILE_NOT_READ = FILE_NOT_READ;
-    exports.FILE_PARSE_EXCEPTION = FILE_PARSE_EXCEPTION;
-    exports.FILE_READ_FAIL = FILE_READ_FAIL;
+    exports.MessageKeys = {
+        FILE_NOT_FOUND: FILE_NOT_FOUND,
+        FILE_NOT_READ: FILE_NOT_READ,
+        FILE_PARSE_EXCEPTION: FILE_PARSE_EXCEPTION,
+        FILE_READ_FAIL: FILE_READ_FAIL
+    };
 });

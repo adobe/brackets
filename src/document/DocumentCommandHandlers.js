@@ -56,7 +56,8 @@ define(function (require, exports, module) {
         StatusBar           = require("widgets/StatusBar"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         LanguageManager     = require("language/LanguageManager"),
-        _                   = require("thirdparty/lodash");
+        _                   = require("thirdparty/lodash"),
+        UpdateNotification  = require("utils/UpdateNotification");
 
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -141,17 +142,6 @@ define(function (require, exports, module) {
      * @type {function}
      */
     var handleFileSaveAs;
-
-    /**
-    Event triggerred when Auto update is in progress, and
-    user clicks Cancel in File Save prompt, after clicking UpdateNow
-    */
-    var DIRTY_FILESAVE_CANCELLED = "dirtyFileSaveCancelled";
-
-    /**
-    Event triggered when error is returned when tried to check if Auto Update is progress
-    */
-    var AUTOUPDATE_ERROR = "autoUpdateError";
 
     /**
      * Updates the title bar with new file title or dirty indicator
@@ -862,12 +852,12 @@ define(function (require, exports, module) {
     /**
      * Checks and handles if auto update is currently in progress
      */
-    function checkIfAutoUpdateInProgress() {
+    function handleIfAutoUpdateInProgress() {
         brackets.app.isAutoUpdateInProgress(function (err, isAutoUpdateInProgress) {
-            if (err === 0 && isAutoUpdateInProgress) {
-                CommandManager.trigger(exports.DIRTY_FILESAVE_CANCELLED);
-            } else if(err) {
-                CommandManager.trigger(exports.AUTOUPDATE_ERROR);
+            if(err) {
+                UpdateNotification.trigger(UpdateNotification.AUTOUPDATE_ERROR);
+            } else if(isAutoUpdateInProgress){
+                UpdateNotification.trigger(UpdateNotification.DIRTY_FILESAVE_CANCELLED);
             }
         });
     }
@@ -1020,7 +1010,7 @@ define(function (require, exports, module) {
                     if (selectedPath) {
                         _doSaveAfterSaveDialog(selectedPath);
                     } else {
-                        checkIfAutoUpdateInProgress();
+                        handleIfAutoUpdateInProgress();
                         result.reject(USER_CANCELED);
                     }
                 } else {
@@ -1242,7 +1232,7 @@ define(function (require, exports, module) {
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        checkIfAutoUpdateInProgress();
+                        handleIfAutoUpdateInProgress();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
@@ -1348,7 +1338,7 @@ define(function (require, exports, module) {
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        checkIfAutoUpdateInProgress();
+                        handleIfAutoUpdateInProgress();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
@@ -1810,8 +1800,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.showFileOpenError = showFileOpenError;
-    exports.DIRTY_FILESAVE_CANCELLED = DIRTY_FILESAVE_CANCELLED;
-    exports.AUTOUPDATE_ERROR = AUTOUPDATE_ERROR;
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
