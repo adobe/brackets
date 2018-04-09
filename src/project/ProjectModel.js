@@ -823,7 +823,7 @@ define(function (require, exports, module) {
      * @param {string=} path optional path to start renaming
      * @return {$.Promise} resolved when the operation is complete.
      */
-    ProjectModel.prototype.startRename = function (path) {
+    ProjectModel.prototype.startRename = function (path, isMoved) {
         var d = new $.Deferred();
         path = _getPathFromFSObject(path);
         if (!path) {
@@ -834,7 +834,7 @@ define(function (require, exports, module) {
         }
 
         if (this._selections.rename && this._selections.rename.path === path) {
-            return;
+            return d.resolve().promise();
         }
 
         if (!this.isWithinProject(path)) {
@@ -851,19 +851,21 @@ define(function (require, exports, module) {
             this.showInTree(path);
         }
 
-        if (path !== this._selections.context) {
-            this.setContext(path);
-        } else {
-            this.performRename();
-        }
+        if (!isMoved) {
+            if (path !== this._selections.context) {
+                this.setContext(path);
+            } else {
+                this.performRename();
+            }
 
-        this._viewModel.moveMarker("rename", null,
-                                   projectRelativePath);
+            this._viewModel.moveMarker("rename", null,
+                projectRelativePath);
+        }
         this._selections.rename = {
             deferred: d,
             type: FILE_RENAMING,
             path: path,
-            newName: FileUtils.getBaseName(path)
+            newPath: path
         };
         return d.promise();
     };
@@ -872,13 +874,13 @@ define(function (require, exports, module) {
      * Sets the new value for the rename operation that is in progress (started previously with a call
      * to `startRename`).
      *
-     * @param {string} name new name for the file or directory being renamed
+     * @param {string} newPath new path for the file or directory being renamed
      */
-    ProjectModel.prototype.setRenameValue = function (name) {
+    ProjectModel.prototype.setRenameValue = function (newPath) {
         if (!this._selections.rename) {
             return;
         }
-        this._selections.rename.newName = name;
+        this._selections.rename.newPath = newPath;
     };
 
     /**
@@ -963,17 +965,17 @@ define(function (require, exports, module) {
             // To get the parent directory, we need to strip off the trailing slash on a directory name
             parentDirectory = FileUtils.getDirectoryPath(isFolder ? FileUtils.stripTrailingSlash(oldPath) : oldPath),
             oldName         = FileUtils.getBaseName(oldPath),
-            newName         = renameInfo.newName,
-            newPath         = parentDirectory + newName,
+            newPath         = renameInfo.newPath,
+            newName         = FileUtils.getBaseName(newPath),
             viewModel       = this._viewModel,
             self            = this;
 
-        if (renameInfo.type !== FILE_CREATING && oldName === newName) {
+        if (renameInfo.type !== FILE_CREATING && oldPath === newPath) {
             this.cancelRename();
             return;
         }
 
-        if (isFolder) {
+        if (isFolder && _.last(newPath) !== "/") {
             newPath += "/";
         }
 
@@ -985,7 +987,7 @@ define(function (require, exports, module) {
         viewModel.moveMarker("creating", oldProjectPath, null);
 
         function finalizeRename() {
-            viewModel.renameItem(oldProjectPath, newName);
+            viewModel.renameItem(oldProjectPath, self.makeProjectRelativeIfPossible(newPath));
             if (self._selections.selected && self._selections.selected.indexOf(oldPath) === 0) {
                 self._selections.selected = newPath + self._selections.selected.slice(oldPath.length);
             }
@@ -1250,48 +1252,6 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.closeSubtree = function (path) {
         this._viewModel.closeSubtree(this.makeProjectRelativeIfPossible(path));
-    };
-
-    /**
-     * Moves the item in oldPath to the newDirectory directory
-     * @param {string} oldPath  old path of the item
-     * @param {string} newPath new path of the item
-     * @return {$.Promise} promise resolved when the item is moved
-     */
-    ProjectModel.prototype.moveItem = function(oldPath, newPath) {
-        var self = this,
-            d = new $.Deferred(),
-            newDirectory = FileUtils.getParentPath(newPath),
-            fileName = FileUtils.getBaseName(newPath);
-
-        // Reusing the _renameItem for moving item
-        this._renameItem(oldPath, newPath, fileName, !_pathIsFile(newPath)).then(function () {
-            var newDirectoryRelative = self.makeProjectRelativeIfPossible(newDirectory),
-                oldPathRelative = self.makeProjectRelativeIfPossible(oldPath),
-                newPathRelative = self.makeProjectRelativeIfPossible(newPath),
-                needsLoading = !self._viewModel.isPathLoaded(newDirectoryRelative),
-                viewModel = self._viewModel;
-
-            // If directory view not loaded, load it and then update the view
-            if (needsLoading) {
-                self._getDirectoryContents(newDirectory).then(function(contents) {
-                    viewModel.setDirectoryContents(newDirectoryRelative, contents);
-                    viewModel.moveItem(oldPathRelative, newPathRelative);
-                });
-            } else {
-                viewModel.moveItem(oldPathRelative, newPathRelative);
-            }
-            d.resolve();
-        }).fail(function (errorType) {
-            var errorInfo = {
-                type: errorType,
-                isFolder: !_pathIsFile(newPath),
-                fullPath: newPath
-            };
-            d.reject(errorInfo);
-        });
-
-        return d.promise();
     };
 
     /**

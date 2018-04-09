@@ -176,7 +176,7 @@ define(function (require, exports, module) {
          * this component, so we keep the model up to date by sending every update via an action.
          */
         handleInput: function (e) {
-            this.props.actions.setRenameValue(this.refs.name.value.trim());
+            this.props.actions.setRenameValue(this.props.parentPath + this.refs.name.value.trim());
 
             if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
                     e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
@@ -198,90 +198,93 @@ define(function (require, exports, module) {
     /**
      * This is a mixin that provides drag and drop move function.
      */
-     var dragAndDrop = {
-         handleDrag: function(e) {
-             // Pass the dragged item path.
-             e.dataTransfer.setData("text", JSON.stringify({
-                 path: this.myPath()
-             }));
+    var dragAndDrop = {
+        handleDrag: function(e) {
+            // Disable drag when renaming
+            if (this.props.entry.get("rename")) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
 
-             this.props.actions.dragItem(this.myPath());
+            // Pass the dragged item path.
+            e.dataTransfer.setData("text", JSON.stringify({
+                path: this.myPath()
+            }));
 
-             this.setDragImage(e);
-             e.stopPropagation();
-         },
-         handleDrop: function(e) {
-             var data = JSON.parse(e.dataTransfer.getData("text"));
+            this.props.actions.dragItem(this.myPath());
 
-             if (!this.props.entry.get("open")) {
-                 this.props.actions.setDirectoryOpen(this.myPath(), true);
-             }
-             this.props.actions.moveItem(data.path, this.myPath());
-             this.setDraggedOver(false);
+            this.setDragImage(e);
+            e.stopPropagation();
+        },
+        handleDrop: function(e) {
+            var data = JSON.parse(e.dataTransfer.getData("text"));
 
-             this.clearDragTimeout();
-             e.stopPropagation();
-         },
+            this.props.actions.moveItem(data.path, this.myPath());
+            this.setDraggedOver(false);
 
-         handleDragEnd: function(e) {
-             this.clearDragTimeout();
-         },
+            this.clearDragTimeout();
+            e.stopPropagation();
+        },
 
-         handleDragOver: function(e) {
-             var data = JSON.parse(e.dataTransfer.getData("text"));
+        handleDragEnd: function(e) {
+            this.clearDragTimeout();
+        },
 
-             if (data.path === this.myPath() || FileUtils.getParentPath(data.path) === this.myPath()) {
-                 e.preventDefault();
-                 e.stopPropagation();
-                 return;
-             }
-             var self = this;
-             this.setDraggedOver(true);
+        handleDragOver: function(e) {
+            var data = JSON.parse(e.dataTransfer.getData("text"));
 
-             // Open the directory tree when item is dragged over a directory
-             if (!this.dragOverTimeout) {
-                 this.dragOverTimeout = window.setTimeout(function() {
-                     self.props.actions.setDirectoryOpen(self.myPath(), true);
-                     self.dragOverTimeout = null;
-                 }, 800);
-             }
+            if (data.path === this.myPath() || FileUtils.getParentPath(data.path) === this.myPath()) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            var self = this;
+            this.setDraggedOver(true);
 
-             e.preventDefault(); // Allow the drop
-             e.stopPropagation();
-         },
+            // Open the directory tree when item is dragged over a directory
+            if (!this.dragOverTimeout) {
+                this.dragOverTimeout = window.setTimeout(function() {
+                    self.props.actions.setDirectoryOpen(self.myPath(), true);
+                    self.dragOverTimeout = null;
+                }, 800);
+            }
 
-         handleDragLeave: function(e) {
-             this.setDraggedOver(false);
-             this.clearDragTimeout();
-         },
+            e.preventDefault(); // Allow the drop
+            e.stopPropagation();
+        },
 
-         clearDragTimeout: function() {
-             if (this.dragOverTimeout) {
-                 clearTimeout(this.dragOverTimeout);
-                 this.dragOverTimeout = null;
-             }
-         },
-         setDraggedOver: function(draggedOver) {
-             if (this.state.draggedOver !== draggedOver) {
-                 this.setState({
-                     draggedOver: draggedOver
-                 });
-             }
-         },
+        handleDragLeave: function(e) {
+            this.setDraggedOver(false);
+            this.clearDragTimeout();
+        },
 
-         setDragImage: function(e) {
-             var div = window.document.createElement('div');
-             div.style.position = 'absolute';
-             div.style.color = '#fff';
-             div.textContent = this.props.name;
-             window.document.body.appendChild(div);
-             e.dataTransfer.setDragImage(div, -10, -10);
-             setTimeout(function() {
-                 window.document.body.removeChild(div);
-             }, 0);
-         }
+        clearDragTimeout: function() {
+            if (this.dragOverTimeout) {
+                clearTimeout(this.dragOverTimeout);
+                this.dragOverTimeout = null;
+            }
+        },
+        setDraggedOver: function(draggedOver) {
+            if (this.state.draggedOver !== draggedOver) {
+                this.setState({
+                    draggedOver: draggedOver
+                });
+            }
+        },
 
-     };
+        setDragImage: function(e) {
+            var div = window.document.createElement('div');
+            div.style.position = 'absolute';
+            div.style.color = '#fff';
+            div.textContent = this.props.name;
+            window.document.body.appendChild(div);
+            e.dataTransfer.setDragImage(div, -10, -10);
+            setTimeout(function() {
+                window.document.body.removeChild(div);
+            }, 0);
+        }
+    };
 
     /**
      * @private
@@ -351,7 +354,6 @@ define(function (require, exports, module) {
             }
             // Return true only for mouse down in rename mode.
             if (this.props.entry.get("rename")) {
-                e.preventDefault(); // Disable drag and drop when renaming
                 return;
             }
         }
@@ -450,7 +452,6 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-
     var fileNode = Preact.createFactory(Preact.createClass({
         mixins: [contextSettable, pathComputer, extendable, dragAndDrop],
 
@@ -735,16 +736,15 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-
     directoryNode = Preact.createFactory(Preact.createClass({
         mixins: [contextSettable, pathComputer, extendable, dragAndDrop],
 
-
-        getInitialState: function () {
+        getInitialState: function() {
             return {
                 draggedOver: false
             };
         },
+
         /**
          * We need to update this component if the sort order changes or our entry object
          * changes. Thanks to immutability, if any of the directory contents change, our
@@ -1118,8 +1118,8 @@ define(function (require, exports, module) {
         },
 
         /**
-        * Allow the drop
-        */
+         * Allow the Drop
+         */
         handleDragOver: function(e) {
             e.preventDefault();
         },
@@ -1168,13 +1168,9 @@ define(function (require, exports, module) {
                 }),
                 args = {
                     onDrop: this.handleDrop,
-                    onDragOver: this.handleDragOver,
-                    style: {
-                        height: '100%',
-                        width: '100%',
-                        overflowY: 'auto'
-                    }
+                    onDragOver: this.handleDragOver
                 };
+
 
             return DOM.div(
                 args,

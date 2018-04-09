@@ -116,8 +116,7 @@ define(function (require, exports, module) {
         ERR_TYPE_LOADING_PROJECT_NATIVE = 6,
         ERR_TYPE_MAX_FILES              = 7,
         ERR_TYPE_OPEN_DIALOG            = 8,
-        ERR_TYPE_INVALID_FILENAME       = 9,
-        ERR_TYPE_MOVE                   = 10;
+        ERR_TYPE_INVALID_FILENAME       = 9;
 
     /**
      * @private
@@ -263,7 +262,14 @@ define(function (require, exports, module) {
      * See `ProjectModel.setDirectoryOpen`
      */
     ActionCreator.prototype.setDirectoryOpen = function (path, open) {
-        this.model.setDirectoryOpen(path, open).then(_saveTreeState);
+        var d = new $.Deferred();
+        this.model.setDirectoryOpen(path, open).then(function() {
+            d.resolve();
+            _saveTreeState();
+        }).fail(function() {
+            console.log("promise failed");
+        });
+        return d.promise();
     };
 
     /**
@@ -297,12 +303,12 @@ define(function (require, exports, module) {
     /**
      * See `ProjectModel.startRename`
      */
-    ActionCreator.prototype.startRename = function (path) {
+    ActionCreator.prototype.startRename = function (path, isMoved) {
         // This is very not Flux-like, which is a sign that Flux may not be the
         // right choice here *or* that this architecture needs to evolve subtly
         // in how errors are reported (more like the create case).
         // See #9284.
-        renameItemInline(path);
+        renameItemInline(path, isMoved);
     };
 
     /**
@@ -387,7 +393,7 @@ define(function (require, exports, module) {
      *
      * See `ProjectModel.moveItem`
      */
-    ActionCreator.prototype.moveItem = function(oldPath, newDirectory) {
+    ActionCreator.prototype.moveItem = function (oldPath, newDirectory) {
         var fileName = FileUtils.getBaseName(oldPath),
             newPath = newDirectory + fileName,
             selectedItem = getSelectedItem(),
@@ -406,28 +412,13 @@ define(function (require, exports, module) {
             newPath = ProjectModel._ensureTrailingSlash(newPath);
         }
 
-        if (selectedItem && selectedItemPath.indexOf(oldPath) === 0) {
-            selectedItemMoved = true;
-        }
+        this.startRename(oldPath, true);
+        this.setRenameValue(newPath);
 
-        this.model.moveItem(oldPath, newPath).then(function() {
-            if (selectedItemMoved) {
-                self.setSelected(newPath + selectedItemPath.substr(oldPath.length));
-            }
-        })
-        .fail(function(errorInfo) {
-            // Need to do display the error message on the next event loop turn
-            // because some errors can come up synchronously and then the dialog
-            // is not displayed.
-            window.setTimeout(function () {
-                switch (errorInfo.type) {
-                    // TODO: handle Errors
-                    default:
-                    console.log(errorInfo.type);
-                    _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
-                    break;
-                }
-            }, 10);
+        var self = this;
+        this.setDirectoryOpen(newDirectory, true).then(function() {
+            self.performRename();
+            _renderTreeSync();
         });
     };
 
@@ -666,11 +657,6 @@ define(function (require, exports, module) {
         case ERR_TYPE_INVALID_FILENAME:
             title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
             message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, error);
-            break;
-        case ERR_TYPE_MOVE:
-            // TODO: Change it to handle move errors
-            title = StringUtils.format(Strings.GENERIC_ERROR, titleType);
-            message = StringUtils.format(Strings.GENERIC_ERROR, path);
             break;
         }
 
@@ -1254,10 +1240,6 @@ define(function (require, exports, module) {
         $projectTreeContainer.css("position", "relative");
 
         fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
-        fileTreeViewContainer.style.position = "absolute";
-        fileTreeViewContainer.style.height = "100%";
-        fileTreeViewContainer.style.width = "100%";
-        fileTreeViewContainer.style.overflowY = "auto";
 
         model.setSelectionWidth($projectTreeContainer.width());
 
@@ -1282,6 +1264,17 @@ define(function (require, exports, module) {
 
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
+        });
+
+        $projectTreeContainer.on("dragover", function(e) {
+            e.preventDefault();
+        });
+
+        // Add support for moving items to root directory
+        $projectTreeContainer.on("drop", function(e) {
+            var data = JSON.parse(e.originalEvent.dataTransfer.getData("text"));
+            actionCreator.moveItem(data.path, getProjectRoot().fullPath);
+            e.stopPropagation();
         });
 
         // When a context menu item is selected, we need to clear the context
@@ -1350,10 +1343,10 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    renameItemInline = function (entry) {
+    renameItemInline = function (entry, isMoved) {
         var d = new $.Deferred();
 
-        model.startRename(entry)
+        model.startRename(entry, isMoved)
             .done(function () {
                 d.resolve();
             })

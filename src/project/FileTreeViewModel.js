@@ -460,55 +460,26 @@ define(function (require, exports, module) {
         this._commit(newTreeData, selectionViewInfo);
     };
 
-    /**
-     * Changes the name of the item at the `currentPath` to `newName`.
-     *
-     * @param {string} currentPath project relative file path to the current item
-     * @param {string} newName Name to give the item
-     */
-    FileTreeViewModel.prototype.renameItem = function (currentPath, newName) {
+    FileTreeViewModel.prototype.renameItem = function (oldPath, newPath) {
         var treeData = this._treeData,
-            objectPath = _filePathToObjectPath(treeData, currentPath);
+            oldObjectPath = _filePathToObjectPath(treeData, oldPath),
+            newObjectPath = _filePathToObjectPath(treeData, FileUtils.getParentPath(newPath));
 
-        if (!objectPath) {
+        if (!oldObjectPath || !newObjectPath) {
             return;
         }
 
-        var originalName = _.last(objectPath),
-            currentObject = treeData.getIn(objectPath);
-
-        // Back up to the parent directory
-        objectPath.pop();
-
-        treeData = treeData.updateIn(objectPath, function (directory) {
-            directory = directory.delete(originalName);
-            directory = directory.set(newName, currentObject);
-            return directory;
-        });
-
-        this._commit(treeData);
-    };
-
-    /**
-     * Removes the item from the oldPath and adds the item in the newPath
-     *
-     * @param {string} oldPath old path of the item
-     * @param {string} newPath new path of the item
-     */
-    FileTreeViewModel.prototype.moveItem = function(oldPath, newPath) {
-        var treeData = this._treeData,
-            oldObjectPath = _filePathToObjectPath(treeData, oldPath),
-            newObjectPath = _filePathToObjectPath(treeData, FileUtils.getParentPath(newPath)),
-            itemName = _.last(oldObjectPath),
-            element;
+        var originalName = _.last(oldObjectPath),
+            newName = FileUtils.getBaseName(newPath),
+            currentObject;
 
         // Back up to the parent directory
         oldObjectPath.pop();
 
         // Remove the oldPath
         treeData = treeData.updateIn(oldObjectPath, function (directory) {
-            element = directory.get(itemName);
-            directory = directory.delete(itemName);
+            currentObject = directory.get(originalName);
+            directory = directory.delete(originalName);
             return directory;
         });
 
@@ -519,11 +490,14 @@ define(function (require, exports, module) {
         if (newObjectPath.length > 0) {
             newObjectPath.push("children");
         }
-        newObjectPath.push(itemName);
-        treeData = _setIn(treeData, newObjectPath, element);
+
+        treeData = treeData.updateIn(newObjectPath, function (children) {
+            return children.set(newName, currentObject);
+        });
 
         this._commit(treeData);
     };
+
 
     /**
      * @private
