@@ -200,6 +200,13 @@ define(function (require, exports, module) {
      */
     var dragAndDrop = {
         handleDrag: function(e) {
+            // Disable drag when renaming
+            if (this.props.entry.get("rename")) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
             // Pass the dragged item path.
             e.dataTransfer.setData("text", JSON.stringify({
                 path: this.myPath()
@@ -350,7 +357,6 @@ define(function (require, exports, module) {
             }
             // Return true only for mouse down in rename mode.
             if (this.props.entry.get("rename")) {
-                e.preventDefault(); // Disable drag and drop while renaming
                 return;
             }
         }
