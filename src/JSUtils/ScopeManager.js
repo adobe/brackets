@@ -31,27 +31,27 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = brackets.getModule("thirdparty/lodash");
+    var _ = require("thirdparty/lodash");
 
-    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
-        DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
-        Dialogs             = brackets.getModule("widgets/Dialogs"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        FileSystem          = brackets.getModule("filesystem/FileSystem"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
-        Strings             = brackets.getModule("strings"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        NodeDomain          = brackets.getModule("utils/NodeDomain"),
-        InMemoryFile        = brackets.getModule("document/InMemoryFile");
+    var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
+        Dialogs             = require("widgets/Dialogs"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        ExtensionUtils      = require("utils/ExtensionUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        LanguageManager     = require("language/LanguageManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        ProjectManager      = require("project/ProjectManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        NodeDomain          = require("utils/NodeDomain"),
+        InMemoryFile        = require("document/InMemoryFile");
 
-    var HintUtils           = require("HintUtils"),
-        MessageIds          = require("MessageIds"),
-        Preferences         = require("Preferences");
+    var HintUtils           = require("./HintUtils"),
+        MessageIds          = require("./MessageIds"),
+        Preferences         = require("./Preferences");
 
     var ternEnvironment     = [],
         pendingTernRequests = {},
@@ -64,9 +64,11 @@ define(function (require, exports, module) {
         preferences         = null,
         deferredPreferences = null;
     
-    var _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
-        _nodePath       = "node/TernNodeDomain",
-        _domainPath     = [_modulePath, _nodePath].join("/");
+    var _bracketsPath       = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath         = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath           = "node/TernNodeDomain",
+        _absoluteModulePath = [_bracketsPath, _modulePath].join("/"),
+        _domainPath         = [_bracketsPath, _modulePath, _nodePath].join("/");
     
     
     var MAX_HINTS           = 30,  // how often to reset the tern server
@@ -89,7 +91,7 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = ExtensionUtils.getModulePath(module, "node/node_modules/tern/defs/"),
+        var path = [_absoluteModulePath, "node/node_modules/tern/defs/"].join("/"),
             files = builtinFiles,
             library;
 
@@ -375,7 +377,28 @@ define(function (require, exports, module) {
         return text;
     }
 
+    /**
+     * Handle the response from the tern node domain when
+     * it responds with the references
+     *
+     * @param response - the response from the node domain
+     */
+    function handleRename(response) {
 
+        if (response.error) {
+            EditorManager.getActiveEditor().displayErrorMessageAtCursor(response.error);
+            return;
+        }
+
+        var file = response.file,
+            offset = response.offset;
+
+        var $deferredFindRefs = getPendingRequest(file, offset, MessageIds.TERN_REFS);
+
+        if ($deferredFindRefs) {
+            $deferredFindRefs.resolveWith(null, [response]);
+        }
+    }
 
     /**
      * Request Jump-To-Definition from Tern.
@@ -388,10 +411,12 @@ define(function (require, exports, module) {
      */
     function requestJumptoDef(session, document, offset) {
         var path    = document.file.fullPath,
-            fileInfo = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
+            fileInfo = {
+                type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
                 offsetLines: 0,
-                text: filterText(session.getJavascriptText())};
+                text: filterText(session.getJavascriptText())
+            };
 
         var ternPromise = getJumptoDef(fileInfo, offset);
 
@@ -413,6 +438,23 @@ define(function (require, exports, module) {
 
         if ($deferredJump) {
             response.fullPath = getResolvedPath(response.resultFile);
+            $deferredJump.resolveWith(null, [response]);
+        }
+    }
+
+    /**
+     * Handle the response from the tern node domain when
+     * it responds with the scope data
+     *
+     * @param response - the response from the node domain
+     */
+    function handleScopeData(response) {
+        var file = response.file,
+            offset = response.offset;
+
+        var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_SCOPEDATA_MSG);
+
+        if ($deferredJump) {
             $deferredJump.resolveWith(null, [response]);
         }
     }
@@ -1054,6 +1096,19 @@ define(function (require, exports, module) {
         function initTernModule() {
             var moduleDeferred = $.Deferred();
             ternPromise = moduleDeferred.promise();
+            
+            function prepareTern() {  
+                _ternNodeDomain.exec("setInterface", {
+                    messageIds : MessageIds
+                });
+
+                _ternNodeDomain.exec("invokeTernCommand", {
+                    type: MessageIds.SET_CONFIG,
+                    config: config
+                });
+                moduleDeferred.resolveWith(null, [_ternNodeDomain]);
+            }
+            
             if (_ternNodeDomain) {
                 _ternNodeDomain.exec("resetTernServer");
                 moduleDeferred.resolveWith(null, [_ternNodeDomain]);
@@ -1076,6 +1131,10 @@ define(function (require, exports, module) {
                         handleTernGetFile(response);
                     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
                         handleJumptoDef(response);
+                    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+                        handleScopeData(response);
+                    } else if (type === MessageIds.TERN_REFS) {
+                        handleRename(response);
                     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
                         handlePrimePumpCompletion(response);
                     } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
@@ -1086,23 +1145,20 @@ define(function (require, exports, module) {
                         handleTimedOut(response);
                     } else if (type === MessageIds.TERN_WORKER_READY) {
                         moduleDeferred.resolveWith(null, [_ternNodeDomain]);
+                    } else if (type === "RE_INIT_TERN") {
+                        // Ensure the request is because of a node restart
+                        if (currentModule) {
+                            prepareTern();
+                            // Mark the module with resetForced, then creation of TernModule will 
+                            // happen again as part of '_maybeReset' call
+                            currentModule.resetForced = true;
+                        }
                     } else {
                         console.log("Tern Module: " + (response.log || response));
                     }
                 });
             
-                _ternNodeDomain.promise().done(function () {
-                    
-                    _ternNodeDomain.exec("setInterface", {
-                        messageIds : MessageIds
-                    });
-                    
-                    _ternNodeDomain.exec("invokeTernCommand", {
-                        type: MessageIds.SET_CONFIG,
-                        config: config
-                    });
-                    moduleDeferred.resolveWith(null, [_ternNodeDomain]);
-                });
+                _ternNodeDomain.promise().done(prepareTern);
             }
         }
 
@@ -1334,7 +1390,7 @@ define(function (require, exports, module) {
             // We don't reset if the debugging flag is set
             // because it's easier to debug if the module isn't
             // getting reset all the time.
-            if (force || (!config.noReset && ++_hintCount > MAX_HINTS)) {
+            if (currentModule.resetForced || force || (!config.noReset && ++_hintCount > MAX_HINTS)) {
                 if (config.debug) {
                     console.debug("Resetting tern module");
                 }
@@ -1545,5 +1601,7 @@ define(function (require, exports, module) {
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;
     exports._readyPromise = _readyPromise;
-
+    exports.filterText = filterText;
+    exports.postMessage = postMessage;
+    exports.addPendingRequest = addPendingRequest;
 });

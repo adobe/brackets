@@ -29,9 +29,9 @@ define(function (require, exports, module) {
 
     var FileTreeView      = require("project/FileTreeView"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
-        Preact            = require("preact-compat"),
+        Preact            = require("thirdparty/preact"),
         Immutable         = require("thirdparty/immutable"),
-        PTU               = require("preact-test-utils"),
+        PreactTestUtils   = require("thirdparty/preact-test-utils"),
         _                 = require("thirdparty/lodash");
 
     // Preact Test Utils doesn't have findRenderedDOMComponentWithTag method
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
 
         describe("_fileNode", function () {
             it("should create a component with the right information", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map()
                 }));
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
 
             it("should call icon extensions to replace the default icon", function () {
                 var extensionCalls = 0,
-                    rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
 
             it("should allow icon extensions to return a string for the icon", function () {
                 var extensionCalls = 0,
-                    rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -123,14 +123,14 @@ define(function (require, exports, module) {
 
             it("should set context on a node by right click", function () {
                 var actions = jasmine.createSpyObj("actions", ["setContext"]);
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map(),
                     actions: actions,
                     parentPath: "/foo/"
                 }));
                 var node = Preact.findDOMNode(rendered);
-                PTU.Simulate.mouseDown(node, {
+                PreactTestUtils.Simulate.mouseDown(node, {
                     button: 2
                 });
                 expect(actions.setContext).toHaveBeenCalledWith("/foo/afile.js");
@@ -138,7 +138,7 @@ define(function (require, exports, module) {
 
             it("should set context on a node by control click on Mac", function () {
                 var actions = jasmine.createSpyObj("actions", ["setContext"]);
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map(),
                     actions: actions,
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
                     platform: "mac"
                 }));
                 var node = Preact.findDOMNode(rendered);
-                PTU.Simulate.mouseDown(node, {
+                PreactTestUtils.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
@@ -155,7 +155,7 @@ define(function (require, exports, module) {
 
             it("should not set context on a node by control click on Windows", function () {
                 var actions = jasmine.createSpyObj("actions", ["setContext"]);
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map(),
                     actions: actions,
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
                     platform: "win"
                 }));
                 var node = Preact.findDOMNode(rendered);
-                PTU.Simulate.mouseDown(node, {
+                PreactTestUtils.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
 
             it("should allow icon extensions to return a jQuery object for the icon", function () {
                 var extensionCalls = 0,
-                    rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
 
             it("should call addClass extensions", function () {
                 var extensionCalls = 0,
-                    rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
             });
 
             it("should render a rename component", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map({
                         rename: true
@@ -241,7 +241,7 @@ define(function (require, exports, module) {
                     extensions: Immutable.Map()
                 };
 
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileNode(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode(props));
 
                 var newProps = _.clone(props);
                 expect(rendered.shouldComponentUpdate(newProps)).toBe(false);
@@ -317,7 +317,7 @@ define(function (require, exports, module) {
 
         describe("_directoryNode and _directoryContents", function () {
             it("should format a closed directory", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
                     parentPath: "/foo/",
                     entry: Immutable.fromJS({
@@ -342,7 +342,7 @@ define(function (require, exports, module) {
                     sortDirectoriesFirst: false
                 };
 
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryNode(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode(props));
 
                 var newProps = _.clone(props);
 
@@ -371,7 +371,7 @@ define(function (require, exports, module) {
 
             it("should call extensions for directories", function () {
                 var extensionCalled = false,
-                    rendered = PTU.renderIntoDocument(FileTreeView._directoryNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                         name: "thedir",
                         parentPath: "/foo/",
                         entry: Immutable.fromJS({
@@ -404,7 +404,7 @@ define(function (require, exports, module) {
             });
 
             it("should allow renaming a closed directory", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
                     entry: Immutable.fromJS({
                         children: null,
@@ -416,7 +416,7 @@ define(function (require, exports, module) {
             });
 
             it("should be able to list files", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryContents({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryContents({
                     contents: Immutable.fromJS({
                         "afile.js": {}
                     })
@@ -427,7 +427,7 @@ define(function (require, exports, module) {
             });
 
             it("should be able to list closed directories", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
                     entry: Immutable.fromJS({
                         open: true,
@@ -445,7 +445,7 @@ define(function (require, exports, module) {
             });
 
             it("should be able to list open subdirectories", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "twoLevel",
                     entry: twoLevel
                 }));
@@ -470,7 +470,7 @@ define(function (require, exports, module) {
                     open: true
                 });
 
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "hasDirs",
                     entry: directory,
                     sortDirectoriesFirst: true
@@ -487,7 +487,7 @@ define(function (require, exports, module) {
                     extensions          : Immutable.Map()
                 };
 
-                var rendered = PTU.renderIntoDocument(FileTreeView._directoryContents(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryContents(props));
 
                 var newProps = _.clone(props);
 
@@ -526,7 +526,7 @@ define(function (require, exports, module) {
             });
 
             it("should render the directory", function () {
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileTreeView({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileTreeView({
                     projectRoot: {},
                     treeData: new Immutable.Map({
                         "subdir": twoLevel.getIn(["children", "subdir"])
@@ -551,7 +551,7 @@ define(function (require, exports, module) {
                     extensions          : Immutable.Map()
                 };
 
-                var rendered = PTU.renderIntoDocument(FileTreeView._fileTreeView(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileTreeView(props));
 
                 var newProps = _.clone(props);
 

@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         intervalId = 0,
         lastQueriedText = "",
         lastTypedText = "",
+        lastTypedTextWasRegexp = false,
         lastKeyCode;
 
     /**
@@ -95,6 +96,7 @@ define(function (require, exports, module) {
         this._enabled = true;
         this.lastQueriedText = "";
         this.lastTypedText = "";
+        this.lastTypedTextWasRegexp = false;
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
 
@@ -209,8 +211,10 @@ define(function (require, exports, module) {
      * Save the prefs state based on the state of the toggles.
      */
     FindBar.prototype._updatePrefsFromSearchBar = function () {
+        var isRegexp = this.$("#find-regexp").is(".active");
         PreferencesManager.setViewState("caseSensitive", this.$("#find-case-sensitive").is(".active"));
-        PreferencesManager.setViewState("regexp",        this.$("#find-regexp").is(".active"));
+        PreferencesManager.setViewState("regexp", isRegexp);
+        lastTypedTextWasRegexp = isRegexp;
     };
 
     /**
@@ -227,7 +231,7 @@ define(function (require, exports, module) {
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
     };
-    
+
     /**
      * @private
      * Adds element to the search history queue.
@@ -270,13 +274,30 @@ define(function (require, exports, module) {
         templateVars.Strings = Strings;
         templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
         templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
-        
+
         self._addElementToSearchHistory(this._options.initialQuery);
 
-        this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
-
+        this._modalBar = new ModalBar(
+            Mustache.render(_searchBarTemplate, templateVars),
+            !!PreferencesManager.get('autoHideSearch')		// 2nd arg = auto-close on Esc/blur
+        );
+        
+        // Done this way because ModalBar.js seems to react unreliably when
+        // modifying it to handle the escape key - the findbar wasn't getting
+        // closed as it should, instead persisting in the background
+        function _handleKeydown(e) {
+            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                e.stopPropagation();
+                e.preventDefault();
+                self.close();
+            }
+        }
+        window.document.body.addEventListener("keydown", _handleKeydown, true);
+        
         // When the ModalBar closes, clean ourselves up.
         this._modalBar.on("close", function (event) {
+            window.document.body.removeEventListener("keydown", _handleKeydown, true);
+
             // Hide error popup, since it hangs down low enough to make the slide-out look awkward
             self.showError(null);
             self._modalBar = null;
@@ -299,7 +320,9 @@ define(function (require, exports, module) {
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
-                lastTypedText = self.getQueryInfo().query;
+                var queryInfo = self.getQueryInfo();
+                lastTypedText = queryInfo.query;
+                lastTypedTextWasRegexp = queryInfo.isRegexp;
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass("active");
@@ -327,15 +350,18 @@ define(function (require, exports, module) {
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
-                        // we still keep the intrval timer up as instant search could get enabled/disabled based on node busy state
+                        // we still keep the interval timer up as instant search could get enabled/disabled based on node busy state
                         return;
                     }
                     if (self._closed) {
                         return;
                     }
                     currentTime = new Date().getTime();
-                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
+
+                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) &&
+                            self.getQueryInfo().query !== lastQueriedText &&
                             !FindUtils.isNodeSearchInProgress()) {
+
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
@@ -384,6 +410,9 @@ define(function (require, exports, module) {
                         quickSearchContainer.show();
                     }
                 }
+            })
+            .on("click", ".close", function () {
+                self.close();
             });
 
         if (!this._options.multifile) {
@@ -652,6 +681,21 @@ define(function (require, exports, module) {
         this.trigger("doFind");
     };
 
+    /*
+     * Returns the string used to prepopulate the find bar
+     * @param {!Editor} editor
+     * @return {string} first line of primary selection to populate the find bar
+     */
+    FindBar._getInitialQueryFromSelection = function(editor) {
+        var selectionText = editor.getSelectedText();
+        if (selectionText) {
+            return selectionText
+                .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                .split("\n")[0];
+        }
+        return "";
+    };
+
     /**
      * Gets you the right query and replace text to prepopulate the Find Bar.
      * @static
@@ -660,39 +704,28 @@ define(function (require, exports, module) {
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
-        var query = lastTypedText,
+        var query,
+            selection = FindBar._getInitialQueryFromSelection(editor),
             replaceText = "";
-
-        /*
-         * Returns the string used to prepopulate the find bar
-         * @param {!Editor} editor
-         * @return {string} first line of primary selection to populate the find bar
-         */
-        function getInitialQueryFromSelection(editor) {
-            var selectionText = editor.getSelectedText();
-            if (selectionText) {
-                return selectionText
-                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
-                    .split("\n")[0];
-            }
-            return "";
-        }
 
         if (currentFindBar && !currentFindBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            query = currentFindBar.getQueryInfo().query;
+            var queryInfo = currentFindBar.getQueryInfo();
+            query = (!queryInfo.isRegexp && selection) || queryInfo.query;
             replaceText = currentFindBar.getReplaceText();
         } else {
-            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
+            var openedFindBar = FindBar._bars && _.find(FindBar._bars,
+                function (bar) {
                     return !bar.isClosed();
-                });
+                }
+            );
 
             if (openedFindBar) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = getInitialQueryFromSelection(editor) || lastTypedText;
+                query = (!lastTypedTextWasRegexp && selection) || lastQueriedText || lastTypedText;
             }
         }
 

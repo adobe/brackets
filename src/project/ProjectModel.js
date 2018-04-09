@@ -70,38 +70,44 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * A string containing all invalid characters for a specific platform.
-     * This will be used to construct a regular expression for checking invalid filenames.
-     * When a filename with one of these invalid characters are detected, then it is
-     * also used to substitute the place holder of the error message.
+     * RegEx to validate a file path.
      */
-    var _invalidChars;
+    var _invalidChars = /([?\*\|\<\>"]+|\/{2,}|\.{2,}|\.$)/i;
 
     /**
      * @private
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
-
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
+    var _illegalFilenamesRegEx = /((\b(com[0-9]+|lpt[0-9]+|nul|con|prn|aux)\b)|\.+$|\/+|\\+|\:)/i;
 
     /**
      * Returns true if this matches valid filename specifications.
+     * See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
      *
      * TODO: This likely belongs in FileUtils.
      *
      * @param {string} filename to check
-     * @param {string} invalidChars List of characters that are disallowed
      * @return {boolean} true if the filename is valid
      */
-    function isValidFilename(filename, invalidChars) {
-        // Validate file name
-        // Checks for valid Windows filenames:
-        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+    function isValidFilename(filename) {
+        // Fix issue adobe#13099
+        // See https://github.com/adobe/brackets/issues/13099
         return !(
-            new RegExp("[" + invalidChars + "]+").test(filename) ||
-            _illegalFilenamesRegEx.test(filename)
+            filename.match(_invalidChars)|| filename.match(_illegalFilenamesRegEx)
         );
+    }
+
+    /**
+     * Returns true if given path is valid.
+     *
+     * @param {string} path to check
+     * @return {boolean} true if the filename is valid
+     */
+    function isValidPath(path) {
+        // Fix issue adobe#13099
+        // See https://github.com/adobe/brackets/issues/13099
+        return !(path.match(_invalidChars));
     }
 
     /**
@@ -181,9 +187,16 @@ define(function (require, exports, module) {
      */
     function doCreate(path, isFolder) {
         var d = new $.Deferred();
+        var filename = FileUtils.getBaseName(path);
 
-        var name = FileUtils.getBaseName(path);
-        if (!isValidFilename(name, _invalidChars)) {
+        // Check if filename
+        if (!isValidFilename(filename)){
+            return d.reject(ERROR_INVALID_FILENAME).promise();
+        }
+
+        // Check if fullpath with filename is valid
+        // This check is used to circumvent directory jumps (Like ../..)
+        if (!isValidPath(path)) {
             return d.reject(ERROR_INVALID_FILENAME).promise();
         }
 
@@ -906,7 +919,7 @@ define(function (require, exports, module) {
 
         if (oldPath === newPath) {
             result.resolve();
-        } else if (!isValidFilename(newName, _invalidChars)) {
+        } else if (!isValidFilename(newName)) {
             result.reject(ERROR_INVALID_FILENAME);
         } else {
             var entry = isFolder ? FileSystem.getDirectoryForPath(oldPath) : FileSystem.getFileForPath(oldPath);
@@ -1387,25 +1400,17 @@ define(function (require, exports, module) {
         return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
 
-    // Init invalid characters string
-    if (brackets.platform === "mac") {
-        _invalidChars = "?*|:/";
-    } else if (brackets.platform === "linux") {
-        _invalidChars = "?*|/";
-    } else {
-        _invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
-    }
-
     exports._getWelcomeProjectPath  = _getWelcomeProjectPath;
     exports._addWelcomeProjectPath  = _addWelcomeProjectPath;
     exports._isWelcomeProjectPath   = _isWelcomeProjectPath;
     exports._ensureTrailingSlash    = _ensureTrailingSlash;
     exports._shouldShowName         = _shouldShowName;
-    exports._invalidChars           = _invalidChars;
+    exports._invalidChars           = "? * | : / < > \\ | \" ..";
 
     exports.shouldShow              = shouldShow;
     exports.defaultIgnoreGlobs      = defaultIgnoreGlobs;
     exports.isValidFilename         = isValidFilename;
+    exports.isValidPath             = isValidPath;
     exports.EVENT_CHANGE            = EVENT_CHANGE;
     exports.EVENT_SHOULD_SELECT     = EVENT_SHOULD_SELECT;
     exports.EVENT_SHOULD_FOCUS      = EVENT_SHOULD_FOCUS;

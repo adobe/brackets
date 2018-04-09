@@ -3,12 +3,17 @@ Thumbs.db
 # ignore jenkins build info
 /build.prop
 
+# package-lock.json
+package-lock.json
+
 # ignore node_modules created by grunt, but not more deeply-nested node_modules
 /node_modules
 /npm-debug.log
 
 # ignore node_modules inside src
 /src/node_modules
+/src/JSUtils/node_modules
+/src/JSUtils/node/node_modules
 
 # ignore files copied from node_modules to src/thirdparty
 /src/thirdparty/CodeMirror
@@ -18,6 +23,7 @@ Thumbs.db
 /src/thirdparty/preact-test-utils
 /src/thirdparty/simulate-event
 /src/thirdparty/xtend
+/src/thirdparty/acorn
 
 # ignore compiled files
 /dist

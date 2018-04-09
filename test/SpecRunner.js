@@ -39,6 +39,12 @@ require.config({
         "preact-test-utils"             : "thirdparty/preact-test-utils/preact-test-utils",
         "simulate-event"                : "thirdparty/simulate-event/simulate-event",
         "xtend"                         : "thirdparty/xtend"
+    },
+    map: {
+        "*": {
+            "thirdparty/preact"            : "preact-compat",
+            "thirdparty/preact-test-utils" : "preact-test-utils"
+        }
     }
 });
 
@@ -67,6 +73,9 @@ define(function (require, exports, module) {
     require("utils/NodeDomain");
     require("utils/ColorUtils");
     require("preferences/PreferencesBase");
+    require("JSUtils/Session");
+    require("JSUtils/ScopeManager");
+    require("widgets/InlineMenu");
 
     // Load modules that self-register and just need to get included in the test-runner window
     require("document/ChangedDocumentTracker");

@@ -138,6 +138,10 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    
+    // Window unload warning messages
+    "WINDOW_UNLOAD_WARNING"                      : "Are you sure you want to navigate to a different URL and leave Brackets?",
+    "WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES" : "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
 
     // Generic dialog/button labels
     "DONE"                              : "Done",
@@ -405,6 +409,7 @@ define({
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
+    "CMD_TOGGLE_SEARCH_AUTOHIDE"          : "Automatically close search",
 
     // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -670,6 +675,31 @@ define({
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
+    // extensions/default/JavascriptRefactoring
+    "CMD_REFACTOR"                              : "Refactor",
+    "CMD_EXTRACTTO_VARIABLE"                    : "Extract to Variable",
+    "CMD_EXTRACTTO_FUNCTION"                    : "Extract to Function",
+    "ERROR_TERN_FAILED"                         : "Unable to get data from Tern",
+    "ERROR_EXTRACTTO_VARIABLE_NOT_VALID"        : "Selection does not form an expression",
+    "ERROR_EXTRACTTO_FUNCTION_NOT_VALID"        : "Selected block should represent set of statements or an expression",
+    "ERROR_EXTRACTTO_VARIABLE_MULTICURSORS"     : "Extract to Variable does not work in multicursors",
+    "ERROR_EXTRACTTO_FUNCTION_MULTICURSORS"     : "Extract to Function does not work in multicursors",
+    "EXTRACTTO_FUNCTION_SELECT_SCOPE"           : "Choose destination scope",
+    "EXTRACTTO_VARIABLE_SELECT_EXPRESSION"      : "Select a expression",
+    "CMD_REFACTORING_RENAME"                    : "Rename",
+    "CMD_REFACTORING_TRY_CATCH"                 : "Wrap in Try Catch",
+    "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",
+    "CMD_REFACTORING_GETTERS_SETTERS"           : "Create Getters/Setters",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
+    "DESCRIPTION_CODE_REFACTORING"              : "Enable/disable JavaScript Code Refactoring",
+    "ERROR_TRY_CATCH"                           : "Select valid code to wrap in a Try-catch block",
+    "ERROR_WRAP_IN_CONDITION"                   : "Select valid code to wrap in a Condition block",
+    "ERROR_ARROW_FUNCTION"                      : "Place the cursor inside a function expression",
+    "ERROR_GETTERS_SETTERS"                     : "Place the cursor at a member of an object expression",
+    "ERROR_RENAME_MULTICURSOR"                  : "Cannot rename when using multi-cursors",
+    "ERROR_RENAME_QUICKEDIT"                    : "Cannot rename this identifier, as it is referenced elsewhere outside this function",
+    "ERROR_RENAME_GENERAL"                      : "Cannot rename selected text",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
@@ -784,6 +814,7 @@ define({
     "DESCRIPTION_USE_TAB_CHAR"                       : "true to use tabs instead of spaces",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true to generate uppercase hex colors in Inline Color Editor",
     "DESCRIPTION_WORD_WRAP"                          : "Wrap lines that exceed the viewport width",
+    "DESCRIPTION_SEARCH_AUTOHIDE"                    : "Close the search as soon as the editor is focused",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "A list of files that have been detected to cause Tern to run out of control",
     "DESCRIPTION_INFERENCE_TIMEOUT"                  : "The amount of time after which Tern will time out when trying to understand files",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true to show errors in status bar",
@@ -807,5 +838,33 @@ define({
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
-    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings"
+    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect",
+    
+    // Strings for Auto Update
+    "DOWNLOAD_FAILED"                                : "Download failed.",
+    "DOWNLOAD_COMPLETE"                              : "Download complete!",
+    "UPDATE_SUCCESSFUL"                              : "Update successful!",
+    "UPDATE_FAILED"                                  : "Update failed!",
+    "VALIDATION_FAILED"                              : "Validation failed!",
+    "INITIALISATION_FAILED"                          : "Initialization failed!",
+    "CLEANUP_FAILED"                                 : "Clean-up failed!",
+    "WARNING_TYPE"                                   : "Warning!",
+    "CLICK_RESTART_TO_UPDATE"                        : "Click Restart to update Brackets.",
+    "UPDATE_ON_NEXT_LAUNCH"                          : "The update will be applied on relaunch.",
+    "GO_TO_SITE"                                     : "Go to <a href = \"http://brackets.io/\"> brackets.io </a> to retry.",
+    "INTERNET_UNAVAILABLE"                           : "No Internet connection available.",
+    "UPDATEDIR_READ_FAILED"                          : "Update directory could not be read.",
+    "UPDATEDIR_CLEAN_FAILED"                         : "Update directory could not be cleaned.",
+    "INITIAL_DOWNLOAD"                               : "Downloading Update...",
+    "RETRY_DOWNLOAD"                                 : "Download failed. Retrying...Attempt ",
+    "VALIDATING_INSTALLER"                           : "Download complete! Validating Installer...",
+    "CHECKSUM_DID_NOT_MATCH"                         : "Checksum didn't match.",
+    "INSTALLER_NOT_FOUND"                            : "Installer not found.",
+    "DOWNLOAD_ERROR"                                 : "Error occurred while downloading.",
+    "RESTART_BUTTON"                                 : "Restart",
+    "LATER_BUTTON"                                   : "Later",
+    
+    // Strings for Related Files
+    "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
 });

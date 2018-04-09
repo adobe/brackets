@@ -138,6 +138,10 @@ define({
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか？",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
+    
+    // Window unload warning messages
+	"WINDOW_UNLOAD_WARNING": "Are you sure you want to navigate to a different URL and leave Brackets?",
+	"WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES": "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
 
     // Generic dialog/button labels
 	"DONE": "完了",
@@ -156,7 +160,7 @@ define({
 	"FIND_NO_RESULTS": "該当なし",
 	"FIND_QUERY_PLACEHOLDER": "検索\u2026",
 	"FIND_HISTORY_MAX_COUNT": "検索履歴内の検索項目の最大数",
-	"REPLACE_PLACEHOLDER": "\u2026 に置換",
+	"REPLACE_PLACEHOLDER": " に置換\u2026",
 	"BUTTON_REPLACE_ALL": "すべて置換",
 	"BUTTON_REPLACE_BATCH": "バッチ\u2026",
 	"BUTTON_REPLACE_ALL_IN_FILES": "置換\u2026",
@@ -405,6 +409,7 @@ define({
 	"CMD_WORKINGSET_SORT_BY_TYPE": "種類順",
 	"CMD_WORKING_SORT_TOGGLE_AUTO": "自動ソート",
 	"CMD_THEMES": "テーマ\u2026",
+	"CMD_TOGGLE_SEARCH_AUTOHIDE": "検索を自動的に閉じる",
 
     // Navigate menu commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -480,10 +485,10 @@ define({
 	"FLIPVIEW_BTN_TOOLTIP": "このビューを {0} ペインにめくる",
 
     // Strings for themes-settings.html and themes-general.html
-	"CURRENT_THEME": "現在のテーマ",
-	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
-	"FONT_SIZE": "フォントサイズ",
-	"FONT_FAMILY": "フォントファミリー",
+	"CURRENT_THEME": "現在のテーマ ",
+	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用 ",
+	"FONT_SIZE": "フォントサイズ ",
+	"FONT_FAMILY": "フォントファミリー ",
 	"THEMES_SETTINGS": "テーマ設定",
 
     // CSS Quick Edit
@@ -608,7 +613,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
-	"ERRORS": "エラー",
+	"ERRORS": "エラー ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
@@ -669,6 +674,31 @@ define({
 	"NO_ARGUMENTS": "<パラメーターがありません>",
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
 	"DETECTED_EXCLUSION_INFO": "{APP_NAME} で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、{APP_NAME} のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
+
+    // extensions/default/JavascriptRefactoring
+	"CMD_REFACTOR": "リファクタリング",
+	"CMD_EXTRACTTO_VARIABLE": "変数に抽出",
+	"CMD_EXTRACTTO_FUNCTION": "関数に抽出",
+	"ERROR_TERN_FAILED": "Tern からデータを取得できません",
+	"ERROR_EXTRACTTO_VARIABLE_NOT_VALID": "選択内容は式になっていません",
+	"ERROR_EXTRACTTO_FUNCTION_NOT_VALID": "選択したブロックは、ステートメントセットまたは式を表す必要があります",
+	"ERROR_EXTRACTTO_VARIABLE_MULTICURSORS": "変数に抽出は複数カーソルでは機能しません",
+	"ERROR_EXTRACTTO_FUNCTION_MULTICURSORS": "関数に抽出は複数カーソルでは機能しません",
+	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "対象範囲を選択",
+	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "式を選択",
+	"CMD_REFACTORING_RENAME": "ファイル名変更",
+	"CMD_REFACTORING_TRY_CATCH": "Try Catch で囲む",
+	"CMD_REFACTORING_CONDITION": "Condition で囲む",
+	"CMD_REFACTORING_GETTERS_SETTERS": "Getters Setters を作成",
+	"CMD_REFACTORING_ARROW_FUNCTION": "Arrow Function へ変換",
+	"DESCRIPTION_CODE_REFACTORING": "JavaScript のコードリファクタリングを有効化または無効化します",
+	"ERROR_TRY_CATCH": "有効なコードを選択して、Try-catch ブロックで囲みます",
+	"ERROR_WRAP_IN_CONDITION": "有効なコードを選択して、Condition ブロックで囲みます",
+	"ERROR_ARROW_FUNCTION": "関数式の中にカーソルを置きます",
+	"ERROR_GETTERS_SETTERS": "オブジェクト式のメンバーにカーソルを置きます",
+	"ERROR_RENAME_MULTICURSOR": "複数のカーソルを使用して名前を変更することはできません",
+	"ERROR_RENAME_QUICKEDIT": "この識別子は、この関数以外の場所で参照されているため名前変更できません",
+	"ERROR_RENAME_GENERAL": "選択したテキストの名前を変更できません",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
@@ -784,6 +814,7 @@ define({
 	"DESCRIPTION_USE_TAB_CHAR": "スペースの代わりにタブを使用するには true",
 	"DESCRIPTION_UPPERCASE_COLORS": "Inline Color Editor で大文字の 16 進カラーを生成するには true",
 	"DESCRIPTION_WORD_WRAP": "ビューポートの幅を超える行を折り返す",
+	"DESCRIPTION_SEARCH_AUTOHIDE": "エディターがフォーカスされるとすぐに検索を閉じる",
 	"DESCRIPTION_DETECTED_EXCLUSIONS": "Tern が制御不能になる原因として検出されたファイルの一覧",
 	"DESCRIPTION_INFERENCE_TIMEOUT": "ファイルの認識時に Tern がタイムアウトするまでの時間",
 	"DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示するには true",
@@ -807,5 +838,33 @@ define({
 	"DESCRIPTION_INDENT_LINE_COMMENT": "行コメントのインデントを有効にするには true",
 	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "ライブプレビューで WebSocket サーバーが実行されるポート",
-	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定"
+	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "ライブプレビューハイライト設定",
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "false にすると、ライブプレビューでのリバースインスペクトが無効になります",
+    
+    // Strings for Auto Update
+	"DOWNLOAD_FAILED": "ダウンロードに失敗しました。",
+	"DOWNLOAD_COMPLETE": "ダウンロードが完了しました。",
+	"UPDATE_SUCCESSFUL": "アップデートが正常に完了しました。",
+	"UPDATE_FAILED": "アップデートに失敗しました。",
+	"VALIDATION_FAILED": "検証に失敗しました。",
+	"INITIALISATION_FAILED": "初期化に失敗しました。",
+	"CLEANUP_FAILED": "クリーンアップに失敗しました。",
+	"WARNING_TYPE": "警告",
+	"CLICK_RESTART_TO_UPDATE": "Brackets をアップデートするには、「再起動」をクリックしてください。",
+	"UPDATE_ON_NEXT_LAUNCH": "アップデートは再起動時に適用されます。",
+	"GO_TO_SITE": "<a href=\"http://brackets.io/\">brackets.io</a> に移動して、再試行します。",
+	"INTERNET_UNAVAILABLE": "インターネットに接続されていません.",
+	"UPDATEDIR_READ_FAILED": "アップデートディレクトリを読み込めませんでした。",
+	"UPDATEDIR_CLEAN_FAILED": "アップデートディレクトリを空にできませんでした。",
+	"INITIAL_DOWNLOAD": "アップデートをダウンロード中...",
+	"RETRY_DOWNLOAD": "ダウンロードに失敗しました。再試行...試行",
+	"VALIDATING_INSTALLER": "ダウンロードが完了しました。インストーラーを検証中...",
+	"CHECKSUM_DID_NOT_MATCH": "チェックサムが一致しませんでした。",
+	"INSTALLER_NOT_FOUND": "インストーラーが見つかりません。",
+	"DOWNLOAD_ERROR": "ダウンロード中にエラーが発生しました。",
+	"RESTART_BUTTON": "再起動",
+	"LATER_BUTTON": "保留",
+    
+    // Strings for Related Files
+	"CMD_FIND_RELATED_FILES": "関連するファイルを検索"
 });

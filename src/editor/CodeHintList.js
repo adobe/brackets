@@ -150,6 +150,10 @@ define(function (require, exports, module) {
 
             $item.find("a").addClass("highlight");
             ViewUtils.scrollElementIntoView($view, $item, false);
+
+            if (this.handleHighlight) {
+                this.handleHighlight($item.find("a"));
+            }
         }
     };
 
@@ -542,6 +546,15 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype.onSelect = function (callback) {
         this.handleSelect = callback;
+    };
+
+    /**
+      * Set the hint list highlight callback function
+      *
+      * @param {Function} callback
+      */
+    CodeHintList.prototype.onHighlight = function (callback) {
+        this.handleHighlight = callback;
     };
 
     /**

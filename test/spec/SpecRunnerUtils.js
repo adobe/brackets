@@ -583,7 +583,7 @@ define(function (require, exports, module) {
 
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
 
-            // Displays the primary console messages from the test window in the the
+            // Displays the primary console messages from the test window in the
             // test runner's console as well.
             ["debug", "log", "info", "warn", "error"].forEach(function (method) {
                 var originalMethod = _testWindow.console[method];
@@ -1349,7 +1349,7 @@ define(function (require, exports, module) {
             /**
              * Expects the given editor's selection to be a cursor at the given position (no range selected)
              */
-            toHaveCursorPosition: function (line, ch) {
+            toHaveCursorPosition: function (line, ch, ignoreSelection) {
                 var editor = this.actual;
                 var selection = editor.getSelection();
                 var notString = this.isNot ? "not " : "";
@@ -1371,7 +1371,7 @@ define(function (require, exports, module) {
 
                 // when adding the not operator, it's confusing to check both the size of the
                 // selection and the position. We just check the position in that case.
-                if (this.isNot) {
+                if (this.isNot || ignoreSelection) {
                     return positionsMatch;
                 } else {
                     return !selectionMoreThanOneCharacter && positionsMatch;

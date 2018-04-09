@@ -334,7 +334,7 @@ define(function (require, exports, module) {
                         }
                     };
                 var encoding = PreferencesManager.getViewState("encoding", context);
-                if (encoding[fullPath]) {
+                if (encoding && encoding[fullPath]) {
                     file._encoding = encoding[fullPath];
                 }
             }
@@ -1718,6 +1718,33 @@ define(function (require, exports, module) {
 
     /** Reload Without Extensions commnad handler **/
     var handleReloadWithoutExts = _.partial(handleReload, true);
+
+    /**
+     * Attach a beforeunload handler to notify user about unsaved changes and URL redirection in CEF.
+     * Prevents data loss in scenario reported under #13708
+     * Make sure we don't attach this handler if the current window is actually a test window
+    **/
+
+    var isTestWindow = (new window.URLSearchParams(window.location.search || "")).get("testEnvironment");
+    if (!isTestWindow) {
+        window.onbeforeunload = function(e) {
+            var openDocs = DocumentManager.getAllOpenDocuments();
+
+            // Detect any unsaved changes
+            openDocs = openDocs.filter(function(doc) {
+                return doc && doc.isDirty;
+            });
+
+            // Ensure we are not in normal app-quit or reload workflow
+            if (!_isReloading && !_windowGoingAway) {
+                if (openDocs.length > 0) {
+                    return Strings.WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES;
+                } else {
+                    return Strings.WINDOW_UNLOAD_WARNING;
+                }
+            }
+        };
+    }
 
     /** Do some initialization when the DOM is ready **/
     AppInit.htmlReady(function () {

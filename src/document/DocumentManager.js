@@ -387,7 +387,7 @@ define(function (require, exports, module) {
      * Document promises that are waiting to be resolved. It is possible for multiple clients
      * to request the same document simultaneously before the initial request has completed.
      * In particular, this happens at app startup where the working set is created and the
-     * intial active document is opened in an editor. This is essential to ensure that only
+     * initial active document is opened in an editor. This is essential to ensure that only
      * one Document exists for any File.
      * @private
      * @type {Object.<string, $.Promise>}

@@ -32,6 +32,7 @@
 var config = {};
 var _domainManager;
 var MessageIds;
+var ternOptions;
 var self = {
     postMessage: function (data) {
         _domainManager.emitEvent("TernNodeDomain", "data", [data]);
@@ -150,11 +151,12 @@ function getFile(name, next) {
  * @param {Array.<string>} files - a list of filenames tern should be aware of
  */
 function initTernServer(env, files) {
-    var ternOptions = {
+    ternOptions = {
         defs: env,
         async: true,
         getFile: getFile,
-        plugins: {requirejs: {}, doc_comment: true, angular: true}
+        plugins: {requirejs: {}, doc_comment: true, angular: true},
+        ecmaVersion: 9
     };
 
     // If a server is already created just reset the analysis data before marking it for GC
@@ -235,6 +237,122 @@ function buildRequest(fileInfo, query, offset) {
 
     return request;
 }
+
+
+/**
+ * Get all References location
+ * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+ * - type of update, name of file, and the text of the update.
+ * For "full" updates, the whole text of the file is present. For "part" updates,
+ * the changed portion of the text. For "empty" updates, the file has not been modified
+ * and the text is empty.
+ * @param {{line: number, ch: number}} offset - the offset into the
+ * file for cursor
+ */
+ function getRefs(fileInfo, offset) {
+    var request = buildRequest(fileInfo, "refs", offset);
+    try {
+        ternServer.request(request, function (error, data) {
+            if (error) {
+                _log("Error returned from Tern 'refs' request: " + error);
+                var response = {
+                    type: MessageIds.TERN_REFS,
+                    error: error.message
+                };
+                self.postMessage(response);
+                return;
+            }
+            var response = {
+                type: MessageIds.TERN_REFS,
+                file: fileInfo.name,
+                offset: offset,
+                references: data
+            };
+            // Post a message back to the main thread with the results
+            self.postMessage(response);
+        });
+    } catch (e) {
+        _reportError(e, fileInfo.name);
+    }
+}
+
+/**
+ * Get scope at the offset in the file
+ * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
+ * - type of update, name of file, and the text of the update.
+ * For "full" updates, the whole text of the file is present. For "part" updates,
+ * the changed portion of the text. For "empty" updates, the file has not been modified
+ * and the text is empty.
+ * @param {{line: number, ch: number}} offset - the offset into the
+ * file for cursor
+ */
+function getScopeData(fileInfo, offset) {
+    // Create a new tern Server
+    // Existing tern server resolves all the required modules which might take time
+    // We only need to analyze single file for getting the scope
+    ternOptions.plugins = {};
+    var ternServer = new Tern.Server(ternOptions);
+    ternServer.addFile(fileInfo.name, fileInfo.text);
+
+    var error;
+    var request = buildRequest(fileInfo, "completions", offset); // for primepump
+
+    try {
+        // primepump
+        ternServer.request(request, function (ternError, data) {
+            if (ternError) {
+                _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + ternError);
+                error = ternError.toString();
+            } else {
+                var file = ternServer.findFile(fileInfo.name);
+                var scope = Infer.scopeAt(file.ast, Tern.resolvePos(file, offset), file.scope);
+
+                if (scope) {
+                    // Remove unwanted properties to remove cycles in the object
+                    scope = JSON.parse(JSON.stringify(scope, function(key, value) {
+                        if (["proto", "propertyOf", "onNewProp", "sourceFile", "maybeProps"].includes(key)) {
+                            return undefined;
+                        }
+                        else if (key === "fnType") {
+                             return value.name || "FunctionExpression";
+                        }
+                        else if (key === "props") {
+                            for (var key in value) {
+                                value[key] = value[key].propertyName;
+                            }
+                            return value;
+                        } else if (key === "originNode") {
+                            return value && {
+                                start: value.start,
+                                end: value.end,
+                                type: value.type,
+                                body: {
+                                    start: value.body.start,
+                                    end: value.body.end
+                                }
+                            };
+                        }
+
+                        return value;
+                    }));
+                }
+
+                self.postMessage({
+                    type: MessageIds.TERN_SCOPEDATA_MSG,
+                    file: _getNormalizedFilename(fileInfo.name),
+                    offset: offset,
+                    scope: scope
+                });
+            }
+        });
+    } catch (e) {
+        _reportError(e, fileInfo.name);
+    } finally {
+        ternServer.reset();
+        Infer.resetGuessing();
+    }
+}
+
 
 /**
  * Get definition location
@@ -397,7 +515,7 @@ function getParameters(inferFnType) {
     function inferArrTypeToString(inferArrType) {
         var result = "Array.<";
 
-        result += inferArrType.props["<i>"].types.types.map(inferTypeToString).join(", ");
+        result += inferArrType.props["<i>"].types.map(inferTypeToString).join(", ");
 
         // workaround case where types is zero length
         if (inferArrType.props["<i>"].types.length === 0) {
@@ -745,6 +863,12 @@ function _requestTernServer(commandConfig) {
     } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
         offset  = request.offset;
         getJumptoDef(request.fileInfo, offset);
+    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+        offset  = request.offset;
+        getScopeData(request.fileInfo, offset);
+    } else if (type === MessageIds.TERN_REFS) {
+        offset  = request.offset;
+        getRefs(request.fileInfo, offset);
     } else if (type === MessageIds.TERN_ADD_FILES_MSG) {
         handleAddFiles(request.files);
     } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
@@ -776,6 +900,17 @@ function invokeTernCommand(commandConfig) {
 
 function setInterface(msgInterface) {
     MessageIds = msgInterface.messageIds;
+}
+
+function checkInterfaceAndReInit() {
+    if (!MessageIds) {
+        // WTF - Worse than failure
+        // We are here as node process got restarted 
+        // Request for ReInitialization of interface and Tern Server
+        self.postMessage({
+            type: "RE_INIT_TERN"
+        });
+    }
 }
 
  /**
@@ -830,6 +965,7 @@ function init(domainManager) {
             }
         ]
     );
+    setTimeout(checkInterfaceAndReInit, 1000);
 }
 
 exports.init = init;

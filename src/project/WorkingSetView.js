@@ -1466,7 +1466,7 @@ define(function (require, exports, module) {
     });
     
     /*
-     * To be used by other modules/deafult-extensions which needs to borrow working set entry icons
+     * To be used by other modules/default-extensions which needs to borrow working set entry icons
      * @param {!object} data - contains file info {fullPath, name, isFile}
      * @param {!jQuery} $element - jquery fn wrap for the list item
      */

@@ -59,6 +59,22 @@ define(function (require, exports, module) {
                 // always pretend to run with en locale
                 spyOn(testWindow.brackets, "getLocale").andReturn("en");
             });
+            
+            it("should be able to parse the JSON returned by actual URL (all the other unit-tests use local files)", function () {
+                var updateInfo = {
+                    _buildNumber: 1,
+                    lastNotifiedBuildNumber: 0
+                };
+
+                runs(function () {
+                    var promise = UpdateNotification.checkForUpdate(false, updateInfo);
+                    waitsForDone(promise, "Check for updates", 10000);
+                });
+
+                runs(function () {
+                    expect($(testWindow.document).find(".update-dialog.instance").length).toBe(1);
+                });
+            });
 
             it("should show a notification if an update is available", function () {
                 var updateInfo = {

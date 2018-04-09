@@ -730,13 +730,13 @@ define(function (require, exports, module) {
             KeyBindingManager.addBinding(SHOW_RECENT_FILES, KeyboardPrefs[SHOW_RECENT_FILES]);
         }
         
-        // Keybooard only - Navigate to the next doc in MROF list
+        // Keyboard only - Navigate to the next doc in MROF list
         if (!CommandManager.get(NEXT_IN_RECENT_FILES)) {
             CommandManager.register(Strings.CMD_NEXT_DOC, NEXT_IN_RECENT_FILES, _cmdMoveNext);
         }
         KeyBindingManager.addBinding(NEXT_IN_RECENT_FILES, KeyboardPrefs[NEXT_IN_RECENT_FILES]);
        
-        // Keybooard only - Navigate to the prev doc in MROF list
+        // Keyboard only - Navigate to the prev doc in MROF list
         if (!CommandManager.get(PREV_IN_RECENT_FILES)) {
             CommandManager.register(Strings.CMD_PREV_DOC, PREV_IN_RECENT_FILES, _cmdMovePrev);
         }

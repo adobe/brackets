@@ -226,6 +226,7 @@ define(function (require, exports, module) {
         if (!primary) {
             primary = _.last(selections);
         }
+
         editor._codeMirror.scrollIntoView({from: primary.start, to: primary.end});
         editor.setSelections(selections, center, centerOptions);
     }
@@ -583,6 +584,8 @@ define(function (require, exports, module) {
             // Blank or invalid query: just jump back to initial pos
             editor._codeMirror.setCursor(state.searchStartPos);
         }
+
+        editor.lastParsedQuery = state.parsedQuery;
     }
 
 
@@ -603,6 +606,9 @@ define(function (require, exports, module) {
 
         // Prepopulate the search field
         var initialQuery = FindBar.getInitialQuery(findBar, editor);
+        if (initialQuery.query === "" && editor.lastParsedQuery !== "") {
+            initialQuery.query = editor.lastParsedQuery;
+        }
 
         // Close our previous find bar, if any. (The open() of the new findBar will
         // take care of closing any other find bar instances.)
@@ -628,6 +634,7 @@ define(function (require, exports, module) {
                 findNext(editor, searchBackwards);
             })
             .on("close.FindReplace", function (e) {
+                editor.lastParsedQuery = state.parsedQuery;
                 // Clear highlights but leave search state in place so Find Next/Previous work after closing
                 clearHighlights(cm, state);
 
@@ -647,12 +654,12 @@ define(function (require, exports, module) {
      */
     function doSearch(editor, searchBackwards) {
         var state = getSearchState(editor._codeMirror);
+
         if (state.parsedQuery) {
             findNext(editor, searchBackwards);
-            return;
+        } else {
+            openSearchBar(editor, false);
         }
-
-        openSearchBar(editor, false);
     }
 
 
@@ -671,6 +678,11 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror,
             state = getSearchState(cm),
             replaceText = findBar.getReplaceText();
+
+        // Do not replace if editor is set to read only
+        if (cm.options.readOnly) {
+            return;
+        }
 
         if (all === null) {
             findBar.close();
@@ -715,6 +727,7 @@ define(function (require, exports, module) {
 
     function _launchFind() {
         var editor = EditorManager.getActiveEditor();
+
         if (editor) {
             // Create a new instance of the search bar UI
             clearSearch(editor._codeMirror);

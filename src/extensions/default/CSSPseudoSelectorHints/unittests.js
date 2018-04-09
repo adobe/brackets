@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         PseudoStaticDataRaw         = require("text!PseudoSelectors.json"),
         PseudoStaticData            = JSON.parse(PseudoStaticDataRaw);
 
-    describe("CSS Pseudo selector/element Code Hinting", function () {
+    describe("CSS Pseudo class/element Code Hinting", function () {
 
         var defaultContent = ".selector1: { \n" +
                              "} \n" +
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
             return modesToTest[modeCounter];
         };
 
-        describe("Pseudo selectors in different style modes", function () {
+        describe("Pseudo classes in different style modes", function () {
             beforeEach(function () {
                 // create Editor instance (containing a CodeMirror instance)
                 var mock = SpecRunnerUtils.createMockEditor(defaultContent, selectMode());
@@ -145,14 +145,14 @@ define(function (require, exports, module) {
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "active");  // filtered on "empty string"
-                    verifyListsAreIdentical(hintList, Object.keys(PseudoStaticData.selectors).sort());
+                    verifyListsAreIdentical(hintList, Object.keys(PseudoStaticData.classes).sort());
                 },
                 testFilteredHints = function () {
                     testEditor.setCursorPos({ line: 4, ch: 12 });    // after :n
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
                     console.log(JSON.stringify(hintList));
-                    verifyFirstEntry(hintList, "not(selector)");  // filtered on "n"
-                    verifyListsAreIdentical(hintList, ["not(selector)",
+                    verifyFirstEntry(hintList, "not(selectors)");  // filtered on "n"
+                    verifyListsAreIdentical(hintList, ["not(selectors)",
                                                        "nth-child(n)",
                                                        "nth-last-child(n)",
                                                        "nth-last-of-type(n)",
