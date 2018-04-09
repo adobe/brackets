@@ -821,6 +821,7 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {string=} path optional path to start renaming
+     * @param {boolean=} isMoved optional flag which indicates whether the entry is being moved instead of renamed
      * @return {$.Promise} resolved when the operation is complete.
      */
     ProjectModel.prototype.startRename = function (path, isMoved) {

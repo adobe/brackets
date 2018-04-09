@@ -266,8 +266,6 @@ define(function (require, exports, module) {
         this.model.setDirectoryOpen(path, open).then(function() {
             d.resolve();
             _saveTreeState();
-        }).fail(function() {
-            console.log("promise failed");
         });
         return d.promise();
     };
@@ -390,22 +388,16 @@ define(function (require, exports, module) {
 
     /**
      * Moves the item in the oldPath to the newDirectory directory
-     *
-     * See `ProjectModel.moveItem`
      */
     ActionCreator.prototype.moveItem = function (oldPath, newDirectory) {
         var fileName = FileUtils.getBaseName(oldPath),
             newPath = newDirectory + fileName,
-            selectedItem = getSelectedItem(),
-            selectedItemPath = selectedItem && selectedItem.fullPath,
-            selectedItemMoved = false,
             self = this;
 
         // If item dropped onto itself or onto its parent directory, return
         if (oldPath === newDirectory || FileUtils.getParentPath(oldPath) === newDirectory) {
             return;
         }
-
 
         // Add trailing slash if directory is moved
         if (_.last(oldPath) === '/') {
@@ -1341,6 +1333,7 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
+     * @param {boolean=} isMoved optional flag which indicates whether the entry is being moved instead of renamed
      * @return {$.Promise} a promise resolved when the rename is done.
      */
     renameItemInline = function (entry, isMoved) {

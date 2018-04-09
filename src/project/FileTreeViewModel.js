@@ -460,6 +460,12 @@ define(function (require, exports, module) {
         this._commit(newTreeData, selectionViewInfo);
     };
 
+    /**
+     * Changes the path of the item at the `currentPath` to `newPath`.
+     *
+     * @param {string} currentPath project relative file path to the current item
+     * @param {string} newPath project relative new path to give the item
+     */
     FileTreeViewModel.prototype.renameItem = function (oldPath, newPath) {
         var treeData = this._treeData,
             oldObjectPath = _filePathToObjectPath(treeData, oldPath),
