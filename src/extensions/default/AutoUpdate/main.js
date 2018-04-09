@@ -25,7 +25,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager          = brackets.getModule("command/CommandManager"),
-        MainViewManager         = brackets.getModule("view/MainViewManager"),
         Commands                = brackets.getModule("command/Commands"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         UpdateNotification      = brackets.getModule("utils/UpdateNotification"),
@@ -412,6 +411,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Detaches the Update Bar Buttons event handlers
+     */
+    function detachUpdateBarBtnHandlers() {
+        UpdateInfoBar.off(UpdateInfoBar.RESTART_BTN_CLICKED);
+        UpdateInfoBar.off(UpdateInfoBar.LATER_BTN_CLICKED);
+    }
+
+
+    /**
      * Handles the installer validation callback from Node
      * @param {object} statusObj - json containing - {
      *                           valid - (boolean)true for a valid installer, false otherwise,
@@ -426,17 +434,15 @@ define(function (require, exports, module) {
             var statusValidFn = function(){
 
                 var restartBtnClicked = function() {
-                    MainViewManager.off(UpdateInfoBar.RESTART_BTN_CLICKED);
-                    MainViewManager.off(UpdateInfoBar.LATER_BTN_CLICKED);
+                    detachUpdateBarBtnHandlers();
                     initiateUpdateProcess(statusObj.installerPath, statusObj.logFilePath, statusObj.installStatusFilePath);
                 };
                 var laterBtnClicked = function() {
-                    MainViewManager.off(UpdateInfoBar.LATER_BTN_CLICKED);
-                    MainViewManager.off(UpdateInfoBar.RESTART_BTN_CLICKED);
+                    detachUpdateBarBtnHandlers();
                     setUpdateStateInJSON('updateInitiatedInPrevSession', false);
                 };
-                MainViewManager.on(UpdateInfoBar.RESTART_BTN_CLICKED, restartBtnClicked);
-                MainViewManager.on(UpdateInfoBar.LATER_BTN_CLICKED, laterBtnClicked);
+                UpdateInfoBar.on(UpdateInfoBar.RESTART_BTN_CLICKED, restartBtnClicked);
+                UpdateInfoBar.on(UpdateInfoBar.LATER_BTN_CLICKED, laterBtnClicked);
                 UpdateInfoBar.showUpdateBar({
                     title: Strings.DOWNLOAD_COMPLETE,
                     description: Strings.CLICK_RESTART_TO_UPDATE,

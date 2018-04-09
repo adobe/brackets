@@ -26,8 +26,11 @@ define(function (require, exports, module) {
 
     var MainViewManager     = brackets.getModule("view/MainViewManager"),
         Mustache            = brackets.getModule("thirdparty/mustache/mustache"),
+        EventDispatcher     = brackets.getModule("utils/EventDispatcher"),
         UpdateBarHtml       = require("text!htmlContent/updateBar.html"),
         Strings             = brackets.getModule("strings");
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     /** Event triggered when Restart button is clicked on the update bar
     */
@@ -117,7 +120,7 @@ define(function (require, exports, module) {
         if($restart.length > 0) {
             $restart.click(function () {
                 cleanUpdateBar();
-                MainViewManager.trigger(exports.RESTART_BTN_CLICKED);
+                exports.trigger(exports.RESTART_BTN_CLICKED);
             });
 
             $restart.keyup(function (event) {
@@ -132,7 +135,7 @@ define(function (require, exports, module) {
             $later.click(function () {
                 cleanUpdateBar();
                 MainViewManager.focusActivePane();
-                MainViewManager.trigger(exports.LATER_BTN_CLICKED);
+                exports.trigger(exports.LATER_BTN_CLICKED);
             });
 
             $later.keyup(function (event) {
