@@ -152,10 +152,12 @@ define(function (require, exports, module) {
                 renamedEntry;
 
             if (oldDirectory && oldDirectory._contents) {
-                oldDirectory._contents.forEach(function(entry, index) {
+                oldDirectory._contents = oldDirectory._contents.filter(function(entry) {
                     if (entry.fullPath === oldPath || entry.fullPath === newPath) {
-                        renamedEntry = oldDirectory._contents.splice(index, 1)[0];
+                        renamedEntry = entry;
+                        return false;
                     }
+                    return true;
                 });
             }
 
