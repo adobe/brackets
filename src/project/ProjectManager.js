@@ -296,12 +296,12 @@ define(function (require, exports, module) {
     /**
      * See `ProjectModel.startRename`
      */
-    ActionCreator.prototype.startRename = function (path) {
+    ActionCreator.prototype.startRename = function (path, isMoved) {
         // This is very not Flux-like, which is a sign that Flux may not be the
         // right choice here *or* that this architecture needs to evolve subtly
         // in how errors are reported (more like the create case).
         // See #9284.
-        renameItemInline(path);
+        renameItemInline(path, isMoved);
     };
 
     /**
@@ -366,6 +366,51 @@ define(function (require, exports, module) {
     ActionCreator.prototype.closeSubtree = function (path) {
         this.model.closeSubtree(path);
         _saveTreeState();
+    };
+
+    ActionCreator.prototype.dragItem = function (path) {
+        // Close open menus on drag and clear the context, but only if there's a menu open.
+        if ($(".dropdown.open").length > 0) {
+            Menus.closeAll();
+            this.setContext(null);
+        }
+
+        // Close directory, if dragged item is directory
+        if (_.last(path) === '/') {
+            this.setDirectoryOpen(path, false);
+        }
+    };
+
+    /**
+     * Moves the item in the oldPath to the newDirectory directory
+     *
+     * See `ProjectModel.moveItem`
+     */
+    ActionCreator.prototype.moveItem = function (oldPath, newDirectory) {
+        var fileName = FileUtils.getBaseName(oldPath),
+            newPath = newDirectory + fileName,
+            selectedItem = getSelectedItem(),
+            selectedItemPath = selectedItem && selectedItem.fullPath,
+            selectedItemMoved = false,
+            self = this;
+
+        // If item dropped onto itself or onto its parent directory, return
+        if (oldPath === newDirectory || FileUtils.getParentPath(oldPath) === newDirectory) {
+            return;
+        }
+
+
+        // Add trailing slash if directory is moved
+        if (_.last(oldPath) === '/') {
+            newPath = ProjectModel._ensureTrailingSlash(newPath);
+        }
+
+        this.startRename(oldPath, true);
+        this.setRenameValue(newPath);
+
+        this.setDirectoryOpen(newPath, true);
+        this.performRename();
+        _renderTreeSync();
     };
 
     /**
@@ -1212,6 +1257,17 @@ define(function (require, exports, module) {
             forceFinishRename();
         });
 
+        $projectTreeContainer.on("dragover", function(e) {
+            e.preventDefault();
+        });
+
+        // Add support for moving items to root directory
+        $projectTreeContainer.on("drop", function(e) {
+            var data = JSON.parse(e.originalEvent.dataTransfer.getData("text"));
+            actionCreator.moveItem(data.path, getProjectRoot().fullPath);
+            e.stopPropagation();
+        });
+
         // When a context menu item is selected, we need to clear the context
         // because we don't get a beforeContextMenuClose event since Bootstrap
         // handles this directly.
@@ -1278,10 +1334,10 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    renameItemInline = function (entry) {
+    renameItemInline = function (entry, isMoved) {
         var d = new $.Deferred();
 
-        model.startRename(entry)
+        model.startRename(entry, isMoved)
             .done(function () {
                 d.resolve();
             })
