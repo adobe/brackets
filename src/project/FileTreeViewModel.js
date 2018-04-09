@@ -490,8 +490,10 @@ define(function (require, exports, module) {
         if (newObjectPath.length > 0) {
             newObjectPath.push("children");
         }
-        newObjectPath.push(newName);
-        treeData = _setIn(treeData, newObjectPath, currentObject);
+
+        treeData = treeData.updateIn(newObjectPath, function (children) {
+            return children.set(newName, currentObject);
+        });
 
         this._commit(treeData);
     };

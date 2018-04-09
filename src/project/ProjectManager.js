@@ -262,7 +262,14 @@ define(function (require, exports, module) {
      * See `ProjectModel.setDirectoryOpen`
      */
     ActionCreator.prototype.setDirectoryOpen = function (path, open) {
-        this.model.setDirectoryOpen(path, open).then(_saveTreeState);
+        var d = new $.Deferred();
+        this.model.setDirectoryOpen(path, open).then(function() {
+            d.resolve();
+            _saveTreeState();
+        }).fail(function() {
+            console.log("promise failed");
+        });
+        return d.promise();
     };
 
     /**
@@ -408,9 +415,11 @@ define(function (require, exports, module) {
         this.startRename(oldPath, true);
         this.setRenameValue(newPath);
 
-        this.setDirectoryOpen(newPath, true);
-        this.performRename();
-        _renderTreeSync();
+        var self = this;
+        this.setDirectoryOpen(newDirectory, true).then(function() {
+            self.performRename();
+            _renderTreeSync();
+        });
     };
 
     /**

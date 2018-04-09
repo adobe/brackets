@@ -834,7 +834,7 @@ define(function (require, exports, module) {
         }
 
         if (this._selections.rename && this._selections.rename.path === path) {
-            return;
+            return d.resolve().promise();
         }
 
         if (!this.isWithinProject(path)) {
