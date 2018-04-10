@@ -153,7 +153,7 @@ define(function (require, exports, module) {
 
             if (oldDirectory && oldDirectory._contents) {
                 oldDirectory._contents = oldDirectory._contents.filter(function(entry) {
-                    if (entry.fullPath === oldPath || entry.fullPath === newPath) {
+                    if (entry.fullPath === newPath) {
                         renamedEntry = entry;
                         return false;
                     }
