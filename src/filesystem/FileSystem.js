@@ -122,8 +122,9 @@ define(function (require, exports, module) {
             adapters.push(adapter);
 
             // We will keep a sorted adapter list on 'priority'
+            // If priority is not provided a default of '0' is assumed
             adapters.sort(function (a, b) {
-                return b.priority - a.priority;
+                return (b.priority || 0) - (a.priority || 0);
             });
 
             _fileProtocolPlugins[protocol] = adapters;
@@ -135,13 +136,13 @@ define(function (require, exports, module) {
      * @param {string} filePath fullPath of the file
      * @return adapter adapter wrapper over file implementation
      */
-    function getProtocolAdapter(protocol, filePath) {
+    function _getProtocolAdapter(protocol, filePath) {
         var protocolAdapters = _fileProtocolPlugins[protocol] || [],
             selectedAdapter;
 
         // Find the fisrt compatible adapter having highest priority
         _.forEach(protocolAdapters, function (adapter) {
-            if (adapter.canRead(filePath)) {
+            if (adapter.canRead && adapter.canRead(filePath)) {
                 selectedAdapter = adapter;
                 // Break at first compatible adapter
                 return false;
@@ -628,9 +629,9 @@ define(function (require, exports, module) {
      */
     FileSystem.prototype.getFileForPath = function (path) {
         var protocol = PathUtils.parseUrl(path).protocol,
-            protocolAdapter = getProtocolAdapter(protocol);
+            protocolAdapter = _getProtocolAdapter(protocol);
 
-        if (protocolAdapter) {
+        if (protocolAdapter && protocolAdapter.fileImpl) {
             return new protocolAdapter.fileImpl(path, this);
         } else {
             return this._getEntryForPath(File, path);
