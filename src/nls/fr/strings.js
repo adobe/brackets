@@ -864,6 +864,7 @@ define({
 	"DOWNLOAD_ERROR": "Erreur lors du téléchargement.",
 	"RESTART_BUTTON": "Recommencer",
 	"LATER_BUTTON": "Plus tard",
+	"DESCRIPTION_AUTO_UPDATE": "Enable/disable Brackets Auto-update",
     
     // Strings for Related Files
 	"CMD_FIND_RELATED_FILES": "Trouver les fichiers associés"

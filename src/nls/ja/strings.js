@@ -864,6 +864,7 @@ define({
 	"DOWNLOAD_ERROR": "ダウンロード中にエラーが発生しました。",
 	"RESTART_BUTTON": "再起動",
 	"LATER_BUTTON": "保留",
+	"DESCRIPTION_AUTO_UPDATE": "Enable/disable Brackets Auto-update",
     
     // Strings for Related Files
 	"CMD_FIND_RELATED_FILES": "関連するファイルを検索"
