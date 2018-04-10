@@ -89,7 +89,7 @@ define(function (require, exports, module) {
                 UpdateNotification.registerUpdateHandler(_updateProcessHandler);
             } else {
                 unsetAutoUpdate();
-                UpdateNotification.registerUpdateHandler(null);
+                UpdateNotification.resetToDefaultUpdateHandler();
             }
         });
     }
@@ -103,8 +103,8 @@ define(function (require, exports, module) {
     function _isAutoUpdateEnabled() {
         return (PreferencesManager.get("autoUpdate.AutoUpdate") !== false);
     }
-    
-    
+
+
     /**
      * Initializes the state of parsed content from updateHelper.json
      */
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
         initState();
     }
 
-    
+
     /**
      * Unsets the Auto Update environment
      */
@@ -157,22 +157,23 @@ define(function (require, exports, module) {
         updateDomain.off('data');
         resetAppQuitHandler();
     }
-    
+
     /**
      * Overriding the appReady for Auto update
      */
 
     AppInit.appReady(function () {
-        
-        // Auto Update is supported on Win and Mac, as of now
-        if (brackets.platform !== "linux") {
-            setupAutoUpdatePreference();
-            setupAutoUpdateDomain();
 
-            if(_isAutoUpdateEnabled()) {
-                setupAutoUpdate();
-                UpdateNotification.registerUpdateHandler(_updateProcessHandler);
-            }
+        // Auto Update is supported on Win and Mac, as of now
+        if(brackets.platform === "linux" || !(brackets.app.setUpdateParams)) {
+            return;
+        }
+        setupAutoUpdatePreference();
+        setupAutoUpdateDomain();
+
+        if(_isAutoUpdateEnabled()) {
+            setupAutoUpdate();
+            UpdateNotification.registerUpdateHandler(_updateProcessHandler);
         }
     });
 
@@ -193,13 +194,7 @@ define(function (require, exports, module) {
                     installerName = "Brackets." + buildName.split(" ").join(".") + ext,
                     downloadURL;
 
-                var testUrl = PreferencesManager.get("autoUpdate.testUrl");
-                //AUTOUPDATE_UNITTESTING
-                if (testUrl) {
-                    downloadURL = testUrl + "/download/" + tag + "/" + installerName;
-                } else {
                     downloadURL = brackets.config.update_download_url + tag + "/" + installerName;
-                }
 
                 downloadInfo = {
                     installerName: installerName,
@@ -243,7 +238,7 @@ define(function (require, exports, module) {
         };
     }
 
-    
+
     /**
      * Handles and processes the update info, required for app auto update
      * @private
@@ -402,7 +397,7 @@ define(function (require, exports, module) {
      */
     function resetStateInFailure(message) {
         updateJsonHandler.reset();
-        
+
         UpdateInfoBar.showUpdateBar({
             type: "error",
             title: Strings.UPDATE_FAILED,
@@ -560,7 +555,7 @@ define(function (require, exports, module) {
         resetAppQuitHandler();
         DocumentCommandHandlers.on(APP_QUIT_CANCELLED, dirtyFileSaveCancelled);
     }
-    
+
     /**
      * Unregisters the App Quit event handler
      */
@@ -575,12 +570,12 @@ define(function (require, exports, module) {
      * @param {string} installStatusFilePath  -  path to the install status log file
      */
     function initiateUpdateProcess(formattedInstallerPath, formattedLogFilePath, installStatusFilePath) {
-        
+
         // Get additional update parameters on Mac : installDir, appName, and updateDir
         function getAdditionalParams() {
             var retval = {};
             var installDir = FileUtils.getNativeBracketsDirectoryPath();
-            
+
             if (installDir) {
                 var appPath = installDir.split("/Contents/www")[0];
                 installDir = appPath.substr(0, appPath.lastIndexOf('/'));
@@ -617,7 +612,7 @@ define(function (require, exports, module) {
             if(brackets.app.setUpdateParams) {
                 brackets.app.setUpdateParams(JSON.stringify(infoObj), function (err) {
                     if(err) {
-                         resetStateInFailure("AutoUpdate : Update parameters could not be set for the installer. Error encountered: " + err);
+                        resetStateInFailure("AutoUpdate : Update parameters could not be set for the installer. Error encountered: " + err);
                     } else {
                         setAppQuitHandler();
                         CommandManager.execute(Commands.FILE_QUIT);
@@ -652,7 +647,7 @@ define(function (require, exports, module) {
         UpdateStatus.cleanUpdateStatus();
 
         if (statusObj.valid) {
-            
+
             // Installer is validated successfully
             var statusValidFn = function () {
 
@@ -683,9 +678,9 @@ define(function (require, exports, module) {
         } else {
 
             // Installer validation failed
-            
+
             if (updateJsonHandler.get("downloadCompleted")) {
-                
+
                 // If this was a cached download, retry downloading
                 updateJsonHandler.reset();
 
@@ -696,7 +691,7 @@ define(function (require, exports, module) {
 
                 setUpdateStateInJSON('downloadCompleted', false, statusInvalidFn);
             } else {
-                
+
                 // If this is a new download, prompt the message on update bar
                 var descriptionMessage;
 
@@ -727,11 +722,11 @@ define(function (require, exports, module) {
             (MAX_DOWNLOAD_ATTEMPTS - downloadAttemptsRemaining) + ".\n Reason : " + message);
 
         if (downloadAttemptsRemaining) {
-            
+
             // Retry the downloading
             attemptToDownload();
         } else {
-            
+
             // Download could not completed, all attempts exhausted
             enableCheckForUpdateEntry(true);
             UpdateStatus.cleanUpdateStatus();

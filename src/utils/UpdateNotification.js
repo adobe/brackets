@@ -43,7 +43,7 @@ define(function (require, exports, module) {
 
     // Private variable to hold the registered update process handler
     var _updateProcessHandler = null;
-    
+
     // Private variable to hold the default update process handler
     var _defaultUpdateProcessHandler = function(updateInfo) {
         if (updateInfo) {
@@ -70,10 +70,6 @@ define(function (require, exports, module) {
     PreferencesManager.stateManager.definePreference("lastExtensionRegistryCheckTime", "number", 0);
     // Data about available updates in the registry
     PreferencesManager.stateManager.definePreference("extensionUpdateInfo", "Array", []);
-
-    //Preference for hosting latest installer on a local server
-    //AUTOUPDATE_UNITTESTING
-    PreferencesManager.stateManager.definePreference("autoUpdate.testUrl", "string", "");
 
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
@@ -106,12 +102,7 @@ define(function (require, exports, module) {
      * return {string} the new version update url
      */
     function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
-        //Override for unittesting with custom url 
-        var testUrl = PreferencesManager.get("autoUpdate.testUrl");
-        if (testUrl) {
-             return testUrl + "/updates.json";
-        }
-        
+
         locale = locale || brackets.getLocale();
 
         if (removeCountryPartOfLocale) {
@@ -474,11 +465,19 @@ define(function (require, exports, module) {
         _updateProcessHandler = handler;
     }
 
+    /**
+     * Utility function to reset back to the default update handler
+     */
+    function resetToDefaultUpdateHandler() {
+        _updateProcessHandler = null;
+    }
+
     // Events listeners
     ExtensionManager.on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
     exports.registerUpdateHandler = registerUpdateHandler;
+    exports.resetToDefaultUpdateHandler = resetToDefaultUpdateHandler;
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
 });

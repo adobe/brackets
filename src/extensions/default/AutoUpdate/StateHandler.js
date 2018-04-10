@@ -144,14 +144,20 @@ define(function (require, exports, module) {
         var result = $.Deferred(),
             _file = FileSystem.getFileForPath(filePath);
 
-        var content = JSON.stringify(json);
-        FileUtils.writeText(_file, content, true)
-            .done(function () {
-                result.resolve();
-            })
-            .fail(function (err) {
-                result.reject();
-            });
+        if (_file) {
+
+            var content = JSON.stringify(json);
+            FileUtils.writeText(_file, content, true)
+                .done(function () {
+                    result.resolve();
+                })
+                .fail(function (err) {
+                    result.reject();
+                });
+
+        } else {
+            result.reject();
+        }
 
         return result.promise();
     }
