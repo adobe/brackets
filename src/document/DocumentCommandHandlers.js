@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -56,8 +57,7 @@ define(function (require, exports, module) {
         StatusBar           = require("widgets/StatusBar"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         LanguageManager     = require("language/LanguageManager"),
-        _                   = require("thirdparty/lodash"),
-        UpdateNotification  = require("utils/UpdateNotification");
+        _                   = require("thirdparty/lodash");
 
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -136,7 +136,14 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("defaultExtension", "string", "", {
         excludeFromHints: true
     });
+    EventDispatcher.makeEventDispatcher(exports);
 
+    /**
+     * Event triggered when File Save is cancelled, when prompted to save dirty files
+     */
+    var APP_QUIT_CANCELLED = "appQuitCancelled";
+
+    
     /**
      * JSLint workaround for circular dependency
      * @type {function}
@@ -848,19 +855,14 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-
+    
     /**
-     * Checks and handles if auto update is currently in progress
+     * Dispatches the app quit cancelled event
      */
-    function handleIfAutoUpdateInProgress() {
-        brackets.app.isAutoUpdateInProgress(function (err, isAutoUpdateInProgress) {
-            if(err) {
-                UpdateNotification.trigger(UpdateNotification.AUTOUPDATE_ERROR);
-            } else if(isAutoUpdateInProgress){
-                UpdateNotification.trigger(UpdateNotification.DIRTY_FILESAVE_CANCELLED);
-            }
-        });
+    function dispatchAppQuitCancelledEvent() {
+        exports.trigger(exports.APP_QUIT_CANCELLED);
     }
+
 
     /**
      * Opens the native OS save as dialog and saves document.
@@ -1010,7 +1012,7 @@ define(function (require, exports, module) {
                     if (selectedPath) {
                         _doSaveAfterSaveDialog(selectedPath);
                     } else {
-                        handleIfAutoUpdateInProgress();
+                        dispatchAppQuitCancelledEvent();
                         result.reject(USER_CANCELED);
                     }
                 } else {
@@ -1232,7 +1234,7 @@ define(function (require, exports, module) {
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        handleIfAutoUpdateInProgress();
+                        dispatchAppQuitCancelledEvent();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
@@ -1338,7 +1340,7 @@ define(function (require, exports, module) {
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                        handleIfAutoUpdateInProgress();
+                        dispatchAppQuitCancelledEvent();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
@@ -1801,6 +1803,8 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.showFileOpenError = showFileOpenError;
+    exports.APP_QUIT_CANCELLED = APP_QUIT_CANCELLED;
+    
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);

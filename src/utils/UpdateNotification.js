@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ExtensionManager     = require("extensibility/ExtensionManager"),
-        EventDispatcher     = require("utils/EventDispatcher"),
         PreferencesManager   = require("preferences/PreferencesManager"),
         NativeApp            = require("utils/NativeApp"),
         Strings              = require("strings"),
@@ -41,7 +40,17 @@ define(function (require, exports, module) {
 
     // make sure the global brackets variable is loaded
     require("utils/Global");
-    EventDispatcher.makeEventDispatcher(exports);
+
+    // Private variable to hold the registered update process handler
+    var _updateProcessHandler = null;
+    
+    // Private variable to hold the default update process handler
+    var _defaultUpdateProcessHandler = function(updateInfo) {
+        if (updateInfo) {
+            // The first entry in the updates array has the latest download link
+            NativeApp.openURLInDefaultBrowser(updateInfo[0].downloadURL);
+        }
+    };
     // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -50,24 +59,6 @@ define(function (require, exports, module) {
 
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
-
-    // Event trigger for Auto Update
-    var GET_AUTOUPDATE_INSTALLER = "getUpdateInstaller";
-
-    /**
-    Event triggerred when Auto update is in progress, and
-    user clicks Cancel in File Save prompt, after clicking UpdateNow
-    */
-    var DIRTY_FILESAVE_CANCELLED = "dirtyFileSaveCancelled";
-
-    /**
-    Event triggered when error is returned when trying to check if Auto Update is progress
-    */
-    var AUTOUPDATE_ERROR = "autoUpdateError";
-
-
-    //Parameters containing update information
-    var updateParams = {};
 
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
@@ -81,8 +72,8 @@ define(function (require, exports, module) {
     PreferencesManager.stateManager.definePreference("extensionUpdateInfo", "Array", []);
 
     //Preference for hosting latest installer on a local server
-     //AUTOUPDATE_UNITTESTING
-    PreferencesManager.stateManager.definePreference("updateJSONLocalhostURL", "string", "");
+    //AUTOUPDATE_UNITTESTING
+    PreferencesManager.stateManager.definePreference("autoUpdate.testUrl", "string", "");
 
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
@@ -115,6 +106,12 @@ define(function (require, exports, module) {
      * return {string} the new version update url
      */
     function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
+        //Override for unittesting with custom url 
+        var testUrl = PreferencesManager.get("autoUpdate.testUrl");
+        if (testUrl) {
+             return testUrl + "/updates.json";
+        }
+        
         locale = locale || brackets.getLocale();
 
         if (removeCountryPartOfLocale) {
@@ -267,37 +264,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Checks if Brackets can be auto updated
-     * @returns {boolean} true if Brackets can be auto updated, false otherwise
-     */
-    function checkForAutoUpdate() {
-        var req = brackets.libRequire;
-        return (brackets.platform !== "linux" &&
-            !!req && !!req.s && !!req.s.contexts &&
-            !!req.s.contexts.AutoUpdate);
-    }
-
-    /**
-     * Notifies the AutoUpdate extension to begin the auto update process
-     */
-    function notifyGetUpdateInstaller() {
-        exports.trigger(exports.GET_AUTOUPDATE_INSTALLER, updateParams);
-    }
-
-    /**
      * Show a dialog that shows the update
      */
     function _showUpdateNotificationDialog(updates) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
-                    var canAutoUpdate = checkForAutoUpdate();
-                    if (canAutoUpdate) {
-                        notifyGetUpdateInstaller();
-                    } else {
-                        // The first entry in the updates array has the latest download link
-                        NativeApp.openURLInDefaultBrowser(updates[0].downloadURL);
-                    }
+                    handleUpdateProcess(updates);
                 }
             });
 
@@ -354,74 +327,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Generates the extension for installer file, based on platform
-     * @returns {object} - json containing platform Info : {
-     *                   extension - installer file extension,
-     *                   OS - current OS }
-     */
-    function getPlatformInfo() {
-        var ext = "",
-            OS = "";
-
-        if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
-            OS = "WIN";
-            ext = ".msi";
-        } else if (/Mac/.test(window.navigator.userAgent)) {
-            OS = "OSX";
-            ext = ".dmg";
-        } else if (/Linux|X11/.test(window.navigator.userAgent)) {
-            OS = "LINUX32";
-            ext = ".32-bit.deb";
-            if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
-                OS = "LINUX64";
-                ext = ".64-bit.deb";
-            }
-        }
-
-        return {
-            extension: ext,
-            OS: OS
-        };
-    }
-
-    /**
-     * Generates the download URL for the update installer, based on platform
-     * @param   {string} buildName - name of latest build
-     * @param   {string} ext       - file extension, based on platform
-     * @returns {object} - downloadInfo json, containing installer name and download URL
-     */
-    function getDownloadInfo(buildName, ext) {
-        var downloadInfo = {};
-        if (buildName) {
-            var buildNum = buildName.match(/([\d.]+)/);
-            if (buildNum) {
-                buildNum = buildNum[1];
-
-                var tag = buildName.toLowerCase().split(" ").join("-"),
-                    installerName = "Brackets." + buildName.split(" ").join(".") + ext,
-                    downloadURL;
-
-                var updateJSONLocalhostURL = PreferencesManager.get("updateJSONLocalhostURL");
-                //AUTOUPDATE_UNITTESTING
-                if (updateJSONLocalhostURL) {
-                    downloadURL = updateJSONLocalhostURL + "/download/" + tag + "/" + installerName;
-                } else {
-                    downloadURL = brackets.config.update_download_url + tag + "/" + installerName;
-                }
-
-                downloadInfo = {
-                    installerName: installerName,
-                    downloadURL: downloadURL
-                };
-
-            }
-        }
-
-        return downloadInfo;
-    }
-
-
-    /**
      * Check for updates. If "force" is true, update notification dialogs are always displayed
      * (if an update is available). If "force" is false, the update notification is only
      * displayed for newly available updates.
@@ -446,12 +351,6 @@ define(function (require, exports, module) {
         var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
         var versionInfoUrl;
-
-        //AUTOUPDATE_UNITTESTING
-        var updateJSONLocalhostURL = PreferencesManager.get("updateJSONLocalhostURL");
-        if (updateJSONLocalhostURL) {
-            versionInfoUrl = updateJSONLocalhostURL + "/dummy.json";
-        }
 
         if (_testValues) {
             oldValues = {};
@@ -509,16 +408,6 @@ define(function (require, exports, module) {
 
                         // Update prefs with the last notified build number
                         lastNotifiedBuildNumber = allUpdates[0].buildNumber;
-
-                        //If no checksum field is present then we're setting it to 0, just as a safety check,
-                        // although ideally this situation should never occur in releases post its introduction.
-                        var platformInfo = getPlatformInfo(),
-                            buildName = allUpdates[0].versionString,
-                            checksum  = (allUpdates[0].checksums) ? allUpdates[0].checksums[platformInfo.OS] : 0;
-                        updateParams = getDownloadInfo(buildName, platformInfo.extension);
-                        updateParams.latestBuildNumber = lastNotifiedBuildNumber;
-                        updateParams.checksum = checksum;
-
                         // Don't save prefs is we have overridden values
                         if (!usingOverrides) {
                             PreferencesManager.setViewState("lastNotifiedBuildNumber", lastNotifiedBuildNumber);
@@ -559,6 +448,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Handles the update process
+     * @param {Array} updates - array object containing info of updates
+     */
+    function handleUpdateProcess(updates) {
+        var handler = _updateProcessHandler || _defaultUpdateProcessHandler;
+        handler(updates);
+    }
+
+    /**
      * Launches both check for Brackets update and check for installed extensions update
      */
     function launchAutomaticUpdate() {
@@ -568,13 +466,19 @@ define(function (require, exports, module) {
         window.setInterval(checkForUpdate, ONE_DAY + TWO_MINUTES);
     }
 
+    /**
+     * Registers the update process handler function
+     * @param {function} handler - function for update process handler
+     */
+    function registerUpdateHandler(handler) {
+        _updateProcessHandler = handler;
+    }
+
     // Events listeners
     ExtensionManager.on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
-    exports.GET_AUTOUPDATE_INSTALLER = GET_AUTOUPDATE_INSTALLER;
-    exports.DIRTY_FILESAVE_CANCELLED = DIRTY_FILESAVE_CANCELLED;
-    exports.AUTOUPDATE_ERROR = AUTOUPDATE_ERROR;
+    exports.registerUpdateHandler = registerUpdateHandler;
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
 });
