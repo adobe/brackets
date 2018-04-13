@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         HealthDataManager.getHealthData().done(function (healthDataObject) {
-            var combinedHealthAnalyticsData = HealthDataManager.getAnalyticsData("pingData", "", "", ""),
+            var combinedHealthAnalyticsData = HealthDataManager.getAnalyticsData(),
                 content;
             combinedHealthAnalyticsData = [healthDataObject, combinedHealthAnalyticsData ];
             content = JSON.stringify(combinedHealthAnalyticsData, null, 4);
