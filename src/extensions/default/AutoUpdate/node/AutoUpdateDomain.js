@@ -32,7 +32,9 @@
         progress = require('request-progress'),
         path = require('path'),
         fs = require('fs-extra'),
-        crypto = require('crypto');
+        crypto = require('crypto'),
+        buffer = require('buffer').Buffer,
+        transBuffer = require('buffer');
 
     // Current Date and Time needed for log filenames
     var curDate = Date.now().toString();
@@ -167,6 +169,96 @@
         }
     }
 
+    function parseInstallerLog(filepath, searchstring, encoding, callback) {
+        var line = "";
+        var str = "";
+        fs.stat(filepath)
+            .then(function (stats) {
+                if(stats) {
+                    fs.readFile(filepath)
+                     .then(function (chunkBuffer) {
+                         if(encoding) {
+                             str = chunkBuffer.slice(0, chunkBuffer.length).toString(encoding);
+                         } else {
+                             str = chunkBuffer.slice(0, chunkBuffer.length).toString();
+                         }
+                         var arr = str.split('\n');
+                         var i;
+                         var pos;
+                         for(i = arr.length - 1; i >= 0; i--) {
+                             var j;
+                             for(j = 0; j < searchstring.length; j++) {
+                                 pos = arr[i].search(searchstring[j]);
+                                 if(pos !== -1) {
+                                     line = arr[i];
+                                     break;
+                                 }
+                             }
+                             if(pos !== -1) {
+                                 break;
+                             }
+                         }
+                         callback(line);
+                     })
+                     .catch(function (err) {
+                         callback("");
+                     });
+                }
+            })
+            .catch(function (err) {
+                callback("");
+            });
+    }
+
+    function checkInstallerStatus(searchParams) {
+        var installErrorStr = searchParams.installErrorStr;
+        var bracketErrorStr = searchParams.bracketErrorStr;
+        var updateDirectory = searchParams.updateDir;
+        var encoding =        searchParams.encoding;
+        var statusObj = {};
+        var logFileAvailable = false;
+
+        fs.stat(updateDirectory)
+            .then(function (stats) {
+                if (stats) {
+                    fs.readdir(updateDirectory)
+                        .then(function (files) {
+                            files.forEach(function (file) {
+                                var fileExt = path.extname(path.basename(file));
+                                if(fileExt === ".logs") {
+                                    var fileName = path.basename(file);
+                                    var fileFullPath = updateDirectory + '/' + file;
+                                    if(fileName.search("installStatus.logs") !== -1) {
+                                        logFileAvailable = true;
+                                        parseInstallerLog(fileFullPath, bracketErrorStr, "", function(errorline) {
+                                            statusObj.installNotStarted = errorline;
+                                            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+                                        });
+                                    } else if (fileName.search("update.logs") !== -1) {
+                                        logFileAvailable = true;
+                                        parseInstallerLog(fileFullPath, installErrorStr, encoding, function(errorline) {
+                                            statusObj.installStarted = errorline;
+                                            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+                                        });
+                                    }
+                                }
+                            });
+                            if(!logFileAvailable) {
+                                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+                            }
+                        })
+                        .catch( function(err) {
+                            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+                        });
+                } else {
+                    postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+                }
+            })
+          .catch( function(err) {
+              postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+          });
+    }
+
     /**
      * Downloads the installer for latest Brackets release
      * @param {boolean} sendInfo   - true if download status info needs to be
@@ -286,6 +378,7 @@
         functionMap["node.performCleanup"] = performCleanup;
         functionMap["node.validateInstaller"] = validateChecksum;
         functionMap["node.initializeState"] = initializeState;
+        functionMap["node.checkInstallerStatus"] = checkInstallerStatus;
     }
 
     /**
