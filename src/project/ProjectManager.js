@@ -116,7 +116,8 @@ define(function (require, exports, module) {
         ERR_TYPE_LOADING_PROJECT_NATIVE = 6,
         ERR_TYPE_MAX_FILES              = 7,
         ERR_TYPE_OPEN_DIALOG            = 8,
-        ERR_TYPE_INVALID_FILENAME       = 9;
+        ERR_TYPE_INVALID_FILENAME       = 9,
+        ERR_TYPE_MOVE                   = 10;
 
     /**
      * @private
@@ -625,6 +626,10 @@ define(function (require, exports, module) {
         case ERR_TYPE_RENAME:
             title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+            break;
+        case ERR_TYPE_MOVE:
+            title = StringUtils.format(Strings.ERROR_MOVING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_MOVING_FILE, path, error, entryType);
             break;
         case ERR_TYPE_DELETE:
             title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
@@ -1348,18 +1353,28 @@ define(function (require, exports, module) {
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    switch (errorInfo.type) {
-                    case ProjectModel.ERROR_INVALID_FILENAME:
-                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
-                        break;
-                    case FileSystemError.ALREADY_EXISTS:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
-                        break;
-                    case ProjectModel.ERROR_NOT_IN_PROJECT:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
-                        break;
-                    default:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                    if (isMoved) {
+                        switch (errorInfo.type) {
+                            case FileSystemError.ALREADY_EXISTS:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                                break;
+                            default:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        }
+                    } else {
+                        switch (errorInfo.type) {
+                            case ProjectModel.ERROR_INVALID_FILENAME:
+                                _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
+                                break;
+                            case FileSystemError.ALREADY_EXISTS:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                                break;
+                            case ProjectModel.ERROR_NOT_IN_PROJECT:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
+                                break;
+                            default:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        }
                     }
                 }, 10);
                 d.reject(errorInfo);
