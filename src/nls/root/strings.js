@@ -66,6 +66,8 @@ define({
     "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming {0}",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_NOT_IN_PROJECT"     : "The file or directory is not part of the currently opened project. Unfortunately, only project files can be renamed at this point.",
+    "ERROR_MOVING_FILE_TITLE"           : "Error Moving {0}",
+    "ERROR_MOVING_FILE"                 : "An error occurred when trying to move the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Error Deleting {0}",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid {0}",
