@@ -168,13 +168,25 @@ define(function (require, exports, module) {
         if(brackets.platform === "linux" || !(brackets.app.setUpdateParams)) {
             return;
         }
-        setupAutoUpdatePreference();
         setupAutoUpdateDomain();
 
-        if(_isAutoUpdateEnabled()) {
-            setupAutoUpdate();
-            UpdateNotification.registerUpdateHandler(_updateProcessHandler);
+        //Bail out if update domain could not be created
+        if(!updateDomain) {
+            return;
         }
+
+        // Check if the update domain is properly initialised
+        updateDomain.promise()
+             .done(function() {
+                 setupAutoUpdatePreference();
+                 if(_isAutoUpdateEnabled()) {
+                     setupAutoUpdate();
+                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
+                 }
+             })
+             .fail(function() {
+                 return;
+             });
     });
 
     /**
