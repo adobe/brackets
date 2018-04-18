@@ -55,9 +55,9 @@ define(function (require, exports, module) {
             _file = FileSystem.getFileForPath(this.path);
 
         _file.exists(function (err, exists) {
-            if(err) {
+            if (err) {
                 result.reject();
-            } else if(exists) {
+            } else if (exists) {
                 result.resolve();
             } else {
                 result.reject();
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
             self.exists()
                 .fail(function () {
                     writePromise(self.path, content);
-                }).done(function (){
+                }).done(function () {
                     result.reject();
                 });
         }

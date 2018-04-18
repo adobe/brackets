@@ -20,6 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+/* eslint-disable indent */
+/* eslint-disable max-len */
 
 define(function (require, exports, module) {
     "use strict";
@@ -75,27 +77,6 @@ define(function (require, exports, module) {
 
 
     /**
-     * Defines preference to enable/disable Auto Update
-     */
-    function setupAutoUpdatePreference(){
-        PreferencesManager.definePreference("autoUpdate.AutoUpdate", "boolean", true, {
-            description: Strings.DESCRIPTION_AUTO_UPDATE
-        });
-
-        // Set or unset the auto update, based on preference state change
-        PreferencesManager.on("change", "autoUpdate.AutoUpdate", function () {
-            if(_isAutoUpdateEnabled()) {
-                setupAutoUpdate();
-                UpdateNotification.registerUpdateHandler(_updateProcessHandler);
-            } else {
-                unsetAutoUpdate();
-                UpdateNotification.resetToDefaultUpdateHandler();
-            }
-        });
-    }
-
-
-    /**
      * Checks if auto update preference is enabled or disabled
      * @private
      * @returns {boolean} - true if preference enabled, false otherwise
@@ -104,181 +85,18 @@ define(function (require, exports, module) {
         return (PreferencesManager.get("autoUpdate.AutoUpdate") !== false);
     }
 
-
     /**
-     * Initializes the state of parsed content from updateHelper.json
+     * Receives messages from node
+     * @param {object} event  - event received from node
+     * @param {object}   msgObj - json containing - {
+     *                          fn - function to execute on Brackets side
+     *                          args - arguments to the above function
      */
-    function initState() {
-        updateJsonHandler.parse()
-            .done(function () {
-                checkUpdateStatus();
-            })
-            .fail(function (code) {
-                var logMsg;
-                switch (code) {
-                case StateHandlerMessages.FILE_NOT_FOUND:
-                    logMsg = "AutoUpdate : updateHelper.json cannot be parsed, does not exist";
-                    break;
-                case StateHandlerMessages.FILE_NOT_READ:
-                    logMsg = "AutoUpdate : updateHelper.json could not be read";
-                    break;
-                case StateHandlerMessages.FILE_PARSE_EXCEPTION:
-                    logMsg = "AutoUpdate : updateHelper.json could not be parsed, exception encountered";
-                    break;
-                case StateHandlerMessages.FILE_READ_FAIL:
-                    logMsg = "AutoUpdate : updateHelper.json could not be parsed";
-                    break;
-                }
-                console.log(logMsg);
-            });
+    function receiveMessageFromNode(event, msgObj) {
+        functionMap[msgObj.fn].apply(null, msgObj.args);
     }
 
-    /**
-     * Sets up the Auto Update environment
-     */
-    function setupAutoUpdate() {
-        updateJsonHandler = new StateHandler(updateJsonPath);
-
-        updateDomain.exec('initNode', {
-            messageIds: MessageIds,
-            updateDir: updateDir
-        });
-
-        updateDomain.on('data', receiveMessageFromNode);
-        initState();
-    }
-
-
-    /**
-     * Unsets the Auto Update environment
-     */
-    function unsetAutoUpdate() {
-        updateJsonHandler = null;
-        updateDomain.off('data');
-        resetAppQuitHandler();
-    }
-
-    /**
-     * Overriding the appReady for Auto update
-     */
-
-    AppInit.appReady(function () {
-
-        // Auto Update is supported on Win and Mac, as of now
-        if(brackets.platform === "linux" || !(brackets.app.setUpdateParams)) {
-            return;
-        }
-        setupAutoUpdateDomain();
-
-        //Bail out if update domain could not be created
-        if(!updateDomain) {
-            return;
-        }
-
-        // Check if the update domain is properly initialised
-        updateDomain.promise()
-             .done(function() {
-                 setupAutoUpdatePreference();
-                 if(_isAutoUpdateEnabled()) {
-                     setupAutoUpdate();
-                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
-                 }
-             })
-             .fail(function() {
-                 return;
-             });
-    });
-
-    /**
-     * Generates the download URL for the update installer, based on platform
-     * @param   {string} buildName - name of latest build
-     * @param   {string} ext       - file extension, based on platform
-     * @returns {object} - downloadInfo json, containing installer name and download URL
-     */
-    function getDownloadInfo(buildName, ext) {
-        var downloadInfo = {};
-        if (buildName) {
-            var buildNum = buildName.match(/([\d.]+)/);
-            if (buildNum) {
-                buildNum = buildNum[1];
-
-                var tag = buildName.toLowerCase().split(" ").join("-"),
-                    installerName = "Brackets." + buildName.split(" ").join(".") + ext,
-                    downloadURL;
-
-                    downloadURL = brackets.config.update_download_url + tag + "/" + installerName;
-
-                downloadInfo = {
-                    installerName: installerName,
-                    downloadURL: downloadURL
-                };
-
-            }
-        }
-
-        return downloadInfo;
-    }
-
-    /**
-     * Generates the extension for installer file, based on platform
-     * @returns {object} - json containing platform Info : {
-     *                   extension - installer file extension,
-     *                   OS - current OS }
-     */
-    function getPlatformInfo() {
-        var ext = "",
-            OS = "";
-
-        if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
-            OS = "WIN";
-            ext = ".msi";
-        } else if (/Mac/.test(window.navigator.userAgent)) {
-            OS = "OSX";
-            ext = ".dmg";
-        } else if (/Linux|X11/.test(window.navigator.userAgent)) {
-            OS = "LINUX32";
-            ext = ".32-bit.deb";
-            if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
-                OS = "LINUX64";
-                ext = ".64-bit.deb";
-            }
-        }
-
-        return {
-            extension: ext,
-            OS: OS
-        };
-    }
-
-
-    /**
-     * Handles and processes the update info, required for app auto update
-     * @private
-     * @param {Array} updates - array object containing info about updates
-     */
-    function _updateProcessHandler(updates) {
-        //If no checksum field is present then we're setting it to 0, just as a safety check,
-        // although ideally this situation should never occur in releases post its introduction.
-        var platformInfo = getPlatformInfo(),
-            buildName = updates[0].versionString,
-            checksum  = (updates[0].checksums) ? updates[0].checksums[platformInfo.OS] : 0;
-
-        var updateParams = getDownloadInfo(buildName, platformInfo.extension);
-        updateParams.latestBuildNumber = updates[0].buildNumber; ;
-        updateParams.checksum = checksum;
-
-        //Initiate the auto update, with update params
-        initiateAutoUpdate(updateParams);
-    }
-
-    /**
-     * Creates the Node Domain for Auto Update
-     */
-    function setupAutoUpdateDomain() {
-        updateDomain = new NodeDomain("AutoUpdate", _domainPath);
-    }
-
-    /*
+     /*
      * Checks if Brackets version got updated
      * @returns {boolean}  true if version updated, false otherwise
      */
@@ -290,7 +108,8 @@ define(function (require, exports, module) {
         return latestBuildNumber === currentBuildNumber;
     }
 
-    /**
+
+     /**
      * Gets the arguments to a function in an array
      * @param   {object} args - the arguments object
      * @returns {Array}   - array of actual arguments
@@ -308,6 +127,7 @@ define(function (require, exports, module) {
         return [];
     }
 
+
     /**
      * Posts messages to node
      * @param {string} messageId - Message to be passed
@@ -320,7 +140,8 @@ define(function (require, exports, module) {
         updateDomain.exec('data', msg);
     }
 
-    /**
+
+     /**
      * Checks and handles the update success and failure scenarios
      */
     function checkUpdateStatus() {
@@ -358,6 +179,117 @@ define(function (require, exports, module) {
         postMessageToNode(MessageIds.PERFORM_CLEANUP, filesToCache);
     }
 
+
+     /**
+     * Initializes the state of parsed content from updateHelper.json
+     */
+    function initState() {
+        updateJsonHandler.parse()
+            .done(function () {
+                checkUpdateStatus();
+            })
+            .fail(function (code) {
+                var logMsg;
+                switch (code) {
+                case StateHandlerMessages.FILE_NOT_FOUND:
+                    logMsg = "AutoUpdate : updateHelper.json cannot be parsed, does not exist";
+                    break;
+                case StateHandlerMessages.FILE_NOT_READ:
+                    logMsg = "AutoUpdate : updateHelper.json could not be read";
+                    break;
+                case StateHandlerMessages.FILE_PARSE_EXCEPTION:
+                    logMsg = "AutoUpdate : updateHelper.json could not be parsed, exception encountered";
+                    break;
+                case StateHandlerMessages.FILE_READ_FAIL:
+                    logMsg = "AutoUpdate : updateHelper.json could not be parsed";
+                    break;
+                }
+                console.log(logMsg);
+            });
+    }
+
+
+
+    /**
+     * Sets up the Auto Update environment
+     */
+    function setupAutoUpdate() {
+        updateJsonHandler = new StateHandler(updateJsonPath);
+
+        updateDomain.exec('initNode', {
+            messageIds: MessageIds,
+            updateDir: updateDir
+        });
+
+        updateDomain.on('data', receiveMessageFromNode);
+        initState();
+    }
+
+
+     /**
+     * Generates the extension for installer file, based on platform
+     * @returns {object} - json containing platform Info : {
+     *                   extension - installer file extension,
+     *                   OS - current OS }
+     */
+    function getPlatformInfo() {
+        var ext = "",
+            OS = "";
+
+        if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
+            OS = "WIN";
+            ext = ".msi";
+        } else if (/Mac/.test(window.navigator.userAgent)) {
+            OS = "OSX";
+            ext = ".dmg";
+        } else if (/Linux|X11/.test(window.navigator.userAgent)) {
+            OS = "LINUX32";
+            ext = ".32-bit.deb";
+            if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
+                OS = "LINUX64";
+                ext = ".64-bit.deb";
+            }
+        }
+
+        return {
+            extension: ext,
+            OS: OS
+        };
+    }
+
+
+
+    /**
+     * Generates the download URL for the update installer, based on platform
+     * @param   {string} buildName - name of latest build
+     * @param   {string} ext       - file extension, based on platform
+     * @returns {object} - downloadInfo json, containing installer name and download URL
+     */
+    function getDownloadInfo(buildName, ext) {
+        var downloadInfo = {};
+        if (buildName) {
+            var buildNum = buildName.match(/([\d.]+)/);
+            if (buildNum) {
+                buildNum = buildNum[1];
+
+                var tag = buildName.toLowerCase().split(" ").join("-"),
+                    installerName = "Brackets." + buildName.split(" ").join(".") + ext,
+                    downloadURL;
+
+                downloadURL = brackets.config.update_download_url + tag + "/" + installerName;
+
+                downloadInfo = {
+                    installerName: installerName,
+                    downloadURL: downloadURL
+                };
+
+            }
+        }
+
+        return downloadInfo;
+    }
+
+
     /**
      * Initializes the state for AutoUpdate process
      * @returns {$.Deferred} - a jquery promise,
@@ -385,6 +317,135 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+
+
+
+    /**
+     * Handles the auto update event, which is triggered when user clicks GetItNow in UpdateNotification dialog
+     * @param {object} updateParams - json object containing update information {
+     *                              installerName - name of the installer
+     *                              downloadURL - download URL
+     *                              latestBuildNumber - build number
+     *                              checksum - checksum }
+     */
+    function initiateAutoUpdate(updateParams) {
+        _updateParams = updateParams;
+        downloadAttemptsRemaining = MAX_DOWNLOAD_ATTEMPTS;
+
+        initializeState()
+            .done(function () {
+                postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+            })
+            .fail(function () {
+                UpdateInfoBar.showUpdateBar({
+                    type: "error",
+                    title: Strings.INITIALISATION_FAILED,
+                    description: ""
+                });
+            });
+    }
+
+
+    /**
+     * Handles and processes the update info, required for app auto update
+     * @private
+     * @param {Array} updates - array object containing info about updates
+     */
+    function _updateProcessHandler(updates) {
+        //If no checksum field is present then we're setting it to 0, just as a safety check,
+        // although ideally this situation should never occur in releases post its introduction.
+        var platformInfo = getPlatformInfo(),
+            buildName = updates[0].versionString,
+            checksum  = (updates[0].checksums) ? updates[0].checksums[platformInfo.OS] : 0;
+
+        var updateParams = getDownloadInfo(buildName, platformInfo.extension);
+        updateParams.latestBuildNumber = updates[0].buildNumber;
+        updateParams.checksum = checksum;
+
+        //Initiate the auto update, with update params
+        initiateAutoUpdate(updateParams);
+    }
+
+
+     /**
+     * Unregisters the App Quit event handler
+     */
+    function resetAppQuitHandler() {
+        DocumentCommandHandlers.off(APP_QUIT_CANCELLED);
+    }
+
+
+    /**
+     * Unsets the Auto Update environment
+     */
+    function unsetAutoUpdate() {
+        updateJsonHandler = null;
+        updateDomain.off('data');
+        resetAppQuitHandler();
+    }
+
+
+    /**
+     * Defines preference to enable/disable Auto Update
+     */
+    function setupAutoUpdatePreference() {
+        PreferencesManager.definePreference("autoUpdate.AutoUpdate", "boolean", true, {
+            description: Strings.DESCRIPTION_AUTO_UPDATE
+        });
+
+        // Set or unset the auto update, based on preference state change
+        PreferencesManager.on("change", "autoUpdate.AutoUpdate", function () {
+            if (_isAutoUpdateEnabled()) {
+                setupAutoUpdate();
+                UpdateNotification.registerUpdateHandler(_updateProcessHandler);
+            } else {
+                unsetAutoUpdate();
+                UpdateNotification.resetToDefaultUpdateHandler();
+            }
+        });
+    }
+
+
+    /**
+     * Creates the Node Domain for Auto Update
+     */
+    function setupAutoUpdateDomain() {
+        updateDomain = new NodeDomain("AutoUpdate", _domainPath);
+    }
+
+
+    /**
+     * Overriding the appReady for Auto update
+     */
+
+    AppInit.appReady(function () {
+
+        // Auto Update is supported on Win and Mac, as of now
+        if (brackets.platform === "linux" || !(brackets.app.setUpdateParams)) {
+            return;
+        }
+        setupAutoUpdateDomain();
+
+        //Bail out if update domain could not be created
+        if (!updateDomain) {
+            return;
+        }
+
+        // Check if the update domain is properly initialised
+        updateDomain.promise()
+             .done(function () {
+                setupAutoUpdatePreference();
+                if (_isAutoUpdateEnabled()) {
+                    setupAutoUpdate();
+                    UpdateNotification.registerUpdateHandler(_updateProcessHandler);
+                }
+            })
+             .fail(function (err) {
+                console.error("AutoUpdate : node domain could not be initialized.");
+                return;
+            });
+    });
+
 
     /**
      * Enables/disables the state of "Check For Updates" menu entry under Help Menu
@@ -447,7 +508,8 @@ define(function (require, exports, module) {
     function handleSafeToDownload() {
         var downloadFn = function () {
             if (isFirstIterationDownload()) {
-                // For the first iteration of download, show download status info in Status bar, and pass download to node
+                // For the first iteration of download, show download
+                //status info in Status bar, and pass download to node
                 UpdateStatus.showUpdateStatus("initial-download");
                 postMessageToNode(MessageIds.DOWNLOAD_INSTALLER, true);
             } else {
@@ -560,20 +622,29 @@ define(function (require, exports, module) {
         });
     }
 
+
     /**
-     * Registers the App Quit event handler, in case of dirty file save cancelled scenario, while Auto Update is scheduled to run on quit
+     * Handles the Cancel button click by user in
+     * Unsaved changes prompt, which would come up if user
+     * has dirty files and he/she clicked UpdateNow
+     */
+    function dirtyFileSaveCancelled() {
+        UpdateInfoBar.showUpdateBar({
+            type: "warning",
+            title: Strings.WARNING_TYPE,
+            description: Strings.UPDATE_ON_NEXT_LAUNCH
+        });
+    }
+
+    /**
+     * Registers the App Quit event handler, in case of dirty
+     * file save cancelled scenario, while Auto Update is scheduled to run on quit
      */
     function setAppQuitHandler() {
         resetAppQuitHandler();
         DocumentCommandHandlers.on(APP_QUIT_CANCELLED, dirtyFileSaveCancelled);
     }
 
-    /**
-     * Unregisters the App Quit event handler
-     */
-    function resetAppQuitHandler() {
-        DocumentCommandHandlers.off(APP_QUIT_CANCELLED);
-    }
 
     /**
      * Initiates the update process, when user clicks UpdateNow in the update popup
@@ -611,19 +682,20 @@ define(function (require, exports, module) {
             };
 
             if (brackets.platform === "mac") {
-                var additionalParams = getAdditionalParams();
+                var additionalParams = getAdditionalParams(),
+                    key;
 
-                for (var key in additionalParams) {
-                    if(additionalParams.hasOwnProperty(key)) {
+                for (key in additionalParams) {
+                    if (additionalParams.hasOwnProperty(key)) {
                         infoObj[key] = additionalParams[key];
                     }
                 }
             }
 
             // Set update parameters for app update
-            if(brackets.app.setUpdateParams) {
+            if (brackets.app.setUpdateParams) {
                 brackets.app.setUpdateParams(JSON.stringify(infoObj), function (err) {
-                    if(err) {
+                    if (err) {
                         resetStateInFailure("AutoUpdate : Update parameters could not be set for the installer. Error encountered: " + err);
                     } else {
                         setAppQuitHandler();
@@ -757,30 +829,6 @@ define(function (require, exports, module) {
 
     }
 
-    /**
-     * Handles the auto update event, which is triggered when user clicks GetItNow in UpdateNotification dialog
-     * @param {object} updateParams - json object containing update information {
-     *                              installerName - name of the installer
-     *                              downloadURL - download URL
-     *                              latestBuildNumber - build number
-     *                              checksum - checksum }
-     */
-    function initiateAutoUpdate(updateParams) {
-        _updateParams = updateParams;
-        downloadAttemptsRemaining = MAX_DOWNLOAD_ATTEMPTS;
-
-        initializeState()
-            .done(function () {
-                postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
-            })
-            .fail(function () {
-                UpdateInfoBar.showUpdateBar({
-                    type: "error",
-                    title: Strings.INITIALISATION_FAILED,
-                    description: ""
-                });
-            });
-    }
 
     /**
      * Handles the completion of node state initialization
@@ -790,18 +838,6 @@ define(function (require, exports, module) {
         getLatestInstaller();
     }
 
-    /**
-     * Handles the Cancel button click by user in
-     * Unsaved changes prompt, which would come up if user
-     * has dirty files and he/she clicked UpdateNow
-     */
-    function dirtyFileSaveCancelled() {
-        UpdateInfoBar.showUpdateBar({
-            type: "warning",
-            title: Strings.WARNING_TYPE,
-            description: Strings.UPDATE_ON_NEXT_LAUNCH
-        });
-    }
 
     /**
      * Handles Download completion callback from Node
@@ -811,16 +847,6 @@ define(function (require, exports, module) {
         validateChecksum();
     }
 
-    /**
-     * Receives messages from node
-     * @param {object} event  - event received from node
-     * @param {object}   msgObj - json containing - {
-     *                          fn - function to execute on Brackets side
-     *                          args - arguments to the above function
-     */
-    function receiveMessageFromNode(event, msgObj) {
-        functionMap[msgObj.fn].apply(null, msgObj.args);
-    }
 
     /**
      * Generates a map for brackets side functions

@@ -76,7 +76,7 @@ define(function (require, exports, module) {
      */
     function cleanUpdateBar() {
         var $updateBar = $('#update-bar');
-        if($updateBar.length > 0) {
+        if ($updateBar.length > 0) {
             $updateBar.remove();
         }
         $(window.document).off("keydown.AutoUpdate");
@@ -103,12 +103,12 @@ define(function (require, exports, module) {
             $later = $updateBar.find('#update-btn-later'),
             $closeIcon = $updateBar.find('#close-icon');
 
-        if($updateContent.length > 0) {
+        if ($updateContent.length > 0) {
             if ($updateContent[0].scrollWidth > $updateContent.innerWidth()) {
             //Text has over-flown, show the update content as tooltip message
-                if($contentContainer.length > 0 &&
-                   $heading.length > 0 &&
-                   $description.length > 0) {
+                if ($contentContainer.length > 0 &&
+                        $heading.length > 0 &&
+                        $description.length > 0) {
                     $contentContainer.attr("title", $heading.text() + $description.text());
                 }
             }
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
         //Event handlers on the Update Bar
 
         // Click and key handlers on Restart button
-        if($restart.length > 0) {
+        if ($restart.length > 0) {
             $restart.click(function () {
                 cleanUpdateBar();
                 exports.trigger(exports.RESTART_BTN_CLICKED);
@@ -131,7 +131,7 @@ define(function (require, exports, module) {
         }
 
         // Click and key handlers on Later button
-        if($later.length > 0) {
+        if ($later.length > 0) {
             $later.click(function () {
                 cleanUpdateBar();
                 MainViewManager.focusActivePane();
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
         }
 
         // Click and key handlers on Close button
-        if($closeIcon.length > 0) {
+        if ($closeIcon.length > 0) {
             $closeIcon.click(function () {
                 cleanUpdateBar();
                 MainViewManager.focusActivePane();
