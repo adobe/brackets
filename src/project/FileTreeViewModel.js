@@ -469,7 +469,8 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.renameItem = function (oldPath, newPath) {
         var treeData = this._treeData,
             oldObjectPath = _filePathToObjectPath(treeData, oldPath),
-            newObjectPath = _filePathToObjectPath(treeData, FileUtils.getParentPath(newPath));
+            newDirectoryPath = FileUtils.getParentPath(newPath),
+            newObjectPath = _filePathToObjectPath(treeData, newDirectoryPath);
 
         if (!oldObjectPath || !newObjectPath) {
             return;
@@ -490,6 +491,12 @@ define(function (require, exports, module) {
         });
 
         // Add the newPath
+
+        // If the new directory is not loaded, create a not fully loaded directory there,
+        // so that we can add the new item as a child of new directory
+        if (!this.isPathLoaded(newDirectoryPath)) {
+            treeData = treeData.updateIn(newObjectPath, _createNotFullyLoadedDirectory);
+        }
 
         // If item moved to root directory, objectPath should not have "children",
         // otherwise the objectPath should have "children"
