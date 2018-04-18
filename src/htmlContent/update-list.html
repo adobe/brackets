@@ -1,9 +1,9 @@
 {{#.}}
 <div>
-    <h3>{{versionString}} - {{dateString}} (<a href="{{releaseNotesURL}}" title="{{releaseNotesURL}}">{{Strings.RELEASE_NOTES}}</a>)</h3>
+    <h3>{{versionString}} - {{dateString}} | <a href="{{releaseNotesURL}}" title="{{releaseNotesURL}}">{{Strings.RELEASE_NOTES}}</a></h3>
     <ul>
         {{#newFeatures}}
-        <li><b>{{name}}</b> - {{description}}</li>
+        <li><b>{{name}}</b> <br> {{description}}</li>
         {{/newFeatures}}
     </ul>
 </div>

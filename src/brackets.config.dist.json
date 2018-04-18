@@ -2,5 +2,6 @@
     "healthDataServerURL"     : "https://health.brackets.io/healthDataLog",
     "analyticsDataServerURL"  : "https://cc-api-data.adobe.io/ingest",
     "serviceKey"              : "brackets-service",
-    "environment"             : "production"
+    "environment"             : "production",
+    "update_download_url"     : "https://github.com/adobe/brackets/releases/download/"
 }

@@ -41,6 +41,16 @@ define(function (require, exports, module) {
     // make sure the global brackets variable is loaded
     require("utils/Global");
 
+    // Private variable to hold the registered update process handler
+    var _updateProcessHandler = null;
+
+    // Private variable to hold the default update process handler
+    var _defaultUpdateProcessHandler = function(updateInfo) {
+        if (updateInfo) {
+            // The first entry in the updates array has the latest download link
+            NativeApp.openURLInDefaultBrowser(updateInfo[0].downloadURL);
+        }
+    };
     // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -92,6 +102,7 @@ define(function (require, exports, module) {
      * return {string} the new version update url
      */
     function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
+
         locale = locale || brackets.getLocale();
 
         if (removeCountryPartOfLocale) {
@@ -250,8 +261,7 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
-                    // The first entry in the updates array has the latest download link
-                    NativeApp.openURLInDefaultBrowser(updates[0].downloadURL);
+                    handleUpdateProcess(updates);
                 }
             });
 
@@ -429,6 +439,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Handles the update process
+     * @param {Array} updates - array object containing info of updates
+     */
+    function handleUpdateProcess(updates) {
+        var handler = _updateProcessHandler || _defaultUpdateProcessHandler;
+        handler(updates);
+    }
+
+    /**
      * Launches both check for Brackets update and check for installed extensions update
      */
     function launchAutomaticUpdate() {
@@ -438,10 +457,27 @@ define(function (require, exports, module) {
         window.setInterval(checkForUpdate, ONE_DAY + TWO_MINUTES);
     }
 
+    /**
+     * Registers the update process handler function
+     * @param {function} handler - function for update process handler
+     */
+    function registerUpdateHandler(handler) {
+        _updateProcessHandler = handler;
+    }
+
+    /**
+     * Utility function to reset back to the default update handler
+     */
+    function resetToDefaultUpdateHandler() {
+        _updateProcessHandler = null;
+    }
+
     // Events listeners
     ExtensionManager.on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
+    exports.registerUpdateHandler = registerUpdateHandler;
+    exports.resetToDefaultUpdateHandler = resetToDefaultUpdateHandler;
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
 });
