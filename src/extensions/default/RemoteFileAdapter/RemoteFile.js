@@ -99,15 +99,11 @@ define(function (require, exports, module) {
         }
     });
 
-    RemoteFile.prototype.exists = function (callback) {
-        callback(null, true);
-    };
-
     /**
      * Helpful toString for debugging and equality check purposes
      */
     RemoteFile.prototype.toString = function () {
-        return "[" + (this._isDirectory ? "Directory " : "File ") + this._path + "]";
+        return "[" + (this._isDirectory ? "Directory " : "RemoteFile ") + this._path + "]";
     };
 
     RemoteFile.prototype.constructor = RemoteFile;
@@ -189,7 +185,7 @@ define(function (require, exports, module) {
     };
 
     RemoteFile.prototype.exists = function (callback) {
-        callback(null, false);
+        callback(null, true);
     };
 
     RemoteFile.prototype.unlink = function (callback) {
