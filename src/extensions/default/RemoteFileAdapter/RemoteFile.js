@@ -56,7 +56,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath The full path for this File.
      * @param {!FileSystem} fileSystem The file system associated with this File.
      */
-    function RemoteFile(fullPath, fileSystem) {
+    function RemoteFile(protocol, fullPath, fileSystem) {
         this._isFile = true;
         this._isDirectory = false;
         this._path = fullPath;
@@ -65,6 +65,8 @@ define(function (require, exports, module) {
         this._name = fullPath.split('/').pop();
         this._fileSystem = fileSystem;
         this.donotWatch = true;
+        this.protocol = protocol;
+        this.encodedPath = fullPath;
     }
 
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
@@ -103,7 +105,21 @@ define(function (require, exports, module) {
      * Helpful toString for debugging and equality check purposes
      */
     RemoteFile.prototype.toString = function () {
-        return "[" + (this._isDirectory ? "Directory " : "RemoteFile ") + this._path + "]";
+        return "[RemoteFile " + this._path + "]";
+    };
+
+    /**
+     * Returns the stats for the remote entry.
+     *
+     * @param {function (?string, FileSystemStats=)} callback Callback with a
+     *      FileSystemError string or FileSystemStats object.
+     */
+    RemoteFile.prototype.stat = function (callback) {
+        if (this._stat) {
+            callback(null, this._stat);
+        } else {
+            callback(FileSystemError.NOT_FOUND);
+        }
     };
 
     RemoteFile.prototype.constructor = RemoteFile;

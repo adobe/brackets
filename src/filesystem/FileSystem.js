@@ -632,7 +632,7 @@ define(function (require, exports, module) {
             protocolAdapter = _getProtocolAdapter(protocol);
 
         if (protocolAdapter && protocolAdapter.fileImpl) {
-            return new protocolAdapter.fileImpl(path, this);
+            return new protocolAdapter.fileImpl(protocol, path, this);
         } else {
             return this._getEntryForPath(File, path);
         }
