@@ -33,9 +33,11 @@ define(function (require, exports, module) {
         PerfUtils                   = require("utils/PerfUtils"),
         FindUtils                   = require("search/FindUtils"),
         StringUtils                 = require("utils/StringUtils"),
+        EventDispatcher             = require("utils/EventDispatcher"),
 
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
+    EventDispatcher.makeEventDispatcher(exports);
 
     /**
      * Init: creates the health log preference keys in the state.json file
@@ -200,6 +202,35 @@ define(function (require, exports, module) {
         setHealthDataLog("searchDetails", searchDetails);
     }
 
+    /**
+     * Send Analytics Data
+     * @param {string} eventCategory The kind of Event Category that needs to be logged- should be a js var compatible string
+     * @param {string} eventSubCategory The kind of Event Sub Category that needs to be logged- should be a js var compatible string
+     * @param {string} eventType The kind of Event Type that needs to be logged- should be a js var compatible string
+     * @param {string} eventSubType The kind of Event Sub Type that needs to be logged- should be a js var compatible string
+     */
+    function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType) {
+        var isEventDataAlreadySent = PreferencesManager.getViewState(eventName);
+        //Parameters containing event information
+        var eventParams = {};
+        if(!isEventDataAlreadySent) {
+            eventParams.eventName = eventName;
+            eventParams.eventCategory = eventCategory;
+            eventParams.eventSubCategory = eventSubCategory;
+            eventParams.eventType = eventType;
+            eventParams.eventSubType = eventSubType;
+
+            notifyHealthManagerToSendData(eventParams);
+        }
+    }
+
+     /**
+     * Notifies the HealthData extension to send Analytics Data to server
+     */
+    function notifyHealthManagerToSendData(eventParams) {
+        exports.trigger("SendAnalyticsData", eventParams);
+    }
+
     // Define public API
     exports.getHealthDataLog          = getHealthDataLog;
     exports.setHealthDataLog          = setHealthDataLog;
@@ -225,4 +256,5 @@ define(function (require, exports, module) {
     exports.SEARCH_CASE_SENSITIVE     = "searchCaseSensitive";
     // A new search context on search bar up-Gives an idea of number of times user did a discrete search
     exports.SEARCH_NEW                = "searchNew";
+    exports.sendAnalyticsData         = sendAnalyticsData;
 });

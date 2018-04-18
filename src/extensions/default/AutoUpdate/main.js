@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         StateHandlerModule      = require("StateHandler"),
         MessageIds              = require("MessageIds"),
         UpdateStatus            = require("UpdateStatus"),
-        UpdateInfoBar           = require("UpdateInfoBar");
+        UpdateInfoBar           = require("UpdateInfoBar"),
+        HealthLogger            = brackets.getModule("utils/HealthLogger");
 
 
     var _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
@@ -58,6 +59,28 @@ define(function (require, exports, module) {
 
     var MAX_DOWNLOAD_ATTEMPTS = 6,
         downloadAttemptsRemaining;
+
+    var AUTOUPDATE_DOWNLOAD_START = "DownloadStarted";
+    var AUTOUPDATE_DOWNLOAD_COMPLETED = "DownloadCompleted";
+    var AUTOUPDATE_DOWNLOAD_FAILED = "DownloadFailed";
+    var AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_RESTART = "DownloadCompletedAndUserClickedRestart";
+    var AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER = "DownloadCompletedAndUserClickedLater";
+    var AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED = "DownloadCompleteUpdateBarRendered";
+    var AUTOUPDATE_INSTALLATION_FAILED = "installationFailed";
+    var AUTOUPDATE_INSTALLATION_SUCCESS = "installationSuccess ";
+
+    var installErrorStrArr = [
+        "Installation success or error status:",
+        "Reconfiguration success or error status"
+    ];
+    var macinstallErrorStrArr = [
+        "ERROR:"
+    ];
+    var bracketErrorStrArr = [
+        "Command line interpreter could not be fetched",
+        "COMSPEC not found in the current environment",
+        "Installer process could not be created"
+    ];
 
     // function map for brackets functions
     var functionMap = {};
@@ -158,8 +181,22 @@ define(function (require, exports, module) {
                     title: Strings.UPDATE_SUCCESSFUL,
                     description: ""
                 });
+                HealthLogger.sendAnalyticsData(AUTOUPDATE_INSTALLATION_SUCCESS, "autoUpdate", "install", "complete", "");
             } else {
                 // We get here if the update started but failed
+                var searchParams = {
+                    "updateDir": updateDir,
+                    "installErrorStr": installErrorStrArr,
+                    "bracketErrorStr": bracketErrorStrArr,
+                    "encoding": ""
+                };
+                if (brackets.platform === "mac") {
+                    searchParams.installErrorStr = macinstallErrorStrArr;
+                }
+                if (brackets.platform === "win") {
+                    searchParams.encoding = "utf16le";
+                }
+                postMessageToNode(MessageIds.CHECK_INSTALLER_STATUS, searchParams);
                 filesToCache = ['.logs']; //AUTOUPDATE_PRERELEASE
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
@@ -177,6 +214,18 @@ define(function (require, exports, module) {
         }
 
         postMessageToNode(MessageIds.PERFORM_CLEANUP, filesToCache);
+    }
+
+    function handleInstallaionStatus(statusObj) {
+        var errorMessage = "";
+        if (statusObj.installNotStarted) {
+            errorMessage = "Install Not Started: " + statusObj.installNotStarted;
+        }
+        var errorline = statusObj.installStarted;
+        if (errorline) {
+            errorMessage = "Install Started But Failed With Error Code: " + errorline.substr(errorline.lastIndexOf(':') + 1, errorline.length);
+        }
+        HealthLogger.sendAnalyticsData(AUTOUPDATE_INSTALLATION_FAILED, "autoUpdate", "install", "fail", errorMessage);
     }
 
 
@@ -594,6 +643,7 @@ define(function (require, exports, module) {
      */
     function showStatusInfo(statusObj) {
         if (statusObj.target === "initial-download") {
+            HealthLogger.sendAnalyticsData(AUTOUPDATE_DOWNLOAD_START, "autoUpdate", "download", "started", "");
             UpdateStatus.modifyUpdateStatus(statusObj);
         }
         UpdateStatus.displayProgress(statusObj);
@@ -737,12 +787,14 @@ define(function (require, exports, module) {
 
                 // Restart button click handler
                 var restartBtnClicked = function () {
+                    HealthLogger.sendAnalyticsData(AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_RESTART, "autoUpdate", "installNotification", "installNow ", "click");
                     detachUpdateBarBtnHandlers();
                     initiateUpdateProcess(statusObj.installerPath, statusObj.logFilePath, statusObj.installStatusFilePath);
                 };
 
                 // Later button click handler
                 var laterBtnClicked = function () {
+                    HealthLogger.sendAnalyticsData(AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER, "autoUpdate", "installNotification", "cancel", "click");
                     detachUpdateBarBtnHandlers();
                     setUpdateStateInJSON('updateInitiatedInPrevSession', false);
                 };
@@ -756,6 +808,7 @@ define(function (require, exports, module) {
                     description: Strings.CLICK_RESTART_TO_UPDATE,
                     needButtons: true
                 });
+                HealthLogger.sendAnalyticsData(AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED, "autoUpdate", "installNotification", "render", "");
             };
 
             setUpdateStateInJSON('downloadCompleted', true, statusValidFn);
@@ -787,7 +840,7 @@ define(function (require, exports, module) {
                     descriptionMessage = Strings.INSTALLER_NOT_FOUND;
                     break;
                 }
-
+                HealthLogger.sendAnalyticsData(AUTOUPDATE_DOWNLOAD_FAILED, "autoUpdate", "download", "fail", descriptionMessage);
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
                     title: Strings.VALIDATION_FAILED,
@@ -819,7 +872,7 @@ define(function (require, exports, module) {
             if (message === _nodeErrorMessages.DOWNLOAD_ERROR) {
                 descriptionMessage = Strings.DOWNLOAD_ERROR;
             }
-
+            HealthLogger.sendAnalyticsData(AUTOUPDATE_DOWNLOAD_FAILED, "autoUpdate", "download", "fail", descriptionMessage);
             UpdateInfoBar.showUpdateBar({
                 type: "error",
                 title: Strings.DOWNLOAD_FAILED,
@@ -843,6 +896,7 @@ define(function (require, exports, module) {
      * Handles Download completion callback from Node
      */
     function handleDownloadSuccess() {
+        HealthLogger.sendAnalyticsData(AUTOUPDATE_DOWNLOAD_COMPLETED, "autoUpdate", "download", "complete", "");
         UpdateStatus.showUpdateStatus("validating-installer");
         validateChecksum();
     }
@@ -859,6 +913,7 @@ define(function (require, exports, module) {
         functionMap["brackets.notifyDownloadFailure"]        = handleDownloadFailure;
         functionMap["brackets.notifySafeToDownload"]         = handleSafeToDownload;
         functionMap["brackets.notifyvalidationStatus"]       = handleValidationStatus;
+        functionMap["brackets.notifyInstallationStatus"]       = handleInstallaionStatus;
     }
 
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
