@@ -176,7 +176,7 @@ define(function (require, exports, module) {
          * this component, so we keep the model up to date by sending every update via an action.
          */
         handleInput: function (e) {
-            this.props.actions.setRenameValue(this.refs.name.value.trim());
+            this.props.actions.setRenameValue(this.props.parentPath + this.refs.name.value.trim());
 
             if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
                     e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
@@ -192,6 +192,97 @@ define(function (require, exports, module) {
          */
         handleBlur: function () {
             this.props.actions.performRename();
+        }
+    };
+
+    /**
+     * This is a mixin that provides drag and drop move function.
+     */
+    var dragAndDrop = {
+        handleDrag: function(e) {
+            // Disable drag when renaming
+            if (this.props.entry.get("rename")) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            // Pass the dragged item path.
+            e.dataTransfer.setData("text", JSON.stringify({
+                path: this.myPath()
+            }));
+
+            this.props.actions.dragItem(this.myPath());
+
+            this.setDragImage(e);
+            e.stopPropagation();
+        },
+        handleDrop: function(e) {
+            var data = JSON.parse(e.dataTransfer.getData("text"));
+
+            this.props.actions.moveItem(data.path, this.myPath());
+            this.setDraggedOver(false);
+
+            this.clearDragTimeout();
+            e.stopPropagation();
+        },
+
+        handleDragEnd: function(e) {
+            this.clearDragTimeout();
+        },
+
+        handleDragOver: function(e) {
+            var data = JSON.parse(e.dataTransfer.getData("text"));
+
+            if (data.path === this.myPath() || FileUtils.getParentPath(data.path) === this.myPath()) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            var self = this;
+            this.setDraggedOver(true);
+
+            // Open the directory tree when item is dragged over a directory
+            if (!this.dragOverTimeout) {
+                this.dragOverTimeout = window.setTimeout(function() {
+                    self.props.actions.setDirectoryOpen(self.myPath(), true);
+                    self.dragOverTimeout = null;
+                }, 800);
+            }
+
+            e.preventDefault(); // Allow the drop
+            e.stopPropagation();
+        },
+
+        handleDragLeave: function(e) {
+            this.setDraggedOver(false);
+            this.clearDragTimeout();
+        },
+
+        clearDragTimeout: function() {
+            if (this.dragOverTimeout) {
+                clearTimeout(this.dragOverTimeout);
+                this.dragOverTimeout = null;
+            }
+        },
+        setDraggedOver: function(draggedOver) {
+            if (this.state.draggedOver !== draggedOver) {
+                this.setState({
+                    draggedOver: draggedOver
+                });
+            }
+        },
+
+        setDragImage: function(e) {
+            var div = window.document.createElement('div');
+            div.style.position = 'absolute';
+            div.style.color = '#fff';
+            div.textContent = this.props.name;
+            window.document.body.appendChild(div);
+            e.dataTransfer.setDragImage(div, -10, -10);
+            setTimeout(function() {
+                window.document.body.removeChild(div);
+            }, 0);
         }
     };
 
@@ -265,7 +356,6 @@ define(function (require, exports, module) {
             if (this.props.entry.get("rename")) {
                 return;
             }
-            e.preventDefault();
         }
     };
 
@@ -363,7 +453,7 @@ define(function (require, exports, module) {
      * * forceRender: causes the component to run render
      */
     var fileNode = Preact.createFactory(Preact.createClass({
-        mixins: [contextSettable, pathComputer, extendable],
+        mixins: [contextSettable, pathComputer, extendable, dragAndDrop],
 
         /**
          * Ensures that we always have a state object.
@@ -504,7 +594,9 @@ define(function (require, exports, module) {
                     className: this.getClasses("jstree-leaf"),
                     onClick: this.handleClick,
                     onMouseDown: this.handleMouseDown,
-                    onDoubleClick: this.handleDoubleClick
+                    onDoubleClick: this.handleDoubleClick,
+                    draggable: true,
+                    onDragStart: this.handleDrag
                 },
                 DOM.ins({
                     className: "jstree-icon"
@@ -645,7 +737,13 @@ define(function (require, exports, module) {
      * * forceRender: causes the component to run render
      */
     directoryNode = Preact.createFactory(Preact.createClass({
-        mixins: [contextSettable, pathComputer, extendable],
+        mixins: [contextSettable, pathComputer, extendable, dragAndDrop],
+
+        getInitialState: function() {
+            return {
+                draggedOver: false
+            };
+        },
 
         /**
          * We need to update this component if the sort order changes or our entry object
@@ -656,7 +754,8 @@ define(function (require, exports, module) {
             return nextProps.forceRender ||
                 this.props.entry !== nextProps.entry ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
-                this.props.extensions !== nextProps.extensions;
+                this.props.extensions !== nextProps.extensions ||
+                (nextState !== undefined && this.state.draggedOver !== nextState.draggedOver);
         },
 
         /**
@@ -744,11 +843,22 @@ define(function (require, exports, module) {
                 'context-node': entry.get("context")
             });
 
+            var nodeClasses = "jstree-" + nodeClass;
+            if (this.state.draggedOver) {
+                nodeClasses += " jstree-draggedOver";
+            }
+
             var liArgs = [
                 {
-                    className: this.getClasses("jstree-" + nodeClass),
+                    className: this.getClasses(nodeClasses),
                     onClick: this.handleClick,
-                    onMouseDown: this.handleMouseDown
+                    onMouseDown: this.handleMouseDown,
+                    draggable: true,
+                    onDragStart: this.handleDrag,
+                    onDrop: this.handleDrop,
+                    onDragEnd: this.handleDragEnd,
+                    onDragOver: this.handleDragOver,
+                    onDragLeave: this.handleDragLeave
                 },
                 _createAlignedIns(this.props.depth)
             ];
@@ -1001,6 +1111,19 @@ define(function (require, exports, module) {
                 this.props.selectionViewInfo !== nextProps.selectionViewInfo;
         },
 
+        handleDrop: function(e) {
+            var data = JSON.parse(e.dataTransfer.getData("text"));
+            this.props.actions.moveItem(data.path, this.props.parentPath);
+            e.stopPropagation();
+        },
+
+        /**
+         * Allow the Drop
+         */
+        handleDragOver: function(e) {
+            e.preventDefault();
+        },
+
         render: function () {
             var selectionBackground = fileSelectionBox({
                 ref: "selectionBackground",
@@ -1042,10 +1165,15 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
-                });
+                }),
+                args = {
+                    onDrop: this.handleDrop,
+                    onDragOver: this.handleDragOver
+                };
+
 
             return DOM.div(
-                null,
+                args,
                 contents,
                 selectionBackground,
                 contextBackground,

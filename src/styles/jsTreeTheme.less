@@ -32,7 +32,7 @@
 .jstree > ul > li { margin-left:0; }
 .jstree-rtl > ul > li { margin-right:0; }
 .jstree ins { display:inline-block; text-decoration:none; width:18px; height:18px; margin:0 0 0 0; padding:0; }
-.jstree a:focus { outline: none; }
+.jstree a:focus { outline: none; box-shadow: none; color: @project-panel-text-1; }
 .jstree a > ins { height:16px; width:16px; }
 .jstree a > .jstree-icon { margin-right:3px; }
 .jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; }
@@ -49,6 +49,10 @@ li.jstree-closed > ul { display:none; }
 
 .jstree-brackets li a:hover {
     text-decoration: none;
+}
+
+.jstree-draggedOver {
+    background-color: @bc-sidebar-selection !important;
 }
 
 @jstree-icon-backindent: 12px;
