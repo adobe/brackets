@@ -140,7 +140,7 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
-    
+
     // Window unload warning messages
     "WINDOW_UNLOAD_WARNING"                      : "Are you sure you want to navigate to a different URL and leave Brackets?",
     "WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES" : "You have unsaved changes! Are you sure you want to navigate to a different URL and leave Brackets?",
@@ -589,7 +589,7 @@ define({
     "DISABLE_AND_RELOAD"                   : "Disable Extensions and Reload",
     "PROCESSING_EXTENSIONS"                : "Processing extension changes\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
-    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br />Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTE: These extensions may come from different authors than {APP_NAME} itself. Extensions are not reviewed and have full local privileges. Be cautious when installing extensions from an unknown source.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
@@ -602,8 +602,8 @@ define({
 
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
-    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br /> Click \"New Rule\" to create one.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br />Create one to add CSS rules.",
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
@@ -631,13 +631,13 @@ define({
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
 
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Command Line Shortcut",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occurred while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occurred while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br /><br />Reason: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Unable to remove existing <code>/usr/local/bin/brackets</code> symlink.",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "Unable to create <code>/usr/local/bin</code> directory.",
     "ERROR_CLTOOLS_LNFAILED"                    : "Unable to create <code>/usr/local/bin/brackets</code> symlink.",
     "ERROR_CLTOOLS_SERVFAILED"                  : "Internal error.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "Command line shortcut is not supported on this OS.",
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br /><br /><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line.",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
@@ -649,14 +649,14 @@ define({
     "HEALTH_DATA_NOTIFICATION"                  : "Health Report Preferences",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} Health Report",
     "HEALTH_DATA_DO_TRACK"                      : "Share anonymous information on how I use {APP_NAME}",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a>",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br /><br />You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br /><br /><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} Health Report",
     "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br /><kbd class='text'>Shift</kbd> Move by ten units<br /><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
 
@@ -675,7 +675,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
-    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br /><br />This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br /><br />This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
     // extensions/default/JavascriptRefactoring
     "CMD_REFACTOR"                              : "Refactor",
@@ -842,7 +842,7 @@ define({
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
     "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
     "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect",
-    
+
     // Strings for Auto Update
     "DOWNLOAD_FAILED"                                : "Download failed.",
     "DOWNLOAD_COMPLETE"                              : "Download complete!",
@@ -854,20 +854,20 @@ define({
     "WARNING_TYPE"                                   : "Warning!",
     "CLICK_RESTART_TO_UPDATE"                        : "Click Restart to update Brackets.",
     "UPDATE_ON_NEXT_LAUNCH"                          : "The update will be applied on relaunch.",
-    "GO_TO_SITE"                                     : "Go to <a href = \"http://brackets.io/\"> brackets.io </a> to retry.",
+    "GO_TO_SITE"                                     : "Go to <a href='http://brackets.io/'>brackets.io</a> to retry.",
     "INTERNET_UNAVAILABLE"                           : "No Internet connection available.",
     "UPDATEDIR_READ_FAILED"                          : "Update directory could not be read.",
     "UPDATEDIR_CLEAN_FAILED"                         : "Update directory could not be cleaned.",
-    "INITIAL_DOWNLOAD"                               : "Downloading Update...",
-    "RETRY_DOWNLOAD"                                 : "Download failed. Retrying...Attempt ",
-    "VALIDATING_INSTALLER"                           : "Download complete! Validating Installer...",
+    "INITIAL_DOWNLOAD"                               : "Downloading Update\u2026",
+    "RETRY_DOWNLOAD"                                 : "Download failed. Retrying\u2026Attempt ",
+    "VALIDATING_INSTALLER"                           : "Download complete! Validating Installer\u2026",
     "CHECKSUM_DID_NOT_MATCH"                         : "Checksum didn't match.",
     "INSTALLER_NOT_FOUND"                            : "Installer not found.",
     "DOWNLOAD_ERROR"                                 : "Error occurred while downloading.",
     "RESTART_BUTTON"                                 : "Restart",
     "LATER_BUTTON"                                   : "Later",
     "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
-    
+
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
 });
