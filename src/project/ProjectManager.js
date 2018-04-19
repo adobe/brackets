@@ -116,7 +116,8 @@ define(function (require, exports, module) {
         ERR_TYPE_LOADING_PROJECT_NATIVE = 6,
         ERR_TYPE_MAX_FILES              = 7,
         ERR_TYPE_OPEN_DIALOG            = 8,
-        ERR_TYPE_INVALID_FILENAME       = 9;
+        ERR_TYPE_INVALID_FILENAME       = 9,
+        ERR_TYPE_MOVE                   = 10;
 
     /**
      * @private
@@ -296,12 +297,12 @@ define(function (require, exports, module) {
     /**
      * See `ProjectModel.startRename`
      */
-    ActionCreator.prototype.startRename = function (path) {
+    ActionCreator.prototype.startRename = function (path, isMoved) {
         // This is very not Flux-like, which is a sign that Flux may not be the
         // right choice here *or* that this architecture needs to evolve subtly
         // in how errors are reported (more like the create case).
         // See #9284.
-        renameItemInline(path);
+        renameItemInline(path, isMoved);
     };
 
     /**
@@ -366,6 +367,44 @@ define(function (require, exports, module) {
     ActionCreator.prototype.closeSubtree = function (path) {
         this.model.closeSubtree(path);
         _saveTreeState();
+    };
+
+    ActionCreator.prototype.dragItem = function (path) {
+        // Close open menus on drag and clear the context, but only if there's a menu open.
+        if ($(".dropdown.open").length > 0) {
+            Menus.closeAll();
+            this.setContext(null);
+        }
+
+        // Close directory, if dragged item is directory
+        if (_.last(path) === '/') {
+            this.setDirectoryOpen(path, false);
+        }
+    };
+
+    /**
+     * Moves the item in the oldPath to the newDirectory directory
+     */
+    ActionCreator.prototype.moveItem = function (oldPath, newDirectory) {
+        var fileName = FileUtils.getBaseName(oldPath),
+            newPath = newDirectory + fileName,
+            self = this;
+
+        // If item dropped onto itself or onto its parent directory, return
+        if (oldPath === newDirectory || FileUtils.getParentPath(oldPath) === newDirectory) {
+            return;
+        }
+
+        // Add trailing slash if directory is moved
+        if (_.last(oldPath) === '/') {
+            newPath = ProjectModel._ensureTrailingSlash(newPath);
+        }
+
+        this.startRename(oldPath, true);
+        this.setRenameValue(newPath);
+
+        this.performRename();
+        this.setDirectoryOpen(newDirectory, true);
     };
 
     /**
@@ -579,6 +618,10 @@ define(function (require, exports, module) {
         case ERR_TYPE_RENAME:
             title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+            break;
+        case ERR_TYPE_MOVE:
+            title = StringUtils.format(Strings.ERROR_MOVING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_MOVING_FILE, path, error, entryType);
             break;
         case ERR_TYPE_DELETE:
             title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
@@ -1212,6 +1255,17 @@ define(function (require, exports, module) {
             forceFinishRename();
         });
 
+        $projectTreeContainer.on("dragover", function(e) {
+            e.preventDefault();
+        });
+
+        // Add support for moving items to root directory
+        $projectTreeContainer.on("drop", function(e) {
+            var data = JSON.parse(e.originalEvent.dataTransfer.getData("text"));
+            actionCreator.moveItem(data.path, getProjectRoot().fullPath);
+            e.stopPropagation();
+        });
+
         // When a context menu item is selected, we need to clear the context
         // because we don't get a beforeContextMenuClose event since Bootstrap
         // handles this directly.
@@ -1276,12 +1330,13 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
+     * @param {boolean=} isMoved optional flag which indicates whether the entry is being moved instead of renamed
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    renameItemInline = function (entry) {
+    renameItemInline = function (entry, isMoved) {
         var d = new $.Deferred();
 
-        model.startRename(entry)
+        model.startRename(entry, isMoved)
             .done(function () {
                 d.resolve();
             })
@@ -1290,18 +1345,28 @@ define(function (require, exports, module) {
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    switch (errorInfo.type) {
-                    case ProjectModel.ERROR_INVALID_FILENAME:
-                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
-                        break;
-                    case FileSystemError.ALREADY_EXISTS:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
-                        break;
-                    case ProjectModel.ERROR_NOT_IN_PROJECT:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
-                        break;
-                    default:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                    if (isMoved) {
+                        switch (errorInfo.type) {
+                            case FileSystemError.ALREADY_EXISTS:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                                break;
+                            default:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        }
+                    } else {
+                        switch (errorInfo.type) {
+                            case ProjectModel.ERROR_INVALID_FILENAME:
+                                _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
+                                break;
+                            case FileSystemError.ALREADY_EXISTS:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                                break;
+                            case ProjectModel.ERROR_NOT_IN_PROJECT:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
+                                break;
+                            default:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        }
                     }
                 }, 10);
                 d.reject(errorInfo);
