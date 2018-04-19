@@ -334,7 +334,15 @@ define(function (require, exports, module) {
 
         initializeState()
             .done(function () {
-                postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+                var initNodeFn = function () {
+                    postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+                };
+
+                if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
+                    setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber, initNodeFn);
+                } else {
+                    initNodeFn();
+                }
             })
             .fail(function () {
                 UpdateInfoBar.showUpdateBar({
