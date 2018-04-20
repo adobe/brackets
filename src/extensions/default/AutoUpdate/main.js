@@ -36,11 +36,11 @@ define(function (require, exports, module) {
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         Strings                 = brackets.getModule("strings"),
+		HealthLogger            = brackets.getModule("utils/HealthLogger"),
         StateHandlerModule      = require("StateHandler"),
         MessageIds              = require("MessageIds"),
         UpdateStatus            = require("UpdateStatus"),
-        UpdateInfoBar           = require("UpdateInfoBar"),
-        HealthLogger            = brackets.getModule("utils/HealthLogger");
+        UpdateInfoBar           = require("UpdateInfoBar");
 
 
     var _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
@@ -60,26 +60,34 @@ define(function (require, exports, module) {
     var MAX_DOWNLOAD_ATTEMPTS = 6,
         downloadAttemptsRemaining;
 
-    var AUTOUPDATE_DOWNLOAD_START = "DownloadStarted";
-    var AUTOUPDATE_DOWNLOAD_COMPLETED = "DownloadCompleted";
-    var AUTOUPDATE_DOWNLOAD_FAILED = "DownloadFailed";
-    var AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_RESTART = "DownloadCompletedAndUserClickedRestart";
-    var AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER = "DownloadCompletedAndUserClickedLater";
-    var AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED = "DownloadCompleteUpdateBarRendered";
-    var AUTOUPDATE_INSTALLATION_FAILED = "installationFailed";
-    var AUTOUPDATE_INSTALLATION_SUCCESS = "installationSuccess ";
+	// Below Strings are to identify an AutoUpdate Event.
+    var AUTOUPDATE_DOWNLOAD_START = "DownloadStarted",
+        AUTOUPDATE_DOWNLOAD_COMPLETED = "DownloadCompleted",
+        AUTOUPDATE_DOWNLOAD_FAILED = "DownloadFailed",
+        AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_RESTART = "DownloadCompletedAndUserClickedRestart",
+        AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER = "DownloadCompletedAndUserClickedLater",
+        AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED = "DownloadCompleteUpdateBarRendered",
+        AUTOUPDATE_INSTALLATION_FAILED = "InstallationFailed",
+        AUTOUPDATE_INSTALLATION_SUCCESS = "InstallationSuccess";
 
-    var installErrorStrArr = [
-        "Installation success or error status:",
+	//Below are possible Installer error string which will be searched installer logs to track failure
+    var winInstallErrorStrArr = [
+        "Installation success or error status",
         "Reconfiguration success or error status"
     ];
-    var macinstallErrorStrArr = [
+    var macInstallErrorStrArr = [
         "ERROR:"
     ];
-    var bracketErrorStrArr = [
+    var winBracketErrorStrArr = [
         "Command line interpreter could not be fetched",
         "COMSPEC not found in the current environment",
         "Installer process could not be created"
+    ];
+	var macBracketErrorStrArr = [
+        "hdiutil command could not be found",
+        "sh command could not be found",
+        "nohupPath command could not be found",
+        "update script could not be found"
     ];
 
     // function map for brackets functions
@@ -163,6 +171,25 @@ define(function (require, exports, module) {
         updateDomain.exec('data', msg);
     }
 
+	/**
+     * Checks Install failure scenarios
+     */
+	function checkInstallationStatus() {
+		var searchParams = {
+			"updateDir": updateDir,
+			"installErrorStr": winInstallErrorStrArr,
+			"bracketErrorStr": winBracketErrorStrArr,
+			"encoding": "utf8"
+		};
+		if (brackets.platform === "mac") {
+			searchParams.installErrorStr = macInstallErrorStrArr;
+			searchParams.bracketErrorStr = macBracketErrorStrArr;
+		}
+		if (brackets.platform === "win") {
+			searchParams.encoding = "utf16le";
+		}
+		postMessageToNode(MessageIds.CHECK_INSTALLER_STATUS, searchParams);
+	}
 
      /**
      * Checks and handles the update success and failure scenarios
@@ -184,19 +211,7 @@ define(function (require, exports, module) {
                 HealthLogger.sendAnalyticsData(AUTOUPDATE_INSTALLATION_SUCCESS, "autoUpdate", "install", "complete", "");
             } else {
                 // We get here if the update started but failed
-                var searchParams = {
-                    "updateDir": updateDir,
-                    "installErrorStr": installErrorStrArr,
-                    "bracketErrorStr": bracketErrorStrArr,
-                    "encoding": ""
-                };
-                if (brackets.platform === "mac") {
-                    searchParams.installErrorStr = macinstallErrorStrArr;
-                }
-                if (brackets.platform === "win") {
-                    searchParams.encoding = "utf16le";
-                }
-                postMessageToNode(MessageIds.CHECK_INSTALLER_STATUS, searchParams);
+                checkInstallationStatus();
                 filesToCache = ['.logs']; //AUTOUPDATE_PRERELEASE
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
@@ -216,16 +231,17 @@ define(function (require, exports, module) {
         postMessageToNode(MessageIds.PERFORM_CLEANUP, filesToCache);
     }
 
+	/**
+     * Send Installer Error Code to Analytics Server
+     */
+
     function handleInstallaionStatus(statusObj) {
-        var errorMessage = "";
-        if (statusObj.installNotStarted) {
-            errorMessage = "Install Not Started: " + statusObj.installNotStarted;
-        }
-        var errorline = statusObj.installStarted;
+        var errorCode = "",
+		    errorline = statusObj.installError;
         if (errorline) {
-            errorMessage = "Install Started But Failed With Error Code: " + errorline.substr(errorline.lastIndexOf(':') + 1, errorline.length);
+            errorCode = errorline.substr(errorline.lastIndexOf(':') + 2, errorline.length);
         }
-        HealthLogger.sendAnalyticsData(AUTOUPDATE_INSTALLATION_FAILED, "autoUpdate", "install", "fail", errorMessage);
+        HealthLogger.sendAnalyticsData(AUTOUPDATE_INSTALLATION_FAILED, "autoUpdate", "install", "fail", errorCode);
     }
 
 
@@ -830,7 +846,7 @@ define(function (require, exports, module) {
             } else {
 
                 // If this is a new download, prompt the message on update bar
-                var descriptionMessage;
+                var descriptionMessage = "";
 
                 switch (statusObj.err) {
                 case _nodeErrorMessages.CHECKSUM_DID_NOT_MATCH:
@@ -868,7 +884,7 @@ define(function (require, exports, module) {
             enableCheckForUpdateEntry(true);
             UpdateStatus.cleanUpdateStatus();
 
-            var descriptionMessage;
+            var descriptionMessage = "";
             if (message === _nodeErrorMessages.DOWNLOAD_ERROR) {
                 descriptionMessage = Strings.DOWNLOAD_ERROR;
             }

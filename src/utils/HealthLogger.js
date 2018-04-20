@@ -204,22 +204,26 @@ define(function (require, exports, module) {
 
     /**
      * Send Analytics Data
-     * @param {string} eventCategory The kind of Event Category that needs to be logged- should be a js var compatible string
-     * @param {string} eventSubCategory The kind of Event Sub Category that needs to be logged- should be a js var compatible string
+     * @param {string} eventCategory The kind of Event Category that
+     * needs to be logged- should be a js var compatible string
+     * @param {string} eventSubCategory The kind of Event Sub Category that
+     * needs to be logged- should be a js var compatible string
      * @param {string} eventType The kind of Event Type that needs to be logged- should be a js var compatible string
-     * @param {string} eventSubType The kind of Event Sub Type that needs to be logged- should be a js var compatible string
+     * @param {string} eventSubType The kind of Event Sub Type that
+     * needs to be logged- should be a js var compatible string
      */
     function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType) {
         var isEventDataAlreadySent = PreferencesManager.getViewState(eventName);
         //Parameters containing event information
         var eventParams = {};
         if(!isEventDataAlreadySent) {
-            eventParams.eventName = eventName;
-            eventParams.eventCategory = eventCategory;
-            eventParams.eventSubCategory = eventSubCategory;
-            eventParams.eventType = eventType;
-            eventParams.eventSubType = eventSubType;
-
+            eventParams =  {
+                eventName: eventName || "",
+                eventCategory: eventCategory || "",
+                eventSubCategory: eventSubCategory || "",
+                eventType: eventType || "",
+                eventSubType: eventSubType || ""
+            };
             notifyHealthManagerToSendData(eventParams);
         }
     }

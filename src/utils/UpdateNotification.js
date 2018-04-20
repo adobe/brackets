@@ -265,11 +265,20 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
-                    HealthLogger.sendAnalyticsData(AUTOUPDATE_UPDATENOW_CLICK,"autoUpdate","updateNotification","updateNow","click");
+                    HealthLogger.sendAnalyticsData(
+                        AUTOUPDATE_UPDATENOW_CLICK,
+                        "autoUpdate",
+                        "updateNotification",
+                        "updateNow",
+                        "click");
                     handleUpdateProcess(updates);
-                }
-                else {
-                    HealthLogger.sendAnalyticsData(AUTOUPDATE_CANCEL_CLICK,"autoUpdate","updateNotification","cancel","click");
+                } else {
+                    HealthLogger.sendAnalyticsData(
+                        AUTOUPDATE_CANCEL_CLICK,
+                        "autoUpdate",
+                        "updateNotification",
+                        "cancel",
+                        "click");
                 }
             });
 
@@ -282,7 +291,11 @@ define(function (require, exports, module) {
 
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
-        HealthLogger.sendAnalyticsData(AUTOUPDATE_UPDATE_AVAILABLE_DIALOG_BOX_RENDERED,"autoUpdate","updateNotification","render","entryPoint(userAction/auto)");
+        HealthLogger.sendAnalyticsData(AUTOUPDATE_UPDATE_AVAILABLE_DIALOG_BOX_RENDERED,
+                                       "autoUpdate",
+                                       "updateNotification",
+                                       "render",
+                                       "entryPoint(userAction/auto)");
     }
 
     /**

@@ -130,29 +130,26 @@ define(function (require, exports, module) {
     }
 
     // Get Analytics data
-    function getAnalyticsData(EventParams) {
+    function getAnalyticsData(eventParams) {
         var userUuid = PreferencesManager.getViewState("UUID"),
             olderUuid = PreferencesManager.getViewState("OlderUUID");
-        var eventParams = {};
 
-        if (!EventParams || EventParams === undefined) {
-            eventParams.eventCategory = "pingData";
-            eventParams.eventSubCategory = "";
-            eventParams.eventType = "";
-            eventParams.eventSubType = "";
-            EventParams = eventParams;
+		//Create default Values
+        var defaultEventParams = {
+            eventCategory: "pingData",
+            eventSubCategory: "",
+            eventType: "",
+            eventSubType: ""
+        };
+		//Override with default values if not present
+        if (!eventParams) {
+            eventParams = defaultEventParams;
         } else {
-            if (!EventParams.eventCategory || EventParams.eventCategory === undefined) {
-                EventParams.eventCategory = "pingData";
-            }
-            if (!EventParams.eventSubCategory || EventParams.eventSubCategory === undefined) {
-                EventParams.eventSubCategory = "";
-            }
-            if (!EventParams.eventType || EventParams.eventType === undefined) {
-                EventParams.eventType = "";
-            }
-            if (!EventParams.eventSubType || EventParams.eventSubType === undefined) {
-                EventParams.eventSubType = "";
+            var e;
+            for (e in defaultEventParams) {
+                if (defaultEventParams.hasOwnProperty(e) && !eventParams[e]) {
+                    eventParams[e] = defaultEventParams[e];
+                }
             }
         }
 
@@ -165,10 +162,10 @@ define(function (require, exports, module) {
                 "event.guid": uuid.v4(),
                 "event.user_guid": olderUuid || userUuid,
                 "event.dts_end": new Date().toISOString(),
-                "event.category": EventParams.eventCategory,
-                "event.subcategory": EventParams.eventSubCategory,
-                "event.type": EventParams.eventType,
-                "event.subtype": EventParams.eventSubType,
+                "event.category": eventParams.eventCategory,
+                "event.subcategory": eventParams.eventSubCategory,
+                "event.type": eventParams.eventType,
+                "event.subtype": eventParams.eventSubType,
                 "event.user_agent": window.navigator.userAgent || "",
                 "event.language": brackets.app.language,
                 "source.name": brackets.metadata.version,
@@ -212,10 +209,10 @@ define(function (require, exports, module) {
     }
 
     // Send Analytics data to Server
-    function sendAnalyticsDataToServer(EventParams) {
+    function sendAnalyticsDataToServer(eventParams) {
         var result = new $.Deferred();
 
-        var analyticsData = getAnalyticsData(EventParams);
+        var analyticsData = getAnalyticsData(eventParams);
         $.ajax({
             url: brackets.config.analyticsDataServerURL,
             type: "POST",
@@ -292,21 +289,25 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    /*
-     * Check if the Analytic Data is to be sent to the server. If the user has enabled tracking, Analytic Data will be sent once per session
+    /**
+     * Check if the Analytic Data is to be sent to the server.
+     * If the user has enabled tracking, Analytic Data will be sent once per session
      * Send Analytic Data to the server if the Data associated with the given Event is not yet sent in this session.
-     * We are sending the data as soon as the user uses trigger the event. The data will be sent to the server only after the notification dialog
+     * We are sending the data as soon as the user triggers the event.
+     * The data will be sent to the server only after the notification dialog
      * for opt-out/in is closed.
-     @param forceSend Flag for sending analytics data for testing purpose
-     */
+     * @param event(Object) event object
+     * @param Eventparams(Object) Object Containg Data to be sent to Server
+     * @param forceSend(Boolean) Flag for sending analytics data for testing purpose
+     **/
     function checkAnalyticsDataSend(event, Eventparams, forceSend) {
         var result         = new $.Deferred(),
             isHDTracking   = prefs.get("healthDataTracking"),
             isEventDataAlreadySent;
 
         var options = {
-            location : {
-                scope : "default"
+            location: {
+                scope: "default"
             }
         };
 
@@ -315,14 +316,13 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState(Eventparams.eventName, 1, options);
             if (!isEventDataAlreadySent || forceSend) {
                 sendAnalyticsDataToServer(Eventparams)
-				.done(function () {
-                    PreferencesManager.setViewState(Eventparams.eventName, 1, options);
-                    result.resolve();
-				})
-				.fail(function () {
-                    PreferencesManager.setViewState(Eventparams.eventName, 0, options);
-					result.reject();
-				});
+                    .done(function () {
+                        PreferencesManager.setViewState(Eventparams.eventName, 1, options);
+                        result.resolve();
+                    }).fail(function () {
+                        PreferencesManager.setViewState(Eventparams.eventName, 0, options);
+                        result.reject();
+                    });
             } else {
                 result.reject();
             }

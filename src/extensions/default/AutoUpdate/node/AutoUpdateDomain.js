@@ -167,92 +167,81 @@
         }
     }
 
+	/**
+     * Parse the Installer log and search for a error strings
+	 * one it finds the line which has any of error String
+     * it return that line and exit
+     */
     function parseInstallerLog(filepath, searchstring, encoding, callback) {
         var line = "";
-        var str = "";
-        fs.stat(filepath)
-            .then(function (stats) {
-                if (stats) {
-                    fs.readFile(filepath)
-                        .then(function (chunkBuffer) {
-                            if (encoding) {
-                                str = chunkBuffer.slice(0, chunkBuffer.length).toString(encoding);
-                            } else {
-                                str = chunkBuffer.slice(0, chunkBuffer.length).toString();
-                            }
-                            var arr = str.split('\n');
-                            var i;
-                            var pos;
-                            for (i = arr.length - 1; i >= 0; i--) {
-                                var j;
-                                for (j = 0; j < searchstring.length; j++) {
-                                    pos = arr[i].search(searchstring[j]);
-                                    if (pos !== -1) {
-                                        line = arr[i];
-                                        break;
-                                    }
-                                }
-                                if (pos !== -1) {
-                                    break;
-                                }
-                            }
-                            callback(line);
-                        })
-                        .catch(function (err) {
-                            callback("");
-                        });
+        var    searchFn = function (str) {
+            var arr = str.split('\n'),
+                lineNum,
+                pos;
+            for (lineNum = arr.length - 1; lineNum >= 0; lineNum--) {
+                var searchStrNum;
+                for (searchStrNum = 0; searchStrNum < searchstring.length; searchStrNum++) {
+                    pos = arr[lineNum].search(searchstring[searchStrNum]);
+                    if (pos !== -1) {
+                        line = arr[lineNum];
+                        break;
+                    }
                 }
-            })
-            .catch(function (err) {
+                if (pos !== -1) {
+                    break;
+                }
+            }
+            callback(line);
+        };
+
+        fs.readFile(filepath, {"encoding": encoding})
+            .then(function (str) {
+                return searchFn(str);
+            }).catch(function () {
                 callback("");
             });
     }
 
     function checkInstallerStatus(searchParams) {
-        var installErrorStr = searchParams.installErrorStr;
-        var bracketErrorStr = searchParams.bracketErrorStr;
-        var updateDirectory = searchParams.updateDir;
-        var encoding =        searchParams.encoding;
-        var statusObj = {};
-        var logFileAvailable = false;
+        var installErrorStr = searchParams.installErrorStr,
+            bracketErrorStr = searchParams.bracketErrorStr,
+            updateDirectory = searchParams.updateDir,
+            encoding =        searchParams.encoding,
+            statusObj = {},
+            logFileAvailable = false;
 
-        fs.stat(updateDirectory)
-            .then(function (stats) {
-                if (stats) {
-                    fs.readdir(updateDirectory)
-                        .then(function (files) {
-                            files.forEach(function (file) {
-                                var fileExt = path.extname(path.basename(file));
-                                if (fileExt === ".logs") {
-                                    var fileName = path.basename(file);
-                                    var fileFullPath = updateDirectory + '/' + file;
-                                    if (fileName.search("installStatus.logs") !== -1) {
-                                        logFileAvailable = true;
-                                        parseInstallerLog(fileFullPath, bracketErrorStr, "", function (errorline) {
-                                            statusObj.installNotStarted = errorline;
-                                            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
-                                        });
-                                    } else if (fileName.search("update.logs") !== -1) {
-                                        logFileAvailable = true;
-                                        parseInstallerLog(fileFullPath, installErrorStr, encoding, function (errorline) {
-                                            statusObj.installStarted = errorline;
-                                            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
-                                        });
-                                    }
-                                }
-                            });
-                            if (!logFileAvailable) {
-                                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
-                            }
-                        })
-                        .catch(function (err) {
-                            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
-                        });
-                } else {
-                    postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+        if (!encoding) {
+            encoding = "utf8";
+        }
+        var notifyBracket = function (errorline) {
+            statusObj.installError = errorline;
+            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+        };
+
+        var parseLog = function (files) {
+            files.forEach(function (file) {
+                var fileExt = path.extname(path.basename(file));
+                if (fileExt === ".logs") {
+                    var fileName = path.basename(file),
+                        fileFullPath = updateDirectory + '/' + file;
+                    if (fileName.search("installStatus.logs") !== -1) {
+                        logFileAvailable = true;
+                        parseInstallerLog(fileFullPath, bracketErrorStr, "utf8", notifyBracket);
+                    } else if (fileName.search("update.logs") !== -1) {
+                        logFileAvailable = true;
+                        parseInstallerLog(fileFullPath, installErrorStr, encoding, notifyBracket);
+                    }
                 }
-            })
-            .catch(function (err) {
+            });
+            if (!logFileAvailable) {
+                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+            }
+        };
+
+        fs.readdir(updateDirectory)
+            .then(function (files) {
+                return parseLog(files);
+            }).catch(function () {
                 postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
             });
     }
