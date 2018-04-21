@@ -312,7 +312,7 @@ define(function (require, exports, module) {
                 valueArray.push("transparent", "currentColor");
             }
 
-            valueArray.push(...globalValues);
+            valueArray = valueArray.concat(globalValues);
 
             result = $.map(valueArray, function (pvalue) {
                 var result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
