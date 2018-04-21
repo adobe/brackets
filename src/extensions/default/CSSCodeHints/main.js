@@ -38,7 +38,9 @@ define(function (require, exports, module) {
         ColorUtils          = brackets.getModule("utils/ColorUtils"),
         Strings             = brackets.getModule("strings"),
         CSSProperties       = require("text!CSSProperties.json"),
-        properties          = JSON.parse(CSSProperties);
+        CSSGlobalValues     = require("text!CSSGlobalValues.json"),
+        properties          = JSON.parse(CSSProperties),
+        globalValues        = JSON.parse(CSSGlobalValues);
 
 
     PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {
@@ -309,6 +311,8 @@ define(function (require, exports, module) {
                 }));
                 valueArray.push("transparent", "currentColor");
             }
+
+            valueArray.push(...globalValues);
 
             result = $.map(valueArray, function (pvalue) {
                 var result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
