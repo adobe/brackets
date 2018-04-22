@@ -36,6 +36,6 @@ define(function (require, exports, module) {
     exports.NOTIFY_SAFE_TO_DOWNLOAD         = "brackets.notifySafeToDownload";
     exports.NOTIFY_INITIALIZATION_COMPLETE  = "brackets.notifyinitializationComplete";
     exports.NOTIFY_VALIDATION_STATUS        = "brackets.notifyvalidationStatus";
-    exports.NOTIFY_INSTALLATION_STATUS        = "brackets.notifyInstallationStatus";
+    exports.NOTIFY_INSTALLATION_STATUS      = "brackets.notifyInstallationStatus";
     exports.REGISTER_BRACKETS_FUNCTIONS     = "brackets.registerBracketsFunctions";
 });

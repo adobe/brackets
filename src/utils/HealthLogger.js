@@ -37,6 +37,7 @@ define(function (require, exports, module) {
 
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
+
     EventDispatcher.makeEventDispatcher(exports);
 
     /**
@@ -202,6 +203,14 @@ define(function (require, exports, module) {
         setHealthDataLog("searchDetails", searchDetails);
     }
 
+     /**
+     * Notifies the HealthData extension to send Analytics Data to server
+     * @param{Object} eventParams Event Data to be sent to Analytics Server
+     */
+    function notifyHealthManagerToSendData(eventParams) {
+        exports.trigger("SendAnalyticsData", eventParams);
+    }
+
     /**
      * Send Analytics Data
      * @param {string} eventCategory The kind of Event Category that
@@ -213,26 +222,18 @@ define(function (require, exports, module) {
      * needs to be logged- should be a js var compatible string
      */
     function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType) {
-        var isEventDataAlreadySent = PreferencesManager.getViewState(eventName);
-        //Parameters containing event information
-        var eventParams = {};
-        if(!isEventDataAlreadySent) {
+        var isEventDataAlreadySent = PreferencesManager.getViewState(eventName),
+            eventParams = {};
+        if (!isEventDataAlreadySent && eventName && eventCategory) {
             eventParams =  {
-                eventName: eventName || "",
-                eventCategory: eventCategory || "",
+                eventName: eventName,
+                eventCategory: eventCategory,
                 eventSubCategory: eventSubCategory || "",
                 eventType: eventType || "",
                 eventSubType: eventSubType || ""
             };
             notifyHealthManagerToSendData(eventParams);
         }
-    }
-
-     /**
-     * Notifies the HealthData extension to send Analytics Data to server
-     */
-    function notifyHealthManagerToSendData(eventParams) {
-        exports.trigger("SendAnalyticsData", eventParams);
     }
 
     // Define public API

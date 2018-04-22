@@ -129,19 +129,22 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    // Get Analytics data
+    /**
+     *@param{Object} eventParams contails Event Data
+     * will return complete Analyics Data in Json Format
+     */
     function getAnalyticsData(eventParams) {
         var userUuid = PreferencesManager.getViewState("UUID"),
             olderUuid = PreferencesManager.getViewState("OlderUUID");
 
-		//Create default Values
+        //Create default Values
         var defaultEventParams = {
             eventCategory: "pingData",
             eventSubCategory: "",
             eventType: "",
             eventSubType: ""
         };
-		//Override with default values if not present
+        //Override with default values if not present
         if (!eventParams) {
             eventParams = defaultEventParams;
         } else {
@@ -296,9 +299,9 @@ define(function (require, exports, module) {
      * We are sending the data as soon as the user triggers the event.
      * The data will be sent to the server only after the notification dialog
      * for opt-out/in is closed.
-     * @param event(Object) event object
-     * @param Eventparams(Object) Object Containg Data to be sent to Server
-     * @param forceSend(Boolean) Flag for sending analytics data for testing purpose
+     * @param{Object} event event object
+     * @param{Object} Eventparams Object Containg Data to be sent to Server
+     * @param{boolean} forceSend Flag for sending analytics data for testing purpose
      **/
     function checkAnalyticsDataSend(event, Eventparams, forceSend) {
         var result         = new $.Deferred(),

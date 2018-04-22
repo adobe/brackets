@@ -206,13 +206,10 @@
         var installErrorStr = searchParams.installErrorStr,
             bracketErrorStr = searchParams.bracketErrorStr,
             updateDirectory = searchParams.updateDir,
-            encoding =        searchParams.encoding,
+            encoding =        searchParams.encoding || "utf8",
             statusObj = {},
             logFileAvailable = false;
 
-        if (!encoding) {
-            encoding = "utf8";
-        }
         var notifyBracket = function (errorline) {
             statusObj.installError = errorline;
             postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
