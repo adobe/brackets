@@ -159,8 +159,8 @@ define(function (require, exports, module) {
     function checkInstallationStatus() {
         var searchParams = {
                 "updateDir": updateDir,
-                "installErrorStr": "ERROR:",
-                "bracketErrorStr": "ERROR:",
+                "installErrorStr": ["ERROR:"],
+                "bracketErrorStr": ["ERROR:"],
                 "encoding": "utf8"
             },
             //Below are possible Win Installer error string which will be searched installer logs to track failure
