@@ -57,7 +57,7 @@ module.exports = {
                 "CodeMirror.Pos",
                 "Immutable.Map",
                 "Immutable.List",
-                "JSLINT"
+                "jslint"
             ]
         }],
         "new-parens": 2,
