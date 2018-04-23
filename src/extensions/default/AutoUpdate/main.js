@@ -160,10 +160,10 @@ define(function (require, exports, module) {
         var searchParams = {
                 "updateDir": updateDir,
                 "installErrorStr": ["ERROR:"],
-                "bracketErrorStr": ["ERROR:"],
+                "bracketsErrorStr": ["ERROR:"],
                 "encoding": "utf8"
             },
-            //Below are possible Win Installer error string which will be searched installer logs to track failure
+            // Below are the possible Windows Installer error strings, which will be searched for in the installer logs to track failures.
             winInstallErrorStrArr = [
                 "Installation success or error status",
                 "Reconfiguration success or error status"
@@ -225,7 +225,7 @@ define(function (require, exports, module) {
      * Send Installer Error Code to Analytics Server
      */
 
-    function handleInstallaionStatus(statusObj) {
+    function handleInstallationStatus(statusObj) {
         var errorCode = "",
             errorline = statusObj.installError;
         if (errorline) {
@@ -967,7 +967,7 @@ define(function (require, exports, module) {
         functionMap["brackets.notifyDownloadFailure"]        = handleDownloadFailure;
         functionMap["brackets.notifySafeToDownload"]         = handleSafeToDownload;
         functionMap["brackets.notifyvalidationStatus"]       = handleValidationStatus;
-        functionMap["brackets.notifyInstallationStatus"]     = handleInstallaionStatus;
+        functionMap["brackets.notifyInstallationStatus"]     = handleInstallationStatus;
     }
 
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;

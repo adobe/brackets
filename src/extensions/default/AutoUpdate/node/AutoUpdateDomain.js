@@ -202,16 +202,23 @@
             });
     }
 
+    /**
+     * one it finds the line which has any of error String
+     * after parsing the Log
+     * it notifies the bracket.
+     * @param{Object} searchParams is object contains Information Error String
+     * Encoding of Log File Update Diectory Path.
+     */
     function checkInstallerStatus(searchParams) {
         var installErrorStr = searchParams.installErrorStr,
-            bracketErrorStr = searchParams.bracketErrorStr,
+            bracketsErrorStr = searchParams.bracketsErrorStr,
             updateDirectory = searchParams.updateDir,
             encoding =        searchParams.encoding || "utf8",
-            statusObj = {},
+            statusObj = {installError: ": BA_UN"},
             logFileAvailable = false;
 
-        var notifyBracket = function (errorline) {
-            statusObj.installError = errorline;
+        var notifyBrackets = function notifyBrackets(errorline) {
+            statusObj.installError = errorline || ": BA_UN";
             postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
         };
 
@@ -223,10 +230,10 @@
                         fileFullPath = updateDirectory + '/' + file;
                     if (fileName.search("installStatus.logs") !== -1) {
                         logFileAvailable = true;
-                        parseInstallerLog(fileFullPath, bracketErrorStr, "utf8", notifyBracket);
+                        parseInstallerLog(fileFullPath, bracketsErrorStr, "utf8", notifyBrackets);
                     } else if (fileName.search("update.logs") !== -1) {
                         logFileAvailable = true;
-                        parseInstallerLog(fileFullPath, installErrorStr, encoding, notifyBracket);
+                        parseInstallerLog(fileFullPath, installErrorStr, encoding, notifyBrackets);
                     }
                 }
             });

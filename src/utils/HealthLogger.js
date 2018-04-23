@@ -223,8 +223,9 @@ define(function (require, exports, module) {
      */
     function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType) {
         var isEventDataAlreadySent = PreferencesManager.getViewState(eventName),
+            isHDTracking   = PreferencesManager.getExtensionPrefs("healthData").get("healthDataTracking"),
             eventParams = {};
-        if (!isEventDataAlreadySent && eventName && eventCategory) {
+        if (isHDTracking && !isEventDataAlreadySent && eventName && eventCategory) {
             eventParams =  {
                 eventName: eventName,
                 eventCategory: eventCategory,
