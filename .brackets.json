@@ -1,6 +1,6 @@
 {
     "jslint.options": {
-        "vars": true,
+        "multivar": true,
         "plusplus": true,
         "browser": false,
         "devel": true,
@@ -22,7 +22,8 @@
             "ArrayBuffer",
             "XMLHttpRequest",
             "Uint32Array",
-            "WebSocket"
+            "WebSocket",
+            "jslint"
         ]
     },
     "defaultExtension": "js",
