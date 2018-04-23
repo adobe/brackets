@@ -174,7 +174,7 @@
      */
     function parseInstallerLog(filepath, searchstring, encoding, callback) {
         var line = "";
-        var    searchFn = function (str) {
+        var searchFn = function searchFn(str) {
             var arr = str.split('\n'),
                 lineNum,
                 pos;
