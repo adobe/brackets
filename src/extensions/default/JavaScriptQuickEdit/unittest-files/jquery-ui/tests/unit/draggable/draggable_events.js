@@ -39,7 +39,7 @@ test("stopping the start callback", function() {
 
 	equal(start, 1, "start callback should happen exactly once");
 	equal(dragc, 0, "drag callback should not happen at all");
-	equal(stop, 0, "stop callback should not happen if there wasnt even a start");
+	equal(stop, 0, "stop callback should not happen if there wasn't even a start");
 
 });
 
