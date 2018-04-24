@@ -371,7 +371,7 @@ define(function (require, exports, module) {
 //                if (testToken.string.length > 0 && testToken.string.charAt(0) !== ">") {
 //                    tempCtx = TokenUtils.getInitialContext(editor._codeMirror, pos);
 //                    if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, tempCtx) && tempCtx.token.string === "=") {
-//                        // Return an empty tag info since we're between an atribute name and the equal sign.
+//                        // Return an empty tag info since we're between an attribute name and the equal sign.
 //                        return createTagInfo();
 //                    }
 //                }
