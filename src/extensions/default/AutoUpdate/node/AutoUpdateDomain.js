@@ -167,6 +167,89 @@
         }
     }
 
+	/**
+     * Parse the Installer log and search for a error strings
+	 * one it finds the line which has any of error String
+     * it return that line and exit
+     */
+    function parseInstallerLog(filepath, searchstring, encoding, callback) {
+        var line = "";
+        var searchFn = function searchFn(str) {
+            var arr = str.split('\n'),
+                lineNum,
+                pos;
+            for (lineNum = arr.length - 1; lineNum >= 0; lineNum--) {
+                var searchStrNum;
+                for (searchStrNum = 0; searchStrNum < searchstring.length; searchStrNum++) {
+                    pos = arr[lineNum].search(searchstring[searchStrNum]);
+                    if (pos !== -1) {
+                        line = arr[lineNum];
+                        break;
+                    }
+                }
+                if (pos !== -1) {
+                    break;
+                }
+            }
+            callback(line);
+        };
+
+        fs.readFile(filepath, {"encoding": encoding})
+            .then(function (str) {
+                return searchFn(str);
+            }).catch(function () {
+                callback("");
+            });
+    }
+
+    /**
+     * one it finds the line which has any of error String
+     * after parsing the Log
+     * it notifies the bracket.
+     * @param{Object} searchParams is object contains Information Error String
+     * Encoding of Log File Update Diectory Path.
+     */
+    function checkInstallerStatus(searchParams) {
+        var installErrorStr = searchParams.installErrorStr,
+            bracketsErrorStr = searchParams.bracketsErrorStr,
+            updateDirectory = searchParams.updateDir,
+            encoding =        searchParams.encoding || "utf8",
+            statusObj = {installError: ": BA_UN"},
+            logFileAvailable = false;
+
+        var notifyBrackets = function notifyBrackets(errorline) {
+            statusObj.installError = errorline || ": BA_UN";
+            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+        };
+
+        var parseLog = function (files) {
+            files.forEach(function (file) {
+                var fileExt = path.extname(path.basename(file));
+                if (fileExt === ".logs") {
+                    var fileName = path.basename(file),
+                        fileFullPath = updateDirectory + '/' + file;
+                    if (fileName.search("installStatus.logs") !== -1) {
+                        logFileAvailable = true;
+                        parseInstallerLog(fileFullPath, bracketsErrorStr, "utf8", notifyBrackets);
+                    } else if (fileName.search("update.logs") !== -1) {
+                        logFileAvailable = true;
+                        parseInstallerLog(fileFullPath, installErrorStr, encoding, notifyBrackets);
+                    }
+                }
+            });
+            if (!logFileAvailable) {
+                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+            }
+        };
+
+        fs.readdir(updateDirectory)
+            .then(function (files) {
+                return parseLog(files);
+            }).catch(function () {
+                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+            });
+    }
+
     /**
      * Downloads the installer for latest Brackets release
      * @param {boolean} sendInfo   - true if download status info needs to be
@@ -286,6 +369,7 @@
         functionMap["node.performCleanup"] = performCleanup;
         functionMap["node.validateInstaller"] = validateChecksum;
         functionMap["node.initializeState"] = initializeState;
+        functionMap["node.checkInstallerStatus"] = checkInstallerStatus;
     }
 
     /**

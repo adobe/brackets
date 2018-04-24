@@ -129,10 +129,32 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    // Get Analytics data
-    function getAnalyticsData() {
+    /**
+     *@param{Object} eventParams contails Event Data
+     * will return complete Analyics Data in Json Format
+     */
+    function getAnalyticsData(eventParams) {
         var userUuid = PreferencesManager.getViewState("UUID"),
             olderUuid = PreferencesManager.getViewState("OlderUUID");
+
+        //Create default Values
+        var defaultEventParams = {
+            eventCategory: "pingData",
+            eventSubCategory: "",
+            eventType: "",
+            eventSubType: ""
+        };
+        //Override with default values if not present
+        if (!eventParams) {
+            eventParams = defaultEventParams;
+        } else {
+            var e;
+            for (e in defaultEventParams) {
+                if (defaultEventParams.hasOwnProperty(e) && !eventParams[e]) {
+                    eventParams[e] = defaultEventParams[e];
+                }
+            }
+        }
 
         return {
             project: brackets.config.serviceKey,
@@ -143,10 +165,10 @@ define(function (require, exports, module) {
                 "event.guid": uuid.v4(),
                 "event.user_guid": olderUuid || userUuid,
                 "event.dts_end": new Date().toISOString(),
-                "event.category": "pingData",
-                "event.subcategory": "",
-                "event.type": "",
-                "event.subtype": "",
+                "event.category": eventParams.eventCategory,
+                "event.subcategory": eventParams.eventSubCategory,
+                "event.type": eventParams.eventType,
+                "event.subtype": eventParams.eventSubType,
                 "event.user_agent": window.navigator.userAgent || "",
                 "event.language": brackets.app.language,
                 "source.name": brackets.metadata.version,
@@ -190,10 +212,10 @@ define(function (require, exports, module) {
     }
 
     // Send Analytics data to Server
-    function sendAnalyticsDataToServer() {
+    function sendAnalyticsDataToServer(eventParams) {
         var result = new $.Deferred();
 
-        var analyticsData = getAnalyticsData();
+        var analyticsData = getAnalyticsData(eventParams);
         $.ajax({
             url: brackets.config.analyticsDataServerURL,
             type: "POST",
@@ -270,6 +292,50 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Check if the Analytic Data is to be sent to the server.
+     * If the user has enabled tracking, Analytic Data will be sent once per session
+     * Send Analytic Data to the server if the Data associated with the given Event is not yet sent in this session.
+     * We are sending the data as soon as the user triggers the event.
+     * The data will be sent to the server only after the notification dialog
+     * for opt-out/in is closed.
+     * @param{Object} event event object
+     * @param{Object} Eventparams Object Containg Data to be sent to Server
+     * @param{boolean} forceSend Flag for sending analytics data for testing purpose
+     **/
+    function checkAnalyticsDataSend(event, Eventparams, forceSend) {
+        var result         = new $.Deferred(),
+            isHDTracking   = prefs.get("healthDataTracking"),
+            isEventDataAlreadySent;
+
+        var options = {
+            location: {
+                scope: "default"
+            }
+        };
+
+        if (isHDTracking) {
+            isEventDataAlreadySent = PreferencesManager.getViewState(Eventparams.eventName);
+            PreferencesManager.setViewState(Eventparams.eventName, 1, options);
+            if (!isEventDataAlreadySent || forceSend) {
+                sendAnalyticsDataToServer(Eventparams)
+                    .done(function () {
+                        PreferencesManager.setViewState(Eventparams.eventName, 1, options);
+                        result.resolve();
+                    }).fail(function () {
+                        PreferencesManager.setViewState(Eventparams.eventName, 0, options);
+                        result.reject();
+                    });
+            } else {
+                result.reject();
+            }
+        } else {
+            result.reject();
+        }
+
+        return result.promise();
+    }
+
     // Expose a command to test data sending capability, but limit it to dev environment only
     CommandManager.register("Sends health data and Analytics data for testing purpose", "sendHealthData", function() {
         if (brackets.config.environment === "stage") {
@@ -282,6 +348,8 @@ define(function (require, exports, module) {
     prefs.on("change", "healthDataTracking", function () {
         checkHealthDataSend();
     });
+
+    HealthLogger.on("SendAnalyticsData", checkAnalyticsDataSend);
 
     window.addEventListener("online", function () {
         checkHealthDataSend();
