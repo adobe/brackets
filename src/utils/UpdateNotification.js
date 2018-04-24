@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html"),
-        Mustache             = require("thirdparty/mustache/mustache");
+        Mustache             = require("thirdparty/mustache/mustache"),
+        HealthLogger         = brackets.getModule("utils/HealthLogger");
 
     // make sure the global brackets variable is loaded
     require("utils/Global");
@@ -60,6 +61,11 @@ define(function (require, exports, module) {
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
 
+    var eventNames = {
+        AUTOUPDATE_CANCEL_CLICK: "UserClickCancelInUpdateDialog",
+        AUTOUPDATE_UPDATENOW_CLICK: "UserClickUpdateNowInUpdateDialog",
+        AUTOUPDATE_UPDATE_AVAILABLE_DIALOG_BOX_RENDERED: "UpdateAvailableDialogBoxRendered"
+    };
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
 
@@ -261,7 +267,22 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
+                    HealthLogger.sendAnalyticsData(
+                        eventNames.AUTOUPDATE_UPDATENOW_CLICK,
+                        "autoUpdate",
+                        "updateNotification",
+                        "updateNow",
+                        "click"
+                    );
                     handleUpdateProcess(updates);
+                } else {
+                    HealthLogger.sendAnalyticsData(
+                        eventNames.AUTOUPDATE_CANCEL_CLICK,
+                        "autoUpdate",
+                        "updateNotification",
+                        "cancel",
+                        "click"
+                    );
                 }
             });
 
@@ -274,6 +295,13 @@ define(function (require, exports, module) {
 
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
+        HealthLogger.sendAnalyticsData(
+            eventNames.AUTOUPDATE_UPDATE_AVAILABLE_DIALOG_BOX_RENDERED,
+            "autoUpdate",
+            "updateNotification",
+            "render",
+            "entryPoint(userAction/auto)"
+        );
     }
 
     /**

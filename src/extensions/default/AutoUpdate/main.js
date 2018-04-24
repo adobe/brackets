@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         Strings                 = brackets.getModule("strings"),
+        HealthLogger            = brackets.getModule("utils/HealthLogger"),
         StateHandlerModule      = require("StateHandler"),
         MessageIds              = require("MessageIds"),
         UpdateStatus            = require("UpdateStatus"),
@@ -58,6 +59,18 @@ define(function (require, exports, module) {
 
     var MAX_DOWNLOAD_ATTEMPTS = 6,
         downloadAttemptsRemaining;
+
+	// Below Strings are to identify an AutoUpdate Event.
+    var autoUpdateEventNames = {
+        AUTOUPDATE_DOWNLOAD_START: "DownloadStarted",
+        AUTOUPDATE_DOWNLOAD_COMPLETED: "DownloadCompleted",
+        AUTOUPDATE_DOWNLOAD_FAILED: "DownloadFailed",
+        AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_RESTART: "DownloadCompletedAndUserClickedRestart",
+        AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER: "DownloadCompletedAndUserClickedLater",
+        AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED: "DownloadCompleteUpdateBarRendered",
+        AUTOUPDATE_INSTALLATION_FAILED: "InstallationFailed",
+        AUTOUPDATE_INSTALLATION_SUCCESS: "InstallationSuccess"
+    };
 
     // function map for brackets functions
     var functionMap = {};
@@ -140,6 +153,27 @@ define(function (require, exports, module) {
         updateDomain.exec('data', msg);
     }
 
+     /**
+     * Checks Install failure scenarios
+     */
+    function checkInstallationStatus() {
+        var searchParams = {
+                "updateDir": updateDir,
+                "installErrorStr": ["ERROR:"],
+                "bracketsErrorStr": ["ERROR:"],
+                "encoding": "utf8"
+            },
+            // Below are the possible Windows Installer error strings, which will be searched for in the installer logs to track failures.
+            winInstallErrorStrArr = [
+                "Installation success or error status",
+                "Reconfiguration success or error status"
+            ];
+        if (brackets.platform === "win") {
+            searchParams.installErrorStr = winInstallErrorStrArr;
+            searchParams.encoding = "utf16le";
+        }
+        postMessageToNode(MessageIds.CHECK_INSTALLER_STATUS, searchParams);
+    }
 
      /**
      * Checks and handles the update success and failure scenarios
@@ -158,8 +192,16 @@ define(function (require, exports, module) {
                     title: Strings.UPDATE_SUCCESSFUL,
                     description: ""
                 });
+                HealthLogger.sendAnalyticsData(
+                    autoUpdateEventNames.AUTOUPDATE_INSTALLATION_SUCCESS,
+                    "autoUpdate",
+                    "install",
+                    "complete",
+                    ""
+                );
             } else {
                 // We get here if the update started but failed
+                checkInstallationStatus();
                 filesToCache = ['.logs']; //AUTOUPDATE_PRERELEASE
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
@@ -177,6 +219,25 @@ define(function (require, exports, module) {
         }
 
         postMessageToNode(MessageIds.PERFORM_CLEANUP, filesToCache);
+    }
+
+	/**
+     * Send Installer Error Code to Analytics Server
+     */
+
+    function handleInstallationStatus(statusObj) {
+        var errorCode = "",
+            errorline = statusObj.installError;
+        if (errorline) {
+            errorCode = errorline.substr(errorline.lastIndexOf(':') + 2, errorline.length);
+        }
+        HealthLogger.sendAnalyticsData(
+            autoUpdateEventNames.AUTOUPDATE_INSTALLATION_FAILED,
+            "autoUpdate",
+            "install",
+            "fail",
+            errorCode
+        );
     }
 
 
@@ -602,6 +663,13 @@ define(function (require, exports, module) {
      */
     function showStatusInfo(statusObj) {
         if (statusObj.target === "initial-download") {
+            HealthLogger.sendAnalyticsData(
+                autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_START,
+                "autoUpdate",
+                "download",
+                "started",
+                ""
+            );
             UpdateStatus.modifyUpdateStatus(statusObj);
         }
         UpdateStatus.displayProgress(statusObj);
@@ -745,12 +813,26 @@ define(function (require, exports, module) {
 
                 // Restart button click handler
                 var restartBtnClicked = function () {
+                    HealthLogger.sendAnalyticsData(
+                        autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_RESTART,
+                        "autoUpdate",
+                        "installNotification",
+                        "installNow ",
+                        "click"
+                    );
                     detachUpdateBarBtnHandlers();
                     initiateUpdateProcess(statusObj.installerPath, statusObj.logFilePath, statusObj.installStatusFilePath);
                 };
 
                 // Later button click handler
                 var laterBtnClicked = function () {
+                    HealthLogger.sendAnalyticsData(
+                        autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER,
+                        "autoUpdate",
+                        "installNotification",
+                        "cancel",
+                        "click"
+                    );
                     detachUpdateBarBtnHandlers();
                     setUpdateStateInJSON('updateInitiatedInPrevSession', false);
                 };
@@ -764,6 +846,13 @@ define(function (require, exports, module) {
                     description: Strings.CLICK_RESTART_TO_UPDATE,
                     needButtons: true
                 });
+                HealthLogger.sendAnalyticsData(
+                    autoUpdateEventNames.AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED,
+                    "autoUpdate",
+                    "installNotification",
+                    "render",
+                    ""
+                );
             };
 
             setUpdateStateInJSON('downloadCompleted', true, statusValidFn);
@@ -785,7 +874,7 @@ define(function (require, exports, module) {
             } else {
 
                 // If this is a new download, prompt the message on update bar
-                var descriptionMessage;
+                var descriptionMessage = "";
 
                 switch (statusObj.err) {
                 case _nodeErrorMessages.CHECKSUM_DID_NOT_MATCH:
@@ -795,7 +884,13 @@ define(function (require, exports, module) {
                     descriptionMessage = Strings.INSTALLER_NOT_FOUND;
                     break;
                 }
-
+                HealthLogger.sendAnalyticsData(
+                    autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,
+                    "autoUpdate",
+                    "download",
+                    "fail",
+                    descriptionMessage
+                );
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
                     title: Strings.VALIDATION_FAILED,
@@ -823,11 +918,17 @@ define(function (require, exports, module) {
             enableCheckForUpdateEntry(true);
             UpdateStatus.cleanUpdateStatus();
 
-            var descriptionMessage;
+            var descriptionMessage = "";
             if (message === _nodeErrorMessages.DOWNLOAD_ERROR) {
                 descriptionMessage = Strings.DOWNLOAD_ERROR;
             }
-
+            HealthLogger.sendAnalyticsData(
+                autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,
+                "autoUpdate",
+                "download",
+                "fail",
+                descriptionMessage
+            );
             UpdateInfoBar.showUpdateBar({
                 type: "error",
                 title: Strings.DOWNLOAD_FAILED,
@@ -851,6 +952,13 @@ define(function (require, exports, module) {
      * Handles Download completion callback from Node
      */
     function handleDownloadSuccess() {
+        HealthLogger.sendAnalyticsData(
+            autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_COMPLETED,
+            "autoUpdate",
+            "download",
+            "complete",
+            ""
+        );
         UpdateStatus.showUpdateStatus("validating-installer");
         validateChecksum();
     }
@@ -867,6 +975,7 @@ define(function (require, exports, module) {
         functionMap["brackets.notifyDownloadFailure"]        = handleDownloadFailure;
         functionMap["brackets.notifySafeToDownload"]         = handleSafeToDownload;
         functionMap["brackets.notifyvalidationStatus"]       = handleValidationStatus;
+        functionMap["brackets.notifyInstallationStatus"]     = handleInstallationStatus;
     }
 
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
