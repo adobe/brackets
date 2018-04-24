@@ -165,7 +165,7 @@
                 node;
 
             var head = window.document.getElementsByTagName('head')[0];
-            // create an style element to replace the one loaded with <link>
+            // create a style element to replace the one loaded with <link>
             var s = window.document.createElement('style');
             s.type = 'text/css';
             s.appendChild(window.document.createTextNode(msg.params.text));
