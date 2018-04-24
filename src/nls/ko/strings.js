@@ -533,7 +533,7 @@ define({
     "EXTENSION_INCOMPATIBLE_NEWER": "이 확장 기능은 새 버전의 {APP_NAME}가 필요합니다.",
     "EXTENSION_INCOMPATIBLE_OLDER": "이 확장 기능은 현재 이전 버전의 {APP_NAME}에서 작동하지 않습니다.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER": "이 확장 기능 버전 {0}에는 {APP_NAME}의 새 버전이 필요합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
-    "EXTENSION_LATEST_INCOMPATIBLE_OLDER": "이 확장 기능 버전 {0} {APP_NAME}의 이전 버전에서만 작동합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER": "이 확장 기능 버전 {0}에는 {APP_NAME}의 이전 버전에서만 작동합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
     "EXTENSION_NO_DESCRIPTION": "설명 없음",
     "EXTENSION_MORE_INFO": "추가 정보...",
     "EXTENSION_ERROR": "확장 기능 에러",
