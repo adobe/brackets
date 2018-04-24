@@ -408,7 +408,7 @@ define(function (require, exports, module) {
                 showMatches = false;
 
             // If we still haven't skipped enough items to get to the first match, but adding the
-            // item matches to the skipped ones is greater the the first match we want to display,
+            // item matches to the skipped ones is greater the first match we want to display,
             // then we can display the matches from this item skipping the first ones
             } else if (matchesCounter < self._currentStart) {
                 i = self._currentStart - matchesCounter;
