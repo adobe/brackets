@@ -86,7 +86,7 @@ define(function (require, exports, module) {
             expect(hintList[0]).toBe(expectedFirstHint);
         }
 
-        // Expect hintList to contain attribute names, starting with given value (if unspecified, expects the default unfilered list)
+        // Expect hintList to contain attribute names, starting with given value (if unspecified, expects the default unfiltered list)
         function verifyAttrHints(hintList, expectedFirstHint) {
             expect(hintList.indexOf("div")).toBe(-1);   // make sure tag names aren't sneaking in there
 
