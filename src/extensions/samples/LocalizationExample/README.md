@@ -38,7 +38,7 @@ Brackets does not support localizing keyboard shortcuts yet
 
 ## Localization Support for Brackets Plugins
 
-Localization in plugins works very similarly to how localization works for core Brackets module. The i18n RequireJS plugin is used to dynamically load a string.js file for the appropriate locale. JavaString can then reference strings via property name from the loaded string module and mustache can be used on on html fragments to insert localized text.
+Localization in plugins works very similarly to how localization works for core Brackets module. The i18n RequireJS plugin is used to dynamically load a string.js file for the appropriate locale. JavaString can then reference strings via property name from the loaded string module and mustache can be used on html fragments to insert localized text.
 
 For an example of a simple localized plugin see: brackets\src\extensions\disabled\LocalizationExample
 
