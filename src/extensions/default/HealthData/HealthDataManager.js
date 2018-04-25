@@ -28,6 +28,8 @@ define(function (require, exports, module) {
         CommandManager      = brackets.getModule("command/CommandManager"),
         HealthLogger        = brackets.getModule("utils/HealthLogger"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        FileSystem = brackets.getModule("filesystem/FileSystem"),
+        FileUtils = brackets.getModule("file/FileUtils"),
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
         Strings             = brackets.getModule("strings"),
         HealthDataUtils     = require("HealthDataUtils"),
@@ -76,7 +78,8 @@ define(function (require, exports, module) {
                             oneTimeHealthData.uuid      = userUuid;
                             oneTimeHealthData.olderuuid = olderUuid;
                             return result.resolve(oneTimeHealthData);
-                        } else {
+                        }
+                        else {
 
                             // So we are going to get the Machine hash in either of the cases.
                             if (appshell.app.getMachineHash) {
@@ -212,14 +215,84 @@ define(function (require, exports, module) {
     }
 
     // Send Analytics data to Server
-    function sendAnalyticsDataToServer(eventParams) {
+    function sendAnalyticsDataToServerIfInternetAvailableElseLogtoLocalFile(eventParams) {
+        var result = new $.Deferred();
+        var unsentEventFileLocation = FileSystem.getFileForPath(brackets.app.getApplicationSupportDirectory() + "/unsentEventFile.txt");
+
+        if(window.navigator.onLine){
+            internetAvailableSendAllEvents(unsentEventFileLocation, eventParams).done(function() {
+                result.resolve();
+            });
+        }else {
+            internetUnavailableSaveEventsToDisk(unsentEventFileLocation, eventParams).done(function() {
+                result.resolve();
+            });
+        }
+        return result.promise();
+    }
+
+    /*
+     * Called when internet is available. Check whether the local log file has any content
+     * If it is has, add those to event array while sending to ingest as a single request
+    */
+
+    function internetAvailableSendAllEvents(unsentEventFileLocation, eventParams) {
+        var result = new $.Deferred();
+        var analyticsData = [];
+
+        unsentEventFileLocation.exists(function (err, exists) {
+            if (err) {
+                console.log("absdjasd");
+            } else {
+                if(exists) {
+                    FileUtils.readAsText(unsentEventFileLocation).done(function (content) {
+                        FileUtils.writeText(unsentEventFileLocation, "", true).done(function () {
+                            result.resolve(true);
+                        }).fail(function (err) {
+                            result.reject();
+                        });
+
+                        content.split("\n").forEach(function(event) {
+                            if(event !== "") {
+                                var splitEvent = event.split("\t");
+                                var unSentEventparams =  {
+                                    eventName: splitEvent[0],
+                                    eventCategory: splitEvent[1],
+                                    eventSubCategory: splitEvent[2] || "",
+                                    eventType: splitEvent[3] || "",
+                                    eventSubType: splitEvent[4] || ""
+                                };
+                                analyticsData.push(getAnalyticsData(unSentEventparams));
+                            }
+                        });
+                        sendAnalyticsDataToServer(analyticsData, eventParams).done(function () {
+                            result.resolve();
+                        }).fail(function (err) {
+                            result.reject();
+                        });
+                    }).fail(function (err) {
+                        result.reject();
+                    });
+                }else {
+                    sendAnalyticsDataToServer(analyticsData, eventParams).done(function () {
+                        result.resolve();
+                    }).fail(function (err) {
+                        result.reject();
+                    });
+                }
+            }
+            });
+        return result.promise();
+    }
+
+    function sendAnalyticsDataToServer (analyticsData, eventParams) {
         var result = new $.Deferred();
 
-        var analyticsData = getAnalyticsData(eventParams);
+        analyticsData.push(getAnalyticsData(eventParams));
         $.ajax({
             url: brackets.config.analyticsDataServerURL,
             type: "POST",
-            data: JSON.stringify({events: [analyticsData]}),
+            data: JSON.stringify({events: analyticsData}),
             headers: {
                 "Content-Type": "application/json",
                 "x-api-key": brackets.config.serviceKey
@@ -227,11 +300,48 @@ define(function (require, exports, module) {
         })
             .done(function () {
                 result.resolve();
-            })
-            .fail(function (jqXHR, status, errorThrown) {
+            }).fail(function (jqXHR, status, errorThrown) {
                 console.error("Error in sending Adobe Analytics Data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
                 result.reject();
             });
+        return result.promise();
+    }
+
+    /*
+     * Called when internet is unavailable, check whether the local log file is exists or not.
+     * If unavailable create the file and add the events which failed because of unavailbility of internet
+     * If the file is available, append the new events to the file
+    */
+    function internetUnavailableSaveEventsToDisk(unsentEventFileLocation, eventParams) {
+        var result = new $.Deferred();
+
+        unsentEventFileLocation.exists(function (err, fileExists) {
+            if (err) {
+                result.reject();
+            } else {
+                if (fileExists) {
+                    FileUtils.readAsText(unsentEventFileLocation).done(function (content) {
+                        var dataToLoad = content + eventParams.eventName + "\t" +  eventParams.eventCategory + "\t" + eventParams.eventSubCategory + "\t" +  eventParams.eventType + "\t" + eventParams.eventSubType + "\n";
+                        FileUtils.writeText(unsentEventFileLocation, dataToLoad, true).done(function () {
+                            result.resolve(true);
+                        }).fail(function (err) {
+                            result.reject();
+                        });
+                    })
+                    .fail(function (err) {
+                        result.reject();
+                    });
+                }else {
+                    var dataToLoad = eventParams.eventName + "\t" +  eventParams.eventCategory + "\t" + eventParams.eventSubCategory + "\t" +  eventParams.eventType + "\t" + eventParams.eventSubType + "\n";
+                    FileUtils.writeText(unsentEventFileLocation, dataToLoad, true).done(function () {
+                        result.resolve(true);
+                    })
+                    .fail(function (err) {
+                        result.reject();
+                    });
+                }
+            }
+        });
 
         return result.promise();
     }
@@ -267,7 +377,7 @@ define(function (require, exports, module) {
                 // Bump up nextHealthDataSendTime at the begining of chaining to avoid any chance of sending data again before 24 hours, // e.g. if the server request fails or the code below crashes
                 PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
                 sendHealthDataToServer().always(function() {
-                    sendAnalyticsDataToServer()
+                    sendAnalyticsDataToServerIfInternetAvailableElseLogtoLocalFile()
                     .done(function () {
                         // We have already sent the health data, so can clear all health data
                         // Logged till now
@@ -318,7 +428,7 @@ define(function (require, exports, module) {
             isEventDataAlreadySent = PreferencesManager.getViewState(Eventparams.eventName);
             PreferencesManager.setViewState(Eventparams.eventName, 1, options);
             if (!isEventDataAlreadySent || forceSend) {
-                sendAnalyticsDataToServer(Eventparams)
+                sendAnalyticsDataToServerIfInternetAvailableElseLogtoLocalFile(Eventparams)
                     .done(function () {
                         PreferencesManager.setViewState(Eventparams.eventName, 1, options);
                         result.resolve();
