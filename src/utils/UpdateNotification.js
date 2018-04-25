@@ -263,7 +263,7 @@ define(function (require, exports, module) {
     /**
      * Show a dialog that shows the update
      */
-    function _showUpdateNotificationDialog(updates) {
+    function _showUpdateNotificationDialog(updates, force) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
@@ -288,10 +288,15 @@ define(function (require, exports, module) {
 
         // Populate the update data
         var $dlg        = $(".update-dialog.instance"),
-            $updateList = $dlg.find(".update-info");
+            $updateList = $dlg.find(".update-info"),
+            subTypeString = "userAction";
 
         // Make the update notification icon clickable again
         _addedClickHandler = false;
+
+        if(!force) {
+            subTypeString = "auto";
+        }
 
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
@@ -300,7 +305,7 @@ define(function (require, exports, module) {
             "autoUpdate",
             "updateNotification",
             "render",
-            "entryPoint(userAction/auto)"
+            subTypeString
         );
     }
 
@@ -423,7 +428,7 @@ define(function (require, exports, module) {
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update
                     if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
-                        _showUpdateNotificationDialog(allUpdates);
+                        _showUpdateNotificationDialog(allUpdates, force);
 
                         // Update prefs with the last notified build number
                         lastNotifiedBuildNumber = allUpdates[0].buildNumber;
