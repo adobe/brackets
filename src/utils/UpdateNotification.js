@@ -117,8 +117,7 @@ define(function (require, exports, module) {
 
          //AUTOUPDATE_PRERELEASE_BEGIN
         // The following code is needed for supporting Auto Update in prerelease,
-        //and should be removed for the production release
-        // This code is copied from HealthDataServer, for prerelease
+        //and will be removed eventually for stable releases
         {
             var jsonLocale = locale;
             if (locale && locale.toLowerCase().startsWith("de")) {

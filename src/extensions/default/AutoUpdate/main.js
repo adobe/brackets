@@ -338,9 +338,9 @@ define(function (require, exports, module) {
                     downloadURL;
 
                 //AUTOUPDATE_PRERELEASE BEGIN
-                // This code change is needed for update support in prereleases.
-                // And should be removed once the feature goes to production.
-                // Overwriting the tag and downloadURL for prerelease
+                // This code change is needed for Auto-update support in prereleases
+                // And will be removed eventually for stable releases
+                // Overwriting the tag and downloadURL for prereleases
                 {
                     if(buildName && buildName.indexOf("Pre Release") !== -1) {
 
