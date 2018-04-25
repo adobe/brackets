@@ -318,39 +318,6 @@ define(function (require, exports, module) {
         };
     }
 
-
-
-    /**
-     * Generates the download URL for the update installer, based on platform
-     * @param   {string} buildName - name of latest build
-     * @param   {string} ext       - file extension, based on platform
-     * @returns {object} - downloadInfo json, containing installer name and download URL
-     */
-    function getDownloadInfo(buildName, ext) {
-        var downloadInfo = {};
-        if (buildName) {
-            var buildNum = buildName.match(/([\d.]+)/);
-            if (buildNum) {
-                buildNum = buildNum[1];
-
-                var tag = buildName.toLowerCase().split(" ").join("-"),
-                    installerName = "Brackets." + buildName.split(" ").join(".") + ext,
-                    downloadURL;
-
-                downloadURL = brackets.config.update_download_url + tag + "/" + installerName;
-
-                downloadInfo = {
-                    installerName: installerName,
-                    downloadURL: downloadURL
-                };
-
-            }
-        }
-
-        return downloadInfo;
-    }
-
-
     /**
      * Initializes the state for AutoUpdate process
      * @returns {$.Deferred} - a jquery promise,
@@ -421,15 +388,30 @@ define(function (require, exports, module) {
      * @param {Array} updates - array object containing info about updates
      */
     function _updateProcessHandler(updates) {
-        //If no checksum field is present then we're setting it to 0, just as a safety check,
-        // although ideally this situation should never occur in releases post its introduction.
-        var platformInfo = getPlatformInfo(),
-            buildName = updates[0].versionString,
-            checksum  = (updates[0].checksums) ? updates[0].checksums[platformInfo.OS] : 0;
 
-        var updateParams = getDownloadInfo(buildName, platformInfo.extension);
-        updateParams.latestBuildNumber = updates[0].buildNumber;
-        updateParams.checksum = checksum;
+        var platformInfo = getPlatformInfo(),
+            checksum,
+            downloadURL,
+            installerName,
+            assetInfo;
+
+        assetInfo = updates[0].assetInfo;
+
+        if(assetInfo && assetInfo[platformInfo.OS]) {
+
+             //If no checksum field is present then we're setting it to 0, just as a safety check,
+            // although ideally this situation should never occur in releases post its introduction.
+            checksum = assetInfo[platformInfo.OS].checksum ? assetInfo[platformInfo.OS].checksum : 0,
+            downloadURL = assetInfo[platformInfo.OS].downloadURL ? assetInfo[platformInfo.OS].downloadURL : "",
+            installerName = downloadURL ? downloadURL.split("/").pop() : "";
+        }
+
+        var updateParams = {
+            downloadURL: downloadURL,
+            installerName: installerName,
+            latestBuildNumber: updates[0].buildNumber,
+            checksum: checksum
+        };
 
         //Initiate the auto update, with update params
         initiateAutoUpdate(updateParams);
