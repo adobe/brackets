@@ -50,7 +50,8 @@ define(function (require, exports, module) {
         CommandManager       = require("command/CommandManager"),
         Commands             = require("command/Commands"),
         DocumentManager      = require("document/DocumentManager"),
-        StringUtils          = require("utils/StringUtils");
+        StringUtils          = require("utils/StringUtils"),
+        HealthLogger         = brackets.getModule("utils/HealthLogger");
     
     var SupportedEncodingsText = require("text!supported-encodings.json"),
         SupportedEncodings = JSON.parse(SupportedEncodingsText);
@@ -174,6 +175,14 @@ define(function (require, exports, module) {
             selStr = "";
 
         if (sels.length > 1) {
+            //Send analytics data for multicursor use
+            HealthLogger.sendAnalyticsData(
+                "multiCursor",
+                "usage",
+                "multiCursor",
+                "use",
+                ""
+            );
             selStr = StringUtils.format(Strings.STATUSBAR_SELECTION_MULTIPLE, sels.length);
         } else if (editor.hasSelection()) {
             var sel = sels[0];
