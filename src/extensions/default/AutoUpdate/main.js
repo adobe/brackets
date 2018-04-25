@@ -289,33 +289,23 @@ define(function (require, exports, module) {
 
      /**
      * Generates the extension for installer file, based on platform
-     * @returns {object} - json containing platform Info : {
-     *                   extension - installer file extension,
-     *                   OS - current OS }
+     * @returns {string} - OS - current OS }
      */
     function getPlatformInfo() {
-        var ext = "",
-            OS = "";
+        var OS = "";
 
         if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
             OS = "WIN";
-            ext = ".msi";
         } else if (/Mac/.test(window.navigator.userAgent)) {
             OS = "OSX";
-            ext = ".dmg";
         } else if (/Linux|X11/.test(window.navigator.userAgent)) {
             OS = "LINUX32";
-            ext = ".32-bit.deb";
             if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
                 OS = "LINUX64";
-                ext = ".64-bit.deb";
             }
         }
 
-        return {
-            extension: ext,
-            OS: OS
-        };
+        return OS;
     }
 
     /**
@@ -389,7 +379,7 @@ define(function (require, exports, module) {
      */
     function _updateProcessHandler(updates) {
 
-        var platformInfo = getPlatformInfo(),
+        var platform = getPlatformInfo(),
             checksum,
             downloadURL,
             installerName,
@@ -397,12 +387,12 @@ define(function (require, exports, module) {
 
         assetInfo = updates[0].assetInfo;
 
-        if(assetInfo && assetInfo[platformInfo.OS]) {
+        if(assetInfo && assetInfo[platform]) {
 
              //If no checksum field is present then we're setting it to 0, just as a safety check,
             // although ideally this situation should never occur in releases post its introduction.
-            checksum = assetInfo[platformInfo.OS].checksum ? assetInfo[platformInfo.OS].checksum : 0,
-            downloadURL = assetInfo[platformInfo.OS].downloadURL ? assetInfo[platformInfo.OS].downloadURL : "",
+            checksum = assetInfo[platform].checksum ? assetInfo[platform].checksum : 0,
+            downloadURL = assetInfo[platform].downloadURL ? assetInfo[platform].downloadURL : "",
             installerName = downloadURL ? downloadURL.split("/").pop() : "";
         }
 
@@ -412,6 +402,11 @@ define(function (require, exports, module) {
             latestBuildNumber: updates[0].buildNumber,
             checksum: checksum
         };
+
+        if (!checksum || !downloadURL || !installerName) {
+            console.warn("AutoUpdate : asset information incorrect for the update");
+            return;
+        }
 
         //Initiate the auto update, with update params
         initiateAutoUpdate(updateParams);
