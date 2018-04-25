@@ -115,6 +115,29 @@ define(function (require, exports, module) {
             locale = locale.substring(0, 2);
         }
 
+         //AUTOUPDATE_PRERELEASE_BEGIN
+        // The following code is needed for supporting Auto Update in prerelease,
+        //and should be removed for the production release
+        // This code is copied from HealthDataServer, for prerelease
+        {
+            var jsonLocale = locale;
+            if (locale && locale.toLowerCase().startsWith("de")) {
+                jsonLocale = "de";
+            } else if (locale && locale.toLowerCase().startsWith("es")) {
+                jsonLocale = "es";
+            } else if (locale && locale.toLowerCase().startsWith("fr")) {
+                jsonLocale = "fr";
+            } else if (locale && locale.toLowerCase().startsWith("ja")) {
+                jsonLocale = "ja";
+            } else if (!locale || !(locale === "de" || locale === "en" || locale === "es" || locale === "fr" || locale === "ja")) {
+                jsonLocale = 'en';
+            }
+
+            return brackets.config.update_info_url + jsonLocale + '.json';
+        }
+        //AUTOUPDATE_PRERELEASE_END
+
+        
         return brackets.config.update_info_url + '?locale=' + locale;
     }
 

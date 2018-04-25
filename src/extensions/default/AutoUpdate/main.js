@@ -337,6 +337,19 @@ define(function (require, exports, module) {
                     installerName = "Brackets." + buildName.split(" ").join(".") + ext,
                     downloadURL;
 
+                //AUTOUPDATE_PRERELEASE BEGIN
+                // This code change is needed for update support in prereleases.
+                // And should be removed once the feature goes to production.
+                // Overwriting the tag and downloadURL for prerelease
+                {
+                    if(buildName && buildName.indexOf("Pre Release") !== -1) {
+
+                        tag = "release-" + buildName.split(" ").pop() + "-prerelease";
+                        installerName = "Brackets." + buildName.split(" ").join("-") + ext;
+                    }
+                }
+                //AUTOUPDATE_PRERELEASE END
+
                 downloadURL = brackets.config.update_download_url + tag + "/" + installerName;
 
                 downloadInfo = {
