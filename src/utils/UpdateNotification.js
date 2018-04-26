@@ -289,14 +289,10 @@ define(function (require, exports, module) {
         // Populate the update data
         var $dlg        = $(".update-dialog.instance"),
             $updateList = $dlg.find(".update-info"),
-            subTypeString = "userAction";
+            subTypeString = force ? "userAction" : "auto";
 
         // Make the update notification icon clickable again
         _addedClickHandler = false;
-
-        if(!force) {
-            subTypeString = "auto";
-        }
 
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
