@@ -220,11 +220,11 @@ define(function (require, exports, module) {
         var unsentEventFileLocation = FileSystem.getFileForPath(brackets.app.getApplicationSupportDirectory() + "/unsentEventFile.txt");
 
         if(window.navigator.onLine){
-            internetAvailableSendAllEvents(unsentEventFileLocation, eventParams).done(function() {
+            sendAllEvents(unsentEventFileLocation, eventParams).done(function() {
                 result.resolve();
             });
         }else {
-            internetUnavailableSaveEventsToDisk(unsentEventFileLocation, eventParams).done(function() {
+            saveEventToDisk(unsentEventFileLocation, eventParams).done(function() {
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -238,18 +238,19 @@ define(function (require, exports, module) {
      * If it is has, add those to event array while sending to ingest as a single request
     */
 
-    function internetAvailableSendAllEvents(unsentEventFileLocation, eventParams) {
+    function sendAllEvents(unsentEventFileLocation, eventParams) {
         var result = new $.Deferred();
         var analyticsData = [];
 
         unsentEventFileLocation.exists(function (err, exists) {
             if (err) {
                 // logging the error but will still send the current eventParams which needs to be logged
-                console.error("Error while checking if the error log file exits or not");
+                console.error("Error while checking if the event log file exists or not");
                 sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
                     result.resolve();
                 }).fail(function (err) {
-                    console.error("Unable to send file to server");
+                    console.error("Unable to events to server");
+                    result.reject();
                 });
             } else {
                 if(exists) {
@@ -263,21 +264,21 @@ define(function (require, exports, module) {
                         sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
                             result.resolve();
                         }).fail(function (err) {
-                            console.error("Unable to send file to server");
+                            console.error("Unable to send events to server");
                         });
                     }).fail(function (err) {
                         // If reading the file fails try to send currentEventParams to server
                         sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
                             result.resolve();
                         }).fail(function (err) {
-                            console.error("Unable to send file to server");
+                            console.error("Unable to send events to server");
                         });
                     });
                 }else {
                     sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
                         result.resolve();
                     }).fail(function (err) {
-                        console.error("Unable to send file to server");
+                        console.error("Unable to send events to server");
                     });
                 }
             }
@@ -303,7 +304,7 @@ define(function (require, exports, module) {
             }).fail(function (jqXHR, status, errorThrown) {
                 // incase request to send data to server fails write the events back to disk
                 analyticsData.forEach(function(event) {
-                    internetUnavailableSaveEventsToDisk(unsentEventFileLocation, eventParams).done(function() {
+                    saveEventToDisk(unsentEventFileLocation, eventParams).done(function() {
                         result.resolve();
                     });
                 });
@@ -318,7 +319,7 @@ define(function (require, exports, module) {
      * If unavailable create the file and add the events which failed because of unavailbility of internet
      * If the file is available, append the new events to the file
     */
-    function internetUnavailableSaveEventsToDisk(unsentEventFileLocation, eventParams) {
+    function saveEventToDisk(unsentEventFileLocation, eventParams) {
         var result = new $.Deferred();
 
         unsentEventFileLocation.exists(function (err, fileExists) {
