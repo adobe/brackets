@@ -254,15 +254,7 @@ define(function (require, exports, module) {
 
                         content.split("\n").forEach(function(event) {
                             if(event !== "") {
-                                var splitEvent = event.split("\t");
-                                var unSentEventparams =  {
-                                    eventName: splitEvent[0],
-                                    eventCategory: splitEvent[1],
-                                    eventSubCategory: splitEvent[2] || "",
-                                    eventType: splitEvent[3] || "",
-                                    eventSubType: splitEvent[4] || ""
-                                };
-                                analyticsData.push(getAnalyticsData(unSentEventparams));
+                                analyticsData.push(getAnalyticsData(JSON.parse(event)));
                             }
                         });
                         sendAnalyticsDataToServer(analyticsData, eventParams).done(function () {
@@ -321,7 +313,7 @@ define(function (require, exports, module) {
             } else {
                 if (fileExists) {
                     FileUtils.readAsText(unsentEventFileLocation).done(function (content) {
-                        var dataToLoad = content + eventParams.eventName + "\t" +  eventParams.eventCategory + "\t" + eventParams.eventSubCategory + "\t" +  eventParams.eventType + "\t" + eventParams.eventSubType + "\n";
+                        var dataToLoad = content + "\n" + JSON.stringify(eventParams);
                         FileUtils.writeText(unsentEventFileLocation, dataToLoad, true).done(function () {
                             result.resolve(true);
                         }).fail(function (err) {
@@ -332,7 +324,7 @@ define(function (require, exports, module) {
                         result.reject();
                     });
                 }else {
-                    var dataToLoad = eventParams.eventName + "\t" +  eventParams.eventCategory + "\t" + eventParams.eventSubCategory + "\t" +  eventParams.eventType + "\t" + eventParams.eventSubType + "\n";
+                    var dataToLoad = JSON.stringify(eventParams);
                     FileUtils.writeText(unsentEventFileLocation, dataToLoad, true).done(function () {
                         result.resolve(true);
                     })
