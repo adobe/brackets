@@ -372,41 +372,66 @@ define(function (require, exports, module) {
     }
 
 
+     /**
+     * Typical signature of an update entry, with the most frequently used keys
+     * @typedef {Object} Update~Entry
+     * @property {Number} buildNumber - The build number for the update
+     * @property {string} versionString - Version for the update
+     * @property {string} releaseNotesURL - URL for release notes for the update
+     * @property {array} newFeatures - Array of new features in the update
+     * @property {boolean} prerelease - Boolean to distinguish prerelease from a stable release
+     * @property {Object} platforms - JSON object, containing asset info for the update, for each platform
+     *                        Asset info for each platform consists of :
+     *                        @property {string} checksum - checksum of the asset
+     *                        @property {string} downloadURL - download URL of the asset
+     *
+     */
+
     /**
      * Handles and processes the update info, required for app auto update
      * @private
-     * @param {Array} updates - array object containing info about updates
+     * @param {Array} updates - array of {...Update~Entry} update entries
      */
     function _updateProcessHandler(updates) {
 
-        var platform = getPlatformInfo(),
+        if(!updates) {
+            console.warn("AutoUpdate : updates information not available.");
+            return;
+        }
+        var OS = getPlatformInfo(),
             checksum,
             downloadURL,
             installerName,
-            assetInfo;
+            platforms,
+            latestUpdate;
 
-        assetInfo = updates[0].assetInfo;
+        latestUpdate = updates[0];
+        platforms = latestUpdate ? latestUpdate.platforms : null;
 
-        if(assetInfo && assetInfo[platform]) {
+        if(platforms && platforms[OS]) {
 
              //If no checksum field is present then we're setting it to 0, just as a safety check,
             // although ideally this situation should never occur in releases post its introduction.
-            checksum = assetInfo[platform].checksum ? assetInfo[platform].checksum : 0,
-            downloadURL = assetInfo[platform].downloadURL ? assetInfo[platform].downloadURL : "",
+            checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
+            downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
             installerName = downloadURL ? downloadURL.split("/").pop() : "";
-        }
 
-        var updateParams = {
-            downloadURL: downloadURL,
-            installerName: installerName,
-            latestBuildNumber: updates[0].buildNumber,
-            checksum: checksum
-        };
+        } else {
+            // Update not present for current platform
+            return;
+        }
 
         if (!checksum || !downloadURL || !installerName) {
             console.warn("AutoUpdate : asset information incorrect for the update");
             return;
         }
+
+         var updateParams = {
+            downloadURL: downloadURL,
+            installerName: installerName,
+            latestBuildNumber: latestUpdate.buildNumber,
+            checksum: checksum
+        };
 
         //Initiate the auto update, with update params
         initiateAutoUpdate(updateParams);
