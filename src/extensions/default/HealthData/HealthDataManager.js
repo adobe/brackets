@@ -215,7 +215,7 @@ define(function (require, exports, module) {
     }
 
     // Send Analytics data to Server
-    function sendAnalyticsDataToServerIfInternetAvailableElseLogtoLocalFile(eventParams) {
+    function sendOrSaveAnalyticsData(eventParams) {
         var result = new $.Deferred();
         var unsentEventFileLocation = FileSystem.getFileForPath(brackets.app.getApplicationSupportDirectory() + "/unsentEventFile.txt");
 
@@ -226,6 +226,8 @@ define(function (require, exports, module) {
         }else {
             internetUnavailableSaveEventsToDisk(unsentEventFileLocation, eventParams).done(function() {
                 result.resolve();
+            }).fail(function () {
+                result.reject();
             });
         }
         return result.promise();
@@ -242,42 +244,48 @@ define(function (require, exports, module) {
 
         unsentEventFileLocation.exists(function (err, exists) {
             if (err) {
-                console.log("absdjasd");
+                // logging the error but will still send the current eventParams which needs to be logged
+                console.error("Error while checking if the error log file exits or not");
+                sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
+                    result.resolve();
+                }).fail(function (err) {
+                    console.error("Unable to send file to server");
+                });
             } else {
                 if(exists) {
                     FileUtils.readAsText(unsentEventFileLocation).done(function (content) {
-                        FileUtils.writeText(unsentEventFileLocation, "", true).done(function () {
-                            result.resolve(true);
-                        }).fail(function (err) {
-                            result.reject();
-                        });
-
+                        FileUtils.writeText(unsentEventFileLocation, "", true);
                         content.split("\n").forEach(function(event) {
                             if(event !== "") {
                                 analyticsData.push(getAnalyticsData(JSON.parse(event)));
                             }
                         });
-                        sendAnalyticsDataToServer(analyticsData, eventParams).done(function () {
+                        sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
                             result.resolve();
                         }).fail(function (err) {
-                            result.reject();
+                            console.error("Unable to send file to server");
                         });
                     }).fail(function (err) {
-                        result.reject();
+                        // If reading the file fails try to send currentEventParams to server
+                        sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
+                            result.resolve();
+                        }).fail(function (err) {
+                            console.error("Unable to send file to server");
+                        });
                     });
                 }else {
-                    sendAnalyticsDataToServer(analyticsData, eventParams).done(function () {
+                    sendAnalyticsDataToServer(unsentEventFileLocation, analyticsData, eventParams).done(function () {
                         result.resolve();
                     }).fail(function (err) {
-                        result.reject();
+                        console.error("Unable to send file to server");
                     });
                 }
             }
-            });
+        });
         return result.promise();
     }
 
-    function sendAnalyticsDataToServer (analyticsData, eventParams) {
+    function sendAnalyticsDataToServer (unsentEventFileLocation, analyticsData, eventParams) {
         var result = new $.Deferred();
 
         analyticsData.push(getAnalyticsData(eventParams));
@@ -293,6 +301,12 @@ define(function (require, exports, module) {
             .done(function () {
                 result.resolve();
             }).fail(function (jqXHR, status, errorThrown) {
+                // incase request to send data to server fails write the events back to disk
+                analyticsData.forEach(function(event) {
+                    internetUnavailableSaveEventsToDisk(unsentEventFileLocation, eventParams).done(function() {
+                        result.resolve();
+                    });
+                });
                 console.error("Error in sending Adobe Analytics Data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
                 result.reject();
             });
@@ -309,6 +323,7 @@ define(function (require, exports, module) {
 
         unsentEventFileLocation.exists(function (err, fileExists) {
             if (err) {
+                console.error("Unable to check whether event log file exists");
                 result.reject();
             } else {
                 if (fileExists) {
@@ -317,10 +332,12 @@ define(function (require, exports, module) {
                         FileUtils.writeText(unsentEventFileLocation, dataToLoad, true).done(function () {
                             result.resolve(true);
                         }).fail(function (err) {
+                            console.error("Unable to write data to event log file");
                             result.reject();
                         });
                     })
                     .fail(function (err) {
+                        console.error("Unable to read data from event log file");
                         result.reject();
                     });
                 }else {
@@ -329,6 +346,7 @@ define(function (require, exports, module) {
                         result.resolve(true);
                     })
                     .fail(function (err) {
+                        console.error("Unable to write data to event log file");
                         result.reject();
                     });
                 }
@@ -369,7 +387,7 @@ define(function (require, exports, module) {
                 // Bump up nextHealthDataSendTime at the begining of chaining to avoid any chance of sending data again before 24 hours, // e.g. if the server request fails or the code below crashes
                 PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
                 sendHealthDataToServer().always(function() {
-                    sendAnalyticsDataToServerIfInternetAvailableElseLogtoLocalFile()
+                    sendOrSaveAnalyticsData()
                     .done(function () {
                         // We have already sent the health data, so can clear all health data
                         // Logged till now
@@ -420,7 +438,7 @@ define(function (require, exports, module) {
             isEventDataAlreadySent = PreferencesManager.getViewState(Eventparams.eventName);
             PreferencesManager.setViewState(Eventparams.eventName, 1, options);
             if (!isEventDataAlreadySent || forceSend) {
-                sendAnalyticsDataToServerIfInternetAvailableElseLogtoLocalFile(Eventparams)
+                sendOrSaveAnalyticsData(Eventparams)
                     .done(function () {
                         PreferencesManager.setViewState(Eventparams.eventName, 1, options);
                         result.resolve();
