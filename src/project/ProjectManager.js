@@ -1350,6 +1350,9 @@ define(function (require, exports, module) {
                             case FileSystemError.ALREADY_EXISTS:
                                 _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
                                 break;
+                            case ProjectModel.ERROR_NOT_IN_PROJECT:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.ERROR_MOVING_NOT_IN_PROJECT, errorInfo.fullPath);
+                                break;
                             default:
                                 _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
                         }
