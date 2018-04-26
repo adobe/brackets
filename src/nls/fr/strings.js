@@ -68,6 +68,7 @@ define({
 	"ERROR_RENAMING_NOT_IN_PROJECT": "Le fichier ou le répertoire ne fait pas partie du projet actuellement ouvert. Or, seuls les fichiers appartenant au projet peuvent être renommés à ce stade.",
 	"ERROR_MOVING_FILE_TITLE": "Erreur lors du déplacement de l’élément {0}",
 	"ERROR_MOVING_FILE": "Une erreur s’est produite lors du déplacement de l’élément {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_MOVING_NOT_IN_PROJECT": "The file or directory is not part of the currently opened project. Unfortunately, only project files can be moved at this point.",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du {0}",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
