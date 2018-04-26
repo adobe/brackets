@@ -30,8 +30,8 @@
  * This is currently used by the FindReplace module, but also may be used by extensions which
  * have need of performing document searches.
  *
- * An index is created of for line and character offsets for fast conversion to and from Pos objects
- * to index locations.  CodeMirror does not have an effecient method to perform this conversion.
+ * An index is the document line index for lookups. An index is created for line and character offsets for fast conversion to and from Pos objects
+ * to index locations.  CodeMirror does not have an efficient method to perform this conversion.
  *
  * All instances of the search cursor will share the same document index and if the document changes
  * since the index creation a new index is created automatically
@@ -92,14 +92,14 @@ define(function (require, exports, module) {
         // splitting is actually faster than using doc.getLine()
         var lines = text.split(lineSeparator);
         var lineSeparatorLength = lineSeparator.length;
-        var lineCharacterCountIndex = new Uint32Array(lines.length);
+        var docLineIndex = new Uint32Array(lines.length);
         var lineCount = lines.length;
         var totalCharacterCount = 0;
         for (lineNumber = 0; lineNumber < lineCount; lineNumber++) {
             totalCharacterCount += lines[lineNumber].length + lineSeparatorLength;
-            lineCharacterCountIndex[lineNumber] = totalCharacterCount;
+            docLineIndex[lineNumber] = totalCharacterCount;
         }
-        return lineCharacterCountIndex;
+        return docLineIndex;
     }
 
     /**
@@ -340,6 +340,20 @@ define(function (require, exports, module) {
         return searchIndex;
     }
 
+    /**
+     * GroupArray is an the groups (of same size)  in following manner:
+     * [Group[1][elem1], Group[1][elem2],..., Group[1][elemi],
+     *  Group[2][elem1], Group[2][elem2],..., Group[2][elemi],
+     *  ...,
+     *  Group[j][elem1], Group[j][elem2],..., Group[j][elemi]]
+     *  Here i: Group size
+     *       j: Number of groups
+     *  
+     *  A group can be a pair of startIndex and endIndex of a search match.
+     * 
+     * @param {Array} array : Array of groups
+     * @param {number} groupSize : Size of a group
+     */
     function GroupArray(array, groupSize) {
         this.array = array;
         this._currentGroupIndex = -groupSize;
@@ -365,6 +379,13 @@ define(function (require, exports, module) {
         }
         return true;
     };
+
+    /**
+     * @private
+     *
+     * Returns the next index in group.
+     * @return {number}  next index in group. False, if  current element is last in the group.  
+     */
     GroupArray.prototype.nextGroupIndex = function () {
         if (this._currentGroupIndex < this.array.length - this._groupSize) {
             this._currentGroupIndex += this._groupSize;
@@ -374,6 +395,13 @@ define(function (require, exports, module) {
         }
         return this._currentGroupIndex;
     };
+
+    /**
+     * @private
+     *
+     * Returns the previous index in group
+     * @return {number}  previous index in group. False, if current element is first in the group.
+     */
     GroupArray.prototype.prevGroupIndex = function () {
         if (this._currentGroupIndex - this._groupSize > -1) {
             this._currentGroupIndex -= this._groupSize;
@@ -383,28 +411,79 @@ define(function (require, exports, module) {
         }
         return this._currentGroupIndex;
     };
-    GroupArray.prototype.setCurrentGroup = function (groupNumber) {this._currentGroupIndex = groupNumber * this._groupSize; };
-    GroupArray.prototype.getGroupIndex = function (groupNumber) { return this._groupSize * groupNumber; };
-    GroupArray.prototype.getGroupValue = function (groupNumber, valueIndexWithinGroup) {return this.array[(this._groupSize * groupNumber) + valueIndexWithinGroup]; };
-    GroupArray.prototype.currentGroupIndex = function () { return this._currentGroupIndex; };
-    GroupArray.prototype.currentGroupNumber = function () { return this._currentGroupIndex / this._groupSize; };
-    GroupArray.prototype.groupSize = function () { return this._groupSize; };
-    GroupArray.prototype.itemCount = function () { return this.array.length / this._groupSize; };
 
     /**
      * @private
      *
-     * Enhances array with functions which facilitate managing the array contents
-     * by groups of items.
-     * This is useful for both performance and memory consumption to store the indexes
-     * of the match result beginning and ending locations.
-     * @param {Array} array The array to enhance
-     * @param {number} groupSize The number of indices that belong to a group
-     * @return {GroupArray} Enhanced Array
+     * Set the current group in group array
+     * @param  {number} groupNumber Group number in group array
      */
-    function _makeGroupArray(array, groupSize) {
-        return new GroupArray(array, groupSize);
-    }
+    GroupArray.prototype.setCurrentGroup = function (groupNumber) {
+        this._currentGroupIndex = groupNumber * this._groupSize;
+    };
+
+    /**
+     * @private
+     *
+     * Gets the group index of the group in group array
+     * @param  {number} groupNumber Group number in group array
+     * @returns {number} groupIndex of the group
+     */
+    GroupArray.prototype.getGroupIndex = function (groupNumber) {
+         return this._groupSize * groupNumber;
+    };
+
+    /**
+     * @private
+     *
+     * Gets the value of the element in the group 
+     * @param  {number} groupNumber Group number in group array
+     * @param  {number} valueIndexWithinGroup index of element in group
+     * @returns {number} element value
+     */
+    GroupArray.prototype.getGroupValue = function (groupNumber, valueIndexWithinGroup) {
+        return this.array[(this._groupSize * groupNumber) + valueIndexWithinGroup];
+    };
+
+    /**
+     * @private
+     *
+     * Gets the group index of the current group
+     * @returns {number} groupIndex of the group
+     */
+    GroupArray.prototype.currentGroupIndex = function () {
+        return this._currentGroupIndex;
+    };
+
+    /**
+     * @private
+     *
+     * Gets the group number of current group
+     * @returns {number} group number of the group
+     */
+    GroupArray.prototype.currentGroupNumber = function () {
+        return this._currentGroupIndex / this._groupSize;
+    };
+
+    /**
+     * @private
+     *
+     * Gets the size of group
+     * @returns {number} size of group
+     */
+    GroupArray.prototype.groupSize = function () {
+        return this._groupSize;
+    };
+
+    /**
+     * @private
+     *
+     * Gets number of items in group
+     * @returns {number} itemCount
+     */
+    GroupArray.prototype.itemCount = function () {
+        return this.array.length / this._groupSize;
+    };
 
     /**
      * @private
@@ -462,6 +541,19 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Search Results stores two type of information
+     * 1. _startEndIndexArray: Array of start index and end index of all the matches in following form
+     *     [Match1(startInd), Match2(endInd), Match2(startInd), Match3(endInd),..., 
+     *     Matchn(startInd), Matchn(endInd)]
+     * 2. docLineIndex: Array which stores the sum of all characters in the document
+     *                  up to the point of each line.
+     * 
+     *  SelectResults functions get group information(i.e. match information) from
+     *  GroupArray. And creates a search result for the match in following form:
+     *  - fromPos: start position of match with line number and character offset
+     *  - toPos  : end position of match with line number and character offset   
+     */
     function SearchResults(startEndIndexArray, docLineIndex) {
         this._startEndIndexArray = startEndIndexArray;
         this.docLineIndex = docLineIndex;
@@ -592,7 +684,7 @@ define(function (require, exports, module) {
         // [1] = end index of first match
         // ...
         // Each pair of start and end is considered a group when using the group array
-        var _startEndIndexArray = _makeGroupArray([], 2);
+        var _startEndIndexArray = new GroupArray([], 2);
         maxResults = maxResults || 10000000;
         startPosition = startPosition || {to: {line: 0, ch: 0}, from: {line: 0, ch: 0}};
 
@@ -622,12 +714,12 @@ define(function (require, exports, module) {
 
             if ((startIndex > 0) && (resultCount < maxResults)) {
                 query.lastIndex = 0;
-                var startEndIndexFromBeginningOfDocument = _makeGroupArray([], 2);
+                var startEndIndexFromBeginningOfDocument = new GroupArray([], 2);
                 _searchAndAddResultsToArray(query, docText, startEndIndexFromBeginningOfDocument, maxResults, startIndex);
                 // it is possible that on wrap around the last result is same as our first result
                 _removeIfDuplicateResultOnEdge(_startEndIndexArray, startEndIndexFromBeginningOfDocument);
                 // combine results of both searches
-                _startEndIndexArray = _makeGroupArray(startEndIndexFromBeginningOfDocument.array.concat(_startEndIndexArray.array), 2);
+                _startEndIndexArray = new GroupArray(startEndIndexFromBeginningOfDocument.array.concat(_startEndIndexArray.array), 2);
             }
 
             return _startEndIndexArray;
@@ -691,15 +783,17 @@ define(function (require, exports, module) {
     };
     /**
      * Sets or updates the document and query properties
-     * @param {!{document:                                                                                                    CodeMirror.string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
+     * @param !document: CodeMirror.Doc
+     * @param !searchQuery: string|RegExp
+     * @param !{position: {line: number, ch: number}, ignoreCase: boolean}, maxResults: number} options                                                                                              CodeMirror.string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
      */
-    SearchCursor.prototype.setSearchDocumentAndQuery = function (properties) {
+    SearchCursor.prototype.setSearchDocumentAndQuery = function (document, query, options) {
         this.atOccurrence = false;
-        if (properties.ignoreCase !== undefined) {this.ignoreCase = properties.ignoreCase; }
-        if (properties.document) {this.doc = properties.document; }
-        if (properties.searchQuery) {this._setQuery(this, properties.searchQuery); }
-        if (properties.position) {this._setPos(this, properties.position); }
-        if (properties.maxResults) {this.maxResults = properties.maxResults; }
+        if (options.ignoreCase !== undefined) {this.ignoreCase = options.ignoreCase; }
+        if (document) {this.doc = document; }
+        if (query) {this._setQuery(this, query); }
+        if (options.position) {this._setPos(this, options.position); }
+        if (options.maxResults) {this.maxResults = options.maxResults; }
     };
 
     /**
@@ -835,24 +929,15 @@ define(function (require, exports, module) {
         return this.getMatchCount();
     };
 
-
-    /**
-     * Creates a regular expression cursor object that this module will provide to consumers
-     * @return {SearchCursor} A new instance of a search cursor
-     */
-    function _createCursor() {
-        return new SearchCursor();
-    }
-
     /**
      * Creates an updatable search cursor which can be used to navigate forward and backward through the results.
      *
      * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
      * @return {Object} The search cursor object
      */
-    function createSearchCursor(properties) {
-        var searchCursor = _createCursor();
-        searchCursor.setSearchDocumentAndQuery(properties);
+    function createSearchCursor(document, query, options) {
+        var searchCursor = new SearchCursor();
+        searchCursor.setSearchDocumentAndQuery(document, query, options);
         return searchCursor;
     }
 
@@ -864,12 +949,12 @@ define(function (require, exports, module) {
      *
      * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, ignoreCase: boolean, fnEachMatch: function({line: number, ch: number}, {line: number, ch: number, match: Array})}} properties
      */
-    function scanDocumentForMatches(properties) {
-        if (_needToIndexDocument(properties.document)) {
-            _indexDocument(properties.document);
+    function scanDocumentForMatches(document, query, options) {
+        if (_needToIndexDocument(document)) {
+            _indexDocument(document);
         }
-        var regex = _convertToRegularExpression(properties.searchQuery, properties.ignoreCase);
-        _scanDocument(_getdocLineIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
+        var regex = _convertToRegularExpression(query, options.ignoreCase);
+        _scanDocument(_getdocLineIndex(document), _getDocumentText(document), regex, options.range, options.fnEachMatch);
     }
 
     exports.createSearchCursor = createSearchCursor;

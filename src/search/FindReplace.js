@@ -95,8 +95,10 @@ define(function (require, exports, module) {
     SearchState.prototype.updateSearchCursor = function updateSearchCursor(cm, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         if (this.searchCursor) {
-            this.searchCursor.setSearchDocumentAndQuery({
-                searchQuery: this.parsedQuery,
+            this.searchCursor.setSearchDocumentAndQuery(
+                this.document,
+                this.parsedQuery,
+                {
                 ignoreCase: !this.queryInfo.isCaseSensitive,
                 position: pos,
                 maxResults: FIND_RESULT_MAX
@@ -104,13 +106,15 @@ define(function (require, exports, module) {
             return this.searchCursor;
         }
 
-        this.searchCursor = BracketsSearchCursor.createSearchCursor({
-            document: cm.getDoc(),
-            searchQuery: this.parsedQuery,
+        this.searchCursor = BracketsSearchCursor.createSearchCursor(
+            cm.getDoc(),
+            this.parsedQuery,
+            {
             ignoreCase: !this.queryInfo.isCaseSensitive,
             position: pos,
             maxResults: FIND_RESULT_MAX
-        });
+            }
+        );
         return this.searchCursor;
     };
 
@@ -678,9 +682,10 @@ define(function (require, exports, module) {
             var viewPort = cm.getViewport();
             var viewPortStart = {line: viewPort.from, ch: 0};
             var viewPortEnd   = {line: viewPort.to, ch: 0};
-            BracketsSearchCursor.scanDocumentForMatches({
-                document:  cm.getDoc(),
-                searchQuery: state.parsedQuery,
+            BracketsSearchCursor.scanDocumentForMatches(
+                cm.getDoc(),
+                state.parsedQuery,
+                {
                 ignoreCase:  !state.queryInfo.isCaseSensitive,
                 range: {from: viewPortStart, to: viewPortEnd},
                 fnEachMatch: function (startPosition, endPosition, matchArray) {

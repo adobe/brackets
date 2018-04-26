@@ -66,9 +66,10 @@ define(function (require, exports, module) {
             it("should match 4 locations of 'foo' ", function () {
                 var matchedPositions = [];
                 var matchArrays = [];
-                BracketsSearchCursor.scanDocumentForMatches({
-                    document: editor.document,
-                    searchQuery: /(f)oo/,
+                BracketsSearchCursor.scanDocumentForMatches(
+                    editor.document,
+                    /(f)oo/,
+                    {
                     ignoreCase: true,
                     fnEachMatch: function (startPosition, endPosition, matchArray) {
                         matchedPositions.push(startPosition);
@@ -82,9 +83,10 @@ define(function (require, exports, module) {
             it("should match 1 locations of 'require' ", function () {
                 var matchedPositions = [];
                 var matchArrays = [];
-                BracketsSearchCursor.scanDocumentForMatches({
-                    document: editor.document,
-                    searchQuery: /require/,
+                BracketsSearchCursor.scanDocumentForMatches(
+                    editor.document,
+                    /require/,
+                    {
                     ignoreCase: true,
                     range: {from: {line: 4, ch: 0}, to: {line: 5, ch: 0}},
                     fnEachMatch: function (startPosition, endPosition, matchArray) {
@@ -101,11 +103,13 @@ define(function (require, exports, module) {
         describe("createSearchCursor", function () {
             var cursor;
             beforeEach(function () {
-                cursor = BracketsSearchCursor.createSearchCursor({
-                    document: editor.document,
-                    searchQuery: /(f)oo/,
+                cursor = BracketsSearchCursor.createSearchCursor(
+                    editor.document,
+                    /(f)oo/,
+                    {
                     ignoreCase: true,
-                });
+                    }
+                );
             });
 
             afterEach(function () {
@@ -129,7 +133,7 @@ define(function (require, exports, module) {
             });
 
             it("should have 1 as first match number after first find and starting position after first match", function () {
-                cursor.setSearchDocumentAndQuery({position: {line: 2, ch: 10}});
+                cursor.setSearchDocumentAndQuery(editor.document, /(f)oo/, {position: {line: 2, ch: 10}});
                 var firstPosition = cursor.find();
                 expect(cursor.getCurrentMatchNumber()).toEqual(1);
             });
@@ -164,7 +168,7 @@ define(function (require, exports, module) {
             });
 
             it("should have correct number of matches when cursor is between begin and end matches", function () {
-                cursor.setSearchDocumentAndQuery({position: {line: 4, ch: 0}});
+                cursor.setSearchDocumentAndQuery(editor.document, /(f)oo/, {position: {line: 4, ch: 0}});
                 // find matches
                 cursor.find();
                 expect(cursor.getMatchCount()).toEqual(4);
@@ -189,11 +193,13 @@ define(function (require, exports, module) {
         describe("createSearchCursorMultiLineSelection", function () {
             var cursor;
             beforeEach(function () {
-                cursor = BracketsSearchCursor.createSearchCursor({
-                    document: editor.document,
-                    searchQuery: /define[\s\S]*callFoo/,
+                cursor = BracketsSearchCursor.createSearchCursor(
+                    editor.document,
+                    /define[\s\S]*callFoo/,
+                    {
                     ignoreCase: true,
-                });
+                    }
+                );
             });
 
             afterEach(function () {
@@ -216,7 +222,6 @@ define(function (require, exports, module) {
                     expect(defaultContent.charAt(end) === '\n');
                 });
             });
-
         });
     });
 });
