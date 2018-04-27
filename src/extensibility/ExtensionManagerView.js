@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         LanguageManager           = require("language/LanguageManager"),
         Mustache                  = require("thirdparty/mustache/mustache"),
         PathUtils                 = require("thirdparty/path-utils/path-utils"),
-        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
+        PreferencesManager        = require("preferences/PreferencesManager");
         
 
     /**
@@ -71,6 +72,7 @@ define(function (require, exports, module) {
         this._$infoMessage = $("<div class='info-message'/>")
             .appendTo(this.$el).html(this.model.infoMessage);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
+        $(".sort-extensions").val(PreferencesManager.get("extensions.sort"));
 
         this.model.initialize().done(function () {
             self._setupEventHandlers();
@@ -248,6 +250,7 @@ define(function (require, exports, module) {
                 var installWarningBase = context.requiresNewer ? Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER : Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER;
                 context.installWarning = StringUtils.format(installWarningBase, entry.registryInfo.versions[entry.registryInfo.versions.length - 1].version, latestVerCompatInfo.compatibleVersion);
             }
+            context.downloadCount = entry.registryInfo.totalDownloads;
         } else {
             // We should only get here when viewing the Installed tab and some extensions don't exist in the registry
             // (or registry is offline). These flags *should* always be ignored in that scenario, but just in case...
@@ -333,10 +336,10 @@ define(function (require, exports, module) {
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !hasPendingAction;
-        context.disablingAllowed = this.model.source === "installed" &&
-            !context.disabled && !hasPendingAction;
-        context.enablingAllowed = this.model.source === "installed" &&
-            context.disabled && !hasPendingAction;
+        var isDefaultOrInstalled = this.model.source === "default" || this.model.source === "installed";
+        var isDefaultAndTheme = this.model.source === "default" && context.metadata.theme;
+        context.disablingAllowed = isDefaultOrInstalled && !isDefaultAndTheme && !context.disabled && !hasPendingAction;
+        context.enablingAllowed = isDefaultOrInstalled && !isDefaultAndTheme && context.disabled && !hasPendingAction;
 
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {

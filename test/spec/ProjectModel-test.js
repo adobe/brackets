@@ -311,17 +311,111 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("isValidPath", function () {
+            it("returns true for UNIX style file path", function () {
+                expect(ProjectModel.isValidPath("/tmp/src/test/")).toBe(true);
+            });
+
+            it("returns true for WINDOWS style file path", function () {
+                expect(ProjectModel.isValidPath("C:\\tmp\\src\\test\\")).toBe(true);
+            });
+
+            it("returns false for path that contains an invalid char \'..\'", function () {
+                expect(ProjectModel.isValidPath("../tmp/src/test/")).toBe(false);
+            });
+
+            it("returns false for path that contains an invalid char \'../..\'", function () {
+                expect(ProjectModel.isValidPath("../../tmp/src/test/")).toBe(false);
+            });
+
+            it("returns false for path that contains an invalid char \'..\\..\'", function () {
+                expect(ProjectModel.isValidPath("..\\..\\tmp\\src\\test\\")).toBe(false);
+            });
+        });
+
         describe("isValidFilename", function () {
-            it("returns true for filenames with nothing invalid", function () {
-                expect(ProjectModel.isValidFilename("foo.txt", "*")).toBe(true);
+            it("returns true for simple filename", function () {
+                expect(ProjectModel.isValidFilename("foo.txt")).toBe(true);
             });
 
-            it("returns false for filenames that match the invalid characters", function () {
-                expect(ProjectModel.isValidFilename("foo*txt", "|*")).toBe(false);
+            it("returns true for filename that starts with a '\.\'", function () {
+                expect(ProjectModel.isValidFilename(".tmp")).toBe(true);
+            });
+            
+            it("returns false for filenames that has ends with a \'.\'", function () {
+                expect(ProjectModel.isValidFilename("dummy.")).toBe(false);
             });
 
-            it("returns false for filenames that match the internal list of disallowed names", function () {
-                expect(ProjectModel.isValidFilename("/test/prn")).toBe(false);
+            it("returns false for filename that contains an invalid char \'?\'", function () {
+                expect(ProjectModel.isValidFilename("foo?txt")).toBe(false);
+            });
+            
+            it("returns false for filename that contains an invalid char \'*\'", function () {
+                expect(ProjectModel.isValidFilename("foo\*txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\|\'", function () {
+                expect(ProjectModel.isValidFilename("foo\|txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\:\'", function () {
+                expect(ProjectModel.isValidFilename("foo\:txt")).toBe(false);
+            });
+            
+            it("returns false for filename that contains an invalid char \'\<\'", function () {
+                expect(ProjectModel.isValidFilename("foo\<txt")).toBe(false);
+            });
+            
+            it("returns false for filename that contains an invalid char \'\>\'", function () {
+                expect(ProjectModel.isValidFilename("foo\>txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'/\'", function () {
+                expect(ProjectModel.isValidFilename("directory/foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'//\'", function () {
+                expect(ProjectModel.isValidFilename("directory//foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\\\'", function () {
+                expect(ProjectModel.isValidFilename("directory\\foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'\\\\\'", function () {
+                expect(ProjectModel.isValidFilename("directory\\\\foo.txt")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'..\'", function () {
+                expect(ProjectModel.isValidFilename("..foo")).toBe(false);
+            });
+
+            it("returns false for filename that contains an invalid char \'..\\..\'", function () {
+                expect(ProjectModel.isValidFilename("..\\foo")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'com1\'", function () {
+                expect(ProjectModel.isValidFilename("com1")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'lpt\'", function () {
+                expect(ProjectModel.isValidFilename("lpt1")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'nul\'", function () {
+                expect(ProjectModel.isValidFilename("nul")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'con\'", function () {
+                expect(ProjectModel.isValidFilename("con")).toBe(false);
+            });
+            
+            it("returns false for filenames that has invalid name \'prn\'", function () {
+                expect(ProjectModel.isValidFilename("prn")).toBe(false);
+            });
+
+            it("returns false for filenames that has invalid name \'aux\'", function () {
+                expect(ProjectModel.isValidFilename("aux")).toBe(false);
             });
 
         });
@@ -652,7 +746,7 @@ define(function (require, exports, module) {
                         rename: {
                             deferred: jasmine.any(Object),
                             path: "/foo/afile.js",
-                            newName: "afile.js",
+                            newPath: "/foo/afile.js",
                             type: ProjectModel.FILE_RENAMING
                         }
                     });
@@ -676,8 +770,8 @@ define(function (require, exports, module) {
 
                 it("can set a rename value", function () {
                     model.startRename("/foo/afile.js");
-                    model.setRenameValue("bar.js");
-                    expect(model._selections.rename.newName).toBe("bar.js");
+                    model.setRenameValue("/foo/bar.js");
+                    expect(model._selections.rename.newPath).toBe("/foo/bar.js");
                 });
 
                 it("shouldn't fire a changed message or stop the current rename if there was no change in rename", function () {
@@ -735,7 +829,7 @@ define(function (require, exports, module) {
                     spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
                     model.setSelected("/foo/afile.js");
                     model.startRename("/foo/afile.js");
-                    model.setRenameValue("something.js");
+                    model.setRenameValue("/foo/something.js");
                     model.performRename();
                     expect(model._selections.selected).toBe("/foo/something.js");
                 });
@@ -753,7 +847,7 @@ define(function (require, exports, module) {
                     spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
                     model.setSelected("/foo/afile.js");
                     model.startRename("/foo/");
-                    model.setRenameValue("bar");
+                    model.setRenameValue("/bar/");
                     model.performRename();
                     expect(model._selections.selected).toBe("/bar/afile.js");
                 });
@@ -784,7 +878,7 @@ define(function (require, exports, module) {
                 it("can rename a directory", function () {
                     spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
                     model.startRename("/foo/subdir1/");
-                    model.setRenameValue("somethingelse");
+                    model.setRenameValue("/foo/somethingelse/");
                     model.performRename();
                     expect(vm._treeData.get("subdir1")).toBeUndefined();
                     expect(vm._treeData.get("somethingelse")).toBeDefined();
@@ -829,7 +923,7 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["subdir1", "children", "Untitled", "rename"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "Untitled", "creating"])).toBe(true);
                     expect(model._selections.rename.type).toBe(ProjectModel.FILE_CREATING);
-                    expect(model._selections.rename.newName).toBe("Untitled");
+                    expect(model._selections.rename.newPath).toBe("/foo/subdir1/Untitled");
                     expect(changesFired).toBeGreaterThan(0);
                 });
 
@@ -837,9 +931,9 @@ define(function (require, exports, module) {
                     spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
                     model.startCreating("/foo/subdir1/", "Untitled");
                     expect(model._selections.rename.path).toBe("/foo/subdir1/Untitled");
-                    expect(model._selections.rename.newName).toBe("Untitled");
+                    expect(model._selections.rename.newPath).toBe("/foo/subdir1/Untitled");
                     changesFired = 0;
-                    model.setRenameValue("newfile.js");
+                    model.setRenameValue("/foo/subdir1/newfile.js");
                     model.performRename();
                     expect(changesFired).toBeGreaterThan(0);
                     expect(model.createAtPath).toHaveBeenCalledWith("/foo/subdir1/newfile.js");
@@ -861,7 +955,7 @@ define(function (require, exports, module) {
                 it("should create a directory but not open it", function () {
                     spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
                     model.startCreating("/foo/", "Untitled", true);
-                    model.setRenameValue("newdir");
+                    model.setRenameValue("/foo/newdir/");
                     model.performRename();
                     expect(model.createAtPath).toHaveBeenCalledWith("/foo/newdir/");
                     expect(vm._treeData.getIn(["newdir", "children"]).toJS()).toEqual({});
@@ -872,7 +966,7 @@ define(function (require, exports, module) {
                     spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
                     model.startCreating("/foo/subdir1/", "Untitled");
                     expect(model._selections.rename.path).toBe("/foo/subdir1/Untitled");
-                    expect(model._selections.rename.newName).toBe("Untitled");
+                    expect(model._selections.rename.newPath).toBe("/foo/subdir1/Untitled");
                     changesFired = 0;
                     model.performRename();
                     expect(changesFired).toBeGreaterThan(0);
@@ -925,10 +1019,10 @@ define(function (require, exports, module) {
                     spyOn(model, "createAtPath").andReturn(new $.Deferred().resolve().promise());
                     model.startCreating("/foo/subdir1/", "Untitled", true);
                     expect(model._selections.rename.path).toBe("/foo/subdir1/Untitled");
-                    expect(model._selections.rename.newName).toBe("Untitled");
+                    expect(model._selections.rename.newPath).toBe("/foo/subdir1/Untitled");
                     expect(model._selections.rename.isFolder).toBe(true);
                     changesFired = 0;
-                    model.setRenameValue("NewDirectory");
+                    model.setRenameValue("/foo/subdir1/NewDirectory");
                     model.performRename();
                     expect(changesFired).toBeGreaterThan(0);
                     expect(model.createAtPath).toHaveBeenCalledWith("/foo/subdir1/NewDirectory/");

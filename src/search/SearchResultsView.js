@@ -66,12 +66,12 @@ define(function (require, exports, module) {
      * @constructor
      * Handles the search results panel.
      * Dispatches the following events:
-     *      replaceAll - when the "Replace" button is clicked.
+     *      replaceBatch - when the "Replace" button is clicked.
      *      close - when the panel is closed.
      *
      * @param {SearchModel} model The model that this view is showing.
      * @param {string} panelID The CSS ID to use for the panel.
-     * @param {string} panelName The name to use for the panel, as passed to PanelManager.createBottomPanel().
+     * @param {string} panelName The name to use for the panel, as passed to WorkspaceManager.createBottomPanel().
      */
     function SearchResultsView(model, panelID, panelName) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
@@ -151,6 +151,9 @@ define(function (require, exports, module) {
         var self = this;
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
+            .on("dblclick.searchResults", ".toolbar", function() {
+                self.close();
+            })
             .on("click.searchResults", ".close", function () {
                 self.close();
             })
@@ -328,7 +331,7 @@ define(function (require, exports, module) {
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    self.trigger("replaceAll");
+                    self.trigger("replaceBatch");
                 });
         }
     };

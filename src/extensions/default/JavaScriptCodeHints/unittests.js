@@ -37,9 +37,9 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         JSCodeHints          = require("main"),
-        Preferences          = require("Preferences"),
-        ScopeManager         = require("ScopeManager"),
-        HintUtils            = require("HintUtils"),
+        Preferences          = brackets.getModule("JSUtils/Preferences"),
+        ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
+        HintUtils            = brackets.getModule("JSUtils/HintUtils"),
         HintUtils2           = require("HintUtils2"),
         ParameterHintManager = require("ParameterHintManager");
 
@@ -58,6 +58,15 @@ define(function (require, exports, module) {
     });
 
     describe("JavaScript Code Hinting", function () {
+
+        // Helper function for testing cursor position
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+
         /*
          * Ask provider for hints at current cursor position; expect it to
          * return some
@@ -718,7 +727,7 @@ define(function (require, exports, module) {
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
 
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, end)).toEqual("A1.propA");
                     expect(testDoc.getLine(end.line).length).toEqual(8);
                 });
@@ -736,7 +745,7 @@ define(function (require, exports, module) {
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
 
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, endplus)).toEqual("A1.propAprop");
                     expect(testDoc.getLine(end.line).length).toEqual(12);
                 });
@@ -752,7 +761,7 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, end)).toEqual("A1.propA");
                     expect(testDoc.getLine(end.line).length).toEqual(8);
                 });
@@ -769,7 +778,7 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, endplus)).toEqual("A1.propApB");
                     expect(testDoc.getLine(end.line).length).toEqual(10);
                 });
@@ -787,7 +796,7 @@ define(function (require, exports, module) {
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
 
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, endplus)).toEqual("(A1.propAprop)");
                     expect(testDoc.getLine(endplus.line).length).toEqual(14);
                 });
@@ -1005,7 +1014,7 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "my-key");
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, end)).toEqual("arr[\"my-key\"]");
                     expect(testDoc.getLine(end.line).length).toEqual(13);
                 });
@@ -1021,7 +1030,7 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "my-key");
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, end)).toEqual("arr[\"my-key\"]");
                     expect(testDoc.getLine(end.line).length).toEqual(13);
                 });
@@ -1037,7 +1046,7 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "for");
                 runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(end));
                     expect(testDoc.getRange(start, end)).toEqual("arr.for");
                     expect(testDoc.getLine(end.line).length).toEqual(7);
                 });

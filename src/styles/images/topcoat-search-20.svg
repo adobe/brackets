@@ -1,3 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
-    <path opacity="0.7" d="M1 7.81c0 4.03 3.21 7.3 7.17 7.3s7.17-3.27 7.17-7.3c0-4.04-3.21-7.31-7.17-7.31S1 3.77 1 7.81M3.27 7.81c0-2.76 2.2-5 4.9-5c2.71 0 4.9 2.24 4.9 5c0 2.76-2.19 4.99-4.9 4.99C5.47 12.8 3.27 10.57 3.27 7.81M13.22 14.51l3.09 3.61c.5 .5 .82 .51 1.32 0l.99-1.01c.49-.5 .52-.82 0-1.35l-3.55-3.13L13.22 14.51"/>
+<svg xmlns="http://www.w3.org/2000/svg"  width="23" height="23" viewBox="7295 439 39 39">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #878787;
+      }
+
+      .cls-2 {
+        fill: none;
+      }
+    </style>
+  </defs>
+  <g id="ic_search_black_24px" transform="translate(7295 439)">
+    <path id="Path_14" data-name="Path 14" class="cls-1" d="M23.313,20.875H22.029l-.455-.439a10.578,10.578,0,1,0-1.138,1.138l.439.455v1.284L29,31.421,31.421,29Zm-9.75,0a7.313,7.313,0,1,1,7.313-7.312A7.3,7.3,0,0,1,13.563,20.875Z" transform="translate(1.875 1.875)"/>
+    <path id="Path_15" data-name="Path 15" class="cls-2" d="M0,0H39V39H0Z"/>
+  </g>
 </svg>

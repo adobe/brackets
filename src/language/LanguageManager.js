@@ -666,6 +666,11 @@ define(function (require, exports, module) {
             }
 
             this._wasModified();
+        } else if(!_fileExtensionToLanguageMap[extension]) {
+            
+            // Language should be in the extension map but isn't
+            _fileExtensionToLanguageMap[extension] = this;
+            this._wasModified();
         }
     };
 
@@ -956,6 +961,12 @@ define(function (require, exports, module) {
 
             // store language to language map
             _languages[language.getId()] = language;
+
+            // restore any preferences for non-default languages
+            if(PreferencesManager) {
+                _updateFromPrefs(_EXTENSION_MAP_PREF);
+                _updateFromPrefs(_NAME_MAP_PREF);
+            }
         }
 
         if (!language._setId(id) || !language._setName(name) ||
@@ -1074,6 +1085,15 @@ define(function (require, exports, module) {
                     language[state.add](name);
                 }
             }
+            if(!getLanguage(newMapping[name])) {
+                
+                // If the language doesn't exist, restore any overrides and remove it
+                // from the state.
+                if(overridden[name]) {
+                    _restoreOverriddenDefault(name, state);
+                }
+                delete newMapping[name];
+            }
         });
 
         // Look for removed names (extensions or filenames)
@@ -1140,6 +1160,10 @@ define(function (require, exports, module) {
         // Similar hack to the above for dealing with SCSS/CSS.
         var scss = getLanguage("scss");
         scss._setLanguageForMode("css", scss);
+
+        // Map stylus mode to the stylus Brackets language, fixes #13378
+        var stylus = getLanguage("stylus");
+        _setLanguageForMode("stylus", stylus);
 
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");

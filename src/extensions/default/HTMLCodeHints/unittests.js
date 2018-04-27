@@ -78,7 +78,7 @@ define(function (require, exports, module) {
             expect(provider.hasHints(testEditor, null)).toBe(false);
         }
 
-        // Expect hintList to contain tag names, starting with given value (if unspecified, expects the default unfilered list)
+        // Expect hintList to contain tag names, starting with given value (if unspecified, expects the default unfiltered list)
         function verifyTagHints(hintList, expectedFirstHint) {
             expect(hintList.indexOf("id")).toBe(-1);   // make sure attribute names aren't sneaking in there
 
@@ -494,10 +494,16 @@ define(function (require, exports, module) {
             }
 
             // Helper function for testing cursor position
+            function fixPos(pos) {
+                if (!("sticky" in pos)) {
+                    pos.sticky = null;
+                }
+                return pos;
+            }
             function expectCursorAt(pos) {
                 var selection = testEditor.getSelection();
-                expect(selection.start).toEqual(selection.end);
-                expect(selection.start).toEqual(pos);
+                expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
+                expect(fixPos(selection.start)).toEqual(fixPos(pos));
             }
 
             it("should insert =\"\" after attribute", function () {

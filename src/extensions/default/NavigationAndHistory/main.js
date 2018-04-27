@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
-        Mustache                = brackets.getModule("thirdparty/mustache/mustache");
+        Mustache                = brackets.getModule("thirdparty/mustache/mustache"),
+        NavigationProvider      = require("NavigationProvider");
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
@@ -250,7 +251,7 @@ define(function (require, exports, module) {
                 // Try to see if we have same doc split
                 // Check existing list for this doc path and active pane entry
                 var entryIndex = _.findIndex(_mrofList, function (record) {
-                    return (record.file === value.file && record.paneId === MainViewManager.getActivePaneId());
+                    return (record && record.file === value.file && record.paneId === MainViewManager.getActivePaneId());
                 });
 
                 // If found don't process this entry, as the document is already present in active pane
@@ -558,7 +559,7 @@ define(function (require, exports, module) {
 
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath && record.paneId === paneId);
+            return (record && record.file === filePath && record.paneId === paneId);
         });
 
         var entry;
@@ -586,7 +587,7 @@ define(function (require, exports, module) {
 
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath && record.paneId === paneId);
+            return (record && record.file === filePath && record.paneId === paneId);
         });
 
         var entry;
@@ -620,13 +621,13 @@ define(function (require, exports, module) {
     function _handleWorkingSetMove(event, file, sourcePaneId, destinationPaneId) {
         // Check existing list for this doc path and source pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === file.fullPath && record.paneId === sourcePaneId);
+            return (record && record.file === file.fullPath && record.paneId === sourcePaneId);
         }), tIndex;
         // If an entry is found update the pane info
         if (index >= 0) {
             // But an entry with the target pane Id should not exist
             tIndex = _.findIndex(_mrofList, function (record) {
-                return (record.file === file.fullPath && record.paneId === destinationPaneId);
+                return (record && record.file === file.fullPath && record.paneId === destinationPaneId);
             });
             if (tIndex === -1) {
                 _mrofList[index].paneId = destinationPaneId;
@@ -645,6 +646,10 @@ define(function (require, exports, module) {
     
     function _initRecentFilesList() {
         _mrofList = PreferencesManager.getViewState(OPEN_FILES_VIEW_STATE, _getPrefsContext()) || [];
+        
+        _mrofList = _mrofList.filter(function (entry) {
+            return entry;
+        });
         // Have a check on the number of entries to fallback to working set if we detect corruption
         if (_mrofList.length < MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)) {
             _mrofList = _createMROFList();
@@ -701,7 +706,7 @@ define(function (require, exports, module) {
             if (value && value.paneId === paneId) { // We have got an entry which needs merge
                 // Before modifying the actual pane info check if an entry exists with same target pane
                 index = _.findIndex(_mrofList, function (record) {
-                    return (record.file === value.file && record.paneId === targetPaneId);
+                    return (record && record.file === value.file && record.paneId === targetPaneId);
                 });
                 if (index !== -1) { // A duplicate entry found, remove the current one instead of updating
                     _mrofList[index] = null;
@@ -725,13 +730,13 @@ define(function (require, exports, module) {
             KeyBindingManager.addBinding(SHOW_RECENT_FILES, KeyboardPrefs[SHOW_RECENT_FILES]);
         }
         
-        // Keybooard only - Navigate to the next doc in MROF list
+        // Keyboard only - Navigate to the next doc in MROF list
         if (!CommandManager.get(NEXT_IN_RECENT_FILES)) {
             CommandManager.register(Strings.CMD_NEXT_DOC, NEXT_IN_RECENT_FILES, _cmdMoveNext);
         }
         KeyBindingManager.addBinding(NEXT_IN_RECENT_FILES, KeyboardPrefs[NEXT_IN_RECENT_FILES]);
        
-        // Keybooard only - Navigate to the prev doc in MROF list
+        // Keyboard only - Navigate to the prev doc in MROF list
         if (!CommandManager.get(PREV_IN_RECENT_FILES)) {
             CommandManager.register(Strings.CMD_PREV_DOC, PREV_IN_RECENT_FILES, _cmdMovePrev);
         }
@@ -829,5 +834,6 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
         ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
+        NavigationProvider.init();
     });
 });

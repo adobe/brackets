@@ -150,6 +150,10 @@ define(function (require, exports, module) {
 
             $item.find("a").addClass("highlight");
             ViewUtils.scrollElementIntoView($view, $item, false);
+
+            if (this.handleHighlight) {
+                this.handleHighlight($item.find("a"));
+            }
         }
     };
 
@@ -326,8 +330,9 @@ define(function (require, exports, module) {
      * Convert keydown events into hint list navigation actions.
      *
      * @param {KeyBoardEvent} keyEvent
+     * @param {bool} isFakeKeydown - True if faked key down call (for example calling CTRL+Space while hints are open)
      */
-    CodeHintList.prototype._keydownHook = function (event) {
+    CodeHintList.prototype._keydownHook = function (event, isFakeKeydown) {
         var keyCode,
             self = this;
 
@@ -389,13 +394,13 @@ define(function (require, exports, module) {
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown" && this.isHandlingKeyCode(event)) {
+        if ((event.type === "keydown" || isFakeKeydown) && this.isHandlingKeyCode(event)) {
             keyCode = event.keyCode;
 
             if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 event.stopImmediatePropagation();
                 this.handleClose();
-
+                
                 return false;
             } else if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
@@ -517,9 +522,7 @@ define(function (require, exports, module) {
      * @param {KeyBoardEvent} keyEvent
      */
     CodeHintList.prototype.callMoveUp = function (event) {
-        delete event.type;
-        event.type = "keydown";
-        this._keydownHook(event);
+        this._keydownHook(event, true);
     };
     /**
      * Closes the hint list
@@ -543,6 +546,15 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype.onSelect = function (callback) {
         this.handleSelect = callback;
+    };
+
+    /**
+      * Set the hint list highlight callback function
+      *
+      * @param {Function} callback
+      */
+    CodeHintList.prototype.onHighlight = function (callback) {
+        this.handleHighlight = callback;
     };
 
     /**

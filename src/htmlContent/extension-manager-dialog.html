@@ -6,11 +6,34 @@
                 <li><a href="#themes" class="themes" data-toggle="tab"><img src="styles/images/themes-icon.svg"/><br/>{{Strings.EXTENSIONS_THEMES_TITLE}}</a></li>
                 <!--<li><a href="#updates" class="updates" data-toggle="tab"><img src="styles/images/extension-manager-updates.svg"/><br/>{{Strings.EXTENSIONS_UPDATES_TITLE}}</a></li>-->
             {{/showRegistry}}
-            <li><a href="#installed" class="installed" data-toggle="tab"><span class="notification"></span><img src="styles/images/extension-manager-installed.svg"/><br/>{{Strings.EXTENSIONS_INSTALLED_TITLE}}</a></li>
+            <li>
+                <a href="#installed" class="installed" data-toggle="tab">
+                    <span class="notification"></span>
+                    <img src="styles/images/extension-manager-installed.svg"/>
+                    <br/>
+                    {{Strings.EXTENSIONS_INSTALLED_TITLE}}
+                </a>
+            </li>
+            <li>
+                <a href="#default" class="default" data-toggle="tab">
+                    <img src="styles/images/extension-manager-installed.svg"/>
+                    <br/>
+                    {{Strings.EXTENSIONS_DEFAULT_TITLE}}
+                </a>
+            </li>
         </ul>
         <div>
-            <button class="search-clear">&times;</button>
-            <input class="search" type="text" placeholder="{{EXTENSION_SEARCH_PLACEHOLDER}}">
+            <div class="ext-sort-group">
+               <div id="sort-attributes-icon"></div>
+               <select class="sort-extensions">
+                   <option value="publishedDate">{{Strings.EXTENSIONS_LAST_UPDATED}}</option>
+                   <option value="downloadCount">{{Strings.EXTENSIONS_DOWNLOADS}}</option>
+               </select>
+            </div>
+            <div class="search-container">
+                <button class="search-clear">&times;</button>
+                <input class="search" type="text" placeholder="{{Strings.EXTENSION_SEARCH_PLACEHOLDER}}">
+            </div>
         </div>
     </div>
     <div class="modal-body no-padding table-striped tab-content">

@@ -448,7 +448,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na stránce <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScriptu těmito lidmi:",
     "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs a Web Platform logo využívají licenci Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN Docs a MDN logo využívají licenci Creative Commons Attribution, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Je dostupná nová verze {APP_NAME}! Klikněte zde pro více informací.",
     "UPDATE_AVAILABLE_TITLE"               : "Dostupná aktualizace",
     "UPDATE_MESSAGE"                       : "Nová verze {APP_NAME} je dostupná. Seznam některých vylepšení:",
@@ -659,7 +659,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Více",
 
     // extensions/default/CodeFolding

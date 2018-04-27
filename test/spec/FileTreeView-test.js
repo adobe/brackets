@@ -29,21 +29,39 @@ define(function (require, exports, module) {
 
     var FileTreeView      = require("project/FileTreeView"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
-        React             = require("thirdparty/react"),
-        ReactDOM          = require("thirdparty/react-dom"),
+        Preact            = require("thirdparty/preact"),
         Immutable         = require("thirdparty/immutable"),
-        RTU               = React.addons.TestUtils,
+        PreactTestUtils   = require("thirdparty/preact-test-utils"),
         _                 = require("thirdparty/lodash");
+
+    // Preact Test Utils doesn't have findRenderedDOMComponentWithTag method
+    // So create it
+    var findRenderedDOMComponentWithTag = function(root, tagName) {
+        var nodes = [];
+        if (root.base.tagName.toUpperCase() === tagName.toUpperCase()){
+            nodes.push(root.base);
+        } else {
+            for (var i = 0; i < root.base.childNodes.length; ++i) {
+                if (root.base.childNodes[i].tagName === tagName.toUpperCase()) {
+                    nodes.push(root.base.childNodes[i]);
+                }
+            }
+        }
+        if (nodes.length !== 1) {
+            throw new Error('Did not find exactly one match for tag:' + tagName);
+        }
+        return nodes[0];
+    };
 
     describe("FileTreeView", function () {
 
         describe("_fileNode", function () {
             it("should create a component with the right information", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map()
                 }));
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[1].textContent).toBe(" ");
                 expect(a.children[2].textContent).toBe("afile");
@@ -52,7 +70,7 @@ define(function (require, exports, module) {
 
             it("should call icon extensions to replace the default icon", function () {
                 var extensionCalls = 0,
-                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -62,14 +80,14 @@ define(function (require, exports, module) {
                                 expect(data.name).toBe("afile.js");
                                 expect(data.isFile).toBe(true);
                                 expect(data.fullPath).toBe("/foo/afile.js");
-                                return React.DOM.ins({}, "ICON");
+                                return Preact.DOM.ins({}, "ICON");
                             }]
                         })
                     }));
 
                 expect(extensionCalls).toBe(1);
 
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[1].textContent).toBe("ICON");
                 expect(a.children[2].textContent).toBe("afile");
@@ -78,7 +96,7 @@ define(function (require, exports, module) {
 
             it("should allow icon extensions to return a string for the icon", function () {
                 var extensionCalls = 0,
-                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -92,12 +110,12 @@ define(function (require, exports, module) {
 
                 expect(extensionCalls).toBe(1);
 
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[2].textContent).toBe("afile");
                 expect(a.children[3].textContent).toBe(".js");
 
-                var $a = $(ReactDOM.findDOMNode(a)),
+                var $a = $(Preact.findDOMNode(a)),
                     $ins = $a.find("ins");
 
                 expect($ins.text()).toBe("ICON");
@@ -105,14 +123,14 @@ define(function (require, exports, module) {
 
             it("should set context on a node by right click", function () {
                 var actions = jasmine.createSpyObj("actions", ["setContext"]);
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map(),
                     actions: actions,
                     parentPath: "/foo/"
                 }));
-                var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                var node = Preact.findDOMNode(rendered);
+                PreactTestUtils.Simulate.mouseDown(node, {
                     button: 2
                 });
                 expect(actions.setContext).toHaveBeenCalledWith("/foo/afile.js");
@@ -120,15 +138,15 @@ define(function (require, exports, module) {
 
             it("should set context on a node by control click on Mac", function () {
                 var actions = jasmine.createSpyObj("actions", ["setContext"]);
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map(),
                     actions: actions,
                     parentPath: "/foo/",
                     platform: "mac"
                 }));
-                var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                var node = Preact.findDOMNode(rendered);
+                PreactTestUtils.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
@@ -137,15 +155,15 @@ define(function (require, exports, module) {
 
             it("should not set context on a node by control click on Windows", function () {
                 var actions = jasmine.createSpyObj("actions", ["setContext"]);
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map(),
                     actions: actions,
                     parentPath: "/foo/",
                     platform: "win"
                 }));
-                var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                var node = Preact.findDOMNode(rendered);
+                PreactTestUtils.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
@@ -154,7 +172,7 @@ define(function (require, exports, module) {
 
             it("should allow icon extensions to return a jQuery object for the icon", function () {
                 var extensionCalls = 0,
-                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -168,7 +186,7 @@ define(function (require, exports, module) {
 
                 expect(extensionCalls).toBe(1);
 
-                var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
+                var a = findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[2].textContent).toBe("afile");
                 expect(a.children[3].textContent).toBe(".js");
@@ -181,7 +199,7 @@ define(function (require, exports, module) {
 
             it("should call addClass extensions", function () {
                 var extensionCalls = 0,
-                    rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                         name: "afile.js",
                         entry: Immutable.Map(),
                         parentPath: "/foo/",
@@ -200,18 +218,18 @@ define(function (require, exports, module) {
 
                 expect(extensionCalls).toBe(1);
 
-                var li = RTU.findRenderedDOMComponentWithTag(rendered, "li");
+                var li = findRenderedDOMComponentWithTag(rendered, "li");
                 expect(li.className).toBe("jstree-leaf new classes are cool");
             });
 
             it("should render a rename component", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode({
                     name: "afile.js",
                     entry: Immutable.Map({
                         rename: true
                     })
                 }));
-                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
+                var input = findRenderedDOMComponentWithTag(rendered, "input");
                 expect(input.value).toBe("afile.js");
             });
 
@@ -223,7 +241,7 @@ define(function (require, exports, module) {
                     extensions: Immutable.Map()
                 };
 
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileNode(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileNode(props));
 
                 var newProps = _.clone(props);
                 expect(rendered.shouldComponentUpdate(newProps)).toBe(false);
@@ -299,14 +317,14 @@ define(function (require, exports, module) {
 
         describe("_directoryNode and _directoryContents", function () {
             it("should format a closed directory", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
                     parentPath: "/foo/",
                     entry: Immutable.fromJS({
                         children: null
                     })
                 }));
-                var dirLI = ReactDOM.findDOMNode(rendered),
+                var dirLI = Preact.findDOMNode(rendered),
                     dirA = $(dirLI).find("a")[0];
 
                 expect(dirLI.children[1].textContent).toBe(" thedir");
@@ -324,7 +342,7 @@ define(function (require, exports, module) {
                     sortDirectoriesFirst: false
                 };
 
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode(props));
 
                 var newProps = _.clone(props);
 
@@ -353,7 +371,7 @@ define(function (require, exports, module) {
 
             it("should call extensions for directories", function () {
                 var extensionCalled = false,
-                    rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                    rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                         name: "thedir",
                         parentPath: "/foo/",
                         entry: Immutable.fromJS({
@@ -361,7 +379,7 @@ define(function (require, exports, module) {
                         }),
                         extensions: Immutable.fromJS({
                             icons: [function (data) {
-                                return React.DOM.ins({}, "ICON");
+                                return Preact.DOM.ins({}, "ICON");
                             }],
                             addClass: [function (data) {
                                 extensionCalled = true;
@@ -377,7 +395,7 @@ define(function (require, exports, module) {
 
                 expect(extensionCalled).toBe(true);
 
-                var dirLI = ReactDOM.findDOMNode(rendered),
+                var dirLI = Preact.findDOMNode(rendered),
                     dirA = $(dirLI).find("a")[0];
 
                 expect(dirLI.className).toBe("jstree-closed new classes are cool");
@@ -386,30 +404,30 @@ define(function (require, exports, module) {
             });
 
             it("should allow renaming a closed directory", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
                     entry: Immutable.fromJS({
                         children: null,
                         rename: true
                     })
                 }));
-                var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
+                var input = findRenderedDOMComponentWithTag(rendered, "input");
                 expect(input.value).toBe("thedir");
             });
 
             it("should be able to list files", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryContents({
                     contents: Immutable.fromJS({
                         "afile.js": {}
                     })
                 }));
-                var fileLI = ReactDOM.findDOMNode(rendered),
+                var fileLI = Preact.findDOMNode(rendered),
                     fileA = $(fileLI).find("a")[0];
                 expect(fileA.children[2].textContent).toBe("afile");
             });
 
             it("should be able to list closed directories", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "thedir",
                     entry: Immutable.fromJS({
                         open: true,
@@ -421,17 +439,17 @@ define(function (require, exports, module) {
                     })
                 }));
 
-                var subdirLI = ReactDOM.findDOMNode(rendered),
+                var subdirLI = Preact.findDOMNode(rendered),
                     subdirA = $(subdirLI).find(".jstree-closed > a")[0];
                 expect(subdirA.children[2].textContent).toBe("subdir");
             });
 
             it("should be able to list open subdirectories", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "twoLevel",
                     entry: twoLevel
                 }));
-                var dirLI = ReactDOM.findDOMNode(rendered);
+                var dirLI = Preact.findDOMNode(rendered);
 
                 var subdirLI = $(dirLI).find(".jstree-open"),
                     aTags = subdirLI.find("a");
@@ -452,12 +470,12 @@ define(function (require, exports, module) {
                     open: true
                 });
 
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryNode({
                     name: "hasDirs",
                     entry: directory,
                     sortDirectoriesFirst: true
                 }));
-                var html = ReactDOM.findDOMNode(rendered).outerHTML;
+                var html = Preact.findDOMNode(rendered).outerHTML;
                 expect(html.indexOf("subdir")).toBeLessThan(html.indexOf("afile"));
             });
 
@@ -469,7 +487,7 @@ define(function (require, exports, module) {
                     extensions          : Immutable.Map()
                 };
 
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryContents(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryContents(props));
 
                 var newProps = _.clone(props);
 
@@ -508,7 +526,7 @@ define(function (require, exports, module) {
             });
 
             it("should render the directory", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView({
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileTreeView({
                     projectRoot: {},
                     treeData: new Immutable.Map({
                         "subdir": twoLevel.getIn(["children", "subdir"])
@@ -517,7 +535,7 @@ define(function (require, exports, module) {
                     sortDirectoriesFirst: false
                 }));
 
-                var rootNode = ReactDOM.findDOMNode(rendered),
+                var rootNode = Preact.findDOMNode(rendered),
                     aTags = $(rootNode).find("a");
                 expect(aTags.length).toBe(2);
                 expect(aTags[0].children[2].textContent).toBe("subdir");
@@ -533,7 +551,7 @@ define(function (require, exports, module) {
                     extensions          : Immutable.Map()
                 };
 
-                var rendered = RTU.renderIntoDocument(FileTreeView._fileTreeView(props));
+                var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileTreeView(props));
 
                 var newProps = _.clone(props);
 

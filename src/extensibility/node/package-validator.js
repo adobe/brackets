@@ -26,11 +26,12 @@
 
 "use strict";
 
-var DecompressZip = require("decompress-zip"),
-    semver        = require("semver"),
-    path          = require("path"),
-    temp          = require("temp"),
-    fs            = require("fs-extra");
+var DecompressZip               = require("decompress-zip"),
+    semver                      = require("semver"),
+    path                        = require("path"),
+    temp                        = require("temp"),
+    fs                          = require("fs-extra"),
+    performNpmInstallIfRequired = require("./npm-installer").performNpmInstallIfRequired;
 
 // Track and cleanup files at exit
 temp.track();
@@ -293,12 +294,26 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                 if (!isTheme && !fs.existsSync(mainJS)) {
                     errors.push([Errors.MISSING_MAIN, zipPath, mainJS]);
                 }
-                callback(null, {
+
+                var npmOptions = ['--production'];
+
+                if (options.proxy) {
+                    npmOptions.push('--proxy ' + options.proxy);
+                }
+
+                if (process.platform.startsWith('win')) {
+                    // On Windows force a 32 bit build until nodejs 64 bit is supported.
+                    npmOptions.push('--arch=ia32');
+                    npmOptions.push('--npm_config_arch=ia32');
+                    npmOptions.push('--npm_config_target_arch=ia32');
+                }
+
+                performNpmInstallIfRequired(npmOptions, {
                     errors: errors,
                     metadata: metadata,
                     commonPrefix: commonPrefix,
                     extractDir: extractDir
-                });
+                }, callback);
             });
         });
     });
@@ -327,7 +342,7 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
  * read successfully from package.json in the zip file.
  *
  * @param {string} path Absolute path to the package zip file
- * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} options for validation
+ * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>, proxy: ?<string>}} options for validation
  * @param {function} callback (err, result)
  */
 function validate(path, options, callback) {

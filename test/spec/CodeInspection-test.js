@@ -104,6 +104,13 @@ define(function (require, exports, module) {
             };
         }
 
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+        }
+
         beforeFirst(function () {
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -481,6 +488,30 @@ define(function (require, exports, module) {
                         }
                     }
                 });
+            });
+
+            it("should support universal providers", function () {
+                var codeInspector1 = createCodeInspector("javascript linter", successfulLintResult());
+                var codeInspector2 = createCodeInspector("css linter", successfulLintResult());
+                var codeInspector3 = createCodeInspector("universal linter", successfulLintResult());
+
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("css", codeInspector2);
+                CodeInspection.register("*", codeInspector3);
+
+                var providers = CodeInspection.getProvidersForPath("test.js");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector1);
+                expect(providers[1]).toBe(codeInspector3);
+
+                providers = CodeInspection.getProvidersForPath("test.css");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector2);
+                expect(providers[1]).toBe(codeInspector3);
+
+                providers = CodeInspection.getProvidersForPath("test.other");
+                expect(providers.length).toBe(1);
+                expect(providers[0]).toBe(codeInspector3);
             });
 
         });
@@ -925,8 +956,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
-
-                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(fixPos(EditorManager.getActiveEditor().getCursorPos())).toEqual(fixPos({line: 1, ch: 3}));
                 });
             });
 
@@ -956,9 +986,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
-
                     // 'first' error is in order of linter registration, not in line number order
-                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(fixPos(EditorManager.getActiveEditor().getCursorPos())).toEqual(fixPos({line: 1, ch: 3}));
                 });
             });
 
