@@ -289,80 +289,24 @@ define(function (require, exports, module) {
 
      /**
      * Generates the extension for installer file, based on platform
-     * @returns {object} - json containing platform Info : {
-     *                   extension - installer file extension,
-     *                   OS - current OS }
+     * @returns {string} - OS - current OS }
      */
     function getPlatformInfo() {
-        var ext = "",
-            OS = "";
+        var OS = "";
 
         if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
             OS = "WIN";
-            ext = ".msi";
         } else if (/Mac/.test(window.navigator.userAgent)) {
             OS = "OSX";
-            ext = ".dmg";
         } else if (/Linux|X11/.test(window.navigator.userAgent)) {
             OS = "LINUX32";
-            ext = ".32-bit.deb";
             if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
                 OS = "LINUX64";
-                ext = ".64-bit.deb";
             }
         }
 
-        return {
-            extension: ext,
-            OS: OS
-        };
+        return OS;
     }
-
-
-
-    /**
-     * Generates the download URL for the update installer, based on platform
-     * @param   {string} buildName - name of latest build
-     * @param   {string} ext       - file extension, based on platform
-     * @returns {object} - downloadInfo json, containing installer name and download URL
-     */
-    function getDownloadInfo(buildName, ext) {
-        var downloadInfo = {};
-        if (buildName) {
-            var buildNum = buildName.match(/([\d.]+)/);
-            if (buildNum) {
-                buildNum = buildNum[1];
-
-                var tag = buildName.toLowerCase().split(" ").join("-"),
-                    installerName = "Brackets." + buildName.split(" ").join(".") + ext,
-                    downloadURL;
-
-                //AUTOUPDATE_PRERELEASE BEGIN
-                // This code change is needed for Auto-update support in prereleases
-                // And will be removed eventually for stable releases
-                // Overwriting the tag and downloadURL for prereleases
-                {
-                    if(buildName && buildName.indexOf("Pre Release") !== -1) {
-
-                        tag = "release-" + buildName.split(" ").pop() + "-prerelease";
-                        installerName = "Brackets." + buildName.split(" ").join("-") + ext;
-                    }
-                }
-                //AUTOUPDATE_PRERELEASE END
-
-                downloadURL = brackets.config.update_download_url + tag + "/" + installerName;
-
-                downloadInfo = {
-                    installerName: installerName,
-                    downloadURL: downloadURL
-                };
-
-            }
-        }
-
-        return downloadInfo;
-    }
-
 
     /**
      * Initializes the state for AutoUpdate process
@@ -428,21 +372,66 @@ define(function (require, exports, module) {
     }
 
 
+     /**
+     * Typical signature of an update entry, with the most frequently used keys
+     * @typedef {Object} Update~Entry
+     * @property {Number} buildNumber - The build number for the update
+     * @property {string} versionString - Version for the update
+     * @property {string} releaseNotesURL - URL for release notes for the update
+     * @property {array} newFeatures - Array of new features in the update
+     * @property {boolean} prerelease - Boolean to distinguish prerelease from a stable release
+     * @property {Object} platforms - JSON object, containing asset info for the update, for each platform
+     *                        Asset info for each platform consists of :
+     *                        @property {string} checksum - checksum of the asset
+     *                        @property {string} downloadURL - download URL of the asset
+     *
+     */
+
     /**
      * Handles and processes the update info, required for app auto update
      * @private
-     * @param {Array} updates - array object containing info about updates
+     * @param {Array} updates - array of {...Update~Entry} update entries
      */
     function _updateProcessHandler(updates) {
-        //If no checksum field is present then we're setting it to 0, just as a safety check,
-        // although ideally this situation should never occur in releases post its introduction.
-        var platformInfo = getPlatformInfo(),
-            buildName = updates[0].versionString,
-            checksum  = (updates[0].checksums) ? updates[0].checksums[platformInfo.OS] : 0;
 
-        var updateParams = getDownloadInfo(buildName, platformInfo.extension);
-        updateParams.latestBuildNumber = updates[0].buildNumber;
-        updateParams.checksum = checksum;
+        if(!updates) {
+            console.warn("AutoUpdate : updates information not available.");
+            return;
+        }
+        var OS = getPlatformInfo(),
+            checksum,
+            downloadURL,
+            installerName,
+            platforms,
+            latestUpdate;
+
+        latestUpdate = updates[0];
+        platforms = latestUpdate ? latestUpdate.platforms : null;
+
+        if(platforms && platforms[OS]) {
+
+             //If no checksum field is present then we're setting it to 0, just as a safety check,
+            // although ideally this situation should never occur in releases post its introduction.
+            checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
+            downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
+            installerName = downloadURL ? downloadURL.split("/").pop() : "";
+
+        } else {
+            // Update not present for current platform
+            return;
+        }
+
+        if (!checksum || !downloadURL || !installerName) {
+            console.warn("AutoUpdate : asset information incorrect for the update");
+            return;
+        }
+
+         var updateParams = {
+            downloadURL: downloadURL,
+            installerName: installerName,
+            latestBuildNumber: latestUpdate.buildNumber,
+            checksum: checksum
+        };
 
         //Initiate the auto update, with update params
         initiateAutoUpdate(updateParams);
