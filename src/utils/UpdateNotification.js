@@ -115,28 +115,32 @@ define(function (require, exports, module) {
             locale = locale.substring(0, 2);
         }
 
-         //AUTOUPDATE_PRERELEASE_BEGIN
+        //AUTOUPDATE_PRERELEASE_BEGIN
         // The following code is needed for supporting Auto Update in prerelease,
         //and will be removed eventually for stable releases
         {
-            var jsonLocale = locale;
-            if (locale && locale.toLowerCase().startsWith("de")) {
-                jsonLocale = "de";
-            } else if (locale && locale.toLowerCase().startsWith("es")) {
-                jsonLocale = "es";
-            } else if (locale && locale.toLowerCase().startsWith("fr")) {
-                jsonLocale = "fr";
-            } else if (locale && locale.toLowerCase().startsWith("ja")) {
-                jsonLocale = "ja";
-            } else if (!locale || !(locale === "de" || locale === "en" || locale === "es" || locale === "fr" || locale === "ja")) {
-                jsonLocale = 'en';
+            if (locale) {
+                if(locale.length > 2) {
+                    locale = locale.substring(0, 2);
+                }
+                switch(locale)  {
+                case "de":
+                    break;
+                case "es":
+                    break;
+                case "fr":
+                    break;
+                case "ja":
+                    break;
+                case "en":
+                default:
+                    locale = "en";
+                }
+                return brackets.config.update_info_url.replace("<locale>", locale);
             }
-
-            return brackets.config.update_info_url + jsonLocale + '.json';
         }
         //AUTOUPDATE_PRERELEASE_END
 
-        
         return brackets.config.update_info_url + '?locale=' + locale;
     }
 
