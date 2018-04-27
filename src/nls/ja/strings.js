@@ -66,6 +66,9 @@ define({
 	"ERROR_RENAMING_FILE_TITLE": "{0} の名前を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "{2} <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
 	"ERROR_RENAMING_NOT_IN_PROJECT": "ファイルまたはディレクトリが、現在開いているプロジェクトの一部ではありません。現時点で、プロジェクトファイルの名前のみを変更できます。",
+	"ERROR_MOVING_FILE_TITLE": "{0} の移動エラー",
+	"ERROR_MOVING_FILE": "{2} <span class='dialog-filename'>{0}</span> を移動する際にエラーが発生しました。{1}",
+	"ERROR_MOVING_NOT_IN_PROJECT": "The file or directory is not part of the currently opened project. Unfortunately, only project files can be moved at this point.",
 	"ERROR_DELETING_FILE_TITLE": "{0} を削除する際にエラーが発生しました。",
 	"ERROR_DELETING_FILE": "{2} <span class='dialog-filename'>{0}</span> を削除する際にエラーが発生しました。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}",
@@ -863,7 +866,8 @@ define({
 	"INSTALLER_NOT_FOUND": "インストーラーが見つかりません。",
 	"DOWNLOAD_ERROR": "ダウンロード中にエラーが発生しました。",
 	"RESTART_BUTTON": "再起動",
-	"LATER_BUTTON": "保留",
+	"LATER_BUTTON": "後で再起動",
+	"DESCRIPTION_AUTO_UPDATE": "Brackets の自動更新を有効化/無効化",
     
     // Strings for Related Files
 	"CMD_FIND_RELATED_FILES": "関連するファイルを検索"
