@@ -33,9 +33,12 @@ define(function (require, exports, module) {
         PerfUtils                   = require("utils/PerfUtils"),
         FindUtils                   = require("search/FindUtils"),
         StringUtils                 = require("utils/StringUtils"),
+        EventDispatcher             = require("utils/EventDispatcher"),
 
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
+
+    EventDispatcher.makeEventDispatcher(exports);
 
     /**
      * Init: creates the health log preference keys in the state.json file
@@ -129,7 +132,7 @@ define(function (require, exports, module) {
      * @param {boolean} addedToWorkingSet set to true if extensions of files added to the
      *                                    working set needs to be logged
      */
-    function fileOpened(filePath, addedToWorkingSet) {
+    function fileOpened(filePath, addedToWorkingSet, encoding) {
         if (!shouldLogHealthData()) {
             return;
         }
@@ -139,7 +142,8 @@ define(function (require, exports, module) {
             fileExtCountMap = [];
         healthData.fileStats = healthData.fileStats || {
             openedFileExt     : {},
-            workingSetFileExt : {}
+            workingSetFileExt : {},
+            openedFileEncoding: {}
         };
         if (language.getId() !== "unknown") {
             fileExtCountMap = addedToWorkingSet ? healthData.fileStats.workingSetFileExt : healthData.fileStats.openedFileExt;
@@ -147,6 +151,18 @@ define(function (require, exports, module) {
                 fileExtCountMap[fileExtension] = 0;
             }
             fileExtCountMap[fileExtension]++;
+            setHealthData(healthData);
+        }
+        if (encoding) {
+            var fileEncCountMap = healthData.fileStats.openedFileEncoding;
+            if (!fileEncCountMap) {
+                healthData.fileStats.openedFileEncoding = {};
+                fileEncCountMap = healthData.fileStats.openedFileEncoding;
+            }
+            if (!fileEncCountMap[encoding]) {
+                fileEncCountMap[encoding] = 0;
+            }
+            fileEncCountMap[encoding]++;
             setHealthData(healthData);
         }
     }
@@ -187,6 +203,40 @@ define(function (require, exports, module) {
         setHealthDataLog("searchDetails", searchDetails);
     }
 
+     /**
+     * Notifies the HealthData extension to send Analytics Data to server
+     * @param{Object} eventParams Event Data to be sent to Analytics Server
+     */
+    function notifyHealthManagerToSendData(eventParams) {
+        exports.trigger("SendAnalyticsData", eventParams);
+    }
+
+    /**
+     * Send Analytics Data
+     * @param {string} eventCategory The kind of Event Category that
+     * needs to be logged- should be a js var compatible string
+     * @param {string} eventSubCategory The kind of Event Sub Category that
+     * needs to be logged- should be a js var compatible string
+     * @param {string} eventType The kind of Event Type that needs to be logged- should be a js var compatible string
+     * @param {string} eventSubType The kind of Event Sub Type that
+     * needs to be logged- should be a js var compatible string
+     */
+    function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType) {
+        var isEventDataAlreadySent = PreferencesManager.getViewState(eventName),
+            isHDTracking   = PreferencesManager.getExtensionPrefs("healthData").get("healthDataTracking"),
+            eventParams = {};
+        if (isHDTracking && !isEventDataAlreadySent && eventName && eventCategory) {
+            eventParams =  {
+                eventName: eventName,
+                eventCategory: eventCategory,
+                eventSubCategory: eventSubCategory || "",
+                eventType: eventType || "",
+                eventSubType: eventSubType || ""
+            };
+            notifyHealthManagerToSendData(eventParams);
+        }
+    }
+
     // Define public API
     exports.getHealthDataLog          = getHealthDataLog;
     exports.setHealthDataLog          = setHealthDataLog;
@@ -212,4 +262,5 @@ define(function (require, exports, module) {
     exports.SEARCH_CASE_SENSITIVE     = "searchCaseSensitive";
     // A new search context on search bar up-Gives an idea of number of times user did a discrete search
     exports.SEARCH_NEW                = "searchNew";
+    exports.sendAnalyticsData         = sendAnalyticsData;
 });

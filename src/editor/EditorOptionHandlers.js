@@ -36,7 +36,9 @@ define(function (require, exports, module) {
     var SHOW_LINE_NUMBERS = "showLineNumbers",
         STYLE_ACTIVE_LINE = "styleActiveLine",
         WORD_WRAP         = "wordWrap",
-        CLOSE_BRACKETS    = "closeBrackets";
+        CLOSE_BRACKETS    = "closeBrackets",
+        AUTO_HIDE_SEARCH  = "autoHideSearch";
+
 
     /**
      * @private
@@ -48,6 +50,9 @@ define(function (require, exports, module) {
     _optionMapping[STYLE_ACTIVE_LINE] = Commands.TOGGLE_ACTIVE_LINE;
     _optionMapping[WORD_WRAP] = Commands.TOGGLE_WORD_WRAP;
     _optionMapping[CLOSE_BRACKETS] = Commands.TOGGLE_CLOSE_BRACKETS;
+    _optionMapping[AUTO_HIDE_SEARCH] = Commands.TOGGLE_SEARCH_AUTOHIDE;
+
+
 
     /**
      * @private
@@ -97,6 +102,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_TOGGLE_ACTIVE_LINE, Commands.TOGGLE_ACTIVE_LINE, _getToggler(STYLE_ACTIVE_LINE));
     CommandManager.register(Strings.CMD_TOGGLE_WORD_WRAP, Commands.TOGGLE_WORD_WRAP, _getToggler(WORD_WRAP));
     CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _getToggler(CLOSE_BRACKETS));
+    CommandManager.register(Strings.CMD_TOGGLE_SEARCH_AUTOHIDE, Commands.TOGGLE_SEARCH_AUTOHIDE, _getToggler(AUTO_HIDE_SEARCH));
 
     AppInit.htmlReady(_init);
 });

@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"),
         HintsUtils2     = require("HintUtils2"),
-        ScopeManager    = require("ScopeManager");
+        ScopeManager    = brackets.getModule("JSUtils/ScopeManager");
 
 
     /** @const {string} Show Function Hint command ID */

@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         ViewUtils          = require("utils/ViewUtils"),
         FindUtils          = require("search/FindUtils"),
+        QuickSearchField   = require("search/QuickSearchField").QuickSearchField,
         HealthLogger       = require("utils/HealthLogger");
 
     /**
@@ -53,6 +54,7 @@ define(function (require, exports, module) {
         intervalId = 0,
         lastQueriedText = "",
         lastTypedText = "",
+        lastTypedTextWasRegexp = false,
         lastKeyCode;
 
     /**
@@ -68,7 +70,8 @@ define(function (require, exports, module) {
      *      Parameters are:
      *          shiftKey - boolean, false for Find Next, true for Find Previous
      * - doReplace - when the user chooses to do a single replace. Use getReplaceText() to get the current replacement text.
-     * - doReplaceAll - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
+     * - doReplaceBatch - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
+     * - doReplaceAll - when the user chooses to perform a Replace All. Use getReplaceText() to get the current replacement text.
      *-  close - when the find bar is closed
      *
      * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
@@ -93,6 +96,7 @@ define(function (require, exports, module) {
         this._enabled = true;
         this.lastQueriedText = "";
         this.lastTypedText = "";
+        this.lastTypedTextWasRegexp = false;
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
 
@@ -207,8 +211,10 @@ define(function (require, exports, module) {
      * Save the prefs state based on the state of the toggles.
      */
     FindBar.prototype._updatePrefsFromSearchBar = function () {
+        var isRegexp = this.$("#find-regexp").is(".active");
         PreferencesManager.setViewState("caseSensitive", this.$("#find-case-sensitive").is(".active"));
-        PreferencesManager.setViewState("regexp",        this.$("#find-regexp").is(".active"));
+        PreferencesManager.setViewState("regexp", isRegexp);
+        lastTypedTextWasRegexp = isRegexp;
     };
 
     /**
@@ -223,6 +229,28 @@ define(function (require, exports, module) {
             var oldTitle = $elem.attr("title");
             oldTitle = (oldTitle ? oldTitle + " " : "");
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
+        }
+    };
+
+    /**
+     * @private
+     * Adds element to the search history queue.
+     * @param {string} search string that needs to be added to history.
+     */
+    FindBar.prototype._addElementToSearchHistory = function (searchVal) {
+        if (searchVal) {
+            var searchHistory = PreferencesManager.getViewState("searchHistory");
+            var maxCount = PreferencesManager.get("maxSearchHistory");
+            var searchQueryIndex = searchHistory.indexOf(searchVal);
+            if (searchQueryIndex !== -1) {
+                searchHistory.splice(searchQueryIndex, 1);
+            } else {
+                if (searchHistory.length === maxCount) {
+                    searchHistory.pop();
+                }
+            }
+            searchHistory.unshift(searchVal);
+            PreferencesManager.setViewState("searchHistory", searchHistory);
         }
     };
 
@@ -244,12 +272,32 @@ define(function (require, exports, module) {
 
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
-        templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
+        templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
+        templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
 
-        this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
+        self._addElementToSearchHistory(this._options.initialQuery);
 
+        this._modalBar = new ModalBar(
+            Mustache.render(_searchBarTemplate, templateVars),
+            !!PreferencesManager.get('autoHideSearch')		// 2nd arg = auto-close on Esc/blur
+        );
+        
+        // Done this way because ModalBar.js seems to react unreliably when
+        // modifying it to handle the escape key - the findbar wasn't getting
+        // closed as it should, instead persisting in the background
+        function _handleKeydown(e) {
+            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                e.stopPropagation();
+                e.preventDefault();
+                self.close();
+            }
+        }
+        window.document.body.addEventListener("keydown", _handleKeydown, true);
+        
         // When the ModalBar closes, clean ourselves up.
         this._modalBar.on("close", function (event) {
+            window.document.body.removeEventListener("keydown", _handleKeydown, true);
+
             // Hide error popup, since it hangs down low enough to make the slide-out look awkward
             self.showError(null);
             self._modalBar = null;
@@ -260,15 +308,21 @@ define(function (require, exports, module) {
             FindBar._removeFindBar(self);
             MainViewManager.focusActivePane();
             self.trigger("close");
+            if (self.searchField) {
+                self.searchField.destroy();
+            }
         });
 
         FindBar._addFindBar(this);
 
         var $root = this._modalBar.getRoot();
+        var historyIndex = 0;
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
-                lastTypedText = self.getQueryInfo().query;
+                var queryInfo = self.getQueryInfo();
+                lastTypedText = queryInfo.query;
+                lastTypedTextWasRegexp = queryInfo.isRegexp;
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass("active");
@@ -278,21 +332,36 @@ define(function (require, exports, module) {
                     self.trigger("doFind");
                 }
             })
+            .on("click", ".dropdown-icon", function (e) {
+                var quickSearchContainer = $(".quick-search-container");
+                if (!self.searchField) {
+                    self.showSearchHints();
+                } else if (quickSearchContainer.is(':visible')) {
+                    quickSearchContainer.hide();
+                } else {
+                    self.searchField.setText(self.$("#find-what").val());
+                    quickSearchContainer.show();
+                }
+                self.$("#find-what").focus();
+            })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
                 lastKeyCode = e.keyCode;
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
-                        // we still keep the intrval timer up as instant search could get enabled/disabled based on node busy state
+                        // we still keep the interval timer up as instant search could get enabled/disabled based on node busy state
                         return;
                     }
                     if (self._closed) {
                         return;
                     }
                     currentTime = new Date().getTime();
-                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
+
+                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) &&
+                            self.getQueryInfo().query !== lastQueriedText &&
                             !FindUtils.isNodeSearchInProgress()) {
+
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
@@ -311,6 +380,7 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
+                    self._addElementToSearchHistory(self.$("#find-what").val());
                     lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
@@ -324,14 +394,25 @@ define(function (require, exports, module) {
                             }
                         } else {
                             HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
-                            self.trigger("doReplaceAll");
+                            self.trigger("doReplaceBatch");
                         }
                     } else {
                         // In the single file case, we just want to trigger a Find Next (or Find Previous
                         // if Shift is held down).
                         self.trigger("doFind", e.shiftKey);
                     }
+                    historyIndex = 0;
+                } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
+                    var quickSearchContainer = $(".quick-search-container");
+                    if (!self.searchField) {
+                        self.showSearchHints();
+                    } else if (!quickSearchContainer.is(':visible')) {
+                        quickSearchContainer.show();
+                    }
                 }
+            })
+            .on("click", ".close", function () {
+                self.close();
             });
 
         if (!this._options.multifile) {
@@ -351,6 +432,9 @@ define(function (require, exports, module) {
             $root
                 .on("click", "#replace-yes", function (e) {
                     self.trigger("doReplace");
+                })
+                .on("click", "#replace-batch", function (e) {
+                    self.trigger("doReplaceBatch");
                 })
                 .on("click", "#replace-all", function (e) {
                     self.trigger("doReplaceAll");
@@ -377,6 +461,41 @@ define(function (require, exports, module) {
         // Set up the initial UI state.
         this._updateSearchBarFromPrefs();
         this.focusQuery();
+    };
+
+    /**
+     * @private
+     * Shows the search History in dropdown.
+     */
+    FindBar.prototype.showSearchHints = function () {
+        var self = this;
+        var searchFieldInput = self.$("#find-what");
+        this.searchField = new QuickSearchField(searchFieldInput, {
+            verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
+            maxResults: 20,
+            firstHighlightIndex: null,
+            resultProvider: function (query) {
+                var asyncResult = new $.Deferred();
+                asyncResult.resolve(PreferencesManager.getViewState("searchHistory"));
+                return asyncResult.promise();
+            },
+            formatter: function (item, query) {
+                return "<li>" + item + "</li>";
+            },
+            onCommit: function (selectedItem, query) {
+                if (selectedItem) {
+                    self.$("#find-what").val(selectedItem);
+                    self.trigger("queryChange");
+                } else if (query.length) {
+                    self.searchField.setText(query);
+                }
+                self.$("#find-what").focus();
+                $(".quick-search-container").hide();
+            },
+            onHighlight: function (selectedItem, query, explicit) {},
+            highlightZeroResults: false
+        });
+        this.searchField.setText(searchFieldInput.val());
     };
 
     /**
@@ -515,7 +634,7 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.enableReplace = function (enable) {
         if (this.isEnabled) {
-            this.$("#replace-yes, #replace-all").prop("disabled", !enable);
+            this.$("#replace-yes, #replace-batch, #replace-all").prop("disabled", !enable);
         }
     };
 
@@ -562,6 +681,21 @@ define(function (require, exports, module) {
         this.trigger("doFind");
     };
 
+    /*
+     * Returns the string used to prepopulate the find bar
+     * @param {!Editor} editor
+     * @return {string} first line of primary selection to populate the find bar
+     */
+    FindBar._getInitialQueryFromSelection = function(editor) {
+        var selectionText = editor.getSelectedText();
+        if (selectionText) {
+            return selectionText
+                .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                .split("\n")[0];
+        }
+        return "";
+    };
+
     /**
      * Gets you the right query and replace text to prepopulate the Find Bar.
      * @static
@@ -570,39 +704,28 @@ define(function (require, exports, module) {
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
-        var query = lastTypedText,
+        var query,
+            selection = FindBar._getInitialQueryFromSelection(editor),
             replaceText = "";
-
-        /*
-         * Returns the string used to prepopulate the find bar
-         * @param {!Editor} editor
-         * @return {string} first line of primary selection to populate the find bar
-         */
-        function getInitialQueryFromSelection(editor) {
-            var selectionText = editor.getSelectedText();
-            if (selectionText) {
-                return selectionText
-                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
-                    .split("\n")[0];
-            }
-            return "";
-        }
 
         if (currentFindBar && !currentFindBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            query = currentFindBar.getQueryInfo().query;
+            var queryInfo = currentFindBar.getQueryInfo();
+            query = (!queryInfo.isRegexp && selection) || queryInfo.query;
             replaceText = currentFindBar.getReplaceText();
         } else {
-            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
+            var openedFindBar = FindBar._bars && _.find(FindBar._bars,
+                function (bar) {
                     return !bar.isClosed();
-                });
+                }
+            );
 
             if (openedFindBar) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = getInitialQueryFromSelection(editor) || lastTypedText;
+                query = (!lastTypedTextWasRegexp && selection) || lastQueriedText || lastTypedText;
             }
         }
 
@@ -611,7 +734,10 @@ define(function (require, exports, module) {
 
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
-    PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
+    PreferencesManager.stateManager.definePreference("searchHistory", "array", []);
+    PreferencesManager.definePreference("maxSearchHistory", "number", 10, {
+        description: Strings.FIND_HISTORY_MAX_COUNT
+    });
 
     exports.FindBar = FindBar;
 });

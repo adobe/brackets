@@ -1,0 +1,231 @@
+/*
+ * Copyright (c) 2018 - present Adobe Systems Incorporated. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+/*Status bar*/
+#update-status {
+    position: relative;
+    float: right;
+    padding: 0px 20px;
+    height: 25px;
+    min-width: 9%;
+    width: auto;
+    text-align: center;
+}
+
+#update-status p {
+    position: relative;
+    display: none;
+    white-space: nowrap;
+    font-family: 'SourceSansPro';
+}
+
+/*Update Bar*/
+#update-bar {
+    display: block;
+    background-color: #105F9C;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.53);
+    height: 38px;
+    width: 100%;
+    position: absolute;
+    z-index: 15;
+    left: 0px;
+    bottom: 25px;
+    outline: none;
+	overflow: hidden;
+}
+
+#update-bar #icon-container {
+    width: auto;
+    height: auto;
+    padding: 11px;
+    float: left;
+}
+#update-bar #icon-container #update-icon {
+    background: url("../images/info.svg") no-repeat 0 0;
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+#update-bar #content-container {
+    padding: 10px 7px;
+    float: left;
+    max-width: 78%;
+}
+
+#update-bar #content-container #update-content {
+    margin: 0px !important; /*Check if this important is necessary*/
+    line-height: 18px;
+    font-size: 14px;
+    font-family: 'SourceSansPro';
+    color: #FFFFFF;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#update-bar #content-container #update-content #heading{
+    font-weight: bold;
+}
+/*For focussed link of brackets.io*/
+#update-bar #content-container #update-content #description a:focus{
+    box-shadow: none;
+}
+
+#update-bar #content-container #update-content #description a{
+    text-decoration: underline;
+	color: #FFFFFF;
+}
+
+#update-bar #button-container {
+    display: block;
+	float: right;
+	right: 40px;
+	position: fixed;
+	background-color: #105F9C;
+	min-width: 180px;
+}
+
+#update-bar #close-icon-container {
+    height: auto;
+    padding: 9px;
+    position: fixed;
+    float: right;
+    text-align: center;
+    width: auto;
+	min-width: 66px;
+	right: 30px;
+	background-color: #105F9C;
+}
+
+#update-bar #close-icon-container #close-icon {
+    display: block;
+    color: white;
+    font-size: 18px;
+    line-height: 18px;
+    text-decoration: none;
+    width: 18px;
+    height: 18px;
+    background-color: transparent;
+    border: none;
+    padding: 0px; /*This is needed to center the icon*/
+	float: right;
+}
+
+#update-bar #close-icon-container #close-icon:hover {
+    background-color: rgba(255, 255, 255 ,0.16);
+    border-radius: 50%;    
+}
+
+#update-bar #close-icon-container #close-icon:focus {
+    background-color: rgba(255, 255, 255 ,0.16);
+    border-radius: 50%;
+    border: 1px solid #C3E3FF;
+    outline: 0;
+}
+
+#update-bar #close-icon-container #close-icon:focus:active {
+    background-color: rgba(255, 255, 255 ,0.32);  
+    border: none;
+}
+
+.update-btn {
+    width: auto;
+    height: 28px;
+    position: relative;
+    float: right;
+    padding: 4px 15px;
+    border: 1px solid #EAEAEA;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'SourceSansPro';
+    color: #E6E6E6;
+    margin-top: 5px;
+    margin-right: 10px;
+    background-color: transparent;
+}
+
+.update-btn:hover {
+    border-color: #C9C9C9;
+    background-color: #EAEAEA;
+    color: #202020;
+}
+
+.update-btn:focus:active {
+    border: 1px solid #B5B5B5;
+    background-color: #CCCCCC;
+    color: #202020;
+    padding: 4px 15px;
+    box-shadow: none;
+}
+
+.update-btn:focus {
+    border: 2px solid #C3E3FF;
+    background-color: #EAEAEA;
+    color: #202020;
+    box-shadow: 0px 3px 6px rgba(148, 206, 255, 0.23);
+    padding: 3px 14px;
+}
+
+/*Warning Message in Update Bar*/
+#update-bar.warning, #update-bar.warning #close-icon-container {
+    background-color: #DA7A12;
+}
+
+.dark #update-bar.warning, .dark #update-bar.warning #close-icon-container {
+    background-color: #E6851A;
+}
+
+#update-bar.warning #icon-container #update-icon,
+#update-bar.error #icon-container #update-icon {
+    background: url("../images/alert.svg") no-repeat 0 0;
+}
+
+/*Error message in Update Bar*/
+#update-bar.error, #update-bar.error #close-icon-container {
+    background-color: #D7373F;
+}
+
+.dark #update-bar.error, .dark #update-bar.error #close-icon-container{
+    background-color: #E4484F;
+}
+/*Success message in Update Bar*/
+#update-bar.success, #update-bar.success #close-icon-container {
+    background-color: #278E6B;
+}
+
+.dark #update-bar.success, .dark #update-bar.success #close-icon-container {
+    background-color: #2E9D77;
+}
+
+#update-bar.success #icon-container #update-icon{
+    background: url("../images/checkmarkcircle.svg") no-repeat 0 0;
+}
+
+
+/*Overrides*/
+
+#status-indicators {
+    position: relative;
+    float: right;
+}

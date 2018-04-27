@@ -80,6 +80,39 @@ define(function (require, exports, module) {
             }
         });
 
+        // Helper functions for testing cursor position / selection range
+        function fixPos(pos) {
+            if (!("sticky" in pos)) {
+                pos.sticky = null;
+            }
+            return pos;
+        }
+        function fixSel(sel) {
+            fixPos(sel.start);
+            fixPos(sel.end);
+            if (!("reversed" in sel)) {
+                sel.reversed = false;
+            }
+            return sel;
+        }
+        function fixSels(sels) {
+            sels.forEach(function (sel) {
+                fixSel(sel);
+            });
+            return sels;
+        }
+        function expectCursorAt(pos) {
+            var selection = myEditor.getSelection();
+            expect(selection.start).toEqual(selection.end);
+            expect(fixPos(selection.start)).toEqual(fixPos(pos));
+        }
+        function expectSelection(sel) {
+            expect(fixSel(myEditor.getSelection())).toEqual(fixSel(sel));
+        }
+        function expectSelections(sels) {
+            expect(fixSels(myEditor.getSelections())).toEqual(fixSels(sels));
+        }
+
         describe("Editor wrapper", function () {
             beforeEach(function () {
                 createTestEditor(defaultContent, "");
@@ -100,8 +133,10 @@ define(function (require, exports, module) {
                     changeFired = true;
                     expect(doc).toBe(myDocument);
                     expect(changeList.length).toBe(1);
-                    expect(changeList[0].from).toEqual({line: 0, ch: 0});
-                    expect(changeList[0].to).toEqual({line: 1, ch: 0});
+                    expect(changeList[0].from.line).toEqual(0);
+                    expect(changeList[0].from.ch).toEqual(0);
+                    expect(changeList[0].to.line).toEqual(1);
+                    expect(changeList[0].to.ch).toEqual(0);
                     expect(changeList[0].text).toEqual(["new content"]);
                 }
                 myDocument.on("change", changeHandler);
@@ -123,11 +158,15 @@ define(function (require, exports, module) {
                 var args = changeHandler.mostRecentCall.args;
                 expect(args[1]).toBe(myDocument);
                 expect(args[2][0].text).toEqual(["inserted"]);
-                expect(args[2][0].from).toEqual({line: 1, ch: 0});
-                expect(args[2][0].to).toEqual({line: 1, ch: 0});
+                expect(args[2][0].from.line).toEqual(1);
+                expect(args[2][0].from.ch).toEqual(0);
+                expect(args[2][0].to.line).toEqual(1);
+                expect(args[2][0].to.ch).toEqual(0);
                 expect(args[2][1].text).toEqual([""]);
-                expect(args[2][1].from).toEqual({line: 0, ch: 0});
-                expect(args[2][1].to).toEqual({line: 0, ch: 4});
+                expect(args[2][1].from.line).toEqual(0);
+                expect(args[2][1].from.ch).toEqual(0);
+                expect(args[2][1].to.line).toEqual(0);
+                expect(args[2][1].to.ch).toEqual(4);
             });
 
             it("should set mode based on Document language", function () {
@@ -382,20 +421,30 @@ define(function (require, exports, module) {
             describe("getCursorPos", function () {
                 it("should return a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
-                    expect(myEditor.getCursorPos()).toEqual({line: 0, ch: 2});
-                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 0, ch: 2});
-                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 0, ch: 2});
-                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 0, ch: 2});
-                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 2});
+                    expect(myEditor.getCursorPos().line).toEqual(0);
+                    expect(myEditor.getCursorPos().ch).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "start").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "start").ch).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "anchor").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "anchor").ch).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "end").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "end").ch).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "head").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "head").ch).toEqual(2);
                 });
 
                 it("should return the correct ends of a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
-                    expect(myEditor.getCursorPos()).toEqual({line: 0, ch: 5});
-                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 0, ch: 1});
-                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 0, ch: 1});
-                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 0, ch: 5});
-                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 5});
+                    expect(myEditor.getCursorPos().line).toEqual(0);
+                    expect(myEditor.getCursorPos().ch).toEqual(5);
+                    expect(myEditor.getCursorPos(false, "start").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "start").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "anchor").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "anchor").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "end").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "end").ch).toEqual(5);
+                    expect(myEditor.getCursorPos(false, "head").line).toEqual(0);
+                    expect(myEditor.getCursorPos(false, "head").ch).toEqual(5);
                 });
 
                 it("should return the default primary cursor in a multiple cursor selection", function () {
@@ -403,11 +452,16 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 2);
-                    expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos().line).toEqual(2);
+                    expect(myEditor.getCursorPos().ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "start").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "start").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "anchor").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "anchor").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "end").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "end").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "head").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "head").ch).toEqual(1);
                 });
 
                 it("should return the specific primary cursor in a multiple cursor selection", function () {
@@ -415,11 +469,16 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 1);
-                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos().line).toEqual(1);
+                    expect(myEditor.getCursorPos().ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "start").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "start").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "anchor").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "anchor").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "end").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "end").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "head").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "head").ch).toEqual(1);
                 });
 
                 it("should return the correct ends of the default primary selection in a multiple selection", function () {
@@ -427,11 +486,16 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 2);
-                    expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 4});
-                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 2, ch: 4});
-                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 4});
+                    expect(myEditor.getCursorPos().line).toEqual(2);
+                    expect(myEditor.getCursorPos().ch).toEqual(4);
+                    expect(myEditor.getCursorPos(false, "start").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "start").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "anchor").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "anchor").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "end").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "end").ch).toEqual(4);
+                    expect(myEditor.getCursorPos(false, "head").line).toEqual(2);
+                    expect(myEditor.getCursorPos(false, "head").ch).toEqual(4);
                 });
 
                 it("should return the correct ends of a specific primary selection in a multiple selection", function () {
@@ -439,11 +503,16 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 1);
-                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 4});
-                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 1, ch: 4});
-                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 4});
+                    expect(myEditor.getCursorPos().line).toEqual(1);
+                    expect(myEditor.getCursorPos().ch).toEqual(4);
+                    expect(myEditor.getCursorPos(false, "start").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "start").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "anchor").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "anchor").ch).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "end").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "end").ch).toEqual(4);
+                    expect(myEditor.getCursorPos(false, "head").line).toEqual(1);
+                    expect(myEditor.getCursorPos(false, "head").ch).toEqual(4);
                 });
             });
 
@@ -451,13 +520,15 @@ define(function (require, exports, module) {
                 it("should replace an existing single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     myEditor.setCursorPos(1, 3);
-                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(myEditor.getCursorPos().line).toEqual(1);
+                    expect(myEditor.getCursorPos().ch).toEqual(3);
                 });
 
                 it("should replace an existing single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     myEditor.setCursorPos(1, 3);
-                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(myEditor.getCursorPos().line).toEqual(1);
+                    expect(myEditor.getCursorPos().ch).toEqual(3);
                 });
 
                 it("should replace existing multiple cursors", function () {
@@ -466,7 +537,8 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 2);
                     myEditor.setCursorPos(1, 3);
-                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(myEditor.getCursorPos().line).toEqual(1);
+                    expect(myEditor.getCursorPos().ch).toEqual(3);
                 });
 
                 it("should replace existing multiple selections", function () {
@@ -475,34 +547,35 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 2);
                     myEditor.setCursorPos(1, 3);
-                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                    expect(myEditor.getCursorPos().line).toEqual(1);
+                    expect(myEditor.getCursorPos().ch).toEqual(3);
                 });
             });
 
             describe("getSelection", function () {
                 it("should return a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false});
+                    expectSelection({start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false});
                 });
 
                 it("should return a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false});
                 });
 
                 it("should return a multiline selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 1, ch: 3});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: false});
+                    expectSelection({start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: false});
                 });
 
                 it("should return a single selection in the proper order when reversed", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 0, ch: 1});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true});
+                    expectSelection({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true});
                 });
 
                 it("should return a multiline selection in the proper order when reversed", function () {
                     myEditor._codeMirror.setSelection({line: 1, ch: 3}, {line: 0, ch: 5});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true});
+                    expectSelection({start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true});
                 });
 
                 it("should return the default primary cursor in a multiple cursor selection", function () {
@@ -510,7 +583,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 2);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false});
+                    expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false});
                 });
 
                 it("should return the specific primary cursor in a multiple cursor selection", function () {
@@ -518,7 +591,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 1);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false});
                 });
 
                 it("should return the default primary selection in a multiple selection", function () {
@@ -526,7 +599,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 2);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false});
+                    expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false});
                 });
 
                 it("should return the default primary selection in the proper order when reversed", function () {
@@ -534,7 +607,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
                                                        ], 2);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true});
+                    expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true});
                 });
 
                 it("should return the specific primary selection in a multiple selection", function () {
@@ -542,7 +615,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 1);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
                 });
 
                 it("should return the specific primary selection in the proper order when reversed", function () {
@@ -550,7 +623,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 4}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 1);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: true});
+                    expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: true});
                 });
 
             });
@@ -558,17 +631,17 @@ define(function (require, exports, module) {
             describe("getSelections", function () {
                 it("should return a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false, primary: true}]);
+                    expectSelections([{start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false, primary: true}]);
                 });
 
                 it("should return a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false, primary: true}]);
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false, primary: true}]);
                 });
 
                 it("should properly reverse a single selection whose head is before its anchor", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 0, ch: 1});
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true, primary: true}]);
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true, primary: true}]);
                 });
 
                 it("should return multiple cursors", function () {
@@ -576,7 +649,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 2);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 1}, reversed: false, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 1}, reversed: false, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false, primary: true}
                                                        ]);
@@ -587,7 +660,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 2);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: false, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false, primary: true}
                                                        ]);
@@ -598,7 +671,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
                                                        ], 2);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: true, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: true, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true, primary: true}
                                                        ]);
@@ -608,7 +681,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 1, ch: 3}, head: {line: 0, ch: 5}},
                                                         {anchor: {line: 4, ch: 4}, head: {line: 3, ch: 1}}
                                                        ], 1);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true, primary: false},
+                    expectSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true, primary: false},
                                                         {start: {line: 3, ch: 1}, end: {line: 4, ch: 4}, reversed: true, primary: true}
                                                        ]);
                 });
@@ -659,18 +732,18 @@ define(function (require, exports, module) {
                 it("should replace an existing single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace an existing single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should allow implicit end", function () {
                     myEditor.setSelection({line: 1, ch: 3});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
                 });
 
                 it("should replace existing multiple cursors", function () {
@@ -679,7 +752,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace existing multiple selections", function () {
@@ -688,7 +761,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
             });
 
@@ -697,18 +770,18 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setCursor(0, 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace an existing single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace existing multiple cursors", function () {
@@ -718,9 +791,9 @@ define(function (require, exports, module) {
                                                        ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace existing multiple selections", function () {
@@ -730,32 +803,32 @@ define(function (require, exports, module) {
                                                        ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should specify non-default primary selection", function () {
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, primary: true},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: true},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: true},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: false}]);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false});
+                    expectSelection({start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false});
                 });
 
                 it("should sort and merge overlapping selections", function () {
                     myEditor.setSelections([{start: {line: 2, ch: 4}, end: {line: 3, ch: 0}},
                                             {start: {line: 2, ch: 3}, end: {line: 2, ch: 6}},
                                             {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}}]);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: true},
+                    expectSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: true},
                                             {start: {line: 2, ch: 3}, end: {line: 3, ch: 0}, reversed: false, primary: false}]);
-                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
+                    expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
                 });
 
                 it("should properly set reversed selections", function () {
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true, primary: false},
+                    expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true, primary: false},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
 
                 });
@@ -766,8 +839,10 @@ define(function (require, exports, module) {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(1);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
@@ -776,8 +851,10 @@ define(function (require, exports, module) {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 8}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(1);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
@@ -786,8 +863,10 @@ define(function (require, exports, module) {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 1, ch: 8}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(2);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
@@ -796,8 +875,10 @@ define(function (require, exports, module) {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 8}, reversed: true}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(1);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
@@ -806,8 +887,10 @@ define(function (require, exports, module) {
                     var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(1);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
@@ -816,8 +899,10 @@ define(function (require, exports, module) {
                     var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true});
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(2);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
@@ -829,20 +914,28 @@ define(function (require, exports, module) {
                                           {start: {line: 7, ch: 0}, end: {line: 8, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(4);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(1);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
-                    expect(result[1].selectionForEdit.start).toEqual({line: 2, ch: 0});
-                    expect(result[1].selectionForEdit.end).toEqual({line: 3, ch: 0});
+                    expect(result[1].selectionForEdit.start.line).toEqual(2);
+                    expect(result[1].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[1].selectionForEdit.end.line).toEqual(3);
+                    expect(result[1].selectionForEdit.end.ch).toEqual(0);
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[1]);
-                    expect(result[2].selectionForEdit.start).toEqual({line: 4, ch: 0});
-                    expect(result[2].selectionForEdit.end).toEqual({line: 6, ch: 0});
+                    expect(result[2].selectionForEdit.start.line).toEqual(4);
+                    expect(result[2].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[2].selectionForEdit.end.line).toEqual(6);
+                    expect(result[2].selectionForEdit.end.ch).toEqual(0);
                     expect(result[2].selectionsToTrack.length).toBe(1);
                     expect(result[2].selectionsToTrack[0]).toEqual(origSelections[2]);
-                    expect(result[3].selectionForEdit.start).toEqual({line: 7, ch: 0});
-                    expect(result[3].selectionForEdit.end).toEqual({line: 8, ch: 0}); // not expanded since expandEndAtStartOfLine is false
+                    expect(result[3].selectionForEdit.start.line).toEqual(7);
+                    expect(result[3].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[3].selectionForEdit.end.line).toEqual(8);
+                    expect(result[3].selectionForEdit.end.ch).toEqual(0); // not expanded since expandEndAtStartOfLine is false
                     expect(result[3].selectionsToTrack.length).toBe(1);
                     expect(result[3].selectionsToTrack[0]).toEqual(origSelections[3]);
                 });
@@ -853,13 +946,17 @@ define(function (require, exports, module) {
                                           {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(2);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(2);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(2);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
-                    expect(result[1].selectionForEdit.start).toEqual({line: 4, ch: 0});
-                    expect(result[1].selectionForEdit.end).toEqual({line: 5, ch: 0});
+                    expect(result[1].selectionForEdit.start.line).toEqual(4);
+                    expect(result[1].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[1].selectionForEdit.end.line).toEqual(5);
+                    expect(result[1].selectionForEdit.end.ch).toEqual(0);
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[2]);
                 });
@@ -870,13 +967,17 @@ define(function (require, exports, module) {
                                           {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(2);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(2);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(2);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
-                    expect(result[1].selectionForEdit.start).toEqual({line: 4, ch: 0});
-                    expect(result[1].selectionForEdit.end).toEqual({line: 5, ch: 0});
+                    expect(result[1].selectionForEdit.start.line).toEqual(4);
+                    expect(result[1].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[1].selectionForEdit.end.line).toEqual(5);
+                    expect(result[1].selectionForEdit.end.ch).toEqual(0);
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[2]);
                 });
@@ -886,8 +987,10 @@ define(function (require, exports, module) {
                                           {start: {line: 1, ch: 8}, end: {line: 2, ch: 8}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 3, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(3);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(2);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
@@ -899,16 +1002,22 @@ define(function (require, exports, module) {
                                           {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {mergeAdjacent: false});
                     expect(result.length).toBe(3);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(1);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
-                    expect(result[1].selectionForEdit.start).toEqual({line: 1, ch: 0});
-                    expect(result[1].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[1].selectionForEdit.start.line).toEqual(1);
+                    expect(result[1].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[1].selectionForEdit.end.line).toEqual(2);
+                    expect(result[1].selectionForEdit.end.ch).toEqual(0);
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[1]);
-                    expect(result[2].selectionForEdit.start).toEqual({line: 4, ch: 0});
-                    expect(result[2].selectionForEdit.end).toEqual({line: 5, ch: 0}); // not expanded since expandEndAtStartOfLine not set
+                    expect(result[2].selectionForEdit.start.line).toEqual(4);
+                    expect(result[2].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[2].selectionForEdit.end.line).toEqual(5);
+                    expect(result[2].selectionForEdit.end.ch).toEqual(0); // not expanded since expandEndAtStartOfLine not set
                     expect(result[2].selectionsToTrack.length).toBe(1);
                     expect(result[2].selectionsToTrack[0]).toEqual(origSelections[2]);
                 });
@@ -918,8 +1027,10 @@ define(function (require, exports, module) {
                                           {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true});
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 4, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(4);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(2);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
@@ -932,12 +1043,16 @@ define(function (require, exports, module) {
                                           {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true, mergeAdjacent: false});
                     expect(result.length).toBe(2);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(2);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
-                    expect(result[1].selectionForEdit.start).toEqual({line: 2, ch: 0});
-                    expect(result[1].selectionForEdit.end).toEqual({line: 4, ch: 0});
+                    expect(result[1].selectionForEdit.start.line).toEqual(2);
+                    expect(result[1].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[1].selectionForEdit.end.line).toEqual(4);
+                    expect(result[1].selectionForEdit.end.ch).toEqual(0);
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[1]);
                 });
@@ -948,8 +1063,10 @@ define(function (require, exports, module) {
                                           {start: {line: 2, ch: 8}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
-                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
-                    expect(result[0].selectionForEdit.end).toEqual({line: 5, ch: 0});
+                    expect(result[0].selectionForEdit.start.line).toEqual(0);
+                    expect(result[0].selectionForEdit.start.ch).toEqual(0);
+                    expect(result[0].selectionForEdit.end.line).toEqual(5);
+                    expect(result[0].selectionForEdit.end.ch).toEqual(0);
                     expect(result[0].selectionsToTrack.length).toBe(3);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
@@ -979,9 +1096,9 @@ define(function (require, exports, module) {
                 myEditor._handleSoftTabNavigation(dir, command);
 
                 if (Array.isArray(expectedSel)) {
-                    expect(myEditor.getSelections()).toEqual(expectedSel);
+                    expectSelections(expectedSel);
                 } else {
-                    expect(myEditor.getCursorPos()).toEqual(expectedSel);
+                    expectCursorAt(expectedSel);
                 }
                 expect(myEditor.document.getText()).toEqual(expectedText);
             }
@@ -1373,7 +1490,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
+                expectSelection({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "        ";
@@ -1389,7 +1506,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
+                expectSelection({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "\t\t";
@@ -1405,7 +1522,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
+                expectSelection({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
 
                 expect(myEditor.document.getText()).toEqual(content);
             });
@@ -1419,7 +1536,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
+                expectSelection({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
                 expect(myEditor.document.getText()).toEqual(content);
             });
 
@@ -1432,7 +1549,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setCursorPos({line: 2, ch: 12});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 16}, end: {line: 2, ch: 16}, reversed: false});
+                expectSelection({start: {line: 2, ch: 16}, end: {line: 2, ch: 16}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "    " + lines[2];
@@ -1449,7 +1566,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setCursorPos({line: 2, ch: 3});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: false});
+                expectSelection({start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "\t" + lines[2];
@@ -1466,7 +1583,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setCursorPos({line: 2, ch: 2});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
+                expectSelection({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "        indentme();";
@@ -1482,7 +1599,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
+                expectSelection({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "\t\tindentme();";
@@ -1498,7 +1615,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setCursorPos({line: 1, ch: 8});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 12}, end: {line: 1, ch: 12}, reversed: false});
+                expectSelection({start: {line: 1, ch: 12}, end: {line: 1, ch: 12}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[1] = "            if (bar) {";
@@ -1514,7 +1631,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setCursorPos({line: 1, ch: 2});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
+                expectSelection({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[1] = "\t\t\tif (bar) {";
@@ -1530,7 +1647,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setCursorPos({line: 2, ch: 4});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
+                expectSelection({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
                 expect(myEditor.document.getText()).toEqual(content);
             });
 
@@ -1543,7 +1660,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setCursorPos({line: 2, ch: 1});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
+                expectSelection({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
                 expect(myEditor.document.getText()).toEqual(content);
             });
 
@@ -1556,7 +1673,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setCursorPos({line: 2, ch: 8});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, reversed: false});
+                expectSelection({start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "            indentme();";
@@ -1572,7 +1689,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setCursorPos({line: 2, ch: 2});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, reversed: false});
+                expectSelection({start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "\t\t\tindentme();";
@@ -1589,7 +1706,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setSelection({line: 1, ch: 6}, {line: 3, ch: 3});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 10}, end: {line: 3, ch: 8}, reversed: false});
+                expectSelection({start: {line: 1, ch: 10}, end: {line: 3, ch: 8}, reversed: false});
 
                 var lines = content.split("\n");
                 for (i = 1; i <= 3; i++) {
@@ -1608,7 +1725,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 1});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 0}, end: {line: 3, ch: 2}, reversed: false});
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 2}, reversed: false});
 
                 var lines = content.split("\n");
                 for (i = 1; i <= 3; i++) {
@@ -1626,7 +1743,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setSelection({line: 2, ch: 9}, {line: 2, ch: 9}); // should add three spaces to get to column 12
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, reversed: false});
+                expectSelection({start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "    inden   tme();";
@@ -1642,7 +1759,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 5});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 6}, end: {line: 2, ch: 6}, reversed: false});
+                expectSelection({start: {line: 2, ch: 6}, end: {line: 2, ch: 6}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "\tinde\tntme();";
@@ -1658,7 +1775,7 @@ define(function (require, exports, module) {
                 makeEditor(content);
                 myEditor.setSelection({line: 2, ch: 9}, {line: 2, ch: 14}); // should add three spaces to get to column 12
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 12}, end: {line: 2, ch: 17}, reversed: false});
+                expectSelection({start: {line: 2, ch: 12}, end: {line: 2, ch: 17}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "    inden   tme();";
@@ -1674,7 +1791,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 8});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 6}, end: {line: 2, ch: 9}, reversed: false});
+                expectSelection({start: {line: 2, ch: 6}, end: {line: 2, ch: 9}, reversed: false});
 
                 var lines = content.split("\n");
                 lines[2] = "\tinde\tntme();";
@@ -1700,7 +1817,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: true},
                                             {start: {line: 2, ch: 6}, end: {line: 3, ch: 3}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 13}, end: {line: 0, ch: 13}, primary: true, reversed: false},
+                    expectSelections([{start: {line: 0, ch: 13}, end: {line: 0, ch: 13}, primary: true, reversed: false},
                                                               {start: {line: 2, ch: 10}, end: {line: 3, ch: 8}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1720,7 +1837,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: true},
                                             {start: {line: 2, ch: 3}, end: {line: 3, ch: 1}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 7}, end: {line: 0, ch: 7}, primary: true, reversed: false},
+                    expectSelections([{start: {line: 0, ch: 7}, end: {line: 0, ch: 7}, primary: true, reversed: false},
                                                               {start: {line: 2, ch: 4}, end: {line: 3, ch: 2}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1741,7 +1858,7 @@ define(function (require, exports, module) {
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
                                             {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
                                                               {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false},
                                                               {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, primary: true, reversed: false}]);
 
@@ -1763,7 +1880,7 @@ define(function (require, exports, module) {
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
                                             {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
                                                               {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}, primary: false, reversed: false},
                                                               {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
 
@@ -1785,7 +1902,7 @@ define(function (require, exports, module) {
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
                                             {start: {line: 3, ch: 2}, end: {line: 3, ch: 4}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
                                                               {start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, primary: false, reversed: false},
                                                               {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, primary: true, reversed: false}]);
 
@@ -1807,7 +1924,7 @@ define(function (require, exports, module) {
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
                                             {start: {line: 3, ch: 1}, end: {line: 3, ch: 2}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
                                                               {start: {line: 2, ch: 7}, end: {line: 2, ch: 10}, primary: false, reversed: false},
                                                               {start: {line: 3, ch: 2}, end: {line: 3, ch: 3}, primary: true, reversed: false}]);
 
@@ -1828,7 +1945,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true}, // should not move
                                             {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]); // should get indented and move
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: true, reversed: false},
+                    expectSelections([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: true, reversed: false},
                                                               {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1847,7 +1964,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true}, // should not move
                                             {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}}]); // should get indented and move
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
+                    expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
                                                               {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1866,7 +1983,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true}, // should not move
                                             {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]); // should get indented and move
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true, reversed: false},
+                    expectSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true, reversed: false},
                                                               {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1884,7 +2001,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true}, // should not move
                                             {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}]); // should get indented and move
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true, reversed: false},
+                    expectSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true, reversed: false},
                                                               {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1902,7 +2019,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
                                             {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
+                    expectSelections([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
                                                               {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1921,7 +2038,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                             {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]);
                     myEditor._handleTabKey();
-                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                    expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
                                                               {start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
@@ -1929,6 +2046,84 @@ define(function (require, exports, module) {
                     lines[2] = "\t\t\tindentme();";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
+            });
+        });
+        
+        describe("Gutter APIs", function () {
+            var leftGutter = "left",
+                rightGutter = "right",
+                lineNumberGutter = "CodeMirror-linenumbers";
+                
+            beforeEach(function () {
+                createTestEditor(defaultContent, "javascript");
+                Editor.registerGutter(leftGutter, 1);
+                Editor.registerGutter(rightGutter, 101);
+            });
+            
+            afterEach(function () {
+                var nonLineNumberGutters = Editor.getRegisteredGutters().map(function (gutter) {
+                    return gutter.name;
+                });
+                nonLineNumberGutters.forEach(function (gutter) {
+                    if (gutter !== lineNumberGutter) {
+                        Editor.unregisterGutter(gutter);
+                    }
+                });
+            });
+            
+            it("should register multiple gutters in the correct order", function () {
+                var expectedGutters = [leftGutter, lineNumberGutter, rightGutter];
+                var gutters  = myEditor._codeMirror.getOption("gutters");
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
+                    return gutter.name;
+                });
+                expect(gutters).toEqual(expectedGutters);
+                expect(registeredGutters).toEqual(expectedGutters);
+            });
+            
+            it("should return gutters registered with the same priority in insertion order", function () {
+                var secondRightGutter = "second-right";
+                Editor.registerGutter(secondRightGutter, 101);
+                var expectedGutters = [leftGutter, lineNumberGutter, rightGutter, secondRightGutter];
+                var gutters  = myEditor._codeMirror.getOption("gutters");
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
+                    return gutter.name;
+                });
+                expect(gutters).toEqual(expectedGutters);
+                expect(registeredGutters).toEqual(expectedGutters);
+            });
+            
+            it("should have only gutters registered with the intended languageIds ", function () {
+                var lessOnlyGutter = "less-only-gutter";
+                Editor.registerGutter(lessOnlyGutter, 101, ["less"]);
+                var expectedGutters = [leftGutter, lineNumberGutter, rightGutter];
+                var expectedRegisteredGutters = [leftGutter, lineNumberGutter, rightGutter, lessOnlyGutter];
+                var gutters  = myEditor._codeMirror.getOption("gutters");
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
+                    return gutter.name;
+                });
+                expect(gutters).toEqual(expectedGutters);
+                expect(registeredGutters).toEqual(expectedRegisteredGutters);
+            });
+            
+            it("should unregister gutters correctly", function () {
+                Editor.unregisterGutter(leftGutter);
+                Editor.unregisterGutter(rightGutter);
+                Editor.registerGutter(leftGutter, 1);
+                var expectedGutters = [leftGutter, lineNumberGutter];
+                var gutters  = myEditor._codeMirror.getOption("gutters");
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
+                    return gutter.name;
+                });
+                expect(gutters).toEqual(expectedGutters);
+                expect(registeredGutters).toEqual(expectedGutters);
+            });
+            
+            it("should set gutter marker correctly", function () {
+                var marker = window.document.createElement("div");
+                myEditor.setGutterMarker(1, leftGutter, marker);
+                var lineInfo = myEditor._codeMirror.lineInfo(1);
+                expect(lineInfo.gutterMarkers[leftGutter], marker);
             });
         });
     });

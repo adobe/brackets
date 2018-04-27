@@ -93,6 +93,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager"),
+        ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings");
 
 
@@ -332,11 +333,13 @@ define(function (require, exports, module) {
             // use existing document
             return new $.Deferred().resolve(doc).promise();
         } else {
+            var result = new $.Deferred(),
+                promise = result.promise();
 
-            // Should never get here if the fullPath refers to an Untitled document
+            // return null in case of untitled documents
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
-                return new $.Deferred().reject().promise();
+                result.resolve(null);
+                return promise;
             }
 
             var file            = FileSystem.getFileForPath(fullPath),
@@ -346,9 +349,6 @@ define(function (require, exports, module) {
                 // wait for the result of a previous request
                 return pendingPromise;
             } else {
-                var result = new $.Deferred(),
-                    promise = result.promise();
-
                 // log this document's Promise as pending
                 getDocumentForPath._pendingDocumentPromises[file.id] = promise;
 
@@ -387,7 +387,7 @@ define(function (require, exports, module) {
      * Document promises that are waiting to be resolved. It is possible for multiple clients
      * to request the same document simultaneously before the initial request has completed.
      * In particular, this happens at app startup where the working set is created and the
-     * intial active document is opened in an editor. This is essential to ensure that only
+     * initial active document is opened in an editor. This is essential to ensure that only
      * one Document exists for any File.
      * @private
      * @type {Object.<string, $.Promise>}
@@ -420,7 +420,7 @@ define(function (require, exports, module) {
         if (doc) {
             result.resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
         } else {
-            file.read(function (err, contents, stat) {
+            file.read(function (err, contents, encoding, stat) {
                 if (err) {
                     result.reject(err);
                 } else {
@@ -498,6 +498,18 @@ define(function (require, exports, module) {
         //  the user to save any unsaved changes and then calls us back
         //  via notifyFileDeleted
         FileSyncManager.syncOpenDocuments(Strings.FILE_DELETED_TITLE);
+
+        var projectRoot = ProjectManager.getProjectRoot(),
+            context = {
+                location : {
+                    scope: "user",
+                    layer: "project",
+                    layerID: projectRoot.fullPath
+                }
+            };
+        var encoding = PreferencesManager.getViewState("encoding", context);
+        delete encoding[fullPath];
+        PreferencesManager.setViewState("encoding", encoding, context);
 
         if (!getOpenDocumentForPath(fullPath) &&
                 !MainViewManager.findInAllWorkingSets(fullPath).length) {
@@ -612,28 +624,6 @@ define(function (require, exports, module) {
             exports.trigger("documentSaved", doc);
         });
 
-    /**
-     * @private
-     * Examine each preference key for migration of the working set files.
-     * If the key has a prefix of "files_/", then it is a working set files
-     * preference from old preference model.
-     *
-     * @param {string} key The key of the preference to be examined
-     *      for migration of working set files.
-     * @return {?string} - the scope to which the preference is to be migrated
-     */
-    function _checkPreferencePrefix(key) {
-        var pathPrefix = "files_";
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "files_".
-            var projectPath = key.substr(pathPrefix.length);
-            return "user project.files " + projectPath;
-        }
-
-        return null;
-    }
-
-
     // Set up event dispatch
     EventDispatcher.makeEventDispatcher(exports);
 
@@ -671,9 +661,6 @@ define(function (require, exports, module) {
         _proxyDeprecatedEvent("workingSetRemoveList");
         _proxyDeprecatedEvent("workingSetSort");
     });
-
-
-    PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
 
     // Handle file saves that may affect preferences
     exports.on("documentSaved", function (e, doc) {

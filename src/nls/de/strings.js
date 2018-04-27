@@ -129,6 +129,7 @@ define({
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
     "CONFIRM_DELETE_TITLE"              : "Löschen bestätigen",
+    "CONFIRM_FILE_DELETE"               : "Sind Sie sich sicher, dass Sie die Datei <span class='dialog-filename'>{0}</span> löschen wollen?",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
@@ -151,8 +152,10 @@ define({
     "FIND_MATCH_INDEX"                  : "{0} von {1}",
     "FIND_NO_RESULTS"                   : "Keine Ergebnisse",
     "FIND_QUERY_PLACEHOLDER"            : "Suchen\u2026",
+    "FIND_HISTORY_MAX_COUNT"            : "Höchstzahl an Ergebnissen im Suchverlauf",
     "REPLACE_PLACEHOLDER"               : "Ersetzen mit\u2026",
-    "BUTTON_REPLACE_ALL"                : "Mehrere\u2026",
+    "BUTTON_REPLACE_ALL"                : "Alle ersetzen",
+    "BUTTON_REPLACE_BATCH"              : "Mehrere\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Ersetzen\u2026",
     "BUTTON_REPLACE"                    : "Ersetzen",
     "BUTTON_NEXT"                       : "\u25B6",
@@ -208,6 +211,7 @@ define({
     "FILE_FILTER_DIALOG"                : "Filter bearbeiten",
     "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Platzhalter</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
     "FILTER_NAME_PLACEHOLDER"           : "Benenne diesen Filter (optional)",
+    "FILTER_NAME_REMAINING"             : "Noch {0} Zeichen",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
     "FILTER_COUNTING_FILES"             : "Dateien werden gezählt\u2026",
     "FILTER_FILE_COUNT"                 : "Lässt {0} von {1} Dateien {2} zu",
@@ -417,6 +421,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Im Explorer anzeigen",
     "CMD_SHOW_IN_FINDER"                  : "Im Finder anzeigen",
     "CMD_SHOW_IN_OS"                      : "Im Dateisystem anzeigen",
+    "CMD_SWITCH_PANE_FOCUS"               : "In andere Ansicht wechseln",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -450,7 +455,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Gemacht mit \u2764 und JavaScript von:",
     "ABOUT_TEXT_LINE6"                     : "…vielen Leuten (…leider haben wir aber gerade Probleme, diese Daten zu laden).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform-Dokumente und das grafische Logo von Web Platform sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_MDN_DOCS"                  : "MDN-Dokumente und das grafische Logo von MDN sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier sind einige der neuen Funktionen:",
@@ -500,15 +505,18 @@ define({
     "INSTALL_CANCELED"                     : "Installation abgebrochen.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Komplette Beschreibung anzeigen",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Gekürzte Beschreibung anzeigen",
+    "SORT_EXTENSION_METHOD"                : "Erweiterungen nach Downloadzahl oder Veröffentlichungsdatum sortieren",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Der heruntergeladene Inhalt ist keine gültige ZIP-Datei.",
-    "INVALID_PACKAGE_JSON"                 : "Die JSON-Paketdatei ist ungültig (Fehler: {0}).",
-    "MISSING_PACKAGE_NAME"                 : "Die JSON-Paketdatei hat kein definierten Paketnamen.",
+    "MISSING_PACKAGE_JSON"                 : "Die package.json-Datei ist nicht vorhanden.",
+    "INVALID_PACKAGE_JSON"                 : "Die package.json-Datei ist ungültig (Fehler: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Die package.json-Datei hat keinen definierten Paketnamen.",
     "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
-    "MISSING_PACKAGE_VERSION"              : "Die JSON-Paketdatei hat keine definierte Paketversion.",
+    "MISSING_PACKAGE_VERSION"              : "Die package.json-Datein hat keine definierte Paketversion.",
     "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
     "INVALID_BRACKETS_VERSION"             : "Die {APP_NAME}-Kompatibilitäts-Zeichenkette ({0}) ist ungültig.",
     "DISALLOWED_WORDS"                     : "Die Wörter ({1}) sind im Feld {0} nicht erlaubt.",
+    "NPM_INSTALL_FAILED"                   : "Der Befehl 'npm install' ist fehlgeschlagen: {0}",
     "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von {APP_NAME} kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
     "EXTENSION_ALREADY_INSTALLED"          : "Durch die Installation dieses Pakets wird eine zuvor installierte Erweiterung überschrieben. Alte Erweiterung überschreiben?",
@@ -572,9 +580,12 @@ define({
     "NO_EXTENSION_MATCHES"                 : "Keine Erweiterungen passen auf Ihre Suchanfrage.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "ACHTUNG: Diese Erweiterungen stammen nicht unbedingt von den Machern von {APP_NAME}. Erweiterungen werden nicht überprüft und haben uneingeschränkte lokale Rechte. Seien Sie vorsichtig, wenn Sie Erweiterungen aus unbekannter Quelle installieren.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installiert",
+    "EXTENSIONS_DEFAULT_TITLE"             : "Standard",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Verfügbar",
     "EXTENSIONS_THEMES_TITLE"              : "Designs",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+    "EXTENSIONS_LAST_UPDATED"              : "Zuletzt aktualisiert",
+    "EXTENSIONS_DOWNLOADS"                 : "Downloads",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Keine Ergebnisse verfügbar.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Alle Ergebnisse sind ausglendet. Klicken Sie auf die rechts gelisteten Dateien, um die dazugehörigen Ergebnisse anzuzeigen.",
@@ -642,6 +653,7 @@ define({
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa-Format",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex-Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
+    "COLOR_EDITOR_0X_BUTTON_TIP"                : "Hex-Format (0x)",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)",
 
@@ -661,7 +673,7 @@ define({
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
 
-    // extensions/default/WebPlatformDocs
+    // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen",
 
     // extensions/default/CodeFolding
@@ -693,6 +705,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mindestzahl an Zeilen, bevor eine einklappbare Folding-Markierung erscheint",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "Aktiviert das Speichern der eingeklappten Abschnitte",
     "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "Aktiviert das Einklappen von ausgewähltem Text",
+    "DESCRIPTION_DISABLED_DEFAULT_EXTENSIONS"        : "Standardmäßig installierte Erweiterungen, die deaktiviert sind",
     "DESCRIPTION_ATTR_HINTS"                         : "Aktiviert Code Hints für HTML-Attribute",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Aktiviert Code Hints für CSS/LESS/SCSS",
     "DESCRIPTION_JS_HINTS"                           : "Aktiviert Code Hints für JavaScript",
@@ -742,6 +755,8 @@ define({
     "DESCRIPTION_LANGUAGE"                           : "Sprachspezifische Einstellungen",
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Zusätzliche Zuordnungen von Dateierweiterung zu Programmiersprache",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Zusätzliche Zuordnungen von Dateiname zu Programmiersprache",
+    "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Kopieren und Ausschneiden ohne Auswahl kopiert alle Zeilen mit Cursor bzw. schneidet diese aus",
+    "DESCRIPTION_INPUT_STYLE"                        : "Die Art, wie CodeMirror mit Eingaben und Auswahlen umgeht. Kann 'textarea' (Standard) oder 'contenteditable' sein, wobei letzteres besser für Screenreader geeignet ist",
     "DESCRIPTION_LINTING_ENABLED"                    : "Aktiviert Linten beim Speichern",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "Die Zeitbegrenzung in Millisekunden, nach der asynchrone Linter gestoppt werden",
     "DESCRIPTION_LINTING_PREFER"                     : "Array der Linter, die als erstes ausgeführt werden",
@@ -786,7 +801,9 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "Aktiviert den Ablenkungsfreien Modus, bei dem alle UI-Elemente außer dem Code ausgeblendet werden",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "Aktiviert das Einrücken von Zeilenkommentaren",
-    "DESCRIPTION_RECENT_FILES_NAV"                   : "Aktiviert das Navigieren durch kürzlich verwendete Dateien"
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Aktiviert das Navigieren durch kürzlich verwendete Dateien",
+    "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Der Port, der für den WebSocket-Server der Live-Vorschau genutzt wird",
+    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live-Vorschau Highlight-Einstellungen"
 });
 
-/* Last translated for 96f34a04b0cb3226fff29ae43bc3bc07bedc2d16 */
+/* Last translated for ae015b5be491e1d97d86b1f7f4fd352157063110 */

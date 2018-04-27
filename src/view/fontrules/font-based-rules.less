@@ -1,0 +1,41 @@
+@basefontsize: 16;
+
+/* mixin for converting EM to PX */
+.emtoPx( @emvalue ) when (isem( @emvalue)) {
+    @return: (unit(@emvalue) * @basefontsize) + 0px;
+}
+
+/* mixin for passthrough other units */
+.emtoPx( @emvalue ) when (isem(@emvalue) = false) {
+    @return: @emvalue;
+}
+
+@fontsizeparam : {font-size-param};
+
+@value: return;
+.emtoPx(@fontsizeparam);
+@fontsize: @@value;
+
+@defaultfontsize : 12px;
+@maxvisibleitems: 8;
+@lineheightoffset: 5px/@defaultfontsize;
+@defaultmenuwidth: 300px/@defaultfontsize;
+
+@lineheight: @fontsize +  @fontsize * @lineheightoffset;
+
+.CodeMirror {
+    font-size: @fontsize !important;
+}
+
+.codehint-menu .dropdown-menu li a, .inlinemenu-menu .dropdown-menu li a {
+    font-size: @fontsize !important;
+    line-height: @lineheight  !important;
+}
+
+span.brackets-js-hints-with-type-details {
+    width: @defaultmenuwidth * @fontsize !important;
+}
+
+.codehint-menu .dropdown-menu, .inlinemenu-menu .dropdown-menu {
+    max-height: @maxvisibleitems * @lineheight !important;
+}

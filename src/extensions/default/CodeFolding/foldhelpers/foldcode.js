@@ -35,7 +35,7 @@ define(function (require, exports, module) {
                 lastMark,
                 foldMarks;
             for (i = 0; i < marks.length; ++i) {
-                if (marks[i].__isFold) {
+                if (marks[i].__isFold && force !== "fold") {
                     if (!allowFolded) {
                         return null;
                     }
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                 keys.forEach(function (lineNumber) {
                     lineNumber = +lineNumber;
                     if (lineNumber >= cm.firstLine() && lineNumber <= cm.lastLine()) {
-                        range = rf(cm, CodeMirror.Pos(lineNumber));
+                        range = rf(cm, CodeMirror.Pos(lineNumber, 0));
                         cachedRange = folds[lineNumber];
                         if (range && cachedRange && range.from.line === cachedRange.from.line &&
                                 range.to.line === cachedRange.to.line) {

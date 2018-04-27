@@ -40,7 +40,7 @@ define(function (require, exports, module) {
     var enabled = brackets && !!brackets.app.getElapsedMilliseconds;
 
     /**
-     * Peformance data is stored in this hash object. The key is the name of the
+     * Performance data is stored in this hash object. The key is the name of the
      * test (passed to markStart/addMeasurement), and the value is the time, in
      * milliseconds, that it took to run the test. If multiple runs of the same test
      * are made, the value is an Array with each run stored as an entry in the Array.

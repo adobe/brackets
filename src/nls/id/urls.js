@@ -24,5 +24,5 @@
 define({
     // Relative to the samples folder
     "GETTING_STARTED"           : "id/Memulai",
-    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.id"
+    "MDN_DOCS_LICENSE" : "http://creativecommons.org/licenses/by-sa/2.5/deed.id"
 });

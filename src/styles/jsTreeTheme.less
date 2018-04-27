@@ -26,13 +26,13 @@
 /* (these are based on jsTree's default theme .css file, so they are not very LESS-like) */
 @li-min-height: 23px;
 
-.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; }
+.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; z-index:1; }
 .jstree li { display:block; min-height:@li-min-height; line-height:16px; white-space:nowrap; min-width:18px; }
 .jstree-rtl li { margin-left:0; margin-right:18px; }
 .jstree > ul > li { margin-left:0; }
 .jstree-rtl > ul > li { margin-right:0; }
 .jstree ins { display:inline-block; text-decoration:none; width:18px; height:18px; margin:0 0 0 0; padding:0; }
-.jstree a:focus { outline: none; }
+.jstree a:focus { outline: none; box-shadow: none; color: @project-panel-text-1; }
 .jstree a > ins { height:16px; width:16px; }
 .jstree a > .jstree-icon { margin-right:3px; }
 .jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; }
@@ -49,6 +49,10 @@ li.jstree-closed > ul { display:none; }
 
 .jstree-brackets li a:hover {
     text-decoration: none;
+}
+
+.jstree-draggedOver {
+    background-color: @bc-sidebar-selection !important;
 }
 
 @jstree-icon-backindent: 12px;

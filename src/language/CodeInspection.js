@@ -80,11 +80,6 @@ define(function (require, exports, module) {
 
     var prefs = PreferencesManager.getExtensionPrefs("linting");
 
-    PreferencesManager.convertPreferences(module, {
-        "enabled": "user linting.enabled",
-        "collapsed": "user linting.collapsed"
-    });
-
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.
@@ -162,16 +157,13 @@ define(function (require, exports, module) {
     function getProvidersForPath(filePath) {
         var language            = LanguageManager.getLanguageForPath(filePath).getId(),
             context             = PreferencesManager._buildContext(filePath, language),
-            installedProviders  = _providers[language],
+            installedProviders  = getProvidersForLanguageId(language),
             preferredProviders,
 
             prefPreferredProviderNames  = prefs.get(PREF_PREFER_PROVIDERS, context),
             prefPreferredOnly           = prefs.get(PREF_PREFERRED_ONLY, context),
 
             providers;
-
-        // ensure there is an instance and that a copy is returned, always
-        installedProviders = (installedProviders && installedProviders.slice(0)) || [];
 
         if (prefPreferredProviderNames && prefPreferredProviderNames.length) {
             if (typeof prefPreferredProviderNames === "string") {
@@ -507,11 +499,32 @@ define(function (require, exports, module) {
     function register(languageId, provider) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
+        } else {
+            // Check if provider with same name exists for the given language
+            // If yes, remove the provider before inserting the most recently loaded one
+            var indexOfProvider = _.findIndex(_providers[languageId], function(entry) { return entry.name === provider.name; });
+            if (indexOfProvider !== -1) {
+                _providers[languageId].splice(indexOfProvider, 1);
+            }
         }
 
         _providers[languageId].push(provider);
 
         run();  // in case a file of this type is open currently
+    }
+
+    /**
+     * Returns a list of providers registered for given languageId through register function
+     */
+    function getProvidersForLanguageId(languageId) {
+        var result = [];
+        if (_providers[languageId]) {
+            result = result.concat(_providers[languageId]);
+        }
+        if (_providers['*']) {
+            result = result.concat(_providers['*']);
+        }
+        return result;
     }
 
     /**

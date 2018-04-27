@@ -116,7 +116,8 @@ define(function (require, exports, module) {
         ERR_TYPE_LOADING_PROJECT_NATIVE = 6,
         ERR_TYPE_MAX_FILES              = 7,
         ERR_TYPE_OPEN_DIALOG            = 8,
-        ERR_TYPE_INVALID_FILENAME       = 9;
+        ERR_TYPE_INVALID_FILENAME       = 9,
+        ERR_TYPE_MOVE                   = 10;
 
     /**
      * @private
@@ -129,8 +130,8 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Reference to the container of the React component. Everything in this
-     * node is managed by React.
+     * Reference to the container of the Preact component. Everything in this
+     * node is managed by Preact.
      * @type {Element}
      */
     var fileTreeViewContainer;
@@ -296,12 +297,12 @@ define(function (require, exports, module) {
     /**
      * See `ProjectModel.startRename`
      */
-    ActionCreator.prototype.startRename = function (path) {
+    ActionCreator.prototype.startRename = function (path, isMoved) {
         // This is very not Flux-like, which is a sign that Flux may not be the
         // right choice here *or* that this architecture needs to evolve subtly
         // in how errors are reported (more like the create case).
         // See #9284.
-        renameItemInline(path);
+        renameItemInline(path, isMoved);
     };
 
     /**
@@ -368,6 +369,44 @@ define(function (require, exports, module) {
         _saveTreeState();
     };
 
+    ActionCreator.prototype.dragItem = function (path) {
+        // Close open menus on drag and clear the context, but only if there's a menu open.
+        if ($(".dropdown.open").length > 0) {
+            Menus.closeAll();
+            this.setContext(null);
+        }
+
+        // Close directory, if dragged item is directory
+        if (_.last(path) === '/') {
+            this.setDirectoryOpen(path, false);
+        }
+    };
+
+    /**
+     * Moves the item in the oldPath to the newDirectory directory
+     */
+    ActionCreator.prototype.moveItem = function (oldPath, newDirectory) {
+        var fileName = FileUtils.getBaseName(oldPath),
+            newPath = newDirectory + fileName,
+            self = this;
+
+        // If item dropped onto itself or onto its parent directory, return
+        if (oldPath === newDirectory || FileUtils.getParentPath(oldPath) === newDirectory) {
+            return;
+        }
+
+        // Add trailing slash if directory is moved
+        if (_.last(oldPath) === '/') {
+            newPath = ProjectModel._ensureTrailingSlash(newPath);
+        }
+
+        this.startRename(oldPath, true);
+        this.setRenameValue(newPath);
+
+        this.performRename();
+        this.setDirectoryOpen(newDirectory, true);
+    };
+
     /**
      * See `ProjectModel.refresh`
      */
@@ -382,6 +421,15 @@ define(function (require, exports, module) {
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
+    
+    /**
+     * Returns the File or Directory corresponding to the item that was right-clicked on in the file tree menu.
+     * @return {?(File|Directory)}
+     */
+    function getFileTreeContext() {
+        var selectedEntry = model.getContext();
+        return selectedEntry;
+    }
 
     /**
      * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
@@ -391,8 +439,8 @@ define(function (require, exports, module) {
      * @return {?(File|Directory)}
      */
     function getSelectedItem() {
-        // Prefer file tree context, then selection, else use working set
-        var selectedEntry = model.getContext();
+        // Prefer file tree context, then file tree selection, else use working set
+        var selectedEntry = getFileTreeContext();
         if (!selectedEntry) {
             selectedEntry = model.getSelected();
         }
@@ -570,6 +618,10 @@ define(function (require, exports, module) {
         case ERR_TYPE_RENAME:
             title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
             message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+            break;
+        case ERR_TYPE_MOVE:
+            title = StringUtils.format(Strings.ERROR_MOVING_FILE_TITLE, titleType);
+            message = StringUtils.format(Strings.ERROR_MOVING_FILE, path, error, entryType);
             break;
         case ERR_TYPE_DELETE:
             title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
@@ -1063,7 +1115,10 @@ define(function (require, exports, module) {
         baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
-            return model.createAtPath(baseDir + initialName, isFolder);
+            if(isFolder) {
+                return model.createAtPath(baseDir + initialName + "/");
+            }
+            return model.createAtPath(baseDir + initialName);
         }
         return actionCreator.startCreating(baseDir, initialName, isFolder);
     }
@@ -1200,6 +1255,17 @@ define(function (require, exports, module) {
             forceFinishRename();
         });
 
+        $projectTreeContainer.on("dragover", function(e) {
+            e.preventDefault();
+        });
+
+        // Add support for moving items to root directory
+        $projectTreeContainer.on("drop", function(e) {
+            var data = JSON.parse(e.originalEvent.dataTransfer.getData("text"));
+            actionCreator.moveItem(data.path, getProjectRoot().fullPath);
+            e.stopPropagation();
+        });
+
         // When a context menu item is selected, we need to clear the context
         // because we don't get a beforeContextMenuClose event since Bootstrap
         // handles this directly.
@@ -1222,49 +1288,10 @@ define(function (require, exports, module) {
         ViewUtils.addScrollerShadow($projectTreeContainer[0]);
     });
 
-    /**
-     * @private
-     * Examine each preference key for migration of project tree states.
-     * If the key has a prefix of "projectTreeState_/", then it is a project tree states
-     * preference from old preference model.
-     *
-     * @param {string} key The key of the preference to be examined
-     *      for migration of project tree states.
-     * @return {?string} - the scope to which the preference is to be migrated
-     */
-    function _checkPreferencePrefix(key) {
-        var pathPrefix = "projectTreeState_",
-            projectPath;
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "projectTreeState_".
-            projectPath = key.substr(pathPrefix.length);
-            return "user project.treeState " + projectPath;
-        }
-
-        pathPrefix = "projectBaseUrl_";
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "projectBaseUrl_[Directory "
-            // and "]".
-            projectPath = key.substr(key.indexOf(" ") + 1);
-            projectPath = projectPath.substr(0, projectPath.length - 1);
-            return "user project.baseUrl " + projectPath;
-        }
-
-        return null;
-    }
-
-
     EventDispatcher.makeEventDispatcher(exports);
 
     // Init default project path to welcome project
     PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
-
-    PreferencesManager.convertPreferences(module, {
-        "projectPath": "user",
-        "projectTreeState_": "user",
-        "welcomeProjects": "user",
-        "projectBaseUrl_": "user"
-    }, true, _checkPreferencePrefix);
 
     exports.on("projectOpen", _reloadProjectPreferencesScope);
     exports.on("projectOpen", _saveProjectPath);
@@ -1303,12 +1330,13 @@ define(function (require, exports, module) {
      * The Promise returned is resolved with an object with a `newPath` property with the renamed path. If the user cancels the operation, the promise is resolved with the value RENAME_CANCELLED.
      *
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
+     * @param {boolean=} isMoved optional flag which indicates whether the entry is being moved instead of renamed
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    renameItemInline = function (entry) {
+    renameItemInline = function (entry, isMoved) {
         var d = new $.Deferred();
 
-        model.startRename(entry)
+        model.startRename(entry, isMoved)
             .done(function () {
                 d.resolve();
             })
@@ -1317,18 +1345,31 @@ define(function (require, exports, module) {
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    switch (errorInfo.type) {
-                    case ProjectModel.ERROR_INVALID_FILENAME:
-                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
-                        break;
-                    case FileSystemError.ALREADY_EXISTS:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
-                        break;
-                    case ProjectModel.ERROR_NOT_IN_PROJECT:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
-                        break;
-                    default:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                    if (isMoved) {
+                        switch (errorInfo.type) {
+                            case FileSystemError.ALREADY_EXISTS:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                                break;
+                            case ProjectModel.ERROR_NOT_IN_PROJECT:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.ERROR_MOVING_NOT_IN_PROJECT, errorInfo.fullPath);
+                                break;
+                            default:
+                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        }
+                    } else {
+                        switch (errorInfo.type) {
+                            case ProjectModel.ERROR_INVALID_FILENAME:
+                                _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
+                                break;
+                            case FileSystemError.ALREADY_EXISTS:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                                break;
+                            case ProjectModel.ERROR_NOT_IN_PROJECT:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
+                                break;
+                            default:
+                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        }
                     }
                 }, 10);
                 d.reject(errorInfo);
@@ -1385,11 +1426,11 @@ define(function (require, exports, module) {
      * Adds an icon provider. The callback is invoked before each tree item is rendered, and can
      * return content to prepend to the item.
      *
-     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|React.DOM.ins} callback
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|Preact.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
-     * Return a string of HTML text, a React.DOM.ins instance, a jQuery object, or a DOM node; or undefined
+     * Return a string of HTML text, a Preact.DOM.ins instance, a jQuery object, or a DOM node; or undefined
      * to prepend nothing.
      */
     function addIconProvider(callback) {
@@ -1435,6 +1476,7 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
     exports.openProject                   = openProject;
+    exports.getFileTreeContext            = getFileTreeContext;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
     exports.getInitialProjectPath         = getInitialProjectPath;

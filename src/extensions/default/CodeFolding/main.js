@@ -25,7 +25,7 @@
  * @author Patrick Oladimeji
  * @date 10/24/13 9:35:26 AM
  */
-
+ 
 define(function (require, exports, module) {
     "use strict";
 
@@ -47,6 +47,7 @@ define(function (require, exports, module) {
         EXPAND                  = "codefolding.expand",
         EXPAND_ALL              = "codefolding.expand.all",
         GUTTER_NAME             = "CodeMirror-foldgutter",
+        CODE_FOLDING_GUTTER_PRIORITY   = Editor.CODE_FOLDING_GUTTER_PRIORITY,
         codeFoldingMenuDivider  = "codefolding.divider",
         collapseKey             = "Ctrl-Alt-[",
         expandKey               = "Ctrl-Alt-]",
@@ -74,6 +75,8 @@ define(function (require, exports, module) {
 
     /** Set to true when init() has run; set back to false after deinit() has run */
     var _isInitialized = false;
+
+    /** Used to keep track of files for which line folds have been restored.*/
 
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
@@ -114,13 +117,19 @@ define(function (require, exports, module) {
         }
 
         var saveFolds = prefs.getSetting("saveFoldStates");
+        
         if (!editor || !saveFolds) {
+            if (editor) {
+                editor._codeMirror._lineFolds = editor._codeMirror._lineFolds || {};
+            }
             return;
         }
-        var viewState = ViewStateManager.getViewState(editor.document.file);
+                
         var cm = editor._codeMirror;
+        var viewState = ViewStateManager.getViewState(editor.document.file);
         var path = editor.document.file.fullPath;
-        var folds = cm._lineFolds || prefs.getFolds(path);
+        var folds = cm._lineFolds || prefs.getFolds(path) || {};
+        
         //separate out selection folds from non-selection folds
         var nonSelectionFolds = {}, selectionFolds = {}, range;
         Object.keys(folds).forEach(function (line) {
@@ -258,25 +267,27 @@ define(function (require, exports, module) {
         }
     }
 
+    function clearGutter(editor) {
+        var cm = editor._codeMirror;
+        var BLANK_GUTTER_CLASS = "CodeMirror-foldgutter-blank";
+        editor.clearGutter(GUTTER_NAME);
+        var blank = window.document.createElement("div");
+        blank.className = BLANK_GUTTER_CLASS;
+        var vp = cm.getViewport();
+        cm.operation(function () {
+            cm.eachLine(vp.from, vp.to, function (line) {
+                editor.setGutterMarker(line.lineNo(), GUTTER_NAME, blank);
+            });
+        });
+    }
+
     /**
-      * Initialises and creates the code-folding gutter.
+      * Renders and sets up event listeners the code-folding gutter.
       * @param {Editor} editor the editor on which to initialise the fold gutter
       */
-    function createGutter(editor) {
+    function setupGutterEventListeners(editor) {
         var cm = editor._codeMirror;
-        var path = editor.document.file.fullPath, _lineFolds = prefs.getFolds(path);
-        _lineFolds = _lineFolds || {};
-        cm._lineFolds = _lineFolds;
-        var gutters = cm.getOption("gutters").slice(0);
-
-        // Reuse any existing fold gutter
-        if (gutters.indexOf(GUTTER_NAME) < 0) {
-            var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
-            $(editor.getRootElement()).addClass("folding-enabled");
-            gutters.splice(lnIndex + 1, 0, GUTTER_NAME);
-            cm.setOption("gutters",  gutters);
-            cm.refresh();  // force recomputing gutter width - .folding-enabled class affects linenumbers gutter which has existing cached width
-        }
+        $(editor.getRootElement()).addClass("folding-enabled");
         cm.setOption("foldGutter", {onGutterClick: onGutterClick});
 
         $(cm.getGutterElement()).on({
@@ -289,7 +300,7 @@ define(function (require, exports, module) {
             },
             mouseleave: function () {
                 if (prefs.getSetting("hideUntilMouseover")) {
-                    foldGutter.clearGutter(cm);
+                    clearGutter(editor);
                 } else {
                     $(editor.getRootElement()).removeClass("over-gutter");
                 }
@@ -298,37 +309,34 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Remove the fold gutter for a given CodeMirror instance.
-     * @param {CodeMirror} cm the CodeMirror instance whose gutter should be removed
-     */
-    function removeGutter(editor) {
-        var cm = editor._codeMirror;
-        var gutters = cm.getOption("gutters").slice(0);
-        var index = gutters.indexOf(GUTTER_NAME);
+      * Remove the fold gutter for a given CodeMirror instance.
+      * @param {Editor} editor the editor instance whose gutter should be removed
+      */
+    function removeGutters(editor) {
+        Editor.unregisterGutter(GUTTER_NAME);
         $(editor.getRootElement()).removeClass("folding-enabled");
-        gutters.splice(index, 1);
-        cm.setOption("gutters",  gutters);
-        cm.refresh();  // force recomputing gutter width - .folding-enabled class affected linenumbers gutter
         CodeMirror.defineOption("foldGutter", false, null);
     }
 
-    /** Add gutter and restore saved expand/collapse state */
+    /**
+      * Add gutter and restore saved expand/collapse state.
+      * @param {Editor} editor the editor instance where gutter should be added.
+      */
     function enableFoldingInEditor(editor) {
-        if (editor._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
-            createGutter(editor);
-            restoreLineFolds(editor);
-        }
+        restoreLineFolds(editor);
+        setupGutterEventListeners(editor);
+        editor._codeMirror.refresh();
     }
 
     /**
-      * When a brand new editor is seen, initialise fold-gutter and restore line folds in it. Save line folds in
-      * departing editor in case it's getting closed.
+      * When a brand new editor is seen, initialise fold-gutter and restore line folds in it. 
+      * Save line folds in departing editor in case it's getting closed.
       * @param {object} event the event object
       * @param {Editor} current the current editor
       * @param {Editor} previous the previous editor
       */
     function onActiveEditorChanged(event, current, previous) {
-        if (current) {
+        if (current && !current._codeMirror._lineFolds) {
             enableFoldingInEditor(current);
         }
         if (previous) {
@@ -371,8 +379,8 @@ define(function (require, exports, module) {
         // Remove gutter & revert collapsed sections in all currently open editors
         Editor.forEveryEditor(function (editor) {
             CodeMirror.commands.unfoldAll(editor._codeMirror);
-            removeGutter(editor);
         });
+        removeGutters();
     }
 
     /**
@@ -420,6 +428,7 @@ define(function (require, exports, module) {
 
 
         // Add gutters & restore saved expand/collapse state in all currently open editors
+        Editor.registerGutter(GUTTER_NAME, CODE_FOLDING_GUTTER_PRIORITY);
         Editor.forEveryEditor(function (editor) {
             enableFoldingInEditor(editor);
         });

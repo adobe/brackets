@@ -45,13 +45,18 @@ define(function (require, exports, module) {
         return this.actual.functionName.trim() === expected;
     };
 
-    var simpleJsFileEntry   = FileSystem.getFileForPath(testPath + "/simple.js");
-    var trickyJsFileEntry   = FileSystem.getFileForPath(testPath + "/tricky.js");
-    var invalidJsFileEntry  = FileSystem.getFileForPath(testPath + "/invalid.js");
-    var jQueryJsFileEntry   = FileSystem.getFileForPath(testPath + "/jquery-1.7.js");
-    var braceEndJsFileEntry = FileSystem.getFileForPath(testPath + "/braceEnd.js");
-    var eofJsFileEntry      = FileSystem.getFileForPath(testPath + "/eof.js");
-    var eof2JsFileEntry     = FileSystem.getFileForPath(testPath + "/eof2.js");
+    var simpleJsFileEntry           = FileSystem.getFileForPath(testPath + "/simple.js");
+    var trickyJsFileEntry           = FileSystem.getFileForPath(testPath + "/tricky.js");
+    var invalidJsFileEntry          = FileSystem.getFileForPath(testPath + "/invalid.js");
+    var jQueryJsFileEntry           = FileSystem.getFileForPath(testPath + "/jquery-1.7.js");
+    var braceEndJsFileEntry         = FileSystem.getFileForPath(testPath + "/braceEnd.js");
+    var eofJsFileEntry              = FileSystem.getFileForPath(testPath + "/eof.js");
+    var eof2JsFileEntry             = FileSystem.getFileForPath(testPath + "/eof2.js");
+    var es6ClassesFileEntry         = FileSystem.getFileForPath(testPath + "/es6-classes.js");
+    var es6StaticsFileEntry         = FileSystem.getFileForPath(testPath + "/es6-static-methods.js");
+    var es6InheritanceFileEntry     = FileSystem.getFileForPath(testPath + "/es6-inheritance.js");
+    var es6GetterSetterFileEntry    = FileSystem.getFileForPath(testPath + "/es6-getter-setter.js");
+    var es6AsyncAndArrowFileEntry   = FileSystem.getFileForPath(testPath + "/es6-async-arrow.js");
 
     function init(spec, fileEntry) {
         if (fileEntry) {
@@ -110,6 +115,76 @@ define(function (require, exports, module) {
                 var result = JSUtils.findAllMatchingFunctionsInText(jsCode, functionName);
                 expect(result.length).toBe(0);
             }
+            
+            it("should return correct start and end line numbers for es6 class definitions and methods", function () {
+                runs(function () {
+                    doneLoading = false;
+                    init(this, es6ClassesFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "Shape", [ {start:  0, end:  9} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "constructor", [ {start:  1, end:  4} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "move", [ {start: 5, end: 8} ]);
+                });
+            });
+            
+            it("should return correct start and end line numbers for es6 static class methods", function () {
+                runs(function () {
+                    doneLoading = false;
+                    init(this, es6StaticsFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "Rectangle", [ {start:  0, end:  4} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "defaultRectangle", [ {start:  1, end:  3} ]);
+                });
+            });
+            
+            it("should return correct start and end line numbers for es6 class inheritance", function () {
+                runs(function () {
+                    doneLoading = false;
+                    init(this, es6InheritanceFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "Rectangle", [ {start:  0, end:  6} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "Circle", [ {start:  7, end:  12} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "constructor", [ {start:  1, end:  5}, {start:  8, end:  11} ]);
+                });
+            });
+            
+            it("should return correct start and end line numbers for es6 class members getters/setters", function () {
+                runs(function () {
+                    doneLoading = false;
+                    init(this, es6GetterSetterFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "Rectangle", [ {start:  0, end:  10} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "constructor", [ {start:  1, end:  4} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "width", [ {start:  5, end:  5}, {start:  6, end:  6} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "height", [ {start:  7, end:  7}, {start:  8, end:  8} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "area", [ {start:  9, end:  9} ]);
+                });
+            });
+            
+            it("should return correct start and end line numbers for es6 async and arrow function expressions", function () {
+                runs(function () {
+                    doneLoading = false;
+                    init(this, es6AsyncAndArrowFileEntry);
+                });
+                waitsFor(function () { return doneLoading; }, 1000);
+
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "bar", [ {start:  1, end:  1} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "fooAgain", [ {start:  3, end:  3} ]);
+                });
+            });
 
             it("should return correct start and end line numbers for simple functions", function () {
                 runs(function () {
@@ -178,25 +253,6 @@ define(function (require, exports, module) {
                     //expectFunctionRanges(this, this.fileJsContent, "functionX",   [ {start: 53, end: 55} ]);
                     expectFunctionRanges(this, this.fileJsContent, "my_function", [ {start: 56, end: 57} ]);
                     expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
-                });
-            });
-
-            it("should ignore identifiers with whitespace", function () {
-                runs(function () {
-                    doneLoading = false;
-                    init(this, simpleJsFileEntry);
-                });
-                waitsFor(function () { return doneLoading; }, 1000);
-
-                runs(function () {
-                    var negativeTests = ["invalid", "identifier", "invalid identifier"],
-                        result,
-                        content = this.fileJsContent;
-
-                    negativeTests.forEach(function (name) {
-                        result = JSUtils.findAllMatchingFunctionsInText(content, name);
-                        expect(result.length).toBe(0);
-                    });
                 });
             });
 

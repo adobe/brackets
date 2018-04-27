@@ -40,7 +40,7 @@
 
     <!-- Main UI: horizontal set of sidebar, main content vertical stack, and vertical toolbar -->
     <div class="main-view">
-        <div id="sidebar" class="sidebar panel quiet-scrollbars horz-resizable right-resizer collapsible" data-minsize="0" data-forceleft=".content">
+        <div id="sidebar" class="sidebar panel quiet-scrollbars horz-resizable right-resizer collapsible" data-minsize="0" data-maxsize="80%" data-forceleft=".content">
             <div class="working-set-splitview-btn btn-alt-quiet"></div>
             <div class="working-set-option-btn btn-alt-quiet"></div>
             
@@ -105,6 +105,9 @@
         <ul data-dropdown="dropdown"></ul>
     </div>
     <div id="codehint-menu-bar">
+        <ul data-dropdown="dropdown"></ul>
+    </div>
+    <div id="inlinemenu-menu-bar">
         <ul data-dropdown="dropdown"></ul>
     </div>
     <div id="hidden-editors"></div>
