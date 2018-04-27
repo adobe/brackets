@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         CommandManager       = brackets.getModule("command/CommandManager"),
         Menus                = brackets.getModule("command/Menus"),
         HealthLogger         = brackets.getModule("utils/HealthLogger"),
-        _                    = brackets.getModule("thirdparty/lodash");
+        _                    = brackets.getModule("thirdparty/lodash"),
+        EditorManager        = brackets.getModule("editor/EditorManager");
 
     var jsRefactoringEnabled     = true;
 
@@ -69,9 +70,9 @@ define(function (require, exports, module) {
     });
 
     function _handleRefactor(functionName) {
-        var eventName,
-            eventType = "";
-        switch(functionName) {
+        var eventName, eventType = "";
+        
+        switch (functionName) {
         case REFACTOR_RENAME:
             eventName = REFACTOR_RENAME;
             eventType = "rename";
@@ -109,13 +110,18 @@ define(function (require, exports, module) {
             break;
         }
         if (eventName) {
-            // Send analytics data for refactoring
+            var editor = EditorManager.getActiveEditor();
+        
+            // Logging should be done only when the context is javascript
+            if (!editor || editor.getModeForSelection() !== "javascript") {
+                return;
+            }
+            // Send analytics data for js refactoring
             HealthLogger.sendAnalyticsData(
                 eventName,
                 "usage",
                 "jsRefactor",
-                eventType,
-                ""
+                eventType
             );
         }
     }

@@ -108,8 +108,7 @@ define(function (require, exports, module) {
             "cssQuickDoc",
             "usage",
             "quickDoc",
-            "open",
-            ""
+            "open"
         );
 
         // Only provide docs if the selection is within a single line

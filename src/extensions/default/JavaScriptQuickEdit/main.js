@@ -202,8 +202,7 @@ define(function (require, exports, module) {
             "QuickEditOpen",
             "usage",
             "quickEdit",
-            "open",
-            ""
+            "open"
         );
         // Only provide JavaScript editor if the selection is within a single line
         var sel = hostEditor.getSelection();

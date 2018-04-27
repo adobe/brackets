@@ -97,7 +97,7 @@ define(function LiveDevelopment(require, exports, module) {
         UserServer           = require("LiveDevelopment/Servers/UserServer").UserServer,
         WebSocketTransport   = require("LiveDevelopment/transports/WebSocketTransport"),
         PreferencesManager   = require("preferences/PreferencesManager"),
-        HealthLogger         = brackets.getModule("utils/HealthLogger");
+        HealthLogger         = require("utils/HealthLogger");
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -1356,8 +1356,7 @@ define(function LiveDevelopment(require, exports, module) {
             "livePreviewOpen",
             "usage",
             "livePreview",
-            "open",
-            ""
+            "open"
         );
 
         // Register user defined server provider and keep handlers for further clean-up

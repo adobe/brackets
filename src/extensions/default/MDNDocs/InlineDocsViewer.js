@@ -198,15 +198,14 @@ define(function (require, exports, module) {
     /**
      * Send analytics data for Quick Doc "readMore" action
      *
-     * @return {type} [[Description]]
+     * @return {boolean} false
      */
     InlineDocsViewer.prototype._logAnalyticsData = function () {
         HealthLogger.sendAnalyticsData(
             "QuickDocReadMore",
             "usage",
             "quickDoc",
-            "readMore",
-            ""
+            "readMore"
         );
         return false;
     };

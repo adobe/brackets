@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         Strings                 = require("strings"),
         ViewUtils               = require("utils/ViewUtils"),
-        HealthLogger            = brackets.getModule("utils/HealthLogger"),
+        HealthLogger            = require("utils/HealthLogger"),
         _                       = require("thirdparty/lodash");
 
     var _newRuleCmd,
@@ -175,8 +175,7 @@ define(function (require, exports, module) {
             "QuickEditOpen",
             "usage",
             "quickEdit",
-            "open",
-            ""
+            "open"
         );
 
         // Only provide CSS editor if the selection is within a single line

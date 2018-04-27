@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         Commands             = require("command/Commands"),
         DocumentManager      = require("document/DocumentManager"),
         StringUtils          = require("utils/StringUtils"),
-        HealthLogger         = brackets.getModule("utils/HealthLogger");
+        HealthLogger         = require("utils/HealthLogger");
     
     var SupportedEncodingsText = require("text!supported-encodings.json"),
         SupportedEncodings = JSON.parse(SupportedEncodingsText);
@@ -180,8 +180,7 @@ define(function (require, exports, module) {
                 "multiCursor",
                 "usage",
                 "multiCursor",
-                "use",
-                ""
+                "use"
             );
             selStr = StringUtils.format(Strings.STATUSBAR_SELECTION_MULTIPLE, sels.length);
         } else if (editor.hasSelection()) {
