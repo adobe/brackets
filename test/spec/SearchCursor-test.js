@@ -37,8 +37,8 @@ define(function (require, exports, module) {
                          "        Bar = require(\"modules/Bar\"),\n" +
                          "        Baz = require(\"modules/Baz\");\n" +
                          "    \n" +
-                         "    function callFoo() {\n" +
-                         "        \n" +
+                         "    function callFoo() {\r\n" +
+                         "        \r\n" +
                          "        foo();\n" +
                          "        \n" +
                          "    }\n" +
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                     editor.document,
                     /(f)oo/,
                     {
-                    ignoreCase: true,
+                    ignoreCase: true
                     }
                 );
             });
@@ -175,7 +175,8 @@ define(function (require, exports, module) {
             });
 
             it("should count document characters", function () {
-                expect(cursor.getDocCharacterCount()).toEqual(defaultContent.length + 1);
+                //Since /r/n will be considered one character
+                expect(cursor.getDocCharacterCount()).toEqual((defaultContent.length + 1) - 2);
             });
 
             it("should provide full match info for current match", function () {
@@ -197,7 +198,7 @@ define(function (require, exports, module) {
                     editor.document,
                     /define[\s\S]*callFoo/,
                     {
-                    ignoreCase: true,
+                    ignoreCase: true
                     }
                 );
             });
@@ -220,6 +221,38 @@ define(function (require, exports, module) {
                     var start = cursor.indexFromPos(startPosition);
                     var end   = cursor.indexFromPos(endPosition);
                     expect(defaultContent.charAt(end) === '\n');
+                });
+            });
+        });
+        describe("searchWithMultiLineAndSingleLineResult", function () {
+            var cursor;
+            beforeEach(function () {
+                cursor = BracketsSearchCursor.createSearchCursor(
+                    editor.document,
+                    /foo[\s\S]*?foo/,
+                    {
+                    ignoreCase: true
+                    }
+                );
+            });
+
+            afterEach(function () {
+                cursor = null;
+            });
+            it("first match is not multiline and second match is multiline", function () {
+                var results = [];
+                cursor.forEachMatch(function (startPosition, endPosition) {
+                    results.push(startPosition);
+                    results.push(endPosition);
+                });
+                expect(results.length).toEqual(4);
+                expect(results).toEqual([ { line : 2, ch : 8 }, { line : 2, ch : 34 }, { line : 6, ch : 17 }, { line : 8, ch : 11 }]);
+            });
+            it("captured lines should contain carriage return and line feed", function () {
+                cursor.forEachMatch(function (startPosition, endPosition) {
+                    var start = cursor.indexFromPos(startPosition);
+                    var end   = cursor.indexFromPos(endPosition);
+                    expect(defaultContent.charAt(end) === '\r\n' );
                 });
             });
         });
