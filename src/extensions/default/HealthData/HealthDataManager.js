@@ -212,12 +212,14 @@ define(function (require, exports, module) {
     }
 
     // Send Analytics data to Server
-    function sendAnalyticsDataToServer(eventParams) {
+    function sendAnalyticsDataToServer(eventParams, serverUrl) {
         var result = new $.Deferred();
+
+        serverUrl = serverUrl || brackets.config.analyticsDataServerURL;
 
         var analyticsData = getAnalyticsData(eventParams);
         $.ajax({
-            url: brackets.config.analyticsDataServerURL,
+            url: serverUrl,
             type: "POST",
             data: JSON.stringify({events: [analyticsData]}),
             headers: {
@@ -306,11 +308,21 @@ define(function (require, exports, module) {
     function checkAnalyticsDataSend(event, Eventparams, forceSend) {
         var result         = new $.Deferred(),
             isHDTracking   = prefs.get("healthDataTracking"),
-            isEventDataAlreadySent;
+            isEventDataAlreadySent,
+            url = brackets.config.healthDataServerURL,
+            sendFailed = false;
 
         var options = {
             location: {
                 scope: "default"
+            }
+        };
+
+        var handleFail = function handleFail() {
+            if(sendFailed) {
+                PreferencesManager.setViewState(Eventparams.eventName, 0, options);
+            } else {
+                sendFailed = true;
             }
         };
 
@@ -319,12 +331,18 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState(Eventparams.eventName, 1, options);
             if (!isEventDataAlreadySent || forceSend) {
                 sendAnalyticsDataToServer(Eventparams)
-                    .done(function () {
-                        PreferencesManager.setViewState(Eventparams.eventName, 1, options);
-                        result.resolve();
-                    }).fail(function () {
-                        PreferencesManager.setViewState(Eventparams.eventName, 0, options);
-                        result.reject();
+                    .always(function () {
+                        sendAnalyticsDataToServer(Eventparams, url)
+                           .done(function () {
+                               result.resolve();
+                           })
+                           .fail(function () {
+                               handleFail();
+                               result.reject();
+                           });
+                    })
+                    .fail( function () {
+                        handleFail();
                     });
             } else {
                 result.reject();
