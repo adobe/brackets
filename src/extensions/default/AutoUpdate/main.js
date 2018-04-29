@@ -357,7 +357,10 @@ define(function (require, exports, module) {
                 };
 
                 if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
-                    setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber, initNodeFn);
+                    setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber)
+                        .done(function () {
+                            initNodeFn();
+                        });
                 } else {
                     initNodeFn();
                 }
@@ -554,21 +557,23 @@ define(function (require, exports, module) {
 
     /**
      * Sets the update state in updateHelper.json in Appdata
-     * @param {string} key   - key to be set
-     * @param {string} value  - value to be set
-     * @param {function} fn - the function
-     *                            to be called in case of
-     *                            successful setting of update state
+     * @param   {string} key   - key to be set
+     * @param   {string} value - value to be set
+     * @returns {$.Deferred} - a jquery promise, that is resolved with
+     *                       success or failure of state update in json file
      */
-    function setUpdateStateInJSON(key, value, fn) {
-        var func = fn || function () {};
+    function setUpdateStateInJSON(key, value) {
+         var result = $.Deferred();
+
         updateJsonHandler.set(key, value)
             .done(function () {
-                func();
+                result.resolve();
             })
             .fail(function () {
                 resetStateInFailure("AutoUpdate : Could not modify updatehelper.json");
+                result.reject();
             });
+        return result.promise();
     }
 
     /**
@@ -605,7 +610,10 @@ define(function (require, exports, module) {
 
             --downloadAttemptsRemaining;
         };
-        setUpdateStateInJSON('downloadCompleted', false, downloadFn);
+        setUpdateStateInJSON('downloadCompleted', false)
+            .done(function () {
+                downloadFn();
+            });
     }
 
     /**
@@ -784,7 +792,10 @@ define(function (require, exports, module) {
                 resetStateInFailure("AutoUpdate : setUpdateParams could not be found in shell");
             }
         };
-        setUpdateStateInJSON('updateInitiatedInPrevSession', true, updateFn);
+        setUpdateStateInJSON('updateInitiatedInPrevSession', true)
+            .done(function () {
+                updateFn();
+            });
     }
 
     /**
@@ -857,7 +868,10 @@ define(function (require, exports, module) {
                 );
             };
 
-            setUpdateStateInJSON('downloadCompleted', true, statusValidFn);
+            setUpdateStateInJSON('downloadCompleted', true)
+                .done(function () {
+                    statusValidFn();
+                });
         } else {
 
             // Installer validation failed
@@ -872,7 +886,10 @@ define(function (require, exports, module) {
                     getLatestInstaller();
                 };
 
-                setUpdateStateInJSON('downloadCompleted', false, statusInvalidFn);
+                setUpdateStateInJSON('downloadCompleted', false)
+                    .done(function () {
+                        statusInvalidFn();
+                    });
             } else {
 
                 // If this is a new download, prompt the message on update bar
