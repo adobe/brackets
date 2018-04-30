@@ -318,14 +318,6 @@ define(function (require, exports, module) {
             }
         };
 
-        var handleFail = function handleFail() {
-            if(sendFailed) {
-                PreferencesManager.setViewState(Eventparams.eventName, 0, options);
-            } else {
-                sendFailed = true;
-            }
-        };
-
         if (isHDTracking) {
             isEventDataAlreadySent = PreferencesManager.getViewState(Eventparams.eventName);
             PreferencesManager.setViewState(Eventparams.eventName, 1, options);
@@ -337,12 +329,20 @@ define(function (require, exports, module) {
                                result.resolve();
                            })
                            .fail(function () {
-                               handleFail();
+                               if(sendFailed) {
+                                   PreferencesManager.setViewState(Eventparams.eventName, 0, options);
+                               } else {
+                                   sendFailed = true;
+                               }
                                result.reject();
                            });
                     })
                     .fail( function () {
-                        handleFail();
+                        if(sendFailed) {
+                            PreferencesManager.setViewState(Eventparams.eventName, 0, options);
+                        } else {
+                            sendFailed = true;
+                        }
                     });
             } else {
                 result.reject();
