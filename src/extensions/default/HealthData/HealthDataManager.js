@@ -213,20 +213,27 @@ define(function (require, exports, module) {
 
     // Send Analytics data to Server
     function sendAnalyticsDataToServer(eventParams, serverUrl) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            url = serverUrl || brackets.config.analyticsDataServerURL;
 
-        serverUrl = serverUrl || brackets.config.analyticsDataServerURL;
+        var analyticsData = getAnalyticsData(eventParams),
+            ajaxParams = {
+                url: url,
+                type: "POST",
+                data: JSON.stringify({events: [analyticsData]})
+            };
 
-        var analyticsData = getAnalyticsData(eventParams);
-        $.ajax({
-            url: serverUrl,
-            type: "POST",
-            data: JSON.stringify({events: [analyticsData]}),
-            headers: {
+        if(serverUrl) {
+            ajaxParams.dataType = "text";
+            ajaxParams.contentType = "text/plain";
+        } else {
+            ajaxParams.headers =  {
                 "Content-Type": "application/json",
                 "x-api-key": brackets.config.serviceKey
-            }
-        })
+            };
+        }
+
+        $.ajax(ajaxParams)
             .done(function () {
                 result.resolve();
             })
