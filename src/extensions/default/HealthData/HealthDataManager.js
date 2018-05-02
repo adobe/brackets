@@ -211,10 +211,15 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    // Send Analytics data to Server
-    function sendAnalyticsDataToServer(eventParams, serverUrl) {
+    /**
+     * @param{Object} eventParams contails Event Data
+     * @param{String} healthDataUrl Optional if healthDataUrl is passed
+     * Analytics Data will be sent to health Data Server.
+     * return Promise Object which will be resolved when Data are succesfully sent to server
+     */
+    function sendAnalyticsDataToServer(eventParams, healthDataUrl) {
         var result = new $.Deferred(),
-            url = serverUrl || brackets.config.analyticsDataServerURL;
+            url = healthDataUrl || brackets.config.analyticsDataServerURL;
 
         var analyticsData = getAnalyticsData(eventParams),
             ajaxParams = {
@@ -223,7 +228,7 @@ define(function (require, exports, module) {
                 data: JSON.stringify({events: [analyticsData]})
             };
 
-        if(serverUrl) {
+        if (healthDataUrl) {
             ajaxParams.dataType = "text";
             ajaxParams.contentType = "text/plain";
         } else {
