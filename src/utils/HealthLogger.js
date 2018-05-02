@@ -239,17 +239,8 @@ define(function (require, exports, module) {
                 eventSubType: eventSubType || ""
             };
 
-            // remove this snchit
-
-            if(eventName === "UserClickUpdateNowInUpdateDialog"){
-                AdobeAnalytics.logToAdobeAnalytics();
-            } else {
-                AdobeAnalytics.logToAdobeAnalytics(eventParams);
-            }
-
-            //AdobeAnalytics.logToAdobeAnalytics();
+            AdobeAnalytics.logToAdobeAnalytics(eventParams);
             result.resolve();
-            //notifyHealthManagerToSendData(eventParams);
         }
     }
 

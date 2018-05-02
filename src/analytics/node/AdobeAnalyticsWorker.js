@@ -32,27 +32,53 @@ var fs                      = require("fs"),
     timeToBeReplacedRegex   = new RegExp(timeToBeReplaced, 'g'),
     defaultStartOfEventJson = "{\"events\": [",
     defaultEndOfEventJson   = "]}",
-    XMLHttpRequest          = require("xmlhttprequest").XMLHttpRequest,
-    xhr                     = new XMLHttpRequest();
+    XMLHttpRequest          = require("xmlhttprequest").XMLHttpRequest;
 
-process.on('message', function(dataToLog) {
+/**
+ Returns the current date in YYYY-MM-DD format
+ @return {string} YYYY-MM-DD
+*/
+function getCurrentDate() {
+    var d = new Date(),
+        month = (d.getMonth() + 1),
+        day = d.getDate(),
+        year = d.getFullYear();
 
-    var dataToWrite = JSON.parse(dataToLog);
-
-    sendOrSaveAnalyticsData(dataToWrite);
-});
-
-
-function sendOrSaveAnalyticsData(jsonDataToLog) {
-
-    if (jsonDataToLog.eventParams.eventCategory === "pingData") {
-        /* means this is a ping data which we receive every 24 hrs.
-            we should send all the data from the event file
-        */
-        sendAllEvents(jsonDataToLog);
-    }else {
-        rejectOrSaveEventToDisk(jsonDataToLog);
+    if (month.length < 2) {
+        month = '0' + month;
     }
+    if (day.length < 2) {
+        day = '0' + day;
+    }
+
+    return [year, month, day].join('-');
+}
+
+/**
+ *@param{Object} eventParams contails Event Data
+ * will return complete Analyics Data in Json Format
+ */
+function getAnalyticsData(dataToLog) {
+    return {
+        project: dataToLog.generics.project,
+        environment: dataToLog.generics.environment,
+        time: timeToBeReplaced,
+        ingesttype: "dunamis",
+        data: {
+            "event.guid": uuid.v4(),
+            "event.user_guid": dataToLog.generics.userGuid,
+            "event.dts_end": new Date().toISOString(),
+            "event.category": dataToLog.eventParams.eventCategory,
+            "event.subcategory": dataToLog.eventParams.eventSubCategory,
+            "event.type": dataToLog.eventParams.eventType,
+            "event.subtype": dataToLog.eventParams.eventSubType,
+            "event.user_agent": dataToLog.generics.userAgent,
+            "event.language": dataToLog.generics.language,
+            "source.name": dataToLog.generics.version,
+            "source.platform": dataToLog.generics.platform,
+            "source.version": dataToLog.generics.version
+        }
+    };
 }
 
 /*
@@ -61,52 +87,23 @@ function sendOrSaveAnalyticsData(jsonDataToLog) {
  * To ensure the event is sent only once perday we are saving eventName and Date in the map
 */
 
-function rejectOrSaveEventToDisk(jsonDataToLog) {
-    var eventKey = jsonDataToLog.eventParams.eventName + "_" + getCurrentDate();
+function rejectOrSaveEventToDisk(dataToLog) {
+    var eventKey = dataToLog.eventParams.eventName + "_" + getCurrentDate();
 
-    if(!(eventKey in savedEventMap)){
+    if (!(savedEventMap.hasOwnProperty(eventKey))) {
         savedEventMap[eventKey] = true;
-        var analyticsData = JSON.stringify(getAnalyticsData(jsonDataToLog)) + " , ";
-        //process.send(analyticsData);
-        fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, analyticsData, 'utf8');
+        var analyticsData = JSON.stringify(getAnalyticsData(dataToLog)) + " , ";
+        fs.appendFileSync(dataToLog.generics.unsentEventFileLocation, analyticsData, 'utf8');
     }
 }
 
-/*
- * Read the unsent file if exists add those to ping data and send as a single json request
- * If there is a failure scenario write the data back to disk
-*/
 
-function sendAllEvents(jsonDataToLog) {
+function sendData(dataToLog, dataToSend, content, analyticsData) {
+    var xhr = new XMLHttpRequest();
 
-    var analyticsData = JSON.stringify(getAnalyticsData(jsonDataToLog)),
-        dataToSend = "",
-        content = "";
-
-
-    if (fs.existsSync( jsonDataToLog.generics.unsentEventFileLocation )) {
-        content = fs.readFileSync(jsonDataToLog.generics.unsentEventFileLocation, "utf8").toString();
-        fs.unlinkSync(jsonDataToLog.generics.unsentEventFileLocation); // deleting the file immediately after read.
-        //changing date timestamp to time right now
-        dataToSend = (defaultStartOfEventJson + content + analyticsData + defaultEndOfEventJson).
-                            replace(timeToBeReplacedRegex, new Date().toISOString());
-    }else {
-        //changing date timestamp to time right now
-        dataToSend = (defaultStartOfEventJson + analyticsData + defaultEndOfEventJson).
-                            replace(timeToBeReplacedRegex, new Date().toISOString());
-    }
-    //process.send(dataToSend);
-    sendData(jsonDataToLog, dataToSend, analyticsData, content);
-}
-
-
-function sendData(jsonDataToLog, dataToSend, content, analyticsData) {
-
-    process.send(dataToSend);
-
-    xhr.open("POST", "https://cc-api-data-stage.adobe.io/ingest/", true);
+    xhr.open("POST", dataToLog.generics.ingestURL, true);
     xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.setRequestHeader("x-api-key", "brackets-service");
+    xhr.setRequestHeader("x-api-key", dataToLog.generics.ingestKey);
 
     xhr.onload = function (e) {
         if (xhr.readyState === 4) {
@@ -114,60 +111,62 @@ function sendData(jsonDataToLog, dataToSend, content, analyticsData) {
                 savedEventMap = {};
                 process.send("Data Sent");
             } else {
-                process.send("not200" + xhr.status);
-                fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
+                process.send("XHR failed with status" + xhr.status);
+                fs.appendFileSync(dataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
             }
-        }else {
+        } else {
             process.send("failed xhr");
-            fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
+            fs.appendFileSync(dataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
         }
     };
 
     xhr.onerror = function (e) {
         process.send("error" + xhr.statusText);
-        fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
+        fs.appendFileSync(dataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
     };
 
     xhr.send(dataToSend);
 }
 
 
-function getCurrentDate() {
-    var d = new Date(),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
+/*
+ * Read the unsent file if exists add those to ping data and send as a single json request
+ * If there is a failure scenario write the data back to disk
+*/
 
-    if (month.length < 2) { month = '0' + month; }
-    if (day.length < 2)  { day = '0' + day; }
+function sendAllEvents(dataToLog) {
 
-    return [year, month, day].join('-');
+    var analyticsData = JSON.stringify(getAnalyticsData(dataToLog)),
+        dataToSend = "",
+        content = "";
+
+    if (fs.existsSync(dataToLog.generics.unsentEventFileLocation)) {
+        content = fs.readFileSync(dataToLog.generics.unsentEventFileLocation, "utf8").toString();
+        fs.unlinkSync(dataToLog.generics.unsentEventFileLocation); // deleting the file immediately after read.
+        //changing date timestamp to time right now
+        dataToSend = (defaultStartOfEventJson + content + analyticsData + defaultEndOfEventJson).
+                            replace(timeToBeReplacedRegex, new Date().toISOString());
+    } else {
+        //changing date timestamp to time right now
+        dataToSend = (defaultStartOfEventJson + analyticsData + defaultEndOfEventJson).
+                            replace(timeToBeReplacedRegex, new Date().toISOString());
+    }
+    sendData(dataToLog, dataToSend, analyticsData, content);
 }
 
 
-/**
- *@param{Object} eventParams contails Event Data
- * will return complete Analyics Data in Json Format
- */
-function getAnalyticsData(jsonDataToLog) {
-    return {
-        project: jsonDataToLog.generics.project,
-        environment: jsonDataToLog.generics.environment,
-        time: timeToBeReplaced,
-        ingesttype: "dunamis",
-        data: {
-            "event.guid": uuid.v4(),
-            "event.user_guid": jsonDataToLog.generics.userGuid,
-            "event.dts_end": new Date().toISOString(),
-            "event.category": jsonDataToLog.eventParams.eventCategory,
-            "event.subcategory": jsonDataToLog.eventParams.eventSubCategory,
-            "event.type": jsonDataToLog.eventParams.eventType,
-            "event.subtype": jsonDataToLog.eventParams.eventSubType,
-            "event.user_agent": jsonDataToLog.generics.userAgent,
-            "event.language": jsonDataToLog.generics.language,
-            "source.name": jsonDataToLog.generics.version,
-            "source.platform": jsonDataToLog.generics.platform,
-            "source.version": jsonDataToLog.generics.version
-        }
-    };
+function sendOrSaveAnalyticsData(dataToLog) {
+
+    if (dataToLog.eventParams.eventCategory === "pingData") {
+        /* means this is a ping data which we receive every 24 hrs.
+            we should send all the data from the event file
+        */
+        sendAllEvents(dataToLog);
+    } else {
+        rejectOrSaveEventToDisk(dataToLog);
+    }
 }
+
+process.on('message', function (dataToLog) {
+    sendOrSaveAnalyticsData(JSON.parse(dataToLog));
+});

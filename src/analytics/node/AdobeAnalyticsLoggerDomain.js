@@ -33,13 +33,10 @@ var AdobeAnalyticsWorker = null;
 
 function aggregateLogs (dataToLog){
 
-    // Send child process some work
-    //console.log("inside aggregateLogs: " + JSON.stringify(dataToLog));
-    
     AdobeAnalyticsWorker.send(JSON.stringify(dataToLog));
-    AdobeAnalyticsWorker.on('message', function(m) {
-        console.log('received: ' + m);
-        return m;
+    AdobeAnalyticsWorker.on('message', function(returnMessage) {
+        console.log('received: ' + returnMessage);
+        return returnMessage;
     });
 }
 
