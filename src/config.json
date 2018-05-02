@@ -80,7 +80,6 @@
         "grunt-usemin": "0.1.11",
         "grunt-cleanempty": "1.0.3",
         "load-grunt-tasks": "3.5.0",
-        "moment": "2.20.1",
         "q": "1.4.1",
         "rewire": "1.1.2",
         "tar": "2.2.1",
