@@ -41,8 +41,6 @@ function aggregateLogs (dataToLog){
         console.log('received: ' + m);
         return m;
     });
-
-    console.log("hello analytics");
 }
 
 function init(domainManager) {

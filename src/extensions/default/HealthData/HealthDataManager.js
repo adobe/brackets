@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Strings             = brackets.getModule("strings"),
         HealthDataUtils     = require("HealthDataUtils"),
         uuid                = require("thirdparty/uuid"),
+        AdobeAnalytics      = brackets.getModule("analytics/AdobeAnalyticsLogger"),
         prefs               = PreferencesManager.getExtensionPrefs("healthData"),
         params              = new UrlParams(),
         ONE_MINUTE          = 60 * 1000,
@@ -219,6 +220,9 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         var unsentEventFileLocation = FileSystem.getFileForPath(brackets.app.getApplicationSupportDirectory() + "/unsentEventFile.txt");
 
+        AdobeAnalytics.logToAdobeAnalytics(eventParams);
+        //console.log(eventParams);
+
         if(window.navigator.onLine){
             sendAllEvents(unsentEventFileLocation, eventParams).done(function() {
                 result.resolve();
@@ -388,7 +392,7 @@ define(function (require, exports, module) {
                 // Bump up nextHealthDataSendTime at the begining of chaining to avoid any chance of sending data again before 24 hours, // e.g. if the server request fails or the code below crashes
                 PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
                 sendHealthDataToServer().always(function() {
-                    sendOrSaveAnalyticsData()
+                    AdobeAnalytics.logToAdobeAnalytics()
                     .done(function () {
                         // We have already sent the health data, so can clear all health data
                         // Logged till now

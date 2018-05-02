@@ -54,11 +54,13 @@
         "grunt-usemin": "0.1.11",
         "grunt-cleanempty": "1.0.3",
         "load-grunt-tasks": "3.5.0",
+        "moment": "2.20.1",
         "q": "1.4.1",
         "rewire": "1.1.2",
         "tar": "2.2.1",
         "webpack": "2.2.1",
         "xmldoc": "0.1.2",
+        "xmlhttprequest": "^1.7.0",
         "zlib": "1.0.5"
     },
     "scripts": {

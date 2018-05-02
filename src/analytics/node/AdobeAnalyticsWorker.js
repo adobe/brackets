@@ -25,10 +25,10 @@
 /*jslint node: true */
 /*global setImmediate */
 "use strict";
-var fs 					    = require("fs"),
+var fs                      = require("fs"),
     uuid                    = require("uuid").v4,
     savedEventMap           = {},
-    timeToBeReplaced 	    = "Snchit",
+    timeToBeReplaced        = "Snchit",
     timeToBeReplacedRegex   = new RegExp(timeToBeReplaced, 'g'),
     defaultStartOfEventJson = "{\"events\": [",
     defaultEndOfEventJson   = "]}",
@@ -39,99 +39,97 @@ process.on('message', function(dataToLog) {
 
     var dataToWrite = JSON.parse(dataToLog);
 
-    rejectOrSendOrSaveAnalyticsData(dataToWrite);
-
-    //results back to parent process
-    //process.send("Success");
+    sendOrSaveAnalyticsData(dataToWrite);
 });
 
 
-function rejectOrSendOrSaveAnalyticsData(jsonDataToLog) {
-
-    var unsentEventsFileLocation = jsonDataToLog.generics.unsentEventFileLocation;
-    // if file doesn't exist, write the json open array
-
-    if (!fs.existsSync( unsentEventsFileLocation )) {
-        process.send("File doesn't exist creating the file");
-        fs.writeFileSync(unsentEventsFileLocation, defaultStartOfEventJson, 'utf8');
-    }
+function sendOrSaveAnalyticsData(jsonDataToLog) {
 
     if (jsonDataToLog.eventParams.eventCategory === "pingData") {
         /* means this is a ping data which we receive every 24 hrs.
             we should send all the data from the event file
         */
-        process.send("Ping Data receivd");
-        sendAllEvents(jsonDataToLog, unsentEventsFileLocation);
+        sendAllEvents(jsonDataToLog);
     }else {
-        var eventKey = jsonDataToLog.eventParams.eventName + "_" + getCurrentDate();
-        if(!(eventKey in savedEventMap)){
-            process.send("Normal Data receivd");
-            saveEventToDisk(jsonDataToLog, unsentEventsFileLocation);
-        }
+        rejectOrSaveEventToDisk(jsonDataToLog);
     }
 }
 
-function saveEventToDisk(jsonDataToLog, unsentEventsFileLocation) {
-    // Saving the event+currentDate in the map
-    // This will insure that event is stored only once in a day
+/*
+ * Check whether the event received is already saved to file.
+ * The file can contain the same event for previous day, but not for the same date
+ * To ensure the event is sent only once perday we are saving eventName and Date in the map
+*/
 
+function rejectOrSaveEventToDisk(jsonDataToLog) {
     var eventKey = jsonDataToLog.eventParams.eventName + "_" + getCurrentDate();
-    savedEventMap[eventKey] = true;
 
-    var analyticsData = JSON.stringify(getAnalyticsData(jsonDataToLog)) + " , ";
-
-    process.send(analyticsData);
-
-    fs.appendFileSync(unsentEventsFileLocation, analyticsData, 'utf8');
-
-    process.send(JSON.stringify(savedEventMap));
+    if(!(eventKey in savedEventMap)){
+        savedEventMap[eventKey] = true;
+        var analyticsData = JSON.stringify(getAnalyticsData(jsonDataToLog)) + " , ";
+        //process.send(analyticsData);
+        fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, analyticsData, 'utf8');
+    }
 }
 
-function sendAllEvents(jsonDataToLog, unsentEventsFileLocation) {
+/*
+ * Read the unsent file if exists add those to ping data and send as a single json request
+ * If there is a failure scenario write the data back to disk
+*/
 
-    var analyticsData = JSON.stringify(getAnalyticsData(jsonDataToLog));
+function sendAllEvents(jsonDataToLog) {
 
-    var content = fs.readFileSync(unsentEventsFileLocation, "utf8");
-    fs.unlinkSync(unsentEventsFileLocation); // deleting the file immediately after read.
+    var analyticsData = JSON.stringify(getAnalyticsData(jsonDataToLog)),
+        dataToSend = "",
+        content = "";
 
-    var dataToSend = (content + analyticsData + defaultEndOfEventJson).
-                        replace(timeToBeReplacedRegex, new Date().toISOString());
-    
-    // changing date timestamp to time right now
-    // xhr.open("POST", "https://cc-api-data-stage.adobe.io/ingest/", true);
-    // xhr.setRequestHeader("Content-Type", "application/json");
-    // xhr.setRequestHeader("x-api-key", "brackets-service");
 
-    // xhr.onreadystatechange = function() {
-    //     if ((this.status === 200)) {
-    //         savedEventMap = {};
-    //         process.send("Data Sent");
-    //    } else {
-    //     process.send("Unable to send data" + this.status);
-    //    }
-    // };
-    // process.send(dataToSend);
-    // xhr.send(dataToSend);
+    if (fs.existsSync( jsonDataToLog.generics.unsentEventFileLocation )) {
+        content = fs.readFileSync(jsonDataToLog.generics.unsentEventFileLocation, "utf8").toString();
+        fs.unlinkSync(jsonDataToLog.generics.unsentEventFileLocation); // deleting the file immediately after read.
+        //changing date timestamp to time right now
+        dataToSend = (defaultStartOfEventJson + content + analyticsData + defaultEndOfEventJson).
+                            replace(timeToBeReplacedRegex, new Date().toISOString());
+    }else {
+        //changing date timestamp to time right now
+        dataToSend = (defaultStartOfEventJson + analyticsData + defaultEndOfEventJson).
+                            replace(timeToBeReplacedRegex, new Date().toISOString());
+    }
+    //process.send(dataToSend);
+    sendData(jsonDataToLog, dataToSend, analyticsData, content);
+}
 
-    $.ajax({
-        url: jsonDataToLog.generics.ingestURL,
-        type: "POST",
-        data: dataToSend,
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": jsonDataToLog.generics.ingestKey
+
+function sendData(jsonDataToLog, dataToSend, content, analyticsData) {
+
+    process.send(dataToSend);
+
+    xhr.open("POST", "https://cc-api-data-stage.adobe.io/ingest/", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("x-api-key", "brackets-service");
+
+    xhr.onload = function (e) {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                savedEventMap = {};
+                process.send("Data Sent");
+            } else {
+                process.send("not200" + xhr.status);
+                fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
+            }
+        }else {
+            process.send("failed xhr");
+            fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
         }
-    }).done(function () {
-        savedEventMap = {};
-        process.send("Data Sent");
-    }).fail(function (jqXHR, status, errorThrown) {
-        // write analyticsData + content back to file
-        process.send("Data Send Failed");
-        fs.appendFileSync(unsentEventsFileLocation, analyticsData + content + " , ", 'utf8');
-        console.error("Error in sending Adobe Analytics Data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
-    });
-}
+    };
 
+    xhr.onerror = function (e) {
+        process.send("error" + xhr.statusText);
+        fs.appendFileSync(jsonDataToLog.generics.unsentEventFileLocation, content + "," + analyticsData, 'utf8');
+    };
+
+    xhr.send(dataToSend);
+}
 
 
 function getCurrentDate() {
@@ -147,10 +145,10 @@ function getCurrentDate() {
 }
 
 
-    /**
-     *@param{Object} eventParams contails Event Data
-     * will return complete Analyics Data in Json Format
-     */
+/**
+ *@param{Object} eventParams contails Event Data
+ * will return complete Analyics Data in Json Format
+ */
 function getAnalyticsData(jsonDataToLog) {
     return {
         project: jsonDataToLog.generics.project,
@@ -160,7 +158,7 @@ function getAnalyticsData(jsonDataToLog) {
         data: {
             "event.guid": uuid.v4(),
             "event.user_guid": jsonDataToLog.generics.userGuid,
-            "event.dts_end": timeToBeReplaced,
+            "event.dts_end": new Date().toISOString(),
             "event.category": jsonDataToLog.eventParams.eventCategory,
             "event.subcategory": jsonDataToLog.eventParams.eventSubCategory,
             "event.type": jsonDataToLog.eventParams.eventType,

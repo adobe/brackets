@@ -20,7 +20,6 @@
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
         "build_timestamp": "",
-        "update_download_url": "https://github.com/adobe/brackets/releases/download/",
         "healthDataServerURL": "https://healthdev.brackets.io/healthDataLog",
         "analyticsDataServerURL": "https://cc-api-data-stage.adobe.io/ingest",
         "serviceKey": "brackets-service",
@@ -81,11 +80,13 @@
         "grunt-usemin": "0.1.11",
         "grunt-cleanempty": "1.0.3",
         "load-grunt-tasks": "3.5.0",
+        "moment": "2.20.1",
         "q": "1.4.1",
         "rewire": "1.1.2",
         "tar": "2.2.1",
         "webpack": "2.2.1",
         "xmldoc": "0.1.2",
+        "xmlhttprequest": "^1.7.0",
         "zlib": "1.0.5"
     },
     "scripts": {
