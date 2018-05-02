@@ -307,6 +307,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     *@param{String} eventName Name of Event for which sending Data is failed
+     *@param{boolean} sendFailed If true viewstate will be unset.
+     */
+    function handleSendFail(eventName, sendFailed) {
+        var options = {
+            location: {
+                scope: "default"
+            }
+        };
+        if (sendFailed) {
+            PreferencesManager.setViewState(eventName, 0, options);
+        }
+
+        return sendFailed ? false : true;
+    }
+
+    /**
      * Check if the Analytic Data is to be sent to the server.
      * If the user has enabled tracking, Analytic Data will be sent once per session
      * Send Analytic Data to the server if the Data associated with the given Event is not yet sent in this session.
@@ -337,24 +354,16 @@ define(function (require, exports, module) {
                 sendAnalyticsDataToServer(Eventparams)
                     .always(function () {
                         sendAnalyticsDataToServer(Eventparams, url)
-                           .done(function () {
-                               result.resolve();
-                           })
-                           .fail(function () {
-                               if(sendFailed) {
-                                   PreferencesManager.setViewState(Eventparams.eventName, 0, options);
-                               } else {
-                                   sendFailed = true;
-                               }
-                               result.reject();
-                           });
+                            .done(function () {
+                                result.resolve();
+                            })
+                            .fail(function () {
+                                sendFailed = handleSendFail(Eventparams.eventName, sendFailed);
+                                result.reject();
+                            });
                     })
-                    .fail( function () {
-                        if(sendFailed) {
-                            PreferencesManager.setViewState(Eventparams.eventName, 0, options);
-                        } else {
-                            sendFailed = true;
-                        }
+                    .fail(function () {
+                        sendFailed = handleSendFail(Eventparams.eventName, sendFailed);
                     });
             } else {
                 result.reject();
