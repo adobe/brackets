@@ -52,6 +52,15 @@ define(function (require, exports, module) {
      */
     var _extensions = Immutable.Map();
 
+     /**
+     * @private
+     * @type {string}
+     *
+     * Stores the path of the currently dragged item in the filetree.
+     */
+    var _draggedItemPath;
+
+
     // Constants
 
     // Time range from first click to second click to invoke renaming.
@@ -207,9 +216,15 @@ define(function (require, exports, module) {
                 return false;
             }
 
+            // In newer CEF versions, the drag and drop data from the event
+            // (i.e. e.dataTransfer.getData) cannot be used to read data in dragOver event,
+            // so store the drag and drop data in a global variable to read it in the dragOver
+            // event.
+            _draggedItemPath = this.myPath();
+
             // Pass the dragged item path.
             e.dataTransfer.setData("text", JSON.stringify({
-                path: this.myPath()
+                path: _draggedItemPath
             }));
 
             this.props.actions.dragItem(this.myPath());
@@ -232,9 +247,16 @@ define(function (require, exports, module) {
         },
 
         handleDragOver: function(e) {
-            var data = JSON.parse(e.dataTransfer.getData("text"));
+            var data = e.dataTransfer.getData("text"),
+                path;
 
-            if (data.path === this.myPath() || FileUtils.getParentPath(data.path) === this.myPath()) {
+            if (data) {
+                path = JSON.parse(data).path;
+            } else {
+                path = _draggedItemPath;
+            }
+
+            if (path === this.myPath() || FileUtils.getParentPath(path) === this.myPath()) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
