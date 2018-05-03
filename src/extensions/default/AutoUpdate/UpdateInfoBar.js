@@ -80,6 +80,7 @@ define(function (require, exports, module) {
             $updateBar.remove();
         }
         $(window.document).off("keydown.AutoUpdate");
+        $(window).off('resize.AutoUpdateBar');
     }
 
     /**
@@ -97,6 +98,7 @@ define(function (require, exports, module) {
         var $updateBar = $('#update-bar'),
             $updateContent = $updateBar.find('#update-content'),
             $contentContainer = $updateBar.find('#content-container'),
+            $buttonContainer = $updateBar.find('#button-container'),
             $heading = $updateBar.find('#heading'),
             $description = $updateBar.find('#description'),
             $restart = $updateBar.find('#update-btn-restart'),
@@ -113,6 +115,17 @@ define(function (require, exports, module) {
                 }
             }
         }
+        var resizeContentContainer = function resizeContentContainer() {
+            if($updateContent.length > 0) {
+                var newWidth = $updateBar.width() - $buttonContainer.width() - 78;
+                $contentContainer.css({
+                    "maxWidth": newWidth
+                });
+            }
+        };
+
+        resizeContentContainer();
+        $(window).on('resize.AutoUpdateBar', resizeContentContainer);
 
         //Event handlers on the Update Bar
 

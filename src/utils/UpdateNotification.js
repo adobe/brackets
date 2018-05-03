@@ -373,6 +373,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     *
+     * @param {boolean} enable
+     */
+    function enableUpdateNotificationIcon(enable) {
+        var $updateNotification = $("#update-notification");
+        _addedClickHandler = enable ? false : true;
+
+        if(enable) {
+            $updateNotification.removeClass("update-in-progress");
+        } else {
+            $updateNotification.addClass("update-in-progress");
+        }
+    }
+
+    /**
      * Check for updates. If "force" is true, update notification dialogs are always displayed
      * (if an update is available). If "force" is false, the update notification is only
      * displayed for newly available updates.
