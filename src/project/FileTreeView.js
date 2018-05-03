@@ -297,10 +297,8 @@ define(function (require, exports, module) {
 
         setDragImage: function(e) {
             var div = window.document.createElement('div');
-            div.style.position = 'absolute';
-            div.style.backgroundColor = '#2D2E30';
-            div.style.color = '#fff';
             div.textContent = this.props.name;
+            div.classList.add('jstree-dragImage');
             window.document.body.appendChild(div);
             e.dataTransfer.setDragImage(div, -10, -10);
             setTimeout(function() {
