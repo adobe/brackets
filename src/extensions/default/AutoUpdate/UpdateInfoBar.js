@@ -100,6 +100,7 @@ define(function (require, exports, module) {
             $contentContainer = $updateBar.find('#content-container'),
             $buttonContainer = $updateBar.find('#button-container'),
             $iconContainer = $updateBar.find('#icon-container'),
+            $closeIconContainer = $updateBar.find('#close-icon-container'),
             $heading = $updateBar.find('#heading'),
             $description = $updateBar.find('#description'),
             $restart = $updateBar.find('#update-btn-restart'),
@@ -118,7 +119,8 @@ define(function (require, exports, module) {
         }
         var resizeContentContainer = function resizeContentContainer() {
             if($updateContent.length > 0) {
-                var newWidth = $updateBar.outerWidth() - $buttonContainer.outerWidth() - $iconContainer.outerWidth() - 38;
+                var newWidth = $updateBar.outerWidth() - $buttonContainer.outerWidth()
+                               - $iconContainer.outerWidth() - $closeIconContainer.outerWidth() - 38;
                 $contentContainer.css({
                     "maxWidth": newWidth
                 });

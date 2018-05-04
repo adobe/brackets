@@ -378,7 +378,7 @@ define(function (require, exports, module) {
      */
     function enableUpdateNotificationIcon(enable) {
         var $updateNotification = $("#update-notification");
-        _addedClickHandler = enable ? false : true;
+        _addedClickHandler = !enable;
 
         if(enable) {
             $updateNotification.removeClass("update-in-progress");
