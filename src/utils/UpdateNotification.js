@@ -550,4 +550,5 @@ define(function (require, exports, module) {
     exports.resetToDefaultUpdateHandler = resetToDefaultUpdateHandler;
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
+    exports.enableUpdateNotificationIcon = enableUpdateNotificationIcon;
 });

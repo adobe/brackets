@@ -30,6 +30,11 @@
     min-width: 9%;
     width: auto;
     text-align: center;
+    background: #fff;
+}
+
+.dark #update-status {
+    background-color: #1c1c1e;
 }
 
 #update-status p {
