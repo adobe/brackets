@@ -94,7 +94,63 @@ define(function (require, exports, module) {
         FileIndex       = require("filesystem/FileIndex"),
         FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot"),
-        EventDispatcher = require("utils/EventDispatcher");
+        EventDispatcher = require("utils/EventDispatcher"),
+        PathUtils       = require("thirdparty/path-utils/path-utils"),
+        _               = require("thirdparty/lodash");
+
+
+    // Collection of registered protocol adapters
+    var _fileProtocolPlugins = {};
+
+    /**
+     * Typical signature of a file protocol adapter.
+     * @typedef {Object} FileProtocol~Adapter
+     * @property {Number} priority - Indicates the priority.
+     * @property {Object} fileImpl - Handle for the custom file implementation prototype.
+     * @property {function} canRead - To check if this impl can read a file for a given path.
+     */
+
+    /**
+     * FileSystem hook to register file protocol adapter
+     * @param {string} protocol ex: "https:"|"http:"|"ftp:"|"file:"
+     * @param {...FileProtocol~Adapter} adapter wrapper over file implementation
+     */
+    function registerProtocolAdapter(protocol, adapter) {
+        var adapters;
+        if (protocol) {
+            adapters = _fileProtocolPlugins[protocol] || [];
+            adapters.push(adapter);
+
+            // We will keep a sorted adapter list on 'priority'
+            // If priority is not provided a default of '0' is assumed
+            adapters.sort(function (a, b) {
+                return (b.priority || 0) - (a.priority || 0);
+            });
+
+            _fileProtocolPlugins[protocol] = adapters;
+        }
+    }
+
+    /**
+     * @param {string} protocol ex: "https:"|"http:"|"ftp:"|"file:"
+     * @param {string} filePath fullPath of the file
+     * @return adapter adapter wrapper over file implementation
+     */
+    function _getProtocolAdapter(protocol, filePath) {
+        var protocolAdapters = _fileProtocolPlugins[protocol] || [],
+            selectedAdapter;
+
+        // Find the fisrt compatible adapter having highest priority
+        _.forEach(protocolAdapters, function (adapter) {
+            if (adapter.canRead && adapter.canRead(filePath)) {
+                selectedAdapter = adapter;
+                // Break at first compatible adapter
+                return false;
+            }
+        });
+
+        return selectedAdapter;
+    }
 
     /**
      * The FileSystem is not usable until init() signals its callback.
@@ -572,7 +628,14 @@ define(function (require, exports, module) {
      * @return {File} The File object. This file may not yet exist on disk.
      */
     FileSystem.prototype.getFileForPath = function (path) {
-        return this._getEntryForPath(File, path);
+        var protocol = PathUtils.parseUrl(path).protocol,
+            protocolAdapter = _getProtocolAdapter(protocol);
+
+        if (protocolAdapter && protocolAdapter.fileImpl) {
+            return new protocolAdapter.fileImpl(protocol, path, this);
+        } else {
+            return this._getEntryForPath(File, path);
+        }
     };
 
     /**
@@ -1005,6 +1068,7 @@ define(function (require, exports, module) {
 
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
+    exports.registerProtocolAdapter = registerProtocolAdapter;
 
     // For testing only
     exports._getActiveChangeCount = _wrap(FileSystem.prototype._getActiveChangeCount);
