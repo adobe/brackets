@@ -275,7 +275,7 @@
                         var installerSize = stats.size;
                         var downloadedSize = 0;
 
-                        // Create a new read stream so we can plug events on it, and get the upload progress
+                        // Create a new read stream so we can plug events on it, and get the download(copy) progress
                         var readstream = fs.createReadStream(downloadURL);
 
                         readstream.on('data', function (buffer) {
