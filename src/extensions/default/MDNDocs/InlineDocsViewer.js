@@ -33,7 +33,8 @@ define(function (require, exports, module) {
         InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings"),
-        Mustache        = brackets.getModule("thirdparty/mustache/mustache");
+        Mustache        = brackets.getModule("thirdparty/mustache/mustache"),
+        HealthLogger    = brackets.getModule("utils/HealthLogger");
 
     // Load template
     var inlineEditorTemplate = require("text!InlineDocsViewer.html");
@@ -73,6 +74,8 @@ define(function (require, exports, module) {
 
         this.$scroller = this.$wrapperDiv.find(".scroller");
         this.$scroller.on("mousewheel", this._handleWheelScroll);
+        this.$moreinfo = this.$wrapperDiv.find(".more-info");
+        this.$moreinfo.on("click", this._logAnalyticsData);
         this._onKeydown = this._onKeydown.bind(this);
     }
 
@@ -190,6 +193,21 @@ define(function (require, exports, module) {
 
     InlineDocsViewer.prototype._sizeEditorToContent = function () {
         this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.height() + 20, true);
+    };
+    
+    /**
+     * Send analytics data for Quick Doc "readMore" action
+     *
+     * @return {boolean} false
+     */
+    InlineDocsViewer.prototype._logAnalyticsData = function () {
+        HealthLogger.sendAnalyticsData(
+            "QuickDocReadMore",
+            "usage",
+            "quickDoc",
+            "readMore"
+        );
+        return false;
     };
 
 
