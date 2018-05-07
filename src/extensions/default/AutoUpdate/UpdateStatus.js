@@ -77,7 +77,8 @@ define(function (require, exports, module) {
     function displayProgress(statusObj) {
         statusObj.spans.forEach(function (span) {
             if (span.id === 'percent') {
-                var bgval = 'linear-gradient(to right, #1474BF ' + span.val + ', rgba(0, 0, 0) 0%';
+                var bgColor = $('#status-bar').css('backgroundColor'),
+                    bgval = 'linear-gradient(to right, #1474BF ' + span.val + ', ' + bgColor + ' 0%';
                 $('#update-status').css('background', bgval);
             }
         });
