@@ -63,6 +63,8 @@
         DOWNLOAD_ERROR: 4
     };
 
+    var currentRequester;
+
     /**
      * Gets the arguments to a function in an array
      * @param   {object} args - the arguments object
@@ -88,7 +90,8 @@
     function postMessageToBrackets(messageId) {
         var msgObj = {
             fn: messageId,
-            args: getFunctionArgs(arguments)
+            args: getFunctionArgs(arguments),
+            requester: currentRequester
         };
         _domainManager.emitEvent('AutoUpdate', 'data', [msgObj]);
 
@@ -167,9 +170,9 @@
         }
     }
 
-	/**
+    /**
      * Parse the Installer log and search for a error strings
-	 * one it finds the line which has any of error String
+     * one it finds the line which has any of error String
      * it return that line and exit
      */
     function parseInstallerLog(filepath, searchstring, encoding, callback) {
@@ -251,6 +254,72 @@
     }
 
     /**
+     * Tests the download workflow for Auto Update.
+     * It is imitated as copying of the files from extension to appdata,
+     * in order to avoid actual download of assets.
+     * @param {boolean} isInitialAttempt - boolean to denote whether or not this is the first download attempt
+     * @param {object}   updateParams    - update parameters
+     */
+    function testDownloadInstaller(isInitialAttempt, updateParams) {
+
+        // Copy file from unittest-files folder to appdata/updateTemp
+        // If successful, send back download_success message to brackets, else send download_failed message
+        var ext = path.extname(updateParams.installerName),
+            localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext),
+            downloadURL = updateParams.downloadURL;
+
+        fs.exists(downloadURL, function (exists) {
+            if (exists) {
+                fs.stat(downloadURL, function (err, stats) {
+                    if(stats) {
+                        var installerSize = stats.size;
+                        var downloadedSize = 0;
+
+                        // Create a new read stream so we can plug events on it, and get the upload progress
+                        var readstream = fs.createReadStream(downloadURL);
+
+                        readstream.on('data', function (buffer) {
+                            var segmentLength = buffer.length;
+                            // Increment the downloaded data counter
+                            downloadedSize += segmentLength;
+
+                            var target = "retry-download";
+                            if (isInitialAttempt) {
+                                target = "initial-download";
+                            }
+                            var info = Math.floor(parseFloat(downloadedSize / installerSize) * 100).toString() + '%';
+                            var status = {
+                                target: target,
+                                spans: [{
+                                    id: "percent",
+                                    val: info
+                                }]
+                            };
+                            postMessageToBrackets(MessageIds.SHOW_STATUS_INFO, status);
+                        });
+
+                        readstream.on('close', function () {
+                            fs.renameSync(localInstallerPath, installerPath);
+                            postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
+                        });
+
+                        readstream.on('error', function (error) {
+                            console.log("AutoUpdate : Download failed. Error occurred : " + error.toString());
+                            postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+                        });
+
+                        readstream.pipe(fs.createWriteStream(localInstallerPath));
+                    } else {
+                        postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+                    }
+                });
+            } else {
+                postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+            }
+        });
+    }
+
+    /**
      * Downloads the installer for latest Brackets release
      * @param {boolean} sendInfo   - true if download status info needs to be
      *                             sent back to Brackets, false otherwise
@@ -258,37 +327,44 @@
      */
     function downloadInstaller(isInitialAttempt, updateParams) {
         updateParams = updateParams || _updateParams;
-        try {
-            var ext = path.extname(updateParams.installerName);
-            var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext);
-            progress(request(updateParams.downloadURL), {})
-                .on('progress', function (state) {
-                    var target = "retry-download";
-                    if (isInitialAttempt) {
-                        target = "initial-download";
-                    }
-                    var info = Math.floor(parseFloat(state.percent) * 100).toString() + '%';
-                    var status = {
-                        target: target,
-                        spans: [{
-                            id: "percent",
-                            val: info
+
+        // For unit testing
+        if (_updateParams.hasOwnProperty("test") && _updateParams.test === true) {
+            testDownloadInstaller(isInitialAttempt, updateParams);
+        } else {
+
+            try {
+                var ext = path.extname(updateParams.installerName);
+                var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext);
+                progress(request(updateParams.downloadURL), {})
+                    .on('progress', function (state) {
+                        var target = "retry-download";
+                        if (isInitialAttempt) {
+                            target = "initial-download";
+                        }
+                        var info = Math.floor(parseFloat(state.percent) * 100).toString() + '%';
+                        var status = {
+                            target: target,
+                            spans: [{
+                                id: "percent",
+                                val: info
                         }]
-                    };
-                    postMessageToBrackets(MessageIds.SHOW_STATUS_INFO, status);
-                })
-                .on('error', function (err) {
-                    console.log("AutoUpdate : Download failed. Error occurred : " + err.toString());
-                    postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
-                })
-                .pipe(fs.createWriteStream(localInstallerPath))
-                .on('close', function () {
-                    fs.renameSync(localInstallerPath, installerPath);
-                    postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
-                });
-        } catch (e) {
-            console.log("AutoUpdate : Download failed. Exception occurred : " + e.toString());
-            postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+                        };
+                        postMessageToBrackets(MessageIds.SHOW_STATUS_INFO, status);
+                    })
+                    .on('error', function (err) {
+                        console.log("AutoUpdate : Download failed. Error occurred : " + err.toString());
+                        postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+                    })
+                    .pipe(fs.createWriteStream(localInstallerPath))
+                    .on('close', function () {
+                        fs.renameSync(localInstallerPath, installerPath);
+                        postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
+                    });
+            } catch (e) {
+                console.log("AutoUpdate : Download failed. Exception occurred : " + e.toString());
+                postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+            }
         }
     }
 
@@ -376,9 +452,11 @@
      * Initializes node for the auto update, registers messages and node side funtions
      * @param {object} initObj - json containing init information {
      *                         messageIds : Messages for brackets and node communication
-     *                         updateDir  : update directory in Appdata }
+     *                         updateDir  : update directory in Appdata
+     *                         requester  : ID of the current requester domain}
      */
     function initNode(initObj) {
+        currentRequester = initObj.requester;
         MessageIds = initObj.messageIds;
         updateDir = path.resolve(initObj.updateDir);
         logFilePath = path.resolve(updateDir, logFile);
