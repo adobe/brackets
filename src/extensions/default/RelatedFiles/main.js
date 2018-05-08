@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -21,84 +21,40 @@
  *
  */
 
+/*global DOMParser */
+/*global Promise */
+
 define(function (require, exports, module) {
     'use strict';
-    
+
     // Load dependent modules.
     var AppInit             = brackets.getModule("utils/AppInit"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-     	Filesystem          = brackets.getModule("filesystem/FileSystem"),
-        CommandManager      = brackets.getModule("command/CommandManager"),
-        Commands            = brackets.getModule("command/Commands"),
+        Filesystem          = brackets.getModule("filesystem/FileSystem"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
-        RelatedFilesManager = brackets.getModule("search/RelatedFilesManager"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
         PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils");
 
     /**
     * @private
-    * 
+    *
     * Used to keep track of list of Related Files for a given document.
     *
     **/
-    var relatedFiles;
-    
-    /**
-    * Parse the current document to find out dependencies in link and script tags.
-    * Identify whether a link is for local file or is a remote link.
-    * Store all related files link in relatedFiles variable.
-    **/
-    function parseHTML()
-    {
-        var currentDocument = DocumentManager.getCurrentDocument();
-        if (window.DOMParser && currentDocument)
-        {
-			var docText = currentDocument.getText();
-            var document = new DOMParser().parseFromString(docText, "text/html");
-        
-            var linkTags = $(document).find("link[rel='stylesheet']");
-            var scriptTags = $(document).find("script[src!=null]");
-            
-        	var i, fileURI, searchResult;
-			
-            // Search for href in link tag to get related file.
-            for (i = 0; i < linkTags.length; i++) {
-                var linkHref = linkTags[i].getAttribute("href");
-                if (linkHref !== null) {
-                    if (isRemoteURL(linkHref)) {
-                        searchResult = getLinkFromRemoteURL(linkHref);
-                    }
-                    else if (PathUtils.isAbsoluteUrl(linkHref)) {
-                        searchResult = getLinkFromLocalURL(linkHref);
-                    }
-                    else {
-                        fileURI = getAbsoultePath(currentDocument.file.fullPath, linkHref);
-                        searchResult = getLinkFromLocalURL(fileURI);
-                    }
-                    if (searchResult) {
-                        relatedFiles.push(searchResult);    
-                    }
-                }
-            }    
-            // Search for src in script tag to get related files.
-            for (i = 0; i < scriptTags.length; i++) {
-                var scriptSrc = scriptTags[i].getAttribute("src");
-                if (scriptSrc !== null) {
-                    if (isRemoteURL(scriptSrc)) {
-                        searchResult = getLinkFromRemoteURL(scriptSrc);
-                    }
-                    else if (PathUtils.isAbsoluteUrl(scriptSrc)) {
-                        searchResult = getLinkFromLocalURL(scriptSrc);
-                    }
-                    else {
-                        fileURI = getAbsoultePath(currentDocument.file.fullPath, scriptSrc);
-                        searchResult = getLinkFromLocalURL(fileURI);
-                    }
-                    if (searchResult) {
-                        relatedFiles.push(searchResult);    
-                    }
-                }
-            }
-        }
+    var relatedFiles, domParser;
+
+    // Creates a SearchResult object with given parameters.
+    function createSearchResultObject(label, fullPath, includesFirstSegment, includesLastSegment) {
+        var searchResult = new StringMatch.SearchResult(fullPath);
+        searchResult.label = label;
+        searchResult.fullPath = fullPath;
+        searchResult.stringRanges = [{
+            text: fullPath,
+            match: false,
+            includesFisrtSegment: includesFirstSegment,
+            includesLastSegment: includesLastSegment
+        }];
+        return searchResult;
     }
 
     /**
@@ -106,48 +62,30 @@ define(function (require, exports, module) {
     * @param {string} tagurl The url which is to be checked for remote link.
     * @returns {Boolean} true if the url matches regular expression for remote url.
     **/
-	function isRemoteURL(tagurl) {
-		var pattern = RegExp('^((http|https|ftp)?:?\/\/)');
-        return pattern.test(tagurl); 
-	} 
-    
+    function isRemoteURL(tagurl) {
+        var pattern = new RegExp('^((http|https|ftp)?:?\/\/)');
+        return pattern.test(tagurl);
+    }
+
     /**
     * Create a SearchResult object which has path information about the local file.
     * @params {string} tagurl The url from which file path information is to be extracted.
     * @returns {Object} SearchResult object which has file path information.
     **/
     function getLinkFromLocalURL(tagurl) {
-        var searchResult = new StringMatch.SearchResult (tagurl);
         var file = Filesystem.getFileForPath(tagurl);
-        searchResult.label = file._name;
-        searchResult.fullPath = file._path;
-        searchResult.stringRanges = [{
-            text: file._path,
-            matched: false,
-            includesLastSegment: true
-        }];
-        return searchResult;
+        return createSearchResultObject(file._name, file._path, false, true);
     }
-    
+
     /**
     * Create a SearchResult object which has path information about the remote file url.
     * @params {string} tagurl The url from which file path information is to be extracted.
     * @returns {Object} SearchResult object which has remote link path information.
     **/
-    function getLinkFromRemoteURL (tagurl) {
-        var regex = /:\/\/(.[^/]+)/;
-        var url = regex.exec(tagurl);
-        if (url && url[1]) {
-            var searchResult = new StringMatch.SearchResult(tagurl);
-            searchResult.label =   url[1];
-            searchResult.fullPath = tagurl;
-            searchResult.stringRanges = [{
-                text: tagurl,
-                matched: false,
-                includesLastSegment: false,
-                includesFirstSegment: true
-            }];
-            return searchResult;
+    function getLinkFromRemoteURL(tagurl) {
+        var url = FileUtils.getParentPath(tagurl);
+        if (url) {
+            return createSearchResultObject(url, tagurl, true, false);
         }
         return null;
     }
@@ -159,44 +97,99 @@ define(function (require, exports, module) {
     * @returns {string} Absolute path of the given relative path with calculated wrt base.
     **/
     function getAbsoultePath(base, relative) {
-        var baseUrl = base.split("/"),
-            relativeUrl = relative.split("/");
-        baseUrl.pop();
-    
-        for(var i = 0; i < relativeUrl.length; i++) {
-            if (relativeUrl[i] === ".") {
-                continue;
-            }
+        var relativeUrl = relative.split("/");
+        var baseUrl = base.split("/");
+
+        var i;
+        for (i = 0; i < relativeUrl.length; i++) {
             if (relativeUrl[i] === "..") {
                 baseUrl.pop();
             }
-            else {
+            if (relativeUrl[i] !== ".") {
                 baseUrl.push(relativeUrl[i]);
             }
         }
         return baseUrl.join("/");
     }
-    
-    function RelatedFiles() {
-        
+
+    function getBasePath(base) {
+        var baseUrl = base.split("/");
+        baseUrl.pop();
+        return baseUrl.join("/");
     }
-    
+
+    /**
+    * Extract related files name from link/script tag and update relatedFiles list.
+    * @param {Object} currentDocument Object of current document.
+    * @param {List} tagList List of link/script tags.
+    * @param {List} attribute Tag attribute that is to be extracted depending on the tag type.
+    **/
+    function extractRelatedFilesFromTagAttribute(currentDocument, tagList, attribute) {
+        var fileURI, searchResult;
+
+        var basePath = getBasePath(currentDocument.file.fullPath);
+        var i;
+        for (i = 0; i < tagList.length; i++) {
+            var fileLink = tagList[i].getAttribute(attribute);
+            if (fileLink !== null) {
+                if (isRemoteURL(fileLink)) {
+                    searchResult = getLinkFromRemoteURL(fileLink);
+                } else if (PathUtils.isAbsoluteUrl(fileLink)) {
+                    searchResult = getLinkFromLocalURL(fileLink);
+                } else {
+                    fileURI = getAbsoultePath(basePath, fileLink);
+                    searchResult = getLinkFromLocalURL(fileURI);
+                }
+                if (searchResult) {
+                    relatedFiles.push(searchResult);
+                }
+            }
+        }
+    }
+
+    /**
+    * Parse the current document to find out dependencies in link and script tags.
+    * Identify whether a link is for local file or is a remote link.
+    * Store all related files link in relatedFiles variable.
+    **/
+    function parseHTML(currentDocument) {
+        if (currentDocument === null) {
+            currentDocument = DocumentManager.getCurrentDocument();
+        }
+        if (domParser && currentDocument.getLanguage().getId() === 'html') {
+            var docText = currentDocument.getText();
+            var document = domParser.parseFromString(docText, "text/html");
+
+            var linkTags = $(document).find("link[rel='stylesheet']");
+            var scriptTags = $(document).find("script[src!=null]");
+
+            // Search for href in link tag to get related file.
+            extractRelatedFilesFromTagAttribute(currentDocument, linkTags, "href");
+
+            // Search for src in script tag to get related files.
+            extractRelatedFilesFromTagAttribute(currentDocument, scriptTags, "src");
+        }
+    }
+
+    function RelatedFiles() {
+        if (window.DOMParser) {
+            domParser = new DOMParser();
+        }
+    }
+
     /**
     * Gets list of realted files.
-    * @returns {List} List of realted files.
+    * @returns {Promise} Promise has list of realted files.
     **/
-    RelatedFiles.prototype.getRelatedFiles = function() {        
+    RelatedFiles.prototype.getRelatedFiles = function (currentDocument) {
         relatedFiles = [];
-        parseHTML();   
-        return relatedFiles;
+        parseHTML(currentDocument);
+        return new Promise(function (resolve, reject) {
+            resolve(relatedFiles);
+        });
     };
 
     AppInit.appReady(function () {
-        var relatedFiles = new RelatedFiles();
-    
-        // Register Related files provider for HTML document.
-        RelatedFilesManager.registerRelatedFilesProvider(relatedFiles, ['html'], 0);
-    
         exports.relatedFiles = relatedFiles;
     });
 });
