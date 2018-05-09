@@ -117,10 +117,21 @@ define(function (require, exports, module) {
                 }
             }
         }
-        var resizeContentContainer = function resizeContentContainer() {
-            if($updateContent.length > 0) {
-                var newWidth = $updateBar.outerWidth() - $buttonContainer.outerWidth()
-                               - $iconContainer.outerWidth() - $closeIconContainer.outerWidth() - 38;
+        // Content Container Width between Icon Container and Button Container or Close Icon Container
+        // will be assigned when window will be rezied.
+        var resizeContentContainer = function () {
+            if($updateContent.length > 0 && $contentContainer.length > 0 && $updateBar.length > 0) {
+                var newWidth = $updateBar.outerWidth() - 38;
+                if($buttonContainer.length > 0) {
+                    newWidth = newWidth- $buttonContainer.outerWidth();
+                }
+                if($iconContainer.length > 0) {
+                    newWidth = newWidth - $iconContainer.outerWidth();
+                }
+                if($closeIconContainer.length > 0) {
+                    newWidth = newWidth - $closeIconContainer.outerWidth();
+                }
+
                 $contentContainer.css({
                     "maxWidth": newWidth
                 });

@@ -374,17 +374,15 @@ define(function (require, exports, module) {
 
     /**
      *
-     * @param {boolean} enable
+     * @param {boolean} enable when false Update Notification Icon in
+                        TollBar will grayed and Click will be blocked.
+                        when true icon will be green and clickable.
      */
     function enableUpdateNotificationIcon(enable) {
         var $updateNotification = $("#update-notification");
         _addedClickHandler = !enable;
 
-        if(enable) {
-            $updateNotification.removeClass("update-in-progress");
-        } else {
-            $updateNotification.addClass("update-in-progress");
-        }
+        $updateNotification.toggleClass("update-in-progress", !enable);
     }
 
     /**
