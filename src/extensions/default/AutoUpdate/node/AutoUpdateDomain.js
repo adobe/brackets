@@ -63,6 +63,8 @@
         DOWNLOAD_ERROR: 4
     };
 
+    var currentRequester;
+
     /**
      * Gets the arguments to a function in an array
      * @param   {object} args - the arguments object
@@ -88,7 +90,8 @@
     function postMessageToBrackets(messageId) {
         var msgObj = {
             fn: messageId,
-            args: getFunctionArgs(arguments)
+            args: getFunctionArgs(arguments),
+            requester: currentRequester
         };
         _domainManager.emitEvent('AutoUpdate', 'data', [msgObj]);
 
@@ -376,9 +379,11 @@
      * Initializes node for the auto update, registers messages and node side funtions
      * @param {object} initObj - json containing init information {
      *                         messageIds : Messages for brackets and node communication
-     *                         updateDir  : update directory in Appdata }
+     *                         updateDir  : update directory in Appdata
+     *                         requester  : ID of the current requester domain}
      */
     function initNode(initObj) {
+        currentRequester = initObj.requester;
         MessageIds = initObj.messageIds;
         updateDir = path.resolve(initObj.updateDir);
         logFilePath = path.resolve(updateDir, logFile);

@@ -868,6 +868,8 @@ define({
     "RESTART_BUTTON"                                 : "Restart",
     "LATER_BUTTON"                                   : "Later",
     "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
+    "AUTOUPDATE_ERROR"                               : "Error!",
+    "AUTOUPDATE_IN_PROGRESS"                         : "An update is already in progress.",
     
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
