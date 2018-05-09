@@ -991,6 +991,7 @@ define(function (require, exports, module) {
             viewModel.renameItem(oldProjectPath, self.makeProjectRelativeIfPossible(newPath));
             if (self._selections.selected && self._selections.selected.indexOf(oldPath) === 0) {
                 self._selections.selected = newPath + self._selections.selected.slice(oldPath.length);
+                self.setCurrentFile(newPath);
             }
         }
 
