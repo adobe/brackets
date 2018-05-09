@@ -373,6 +373,19 @@ define(function (require, exports, module) {
     }
 
     /**
+     *
+     * @param {boolean} enable when false Update Notification Icon in
+                        TollBar will grayed and Click will be blocked.
+                        when true icon will be green and clickable.
+     */
+    function enableUpdateNotificationIcon(enable) {
+        var $updateNotification = $("#update-notification");
+        _addedClickHandler = !enable;
+
+        $updateNotification.toggleClass("update-in-progress", !enable);
+    }
+
+    /**
      * Check for updates. If "force" is true, update notification dialogs are always displayed
      * (if an update is available). If "force" is false, the update notification is only
      * displayed for newly available updates.
@@ -535,4 +548,5 @@ define(function (require, exports, module) {
     exports.resetToDefaultUpdateHandler = resetToDefaultUpdateHandler;
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
+    exports.enableUpdateNotificationIcon = enableUpdateNotificationIcon;
 });
