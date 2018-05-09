@@ -28,7 +28,8 @@ define(function (require, exports, module) {
         Mustache            = brackets.getModule("thirdparty/mustache/mustache"),
         EventDispatcher     = brackets.getModule("utils/EventDispatcher"),
         UpdateBarHtml       = require("text!htmlContent/updateBar.html"),
-        Strings             = brackets.getModule("strings");
+        Strings             = brackets.getModule("strings"),
+        _                  =  brackets.getModule("thirdparty/lodash");
 
     EventDispatcher.makeEventDispatcher(exports);
 
@@ -139,7 +140,7 @@ define(function (require, exports, module) {
         };
 
         resizeContentContainer();
-        $(window).on('resize.AutoUpdateBar', resizeContentContainer);
+        $(window).on('resize.AutoUpdateBar', _.debounce(resizeContentContainer, 150));
 
         //Event handlers on the Update Bar
 
