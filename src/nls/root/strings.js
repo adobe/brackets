@@ -870,5 +870,8 @@ define({
     "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
     
     // Strings for Related Files
-    "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
+    "CMD_FIND_RELATED_FILES"                         : "Find Related Files",
+    
+    //Strings For Remote Files
+    "REMOTE_FILE_IN_WORKING_SET"                     : "Remote"
 });
