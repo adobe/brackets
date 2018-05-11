@@ -1205,7 +1205,12 @@ define(function (require, exports, module) {
         if (doc && doc.isDirty && !_forceClose && (MainViewManager.isExclusiveToPane(doc.file, paneId) || _spawnedRequest)) {
             // Document is dirty: prompt to save changes before closing if only the document is exclusively
             // listed in the requested pane or this is part of a list close request
-            var filename = FileUtils.getBaseName(doc.file.fullPath);
+            var filename = FileUtils.getBaseName(doc.file.fullPath),
+                disableSaveBtn = "";
+
+            if (file.toString().indexOf("[RemoteFile") === 0) {
+                disableSaveBtn = "disabled";
+            }
 
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -1228,6 +1233,7 @@ define(function (require, exports, module) {
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
                         id        : Dialogs.DIALOG_BTN_OK,
+                        disable   : disableSaveBtn,
                         text      : Strings.SAVE
                     }
                 ]
@@ -1288,12 +1294,20 @@ define(function (require, exports, module) {
      */
     function _closeList(list, promptOnly, _forceClose) {
         var result      = new $.Deferred(),
-            unsavedDocs = [];
+            unsavedDocs = [],
+            allRemoteFile = true,
+            disableSaveBtn = "";
 
         list.forEach(function (file) {
             var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
             if (doc && doc.isDirty) {
                 unsavedDocs.push(doc);
+            }
+        });
+        
+        unsavedDocs.forEach(function (unsavedDoc){
+            if (unsavedDoc.file.toString().indexOf("[File") === 0) {
+                allRemoteFile = false;
             }
         });
 
@@ -1313,6 +1327,10 @@ define(function (require, exports, module) {
             });
 
         } else {
+            
+            if (allRemoteFile) {
+                disableSaveBtn = "disabled";
+            }
             // Multiple unsaved files: show a single bulk prompt listing all files
             var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
 
@@ -1334,6 +1352,7 @@ define(function (require, exports, module) {
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
                         id        : Dialogs.DIALOG_BTN_OK,
+                        disable   : disableSaveBtn,
                         text      : Strings.SAVE
                     }
                 ]
