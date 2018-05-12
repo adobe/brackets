@@ -25,8 +25,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
-        LanguageManager     = require("language/LanguageManager"),
-        Strings             = require("strings");
+        LanguageManager     = require("language/LanguageManager");
 
     var SCROLL_SHADOW_HEIGHT = 5;
 
@@ -428,15 +427,6 @@ define(function (require, exports, module) {
             var fp = file.fullPath.split("/");
             fp.pop(); // Remove the filename itself
             displayPaths[index] = fp.pop();
-
-            if (file.toString().indexOf("RemoteFile") > 0) {
-                if (!displayPaths[index]) {
-                    displayPaths[index] = Strings.REMOTE_FILE_IN_WORKING_SET;
-                } else {
-                    displayPaths[index] = displayPaths[index] + " - " + Strings.REMOTE_FILE_IN_WORKING_SET;
-                }
-            }
-
             filePaths[index] = fp;
 
             if (!map[displayPaths[index]]) {
