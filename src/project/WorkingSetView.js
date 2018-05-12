@@ -1022,8 +1022,6 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._addProtocolToWorkingTreeFiles = function () {
 
-        var fileList = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
-
         // Go through open files and add protocol to appropriate entries
         this.$openFilesContainer.find("ul > li").each(function () {
             var $li = $(this),
