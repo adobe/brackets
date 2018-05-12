@@ -30,12 +30,34 @@ define(function (require, exports, module) {
         PathUtils       = brackets.getModule("thirdparty/path-utils/path-utils"),
         CommandManager  = brackets.getModule("command/CommandManager"),
         Commands        = brackets.getModule("command/Commands"),
+        Menus           = brackets.getModule("command/Menus"),
+        MainViewManager = brackets.getModule("view/MainViewManager"),
         RemoteFile      = require("RemoteFile");
 
     var HTTP_PROTOCOL = "http:",
         HTTPS_PROTOCOL = "https:";
+    
+    /**
+     * Disable context menus which are not useful for remote file
+     */
+    function _setMenuItemsVisible() {
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
+            cMenusFile = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
+        
+        if (file.toString().indexOf("[RemoteFile") === 0) {
+            cMenusFile.forEach(function (menu) {
+                CommandManager.get(menu).setEnabled(false);
+            });
+        } else {
+            //Explicitly handeling save other commands are handeled by DefaultMenus
+            CommandManager.get(cMenusFile[0]).setEnabled(true);
+        }
+    }
 
     AppInit.htmlReady(function () {
+        
+        Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
+        
         var protocolAdapter = {
             priority: 0, // Default priority
             fileImpl: RemoteFile,
