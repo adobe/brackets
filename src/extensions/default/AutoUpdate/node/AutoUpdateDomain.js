@@ -60,7 +60,8 @@
         UPDATEDIR_CLEAN_FAILED: 1,
         CHECKSUM_DID_NOT_MATCH: 2,
         INSTALLER_NOT_FOUND: 3,
-        DOWNLOAD_ERROR: 4
+        DOWNLOAD_ERROR: 4,
+        NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
     /**
@@ -260,8 +261,10 @@
         updateParams = updateParams || _updateParams;
         try {
             var ext = path.extname(updateParams.installerName);
-            var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext);
-            progress(request(updateParams.downloadURL), {})
+            var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext),
+                localInstalllerFile = fs.createWriteStream(localInstallerPath),
+                requestCompleted = true;
+            progress(request(updateParams.downloadURL, {timeout: 30000}), {})
                 .on('progress', function (state) {
                     var target = "retry-download";
                     if (isInitialAttempt) {
@@ -279,12 +282,19 @@
                 })
                 .on('error', function (err) {
                     console.log("AutoUpdate : Download failed. Error occurred : " + err.toString());
-                    postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+                    requestCompleted = false;
+                    localInstalllerFile.end();
+                    var error = err.code === 'ESOCKETTIMEDOUT' || err.code === 'ENOTFOUND' ?
+                                _nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED :
+                                _nodeErrorMessages.DOWNLOAD_ERROR;
+                    postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, error);
                 })
-                .pipe(fs.createWriteStream(localInstallerPath))
+                .pipe(localInstalllerFile)
                 .on('close', function () {
-                    fs.renameSync(localInstallerPath, installerPath);
-                    postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
+                    if (requestCompleted) {
+                        fs.renameSync(localInstallerPath, installerPath);
+                        postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
+                    }
                 });
         } catch (e) {
             console.log("AutoUpdate : Download failed. Exception occurred : " + e.toString());

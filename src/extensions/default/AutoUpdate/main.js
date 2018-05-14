@@ -69,7 +69,8 @@ define(function (require, exports, module) {
         AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER: "DownloadCompletedAndUserClickedLater",
         AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED: "DownloadCompleteUpdateBarRendered",
         AUTOUPDATE_INSTALLATION_FAILED: "InstallationFailed",
-        AUTOUPDATE_INSTALLATION_SUCCESS: "InstallationSuccess"
+        AUTOUPDATE_INSTALLATION_SUCCESS: "InstallationSuccess",
+        AUTOUPDATE_CLEANUP_FAILED: "AutoUpdateCleanUpFailed"
     };
 
     // function map for brackets functions
@@ -85,7 +86,8 @@ define(function (require, exports, module) {
         UPDATEDIR_CLEAN_FAILED: 1,
         CHECKSUM_DID_NOT_MATCH: 2,
         INSTALLER_NOT_FOUND: 3,
-        DOWNLOAD_ERROR: 4
+        DOWNLOAD_ERROR: 4,
+        NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
 
@@ -693,12 +695,14 @@ define(function (require, exports, module) {
             descriptionMessage = Strings.UPDATEDIR_CLEAN_FAILED;
             break;
         }
-
-        UpdateInfoBar.showUpdateBar({
-            type: "error",
-            title: Strings.CLEANUP_FAILED,
-            description: descriptionMessage
-        });
+        console.log("AutoUpdate : Clean-up failed! Reason : " + descriptionMessage + ".\n");
+        HealthLogger.sendAnalyticsData(
+                autoUpdateEventNames.AUTOUPDATE_CLEANUP_FAILED,
+                "autoUpdate",
+                "cleanUp",
+                "fail",
+                descriptionMessage
+            );
     }
 
 
@@ -924,6 +928,9 @@ define(function (require, exports, module) {
             var descriptionMessage = "";
             if (message === _nodeErrorMessages.DOWNLOAD_ERROR) {
                 descriptionMessage = Strings.DOWNLOAD_ERROR;
+            }
+            if (message === _nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED) {
+                descriptionMessage = Strings.NETWORK_SLOW_OR_DISCONNECTED;
             }
             HealthLogger.sendAnalyticsData(
                 autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,
