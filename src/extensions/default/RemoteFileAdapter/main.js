@@ -30,10 +30,24 @@ define(function (require, exports, module) {
         PathUtils       = brackets.getModule("thirdparty/path-utils/path-utils"),
         CommandManager  = brackets.getModule("command/CommandManager"),
         Commands        = brackets.getModule("command/Commands"),
+        ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
+        WorkingSetView = brackets.getModule("project/WorkingSetView"),
         RemoteFile      = require("RemoteFile");
 
     var HTTP_PROTOCOL = "http:",
         HTTPS_PROTOCOL = "https:";
+    
+    ExtensionUtils.loadStyleSheet(module, "styles.css");
+    
+    function protocolClassProvider(data) {
+        if (data.fullPath.startsWith("http://")) {
+            return "http";
+        }
+
+        if (data.fullPath.startsWith("https://")) {
+            return "https";
+        }
+    }
 
     AppInit.htmlReady(function () {
         var protocolAdapter = {
@@ -67,6 +81,8 @@ define(function (require, exports, module) {
                 }
             }
         );
+        
+        WorkingSetView.addClassProvider(protocolClassProvider);
     });
 
 });

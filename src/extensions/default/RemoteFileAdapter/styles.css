@@ -1,0 +1,18 @@
+.http a span:after {
+    content: "http";
+    margin-left: 5px;
+    border: 1px solid;
+    border-radius: 2px;
+    padding: 0px 5px;
+    font-size: 11px;
+}
+
+.https a span:after {
+    content: "https";
+    margin-left: 5px;
+    border: 1px solid;
+    border-radius: 2px;
+    padding: 0px 5px;
+    font-size: 11px;
+}
+
