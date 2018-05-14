@@ -573,6 +573,7 @@ define(function (require, exports, module) {
     function enableCheckForUpdateEntry(enable) {
         var cfuCommand = CommandManager.get(Commands.HELP_CHECK_FOR_UPDATE);
         cfuCommand.setEnabled(enable);
+        UpdateNotification.enableUpdateNotificationIcon(enable);
     }
 
     /**
