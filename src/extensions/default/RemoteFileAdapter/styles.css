@@ -1,18 +1,21 @@
-.http a span:after {
-    content: "http";
+.http a span.extension:after,
+.https a span.extension:after {
     margin-left: 5px;
     border: 1px solid;
     border-radius: 2px;
     padding: 0px 5px;
     font-size: 11px;
+    color: #adb9bd;
 }
 
-.https a span:after {
-    content: "https";
-    margin-left: 5px;
-    border: 1px solid;
-    border-radius: 2px;
-    padding: 0px 5px;
-    font-size: 11px;
+.http a span.extension:after {
+    content: "http";
 }
+
+.https a span.extension:after {
+    content: "https";
+}
+
+
+
 

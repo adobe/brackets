@@ -47,6 +47,8 @@ define(function (require, exports, module) {
         if (data.fullPath.startsWith("https://")) {
             return "https";
         }
+        
+        return "";
     }
 
     AppInit.htmlReady(function () {
