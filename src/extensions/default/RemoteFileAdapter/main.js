@@ -31,7 +31,6 @@ define(function (require, exports, module) {
         CommandManager  = brackets.getModule("command/CommandManager"),
         Commands        = brackets.getModule("command/Commands"),
         Menus           = brackets.getModule("command/Menus"),
-        MainViewManager = brackets.getModule("view/MainViewManager"),
         WorkingSetView  = brackets.getModule("project/WorkingSetView"),
         RemoteFile      = require("RemoteFile");
 
