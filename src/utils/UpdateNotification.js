@@ -36,11 +36,22 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html"),
-        Mustache             = require("thirdparty/mustache/mustache");
+        Mustache             = require("thirdparty/mustache/mustache"),
+        HealthLogger         = brackets.getModule("utils/HealthLogger");
 
     // make sure the global brackets variable is loaded
     require("utils/Global");
 
+    // Private variable to hold the registered update process handler
+    var _updateProcessHandler = null;
+
+    // Private variable to hold the default update process handler
+    var _defaultUpdateProcessHandler = function(updateInfo) {
+        if (updateInfo) {
+            // The first entry in the updates array has the latest download link
+            NativeApp.openURLInDefaultBrowser(updateInfo[0].downloadURL);
+        }
+    };
     // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -50,6 +61,11 @@ define(function (require, exports, module) {
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
 
+    var eventNames = {
+        AUTOUPDATE_CANCEL_CLICK: "UserClickCancelInUpdateDialog",
+        AUTOUPDATE_UPDATENOW_CLICK: "UserClickUpdateNowInUpdateDialog",
+        AUTOUPDATE_UPDATE_AVAILABLE_DIALOG_BOX_RENDERED: "UpdateAvailableDialogBoxRendered"
+    };
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
 
@@ -92,11 +108,38 @@ define(function (require, exports, module) {
      * return {string} the new version update url
      */
     function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
+
         locale = locale || brackets.getLocale();
 
         if (removeCountryPartOfLocale) {
             locale = locale.substring(0, 2);
         }
+
+        //AUTOUPDATE_PRERELEASE_BEGIN
+        // The following code is needed for supporting Auto Update in prerelease,
+        //and will be removed eventually for stable releases
+        {
+            if (locale) {
+                if(locale.length > 2) {
+                    locale = locale.substring(0, 2);
+                }
+                switch(locale)  {
+                case "de":
+                    break;
+                case "es":
+                    break;
+                case "fr":
+                    break;
+                case "ja":
+                    break;
+                case "en":
+                default:
+                    locale = "en";
+                }
+                return brackets.config.update_info_url.replace("<locale>", locale);
+            }
+        }
+        //AUTOUPDATE_PRERELEASE_END
 
         return brackets.config.update_info_url + '?locale=' + locale;
     }
@@ -246,24 +289,46 @@ define(function (require, exports, module) {
     /**
      * Show a dialog that shows the update
      */
-    function _showUpdateNotificationDialog(updates) {
+    function _showUpdateNotificationDialog(updates, force) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
-                    // The first entry in the updates array has the latest download link
-                    NativeApp.openURLInDefaultBrowser(updates[0].downloadURL);
+                    HealthLogger.sendAnalyticsData(
+                        eventNames.AUTOUPDATE_UPDATENOW_CLICK,
+                        "autoUpdate",
+                        "updateNotification",
+                        "updateNow",
+                        "click"
+                    );
+                    handleUpdateProcess(updates);
+                } else {
+                    HealthLogger.sendAnalyticsData(
+                        eventNames.AUTOUPDATE_CANCEL_CLICK,
+                        "autoUpdate",
+                        "updateNotification",
+                        "cancel",
+                        "click"
+                    );
                 }
             });
 
         // Populate the update data
         var $dlg        = $(".update-dialog.instance"),
-            $updateList = $dlg.find(".update-info");
+            $updateList = $dlg.find(".update-info"),
+            subTypeString = force ? "userAction" : "auto";
 
         // Make the update notification icon clickable again
         _addedClickHandler = false;
 
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
+        HealthLogger.sendAnalyticsData(
+            eventNames.AUTOUPDATE_UPDATE_AVAILABLE_DIALOG_BOX_RENDERED,
+            "autoUpdate",
+            "updateNotification",
+            "render",
+            subTypeString
+        );
     }
 
     /**
@@ -305,6 +370,19 @@ define(function (require, exports, module) {
                 setTimeout(checkForExtensionsUpdate, (timeOfNextCheck - currentTime) + TWO_MINUTES);
             }
         }
+    }
+
+    /**
+     *
+     * @param {boolean} enable when false Update Notification Icon in
+                        TollBar will grayed and Click will be blocked.
+                        when true icon will be green and clickable.
+     */
+    function enableUpdateNotificationIcon(enable) {
+        var $updateNotification = $("#update-notification");
+        _addedClickHandler = !enable;
+
+        $updateNotification.toggleClass("update-in-progress", !enable);
     }
 
     /**
@@ -385,7 +463,7 @@ define(function (require, exports, module) {
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update
                     if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
-                        _showUpdateNotificationDialog(allUpdates);
+                        _showUpdateNotificationDialog(allUpdates, force);
 
                         // Update prefs with the last notified build number
                         lastNotifiedBuildNumber = allUpdates[0].buildNumber;
@@ -429,6 +507,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Handles the update process
+     * @param {Array} updates - array object containing info of updates
+     */
+    function handleUpdateProcess(updates) {
+        var handler = _updateProcessHandler || _defaultUpdateProcessHandler;
+        handler(updates);
+    }
+
+    /**
      * Launches both check for Brackets update and check for installed extensions update
      */
     function launchAutomaticUpdate() {
@@ -438,10 +525,28 @@ define(function (require, exports, module) {
         window.setInterval(checkForUpdate, ONE_DAY + TWO_MINUTES);
     }
 
+    /**
+     * Registers the update process handler function
+     * @param {function} handler - function for update process handler
+     */
+    function registerUpdateHandler(handler) {
+        _updateProcessHandler = handler;
+    }
+
+    /**
+     * Utility function to reset back to the default update handler
+     */
+    function resetToDefaultUpdateHandler() {
+        _updateProcessHandler = null;
+    }
+
     // Events listeners
     ExtensionManager.on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
+    exports.registerUpdateHandler = registerUpdateHandler;
+    exports.resetToDefaultUpdateHandler = resetToDefaultUpdateHandler;
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
+    exports.enableUpdateNotificationIcon = enableUpdateNotificationIcon;
 });

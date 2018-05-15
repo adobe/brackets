@@ -45,6 +45,17 @@ define(function (require, exports, module) {
         });
     }
 
+    function _getFileName(filePath) {
+        var fileName = filePath.split('/').pop();
+
+        if (!fileName.trim()) {
+            fileName = filePath.trim().slice(0, -1);
+            fileName = fileName.split('/').pop();
+        }
+
+        return fileName;
+    }
+
     /**
      * Model for a RemoteFile.
      *
@@ -63,7 +74,7 @@ define(function (require, exports, module) {
         this._path = fullPath;
         this._stat = _getStats(fullPath);
         this._id = fullPath;
-        this._name = fullPath.split('/').pop();
+        this._name = _getFileName(fullPath);
         this._fileSystem = fileSystem;
         this.donotWatch = true;
         this.protocol = protocol;

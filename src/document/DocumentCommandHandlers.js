@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -135,7 +136,14 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("defaultExtension", "string", "", {
         excludeFromHints: true
     });
+    EventDispatcher.makeEventDispatcher(exports);
 
+    /**
+     * Event triggered when File Save is cancelled, when prompted to save dirty files
+     */
+    var APP_QUIT_CANCELLED = "appQuitCancelled";
+
+    
     /**
      * JSLint workaround for circular dependency
      * @type {function}
@@ -849,6 +857,14 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+    
+    /**
+     * Dispatches the app quit cancelled event
+     */
+    function dispatchAppQuitCancelledEvent() {
+        exports.trigger(exports.APP_QUIT_CANCELLED);
+    }
+
 
     /**
      * Opens the native OS save as dialog and saves document.
@@ -998,6 +1014,7 @@ define(function (require, exports, module) {
                     if (selectedPath) {
                         _doSaveAfterSaveDialog(selectedPath);
                     } else {
+                        dispatchAppQuitCancelledEvent();
                         result.reject(USER_CANCELED);
                     }
                 } else {
@@ -1219,6 +1236,7 @@ define(function (require, exports, module) {
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        dispatchAppQuitCancelledEvent();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
@@ -1324,6 +1342,7 @@ define(function (require, exports, module) {
             )
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        dispatchAppQuitCancelledEvent();
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
@@ -1786,6 +1805,8 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.showFileOpenError = showFileOpenError;
+    exports.APP_QUIT_CANCELLED = APP_QUIT_CANCELLED;
+    
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
