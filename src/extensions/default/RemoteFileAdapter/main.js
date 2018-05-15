@@ -36,14 +36,14 @@ define(function (require, exports, module) {
 
     var HTTP_PROTOCOL = "http:",
         HTTPS_PROTOCOL = "https:";
-    
+
     /**
      * Disable context menus which are not useful for remote file
      */
     function _setMenuItemsVisible() {
         var file = WorkingSetView.getContext(),
             cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
-        
+
         if (file.constructor.name === "RemoteFile") {
             cMenuItems.forEach(function (item) {
                 CommandManager.get(item).setEnabled(false);
@@ -55,9 +55,9 @@ define(function (require, exports, module) {
     }
 
     AppInit.htmlReady(function () {
-        
+
         Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
-        
+
         var protocolAdapter = {
             priority: 0, // Default priority
             fileImpl: RemoteFile,

@@ -323,7 +323,7 @@ define(function (require, exports, module) {
     function Editor(document, makeMasterEditor, container, range, options) {
         var self = this;
 
-        var isReadOnly = options && options.isReadOnly;
+        var isReadOnly = (options && options.isReadOnly) || !document.editable;
 
         _instances.push(this);
 
