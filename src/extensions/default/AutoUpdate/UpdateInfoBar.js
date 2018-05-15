@@ -28,7 +28,8 @@ define(function (require, exports, module) {
         Mustache            = brackets.getModule("thirdparty/mustache/mustache"),
         EventDispatcher     = brackets.getModule("utils/EventDispatcher"),
         UpdateBarHtml       = require("text!htmlContent/updateBar.html"),
-        Strings             = brackets.getModule("strings");
+        Strings             = brackets.getModule("strings"),
+        _                  =  brackets.getModule("thirdparty/lodash");
 
     EventDispatcher.makeEventDispatcher(exports);
 
@@ -80,6 +81,7 @@ define(function (require, exports, module) {
             $updateBar.remove();
         }
         $(window.document).off("keydown.AutoUpdate");
+        $(window).off('resize.AutoUpdateBar');
     }
 
     /**
@@ -97,6 +99,9 @@ define(function (require, exports, module) {
         var $updateBar = $('#update-bar'),
             $updateContent = $updateBar.find('#update-content'),
             $contentContainer = $updateBar.find('#content-container'),
+            $buttonContainer = $updateBar.find('#button-container'),
+            $iconContainer = $updateBar.find('#icon-container'),
+            $closeIconContainer = $updateBar.find('#close-icon-container'),
             $heading = $updateBar.find('#heading'),
             $description = $updateBar.find('#description'),
             $restart = $updateBar.find('#update-btn-restart'),
@@ -113,6 +118,29 @@ define(function (require, exports, module) {
                 }
             }
         }
+        // Content Container Width between Icon Container and Button Container or Close Icon Container
+        // will be assigned when window will be rezied.
+        var resizeContentContainer = function () {
+            if($updateContent.length > 0 && $contentContainer.length > 0 && $updateBar.length > 0) {
+                var newWidth = $updateBar.outerWidth() - 38;
+                if($buttonContainer.length > 0) {
+                    newWidth = newWidth- $buttonContainer.outerWidth();
+                }
+                if($iconContainer.length > 0) {
+                    newWidth = newWidth - $iconContainer.outerWidth();
+                }
+                if($closeIconContainer.length > 0) {
+                    newWidth = newWidth - $closeIconContainer.outerWidth();
+                }
+
+                $contentContainer.css({
+                    "maxWidth": newWidth
+                });
+            }
+        };
+
+        resizeContentContainer();
+        $(window).on('resize.AutoUpdateBar', _.debounce(resizeContentContainer, 150));
 
         //Event handlers on the Update Bar
 

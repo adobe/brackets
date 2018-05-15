@@ -33,7 +33,10 @@ define(function (require, exports, module) {
         ExtractToFunction    = require("ExtractToFunction"),
         WrapSelection        = require("WrapSelection"),
         CommandManager       = brackets.getModule("command/CommandManager"),
-        Menus                = brackets.getModule("command/Menus");
+        Menus                = brackets.getModule("command/Menus"),
+        HealthLogger         = brackets.getModule("utils/HealthLogger"),
+        _                    = brackets.getModule("thirdparty/lodash"),
+        EditorManager        = brackets.getModule("editor/EditorManager");
 
     var jsRefactoringEnabled     = true;
 
@@ -66,6 +69,63 @@ define(function (require, exports, module) {
         jsRefactoringEnabled = _isRefactoringEnabled();
     });
 
+    function _handleRefactor(functionName) {
+        var eventName, eventType = "";
+        
+        switch (functionName) {
+        case REFACTOR_RENAME:
+            eventName = REFACTOR_RENAME;
+            eventType = "rename";
+            RenameIdentifier.handleRename();
+            break;
+        case EXTRACTTO_VARIABLE:
+            eventName = EXTRACTTO_VARIABLE;
+            eventType = "extractToVariable";
+            ExtractToVariable.handleExtractToVariable();
+            break;
+        case EXTRACTTO_FUNCTION:
+            eventName = EXTRACTTO_FUNCTION;
+            eventType = "extractToFunction";
+            ExtractToFunction.handleExtractToFunction();
+            break;
+        case REFACTORWRAPINTRYCATCH:
+            eventName = REFACTORWRAPINTRYCATCH;
+            eventType = "tryCatch";
+            WrapSelection.wrapInTryCatch();
+            break;
+        case REFACTORWRAPINCONDITION:
+            eventName = REFACTORWRAPINCONDITION;
+            eventType = "wrapInCondition";
+            WrapSelection.wrapInCondition();
+            break;
+        case REFACTORCONVERTTOARROWFN:
+            eventName = REFACTORCONVERTTOARROWFN;
+            eventType = "convertToFunction";
+            WrapSelection.convertToArrowFunction();
+            break;
+        case REFACTORCREATEGETSET:
+            eventName = REFACTORCREATEGETSET;
+            eventType = "createGetterSetter";
+            WrapSelection.createGettersAndSetters();
+            break;
+        }
+        if (eventName) {
+            var editor = EditorManager.getActiveEditor();
+        
+            // Logging should be done only when the context is javascript
+            if (!editor || editor.getModeForSelection() !== "javascript") {
+                return;
+            }
+            // Send analytics data for js refactoring
+            HealthLogger.sendAnalyticsData(
+                eventName,
+                "usage",
+                "jsRefactor",
+                eventType
+            );
+        }
+    }
+
     AppInit.appReady(function () {
 
         if (jsRefactoringEnabled) {
@@ -76,34 +136,34 @@ define(function (require, exports, module) {
             Menus.getMenu(menuLocation).addMenuDivider();
 
             // Rename Identifier
-            CommandManager.register(Strings.CMD_REFACTORING_RENAME, REFACTOR_RENAME, RenameIdentifier.handleRename);
+            CommandManager.register(Strings.CMD_REFACTORING_RENAME, REFACTOR_RENAME, _.partial(_handleRefactor, REFACTOR_RENAME));
             subMenu.addMenuItem(REFACTOR_RENAME);
             Menus.getMenu(menuLocation).addMenuItem(REFACTOR_RENAME, KeyboardPrefs.renameIdentifier);
 
             // Extract to Variable
-            CommandManager.register(Strings.CMD_EXTRACTTO_VARIABLE, EXTRACTTO_VARIABLE, ExtractToVariable.handleExtractToVariable);
+            CommandManager.register(Strings.CMD_EXTRACTTO_VARIABLE, EXTRACTTO_VARIABLE, _.partial(_handleRefactor, EXTRACTTO_VARIABLE));
             subMenu.addMenuItem(EXTRACTTO_VARIABLE);
             Menus.getMenu(menuLocation).addMenuItem(EXTRACTTO_VARIABLE, KeyboardPrefs.extractToVariable);
 
             // Extract to Function
-            CommandManager.register(Strings.CMD_EXTRACTTO_FUNCTION, EXTRACTTO_FUNCTION, ExtractToFunction.handleExtractToFunction);
+            CommandManager.register(Strings.CMD_EXTRACTTO_FUNCTION, EXTRACTTO_FUNCTION, _.partial(_handleRefactor, EXTRACTTO_FUNCTION));
             subMenu.addMenuItem(EXTRACTTO_FUNCTION);
             Menus.getMenu(menuLocation).addMenuItem(EXTRACTTO_FUNCTION, KeyboardPrefs.extractToFunction);
 
             // Wrap Selection
-            CommandManager.register(Strings.CMD_REFACTORING_TRY_CATCH, REFACTORWRAPINTRYCATCH, WrapSelection.wrapInTryCatch);
+            CommandManager.register(Strings.CMD_REFACTORING_TRY_CATCH, REFACTORWRAPINTRYCATCH, _.partial(_handleRefactor, REFACTORWRAPINTRYCATCH));
             subMenu.addMenuItem(REFACTORWRAPINTRYCATCH);
             Menus.getMenu(menuLocation).addMenuItem(REFACTORWRAPINTRYCATCH);
 
-            CommandManager.register(Strings.CMD_REFACTORING_CONDITION, REFACTORWRAPINCONDITION, WrapSelection.wrapInCondition);
+            CommandManager.register(Strings.CMD_REFACTORING_CONDITION, REFACTORWRAPINCONDITION, _.partial(_handleRefactor, REFACTORWRAPINCONDITION));
             subMenu.addMenuItem(REFACTORWRAPINCONDITION);
             Menus.getMenu(menuLocation).addMenuItem(REFACTORWRAPINCONDITION);
 
-            CommandManager.register(Strings.CMD_REFACTORING_ARROW_FUNCTION, REFACTORCONVERTTOARROWFN, WrapSelection.convertToArrowFunction);
+            CommandManager.register(Strings.CMD_REFACTORING_ARROW_FUNCTION, REFACTORCONVERTTOARROWFN, _.partial(_handleRefactor, REFACTORCONVERTTOARROWFN));
             subMenu.addMenuItem(REFACTORCONVERTTOARROWFN);
             Menus.getMenu(menuLocation).addMenuItem(REFACTORCONVERTTOARROWFN);
 
-            CommandManager.register(Strings.CMD_REFACTORING_GETTERS_SETTERS, REFACTORCREATEGETSET, WrapSelection.createGettersAndSetters);
+            CommandManager.register(Strings.CMD_REFACTORING_GETTERS_SETTERS, REFACTORCREATEGETSET, _.partial(_handleRefactor, REFACTORCREATEGETSET));
             subMenu.addMenuItem(REFACTORCREATEGETSET);
             Menus.getMenu(menuLocation).addMenuItem(REFACTORCREATEGETSET);
         }

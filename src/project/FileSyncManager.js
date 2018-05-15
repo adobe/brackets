@@ -111,6 +111,8 @@ define(function (require, exports, module) {
 
             if (doc.isUntitled()) {
                 result.resolve();
+            } else if (doc.file.donotWatch) { // Some file might not like to be watched!
+                result.resolve();
             } else {
                 doc.file.stat(function (err, stat) {
                     if (!err) {
