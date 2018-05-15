@@ -73,6 +73,7 @@ define(function (require, exports, module) {
      */
     function Document(file, initialTimestamp, rawText) {
         this.file = file;
+        this.editable = !file.readOnly;
         this._updateLanguage();
         this.refreshText(rawText, initialTimestamp, true);
         // List of full editors which are initialized as master editors for this doc.
