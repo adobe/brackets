@@ -60,6 +60,13 @@ define(function (require, exports, module) {
     var _iconProviders = [];
 
     /**
+     * The file/folder object of the current context
+     * @type {FileSystemEntry}
+     * @private
+     */
+    var _contextEntry;
+
+    /**
      * Class Providers
      * @see {@link #addClassProvider}
      * @private
@@ -78,7 +85,8 @@ define(function (require, exports, module) {
      * @enum {number}
      */
     var LEFT_BUTTON = 1,
-        MIDDLE_BUTTON = 2;
+        MIDDLE_BUTTON = 2,
+        RIGHT_BUTTON = 3;
 
     /**
      * Each list item in the working set stores a references to the related document in the list item's data.
@@ -773,6 +781,11 @@ define(function (require, exports, module) {
                                 .always(function () {
                                     postDropCleanup();
                                 });
+
+                            // Set the context entry if the click is a right click
+                            if (e.which === RIGHT_BUTTON) {
+                                _contextEntry = sourceFile;
+                            }
                         }
                     } else {
                         // no need to refresh
@@ -1488,6 +1501,13 @@ define(function (require, exports, module) {
             $element.addClass(provider(data));
         });
     }
+
+    /**
+     * Gets the filesystem object for the current context in the working set.
+     */
+    function getContext() {
+        return _contextEntry;
+    }
     
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
@@ -1495,6 +1515,7 @@ define(function (require, exports, module) {
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
+    exports.getContext                    = getContext;
     
     // API to be used only by default extensions
     exports.useIconProviders              = useIconProviders;
