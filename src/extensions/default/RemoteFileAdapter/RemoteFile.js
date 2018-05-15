@@ -70,6 +70,7 @@ define(function (require, exports, module) {
     function RemoteFile(protocol, fullPath, fileSystem) {
         this._isFile = true;
         this._isDirectory = false;
+        this.readOnly = true;
         this._path = fullPath;
         this._stat = _getStats(fullPath);
         this._id = fullPath;
