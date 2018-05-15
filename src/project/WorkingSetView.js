@@ -1107,7 +1107,6 @@ define(function (require, exports, module) {
                     data = {fullPath: file.fullPath,
                             name: file.name,
                             isFile: file.isFile};
-                $li.removeAttr("class");
                 _classProviders.forEach(function (provider) {
                     $li.addClass(provider(data));
                 });
