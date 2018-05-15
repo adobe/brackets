@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         Commands        = brackets.getModule("command/Commands"),
         Menus           = brackets.getModule("command/Menus"),
         MainViewManager = brackets.getModule("view/MainViewManager"),
+        WorkingSetView  = brackets.getModule("project/WorkingSetView"),
         RemoteFile      = require("RemoteFile");
 
     var HTTP_PROTOCOL = "http:",
@@ -41,7 +42,7 @@ define(function (require, exports, module) {
      * Disable context menus which are not useful for remote file
      */
     function _setMenuItemsVisible() {
-        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
+        var file = WorkingSetView.getContext(),
             cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
         
         if (file.constructor.name === "RemoteFile") {
