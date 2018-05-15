@@ -1012,16 +1012,37 @@ define(function (require, exports, module) {
 
         // Go through open files and add directories to appropriate entries
         this.$openFilesContainer.find("ul > li").each(function () {
-            var $li = $(this);
-            var io = filesList.indexOf($li.data(_FILE_KEY));
+            var $li = $(this),
+                io = filesList.indexOf($li.data(_FILE_KEY));
+            
             if (io !== -1) {
                 var dirSplit = displayPaths[io].split("/");
                 if (dirSplit.length > 3) {
                     displayPaths[io] = dirSplit[0] + "/\u2026/" + dirSplit[dirSplit.length - 1];
                 }
 
-                var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);
-                $li.children("a").append($dir);
+                if (displayPaths[io]) {
+                    var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);
+                    $li.children("a").append($dir);
+                }
+            }
+        });
+    };
+    
+    /**
+     * Adds protocol names to remote files in working tree
+     * @private
+     */
+    WorkingSetView.prototype._addProtocolToWorkingTreeFiles = function () {
+
+        // Go through open files and add protocol to appropriate entries
+        this.$openFilesContainer.find("ul > li").each(function () {
+            var $li = $(this),
+                file = $li.data(_FILE_KEY);
+
+            if (file && file.toString().indexOf("[RemoteFile") === 0) {
+                var $fileProtocol = $("<span class='directory'/>").html(" &mdash; " + file.protocol.slice(0, -1).toUpperCase());
+                $li.children("a").append($fileProtocol);
             }
         });
     };
@@ -1065,6 +1086,7 @@ define(function (require, exports, module) {
     WorkingSetView.prototype._redraw = function () {
         this._updateViewState();
         this._updateVisibility();
+        this._addProtocolToWorkingTreeFiles();
         this._updateItemClasses();
         this._adjustForScrollbars();
         this._fireSelectionChanged();
