@@ -42,15 +42,15 @@ define(function (require, exports, module) {
      */
     function _setMenuItemsVisible() {
         var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
-            cMenusFile = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
+            cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
         
-        if (file.toString().indexOf("[RemoteFile") === 0) {
-            cMenusFile.forEach(function (menu) {
-                CommandManager.get(menu).setEnabled(false);
+        if (file.constructor.name === "RemoteFile") {
+            cMenuItems.forEach(function (item) {
+                CommandManager.get(item).setEnabled(false);
             });
         } else {
-            //Explicitly handeling save other commands are handeled by DefaultMenus
-            CommandManager.get(cMenusFile[0]).setEnabled(true);
+            //Explicitly enabling save, other commands are handled by DefaultMenus.js
+            CommandManager.get(Commands.FILE_SAVE).setEnabled(true);
         }
     }
 
