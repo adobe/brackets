@@ -358,9 +358,7 @@ define(function (require, exports, module) {
 
                 if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
                     setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber)
-                        .done(function () {
-                            initNodeFn();
-                        });
+                        .done(initNodeFn);
                 } else {
                     initNodeFn();
                 }
@@ -612,9 +610,7 @@ define(function (require, exports, module) {
             --downloadAttemptsRemaining;
         };
         setUpdateStateInJSON('downloadCompleted', false)
-            .done(function () {
-                downloadFn();
-            });
+            .done(downloadFn);
     }
 
     /**
@@ -794,9 +790,7 @@ define(function (require, exports, module) {
             }
         };
         setUpdateStateInJSON('updateInitiatedInPrevSession', true)
-            .done(function () {
-                updateFn();
-            });
+            .done(updateFn);
     }
 
     /**
@@ -870,9 +864,7 @@ define(function (require, exports, module) {
             };
 
             setUpdateStateInJSON('downloadCompleted', true)
-                .done(function () {
-                    statusValidFn();
-                });
+                .done(statusValidFn);
         } else {
 
             // Installer validation failed
@@ -888,9 +880,7 @@ define(function (require, exports, module) {
                 };
 
                 setUpdateStateInJSON('downloadCompleted', false)
-                    .done(function () {
-                        statusInvalidFn();
-                    });
+                    .done(statusInvalidFn);
             } else {
 
                 // If this is a new download, prompt the message on update bar
