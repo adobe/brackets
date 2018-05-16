@@ -292,8 +292,15 @@
                 .pipe(localInstalllerFile)
                 .on('close', function () {
                     if (requestCompleted) {
-                        fs.renameSync(localInstallerPath, installerPath);
-                        postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
+                        fs.rename(localInstallerPath, installerPath)
+                            .then(function () {
+                                postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
+                            })
+                            .catch(function (e) {
+                                console.log("AutoUpdate : Download failed. Exception occurred : " + e.toString());
+                                postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE,
+                                                      _nodeErrorMessages.DOWNLOAD_ERROR);
+                            });
                     }
                 });
         } catch (e) {
