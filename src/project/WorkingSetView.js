@@ -85,8 +85,7 @@ define(function (require, exports, module) {
      * @enum {number}
      */
     var LEFT_BUTTON = 1,
-        MIDDLE_BUTTON = 2,
-        RIGHT_BUTTON = 3;
+        MIDDLE_BUTTON = 2;
 
     /**
      * Each list item in the working set stores a references to the related document in the list item's data.
