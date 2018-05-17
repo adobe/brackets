@@ -89,29 +89,32 @@ define(function (require, exports, module) {
         DOWNLOAD_ERROR: 4
     };
 
-
-    /**
-     * Sets up the preference to keep a track of auto update state
-     */
-    function setupAutoUpdateInProgressState() {
-        // State for auto update
-        PreferencesManager.stateManager.definePreference("AutoUpdate.inProgress", "boolean", false);
-    }
-
-    /**
-     * Sets the auto update state to be in progress, marking an auto update session in progress
-     * @param {boolean} updateState - true if an autoupdate session is in progress, false otherwise
-     */
-    function setAutoUpdateSessionInProgress(updateState) {
-        PreferencesManager.setViewState("AutoUpdate.inProgress", updateState);
-    }
-
     /**
      * Checks if an auto update session is currently in progress
      * @returns {boolean} - true if an auto update session is currently in progress, false otherwise
      */
     function checkIfAnotherSessionInProgress() {
-        return PreferencesManager.getViewState("AutoUpdate.inProgress");
+         var result = $.Deferred();
+        if(updateJsonHandler) {
+            var state = updateJsonHandler.state;
+
+            updateJsonHandler.read("autoUpdateInProgress")
+                .done(function(val) {
+                    updateJsonHandler.state = state;
+                    setUpdateStateInJSON("autoUpdateInProgress", val)
+                        .done(function() {
+                            result.resolve(val);
+                        })
+                        .fail(function() {
+                            result.reject();
+                        });
+                })
+                .fail(function() {
+                    updateJsonHandler.state = state;
+                    result.reject();
+                });
+        }
+        return result.promise();
     }
 
     /**
@@ -304,9 +307,6 @@ define(function (require, exports, module) {
      * Sets up the Auto Update environment
      */
     function setupAutoUpdate() {
-        if (!checkIfAnotherSessionInProgress()) {
-            setAutoUpdateSessionInProgress(false);
-        }
         updateJsonHandler = new StateHandler(updateJsonPath);
 
         updateDomain.exec('initNode', {
@@ -385,16 +385,40 @@ define(function (require, exports, module) {
 
         initializeState()
             .done(function () {
-                var initNodeFn = function () {
-                    postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+
+                 var setUpdateInProgress = function() {
+                    var initNodeFn = function () {
+                        postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+                    };
+
+                    if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
+                        setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber)
+                            .done(initNodeFn);
+                    } else {
+                        initNodeFn();
+                    }
                 };
 
-                if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
-                    setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber)
-                        .done(initNodeFn);
-                } else {
-                    initNodeFn();
-                }
+                checkIfAnotherSessionInProgress()
+                    .done(function(inProgress) {
+                        if(inProgress) {
+                            UpdateInfoBar.showUpdateBar({
+                                type: "error",
+                                title: Strings.AUTOUPDATE_ERROR,
+                                description: Strings.AUTOUPDATE_IN_PROGRESS
+                            });
+                        } else {
+                             setUpdateStateInJSON("autoUpdateInProgress", true)
+                                .done(setUpdateInProgress);
+
+                        }
+                    })
+                    .fail(function() {
+                        setUpdateStateInJSON("autoUpdateInProgress", true)
+                            .done(setUpdateInProgress);
+
+                    });
+
             })
             .fail(function () {
                 UpdateInfoBar.showUpdateBar({
@@ -402,7 +426,7 @@ define(function (require, exports, module) {
                     title: Strings.INITIALISATION_FAILED,
                     description: ""
                 });
-				setAutoUpdateSessionInProgress(false);
+                setUpdateStateInJSON("autoUpdateInProgress", false);
             });
     }
 
@@ -428,16 +452,6 @@ define(function (require, exports, module) {
      * @param {Array} updates - array of {...Update~Entry} update entries
      */
     function _updateProcessHandler(updates) {
-
-
-        if (checkIfAnotherSessionInProgress()) {
-            UpdateInfoBar.showUpdateBar({
-                type: "error",
-                title: Strings.AUTOUPDATE_ERROR,
-                description: Strings.AUTOUPDATE_IN_PROGRESS
-            });
-        } else {
-            setAutoUpdateSessionInProgress(true);
 
             if (!updates) {
                 console.warn("AutoUpdate : updates information not available.");
@@ -481,7 +495,6 @@ define(function (require, exports, module) {
 
             //Initiate the auto update, with update params
             initiateAutoUpdate(updateParams);
-        }
     }
 
 
@@ -538,8 +551,6 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
 
-        domainID = (new Date()).getTime();
-
         // Auto Update is supported on Win and Mac, as of now
         if (brackets.platform === "linux" || !(brackets.app.setUpdateParams)) {
             return;
@@ -556,7 +567,7 @@ define(function (require, exports, module) {
              .done(function () {
                 setupAutoUpdatePreference();
                 if (_isAutoUpdateEnabled()) {
-                    setupAutoUpdateInProgressState();
+                    domainID = (new Date()).getTime();
                     setupAutoUpdate();
                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
                 }
@@ -598,10 +609,11 @@ define(function (require, exports, module) {
             title: Strings.UPDATE_FAILED,
             description: ""
         });
-		setAutoUpdateSessionInProgress(false);
 
         enableCheckForUpdateEntry(true);
         console.error(message);
+
+        setUpdateStateInJSON("autoUpdateInProgress", false);
     }
 
     /**
@@ -683,7 +695,8 @@ define(function (require, exports, module) {
                 title: Strings.DOWNLOAD_FAILED,
                 description: Strings.INTERNET_UNAVAILABLE
             });
-			setAutoUpdateSessionInProgress(false);
+
+            setUpdateStateInJSON("autoUpdateInProgress", false);
         }
     }
 
@@ -905,7 +918,8 @@ define(function (require, exports, module) {
                     description: Strings.CLICK_RESTART_TO_UPDATE,
                     needButtons: true
                 });
-				setAutoUpdateSessionInProgress(false);
+
+                setUpdateStateInJSON("autoUpdateInProgress", false);
                 HealthLogger.sendAnalyticsData(
                     autoUpdateEventNames.AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED,
                     "autoUpdate",
@@ -958,7 +972,8 @@ define(function (require, exports, module) {
                     title: Strings.VALIDATION_FAILED,
                     description: descriptionMessage
                 });
-				setAutoUpdateSessionInProgress(false);
+
+                setUpdateStateInJSON("autoUpdateInProgress", false);
             }
         }
     }
@@ -997,7 +1012,8 @@ define(function (require, exports, module) {
                 title: Strings.DOWNLOAD_FAILED,
                 description: descriptionMessage
             });
- 			setAutoUpdateSessionInProgress(false);
+
+            setUpdateStateInJSON("autoUpdateInProgress", false);
         }
 
     }

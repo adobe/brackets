@@ -400,6 +400,7 @@
      *                          args - arguments to the above function }
      */
     function receiveMessageFromBrackets(msgObj) {
+        currentRequester = msgObj.requester;
         functionMap[msgObj.fn].apply(null, msgObj.args);
     }
 

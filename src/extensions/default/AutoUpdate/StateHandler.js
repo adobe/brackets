@@ -132,6 +132,32 @@ define(function (require, exports, module) {
         return retval;
     };
 
+     /**
+     * Reads the value of a key from a json file.
+     * @param   {string} key - key for which the value is to be read
+     * @returns {$.Deferred} - a jquery deferred promise, that is resolved
+     *                       with the read value or read failure.
+     */
+    StateHandler.prototype.read = function (key) {
+        var result = $.Deferred(),
+            self = this;
+
+        self.parse()
+            .done(function () {
+                if (self.state && self.state[key]) {
+                    result.resolve(self.state[key]);
+                } else {
+                    result.reject();
+                    console.log("AutoUpdate : key " + key + " in updateHelper.json could not be read");
+                }
+            })
+            .fail(function () {
+                result.reject();
+                console.log("AutoUpdate : updateHelper.json could not be parsed, key could not be read");
+            });
+
+        return result.promise();
+    };
 
     /**
      * Performs the write of JSON object to a file.
