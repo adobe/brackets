@@ -781,11 +781,6 @@ define(function (require, exports, module) {
                                 .always(function () {
                                     postDropCleanup();
                                 });
-
-                            // Set the context entry if the click is a right click
-                            if (e.which === RIGHT_BUTTON) {
-                                _contextEntry = sourceFile;
-                            }
                         }
                     } else {
                         // no need to refresh
@@ -1397,6 +1392,7 @@ define(function (require, exports, module) {
         this.$openFilesContainer.css("overflow-x", "hidden");
 
         this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
+            _contextEntry = $(e.target).closest("li").data(_FILE_KEY);
             Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).open(e);
         });
 
