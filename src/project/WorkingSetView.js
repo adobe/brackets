@@ -85,8 +85,7 @@ define(function (require, exports, module) {
      * @enum {number}
      */
     var LEFT_BUTTON = 1,
-        MIDDLE_BUTTON = 2,
-        RIGHT_BUTTON = 3;
+        MIDDLE_BUTTON = 2;
 
     /**
      * Each list item in the working set stores a references to the related document in the list item's data.
@@ -781,11 +780,6 @@ define(function (require, exports, module) {
                                 .always(function () {
                                     postDropCleanup();
                                 });
-
-                            // Set the context entry if the click is a right click
-                            if (e.which === RIGHT_BUTTON) {
-                                _contextEntry = sourceFile;
-                            }
                         }
                     } else {
                         // no need to refresh
@@ -1397,6 +1391,7 @@ define(function (require, exports, module) {
         this.$openFilesContainer.css("overflow-x", "hidden");
 
         this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
+            _contextEntry = $(e.target).closest("li").data(_FILE_KEY);
             Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).open(e);
         });
 
