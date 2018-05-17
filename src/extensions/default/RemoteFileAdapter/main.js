@@ -30,12 +30,27 @@ define(function (require, exports, module) {
         PathUtils       = brackets.getModule("thirdparty/path-utils/path-utils"),
         CommandManager  = brackets.getModule("command/CommandManager"),
         Commands        = brackets.getModule("command/Commands"),
+        ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
+        WorkingSetView = brackets.getModule("project/WorkingSetView"),
         Menus           = brackets.getModule("command/Menus"),
-        WorkingSetView  = brackets.getModule("project/WorkingSetView"),
         RemoteFile      = require("RemoteFile");
 
     var HTTP_PROTOCOL = "http:",
         HTTPS_PROTOCOL = "https:";
+    
+    ExtensionUtils.loadStyleSheet(module, "styles.css");
+    
+    function protocolClassProvider(data) {
+        if (data.fullPath.startsWith("http://")) {
+            return "http";
+        }
+
+        if (data.fullPath.startsWith("https://")) {
+            return "https";
+        }
+        
+        return "";
+    }
     
     /**
      * Disable context menus which are not useful for remote file
@@ -89,6 +104,8 @@ define(function (require, exports, module) {
                 }
             }
         );
+        
+        WorkingSetView.addClassProvider(protocolClassProvider);
     });
 
 });

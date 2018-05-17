@@ -1,0 +1,21 @@
+.http a:after,
+.https a:after {
+    margin-left: 5px;
+    border: 1px solid;
+    border-radius: 2px;
+    padding: 0px 5px;
+    font-size: 11px;
+    color: #adb9bd;
+}
+
+.http a:after {
+    content: "http";
+}
+
+.https a:after {
+    content: "https";
+}
+
+
+
+

@@ -66,7 +66,7 @@ define({
 	"ERROR_RENAMING_FILE_TITLE": "{0} の名前を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "{2} <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
 	"ERROR_RENAMING_NOT_IN_PROJECT": "ファイルまたはディレクトリが、現在開いているプロジェクトの一部ではありません。現時点で、プロジェクトファイルの名前のみを変更できます。",
-	"ERROR_MOVING_FILE_TITLE": "{0} の移動エラー",
+	"ERROR_MOVING_FILE_TITLE": "{0}の移動エラー",
 	"ERROR_MOVING_FILE": "{2} <span class='dialog-filename'>{0}</span> を移動する際にエラーが発生しました。{1}",
 	"ERROR_MOVING_NOT_IN_PROJECT": "現在のプロジェクトに含まれないため、ファイル/フォルダーを移動することはできません。",
 	"ERROR_DELETING_FILE_TITLE": "{0} を削除する際にエラーが発生しました。",
