@@ -60,6 +60,13 @@ define(function (require, exports, module) {
     var _iconProviders = [];
 
     /**
+     * The file/folder object of the current context
+     * @type {FileSystemEntry}
+     * @private
+     */
+    var _contextEntry;
+
+    /**
      * Class Providers
      * @see {@link #addClassProvider}
      * @private
@@ -1107,7 +1114,6 @@ define(function (require, exports, module) {
                     data = {fullPath: file.fullPath,
                             name: file.name,
                             isFile: file.isFile};
-                $li.removeAttr("class");
                 _classProviders.forEach(function (provider) {
                     $li.addClass(provider(data));
                 });
@@ -1385,6 +1391,7 @@ define(function (require, exports, module) {
         this.$openFilesContainer.css("overflow-x", "hidden");
 
         this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {
+            _contextEntry = $(e.target).closest("li").data(_FILE_KEY);
             Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).open(e);
         });
 
@@ -1489,6 +1496,13 @@ define(function (require, exports, module) {
             $element.addClass(provider(data));
         });
     }
+
+    /**
+     * Gets the filesystem object for the current context in the working set.
+     */
+    function getContext() {
+        return _contextEntry;
+    }
     
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
@@ -1496,6 +1510,7 @@ define(function (require, exports, module) {
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
+    exports.getContext                    = getContext;
     
     // API to be used only by default extensions
     exports.useIconProviders              = useIconProviders;

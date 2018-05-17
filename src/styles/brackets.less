@@ -754,6 +754,9 @@ a, img {
 
 #update-notification {
     .sprite-icon(0, 0, 24px, 24px, "images/updateSprites.svg");
+    &.update-in-progress {
+        .sprite-icon(0, 0, 24px, 24px, "images/updateSpritesGrayed.svg");
+    }
 }
 
 #toolbar-go-live {
@@ -1893,6 +1896,7 @@ textarea.exclusions-editor {
     border-radius: 0 0 4px 4px;
     box-shadow: 0 5px 10px @bc-shadow;
     opacity: 0;
+    overflow-wrap: break-word;
 
     .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99));
     -webkit-animation-fill-mode: forwards;

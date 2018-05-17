@@ -94,30 +94,6 @@ define(function (require, exports, module) {
     var _installerName;
 
     /**
-     * Sets up the preference to keep a track of auto update state
-     */
-    function setupAutoUpdateInProgressState() {
-        // State for auto update
-        PreferencesManager.stateManager.definePreference("AutoUpdate.inProgress", "boolean", false);
-    }
-
-    /**
-     * Sets the auto update state to be in progress, marking an auto update session in progress
-     * @param {boolean} updateState - true if an autoupdate session is in progress, false otherwise
-     */
-    function setAutoUpdateSessionInProgress(updateState) {
-        PreferencesManager.setViewState("AutoUpdate.inProgress", updateState);
-    }
-
-    /**
-     * Checks if an auto update session is currently in progress
-     * @returns {boolean} - true if an auto update session is currently in progress, false otherwise
-     */
-    function checkIfAnotherSessionInProgress() {
-        return PreferencesManager.getViewState("AutoUpdate.inProgress");
-    }
-
-    /**
      * Checks if auto update preference is enabled or disabled
      * @private
      * @returns {boolean} - true if preference enabled, false otherwise
@@ -330,9 +306,6 @@ define(function (require, exports, module) {
      * Sets up the Auto Update environment
      */
     function setupAutoUpdate() {
-        if (!checkIfAnotherSessionInProgress()) {
-            setAutoUpdateSessionInProgress(false);
-        }
         updateJsonHandler = new StateHandler(updateJsonPath);
 
         updateDomain.exec('initNode', {
@@ -416,14 +389,14 @@ define(function (require, exports, module) {
                 };
 
                 if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
-                    setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber, initNodeFn);
+                    setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber)
+                        .done(initNodeFn);
                 } else {
                     initNodeFn();
                 }
             })
             .fail(function () {
                 showUpdateBar(Strings.INITIALISATION_FAILED, "", "error");
-                setAutoUpdateSessionInProgress(false);
             });
     }
 
@@ -450,12 +423,6 @@ define(function (require, exports, module) {
      * @param {boolean} test - boolean to denote whether the API is invoked for unit testing
      */
     function _updateProcessHandler(updates, test) {
-
-
-        if (checkIfAnotherSessionInProgress()) {
-            showUpdateBar(Strings.AUTOUPDATE_ERROR, Strings.AUTOUPDATE_IN_PROGRESS, "error");
-        } else {
-            setAutoUpdateSessionInProgress(true);
 
             if (!updates) {
                 console.warn("AutoUpdate : updates information not available.");
@@ -503,7 +470,6 @@ define(function (require, exports, module) {
 
             //Initiate the auto update, with update params
             initiateAutoUpdate(updateParams);
-        }
     }
 
 
@@ -595,7 +561,6 @@ define(function (require, exports, module) {
              .done(function () {
                 setupAutoUpdatePreference();
                 if (_isAutoUpdateEnabled()) {
-                    setupAutoUpdateInProgressState();
                     setupAutoUpdate();
                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
 
@@ -617,6 +582,7 @@ define(function (require, exports, module) {
     function enableCheckForUpdateEntry(enable) {
         var cfuCommand = CommandManager.get(Commands.HELP_CHECK_FOR_UPDATE);
         cfuCommand.setEnabled(enable);
+        UpdateNotification.enableUpdateNotificationIcon(enable);
     }
 
     /**
@@ -635,7 +601,6 @@ define(function (require, exports, module) {
     function resetStateInFailure(message) {
         updateJsonHandler.reset();
 
-        setAutoUpdateSessionInProgress(false);
         showUpdateBar(Strings.UPDATE_FAILED, "", "error");
 
         enableCheckForUpdateEntry(true);
@@ -644,21 +609,23 @@ define(function (require, exports, module) {
 
     /**
      * Sets the update state in updateHelper.json in Appdata
-     * @param {string} key   - key to be set
-     * @param {string} value  - value to be set
-     * @param {function} fn - the function
-     *                            to be called in case of
-     *                            successful setting of update state
+     * @param   {string} key   - key to be set
+     * @param   {string} value - value to be set
+     * @returns {$.Deferred} - a jquery promise, that is resolved with
+     *                       success or failure of state update in json file
      */
-    function setUpdateStateInJSON(key, value, fn) {
-        var func = fn || function () {};
+    function setUpdateStateInJSON(key, value) {
+         var result = $.Deferred();
+
         updateJsonHandler.set(key, value)
             .done(function () {
-                func();
+                result.resolve();
             })
             .fail(function () {
                 resetStateInFailure("AutoUpdate : Could not modify updatehelper.json");
+                result.reject();
             });
+        return result.promise();
     }
 
     /**
@@ -695,7 +662,8 @@ define(function (require, exports, module) {
 
             --downloadAttemptsRemaining;
         };
-        setUpdateStateInJSON('downloadCompleted', false, downloadFn);
+        setUpdateStateInJSON('downloadCompleted', false)
+            .done(downloadFn);
     }
 
     /**
@@ -713,7 +681,6 @@ define(function (require, exports, module) {
         if (checkIfOnline()) {
             postMessageToNode(MessageIds.PERFORM_CLEANUP, ['.json'], true);
         } else {
-            setAutoUpdateSessionInProgress(false);
             showUpdateBar(Strings.DOWNLOAD_FAILED, Strings.INTERNET_UNAVAILABLE, "error");
         }
     }
@@ -864,7 +831,8 @@ define(function (require, exports, module) {
                 resetStateInFailure("AutoUpdate : setUpdateParams could not be found in shell");
             }
         };
-        setUpdateStateInJSON('updateInitiatedInPrevSession', true, updateFn);
+        setUpdateStateInJSON('updateInitiatedInPrevSession', true)
+            .done(updateFn);
     }
 
     /**
@@ -923,7 +891,6 @@ define(function (require, exports, module) {
                 UpdateInfoBar.on(UpdateInfoBar.RESTART_BTN_CLICKED, restartBtnClicked);
                 UpdateInfoBar.on(UpdateInfoBar.LATER_BTN_CLICKED, laterBtnClicked);
 
-                setAutoUpdateSessionInProgress(false);
                 showUpdateBar( Strings.DOWNLOAD_COMPLETE, Strings.CLICK_RESTART_TO_UPDATE, null, true);
 
                 HealthLogger.sendAnalyticsData(
@@ -935,11 +902,14 @@ define(function (require, exports, module) {
                 );
             };
 
-            //For unit testing
+
+			 //For unit testing
             brackets.test.AutoUpdate.validationCompleted = true;
             brackets.test.AutoUpdate.installerPath = updateDir + "/" + _installerName;
+			
 
-            setUpdateStateInJSON('downloadCompleted', true, statusValidFn);
+            setUpdateStateInJSON('downloadCompleted', true)
+                .done(statusValidFn);
         } else {
 
             // Installer validation failed
@@ -954,7 +924,8 @@ define(function (require, exports, module) {
                     getLatestInstaller();
                 };
 
-                setUpdateStateInJSON('downloadCompleted', false, statusInvalidFn);
+                setUpdateStateInJSON('downloadCompleted', false)
+                    .done(statusInvalidFn);
             } else {
 
                 // If this is a new download, prompt the message on update bar
@@ -977,7 +948,7 @@ define(function (require, exports, module) {
                 );
 
                 showUpdateBar(Strings.VALIDATION_FAILED, descriptionMessage, "error");
-                setAutoUpdateSessionInProgress(false);
+
                 // For unit testing
                 brackets.test.AutoUpdate.validationFailed = true;
             }
@@ -1015,7 +986,7 @@ define(function (require, exports, module) {
             );
 
             showUpdateBar(Strings.DOWNLOAD_FAILED, descriptionMessage, "error");
-            setAutoUpdateSessionInProgress(false);
+
             // For unit testing
             brackets.test.AutoUpdate.downloadFailed = true;
         }
