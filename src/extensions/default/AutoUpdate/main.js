@@ -188,22 +188,28 @@ define(function (require, exports, module) {
      * Displays the update bar UI
      * @param {string} title       - title of the message
      * @param {string} description - description of the message
-     * @param {string} type        - type of the message
-     * @param {boolean} needButtons - boolean to denote whether or not
+     * @param {object} options - optional object, comprising of the following: 
+     *                         {{string} type        - type of the message,
+     *                         {boolean} needButtons - boolean to denote whether or not
      *                              Restart/Later buttons are to be displayed in the UI
+     *                         }
      */
-    function showUpdateBar(title, description, type, needButtons) {
-        if(type) {
+    function showUpdateBar(title, description, options) {
+        options = options || {
+            type: null,
+            needButtons: null
+        };
+        if(options.type) {
             UpdateInfoBar.showUpdateBar({
-                type: type,
+                type: options.type,
                 title: title,
                 description: description
             });
-        } else if (needButtons) {
+        } else if (options.needButtons) {
             UpdateInfoBar.showUpdateBar({
                 title: title,
                 description: description,
-                needButtons: needButtons
+                needButtons: options.needButtons
             });
         } else {
             UpdateInfoBar.showUpdateBar({
@@ -226,7 +232,7 @@ define(function (require, exports, module) {
             var isNewVersion = checkIfVersionUpdated();
             if (isNewVersion) {
                 // We get here if the update was successful
-                showUpdateBar(Strings.UPDATE_SUCCESSFUL, "", "success");
+                showUpdateBar(Strings.UPDATE_SUCCESSFUL, "", { type: "success"});
                 HealthLogger.sendAnalyticsData(
                     autoUpdateEventNames.AUTOUPDATE_INSTALLATION_SUCCESS,
                     "autoUpdate",
@@ -238,7 +244,7 @@ define(function (require, exports, module) {
                 // We get here if the update started but failed
                 checkInstallationStatus();
                 filesToCache = ['.logs']; //AUTOUPDATE_PRERELEASE
-                showUpdateBar(Strings.UPDATE_FAILED, Strings.GO_TO_SITE, "error");
+                showUpdateBar(Strings.UPDATE_FAILED, Strings.GO_TO_SITE, {type: "error"});
             }
         } else if (downloadCompleted && !updateInitiatedInPrevSession) {
             // We get here if the download was complete and user selected UpdateLater
@@ -396,7 +402,7 @@ define(function (require, exports, module) {
                 }
             })
             .fail(function () {
-                showUpdateBar(Strings.INITIALISATION_FAILED, "", "error");
+                showUpdateBar(Strings.INITIALISATION_FAILED, "", {type: "error"});
             });
     }
 
@@ -601,7 +607,7 @@ define(function (require, exports, module) {
     function resetStateInFailure(message) {
         updateJsonHandler.reset();
 
-        showUpdateBar(Strings.UPDATE_FAILED, "", "error");
+        showUpdateBar(Strings.UPDATE_FAILED, "", {type: "error"});
 
         enableCheckForUpdateEntry(true);
         console.error(message);
@@ -681,7 +687,7 @@ define(function (require, exports, module) {
         if (checkIfOnline()) {
             postMessageToNode(MessageIds.PERFORM_CLEANUP, ['.json'], true);
         } else {
-            showUpdateBar(Strings.DOWNLOAD_FAILED, Strings.INTERNET_UNAVAILABLE, "error");
+            showUpdateBar(Strings.DOWNLOAD_FAILED, Strings.INTERNET_UNAVAILABLE, {type: "error"});
         }
     }
 
@@ -748,7 +754,7 @@ define(function (require, exports, module) {
             break;
         }
 
-        showUpdateBar(Strings.CLEANUP_FAILED, descriptionMessage, "error");
+        showUpdateBar(Strings.CLEANUP_FAILED, descriptionMessage, {type: "error"});
     }
 
 
@@ -758,7 +764,7 @@ define(function (require, exports, module) {
      * has dirty files and he/she clicked UpdateNow
      */
     function dirtyFileSaveCancelled() {
-        showUpdateBar(Strings.WARNING_TYPE, Strings.UPDATE_ON_NEXT_LAUNCH, "warning");
+        showUpdateBar(Strings.WARNING_TYPE, Strings.UPDATE_ON_NEXT_LAUNCH, {type: "warning"});
     }
 
     /**
@@ -891,7 +897,7 @@ define(function (require, exports, module) {
                 UpdateInfoBar.on(UpdateInfoBar.RESTART_BTN_CLICKED, restartBtnClicked);
                 UpdateInfoBar.on(UpdateInfoBar.LATER_BTN_CLICKED, laterBtnClicked);
 
-                showUpdateBar( Strings.DOWNLOAD_COMPLETE, Strings.CLICK_RESTART_TO_UPDATE, null, true);
+                showUpdateBar( Strings.DOWNLOAD_COMPLETE, Strings.CLICK_RESTART_TO_UPDATE, {needButtons: true});
 
                 HealthLogger.sendAnalyticsData(
                     autoUpdateEventNames.AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED,
@@ -947,7 +953,7 @@ define(function (require, exports, module) {
                     descriptionMessage
                 );
 
-                showUpdateBar(Strings.VALIDATION_FAILED, descriptionMessage, "error");
+                showUpdateBar(Strings.VALIDATION_FAILED, descriptionMessage, {type: "error"});
 
                 // For unit testing
                 brackets.test.AutoUpdate.validationFailed = true;
@@ -985,7 +991,7 @@ define(function (require, exports, module) {
                 descriptionMessage
             );
 
-            showUpdateBar(Strings.DOWNLOAD_FAILED, descriptionMessage, "error");
+            showUpdateBar(Strings.DOWNLOAD_FAILED, descriptionMessage, {type: "error"});
 
             // For unit testing
             brackets.test.AutoUpdate.downloadFailed = true;
