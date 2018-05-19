@@ -46,7 +46,8 @@ define(function (require, exports, module) {
     var _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath = "node/AutoUpdateDomain",
         _domainPath = [_modulePath, _nodePath].join("/"),
-        updateDomain;
+        updateDomain,
+        domainID;
 
     var appSupportDirectory = brackets.app.getApplicationSupportDirectory(),
         updateDir = appSupportDirectory + '/updateTemp',
@@ -89,6 +90,9 @@ define(function (require, exports, module) {
     };
 
 
+    // For unit testing
+    var _installerName;
+
     /**
      * Checks if auto update preference is enabled or disabled
      * @private
@@ -104,9 +108,12 @@ define(function (require, exports, module) {
      * @param {object}   msgObj - json containing - {
      *                          fn - function to execute on Brackets side
      *                          args - arguments to the above function
+     *                          requester - ID of the current requester domain
      */
     function receiveMessageFromNode(event, msgObj) {
-        functionMap[msgObj.fn].apply(null, msgObj.args);
+        if (domainID === msgObj.requester) {
+            functionMap[msgObj.fn].apply(null, msgObj.args);
+        }
     }
 
      /*
@@ -148,7 +155,8 @@ define(function (require, exports, module) {
     function postMessageToNode(messageId) {
         var msg = {
             fn: messageId,
-            args: getFunctionArgs(arguments)
+            args: getFunctionArgs(arguments),
+            requester: domainID
         };
         updateDomain.exec('data', msg);
     }
@@ -175,7 +183,44 @@ define(function (require, exports, module) {
         postMessageToNode(MessageIds.CHECK_INSTALLER_STATUS, searchParams);
     }
 
-     /**
+
+    /**
+     * Displays the update bar UI
+     * @param {string} title       - title of the message
+     * @param {string} description - description of the message
+     * @param {object} options - optional object, comprising of the following: 
+     *                         {{string} type        - type of the message,
+     *                         {boolean} needButtons - boolean to denote whether or not
+     *                              Restart/Later buttons are to be displayed in the UI
+     *                         }
+     */
+    function showUpdateBar(title, description, options) {
+        options = options || {
+            type: null,
+            needButtons: null
+        };
+        if(options.type) {
+            UpdateInfoBar.showUpdateBar({
+                type: options.type,
+                title: title,
+                description: description
+            });
+        } else if (options.needButtons) {
+            UpdateInfoBar.showUpdateBar({
+                title: title,
+                description: description,
+                needButtons: options.needButtons
+            });
+        } else {
+            UpdateInfoBar.showUpdateBar({
+                title: title,
+                description: description
+            });
+        }
+    }
+
+
+    /**
      * Checks and handles the update success and failure scenarios
      */
     function checkUpdateStatus() {
@@ -187,11 +232,7 @@ define(function (require, exports, module) {
             var isNewVersion = checkIfVersionUpdated();
             if (isNewVersion) {
                 // We get here if the update was successful
-                UpdateInfoBar.showUpdateBar({
-                    type: "success",
-                    title: Strings.UPDATE_SUCCESSFUL,
-                    description: ""
-                });
+                showUpdateBar(Strings.UPDATE_SUCCESSFUL, "", { type: "success"});
                 HealthLogger.sendAnalyticsData(
                     autoUpdateEventNames.AUTOUPDATE_INSTALLATION_SUCCESS,
                     "autoUpdate",
@@ -203,11 +244,7 @@ define(function (require, exports, module) {
                 // We get here if the update started but failed
                 checkInstallationStatus();
                 filesToCache = ['.logs']; //AUTOUPDATE_PRERELEASE
-                UpdateInfoBar.showUpdateBar({
-                    type: "error",
-                    title: Strings.UPDATE_FAILED,
-                    description: Strings.GO_TO_SITE
-                });
+                showUpdateBar(Strings.UPDATE_FAILED, Strings.GO_TO_SITE, {type: "error"});
             }
         } else if (downloadCompleted && !updateInitiatedInPrevSession) {
             // We get here if the download was complete and user selected UpdateLater
@@ -279,7 +316,8 @@ define(function (require, exports, module) {
 
         updateDomain.exec('initNode', {
             messageIds: MessageIds,
-            updateDir: updateDir
+            updateDir: updateDir,
+            requester: domainID
         });
 
         updateDomain.on('data', receiveMessageFromNode);
@@ -364,11 +402,7 @@ define(function (require, exports, module) {
                 }
             })
             .fail(function () {
-                UpdateInfoBar.showUpdateBar({
-                    type: "error",
-                    title: Strings.INITIALISATION_FAILED,
-                    description: ""
-                });
+                showUpdateBar(Strings.INITIALISATION_FAILED, "", {type: "error"});
             });
     }
 
@@ -392,50 +426,56 @@ define(function (require, exports, module) {
      * Handles and processes the update info, required for app auto update
      * @private
      * @param {Array} updates - array of {...Update~Entry} update entries
+     * @param {boolean} test - boolean to denote whether the API is invoked for unit testing
      */
-    function _updateProcessHandler(updates) {
+    function _updateProcessHandler(updates, test) {
 
-        if(!updates) {
-            console.warn("AutoUpdate : updates information not available.");
-            return;
-        }
-        var OS = getPlatformInfo(),
-            checksum,
-            downloadURL,
-            installerName,
-            platforms,
-            latestUpdate;
+            if (!updates) {
+                console.warn("AutoUpdate : updates information not available.");
+                return;
+            }
+            var OS = getPlatformInfo(),
+                checksum,
+                downloadURL,
+                installerName,
+                platforms,
+                latestUpdate;
 
-        latestUpdate = updates[0];
-        platforms = latestUpdate ? latestUpdate.platforms : null;
+            latestUpdate = updates[0];
+            platforms = latestUpdate ? latestUpdate.platforms : null;
 
-        if(platforms && platforms[OS]) {
+            if (platforms && platforms[OS]) {
 
-             //If no checksum field is present then we're setting it to 0, just as a safety check,
-            // although ideally this situation should never occur in releases post its introduction.
-            checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
-            downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
-            installerName = downloadURL ? downloadURL.split("/").pop() : "";
+                //If no checksum field is present then we're setting it to 0, just as a safety check,
+                // although ideally this situation should never occur in releases post its introduction.
+                checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
+                downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
+                installerName = downloadURL ? downloadURL.split("/").pop() : "";
 
-        } else {
-            // Update not present for current platform
-            return;
-        }
+            } else {
+                // Update not present for current platform
+                return;
+            }
 
-        if (!checksum || !downloadURL || !installerName) {
-            console.warn("AutoUpdate : asset information incorrect for the update");
-            return;
-        }
+            if (!checksum || !downloadURL || !installerName) {
+                console.warn("AutoUpdate : asset information incorrect for the update");
+                return;
+            }
 
-         var updateParams = {
-            downloadURL: downloadURL,
-            installerName: installerName,
-            latestBuildNumber: latestUpdate.buildNumber,
-            checksum: checksum
-        };
+            var updateParams = {
+                downloadURL: downloadURL,
+                installerName: installerName,
+                latestBuildNumber: latestUpdate.buildNumber,
+                checksum: checksum
+            };
 
-        //Initiate the auto update, with update params
-        initiateAutoUpdate(updateParams);
+            // For unit testing
+            if(test) {
+                updateParams.test = test;
+            }
+
+            //Initiate the auto update, with update params
+            initiateAutoUpdate(updateParams);
     }
 
 
@@ -487,10 +527,29 @@ define(function (require, exports, module) {
 
 
     /**
+     * Initializes the test environment for Auto Update
+     */
+    function initTestEnv() {
+        if (brackets.test) {
+            brackets.test["AutoUpdate"] = {
+                downloadCompleted: false,
+                downloadFailed: false,
+                validationCompleted: false,
+                validationFailed: false,
+                installerPath: "",
+                appInitDone: false
+            };
+        }
+    }
+
+
+    /**
      * Overriding the appReady for Auto update
      */
 
     AppInit.appReady(function () {
+
+        domainID = (new Date()).getTime();
 
         // Auto Update is supported on Win and Mac, as of now
         if (brackets.platform === "linux" || !(brackets.app.setUpdateParams)) {
@@ -510,6 +569,10 @@ define(function (require, exports, module) {
                 if (_isAutoUpdateEnabled()) {
                     setupAutoUpdate();
                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
+
+                    initTestEnv();
+                    // For unit testing
+                    brackets.test.AutoUpdate.appInitDone = true;
                 }
             })
              .fail(function (err) {
@@ -544,11 +607,7 @@ define(function (require, exports, module) {
     function resetStateInFailure(message) {
         updateJsonHandler.reset();
 
-        UpdateInfoBar.showUpdateBar({
-            type: "error",
-            title: Strings.UPDATE_FAILED,
-            description: ""
-        });
+        showUpdateBar(Strings.UPDATE_FAILED, "", {type: "error"});
 
         enableCheckForUpdateEntry(true);
         console.error(message);
@@ -628,11 +687,7 @@ define(function (require, exports, module) {
         if (checkIfOnline()) {
             postMessageToNode(MessageIds.PERFORM_CLEANUP, ['.json'], true);
         } else {
-            UpdateInfoBar.showUpdateBar({
-                type: "warning",
-                title: Strings.DOWNLOAD_FAILED,
-                description: Strings.INTERNET_UNAVAILABLE
-            });
+            showUpdateBar(Strings.DOWNLOAD_FAILED, Strings.INTERNET_UNAVAILABLE, {type: "error"});
         }
     }
 
@@ -643,6 +698,7 @@ define(function (require, exports, module) {
      *                        expectedChecksum - the checksum to validate against }
      */
     function validateChecksum(params) {
+        brackets.test.AutoUpdate.downloadCompleted = true; // For unit testing
         postMessageToNode(MessageIds.VALIDATE_INSTALLER, params);
     }
 
@@ -698,11 +754,7 @@ define(function (require, exports, module) {
             break;
         }
 
-        UpdateInfoBar.showUpdateBar({
-            type: "error",
-            title: Strings.CLEANUP_FAILED,
-            description: descriptionMessage
-        });
+        showUpdateBar(Strings.CLEANUP_FAILED, descriptionMessage, {type: "error"});
     }
 
 
@@ -712,11 +764,7 @@ define(function (require, exports, module) {
      * has dirty files and he/she clicked UpdateNow
      */
     function dirtyFileSaveCancelled() {
-        UpdateInfoBar.showUpdateBar({
-            type: "warning",
-            title: Strings.WARNING_TYPE,
-            description: Strings.UPDATE_ON_NEXT_LAUNCH
-        });
+        showUpdateBar(Strings.WARNING_TYPE, Strings.UPDATE_ON_NEXT_LAUNCH, {type: "warning"});
     }
 
     /**
@@ -849,11 +897,8 @@ define(function (require, exports, module) {
                 UpdateInfoBar.on(UpdateInfoBar.RESTART_BTN_CLICKED, restartBtnClicked);
                 UpdateInfoBar.on(UpdateInfoBar.LATER_BTN_CLICKED, laterBtnClicked);
 
-                UpdateInfoBar.showUpdateBar({
-                    title: Strings.DOWNLOAD_COMPLETE,
-                    description: Strings.CLICK_RESTART_TO_UPDATE,
-                    needButtons: true
-                });
+                showUpdateBar( Strings.DOWNLOAD_COMPLETE, Strings.CLICK_RESTART_TO_UPDATE, {needButtons: true});
+
                 HealthLogger.sendAnalyticsData(
                     autoUpdateEventNames.AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED,
                     "autoUpdate",
@@ -862,6 +907,12 @@ define(function (require, exports, module) {
                     ""
                 );
             };
+
+
+			 //For unit testing
+            brackets.test.AutoUpdate.validationCompleted = true;
+            brackets.test.AutoUpdate.installerPath = updateDir + "/" + _installerName;
+			
 
             setUpdateStateInJSON('downloadCompleted', true)
                 .done(statusValidFn);
@@ -901,11 +952,11 @@ define(function (require, exports, module) {
                     "fail",
                     descriptionMessage
                 );
-                UpdateInfoBar.showUpdateBar({
-                    type: "error",
-                    title: Strings.VALIDATION_FAILED,
-                    description: descriptionMessage
-                });
+
+                showUpdateBar(Strings.VALIDATION_FAILED, descriptionMessage, {type: "error"});
+
+                // For unit testing
+                brackets.test.AutoUpdate.validationFailed = true;
             }
         }
     }
@@ -918,7 +969,7 @@ define(function (require, exports, module) {
         console.log("AutoUpdate : Download of latest installer failed in Attempt " +
             (MAX_DOWNLOAD_ATTEMPTS - downloadAttemptsRemaining) + ".\n Reason : " + message);
 
-        if (downloadAttemptsRemaining) {
+        if (downloadAttemptsRemaining > 0) {
 
             // Retry the downloading
             attemptToDownload();
@@ -939,11 +990,11 @@ define(function (require, exports, module) {
                 "fail",
                 descriptionMessage
             );
-            UpdateInfoBar.showUpdateBar({
-                type: "error",
-                title: Strings.DOWNLOAD_FAILED,
-                description: descriptionMessage
-            });
+
+            showUpdateBar(Strings.DOWNLOAD_FAILED, descriptionMessage, {type: "error"});
+
+            // For unit testing
+            brackets.test.AutoUpdate.downloadFailed = true;
         }
 
     }
@@ -990,4 +1041,8 @@ define(function (require, exports, module) {
 
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
+    // For unit testing
+    exports._updateProcessHandler = _updateProcessHandler;
+    exports.showUpdateBar         = showUpdateBar;
+    exports.getPlatformInfo       = getPlatformInfo;
 });
