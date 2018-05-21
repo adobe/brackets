@@ -865,6 +865,7 @@ define({
 	"CHECKSUM_DID_NOT_MATCH": "チェックサムが一致しませんでした。",
 	"INSTALLER_NOT_FOUND": "インストーラーが見つかりません。",
 	"DOWNLOAD_ERROR": "ダウンロード中にエラーが発生しました。",
+	"NETWORK_SLOW_OR_DISCONNECTED": "Network is Disconnected or too slow.",
 	"RESTART_BUTTON": "再起動",
 	"LATER_BUTTON": "後で再起動",
 	"DESCRIPTION_AUTO_UPDATE": "Brackets の自動更新を有効化/無効化",

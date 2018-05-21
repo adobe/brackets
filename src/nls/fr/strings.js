@@ -865,6 +865,7 @@ define({
 	"CHECKSUM_DID_NOT_MATCH": "La somme de contrôle ne correspond pas.",
 	"INSTALLER_NOT_FOUND": "Programme d’installation non trouvé.",
 	"DOWNLOAD_ERROR": "Erreur lors du téléchargement.",
+	"NETWORK_SLOW_OR_DISCONNECTED": "Network is Disconnected or too slow.",
 	"RESTART_BUTTON": "Recommencer",
 	"LATER_BUTTON": "Plus tard",
 	"DESCRIPTION_AUTO_UPDATE": "Activer/désactiver la mise à jour automatique de Brackets",
