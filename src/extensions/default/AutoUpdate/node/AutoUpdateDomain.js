@@ -262,7 +262,7 @@
         try {
             var ext = path.extname(updateParams.installerName);
             var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext),
-                localInstalllerFile = fs.createWriteStream(localInstallerPath),
+                localInstallerFile = fs.createWriteStream(localInstallerPath),
                 requestCompleted = true,
                 readTimeOut = 180000;
             progress(request(updateParams.downloadURL, {timeout: readTimeOut}), {})
@@ -284,13 +284,13 @@
                 .on('error', function (err) {
                     console.log("AutoUpdate : Download failed. Error occurred : " + err.toString());
                     requestCompleted = false;
-                    localInstalllerFile.end();
+                    localInstallerFile.end();
                     var error = err.code === 'ESOCKETTIMEDOUT' || err.code === 'ENOTFOUND' ?
                                 _nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED :
                                 _nodeErrorMessages.DOWNLOAD_ERROR;
                     postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, error);
                 })
-                .pipe(localInstalllerFile)
+                .pipe(localInstallerFile)
                 .on('close', function () {
                     if (requestCompleted) {
                         try {
