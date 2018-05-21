@@ -923,8 +923,7 @@ define(function (require, exports, module) {
             var descriptionMessage = "";
             if (message === _nodeErrorMessages.DOWNLOAD_ERROR) {
                 descriptionMessage = Strings.DOWNLOAD_ERROR;
-            }
-            if (message === _nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED) {
+            } else if (message === _nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED) {
                 descriptionMessage = Strings.NETWORK_SLOW_OR_DISCONNECTED;
             }
             HealthLogger.sendAnalyticsData(
