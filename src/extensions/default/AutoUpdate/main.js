@@ -628,13 +628,6 @@ define(function (require, exports, module) {
         } else {
             enableCheckForUpdateEntry(true);
             UpdateStatus.cleanUpdateStatus();
-            HealthLogger.sendAnalyticsData(
-                autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,
-                "autoUpdate",
-                "download",
-                "fail",
-                Strings.INTERNET_UNAVAILABLE
-            );
             UpdateInfoBar.showUpdateBar({
                 type: "warning",
                 title: Strings.DOWNLOAD_FAILED,
@@ -705,13 +698,6 @@ define(function (require, exports, module) {
             break;
         }
         console.log("AutoUpdate : Clean-up failed! Reason : " + descriptionMessage + ".\n");
-        HealthLogger.sendAnalyticsData(
-                autoUpdateEventNames.AUTOUPDATE_CLEANUP_FAILED,
-                "autoUpdate",
-                "cleanUp",
-                "fail",
-                descriptionMessage
-            );
     }
 
 
