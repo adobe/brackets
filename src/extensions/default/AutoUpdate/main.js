@@ -626,6 +626,15 @@ define(function (require, exports, module) {
         if (checkIfOnline()) {
             postMessageToNode(MessageIds.PERFORM_CLEANUP, ['.json'], true);
         } else {
+            enableCheckForUpdateEntry(true);
+            UpdateStatus.cleanUpdateStatus();
+            HealthLogger.sendAnalyticsData(
+                autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,
+                "autoUpdate",
+                "download",
+                "fail",
+                Strings.INTERNET_UNAVAILABLE
+            );
             UpdateInfoBar.showUpdateBar({
                 type: "warning",
                 title: Strings.DOWNLOAD_FAILED,

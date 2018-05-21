@@ -264,7 +264,7 @@
             var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext),
                 localInstalllerFile = fs.createWriteStream(localInstallerPath),
                 requestCompleted = true;
-            progress(request(updateParams.downloadURL, {timeout: 30000}), {})
+            progress(request(updateParams.downloadURL, {timeout: 180000}), {})
                 .on('progress', function (state) {
                     var target = "retry-download";
                     if (isInitialAttempt) {
