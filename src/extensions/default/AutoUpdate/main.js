@@ -698,16 +698,13 @@ define(function (require, exports, module) {
      * @param {string} message - error string
      */
     function showErrorMessage(message) {
-        var descriptionMessage,
-            analyticsDescriptionMessage = "";
+        var analyticsDescriptionMessage = "";
 
         switch (message) {
         case _nodeErrorMessages.UPDATEDIR_READ_FAILED:
-            descriptionMessage = Strings.UPDATEDIR_READ_FAILED;
             analyticsDescriptionMessage = "Update directory could not be read.";
             break;
         case _nodeErrorMessages.UPDATEDIR_CLEAN_FAILED:
-            descriptionMessage = Strings.UPDATEDIR_CLEAN_FAILED;
             analyticsDescriptionMessage = "Update directory could not be cleaned.";
             break;
         }
