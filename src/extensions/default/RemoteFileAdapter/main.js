@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         CommandManager  = brackets.getModule("command/CommandManager"),
         Commands        = brackets.getModule("command/Commands"),
         ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
-        WorkingSetView = brackets.getModule("project/WorkingSetView"),
+        MainViewManager = brackets.getModule("view/MainViewManager"),
         Menus           = brackets.getModule("command/Menus"),
         RemoteFile      = require("RemoteFile");
 
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
      * Disable context menus which are not useful for remote file
      */
     function _setMenuItemsVisible() {
-        var file = WorkingSetView.getContext(),
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
             cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
         
         if (file.constructor.name === "RemoteFile") {
@@ -72,6 +72,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         
         Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
+        MainViewManager.on("currentFileChange", _setMenuItemsVisible);
         
         var protocolAdapter = {
             priority: 0, // Default priority
