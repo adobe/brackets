@@ -27,6 +27,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager          = brackets.getModule("command/CommandManager"),
+        ProjectManager          = brackets.getModule("project/ProjectManager"),
         Commands                = brackets.getModule("command/Commands"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         UpdateNotification      = brackets.getModule("utils/UpdateNotification"),
@@ -91,19 +92,21 @@ define(function (require, exports, module) {
         NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
+    var updateProgressKey = "autoUpdateInProgress";
+
     /**
      * Checks if an auto update session is currently in progress
      * @returns {boolean} - true if an auto update session is currently in progress, false otherwise
      */
     function checkIfAnotherSessionInProgress() {
-         var result = $.Deferred();
+        var result = $.Deferred();
         if(updateJsonHandler) {
             var state = updateJsonHandler.state;
 
-            updateJsonHandler.read("autoUpdateInProgress")
+            updateJsonHandler.read(updateProgressKey)
                 .done(function(val) {
                     updateJsonHandler.state = state;
-                    setUpdateStateInJSON("autoUpdateInProgress", val)
+                    setUpdateStateInJSON(updateProgressKey, val)
                         .done(function() {
                             result.resolve(val);
                         })
@@ -137,8 +140,10 @@ define(function (require, exports, module) {
      *                          requester - ID of the current requester domain
      */
     function receiveMessageFromNode(event, msgObj) {
-        if (domainID === msgObj.requester) {
-            functionMap[msgObj.fn].apply(null, msgObj.args);
+        if (functionMap[msgObj.fn]) {
+            if(msgObj.fn === MessageIds.REGISTER_BRACKETS_FUNCTIONS || domainID === msgObj.requester) {
+                functionMap[msgObj.fn].apply(null, msgObj.args);
+            }
         }
     }
 
@@ -280,8 +285,13 @@ define(function (require, exports, module) {
      */
     function initState() {
         updateJsonHandler.parse()
-            .done(function () {
-                checkUpdateStatus();
+            .done(function() {
+            checkIfAnotherSessionInProgress()
+                .done(function (inProgress) {
+                    if (!inProgress) {
+                        checkUpdateStatus();
+                    }
+                });
             })
             .fail(function (code) {
                 var logMsg;
@@ -390,7 +400,7 @@ define(function (require, exports, module) {
 
                  var setUpdateInProgress = function() {
                     var initNodeFn = function () {
-                        postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+                        postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams, domainID);
                     };
 
                     if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
@@ -569,7 +579,7 @@ define(function (require, exports, module) {
              .done(function () {
                 setupAutoUpdatePreference();
                 if (_isAutoUpdateEnabled()) {
-                    domainID = (new Date()).getTime();
+                    domainID = (new Date()).getTime().toString();
                     setupAutoUpdate();
                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
                 }
@@ -579,6 +589,16 @@ define(function (require, exports, module) {
                 return;
             });
     });
+
+    /**
+     * Enables/disables the state of "Auto Update In Progress" in UpdateHandler.json
+     */
+    function setAutoUpdateInProgressFlag(flag) {
+        updateJsonHandler.parse()
+            .done(function() {
+                setUpdateStateInJSON("autoUpdateInProgress", flag);
+        });
+    }
 
 
     /**
@@ -1065,6 +1085,10 @@ define(function (require, exports, module) {
     }
 
 
+    function _handleAppClose() {
+        postMessageToNode("node.removeFromRequesters", domainID);
+    }
+
     /**
      * Generates a map for brackets side functions
      */
@@ -1077,8 +1101,10 @@ define(function (require, exports, module) {
         functionMap["brackets.notifySafeToDownload"]         = handleSafeToDownload;
         functionMap["brackets.notifyvalidationStatus"]       = handleValidationStatus;
         functionMap["brackets.notifyInstallationStatus"]     = handleInstallationStatus;
-    }
 
+        ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
+    }
+    functionMap["brackets.setAutoUpdateInProgress"]     = setAutoUpdateInProgressFlag;
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
 });

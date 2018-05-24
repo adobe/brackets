@@ -64,7 +64,9 @@
         NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
-    var currentRequester;
+    var currentRequester,
+        requesters = {},
+        isNodeDomainInitialized = false;
 
     /**
      * Gets the arguments to a function in an array
@@ -89,13 +91,19 @@
      * @param {string} messageId - Message to be passed
      */
     function postMessageToBrackets(messageId) {
+        if(!requesters[currentRequester]) {
+            for (var key in requesters) {
+                currentRequester = key;
+                break;
+            }
+        }
+
         var msgObj = {
             fn: messageId,
             args: getFunctionArgs(arguments),
-            requester: currentRequester
+            requester: currentRequester.toString()
         };
         _domainManager.emitEvent('AutoUpdate', 'data', [msgObj]);
-
     }
 
     /**
@@ -374,12 +382,19 @@
      * Initializes the node with update parameters
      * @param {object} updateParams - json containing update parameters
      */
-    function initializeState(updateParams) {
+    function initializeState(updateParams, requester) {
+        currentRequester = requester;
         _updateParams = updateParams;
         installerPath = path.resolve(updateDir, updateParams.installerName);
         postMessageToBrackets(MessageIds.NOTIFY_INITIALIZATION_COMPLETE);
     }
 
+
+    function removeFromRequesters(requester) {
+        if (requesters[requester.toString()] !== undefined) {
+            delete requesters[requester];
+        }
+    }
 
     /**
      * Generates a map for node side functions
@@ -390,6 +405,7 @@
         functionMap["node.validateInstaller"] = validateChecksum;
         functionMap["node.initializeState"] = initializeState;
         functionMap["node.checkInstallerStatus"] = checkInstallerStatus;
+        functionMap["node.removeFromRequesters"] = removeFromRequesters;
     }
 
     /**
@@ -400,12 +416,17 @@
      *                         requester  : ID of the current requester domain}
      */
     function initNode(initObj) {
-        currentRequester = initObj.requester;
-        MessageIds = initObj.messageIds;
-        updateDir = path.resolve(initObj.updateDir);
-        logFilePath = path.resolve(updateDir, logFile);
-        installStatusFilePath = path.resolve(updateDir, installStatusFile);
-        registerNodeFunctions();
+        if (!isNodeDomainInitialized) {
+            MessageIds = initObj.messageIds;
+            updateDir = path.resolve(initObj.updateDir);
+            logFilePath = path.resolve(updateDir, logFile);
+            installStatusFilePath = path.resolve(updateDir, installStatusFile);
+            registerNodeFunctions();
+            isNodeDomainInitialized = true;
+            currentRequester = initObj.requester.toString();
+            postMessageToBrackets(MessageIds.SET_UPDATE_IN_PROGRESS_STATE, false);
+        }
+        requesters[initObj.requester.toString()] = true;
         postMessageToBrackets(MessageIds.REGISTER_BRACKETS_FUNCTIONS);
     }
 
@@ -417,7 +438,6 @@
      *                          args - arguments to the above function }
      */
     function receiveMessageFromBrackets(msgObj) {
-        currentRequester = msgObj.requester;
         functionMap[msgObj.fn].apply(null, msgObj.args);
     }
 

@@ -144,16 +144,16 @@ define(function (require, exports, module) {
 
         self.parse()
             .done(function () {
-                if (self.state && self.state[key]) {
+                if (self.state && self.state[key] !== undefined) {
                     result.resolve(self.state[key]);
                 } else {
                     result.reject();
-                    console.log("AutoUpdate : key " + key + " in updateHelper.json could not be read");
+                    console.warn("AutoUpdate : key " + key + " in updateHelper.json could not be read");
                 }
             })
-            .fail(function () {
+            .fail(function (error) {
                 result.reject();
-                console.log("AutoUpdate : updateHelper.json could not be parsed, key could not be read");
+                console.error("AutoUpdate : updateHelper.json could not be parsed, key could not be read", error);
             });
 
         return result.promise();
