@@ -70,7 +70,8 @@ define(function (require, exports, module) {
         AUTOUPDATE_DOWNLOAD_COMPLETE_USER_CLICK_LATER: "DownloadCompletedAndUserClickedLater",
         AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED: "DownloadCompleteUpdateBarRendered",
         AUTOUPDATE_INSTALLATION_FAILED: "InstallationFailed",
-        AUTOUPDATE_INSTALLATION_SUCCESS: "InstallationSuccess"
+        AUTOUPDATE_INSTALLATION_SUCCESS: "InstallationSuccess",
+        AUTOUPDATE_CLEANUP_FAILED: "AutoUpdateCleanUpFailed"
     };
 
     // function map for brackets functions
@@ -86,7 +87,8 @@ define(function (require, exports, module) {
         UPDATEDIR_CLEAN_FAILED: 1,
         CHECKSUM_DID_NOT_MATCH: 2,
         INSTALLER_NOT_FOUND: 3,
-        DOWNLOAD_ERROR: 4
+        DOWNLOAD_ERROR: 4,
+        NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
     /**
@@ -690,6 +692,15 @@ define(function (require, exports, module) {
         if (checkIfOnline()) {
             postMessageToNode(MessageIds.PERFORM_CLEANUP, ['.json'], true);
         } else {
+            enableCheckForUpdateEntry(true);
+            UpdateStatus.cleanUpdateStatus();
+            HealthLogger.sendAnalyticsData(
+                autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,
+                "autoUpdate",
+                "download",
+                "fail",
+                "No Internet connection available."
+            );
             UpdateInfoBar.showUpdateBar({
                 type: "warning",
                 title: Strings.DOWNLOAD_FAILED,
@@ -751,22 +762,24 @@ define(function (require, exports, module) {
      * @param {string} message - error string
      */
     function showErrorMessage(message) {
-        var descriptionMessage;
+        var analyticsDescriptionMessage = "";
 
         switch (message) {
         case _nodeErrorMessages.UPDATEDIR_READ_FAILED:
-            descriptionMessage = Strings.UPDATEDIR_READ_FAILED;
+            analyticsDescriptionMessage = "Update directory could not be read.";
             break;
         case _nodeErrorMessages.UPDATEDIR_CLEAN_FAILED:
-            descriptionMessage = Strings.UPDATEDIR_CLEAN_FAILED;
+            analyticsDescriptionMessage = "Update directory could not be cleaned.";
             break;
         }
-
-        UpdateInfoBar.showUpdateBar({
-            type: "error",
-            title: Strings.CLEANUP_FAILED,
-            description: descriptionMessage
-        });
+        console.log("AutoUpdate : Clean-up failed! Reason : " + analyticsDescriptionMessage + ".\n");
+        HealthLogger.sendAnalyticsData(
+                autoUpdateEventNames.AUTOUPDATE_CLEANUP_FAILED,
+                "autoUpdate",
+                "cleanUp",
+                "fail",
+                analyticsDescriptionMessage
+        );
     }
 
 
@@ -950,14 +963,17 @@ define(function (require, exports, module) {
             } else {
 
                 // If this is a new download, prompt the message on update bar
-                var descriptionMessage = "";
+                var descriptionMessage = "",
+                    analyticsDescriptionMessage = "";
 
                 switch (statusObj.err) {
                 case _nodeErrorMessages.CHECKSUM_DID_NOT_MATCH:
                     descriptionMessage = Strings.CHECKSUM_DID_NOT_MATCH;
+                    analyticsDescriptionMessage = "Checksum didn't match.";
                     break;
                 case _nodeErrorMessages.INSTALLER_NOT_FOUND:
                     descriptionMessage = Strings.INSTALLER_NOT_FOUND;
+                    analyticsDescriptionMessage = "Installer not found.";
                     break;
                 }
                 HealthLogger.sendAnalyticsData(
@@ -965,7 +981,7 @@ define(function (require, exports, module) {
                     "autoUpdate",
                     "download",
                     "fail",
-                    descriptionMessage
+                    analyticsDescriptionMessage
                 );
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
@@ -996,16 +1012,21 @@ define(function (require, exports, module) {
             enableCheckForUpdateEntry(true);
             UpdateStatus.cleanUpdateStatus();
 
-            var descriptionMessage = "";
+            var descriptionMessage = "",
+                analyticsDescriptionMessage = "";
             if (message === _nodeErrorMessages.DOWNLOAD_ERROR) {
                 descriptionMessage = Strings.DOWNLOAD_ERROR;
+                analyticsDescriptionMessage = "Error occurred while downloading.";
+            } else if (message === _nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED) {
+                descriptionMessage = Strings.NETWORK_SLOW_OR_DISCONNECTED;
+                analyticsDescriptionMessage = "Network is Disconnected or too slow.";
             }
             HealthLogger.sendAnalyticsData(
                 autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,
                 "autoUpdate",
                 "download",
                 "fail",
-                descriptionMessage
+                analyticsDescriptionMessage
             );
             UpdateInfoBar.showUpdateBar({
                 type: "error",
