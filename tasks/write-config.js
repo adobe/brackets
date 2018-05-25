@@ -34,6 +34,8 @@ module.exports = function (grunt) {
         var name = "dev";
         if (this.flags.dist === true) {
             name = "dist";
+        } else if (this.flags.prerelease === true) {
+            name = "prerelease";
         }
 
         var appConfigJSON = grunt.file.readJSON("src/brackets.config.json"),
