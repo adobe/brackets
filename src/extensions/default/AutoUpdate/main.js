@@ -106,8 +106,9 @@ define(function (require, exports, module) {
 
             updateJsonHandler.refresh()
                 .done(function() {
-                    if(updateJsonHandler.get(updateProgressKey)) {
-                        result.resolve(updateJsonHandler.get(updateProgressKey));
+                    var val = updateJsonHandler.get(updateProgressKey);
+                    if(val !== null) {
+                        result.resolve(val);
                     } else {
                         result.reject();
                     }
@@ -289,6 +290,9 @@ define(function (require, exports, module) {
                     if (!inProgress) {
                         checkUpdateStatus();
                     }
+                })
+                .fail(function () {
+                    checkUpdateStatus();
                 });
             })
             .fail(function (code) {
