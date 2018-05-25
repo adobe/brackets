@@ -3,5 +3,5 @@
     "analyticsDataServerURL"  : "https://cc-api-data.adobe.io/ingest",
     "serviceKey"              : "brackets-service",
     "environment"             : "production",
-    "update_info_url"         : "https://getupdates.brackets.io/getupdates/"
+    "update_info_url"         : "https://s3.amazonaws.com/files.brackets.io/updates/prerelease/<locale>.json"
 }

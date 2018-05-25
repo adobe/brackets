@@ -393,9 +393,7 @@ module.exports = function (grunt) {
     // Update version number in package.json and rewrite src/config.json
     grunt.registerTask('set-release', ['update-release-number', 'write-config:dev']);
 
-    // task: build
-    grunt.registerTask('build', [
-        'write-config:dist',
+    grunt.registerTask('build-common', [
         'eslint:src',
         'jasmine',
         'clean',
@@ -412,6 +410,18 @@ module.exports = function (grunt) {
         'cleanempty',
         'usemin',
         'build-config'
+    ])
+
+    // task: build
+    grunt.registerTask('build', [
+        'write-config:dist',
+        'build-common'
+    ]);
+
+    // task: build
+    grunt.registerTask('build-prerelease', [
+        'write-config:prerelease',
+        'build-common'
     ]);
 
     // Default task.
