@@ -410,7 +410,7 @@ module.exports = function (grunt) {
         'cleanempty',
         'usemin',
         'build-config'
-    ])
+    ]);
 
     // task: build
     grunt.registerTask('build', [
