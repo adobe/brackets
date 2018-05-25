@@ -125,7 +125,7 @@ define(function (require, exports, module) {
     StateHandler.prototype.get = function (key) {
         var retval = null;
 
-        if (this.state && this.state[key]) {
+        if (this.state && this.state[key] !== undefined) {
             retval = this.state[key];
         }
 
@@ -138,22 +138,22 @@ define(function (require, exports, module) {
      * @returns {$.Deferred} - a jquery deferred promise, that is resolved
      *                       with the read value or read failure.
      */
-    StateHandler.prototype.read = function (key) {
+    StateHandler.prototype.refresh = function () {
         var result = $.Deferred(),
             self = this;
 
         self.parse()
             .done(function () {
-                if (self.state && self.state[key] !== undefined) {
-                    result.resolve(self.state[key]);
+                if (self.state) {
+                    result.resolve();
                 } else {
                     result.reject();
-                    console.warn("AutoUpdate : key " + key + " in updateHelper.json could not be read");
+                    console.warn("AutoUpdate : updateHelper.json could not be read");
                 }
             })
             .fail(function (error) {
                 result.reject();
-                console.error("AutoUpdate : updateHelper.json could not be parsed, key could not be read", error);
+                console.error("AutoUpdate : updateHelper.json could not be parsed", error);
             });
 
         return result.promise();

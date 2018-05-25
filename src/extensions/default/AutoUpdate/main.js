@@ -92,7 +92,8 @@ define(function (require, exports, module) {
         NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
-    var updateProgressKey = "autoUpdateInProgress";
+    var updateProgressKey = "autoUpdateInProgress",
+        isAutoUpdateInitiated = false;
 
     /**
      * Checks if an auto update session is currently in progress
@@ -103,16 +104,13 @@ define(function (require, exports, module) {
         if(updateJsonHandler) {
             var state = updateJsonHandler.state;
 
-            updateJsonHandler.read(updateProgressKey)
-                .done(function(val) {
-                    updateJsonHandler.state = state;
-                    setUpdateStateInJSON(updateProgressKey, val)
-                        .done(function() {
-                            result.resolve(val);
-                        })
-                        .fail(function() {
-                            result.reject();
-                        });
+            updateJsonHandler.refresh()
+                .done(function() {
+                    if(updateJsonHandler.get(updateProgressKey)) {
+                        result.resolve(updateJsonHandler.get(updateProgressKey));
+                    } else {
+                        result.reject();
+                    }
                 })
                 .fail(function() {
                     updateJsonHandler.state = state;
@@ -141,7 +139,7 @@ define(function (require, exports, module) {
      */
     function receiveMessageFromNode(event, msgObj) {
         if (functionMap[msgObj.fn]) {
-            if(msgObj.fn === MessageIds.REGISTER_BRACKETS_FUNCTIONS || domainID === msgObj.requester) {
+            if(domainID === msgObj.requester) {
                 functionMap[msgObj.fn].apply(null, msgObj.args);
             }
         }
@@ -400,7 +398,8 @@ define(function (require, exports, module) {
 
                  var setUpdateInProgress = function() {
                     var initNodeFn = function () {
-                        postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams, domainID);
+                        isAutoUpdateInitiated = true;
+                        postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
                     };
 
                     if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
@@ -438,7 +437,6 @@ define(function (require, exports, module) {
                     title: Strings.INITIALISATION_FAILED,
                     description: ""
                 });
-                setUpdateStateInJSON("autoUpdateInProgress", false);
             });
     }
 
@@ -693,8 +691,18 @@ define(function (require, exports, module) {
 
             --downloadAttemptsRemaining;
         };
-        setUpdateStateInJSON('downloadCompleted', false)
-            .done(downloadFn);
+
+        if(!isAutoUpdateInitiated) {
+            isAutoUpdateInitiated = true;
+            updateJsonHandler.refresh()
+                .done(function() {
+                    setUpdateStateInJSON('downloadCompleted', false)
+                        .done(downloadFn);
+                });
+        } else {
+            setUpdateStateInJSON('downloadCompleted', false)
+                .done(downloadFn);
+        }
     }
 
     /**
@@ -962,8 +970,17 @@ define(function (require, exports, module) {
                 );
             };
 
-            setUpdateStateInJSON('downloadCompleted', true)
-                .done(statusValidFn);
+            if(!isAutoUpdateInitiated) {
+                isAutoUpdateInitiated = true;
+                updateJsonHandler.refresh()
+                    .done(function() {
+                        setUpdateStateInJSON('downloadCompleted', true)
+                        .done(statusValidFn);
+                });
+            } else {
+                 setUpdateStateInJSON('downloadCompleted', true)
+                    .done(statusValidFn);
+            }
         } else {
 
             // Installer validation failed
@@ -1086,7 +1103,7 @@ define(function (require, exports, module) {
 
 
     function _handleAppClose() {
-        postMessageToNode("node.removeFromRequesters", domainID);
+        postMessageToNode(MessageIds.REMOVE_FROM_REQUESTERS);
     }
 
     /**

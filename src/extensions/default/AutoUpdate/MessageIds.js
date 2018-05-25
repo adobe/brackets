@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     exports.VALIDATE_INSTALLER              = "node.validateInstaller";
     exports.INITIALIZE_STATE                = "node.initializeState";
     exports.CHECK_INSTALLER_STATUS          = "node.checkInstallerStatus";
+    exports.REMOVE_FROM_REQUESTERS          = "node.removeFromRequesters";
     exports.SHOW_STATUS_INFO                = "brackets.showStatusInfo";
     exports.NOTIFY_DOWNLOAD_SUCCESS         = "brackets.notifyDownloadSuccess";
     exports.SHOW_ERROR_MESSAGE              = "brackets.showErrorMessage";

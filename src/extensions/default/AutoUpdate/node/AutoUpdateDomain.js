@@ -55,7 +55,7 @@
     // function map for node functions
     var functionMap = {};
 
-    var _nodeErrorMessages = {
+    var nodeErrorMessages = {
         UPDATEDIR_READ_FAILED: 0,
         UPDATEDIR_CLEAN_FAILED: 1,
         CHECKSUM_DID_NOT_MATCH: 2,
@@ -64,8 +64,7 @@
         NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
-    var currentRequester,
-        requesters = {},
+    var requesters = {},
         isNodeDomainInitialized = false;
 
     /**
@@ -74,11 +73,11 @@
      * @returns {Array}   - array of actual arguments
      */
     function getFunctionArgs(args) {
-        if (args.length > 1) {
-            var fnArgs = new Array(args.length - 1),
+        if (args.length > 2) {
+            var fnArgs = new Array(args.length - 2),
                 i;
-            for (i = 1; i < args.length; ++i) {
-                fnArgs[i - 1] = args[i];
+            for (i = 2; i < args.length; ++i) {
+                fnArgs[i - 2] = args[i];
             }
             return fnArgs;
         }
@@ -90,10 +89,10 @@
      * Posts messages to brackets
      * @param {string} messageId - Message to be passed
      */
-    function postMessageToBrackets(messageId) {
-        if(!requesters[currentRequester]) {
+    function postMessageToBrackets(messageId, requester) {
+        if(!requesters[requester]) {
             for (var key in requesters) {
-                currentRequester = key;
+                requester = key;
                 break;
             }
         }
@@ -101,7 +100,7 @@
         var msgObj = {
             fn: messageId,
             args: getFunctionArgs(arguments),
-            requester: currentRequester.toString()
+            requester: requester.toString()
         };
         _domainManager.emitEvent('AutoUpdate', 'data', [msgObj]);
     }
@@ -126,13 +125,14 @@
      *                        filePath - path to the file,
      *                        expectedChecksum - the checksum to validate against }
      */
-    function validateChecksum(params) {
+    function validateChecksum(requester, params) {
         params = params || {
             filePath: installerPath,
             expectedChecksum: _updateParams.checksum
         };
 
-        var hash = crypto.createHash('sha256');
+        var hash = crypto.createHash('sha256'),
+            currentRequester = requester || "";
 
         if (fs.existsSync(params.filePath)) {
             var stream = fs.createReadStream(params.filePath);
@@ -165,17 +165,17 @@
                 } else {
                     status = {
                         valid: false,
-                        err: _nodeErrorMessages.CHECKSUM_DID_NOT_MATCH
+                        err: nodeErrorMessages.CHECKSUM_DID_NOT_MATCH
                     };
                 }
-                postMessageToBrackets(MessageIds.NOTIFY_VALIDATION_STATUS, status);
+                postMessageToBrackets(MessageIds.NOTIFY_VALIDATION_STATUS, currentRequester, status);
             });
         } else {
             var status = {
                 valid: false,
-                err: _nodeErrorMessages.INSTALLER_NOT_FOUND
+                err: nodeErrorMessages.INSTALLER_NOT_FOUND
             };
-            postMessageToBrackets(MessageIds.NOTIFY_VALIDATION_STATUS, status);
+            postMessageToBrackets(MessageIds.NOTIFY_VALIDATION_STATUS, currentRequester, status);
         }
     }
 
@@ -221,17 +221,18 @@
      * @param{Object} searchParams is object contains Information Error String
      * Encoding of Log File Update Diectory Path.
      */
-    function checkInstallerStatus(searchParams) {
+    function checkInstallerStatus(requester, searchParams) {
         var installErrorStr = searchParams.installErrorStr,
             bracketsErrorStr = searchParams.bracketsErrorStr,
             updateDirectory = searchParams.updateDir,
             encoding =        searchParams.encoding || "utf8",
             statusObj = {installError: ": BA_UN"},
-            logFileAvailable = false;
+            logFileAvailable = false,
+            currentRequester = requester || "";
 
         var notifyBrackets = function notifyBrackets(errorline) {
             statusObj.installError = errorline || ": BA_UN";
-            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+            postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, currentRequester, statusObj);
         };
 
         var parseLog = function (files) {
@@ -250,7 +251,7 @@
                 }
             });
             if (!logFileAvailable) {
-                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, currentRequester, statusObj);
             }
         };
 
@@ -258,7 +259,7 @@
             .then(function (files) {
                 return parseLog(files);
             }).catch(function () {
-                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, statusObj);
+                postMessageToBrackets(MessageIds.NOTIFY_INSTALLATION_STATUS, currentRequester, statusObj);
             });
     }
 
@@ -268,8 +269,9 @@
      *                             sent back to Brackets, false otherwise
      * @param {object}   [updateParams=_updateParams] - json containing update parameters
      */
-    function downloadInstaller(isInitialAttempt, updateParams) {
+    function downloadInstaller(requester, isInitialAttempt, updateParams) {
         updateParams = updateParams || _updateParams;
+        var currentRequester = requester || "";
         try {
             var ext = path.extname(updateParams.installerName);
             var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext),
@@ -290,33 +292,34 @@
                             val: info
                         }]
                     };
-                    postMessageToBrackets(MessageIds.SHOW_STATUS_INFO, status);
+                    postMessageToBrackets(MessageIds.SHOW_STATUS_INFO, currentRequester, status);
                 })
                 .on('error', function (err) {
                     console.log("AutoUpdate : Download failed. Error occurred : " + err.toString());
                     requestCompleted = false;
                     localInstallerFile.end();
                     var error = err.code === 'ESOCKETTIMEDOUT' || err.code === 'ENOTFOUND' ?
-                                _nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED :
-                                _nodeErrorMessages.DOWNLOAD_ERROR;
-                    postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, error);
+                                nodeErrorMessages.NETWORK_SLOW_OR_DISCONNECTED :
+                                nodeErrorMessages.DOWNLOAD_ERROR;
+                    postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, currentRequester, error);
                 })
                 .pipe(localInstallerFile)
                 .on('close', function () {
                     if (requestCompleted) {
                         try {
                             fs.renameSync(localInstallerPath, installerPath);
-                            postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS);
+                            postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_SUCCESS, currentRequester);
                         } catch (e) {
                             console.log("AutoUpdate : Download failed. Exception occurred : " + e.toString());
                             postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE,
-                                                      _nodeErrorMessages.DOWNLOAD_ERROR);
+                                                      currentRequester, nodeErrorMessages.DOWNLOAD_ERROR);
                         }
                     }
                 });
         } catch (e) {
             console.log("AutoUpdate : Download failed. Exception occurred : " + e.toString());
-            postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE, _nodeErrorMessages.DOWNLOAD_ERROR);
+            postMessageToBrackets(MessageIds.NOTIFY_DOWNLOAD_FAILURE,
+                                  currentRequester, nodeErrorMessages.DOWNLOAD_ERROR);
         }
     }
 
@@ -326,8 +329,8 @@
      * @param {boolean} notifyBack  - true if Brackets needs to be
      *                              notified post cleanup, false otherwise
      */
-    function performCleanup(filesToCache, notifyBack) {
-
+    function performCleanup(requester, filesToCache, notifyBack) {
+        var currentRequester = requester || "";
         function filterFilesAndNotify(files, filesToCacheArr, notifyBackToBrackets) {
             files.forEach(function (file) {
                 var fileExt = path.extname(path.basename(file));
@@ -341,7 +344,7 @@
                 }
             });
             if (notifyBackToBrackets) {
-                postMessageToBrackets(MessageIds.NOTIFY_SAFE_TO_DOWNLOAD);
+                postMessageToBrackets(MessageIds.NOTIFY_SAFE_TO_DOWNLOAD, currentRequester);
             }
         }
 
@@ -356,7 +359,7 @@
                             .catch(function (err) {
                                 console.log("AutoUpdate : Error in Reading Update Dir for Cleanup : " + err.toString());
                                 postMessageToBrackets(MessageIds.SHOW_ERROR_MESSAGE,
-                                                      _nodeErrorMessages.UPDATEDIR_READ_FAILED);
+                                                      currentRequester, nodeErrorMessages.UPDATEDIR_READ_FAILED);
                             });
                     } else {
                         fs.remove(updateDir)
@@ -366,7 +369,7 @@
                             .catch(function (err) {
                                 console.log("AutoUpdate : Error in Cleaning Update Dir : " + err.toString());
                                 postMessageToBrackets(MessageIds.SHOW_ERROR_MESSAGE,
-                                                      _nodeErrorMessages.UPDATEDIR_CLEAN_FAILED);
+                                                      currentRequester, nodeErrorMessages.UPDATEDIR_CLEAN_FAILED);
                             });
                     }
                 }
@@ -374,7 +377,7 @@
             .catch(function (err) {
                 console.log("AutoUpdate : Error in Reading Update Dir stats for Cleanup : " + err.toString());
                 postMessageToBrackets(MessageIds.SHOW_ERROR_MESSAGE,
-                                      _nodeErrorMessages.UPDATEDIR_CLEAN_FAILED);
+                                      currentRequester, nodeErrorMessages.UPDATEDIR_CLEAN_FAILED);
             });
     }
 
@@ -382,11 +385,11 @@
      * Initializes the node with update parameters
      * @param {object} updateParams - json containing update parameters
      */
-    function initializeState(updateParams, requester) {
-        currentRequester = requester;
+    function initializeState(requester, updateParams) {
+        var currentRequester = requester || "";
         _updateParams = updateParams;
         installerPath = path.resolve(updateDir, updateParams.installerName);
-        postMessageToBrackets(MessageIds.NOTIFY_INITIALIZATION_COMPLETE);
+        postMessageToBrackets(MessageIds.NOTIFY_INITIALIZATION_COMPLETE, currentRequester);
     }
 
 
@@ -423,11 +426,10 @@
             installStatusFilePath = path.resolve(updateDir, installStatusFile);
             registerNodeFunctions();
             isNodeDomainInitialized = true;
-            currentRequester = initObj.requester.toString();
-            postMessageToBrackets(MessageIds.SET_UPDATE_IN_PROGRESS_STATE, false);
+            postMessageToBrackets(MessageIds.SET_UPDATE_IN_PROGRESS_STATE, initObj.requester.toString(), false);
         }
         requesters[initObj.requester.toString()] = true;
-        postMessageToBrackets(MessageIds.REGISTER_BRACKETS_FUNCTIONS);
+        postMessageToBrackets(MessageIds.REGISTER_BRACKETS_FUNCTIONS, initObj.requester.toString());
     }
 
 
@@ -438,7 +440,9 @@
      *                          args - arguments to the above function }
      */
     function receiveMessageFromBrackets(msgObj) {
-        functionMap[msgObj.fn].apply(null, msgObj.args);
+        var argList = msgObj.args;
+        argList.unshift(msgObj.requester || "");
+        functionMap[msgObj.fn].apply(null, argList);
     }
 
     /**
