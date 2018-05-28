@@ -394,7 +394,7 @@
 
 
     function removeFromRequesters(requester) {
-        if (requesters[requester.toString()] !== undefined) {
+        if (requesters.hasOwnProperty(requester.toString())) {
             delete requesters[requester];
         }
     }
