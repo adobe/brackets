@@ -870,6 +870,7 @@ define({
     "LATER_BUTTON"                                   : "Later",
     "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
     
+    "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
 });

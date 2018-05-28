@@ -181,7 +181,7 @@ define(function (require, exports, module) {
      * Checks and handles the update success and failure scenarios
      */
     function checkUpdateStatus() {
-        var filesToCache = null,
+        var filesToCache = ['.logs'],
             downloadCompleted = updateJsonHandler.get("downloadCompleted"),
             updateInitiatedInPrevSession = updateJsonHandler.get("updateInitiatedInPrevSession");
 
@@ -204,7 +204,6 @@ define(function (require, exports, module) {
             } else {
                 // We get here if the update started but failed
                 checkInstallationStatus();
-                filesToCache = ['.logs']; //AUTOUPDATE_PRERELEASE
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
                     title: Strings.UPDATE_FAILED,
