@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     exports.VALIDATE_INSTALLER              = "node.validateInstaller";
     exports.INITIALIZE_STATE                = "node.initializeState";
     exports.CHECK_INSTALLER_STATUS          = "node.checkInstallerStatus";
+    exports.REMOVE_FROM_REQUESTERS          = "node.removeFromRequesters";
     exports.SHOW_STATUS_INFO                = "brackets.showStatusInfo";
     exports.NOTIFY_DOWNLOAD_SUCCESS         = "brackets.notifyDownloadSuccess";
     exports.SHOW_ERROR_MESSAGE              = "brackets.showErrorMessage";
@@ -37,5 +38,6 @@ define(function (require, exports, module) {
     exports.NOTIFY_INITIALIZATION_COMPLETE  = "brackets.notifyinitializationComplete";
     exports.NOTIFY_VALIDATION_STATUS        = "brackets.notifyvalidationStatus";
     exports.NOTIFY_INSTALLATION_STATUS      = "brackets.notifyInstallationStatus";
+    exports.SET_UPDATE_IN_PROGRESS_STATE    = "brackets.setAutoUpdateInProgress";
     exports.REGISTER_BRACKETS_FUNCTIONS     = "brackets.registerBracketsFunctions";
 });

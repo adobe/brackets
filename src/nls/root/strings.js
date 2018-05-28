@@ -865,10 +865,12 @@ define({
     "CHECKSUM_DID_NOT_MATCH"                         : "Checksum didn't match.",
     "INSTALLER_NOT_FOUND"                            : "Installer not found.",
     "DOWNLOAD_ERROR"                                 : "Error occurred while downloading.",
-    "NETWORK_SLOW_OR_DISCONNECTED"                   : "Network is Disconnected or too slow.",
+    "NETWORK_SLOW_OR_DISCONNECTED"                   : "Network is disconnected or too slow.",
     "RESTART_BUTTON"                                 : "Restart",
     "LATER_BUTTON"                                   : "Later",
     "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
+    "AUTOUPDATE_ERROR"                               : "Error!",
+    "AUTOUPDATE_IN_PROGRESS"                         : "An update is already in progress.",
     
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
