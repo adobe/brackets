@@ -56,7 +56,11 @@ define(function (require, exports, module) {
     if (isDevBuild) {
         additionalGlobals.BUILD_TYPE = strings.DEVELOPMENT_BUILD;
     } else {
-        additionalGlobals.BUILD_TYPE = strings.RELEASE_BUILD;
+        if (brackets.config.environment === 'production') {
+            additionalGlobals.BUILD_TYPE = strings.RELEASE_BUILD;
+        } else {
+            additionalGlobals.BUILD_TYPE = strings.PRERELEASE_BUILD;
+        }
     }
 
     // Insert application strings

@@ -27,6 +27,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager          = brackets.getModule("command/CommandManager"),
+        ProjectManager          = brackets.getModule("project/ProjectManager"),
         Commands                = brackets.getModule("command/Commands"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         UpdateNotification      = brackets.getModule("utils/UpdateNotification"),
@@ -46,7 +47,8 @@ define(function (require, exports, module) {
     var _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath = "node/AutoUpdateDomain",
         _domainPath = [_modulePath, _nodePath].join("/"),
-        updateDomain;
+        updateDomain,
+        domainID;
 
     var appSupportDirectory = brackets.app.getApplicationSupportDirectory(),
         updateDir = appSupportDirectory + '/updateTemp',
@@ -90,6 +92,34 @@ define(function (require, exports, module) {
         NETWORK_SLOW_OR_DISCONNECTED: 5
     };
 
+    var updateProgressKey = "autoUpdateInProgress",
+        isAutoUpdateInitiated = false;
+
+    /**
+     * Checks if an auto update session is currently in progress
+     * @returns {boolean} - true if an auto update session is currently in progress, false otherwise
+     */
+    function checkIfAnotherSessionInProgress() {
+        var result = $.Deferred();
+        if(updateJsonHandler) {
+            var state = updateJsonHandler.state;
+
+            updateJsonHandler.refresh()
+                .done(function() {
+                    var val = updateJsonHandler.get(updateProgressKey);
+                    if(val !== null) {
+                        result.resolve(val);
+                    } else {
+                        result.reject();
+                    }
+                })
+                .fail(function() {
+                    updateJsonHandler.state = state;
+                    result.reject();
+                });
+        }
+        return result.promise();
+    }
 
     /**
      * Checks if auto update preference is enabled or disabled
@@ -106,9 +136,14 @@ define(function (require, exports, module) {
      * @param {object}   msgObj - json containing - {
      *                          fn - function to execute on Brackets side
      *                          args - arguments to the above function
+     *                          requester - ID of the current requester domain
      */
     function receiveMessageFromNode(event, msgObj) {
-        functionMap[msgObj.fn].apply(null, msgObj.args);
+        if (functionMap[msgObj.fn]) {
+            if(domainID === msgObj.requester) {
+                functionMap[msgObj.fn].apply(null, msgObj.args);
+            }
+        }
     }
 
      /*
@@ -150,7 +185,8 @@ define(function (require, exports, module) {
     function postMessageToNode(messageId) {
         var msg = {
             fn: messageId,
-            args: getFunctionArgs(arguments)
+            args: getFunctionArgs(arguments),
+            requester: domainID
         };
         updateDomain.exec('data', msg);
     }
@@ -181,7 +217,7 @@ define(function (require, exports, module) {
      * Checks and handles the update success and failure scenarios
      */
     function checkUpdateStatus() {
-        var filesToCache = null,
+        var filesToCache = ['.logs'],
             downloadCompleted = updateJsonHandler.get("downloadCompleted"),
             updateInitiatedInPrevSession = updateJsonHandler.get("updateInitiatedInPrevSession");
 
@@ -204,7 +240,6 @@ define(function (require, exports, module) {
             } else {
                 // We get here if the update started but failed
                 checkInstallationStatus();
-                filesToCache = ['.logs']; //AUTOUPDATE_PRERELEASE
                 UpdateInfoBar.showUpdateBar({
                     type: "error",
                     title: Strings.UPDATE_FAILED,
@@ -248,8 +283,16 @@ define(function (require, exports, module) {
      */
     function initState() {
         updateJsonHandler.parse()
-            .done(function () {
-                checkUpdateStatus();
+            .done(function() {
+            checkIfAnotherSessionInProgress()
+                .done(function (inProgress) {
+                    if (!inProgress) {
+                        checkUpdateStatus();
+                    }
+                })
+                .fail(function () {
+                    checkUpdateStatus();
+                });
             })
             .fail(function (code) {
                 var logMsg;
@@ -281,7 +324,8 @@ define(function (require, exports, module) {
 
         updateDomain.exec('initNode', {
             messageIds: MessageIds,
-            updateDir: updateDir
+            updateDir: updateDir,
+            requester: domainID
         });
 
         updateDomain.on('data', receiveMessageFromNode);
@@ -354,16 +398,41 @@ define(function (require, exports, module) {
 
         initializeState()
             .done(function () {
-                var initNodeFn = function () {
-                    postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+
+                 var setUpdateInProgress = function() {
+                    var initNodeFn = function () {
+                        isAutoUpdateInitiated = true;
+                        postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
+                    };
+
+                    if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
+                        setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber)
+                            .done(initNodeFn);
+                    } else {
+                        initNodeFn();
+                    }
                 };
 
-                if (updateJsonHandler.get('latestBuildNumber') !== _updateParams.latestBuildNumber) {
-                    setUpdateStateInJSON('latestBuildNumber', _updateParams.latestBuildNumber)
-                        .done(initNodeFn);
-                } else {
-                    initNodeFn();
-                }
+                checkIfAnotherSessionInProgress()
+                    .done(function(inProgress) {
+                        if(inProgress) {
+                            UpdateInfoBar.showUpdateBar({
+                                type: "error",
+                                title: Strings.AUTOUPDATE_ERROR,
+                                description: Strings.AUTOUPDATE_IN_PROGRESS
+                            });
+                        } else {
+                             setUpdateStateInJSON("autoUpdateInProgress", true)
+                                .done(setUpdateInProgress);
+
+                        }
+                    })
+                    .fail(function() {
+                        setUpdateStateInJSON("autoUpdateInProgress", true)
+                            .done(setUpdateInProgress);
+
+                    });
+
             })
             .fail(function () {
                 UpdateInfoBar.showUpdateBar({
@@ -397,47 +466,48 @@ define(function (require, exports, module) {
      */
     function _updateProcessHandler(updates) {
 
-        if(!updates) {
-            console.warn("AutoUpdate : updates information not available.");
-            return;
-        }
-        var OS = getPlatformInfo(),
-            checksum,
-            downloadURL,
-            installerName,
-            platforms,
-            latestUpdate;
+            if (!updates) {
+                console.warn("AutoUpdate : updates information not available.");
+                return;
+            }
+            var OS = getPlatformInfo(),
+                checksum,
+                downloadURL,
+                installerName,
+                platforms,
+                latestUpdate;
 
-        latestUpdate = updates[0];
-        platforms = latestUpdate ? latestUpdate.platforms : null;
+            latestUpdate = updates[0];
+            platforms = latestUpdate ? latestUpdate.platforms : null;
 
-        if(platforms && platforms[OS]) {
+            if (platforms && platforms[OS]) {
 
-             //If no checksum field is present then we're setting it to 0, just as a safety check,
-            // although ideally this situation should never occur in releases post its introduction.
-            checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
-            downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
-            installerName = downloadURL ? downloadURL.split("/").pop() : "";
+                //If no checksum field is present then we're setting it to 0, just as a safety check,
+                // although ideally this situation should never occur in releases post its introduction.
+                checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
+                downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
+                installerName = downloadURL ? downloadURL.split("/").pop() : "";
 
-        } else {
-            // Update not present for current platform
-            return;
-        }
+            } else {
+                // Update not present for current platform
+                return;
+            }
 
-        if (!checksum || !downloadURL || !installerName) {
-            console.warn("AutoUpdate : asset information incorrect for the update");
-            return;
-        }
+            if (!checksum || !downloadURL || !installerName) {
+                console.warn("AutoUpdate : asset information incorrect for the update");
+                return;
+            }
 
-         var updateParams = {
-            downloadURL: downloadURL,
-            installerName: installerName,
-            latestBuildNumber: latestUpdate.buildNumber,
-            checksum: checksum
-        };
+            var updateParams = {
+                downloadURL: downloadURL,
+                installerName: installerName,
+                latestBuildNumber: latestUpdate.buildNumber,
+                checksum: checksum
+            };
 
-        //Initiate the auto update, with update params
-        initiateAutoUpdate(updateParams);
+
+            //Initiate the auto update, with update params
+            initiateAutoUpdate(updateParams);
     }
 
 
@@ -510,6 +580,7 @@ define(function (require, exports, module) {
              .done(function () {
                 setupAutoUpdatePreference();
                 if (_isAutoUpdateEnabled()) {
+                    domainID = (new Date()).getTime().toString();
                     setupAutoUpdate();
                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
                 }
@@ -519,6 +590,16 @@ define(function (require, exports, module) {
                 return;
             });
     });
+
+    /**
+     * Enables/disables the state of "Auto Update In Progress" in UpdateHandler.json
+     */
+    function setAutoUpdateInProgressFlag(flag) {
+        updateJsonHandler.parse()
+            .done(function() {
+                setUpdateStateInJSON("autoUpdateInProgress", flag);
+        });
+    }
 
 
     /**
@@ -554,6 +635,8 @@ define(function (require, exports, module) {
 
         enableCheckForUpdateEntry(true);
         console.error(message);
+
+        setUpdateStateInJSON("autoUpdateInProgress", false);
     }
 
     /**
@@ -611,8 +694,18 @@ define(function (require, exports, module) {
 
             --downloadAttemptsRemaining;
         };
-        setUpdateStateInJSON('downloadCompleted', false)
-            .done(downloadFn);
+
+        if(!isAutoUpdateInitiated) {
+            isAutoUpdateInitiated = true;
+            updateJsonHandler.refresh()
+                .done(function() {
+                    setUpdateStateInJSON('downloadCompleted', false)
+                        .done(downloadFn);
+                });
+        } else {
+            setUpdateStateInJSON('downloadCompleted', false)
+                .done(downloadFn);
+        }
     }
 
     /**
@@ -644,6 +737,8 @@ define(function (require, exports, module) {
                 title: Strings.DOWNLOAD_FAILED,
                 description: Strings.INTERNET_UNAVAILABLE
             });
+
+            setUpdateStateInJSON("autoUpdateInProgress", false);
         }
     }
 
@@ -867,6 +962,8 @@ define(function (require, exports, module) {
                     description: Strings.CLICK_RESTART_TO_UPDATE,
                     needButtons: true
                 });
+
+                setUpdateStateInJSON("autoUpdateInProgress", false);
                 HealthLogger.sendAnalyticsData(
                     autoUpdateEventNames.AUTOUPDATE_DOWNLOADCOMPLETE_UPDATE_BAR_RENDERED,
                     "autoUpdate",
@@ -876,8 +973,17 @@ define(function (require, exports, module) {
                 );
             };
 
-            setUpdateStateInJSON('downloadCompleted', true)
-                .done(statusValidFn);
+            if(!isAutoUpdateInitiated) {
+                isAutoUpdateInitiated = true;
+                updateJsonHandler.refresh()
+                    .done(function() {
+                        setUpdateStateInJSON('downloadCompleted', true)
+                        .done(statusValidFn);
+                });
+            } else {
+                 setUpdateStateInJSON('downloadCompleted', true)
+                    .done(statusValidFn);
+            }
         } else {
 
             // Installer validation failed
@@ -922,6 +1028,8 @@ define(function (require, exports, module) {
                     title: Strings.VALIDATION_FAILED,
                     description: descriptionMessage
                 });
+
+                setUpdateStateInJSON("autoUpdateInProgress", false);
             }
         }
     }
@@ -965,6 +1073,8 @@ define(function (require, exports, module) {
                 title: Strings.DOWNLOAD_FAILED,
                 description: descriptionMessage
             });
+
+            setUpdateStateInJSON("autoUpdateInProgress", false);
         }
 
     }
@@ -995,6 +1105,10 @@ define(function (require, exports, module) {
     }
 
 
+    function _handleAppClose() {
+        postMessageToNode(MessageIds.REMOVE_FROM_REQUESTERS);
+    }
+
     /**
      * Generates a map for brackets side functions
      */
@@ -1007,8 +1121,10 @@ define(function (require, exports, module) {
         functionMap["brackets.notifySafeToDownload"]         = handleSafeToDownload;
         functionMap["brackets.notifyvalidationStatus"]       = handleValidationStatus;
         functionMap["brackets.notifyInstallationStatus"]     = handleInstallationStatus;
-    }
 
+        ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
+    }
+    functionMap["brackets.setAutoUpdateInProgress"]     = setAutoUpdateInProgressFlag;
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
 });

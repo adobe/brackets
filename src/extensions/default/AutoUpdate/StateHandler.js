@@ -125,13 +125,39 @@ define(function (require, exports, module) {
     StateHandler.prototype.get = function (key) {
         var retval = null;
 
-        if (this.state && this.state[key]) {
+        if (this.state && this.state[key] !== undefined) {
             retval = this.state[key];
         }
 
         return retval;
     };
 
+     /**
+     * Reads the value of a key from a json file.
+     * @param   {string} key - key for which the value is to be read
+     * @returns {$.Deferred} - a jquery deferred promise, that is resolved
+     *                       with the read value or read failure.
+     */
+    StateHandler.prototype.refresh = function () {
+        var result = $.Deferred(),
+            self = this;
+
+        self.parse()
+            .done(function () {
+                if (self.state) {
+                    result.resolve();
+                } else {
+                    result.reject();
+                    console.warn("AutoUpdate : updateHelper.json could not be read");
+                }
+            })
+            .fail(function (error) {
+                result.reject();
+                console.error("AutoUpdate : updateHelper.json could not be parsed", error);
+            });
+
+        return result.promise();
+    };
 
     /**
      * Performs the write of JSON object to a file.
