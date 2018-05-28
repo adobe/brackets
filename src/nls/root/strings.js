@@ -873,6 +873,7 @@ define({
     "AUTOUPDATE_ERROR"                               : "Error!",
     "AUTOUPDATE_IN_PROGRESS"                         : "An update is already in progress.",
     
+    "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
 });

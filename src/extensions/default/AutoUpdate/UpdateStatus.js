@@ -27,7 +27,8 @@ define(function (require, exports, module) {
     var UpdateStatusHtml = require("text!htmlContent/updateStatus.html"),
         ExtensionUtils   = brackets.getModule("utils/ExtensionUtils"),
         Mustache         = brackets.getModule("thirdparty/mustache/mustache"),
-        Strings          = brackets.getModule("strings");
+        Strings          = brackets.getModule("strings"),
+        StringUtils      = brackets.getModule("utils/StringUtils");
 
     ExtensionUtils.loadStyleSheet(module, "styles/styles.css");
 
@@ -47,6 +48,8 @@ define(function (require, exports, module) {
 
         var $updateStatus = $(Mustache.render(UpdateStatusHtml, {"Strings": Strings}));
         $updateStatus.appendTo('#status-bar');
+        var valStr = StringUtils.format(Strings.NUMBER_WITH_PERCENTAGE, 0);
+        $('#update-status #' + id + ' #' + 'percent').text(valStr);
         $('#update-status #' + id).show();
     }
 
@@ -61,7 +64,8 @@ define(function (require, exports, module) {
      */
     function modifyUpdateStatus(statusObj) {
         statusObj.spans.forEach(function (span) {
-            $('#update-status #' + statusObj.target + ' #' + span.id).text(span.val);
+            var valStr = StringUtils.format(Strings.NUMBER_WITH_PERCENTAGE, span.val.split('%')[0]);
+            $('#update-status #' + statusObj.target + ' #' + span.id).text(valStr);
         });
     }
 
