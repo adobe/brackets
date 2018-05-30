@@ -98,7 +98,7 @@ define(function (require, exports, module) {
             userGuids.userUuid      = userUuid;
             userGuids.olderUuid = olderUuid;
 
-            return result.resolve(userGuids);
+            result.resolve(userGuids);
         } else {
 
             // So we are going to get the Machine hash in either of the cases.
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
 
                     userGuids.uuid      = userUuid;
                     userGuids.olderuuid = olderUuid;
-                    return result.resolve(userGuids);
+                    result.resolve(userGuids);
                 });
             } else {
                 // Probably running on older shell, in which case we will
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
 
                 PreferencesManager.setViewState("UUID",      userGuids.uuid);
                 PreferencesManager.setViewState("OlderUUID", userGuids.olderuuid);
-                return result.resolve(userGuids);
+                result.resolve(userGuids);
             }
         }
         return result.promise();
