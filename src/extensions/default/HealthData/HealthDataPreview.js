@@ -69,7 +69,7 @@ define(function (require, exports, module) {
                         }
                     }
                 });
-                return result.resolve();
+                result.resolve();
             });
         });
         return result.promise();
