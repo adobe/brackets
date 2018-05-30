@@ -72,8 +72,7 @@ define(function (require, exports, module) {
                         getSetUserID().done(function (userGuids) {
                             oneTimeHealthData.uuid  = userGuids.userUuid;
                             oneTimeHealthData.olderuuid = userGuids.olderUuid;
-
-                            return result.resolve(oneTimeHealthData);
+                            result.resolve(oneTimeHealthData);
                         });
                     });
 
