@@ -200,7 +200,7 @@ define(function (require, exports, module) {
                 }
             };
 
-            return result.resolve(ingestData);
+            result.resolve(ingestData);
         });
         return result.promise();
     }
