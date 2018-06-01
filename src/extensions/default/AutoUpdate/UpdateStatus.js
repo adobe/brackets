@@ -48,8 +48,10 @@ define(function (require, exports, module) {
 
         var $updateStatus = $(Mustache.render(UpdateStatusHtml, {"Strings": Strings}));
         $updateStatus.appendTo('#status-bar');
-        var valStr = StringUtils.format(Strings.NUMBER_WITH_PERCENTAGE, 0);
-        $('#update-status #' + id + ' #' + 'percent').text(valStr);
+        if(id === "initial-download") {
+            var valStr = StringUtils.format(Strings.NUMBER_WITH_PERCENTAGE, 0);
+            $('#update-status #' + id + ' #' + 'percent').text(valStr);
+        }
         $('#update-status #' + id).show();
     }
 
@@ -64,7 +66,10 @@ define(function (require, exports, module) {
      */
     function modifyUpdateStatus(statusObj) {
         statusObj.spans.forEach(function (span) {
-            var valStr = StringUtils.format(Strings.NUMBER_WITH_PERCENTAGE, span.val.split('%')[0]);
+            var valStr = span.val;
+            if(span.id === "percent") {
+                valStr = StringUtils.format(Strings.NUMBER_WITH_PERCENTAGE, span.val.split('%')[0]);
+            }
             $('#update-status #' + statusObj.target + ' #' + span.id).text(valStr);
         });
     }
