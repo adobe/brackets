@@ -277,8 +277,18 @@
             var localInstallerPath = path.resolve(updateDir, Date.now().toString() + ext),
                 localInstallerFile = fs.createWriteStream(localInstallerPath),
                 requestCompleted = true,
-                readTimeOut = 180000;
-            progress(request(updateParams.downloadURL, {timeout: readTimeOut}), {})
+                readTimeOut = 180000,
+                url = updateParams.downloadURL,
+                reqProgress;
+
+            if(url.startsWith("http://") || url.startsWith("https://")) {
+                reqProgress = progress(request(url, {timeout: readTimeOut}), {});
+            } else {
+                // only for Unit Testing
+                reqProgress = progress(fs.createReadStream(url), {});
+            }
+
+            reqProgress
                 .on('progress', function (state) {
                     var target = "retry-download";
                     if (isInitialAttempt) {
