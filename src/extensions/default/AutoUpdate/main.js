@@ -215,9 +215,9 @@ define(function (require, exports, module) {
 
      /**
      * Checks and handles the update success and failure scenarios
-     * @param {Boolean} _testDontCleanUp - Should be used only for Unit Testing
+     * @param {Boolean} dontCleanUp - Should be used only for Unit Testing
      */
-    function checkUpdateStatus(_testDontCleanUp) {
+    function checkUpdateStatus(dontCleanUp) {
         var filesToCache = ['.logs'],
             downloadCompleted = updateJsonHandler.get("downloadCompleted"),
             updateInitiatedInPrevSession = updateJsonHandler.get("updateInitiatedInPrevSession");
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if(!_testDontCleanUp) {
+        if(!dontCleanUp) {
             postMessageToNode(MessageIds.PERFORM_CLEANUP, filesToCache);
         }
     }
