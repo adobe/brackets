@@ -98,6 +98,8 @@ define(function (require, exports, module) {
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
+        AUTO_HIDE_SEARCH    = "autoHideSearch",
+        INDENT_LINE_COMMENT   = "indentLineComment",
         INDENT_LINE_COMMENT = "indentLineComment",
         INPUT_STYLE         = "inputStyle";
 
@@ -228,6 +230,11 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
+  
+    PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
+        description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
+    });
+
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
@@ -316,7 +323,7 @@ define(function (require, exports, module) {
     function Editor(document, makeMasterEditor, container, range, options) {
         var self = this;
 
-        var isReadOnly = options && options.isReadOnly;
+        var isReadOnly = (options && options.isReadOnly) || !document.editable;
 
         _instances.push(this);
 

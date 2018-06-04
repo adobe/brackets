@@ -66,6 +66,9 @@ define({
     "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming {0}",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_NOT_IN_PROJECT"     : "The file or directory is not part of the currently opened project. Unfortunately, only project files can be renamed at this point.",
+    "ERROR_MOVING_FILE_TITLE"           : "Error Moving {0}",
+    "ERROR_MOVING_FILE"                 : "An error occurred when trying to move the {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_MOVING_NOT_IN_PROJECT"       : "Cannot move the file/folder, as they are not part of the current project.",
     "ERROR_DELETING_FILE_TITLE"         : "Error Deleting {0}",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid {0}",
@@ -409,6 +412,7 @@ define({
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sort by Type",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatic Sort",
     "CMD_THEMES"                          : "Themes\u2026",
+    "CMD_TOGGLE_SEARCH_AUTOHIDE"          : "Automatically close search",
 
     // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -453,6 +457,7 @@ define({
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "RELEASE_BUILD"                        : "build",
     "DEVELOPMENT_BUILD"                    : "development build",
+    "PRERELEASE_BUILD"                     : "prerelease build",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
@@ -813,6 +818,7 @@ define({
     "DESCRIPTION_USE_TAB_CHAR"                       : "true to use tabs instead of spaces",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true to generate uppercase hex colors in Inline Color Editor",
     "DESCRIPTION_WORD_WRAP"                          : "Wrap lines that exceed the viewport width",
+    "DESCRIPTION_SEARCH_AUTOHIDE"                    : "Close the search as soon as the editor is focused",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "A list of files that have been detected to cause Tern to run out of control",
     "DESCRIPTION_INFERENCE_TIMEOUT"                  : "The amount of time after which Tern will time out when trying to understand files",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true to show errors in status bar",
@@ -837,5 +843,37 @@ define({
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "Port on which WebSocket Server runs for Live Preview",
     "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Live Preview Highlight settings",
-    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect"
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false to disable live preview reverse inspect",
+    
+    // Strings for Auto Update
+    "DOWNLOAD_FAILED"                                : "Download failed.",
+    "DOWNLOAD_COMPLETE"                              : "Download complete!",
+    "UPDATE_SUCCESSFUL"                              : "Update successful!",
+    "UPDATE_FAILED"                                  : "Update failed!",
+    "VALIDATION_FAILED"                              : "Validation failed!",
+    "INITIALISATION_FAILED"                          : "Initialization failed!",
+    "CLEANUP_FAILED"                                 : "Clean-up failed!",
+    "WARNING_TYPE"                                   : "Warning!",
+    "CLICK_RESTART_TO_UPDATE"                        : "Click Restart to update Brackets.",
+    "UPDATE_ON_NEXT_LAUNCH"                          : "The update will be applied on relaunch.",
+    "GO_TO_SITE"                                     : "Go to <a href = \"http://brackets.io/\"> brackets.io </a> to retry.",
+    "INTERNET_UNAVAILABLE"                           : "No Internet connection available.",
+    "UPDATEDIR_READ_FAILED"                          : "Update directory could not be read.",
+    "UPDATEDIR_CLEAN_FAILED"                         : "Update directory could not be cleaned.",
+    "INITIAL_DOWNLOAD"                               : "Downloading Update...",
+    "RETRY_DOWNLOAD"                                 : "Download failed. Retrying...Attempt ",
+    "VALIDATING_INSTALLER"                           : "Download complete! Validating Installer...",
+    "CHECKSUM_DID_NOT_MATCH"                         : "Checksum didn't match.",
+    "INSTALLER_NOT_FOUND"                            : "Installer not found.",
+    "DOWNLOAD_ERROR"                                 : "Error occurred while downloading.",
+    "NETWORK_SLOW_OR_DISCONNECTED"                   : "Network is disconnected or too slow.",
+    "RESTART_BUTTON"                                 : "Restart",
+    "LATER_BUTTON"                                   : "Later",
+    "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
+    "AUTOUPDATE_ERROR"                               : "Error!",
+    "AUTOUPDATE_IN_PROGRESS"                         : "An update is already in progress.",
+    
+    "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
+    // Strings for Related Files
+    "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
 });

@@ -66,6 +66,9 @@ define({
 	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du {0}",
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de changement de nom du {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_RENAMING_NOT_IN_PROJECT": "Le fichier ou le répertoire ne fait pas partie du projet actuellement ouvert. Or, seuls les fichiers appartenant au projet peuvent être renommés à ce stade.",
+	"ERROR_MOVING_FILE_TITLE": "Erreur lors du déplacement de l’élément {0}",
+	"ERROR_MOVING_FILE": "Une erreur s’est produite lors du déplacement de l’élément {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_MOVING_NOT_IN_PROJECT": "Impossible de déplacer le fichier/dossier, car ils ne font pas partie du projet en cours.",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du {0}",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
@@ -409,6 +412,7 @@ define({
 	"CMD_WORKINGSET_SORT_BY_TYPE": "Trier par type",
 	"CMD_WORKING_SORT_TOGGLE_AUTO": "Tri automatique",
 	"CMD_THEMES": "Thèmes\u2026",
+	"CMD_TOGGLE_SEARCH_AUTOHIDE": "Fermer automatiquement la recherche",
 
     // Navigate menu commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -453,6 +457,7 @@ define({
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"RELEASE_BUILD": "édition",
 	"DEVELOPMENT_BUILD": "version de développement",
+	"PRERELEASE_BUILD": "version préliminaire",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
@@ -813,6 +818,7 @@ define({
 	"DESCRIPTION_USE_TAB_CHAR": "vrai pour utiliser des tabulations au lieu d’espaces",
 	"DESCRIPTION_UPPERCASE_COLORS": "vrai pour générer des couleurs hexadécimales en majuscules dans l’éditeur de couleur intégré",
 	"DESCRIPTION_WORD_WRAP": "Renvoyer à la ligne automatiquement en cas de dépassement de la largeur de la fenêtre",
+	"DESCRIPTION_SEARCH_AUTOHIDE": "Fermer la recherche dès que l’éditeur redevient actif",
 	"DESCRIPTION_DETECTED_EXCLUSIONS": "Liste de fichiers qui ont été identifiés comme provoquant une perte de contrôle de Tern",
 	"DESCRIPTION_INFERENCE_TIMEOUT": "Laps de temps au bout duquel le processus Tern expire quand il tente d’interpréter des fichiers",
 	"DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR": "vrai pour afficher les erreurs dans la barre d’état",
@@ -837,5 +843,37 @@ define({
 	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents",
 	"DESCRIPTION_LIVEDEV_WEBSOCKET_PORT": "Port sur lequel s’exécute le serveur WebSocket pour le mode Aperçu en direct",
 	"DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS": "Paramètres de surbrillance de l'Aperçu en direct",
-	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l’inspection inverse de l’Aperçu en direct"
+	"DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT": "faux pour désactiver l’inspection inverse de l’Aperçu en direct",
+    
+    // Strings for Auto Update
+	"DOWNLOAD_FAILED": "Échec du téléchargement.",
+	"DOWNLOAD_COMPLETE": "Téléchargement terminé.",
+	"UPDATE_SUCCESSFUL": "Mise à jour effectuée.",
+	"UPDATE_FAILED": "Échec de la mise à jour.",
+	"VALIDATION_FAILED": "Échec de la validation.",
+	"INITIALISATION_FAILED": "Échec de l’initialisation.",
+	"CLEANUP_FAILED": "Échec du nettoyage.",
+	"WARNING_TYPE": "Avertissement !",
+	"CLICK_RESTART_TO_UPDATE": "Cliquez sur Redémarrer pour mettre à jour Brackets.",
+	"UPDATE_ON_NEXT_LAUNCH": "La mise à jour sera appliquée au prochain lancement de l’application.",
+	"GO_TO_SITE": "Rendez-vous sur <a href=\"http://brackets.io/\"> brackets.io </a> pour réessayer.",
+	"INTERNET_UNAVAILABLE": "Aucune connexion Internet disponible.",
+	"UPDATEDIR_READ_FAILED": "Impossible de lire le répertoire de mise à jour.",
+	"UPDATEDIR_CLEAN_FAILED": "Impossible de nettoyer le répertoire de mise à jour.",
+	"INITIAL_DOWNLOAD": "Téléchargement de la mise à jour...",
+	"RETRY_DOWNLOAD": "Échec du téléchargement. Nouvelle tentative... ",
+	"VALIDATING_INSTALLER": "Téléchargement terminé. Validation du programme d’installation...",
+	"CHECKSUM_DID_NOT_MATCH": "La somme de contrôle ne correspond pas.",
+	"INSTALLER_NOT_FOUND": "Programme d’installation non trouvé.",
+	"DOWNLOAD_ERROR": "Erreur lors du téléchargement.",
+	"NETWORK_SLOW_OR_DISCONNECTED": "Le réseau est déconnecté ou trop lent.",
+	"RESTART_BUTTON": "Recommencer",
+	"LATER_BUTTON": "Plus tard",
+	"DESCRIPTION_AUTO_UPDATE": "Activer/désactiver la mise à jour automatique de Brackets",
+	"AUTOUPDATE_ERROR": "Erreur !",
+	"AUTOUPDATE_IN_PROGRESS": "Une mise à jour est déjà en cours.",
+    
+	"NUMBER_WITH_PERCENTAGE": "{0}%",
+    // Strings for Related Files
+	"CMD_FIND_RELATED_FILES": "Trouver les fichiers associés"
 });

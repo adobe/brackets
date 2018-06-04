@@ -97,7 +97,8 @@ define(function (require, exports, module) {
                         var showMessage = false;
                         _findBar.enable(true);
                         if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
-                            _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
+                            _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES,
+                                FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
                         } else {
                             showMessage = true;
                         }

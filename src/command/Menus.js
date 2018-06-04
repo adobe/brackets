@@ -1259,7 +1259,7 @@ define(function (require, exports, module) {
             posLeft += 3;
 
             if (clip.right > 0) {
-                posLeft = Math.max(0, posLeft - 2 * $parentMenuItem.outerWidth());
+                posLeft = Math.max(0, posLeft - $parentMenuItem.outerWidth() - $menuWindow.outerWidth());
             }
         } else {
             this.trigger("beforeContextMenuOpen");
