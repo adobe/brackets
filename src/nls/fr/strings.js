@@ -457,6 +457,7 @@ define({
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"RELEASE_BUILD": "édition",
 	"DEVELOPMENT_BUILD": "version de développement",
+	"PRERELEASE_BUILD": "version préliminaire",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
@@ -865,10 +866,14 @@ define({
 	"CHECKSUM_DID_NOT_MATCH": "La somme de contrôle ne correspond pas.",
 	"INSTALLER_NOT_FOUND": "Programme d’installation non trouvé.",
 	"DOWNLOAD_ERROR": "Erreur lors du téléchargement.",
+	"NETWORK_SLOW_OR_DISCONNECTED": "Le réseau est déconnecté ou trop lent.",
 	"RESTART_BUTTON": "Recommencer",
 	"LATER_BUTTON": "Plus tard",
 	"DESCRIPTION_AUTO_UPDATE": "Activer/désactiver la mise à jour automatique de Brackets",
+	"AUTOUPDATE_ERROR": "Erreur !",
+	"AUTOUPDATE_IN_PROGRESS": "Une mise à jour est déjà en cours.",
     
+	"NUMBER_WITH_PERCENTAGE": "{0}%",
     // Strings for Related Files
 	"CMD_FIND_RELATED_FILES": "Trouver les fichiers associés"
 });
