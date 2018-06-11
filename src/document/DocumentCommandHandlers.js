@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
+        Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
@@ -515,6 +516,16 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Preference to persist undo history between sessions
+     */
+    
+    var PERSIST_UNDO_HISTORY = "persistUndoHistory";
+
+    PreferencesManager.definePreference(PERSIST_UNDO_HISTORY, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNDO_HISTORY
+    });
+
+    /**
      * Opens the given file, makes it the current file, does NOT add it to the workingset
      * @param {FileCommandData} commandData
      *   fullPath: File to open;
@@ -522,16 +533,34 @@ define(function (require, exports, module) {
      *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with @type {Document}
      */
+
     function handleDocumentOpen(commandData) {
         var result = new $.Deferred();
         handleFileOpen(commandData)
             .done(function (file) {
-                // if we succeeded with an open file
+                //  if we succeeded with an open file
                 //  then we need to resolve that to a document.
                 //  getOpenDocumentForPath will return null if there isn't a
                 //  supporting document for that file (e.g. an image)
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 result.resolve(doc);
+            
+                // If pref set to true, attempt reload of prior undo/redo history
+                var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY),
+                    regExp = /^(.*\/)([^\/]*)$/,
+                    fullPathToFile = file.fullPath;
+
+                if (persistUndoHistory) {
+                    /**
+                     *  Load and set saved undo history associated with currently opened file
+                     */
+                    var loadedHistory = localStorage.getItem("history__" + fullPathToFile),
+                        loadedHistory = JSON.parse(loadedHistory);
+
+                    if (loadedHistory !== null) {
+                        Editor.codeMirrorRef.setHistory(loadedHistory);
+                    } else { /* No record of changes within editor for current file */ }
+                }
             })
             .fail(function (err) {
                 result.reject(err);
