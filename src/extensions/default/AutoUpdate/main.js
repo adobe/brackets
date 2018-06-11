@@ -223,6 +223,7 @@ define(function (require, exports, module) {
 
         if (downloadCompleted && updateInitiatedInPrevSession) {
             var isNewVersion = checkIfVersionUpdated();
+            updateJsonHandler.reset();
             if (isNewVersion) {
                 // We get here if the update was successful
                 UpdateInfoBar.showUpdateBar({
@@ -321,6 +322,7 @@ define(function (require, exports, module) {
      */
     function setupAutoUpdate() {
         updateJsonHandler = new StateHandler(updateJsonPath);
+        updateDomain.on('data', receiveMessageFromNode);
 
         updateDomain.exec('initNode', {
             messageIds: MessageIds,
@@ -328,8 +330,6 @@ define(function (require, exports, module) {
             requester: domainID
         });
 
-        updateDomain.on('data', receiveMessageFromNode);
-        initState();
     }
 
 
@@ -594,11 +594,17 @@ define(function (require, exports, module) {
     /**
      * Enables/disables the state of "Auto Update In Progress" in UpdateHandler.json
      */
-    function setAutoUpdateInProgressFlag(flag) {
-        updateJsonHandler.parse()
-            .done(function() {
-                setUpdateStateInJSON("autoUpdateInProgress", flag);
-        });
+    function nodeDomainInitialized(reset) {
+        if(reset) {
+            updateJsonHandler.parse()
+                .done(function() {
+                    setUpdateStateInJSON("autoUpdateInProgress", !reset)
+                        .always(initState);
+                 })
+                 .fail(initState);
+        } else {
+            initState();
+        }
     }
 
 
@@ -636,7 +642,6 @@ define(function (require, exports, module) {
         enableCheckForUpdateEntry(true);
         console.error(message);
 
-        setUpdateStateInJSON("autoUpdateInProgress", false);
     }
 
     /**
@@ -1124,7 +1129,7 @@ define(function (require, exports, module) {
 
         ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
     }
-    functionMap["brackets.setAutoUpdateInProgress"]     = setAutoUpdateInProgressFlag;
+    functionMap["brackets.nodeDomainInitialized"]     = nodeDomainInitialized;
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
 });
