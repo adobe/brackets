@@ -1519,7 +1519,7 @@ define(function (require, exports, module) {
             
             // If preference set to persistent undo/redo history
             if (persistUndoHistory) {
-                // Removes history object from memory before rename
+                // Removes history item from localStorage before rename
                 var oldFileName = MainViewManager.getCurrentlyViewedFile();
                 localStorage.removeItem("history__" + oldFileName._path);
             }
