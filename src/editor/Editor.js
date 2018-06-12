@@ -957,7 +957,7 @@ define(function (require, exports, module) {
                 fullPathToFile = this.document.file.fullPath,
                 currentTextObj = this._codeMirror.getHistory();
                 
-                localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+                window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
             }
         }
         // Else, Master editor:
@@ -980,7 +980,7 @@ define(function (require, exports, module) {
             fullPathToFile = this.document.file.fullPath,
             currentTextObj = this._codeMirror.getHistory();
 
-            localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+            window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
         }
     };
 
