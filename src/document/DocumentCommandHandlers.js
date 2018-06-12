@@ -553,8 +553,8 @@ define(function (require, exports, module) {
                  */
                 if (persistUndoHistory) {
                     var fileFullPath = file.fullPath,
-                        historyToLoad = localStorage.getItem("history__" + fileFullPath),
-                        historyToLoad = JSON.parse(loadedHistory);
+                        historyToLoad = window.localStorage.getItem("history__" + fileFullPath),
+                        historyToLoad = JSON.parse(historyToLoad);
 
                     // Check if history exists in localStorage before attempting to load
                     if (loadedHistory !== null) {
@@ -1521,7 +1521,7 @@ define(function (require, exports, module) {
             if (persistUndoHistory) {
                 // Removes history item from localStorage before rename
                 var oldFileName = MainViewManager.getCurrentlyViewedFile();
-                localStorage.removeItem("history__" + oldFileName._path);
+                window.localStorage.removeItem("history__" + oldFileName._path);
             }
         }
     
@@ -1624,7 +1624,7 @@ define(function (require, exports, module) {
         
         // Delete undo/redo history from localStorage if pref set to persist history
         if (persistUndoHistory) {
-            localStorage.removeItem("history__" + fullPathToFile);
+            window.localStorage.removeItem("history__" + fullPathToFile);
         }
         
         Dialogs.showModalDialog(
