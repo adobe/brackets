@@ -954,9 +954,8 @@ define(function (require, exports, module) {
             * If pref is set, will update Undo/Redo History in localStorage on each CodeMirror sync
             */
             if (persistUndoHistory) {
-                var regExp = /^(.*\/)([^\/]*)$/;
-                    fullPathToFile = this.document.file.fullPath,
-                    currentTextObj = this._codeMirror.getHistory();
+                fullPathToFile = this.document.file.fullPath,
+                currentTextObj = this._codeMirror.getHistory();
                 
                 localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
             }
@@ -978,9 +977,8 @@ define(function (require, exports, module) {
          * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
          */
         if (persistUndoHistory) {
-            var regExp = /^(.*\/)([^\/]*)$/;
-                fullPathToFile = this.document.file.fullPath,
-                currentTextObj = this._codeMirror.getHistory();
+            fullPathToFile = this.document.file.fullPath,
+            currentTextObj = this._codeMirror.getHistory();
 
             localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
         }
