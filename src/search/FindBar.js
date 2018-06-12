@@ -705,8 +705,11 @@ define(function (require, exports, module) {
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
         var query,
-            selection = FindBar._getInitialQueryFromSelection(editor),
+            selection = "",
             replaceText = "";
+        if (editor) {
+            selection = FindBar._getInitialQueryFromSelection(editor);
+        }
 
         if (currentFindBar && !currentFindBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
