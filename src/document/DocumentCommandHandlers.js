@@ -556,7 +556,7 @@ define(function (require, exports, module) {
                         historyToLoad = localStorage.getItem("history__" + fileFullPath),
                         historyToLoad = JSON.parse(loadedHistory);
 
-                    // Check if history exists before attempting load
+                    // Check if history exists in localStorage before attempting to load
                     if (loadedHistory !== null) {
                         Editor.codeMirrorRef.setHistory(historyToLoad);
                     }
