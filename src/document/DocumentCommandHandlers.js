@@ -525,6 +525,8 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_PERSIST_UNDO_HISTORY
     });
 
+    var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY);
+    
     /**
      * Opens the given file, makes it the current file, does NOT add it to the workingset
      * @param {FileCommandData} commandData
@@ -543,18 +545,16 @@ define(function (require, exports, module) {
                 //  getOpenDocumentForPath will return null if there isn't a
                 //  supporting document for that file (e.g. an image)
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                
                 result.resolve(doc);
             
                 // If pref set to true, attempt reload of prior undo/redo history
-                var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY),
-                    regExp = /^(.*\/)([^\/]*)$/,
-                    fullPathToFile = file.fullPath;
-
                 if (persistUndoHistory) {
                     /**
                      *  Load and set saved undo history associated with currently opened file
                      */
-                    var loadedHistory = localStorage.getItem("history__" + fullPathToFile),
+                    var fileFullPath = file.fullPath,
+                        loadedHistory = localStorage.getItem("history__" + fileFullPath),
                         loadedHistory = JSON.parse(loadedHistory);
 
                     if (loadedHistory !== null) {
@@ -1506,15 +1506,25 @@ define(function (require, exports, module) {
             }
         );
     }
-
+    
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
+            
         // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getContext();
+        
         if (!entry) {
             // Else use current file (not selected in ProjectManager if not visible in tree or workingset)
             entry = MainViewManager.getCurrentlyViewedFile();
+            
+            // If preference set to persistent undo/redo history
+            if (persistUndoHistory) {
+                // Removes history object from memory before rename
+                var oldFileName = MainViewManager.getCurrentlyViewedFile();
+                localStorage.removeItem("history__" + oldFileName._path);
+            }
         }
+    
         if (entry) {
             ProjectManager.renameItemInline(entry);
         }
@@ -1609,7 +1619,14 @@ define(function (require, exports, module) {
 
     /** Delete file command handler  **/
     function handleFileDelete() {
-        var entry = ProjectManager.getSelectedItem();
+        var entry = ProjectManager.getSelectedItem(),
+            fullPathToFile = entry._path;
+        
+        // Delete undo/redo history from localStorage if pref set to persist history
+        if (persistUndoHistory) {
+            localStorage.removeItem("history__" + fullPathToFile);
+        }
+        
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_EXT_DELETED,
             Strings.CONFIRM_DELETE_TITLE,
