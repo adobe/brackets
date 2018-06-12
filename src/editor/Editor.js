@@ -439,7 +439,7 @@ define(function (require, exports, module) {
             styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
             tabSize                     : currentOptions[TAB_SIZE],
             readOnly                    : isReadOnly
-        })
+        });
         
         // Can't get CodeMirror's focused state without searching for
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
