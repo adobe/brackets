@@ -475,7 +475,7 @@ define(function (require, exports, module) {
                     readFileCB = readFileSpy();
 
                 runs(function () {
-                    brackets.fs.writeFile(baseDir + "/write_test.txt", contents, UTF8, cb);
+                    brackets.fs.writeFile(baseDir + "/write_test.txt", contents, UTF8, false, cb);
                 });
 
                 waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
@@ -502,7 +502,7 @@ define(function (require, exports, module) {
                     var cb = errSpy();
 
                     runs(function () {
-                        brackets.fs.writeFile(baseDir + "/cant_write_here/write_test.txt", contents, UTF8, cb);
+                        brackets.fs.writeFile(baseDir + "/cant_write_here/write_test.txt", contents, UTF8, false, cb);
                     });
 
                     waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
@@ -518,7 +518,7 @@ define(function (require, exports, module) {
                 var cb = errSpy();
 
                 runs(function () {
-                    brackets.fs.writeFile(42, contents, 2, cb);
+                    brackets.fs.writeFile(42, contents, 2, false, cb);
                 });
 
                 waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
@@ -532,7 +532,7 @@ define(function (require, exports, module) {
                 var cb = errSpy();
 
                 runs(function () {
-                    brackets.fs.writeFile(baseDir, contents, UTF8, cb);
+                    brackets.fs.writeFile(baseDir, contents, UTF8, false, cb);
                 });
 
                 waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
@@ -556,7 +556,7 @@ define(function (require, exports, module) {
                     statCB      = statSpy();
 
                 runs(function () {
-                    brackets.fs.writeFile(filename, contents, UTF8, writeFileCB);
+                    brackets.fs.writeFile(filename, contents, UTF8, false, writeFileCB);
                 });
 
                 waitsFor(function () { return writeFileCB.wasCalled; }, "writeFile to finish", 1000);
@@ -965,7 +965,7 @@ define(function (require, exports, module) {
 
                 // Create a file
                 runs(function () {
-                    brackets.fs.writeFile(newFileName, "", UTF8, writeFileCB);
+                    brackets.fs.writeFile(newFileName, "", UTF8, false, writeFileCB);
                 });
 
                 waitsFor(function () { return writeFileCB.wasCalled; }, "writeFile to finish");
