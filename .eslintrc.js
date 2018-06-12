@@ -81,4 +81,7 @@ module.exports = {
         "WebSocket": false,
         "XMLHttpRequest": false
     }
+    "parserOptions" {
+        "ecmaVersion": 6
+    }
 };
