@@ -548,18 +548,18 @@ define(function (require, exports, module) {
                 
                 result.resolve(doc);
             
-                // If pref set to true, attempt reload of prior undo/redo history
+                /**
+                 * If pref set to true, load current files saved undo/redo history into CodeMirror
+                 */
                 if (persistUndoHistory) {
-                    /**
-                     *  Load and set saved undo history associated with currently opened file
-                     */
                     var fileFullPath = file.fullPath,
-                        loadedHistory = localStorage.getItem("history__" + fileFullPath),
-                        loadedHistory = JSON.parse(loadedHistory);
+                        historyToLoad = localStorage.getItem("history__" + fileFullPath),
+                        historyToLoad = JSON.parse(loadedHistory);
 
+                    // Check if history exists before attempting load
                     if (loadedHistory !== null) {
-                        Editor.codeMirrorRef.setHistory(loadedHistory);
-                    } else { /* No record of changes within editor for current file */ }
+                        Editor.codeMirrorRef.setHistory(historyToLoad);
+                    }
                 }
             })
             .fail(function (err) {
