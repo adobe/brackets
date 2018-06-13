@@ -57,14 +57,18 @@ define(function (require, exports, module) {
      * Disable context menus which are not useful for remote file
      */
     function _setMenuItemsVisible() {
-        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
-            cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS],
-            enable = (file && file.constructor.name !== "RemoteFile");
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
+        
+        // Set Menu items visibility if a file is present in active pane
+        if (file) {
+            var cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS],
+                enable = (file.constructor.name !== "RemoteFile");
         
             // Enable or disable commands based on whether the file is a remoteFile or not.
             cMenuItems.forEach(function (item) {
                 CommandManager.get(item).setEnabled(enable);
             });
+        }
     }
 
     AppInit.htmlReady(function () {
