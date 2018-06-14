@@ -2,6 +2,7 @@ Thumbs.db
 
 # Etc
 .gitignore
+package.json
 src/editor/Editor.js
 src/config.json 
 
