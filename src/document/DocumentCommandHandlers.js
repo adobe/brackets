@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
+        Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
@@ -515,6 +516,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Preference to persist undo history between sessions
+     */
+    
+    var PERSIST_UNDO_HISTORY = "persistUndoHistory";
+
+    PreferencesManager.definePreference(PERSIST_UNDO_HISTORY, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNDO_HISTORY
+    });
+
+    var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY);
+    
+    /**
      * Opens the given file, makes it the current file, does NOT add it to the workingset
      * @param {FileCommandData} commandData
      *   fullPath: File to open;
@@ -522,16 +535,32 @@ define(function (require, exports, module) {
      *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with @type {Document}
      */
+
     function handleDocumentOpen(commandData) {
         var result = new $.Deferred();
         handleFileOpen(commandData)
             .done(function (file) {
-                // if we succeeded with an open file
+                //  if we succeeded with an open file
                 //  then we need to resolve that to a document.
                 //  getOpenDocumentForPath will return null if there isn't a
                 //  supporting document for that file (e.g. an image)
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                
                 result.resolve(doc);
+            
+                /**
+                 * If pref set to true, load current files saved undo/redo history into CodeMirror
+                 */
+                if (persistUndoHistory) {
+                    var fileFullPath = file.fullPath,
+                        historyToLoad = window.localStorage.getItem("history__" + fileFullPath),
+                        historyToLoad = JSON.parse(historyToLoad);
+
+                    // Check if history exists in localStorage before attempting to load
+                    if (historyToLoad !== null) {
+                        Editor.codeMirrorRef.setHistory(historyToLoad);
+                    }
+                }
             })
             .fail(function (err) {
                 result.reject(err);
@@ -1477,15 +1506,25 @@ define(function (require, exports, module) {
             }
         );
     }
-
+    
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
+            
         // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getContext();
+        
         if (!entry) {
             // Else use current file (not selected in ProjectManager if not visible in tree or workingset)
             entry = MainViewManager.getCurrentlyViewedFile();
+            
+            // If preference set to persistent undo/redo history
+            if (persistUndoHistory) {
+                // Removes history item from localStorage before rename
+                var oldFileName = MainViewManager.getCurrentlyViewedFile();
+                window.localStorage.removeItem("history__" + oldFileName._path);
+            }
         }
+    
         if (entry) {
             ProjectManager.renameItemInline(entry);
         }
@@ -1580,7 +1619,14 @@ define(function (require, exports, module) {
 
     /** Delete file command handler  **/
     function handleFileDelete() {
-        var entry = ProjectManager.getSelectedItem();
+        var entry = ProjectManager.getSelectedItem(),
+            fullPathToFile = entry._path;
+        
+        // Delete undo/redo history from localStorage if pref set to persist history
+        if (persistUndoHistory) {
+            window.localStorage.removeItem("history__" + fullPathToFile);
+        }
+        
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_EXT_DELETED,
             Strings.CONFIRM_DELETE_TITLE,

@@ -1,20 +1,28 @@
 Thumbs.db
 
+# Etc
+.gitignore
+package.json
+src/editor/Editor.js
+src/config.json 
+
 # ignore jenkins build info
 /build.prop
-
-# package-lock.json
+node_modules/
+ 
+# package-lock.json-
 package-lock.json
-
+ 
 # ignore node_modules created by grunt, but not more deeply-nested node_modules
 /node_modules
 /npm-debug.log
-
+ 
 # ignore node_modules inside src
 /src/node_modules
 /src/JSUtils/node_modules
 /src/JSUtils/node/node_modules
-
+package.json
+ 
 # ignore files copied from node_modules to src/thirdparty
 /src/thirdparty/CodeMirror
 /src/thirdparty/less.min.js
