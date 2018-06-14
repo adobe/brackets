@@ -705,7 +705,7 @@ define(function (require, exports, module) {
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
         var query,
-            selection = FindBar._getInitialQueryFromSelection(editor),
+            selection = editor ? FindBar._getInitialQueryFromSelection(editor) : "",
             replaceText = "";
 
         if (currentFindBar && !currentFindBar.isClosed()) {
