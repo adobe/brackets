@@ -59,7 +59,8 @@ define(function (require, exports, module) {
     function _setMenuItemsVisible() {
         var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
             cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS],
-            enable = (file.constructor.name !== "RemoteFile");
+            // Enable menu options when no file is present in active pane
+            enable = !file || (file.constructor.name !== "RemoteFile");
         
             // Enable or disable commands based on whether the file is a remoteFile or not.
             cMenuItems.forEach(function (item) {
