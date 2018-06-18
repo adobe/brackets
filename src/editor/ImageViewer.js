@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: file.encodedPath || 'file:///' + FileUtils.encodeFilePath(file.fullPath),
                                                          now: new Date().valueOf()}));
 
-        $container.append(this.$el); // fwefwef
+        $container.append(this.$el);
 
         this._naturalWidth = 0;
         this._naturalHeight = 0;
