@@ -416,7 +416,7 @@ define(function (require, exports, module) {
 
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
-        this._codeMirror = new CodeMirror(container, {
+	    this._codeMirror = new CodeMirror(container, {
             autoCloseBrackets           : currentOptions[CLOSE_BRACKETS],
             autoCloseTags               : currentOptions[CLOSE_TAGS],
             coverGutterNextToScrollbar  : true,
@@ -440,7 +440,7 @@ define(function (require, exports, module) {
             tabSize                     : currentOptions[TAB_SIZE],
             readOnly                    : isReadOnly
         });
-
+        
         // Can't get CodeMirror's focused state without searching for
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
         // options and track state with this._focused
@@ -501,11 +501,14 @@ define(function (require, exports, module) {
                 return $(this.getRootElement());
             }
         });
+        
+        // Export current CodeMirror instance to allow history persistence on file open
+        exports.codeMirrorRef = this._codeMirror;
     }
-
+    
     EventDispatcher.makeEventDispatcher(Editor.prototype);
     EventDispatcher.markDeprecated(Editor.prototype, "keyEvent", "'keydown/press/up'");
-
+    
     Editor.prototype.markPaneId = function (paneId) {
         this._paneId = paneId;
 
@@ -720,7 +723,7 @@ define(function (require, exports, module) {
                 selectionType = "indentAtSelection";
             }
         });
-
+        
         switch (selectionType) {
         case "indentAtBeginning":
             // Case 1
@@ -731,7 +734,7 @@ define(function (require, exports, module) {
             // Case 2
             this._addIndentAtEachSelection(selections);
             break;
-
+                
         case "indentAuto":
             // Case 3
             this._autoIndentEachSelection(selections);
@@ -894,7 +897,6 @@ define(function (require, exports, module) {
                 } else {
                     cm.replaceRange(newText, change.from, change.to, change.origin);
                 }
-
             }
         });
 
@@ -902,6 +904,18 @@ define(function (require, exports, module) {
         this._updateHiddenLines();
     };
 
+    /**
+    * Preference to persist undo/redo history between Brackets sessions
+    */
+    PreferencesManager.definePreference(PERSIST_UNDO_HISTORY, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNDO_HISTORY
+    });
+    
+    var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY),
+        PERSIST_UNDO_HISTORY = "persistUndoHistory",
+        fullPathToFile,
+        currentTextObj;
+    
     /**
      * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
      * There are several cases where we want to ignore a CodeMirror change:
@@ -918,7 +932,7 @@ define(function (require, exports, module) {
 
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
         this.document._ensureMasterEditor();
-
+        
         if (this.document._masterEditor !== this) {
             // Secondary editor:
             // we're not the ground truth; if we got here, this was a real editor change (not a
@@ -934,6 +948,24 @@ define(function (require, exports, module) {
             // Update which lines are hidden inside our editor, since we're not going to go through
             // _applyChanges() in our own editor.
             this._updateHiddenLines();
+
+            /**
+            * Persistent Undo History:
+            * If pref is set, will update Undo/Redo History in localStorage on each CodeMirror sync
+            */
+            if (persistUndoHistory) {
+                fullPathToFile = this.document.file.fullPath,
+                currentTextObj = this._codeMirror.getHistory();
+                
+                // Ensure if localStorage is full, empty before continuing
+                try {
+                    window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+                } catch (err) {
+                    console.log(err);
+                    window.localStorage.clear();
+                    window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+                }
+            }
         }
         // Else, Master editor:
         // we're the ground truth; nothing else to do, since Document listens directly to us
@@ -946,6 +978,24 @@ define(function (require, exports, module) {
         // Editor dispatches a change event before this event is dispatched, because
         // CodeHintManager needs to hook in here when other things are already done.
         this.trigger("editorChange", this, changeList);
+        
+        /**
+         * Persistent Undo History:
+         * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
+         */
+        if (persistUndoHistory) {
+            fullPathToFile = this.document.file.fullPath,
+            currentTextObj = this._codeMirror.getHistory();
+
+            // Ensure if localStorage full, empty before proceeding
+            try {
+                window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+            } catch (err) {
+                console.log(err);
+                window.localStorage.clear();
+                window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+            }
+        }
     };
 
     /**
@@ -2777,7 +2827,7 @@ define(function (require, exports, module) {
             });
         });
     });
-
+    
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;

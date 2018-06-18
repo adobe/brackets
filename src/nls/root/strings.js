@@ -728,6 +728,7 @@ define({
     "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Clear files not in Working Set",
 
     // Descriptions of core preferences
+    "DESCRIPTION_PERSIST_UNDO_HISTORY"               : "true to persist undo/redo history in unsaved files",
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false to remove the \"Close Others Above\" from the Working Files context menu",
     "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "false to remove the \"Close Others Below\" from the Working Files context menu",
