@@ -907,12 +907,12 @@ define(function (require, exports, module) {
     /**
     * Preference to persist undo/redo history between Brackets sessions
     */
-    PreferencesManager.definePreference(PERSIST_UNDO_HISTORY, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNDO_HISTORY
+    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
     });
     
-    var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY),
-        PERSIST_UNDO_HISTORY = "persistUndoHistory",
+    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
+        PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges",
         fullPathToFile,
         currentTextObj;
     
@@ -953,7 +953,7 @@ define(function (require, exports, module) {
             * Persistent Undo History:
             * If pref is set, will update Undo/Redo History in localStorage on each CodeMirror sync
             */
-            if (persistUndoHistory) {
+            if (persistUnsavedChanges) {
                 fullPathToFile = this.document.file.fullPath,
                 currentTextObj = this._codeMirror.getHistory();
                 
@@ -983,7 +983,7 @@ define(function (require, exports, module) {
          * Persistent Undo History:
          * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
          */
-        if (persistUndoHistory) {
+        if (persistUnsavedChanges) {
             fullPathToFile = this.document.file.fullPath,
             currentTextObj = this._codeMirror.getHistory();
 

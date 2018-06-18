@@ -87,7 +87,7 @@ define(function (require, exports, module) {
      * @param {!string} oldPath - the name of the file that's changing changing
      * @param {!string} newPath - the name of the file that's changing changing
      * @private
-     */  // fwe
+     */
     ImageView.prototype._onFilenameChange = function (e, oldPath, newPath) {
         /*
          * File objects are already updated when the event is triggered

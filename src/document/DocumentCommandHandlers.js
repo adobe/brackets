@@ -519,13 +519,13 @@ define(function (require, exports, module) {
      * Preference to persist undo history between sessions
      */
     
-    var PERSIST_UNDO_HISTORY = "persistUndoHistory";
+    var PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
 
-    PreferencesManager.definePreference(PERSIST_UNDO_HISTORY, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNDO_HISTORY
+    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
     });
 
-    var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY);
+    var persistUndoHistory = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
     
     /**
      * Opens the given file, makes it the current file, does NOT add it to the workingset
@@ -1071,7 +1071,7 @@ define(function (require, exports, module) {
             settings;
 
 	   // If pref set to true, attempt reload of prior undo/redo history
-        var persistUndoHistory = PreferencesManager.get(PERSIST_UNDO_HISTORY),
+        var persistUndoHistory = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
             pathToCurFile = doc.file._path;
 
         if (persistUndoHistory) {
