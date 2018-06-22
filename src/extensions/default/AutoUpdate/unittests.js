@@ -33,18 +33,13 @@ define(function (require, exports, module) {
         FileUtils = brackets.getModule("file/FileUtils");
 
     var AutoUpdate,
-
         testWindow,
-
-        downloadCompleted,
-        downloadFailed,
-        validationCompleted,
-        validationFailed,
-        updateCheckCompleted,
         appInitDone,
         installerPath,
         errorString,
         fileCheckCompleted,
+        downloadCompleted,
+        updateBarPresent,
         updateBarDismissed,
 
         UPDATE_BAR = "#update-bar",
@@ -65,7 +60,6 @@ define(function (require, exports, module) {
             "OSX": [_unittestFilesFolder, "Brackets.Release.dmg"].join("/")
         };
 
-
     describe("AutoUpdate", function () {
 
         beforeFirst(function () {
@@ -73,13 +67,11 @@ define(function (require, exports, module) {
             // Create a new window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
-
-                appInitDone = false;
                 testWindow.brackets.test["AutoUpdate"] = {
-                    appInitDone: false
+                    updateJsonHandler: null
                 };
-
             });
+            appInitDone = false;
         });
 
         afterLast(function () {
@@ -89,22 +81,12 @@ define(function (require, exports, module) {
 
 
         beforeEach(function () {
-            downloadCompleted = false;
-            downloadFailed = false;
-            validationCompleted = false;
-            validationFailed = false;
-            updateCheckCompleted = false;
             fileCheckCompleted = false;
+            updateBarPresent   = false;
             updateBarDismissed = false;
+            downloadCompleted = false;
             installerPath = "";
-
-
-            // These flags will be set to true by Brackets, in multiple scenarios.
-            // That is how unittest will come to know of the update process state.
-            testWindow.brackets.test.AutoUpdate["downloadCompleted"] = false;
-            testWindow.brackets.test.AutoUpdate["validationCompleted"] = false;
-            testWindow.brackets.test.AutoUpdate["downloadFailed"] = false;
-            testWindow.brackets.test.AutoUpdate["validationFailed"] = false;
+            errorString   = "";
         });
 
         /**
@@ -151,35 +133,55 @@ define(function (require, exports, module) {
         }
 
         /**
-         * Check the presence of Update Bar Prompt on Brackets Window
+         * Check the presence of Update Bar String on Brackets Window
          * @param {String} title - Title String Which will be matched with Update Bar heading.
+         * @param {String} description - description String Which will be matched with Update Bar description.
          */
-        function checkUpdateBar(title) {
+        function checkUpdateBarString(title, titleDescription) {
             var doc = $(testWindow.document),
                 updBar = doc.find(UPDATE_BAR),
-                heading = updBar.find('#heading');
+                heading = updBar.find('#heading'),
+                description = updBar.find('#description');
 
             // Test if the update bar has been displayed.
             expect(updBar.length).toBe(1);
-            if(title) {
+            if (title) {
                 expect(heading.text()).toBe(title);
+            }
+            if (titleDescription) {
+                expect(description.text()).toBe(titleDescription);
             }
         }
 
-        it("should load the AutoUpdate Exiension Successfuly", function() {
+        /**
+         * Check the presence of Update Bar Prompt on Brackets Window
+         */
+        function checkUpdateBar() {
+            var doc = $(testWindow.document),
+                updBar = doc.find(UPDATE_BAR),
+                updBarPresent = false;
+
+            if (updBar && updBar.length > 0) {
+                updBarPresent =  true;
+            }
+            return updBarPresent;
+        }
+
+        it("should load the AutoUpdate Exiension Successfuly", function () {
             var brackets = testWindow.brackets,
                 extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("AutoUpdate");
             AutoUpdate = extensionRequire("main");
 
-            waitsFor(function () {
-                appInitDone = testWindow.brackets.test.AutoUpdate.appInitDone;
-                return appInitDone;
-            }, "App Init is taking too long to complete", 30000);
-
+            waitForMilliSeconds(5000);
             runs(function () {
-                expect(appInitDone).toBe(true);
+                expect(AutoUpdate).not.toBeNull();
+                if (AutoUpdate) {
+                    expect(AutoUpdate.initTestEnv).not.toBeNull();
+                    AutoUpdate.initTestEnv();
+                    expect(AutoUpdate._updateProcessHandler).not.toBeNull();
+                    appInitDone = true;
+                }
             });
-
         });
 
 
@@ -190,15 +192,9 @@ define(function (require, exports, module) {
          * and validate download failure message in Update Bar prompt.
          */
         function downloadFailure() {
-
-            runs(function () {
-                expect(testWindow.brackets.test).toBeTruthy();
-                expect(testWindow.brackets.test.AutoUpdate.appInitDone).toBe(true);
-                expect(AutoUpdate._updateProcessHandler).not.toBeNull();
-            });
-
-            runs(function () {
-                if (appInitDone) {
+            expect(appInitDone).toBe(true);
+            if (appInitDone) {
+                runs(function() {
                     var updates = [
                         {
                             "buildNumber": 17622,
@@ -217,32 +213,27 @@ define(function (require, exports, module) {
 
                     // Trigger the auto update process
                     AutoUpdate._updateProcessHandler(updates);
-                }
+                });
 
-            });
+                waitsFor(function () {
+                    updateBarPresent = checkUpdateBar();
+                    if (updateBarPresent) {
+                        waitForMilliSeconds(3000);
+                    }
+                    return (updateBarPresent);
+                }, "Download is taking too long to complete", 30000);
 
-            waitsFor(function () {
-                downloadFailed = testWindow.brackets.test.AutoUpdate.downloadFailed;
-                if(downloadFailed) {
-                    waitForMilliSeconds(3000);
-                }
-                return downloadFailed;
-            }, "Download is taking too long to complete", 30000);
-
-
-            runs(function () {
-                expect(downloadFailed).toBe(true);
-
-                if (downloadFailed) {
-                    checkUpdateBar(Strings.DOWNLOAD_FAILED);
-                    checkUpdateBarButton(CLOSE_ICON, true);
-                }
-            });
-
-            waitsFor(function () {
-                return updateBarDismissed;
-            }, "Dismissing popup is taking too long to complete", 5000);
-
+                runs(function() {
+                    expect(updateBarPresent).toBe(true);
+                    if (updateBarPresent) {
+                        checkUpdateBarString(Strings.DOWNLOAD_FAILED);
+                        checkUpdateBarButton(CLOSE_ICON, true);
+                    }
+                });
+                waitsFor(function () {
+                    return updateBarDismissed;
+                }, "Dismissing popup is taking too long to complete", 5000);
+            }
         }
 
 
@@ -254,60 +245,49 @@ define(function (require, exports, module) {
          * and validate validation failure message in Update Bar prompt.
          */
         function validationFailure() {
-
-            runs(function () {
-                expect(testWindow.brackets.test).toBeTruthy();
-            });
-
-            runs(function () {
-
-                var updates = [
-                    {
-                        "buildNumber": 17622,
-
-                        "platforms": {
-                            "WIN": {
-                                "checksum": "0",
-                                "downloadURL": validInstallerFilePaths["WIN"]
-                            },
-                            "OSX": {
-                                "checksum": "0",
-                                "downloadURL": validInstallerFilePaths["OSX"]
+            expect(appInitDone).toBe(true);
+            if (appInitDone) {
+                runs(function () {
+                    var updates = [
+                        {
+                            "buildNumber": 17622,
+                            "platforms": {
+                                "WIN": {
+                                    "checksum": "0",
+                                    "downloadURL": validInstallerFilePaths["WIN"]
+                                },
+                                "OSX": {
+                                    "checksum": "0",
+                                    "downloadURL": validInstallerFilePaths["OSX"]
+                                }
                             }
                         }
+                    ];
+
+                    // Trigger the auto update process
+                    AutoUpdate._updateProcessHandler(updates);
+                });
+
+                waitsFor(function () {
+                    updateBarPresent = checkUpdateBar();
+                    if (updateBarPresent) {
+                        waitForMilliSeconds(3000);
                     }
-                ];
+                    return (updateBarPresent);
+                }, "Download and Validation is taking too long to complete", 30000);
 
-                //Trigger the auto update process
-                AutoUpdate._updateProcessHandler(updates);
+                runs(function () {
+                    expect(updateBarPresent).toBe(true);
+                    if (updateBarPresent) {
+                        checkUpdateBarString(Strings.VALIDATION_FAILED, Strings.CHECKSUM_DID_NOT_MATCH);
+                        checkUpdateBarButton(CLOSE_ICON, true);
+                    }
+                });
 
-            });
-
-            waitsFor(function () {
-
-                downloadCompleted = testWindow.brackets.test.AutoUpdate.downloadCompleted;
-                validationFailed = testWindow.brackets.test.AutoUpdate.validationFailed;
-
-                if(downloadCompleted && validationFailed) {
-                    waitForMilliSeconds(3000);
-                }
-                return (downloadCompleted && validationFailed);
-            }, "Download and Validation is taking too long to complete", 30000);
-
-
-            runs(function () {
-                expect(downloadCompleted && validationFailed).toBe(true);
-
-                if (downloadCompleted && validationFailed) {
-                    // Test if the update bar has been displayed.
-                    checkUpdateBar(Strings.VALIDATION_FAILED);
-                    checkUpdateBarButton(CLOSE_ICON, true);
-                }
-            });
-
-            waitsFor(function () {
-                return updateBarDismissed;
-            }, "Dismissing popup is taking too long to complete", 5000);
+                waitsFor(function () {
+                    return updateBarDismissed;
+                }, "Dismissing popup is taking too long to complete", 5000);
+            }
         }
 
 
@@ -317,91 +297,77 @@ define(function (require, exports, module) {
          * Tests the Auto update scenario of successful download,
          * successful validation and Update Bar prompt for Restart/Later message.
          */
-        function downloadSuccess() {
-
-            runs(function () {
-                expect(testWindow.brackets.test).toBeTruthy();
-            });
-
-            runs(function () {
-                var updates = [
-                    {
-                        "buildNumber": 17622,
-
-                        "platforms": {
-                            "WIN": {
-                                "checksum": "444e49b46ec8e9ec0823516c7213ef610e3e6bf33691a2488b7ddd2561e40eec",
-                                "downloadURL": validInstallerFilePaths["WIN"]
-                            },
-                            "OSX": {
-                                "checksum": "10d8328fda10697a5e340dcaffc103675c51c63313ca7057e0426cff6378596d",
-                                "downloadURL": validInstallerFilePaths["OSX"]
+        function downloadSuccess(buildNumber) {
+            expect(appInitDone).toBe(true);
+            if (appInitDone) {
+                var currentBuildNumber = buildNumber;
+                if(currentBuildNumber === undefined) {
+                    currentBuildNumber = 767; // some random number
+                }
+                runs(function () {
+                    var updates = [
+                        {
+                            "buildNumber": currentBuildNumber,
+                            "platforms": {
+                                "WIN": {
+                                    "checksum": "444e49b46ec8e9ec0823516c7213ef610e3e6bf33691a2488b7ddd2561e40eec",
+                                    "downloadURL": validInstallerFilePaths["WIN"]
+                                },
+                                "OSX": {
+                                    "checksum": "10d8328fda10697a5e340dcaffc103675c51c63313ca7057e0426cff6378596d",
+                                    "downloadURL": validInstallerFilePaths["OSX"]
+                                }
                             }
                         }
-                    }
-                ];
-
-                // Trigger the auto update workflow
-                AutoUpdate._updateProcessHandler(updates);
-
-            });
-
-            waitsFor(function () {
-
-                downloadCompleted = testWindow.brackets.test.AutoUpdate.downloadCompleted;
-                validationCompleted = testWindow.brackets.test.AutoUpdate.validationCompleted;
-                if (downloadCompleted && validationCompleted) {
-                    installerPath = testWindow.brackets.test.AutoUpdate.installerPath;
-                    installerPath = installerPath.replace("\"", "");
-                    installerPath = installerPath.replace("\"", "");
-                    installerPath = installerPath.split("\\");
-                    installerPath = installerPath.join("/");
-                }
-                return (downloadCompleted && validationCompleted);
-            }, "Download is taking too long to complete", 30000);
-            // Time out is 30 seconds. Try increasing this if the test fails.
-
-            runs(function () {
-                expect(downloadCompleted && validationCompleted).toBe(true);
-                expect(installerPath).toBeTruthy();
-                expect(installerPath.length).toBeGreaterThan(0);
-
-                // Test if the file exists
-                fileCheckCompleted = false;
-                FileSystem.resolve(installerPath, function (errString, fsEntry, fileStats) {
-                    fileCheckCompleted = true;
-                    errorString = errString;
+                    ];
+                    // Trigger the auto update process
+                    AutoUpdate._updateProcessHandler(updates);
                 });
-            });
+                waitsFor(function () {
+                    updateBarPresent = checkUpdateBar();
+                    if (updateBarPresent) {
+                        waitForMilliSeconds(3000);
+                    }
+                    return (updateBarPresent);
+                }, "Download and Validation is taking too long to complete", 30000);
 
-            waitsFor(function () {
-                return fileCheckCompleted;
-            }, "File exists check is taking too long to complete", 30000);
-            // Time out is 30 seconds. Try increasing this if the test fails.
+                runs(function () {
+                    expect(updateBarPresent).toBe(true);
 
-            runs(function () {
-                if (fileCheckCompleted) {
-                    expect(errorString).toBeNull();
-                    // We will wait for 3 seconds before testing for popup.
-                    waitForMilliSeconds(3000);
-                }
-            });
+                    if (updateBarPresent) {
+                    // Test if the file exists
+                        var appSupportDirectory = brackets.app.getApplicationSupportDirectory(),
+                            updateDir = appSupportDirectory + '/updateTemp',
+                            OS = AutoUpdate.getPlatformInfo(),
+                            installerName = validInstallerFilePaths[OS].split("/").pop();
+                        installerPath = [updateDir, installerName].join("/");
+                        FileSystem.resolve(installerPath, function (errString, fsEntry, fileStats) {
+                            fileCheckCompleted = true;
+                            errorString = errString;
+                        });
+                    }
+                });
 
-            runs(function () {
-
-                if (downloadCompleted && validationCompleted) {
-
-                    // Test if the update bar has been displayed.
-                    checkUpdateBar(Strings.DOWNLOAD_COMPLETE);
+                waitsFor(function () {
+                    return fileCheckCompleted;
+                }, "File exists check is taking too long to complete", 30000);
+                // Time out is 30 seconds. Try increasing this if the test fails.
+                runs(function () {
+                    expect(fileCheckCompleted).toBe(true);
+                    if (fileCheckCompleted) {
+                        expect(errorString).toBeNull();
+                    }
+                    checkUpdateBarString(Strings.DOWNLOAD_COMPLETE, Strings.CLICK_RESTART_TO_UPDATE);
                     checkUpdateBarButton(UPDATE_RESTART_BTN, false);
                     checkUpdateBarButton(UPDATE_LATER_BTN, true);
-                }
-            });
+                });
 
-            waitsFor(function () {
-                return updateBarDismissed;
-            }, "Dismissing popup is taking too long to complete", 5000);
+                waitsFor(function () {
+                    return updateBarDismissed;
+                }, "Dismissing popup is taking too long to complete", 5000);
 
+                downloadCompleted = true;
+            }
         }
 
         it("should check Update Status and Promt to User for Update Failure", updateFail);
@@ -414,39 +380,40 @@ define(function (require, exports, module) {
          * cannot be achieved in the same session of app, and hence, cannot be tested by unit tests.
          */
         function updateFail() {
-
-            runs(function () {
-                expect(testWindow.brackets.test).toBeTruthy();
-            });
-
-            runs(function () {
-                waitForMilliSeconds(3000);
+            expect(appInitDone).toBe(true);
+            if (appInitDone) {
+                var flagSet = false;
                 AutoUpdate.setUpdateStateInJson("updateInitiatedInPrevSession", true)
-                   .done(function () {
-                       AutoUpdate.checkUpdateStatus(true);
-                       updateCheckCompleted = true;
-                   });
-            });
+                    .done(function() {
+                        flagSet = true;
+                    });
+                waitsFor(function () {
+                    return flagSet;
+                }, "Setting updateInitiatedInPrevSession Flag is taking too long", 3000);
 
-            waitsFor(function () {
-                if(updateCheckCompleted) {
-                    waitForMilliSeconds(3000);
-                }
-                return updateCheckCompleted;
-            }, "Checking Update Status is taking too long to complete", 30000);
+                runs(function() {
+                    AutoUpdate.checkUpdateStatus();
+                });
 
-            runs(function() {
-                // Test if the update bar has been displayed.
-                if(updateCheckCompleted) {
-                    // Test if the update bar has been displayed.
-                    checkUpdateBar(Strings.UPDATE_FAILED);
-                    checkUpdateBarButton(CLOSE_ICON, true);
-                }
-            });
+                waitsFor(function () {
+                    updateBarPresent = checkUpdateBar();
+                    if (updateBarPresent) {
+                        waitForMilliSeconds(3000);
+                    }
+                    return (updateBarPresent);
+                }, "Download and Validation is taking too long to complete", 30000);
 
-            waitsFor(function () {
-                return updateBarDismissed;
-            }, "Dismissing popup is taking too long to complete", 5000);
+                runs(function() {
+                    expect(updateBarPresent).toBe(true);
+                    if (updateBarPresent) {
+                        checkUpdateBarString(Strings.UPDATE_FAILED);
+                        checkUpdateBarButton(CLOSE_ICON, true);
+                    }
+                });
+                waitsFor(function () {
+                    return updateBarDismissed;
+                }, "Dismissing popup is taking too long to complete", 5000);
+            }
         }
 
         it("should check Update Status and Promt to User for Update Success", updateSuccess);
@@ -459,41 +426,55 @@ define(function (require, exports, module) {
          * cannot be achieved in the same session of app, and hence, cannot be tested by unit tests.
          */
         function updateSuccess() {
+            expect(appInitDone).toBe(true);
+            if (appInitDone) {
+                runs(function () {
+                    var currentBuildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
+                    downloadSuccess(currentBuildNumber);
+                });
 
-            runs(function () {
-                expect(testWindow.brackets.test).toBeTruthy();
-            });
+                waitsFor(function () {
+                    if (downloadCompleted) {
+                        waitForMilliSeconds(3000);
+                    }
+                    return (downloadCompleted);
+                }, "Download and Validation is taking too long to complete", 30000);
+                var flagSet = false;
+                runs(function() {
+                    if (downloadCompleted) {
+                        AutoUpdate.setUpdateStateInJson("updateInitiatedInPrevSession", true)
+                            .done(function() {
+                                flagSet = true;
+                            });
+                    }
+                });
+                waitsFor(function () {
+                    return flagSet;
+                }, "Setting updateInitiatedInPrevSession Flag is taking too long", 3000);
 
-            runs(function () {
-                waitForMilliSeconds(3000);
-                var currentBuildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
-                AutoUpdate.setUpdateStateInJson("latestBuildNumber", currentBuildNumber)
-                   .done(function () {
-                       AutoUpdate.checkUpdateStatus();
-                       updateCheckCompleted = true;
-                   });
-            });
+                runs(function () {
+                    AutoUpdate.checkUpdateStatus();
+                });
 
+                waitsFor(function () {
+                    updateBarPresent = checkUpdateBar();
+                    if (updateBarPresent) {
+                        waitForMilliSeconds(3000);
+                    }
+                    return (updateBarPresent);
+                }, "Download and Validation is taking too long to complete", 30000);
 
-            waitsFor(function () {
-                if(updateCheckCompleted) {
-                    waitForMilliSeconds(3000);
-                }
-                return updateCheckCompleted;
-            }, "Checking Update Status is taking too long to complete", 30000);
-
-            runs(function() {
-                if(updateCheckCompleted) {
-                    // Test if the update bar has been displayed.
-                    checkUpdateBar(Strings.UPDATE_SUCCESSFUL);
-                    checkUpdateBarButton(CLOSE_ICON, true);
-                }
-            });
-
-            waitsFor(function () {
-                return updateBarDismissed;
-            }, "Dismissing popup is taking too long to complete", 5000);
-
+                runs(function() {
+                    expect(updateBarPresent).toBe(true);
+                    if (updateBarPresent) {
+                        checkUpdateBarString(Strings.UPDATE_SUCCESSFUL);
+                        checkUpdateBarButton(CLOSE_ICON, true);
+                    }
+                });
+                waitsFor(function () {
+                    return updateBarDismissed;
+                }, "Dismissing popup is taking too long to complete", 5000);
+            }
         }
     });
 

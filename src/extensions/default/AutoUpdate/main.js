@@ -215,9 +215,8 @@ define(function (require, exports, module) {
 
      /**
      * Checks and handles the update success and failure scenarios
-     * @param {Boolean} dontCleanUp - Should be used only for Unit Testing
      */
-    function checkUpdateStatus(dontCleanUp) {
+    function checkUpdateStatus() {
         var filesToCache = ['.logs'],
             downloadCompleted = updateJsonHandler.get("downloadCompleted"),
             updateInitiatedInPrevSession = updateJsonHandler.get("updateInitiatedInPrevSession");
@@ -256,9 +255,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if(!dontCleanUp) {
-            postMessageToNode(MessageIds.PERFORM_CLEANUP, filesToCache);
-        }
+        postMessageToNode(MessageIds.PERFORM_CLEANUP, filesToCache);
     }
 
 	/**
@@ -561,26 +558,8 @@ define(function (require, exports, module) {
     }
 
     /**
-    * Initializes the test environment for Auto Update
-    */
-    function initTestEnv() {
-        if (brackets.test) {
-            brackets.test["AutoUpdate"] = {
-                downloadCompleted: false,
-                downloadFailed: false,
-                validationCompleted: false,
-                validationFailed: false,
-                installerPath: "",
-                appInitDone: false
-            };
-        }
-   }
-
-
-    /**
      * Overriding the appReady for Auto update
      */
-
     AppInit.appReady(function () {
 
         // Auto Update is supported on Win and Mac, as of now
@@ -602,10 +581,6 @@ define(function (require, exports, module) {
                     domainID = (new Date()).getTime().toString();
                     setupAutoUpdate();
                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
-
-                    // For Unit Testing
-                    initTestEnv();
-                    brackets.test.AutoUpdate.appInitDone = true;
                 }
             })
              .fail(function (err) {
@@ -994,10 +969,6 @@ define(function (require, exports, module) {
                     "render",
                     ""
                 );
-
-                //For Unit Testing
-                brackets.test.AutoUpdate.validationCompleted = true;
-                brackets.test.AutoUpdate.installerPath = statusObj.installerPath;
             };
 
             if(!isAutoUpdateInitiated) {
@@ -1058,8 +1029,6 @@ define(function (require, exports, module) {
 
                 setUpdateStateInJSON("autoUpdateInProgress", false);
 
-                //For Unit Testing
-                brackets.test.AutoUpdate.validationFailed = true;
             }
         }
     }
@@ -1105,9 +1074,6 @@ define(function (require, exports, module) {
             });
 
             setUpdateStateInJSON("autoUpdateInProgress", false);
-
-            //For Unit Testing
-            brackets.test.AutoUpdate.downloadFailed = true;
         }
 
     }
@@ -1135,9 +1101,6 @@ define(function (require, exports, module) {
         );
         UpdateStatus.showUpdateStatus("validating-installer");
         validateChecksum();
-
-        //For Unit Testing
-        brackets.test.AutoUpdate.downloadCompleted = true;
     }
 
 
@@ -1163,9 +1126,16 @@ define(function (require, exports, module) {
     functionMap["brackets.setAutoUpdateInProgress"]     = setAutoUpdateInProgressFlag;
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
-    //For Unit Testing
-    exports._updateProcessHandler = _updateProcessHandler;
-    exports.checkUpdateStatus = checkUpdateStatus;
-    exports.setUpdateStateInJson = setUpdateStateInJSON;
+   /**
+    * Initializes the test environment for Auto Update
+    */
+    function initTestEnv() {
+        exports._updateProcessHandler = _updateProcessHandler;
+        exports.checkUpdateStatus = checkUpdateStatus;
+        exports.setUpdateStateInJson = setUpdateStateInJSON;
+        exports.getPlatformInfo      = getPlatformInfo;
+    }
 
+    //For Unit Testing
+    exports.initTestEnv          = initTestEnv;
 });
