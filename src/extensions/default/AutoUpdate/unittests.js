@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     var AutoUpdate,
         testWindow,
         appInitDone,
+        updateDir,
         installerPath,
         errorString,
         fileCheckCompleted,
@@ -65,13 +66,19 @@ define(function (require, exports, module) {
         beforeFirst(function () {
 
             // Create a new window that will be shared by ALL tests in this spec.
+            appInitDone = false;
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
-                testWindow.brackets.test["AutoUpdate"] = {
-                    updateJsonHandler: null
-                };
+                var brackets = testWindow.brackets,
+                    extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("AutoUpdate");
+                AutoUpdate = extensionRequire("main");
+                if(AutoUpdate) {
+                    AutoUpdate.initTestEnv();
+                    var appSupportDirectory = brackets.app.getApplicationSupportDirectory();
+                    updateDir = appSupportDirectory + '/updateTemp';
+                    appInitDone = true;
+                }
             });
-            appInitDone = false;
         });
 
         afterLast(function () {
@@ -167,19 +174,15 @@ define(function (require, exports, module) {
             return updBarPresent;
         }
 
-        it("should load the AutoUpdate Exiension Successfuly", function () {
-            var brackets = testWindow.brackets,
-                extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("AutoUpdate");
-            AutoUpdate = extensionRequire("main");
-
+        it("AutoUpdate Exiension should be loaded Successfuly", function () {
             waitForMilliSeconds(5000);
             runs(function () {
                 expect(AutoUpdate).not.toBeNull();
                 if (AutoUpdate) {
-                    expect(AutoUpdate.initTestEnv).not.toBeNull();
-                    AutoUpdate.initTestEnv();
                     expect(AutoUpdate._updateProcessHandler).not.toBeNull();
-                    appInitDone = true;
+                    expect(AutoUpdate.checkUpdateStatus).not.toBeNull();
+                    expect(AutoUpdate.setUpdateStateInJSON).not.toBeNull();
+                    expect(AutoUpdate.getPlatformInfo).not.toBeNull();
                 }
             });
         });
@@ -226,6 +229,8 @@ define(function (require, exports, module) {
                 runs(function() {
                     expect(updateBarPresent).toBe(true);
                     if (updateBarPresent) {
+                        var downloadFailed = AutoUpdate.getUpdateStateInJSON("downloadCompleted");
+                        expect(downloadFailed).toBe(false);
                         checkUpdateBarString(Strings.DOWNLOAD_FAILED);
                         checkUpdateBarButton(CLOSE_ICON, true);
                     }
@@ -238,7 +243,6 @@ define(function (require, exports, module) {
 
 
         it("should download successfully and attempt to validate the download, but with failure and prompt for failure", validationFailure);
-
 
         /**
          * Tests the validation failure scenario for Auto Update
@@ -276,9 +280,11 @@ define(function (require, exports, module) {
                     return (updateBarPresent);
                 }, "Download and Validation is taking too long to complete", 30000);
 
-                runs(function () {
+                runs(function() {
                     expect(updateBarPresent).toBe(true);
                     if (updateBarPresent) {
+                        var downloadFailed = AutoUpdate.getUpdateStateInJSON("downloadCompleted");
+                        expect(downloadFailed).toBe(false);
                         checkUpdateBarString(Strings.VALIDATION_FAILED, Strings.CHECKSUM_DID_NOT_MATCH);
                         checkUpdateBarButton(CLOSE_ICON, true);
                     }
@@ -336,9 +342,7 @@ define(function (require, exports, module) {
 
                     if (updateBarPresent) {
                     // Test if the file exists
-                        var appSupportDirectory = brackets.app.getApplicationSupportDirectory(),
-                            updateDir = appSupportDirectory + '/updateTemp',
-                            OS = AutoUpdate.getPlatformInfo(),
+                        var OS = AutoUpdate.getPlatformInfo(),
                             installerName = validInstallerFilePaths[OS].split("/").pop();
                         installerPath = [updateDir, installerName].join("/");
                         FileSystem.resolve(installerPath, function (errString, fsEntry, fileStats) {
@@ -357,6 +361,8 @@ define(function (require, exports, module) {
                     if (fileCheckCompleted) {
                         expect(errorString).toBeNull();
                     }
+                    var downloadComplete = AutoUpdate.getUpdateStateInJSON("downloadCompleted");
+                    expect(downloadComplete).toBe(true);
                     checkUpdateBarString(Strings.DOWNLOAD_COMPLETE, Strings.CLICK_RESTART_TO_UPDATE);
                     checkUpdateBarButton(UPDATE_RESTART_BTN, false);
                     checkUpdateBarButton(UPDATE_LATER_BTN, true);
@@ -366,7 +372,11 @@ define(function (require, exports, module) {
                     return updateBarDismissed;
                 }, "Dismissing popup is taking too long to complete", 5000);
 
-                downloadCompleted = true;
+                runs(function() {
+                    var updateInitiatedInPrevSession = AutoUpdate.getUpdateStateInJSON("updateInitiatedInPrevSession");
+                    expect(updateInitiatedInPrevSession).toBe(false);
+                    downloadCompleted = true;
+                });
             }
         }
 
@@ -401,7 +411,7 @@ define(function (require, exports, module) {
                         waitForMilliSeconds(3000);
                     }
                     return (updateBarPresent);
-                }, "Download and Validation is taking too long to complete", 30000);
+                }, "checking Update Status is taking too long to complete", 30000);
 
                 runs(function() {
                     expect(updateBarPresent).toBe(true);
@@ -462,7 +472,7 @@ define(function (require, exports, module) {
                         waitForMilliSeconds(3000);
                     }
                     return (updateBarPresent);
-                }, "Download and Validation is taking too long to complete", 30000);
+                }, "checking Update Status is taking too long to complete", 30000);
 
                 runs(function() {
                     expect(updateBarPresent).toBe(true);
