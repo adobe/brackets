@@ -58,7 +58,9 @@ define(function (require, exports, module) {
         StatusBar           = require("widgets/StatusBar"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         LanguageManager     = require("language/LanguageManager"),
-        _                   = require("thirdparty/lodash");
+        _                   = require("thirdparty/lodash"),
+        CompressionTools    = require("thirdparty/rawinflate"),
+        He                  = require("thirdparty/he");
 
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -461,6 +463,19 @@ define(function (require, exports, module) {
      * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
      */
+    
+    
+    /**
+     * Preference to persist undo history between sessions
+     */
+    
+    var PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
+
+    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
+    });
+
+    var persistUndoHistory = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
 
     /**
      * Opens the given file and makes it the current file. Does NOT add it to the workingset.
@@ -478,21 +493,58 @@ define(function (require, exports, module) {
 
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
+                var cursorPos,
+                    cursorPosX,
+                    cursorPosY,
+                    scrollPosLine,
+                    scrollPosCh;
+            
+                if (persistUndoHistory) {
+                    // IF TRUE, LOAD REFS INTO MEMORY FOR FILE, & PARSE FOR BELOW USAGE
+                    var loadedRefs       = window.localStorage.getItem("loadRefs__" + file._path),
+                        loadedRefsParsed = JSON.parse(loadedRefs),
+                        document = DocumentManager.getOpenDocumentForPath(file._path);
+                    
+                    if (loadedRefs) {
+                        cursorPosX    = loadedRefsParsed[0][0].toString(),
+                        cursorPosY    = loadedRefsParsed[0][1].toString(),
+                        scrollPosLine = loadedRefsParsed[1][0].toString(),
+                        scrollPosCh   = loadedRefsParsed[1][1].toString();
+                    }
+                    
+                }
+            
                 HealthLogger.fileOpened(file._path, false, file._encoding);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
-
-                // If a line and column number were given, position the editor accordingly.
+            
+                // Check if cursorPos is in localStorage first, and use it to position the editor.
+                // Else, if not, & a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {
-                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
-                        fileInfo.column = 1;
+                    if (persistUndoHistory) {
+                        console.log("FIRST");
+                        
+                        //document._masterEditor._codeMirror.setCursorPos(scrollPosLine, scrollPosCh, true);
+                        //document._masterEditor._codeMirror.setScrollPos(cursorPosX, cursorPosY);
                     }
+                    else if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                        fileInfo.column = 1;
 
-                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
-                                                                      fileInfo.column - 1,
-                                                                      true);
+                        // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                        EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,                                                  fileInfo.column - 1, true);
+                    }
+                } else { // Check to see if file was unsaved so line & col don't exist within localStorage
+                    if (persistUndoHistory) {
+                        console.log("SECOND");
+                        
+                        //document._associatedFullEditors[0]._codeMirror.setCursorPos(scrollPosLine, scrollPosCh, true);
+                        //EditorManager.getCurrentFullEditor().setCursorPos(scrollPosLine, scrollPosCh, true);
+                        //EditorManager.getCurrentFullEditor().setScrollPos(cursorPosX, cursorPosY);
+                        
+                        //document._masterEditor._codeMirror.setCursorPos(scrollPosLine, scrollPosCh, true);
+                        //document._masterEditor._codeMirror.setScrollPos(cursorPosX, cursorPosY);
+                    }  // nyteksf -- REMOVE ME
                 }
 
                 result.resolve(file);
@@ -514,18 +566,6 @@ define(function (require, exports, module) {
         // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated
         // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
-
-    /**
-     * Preference to persist undo history between sessions
-     */
-    
-    var PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
-
-    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
-    });
-
-    var persistUndoHistory = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
     
     /**
      * Opens the given file, makes it the current file, does NOT add it to the workingset
@@ -537,28 +577,45 @@ define(function (require, exports, module) {
      */
 
     function handleDocumentOpen(commandData) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            fileFullPath,
+            refsToLoad,
+            parsedRefsToLoad,
+            parsedHistory,
+            docTxtToInflate,
+            inflatedDocTxt;
         handleFileOpen(commandData)
             .done(function (file) {
                 //  if we succeeded with an open file
                 //  then we need to resolve that to a document.
                 //  getOpenDocumentForPath will return null if there isn't a
                 //  supporting document for that file (e.g. an image)
-                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                
+                var pathToFile = file.fullPath,
+                    doc = DocumentManager.getOpenDocumentForPath(pathToFile);
+                    
+                if (persistUndoHistory) {
+                        refsToLoad       = window.localStorage.getItem("loadRefs__" + pathToFile),
+                        parsedRefsToLoad = JSON.parse(refsToLoad),
+                        parsedHistory    = JSON.parse(parsedRefsToLoad[2]),
+                        docTxtToInflate  = parsedRefsToLoad[3].toString(),
+                        inflatedDocTxt   = RawDeflate.inflate(docTxtToInflate);
+                    
+                    // Load prior text into editor
+                    doc._masterEditor._codeMirror.setValue(inflatedDocTxt);
+
+                } 
+            
                 result.resolve(doc);
             
                 /**
                  * If pref set to true, load current files saved undo/redo history into CodeMirror
                  */
-                if (persistUndoHistory) {
-                    var fileFullPath = file.fullPath,
-                        historyToLoad = window.localStorage.getItem("history__" + fileFullPath),
-                        historyToLoad = JSON.parse(historyToLoad);
-
+                if (persistUndoHistory && doc !== null) {
+                    // nyteksf -
+                    
                     // Check if history exists in localStorage before attempting to load
-                    if (historyToLoad !== null) {
-                        Editor.codeMirrorRef.setHistory(historyToLoad);
+                    if (parsedRefsToLoad !== null) {
+                        Editor.codeMirrorRef.setHistory(parsedHistory);
                     }
                 }
             })
@@ -1075,7 +1132,7 @@ define(function (require, exports, module) {
             pathToCurFile = doc.file._path;
 
         if (persistUndoHistory) {
-            window.localStorage.removeItem("history__" + pathToCurFile);
+            window.localStorage.removeItem("loadRefs__" + pathToCurFile);
         }
 
         if (doc && !doc.isSaving) {
@@ -1291,9 +1348,9 @@ define(function (require, exports, module) {
                         // copy of whatever's on disk.
                         var pathToFile = file._path;
                         
-                        // If pref set, wipe associated localStorage history file
+                        // If pref set here, manually closing saves no changes for user
                         if (persistUndoHistory) {
-                            window.localStorage.removeItem("history__" + pathToFile);
+                            //window.localStorage.removeItem("loadRefs__" + pathToFile);
                         }
                         
                         doClose(file);
@@ -1318,12 +1375,14 @@ define(function (require, exports, module) {
                 MainViewManager.focusActivePane();
             });
         } else {
+            var filePath = file._path;
+            
             // If pref set, wipe associated localStorage history file
             if (persistUndoHistory) {
-                window.localStorage.removeItem("history__" + pathToFile);
+                window.localStorage.removeItem("history__" + filePath);
             }
             
-            // File is not open, or IS open but Document not dirty: close immediately
+            // File is not open, or IS open but Document not dirty: therefore, close immediately
             doClose(file);
             MainViewManager.focusActivePane();
             result.resolve();
@@ -1642,11 +1701,6 @@ define(function (require, exports, module) {
         var entry = ProjectManager.getSelectedItem(),
             fullPathToFile = entry._path;
         
-        // Delete undo/redo history from localStorage if pref set to persist history
-        if (persistUndoHistory) {
-            window.localStorage.removeItem("history__" + fullPathToFile);
-        }
-        
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_EXT_DELETED,
             Strings.CONFIRM_DELETE_TITLE,
@@ -1669,6 +1723,10 @@ define(function (require, exports, module) {
         )
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
+                    // Delete undo/redo history from localStorage if pref set to persist history
+                    if (persistUndoHistory) {
+                        window.localStorage.removeItem("loadRefs__" + fullPathToFile);
+                    }
                     ProjectManager.deleteItem(entry);
                 }
             });

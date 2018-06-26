@@ -78,7 +78,10 @@ define(function (require, exports, module) {
         HTMLUtils          = require("language/HTMLUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         MainViewManager    = require("view/MainViewManager"),
-        _                  = require("thirdparty/lodash");
+        DocumentManager    = require("document/DocumentManager"),
+        _                  = require("thirdparty/lodash"),
+        CompressionTools   = require("thirdparty/rawdeflate"),
+        He                 = require("thirdparty/he");
 
     /** Editor preferences */
 
@@ -941,29 +944,87 @@ define(function (require, exports, module) {
             // FUTURE: Technically we should add a replaceRange() method to Document and go through
             // that instead of talking to its master editor directly. It's not clear yet exactly
             // what the right Document API would be, though.
-            this._duringSync = true;
-            this.document._masterEditor._applyChanges(changeList);
-            this._duringSync = false;
+            if (!persistUnsavedChanges) {
+                this._duringSync = true;
+                this.document._masterEditor._applyChanges(changeList);
+                this._duringSync = false;
 
-            // Update which lines are hidden inside our editor, since we're not going to go through
-            // _applyChanges() in our own editor.
-            this._updateHiddenLines();
+                // Update which lines are hidden inside our editor, since we're not going to go through
+                // _applyChanges() in our own editor.
+                this._updateHiddenLines();    
+            } else {
+                /**
+                 * Persistent Undo History:
+                 * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
+                 */
+                fullPathToFile = this.document.file.fullPath,
+                currentTextObj = JSON.stringify(this._codeMirror.getHistory());
+                var currentTxt = this._codeMirror.getValue(),
+                scrollPos      = this.getScrollPos(),
+                cursorPos      = this.getCursorPos(),
+                docTxtSpecialCharsEncoded = He.encode(currentTxt),
+                curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
+                codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos.x, scrollPos.y], [currentTextObj], [curTxtDeflated], fullPathToFile],
+                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
+                unsavedDocs = [];  
 
-            /**
-            * Persistent Undo History:
-            * If pref is set, will update Undo/Redo History in localStorage on each CodeMirror sync
-            */
-            if (persistUnsavedChanges) {
+                // Ensure if localStorage full, empty before proceeding to write
+                try {
+                    window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
+                } catch (err) {
+                /**
+                 * Persistent Undo History:
+                 * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
+                 */
                 fullPathToFile = this.document.file.fullPath,
                 currentTextObj = this._codeMirror.getHistory();
-                
-                // Ensure if localStorage is full, empty before continuing
-                try {
-                    window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
-                } catch (err) {
-                    console.log(err);
-                    window.localStorage.clear();
-                    window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+                var currentTxt = this._codeMirror.getValue(),
+                scrollPos      = this.getScrollPos(),
+                cursorPos      = this.getCursorPos(),
+                docTxtSpecialCharsEncoded = He.encode(currentTxt),
+                curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
+                codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos.x, scrollPos.y],[currentTextObj], [curTxtDeflated], fullPathToFile],
+                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
+                unsavedDocs = [];  
+
+                // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
+                // BUILD CODE TO SAVE ALL CODEMIRRORREFS TO LOCALSTORAGE WHEN MEM FULL:
+                var listOfFiles = (MainViewManager.getAllOpenFiles());
+            
+                listOfFiles.forEach(function (file) {
+                    var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                    if (doc && doc.isDirty) {
+                        unsavedDocs.push(doc);
+                    }
+                });
+
+                var fileRefsToJSON = [];
+
+                // NytekSF - ToDo - use .map() -> fileRefsToJSON, below --->
+                unsavedDocs.forEach(function (file) {
+                    var thisCurrentFile    = file,
+                        thisFileFullPath   = thisCurrentFile.file._path,
+                        thisCurrentTxtObj  = file._masterEditor._codeMirror.getValue(),
+                        thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
+                        thisCursorPos      = file._masterEditor.getCursorPos(),
+                        thisScrollPos      = file._masterEditor.getScrollPos(),
+                        docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
+                        deflatedCurTxt     = RawDeflate.deflate(docTxtSpecialCharsEncoded);
+
+                        var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos.x,  thisScrollPos.y], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]], refsToJSON = JSON.stringify(refs);
+                        
+                        fileRefsToJSON.push(refsToJSON); 
+                    });
+
+                    window.localStorage.clear();  // Making more room....
+
+                    fileRefsToJSON.forEach(function (fileRefs) {  // Restore unsaved changes in localStorage
+                        var parsedJSONRefs = JSON.parse(fileRefs),
+                        filePathFull   = parsedJSONRefs.pop().toString(),
+                        fileRefs       = JSON.stringify(parsedJSONRefs);
+                    
+                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);   // Add one per interation
+                    });
                 }
             }
         }
@@ -985,15 +1046,59 @@ define(function (require, exports, module) {
          */
         if (persistUnsavedChanges) {
             fullPathToFile = this.document.file.fullPath,
-            currentTextObj = this._codeMirror.getHistory();
-
-            // Ensure if localStorage full, empty before proceeding
+            currentTextObj = JSON.stringify(this._codeMirror.getHistory());
+            var currentTxt = this._codeMirror.getValue(),
+            scrollPos      = this.getScrollPos(),
+            cursorPos      = this.getCursorPos(),
+            docTxtSpecialCharsEncoded = He.encode(currentTxt),
+            curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
+            codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos.x, scrollPos.y], [currentTextObj], [curTxtDeflated], fullPathToFile],
+            codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
+            unsavedDocs = [];
+            
+            // Ensure if localStorage full, empty before proceeding to write
             try {
-                window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+               // console.log(cursorPos); // nyteksf - remove me
+                window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
             } catch (err) {
-                console.log(err);
-                window.localStorage.clear();
-                window.localStorage.setItem("history__" + fullPathToFile, JSON.stringify(currentTextObj));
+                // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
+                // BUILD CODE TO SAVE ALL CODEMIRRORREFS TO LOCALSTORAGE WHEN MEM FULL:
+                var listOfFiles = (MainViewManager.getAllOpenFiles());
+            
+                listOfFiles.forEach(function (file) {
+                    var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                    if (doc && doc.isDirty) {
+                        unsavedDocs.push(doc);
+                    }
+                });
+                
+                var fileRefsToJSON = [];
+            
+                // NytekSF - ToDo - use .map() -> fileRefsToJSON, below --->
+                unsavedDocs.forEach(function (file) {
+                    var thisCurrentFile    = file,
+                        thisFileFullPath   = thisCurrentFile.file._path,
+                        thisCurrentTxtObj  = file._masterEditor._codeMirror.getValue(),
+                        thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
+                        thisCursorPos      = file._masterEditor.getCursorPos(),
+                        thisScrollPos      = file._masterEditor.getScrollPos(),
+                        docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
+                        deflatedCurTxt     = RawDeflate.deflate(docTxtSpecialCharsEncoded);
+
+                    var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos.x,  thisScrollPos.y], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]],
+                        refsToJSON = JSON.stringify(refs);
+                    fileRefsToJSON.push(refsToJSON); 
+                });
+                
+                window.localStorage.clear();  // Making room....
+
+                fileRefsToJSON.forEach(function (fileRefs) {
+                    var parsedJSONRefs = JSON.parse(fileRefs),
+                        filePathFull   = parsedJSONRefs.pop().toString(),
+                        fileRefs       = JSON.stringify(parsedJSONRefs);
+                    
+                    window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs); 
+                });
             }
         }
     };
@@ -1019,7 +1124,7 @@ define(function (require, exports, module) {
             // to the document, or a sync from external disk changes)... so sync from the Document
             this._duringSync = true;
             this._applyChanges(changeList);
-            this._duringSync = false;
+            this._duringSync = false;//
         }
         // Else, Master editor:
         // we're the ground truth; nothing to do since Document change is just echoing our
@@ -1128,7 +1233,7 @@ define(function (require, exports, module) {
      * Semi-private: only Document should call this.
      * @param {!string} text
      */
-    Editor.prototype._resetText = function (text) {
+    Editor.prototype._resetText = function (text) {  // nyteksf
         var currentText = this._codeMirror.getValue();
 
         // compare with ignoring line-endings, issue #11826
