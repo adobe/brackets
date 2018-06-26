@@ -583,7 +583,7 @@ define(function (require, exports, module) {
             parsedRefsToLoad,
             parsedHistory,
             docTxtToInflate,
-            inflatedDocTxt;
+            docTxtDecodedChars;
         handleFileOpen(commandData)
             .done(function (file) {
                 //  if we succeeded with an open file
@@ -594,14 +594,17 @@ define(function (require, exports, module) {
                     doc = DocumentManager.getOpenDocumentForPath(pathToFile);
                     
                 if (persistUndoHistory) {
-                        refsToLoad       = window.localStorage.getItem("loadRefs__" + pathToFile),
-                        parsedRefsToLoad = JSON.parse(refsToLoad),
-                        parsedHistory    = JSON.parse(parsedRefsToLoad[2]),
-                        docTxtToInflate  = parsedRefsToLoad[3].toString(),
-                        inflatedDocTxt   = RawDeflate.inflate(docTxtToInflate);
-                    
+                    refsToLoad = window.localStorage.getItem("loadRefs__" + pathToFile);
+                        
+                    if (refsToLoad) {
+                        parsedRefsToLoad   = JSON.parse(refsToLoad),                
+                        parsedHistory      = JSON.parse(parsedRefsToLoad[2]),
+                        docTxtToInflate    = parsedRefsToLoad[3].toString();
+                        docTxtDecodedChars = He.decode(RawDeflate.inflate(docTxtToInflate));
+                    }
+
                     // Load prior text into editor
-                    doc._masterEditor._codeMirror.setValue(inflatedDocTxt);
+                    doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
 
                 } 
             
