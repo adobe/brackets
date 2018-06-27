@@ -475,7 +475,7 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
     });
 
-    var persistUndoHistory = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
+    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
 
     /**
      * Opens the given file and makes it the current file. Does NOT add it to the workingset.
@@ -498,7 +498,7 @@ define(function (require, exports, module) {
                     MainViewManager.setActivePaneId(paneId);
                 }
 
-                if (!persistUndoHistory) { // ...load file as normal.
+                if (!persistUnsavedChanges) { // ...load file as normal.
                     // If a line and column number were given, position the editor accordingly.
                     if (fileInfo.line !== null) {
                         if (fileInfo.column === null || (fileInfo.column <= 0)) {
@@ -542,14 +542,8 @@ define(function (require, exports, module) {
      */
 
     function handleDocumentOpen(commandData) {
-        var result = new $.Deferred(),
-            fileFullPath,
-            refsToLoad,
-            cursorPos,
-            parsedRefsToLoad,
-            parsedHistory,
-            docTxtToInflate,
-            docTxtDecodedChars;
+        var result = new $.Deferred();
+        
         handleFileOpen(commandData)
             .done(function (file) {
                 //  if we succeeded with an open file
@@ -558,10 +552,15 @@ define(function (require, exports, module) {
                 //  supporting document for that file (e.g. an image)
                 var pathToFile = file.fullPath,
                     doc = DocumentManager.getOpenDocumentForPath(pathToFile),
+                    refsToLoad,
+                    parsedRefsToLoad,
+                    parsedHistory,
+                    docTxtToInflate,
+                    docTxtDecodedChars,
                     cursorPosX,
                     cursorPosY;
                     
-                if (persistUndoHistory) {
+                if (persistUnsavedChanges) {  // Retrieve file info
                     refsToLoad = window.localStorage.getItem("loadRefs__" + pathToFile);
                         
                     if (refsToLoad) {
@@ -572,11 +571,9 @@ define(function (require, exports, module) {
                         cursorPosX         = parsedRefsToLoad[0][0],
                         cursorPosY         = parsedRefsToLoad[0][1];   
                         
-                        if (window.localStorage.getItem("loadRefs__" + pathToFile)) {
-                            // Load prior text into editor
-                            doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
-                        }
-                    }
+                        // Load record of prior text into master editor
+                        doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
+                    }   
                 } 
             
                 result.resolve(doc);
@@ -584,13 +581,13 @@ define(function (require, exports, module) {
                 /**
                  * If pref set to true, load current files saved undo/redo history into CodeMirror
                  */
-                if (persistUndoHistory && doc !== null) {  // Make sure doc lives within file
+                if (persistUnsavedChanges && doc !== null) {  // Make sure doc lives within file
                     // Check if prior history exists in localStorage before attempting to load
-                    if (window.localStorage.getItem("loadRefs__" + pathToFile)) {
-                        // Load found saved history obj back into memory
+                    if (refsToLoad) {
+                        // Load stashed prior history obj back into memory
                         Editor.codeMirrorRef.setHistory(parsedHistory);   
                         
-                        // Move cursor into recorded prior position:
+                        // Move cursor into the recorded prior position, and center screen
                         EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX,
                                                                       cursorPosY,
                                                                       true);
@@ -1106,10 +1103,10 @@ define(function (require, exports, module) {
             settings;
 
 	   // If pref set to true, attempt reload of prior undo/redo history
-        var persistUndoHistory = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
+        var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
             pathToCurFile = doc.file._path;
 
-        if (persistUndoHistory) {
+        if (persistUnsavedChanges) {
             window.localStorage.removeItem("loadRefs__" + pathToCurFile);
         }
 
@@ -1327,7 +1324,7 @@ define(function (require, exports, module) {
                         var pathToFile = file._path;
                         
                         // If pref set here, manually closing saves no changes for user
-                        if (persistUndoHistory) {
+                        if (persistUnsavedChanges) {
                             //window.localStorage.removeItem("loadRefs__" + pathToFile);
                         }
                         
@@ -1356,7 +1353,7 @@ define(function (require, exports, module) {
             var filePath = file._path;
             
             // If pref set, wipe associated localStorage history file
-            if (persistUndoHistory) {
+            if (persistUnsavedChanges) {
                 window.localStorage.removeItem("history__" + filePath);
             }
             
@@ -1575,7 +1572,7 @@ define(function (require, exports, module) {
             entry = MainViewManager.getCurrentlyViewedFile();
             
             // If preference set to persistent undo/redo history
-            if (persistUndoHistory) {
+            if (persistUnsavedChanges) {
                 // Removes history item from localStorage before rename
                 var oldFileName = MainViewManager.getCurrentlyViewedFile();
                 window.localStorage.removeItem("history__" + oldFileName._path);
@@ -1702,7 +1699,7 @@ define(function (require, exports, module) {
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     // Delete undo/redo history from localStorage if pref set to persist history
-                    if (persistUndoHistory) {
+                    if (persistUnsavedChanges) {
                         window.localStorage.removeItem("loadRefs__" + fullPathToFile);
                     }
                     ProjectManager.deleteItem(entry);
