@@ -983,7 +983,7 @@ define(function (require, exports, module) {
                 cursorPos      = this.getCursorPos(),
                 docTxtSpecialCharsEncoded = He.encode(currentTxt),
                 curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
-                codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos.x, scrollPos.y],[currentTextObj], [curTxtDeflated], fullPathToFile],
+                codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos],[currentTextObj], [curTxtDeflated], fullPathToFile],
                 codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
                 unsavedDocs = [];  
 
@@ -1011,7 +1011,7 @@ define(function (require, exports, module) {
                         docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
                         deflatedCurTxt     = RawDeflate.deflate(docTxtSpecialCharsEncoded);
 
-                        var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos.x,  thisScrollPos.y], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]], refsToJSON = JSON.stringify(refs);
+                        var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]], refsToJSON = JSON.stringify(refs);
                         
                         fileRefsToJSON.push(refsToJSON); 
                     });
@@ -1052,7 +1052,7 @@ define(function (require, exports, module) {
             cursorPos      = this.getCursorPos(),
             docTxtSpecialCharsEncoded = He.encode(currentTxt),
             curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
-            codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos.x, scrollPos.y], [currentTextObj], [curTxtDeflated], fullPathToFile],
+            codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos], [currentTextObj], [curTxtDeflated], fullPathToFile],
             codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
             unsavedDocs = [];
             
@@ -1085,7 +1085,7 @@ define(function (require, exports, module) {
                         docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
                         deflatedCurTxt     = RawDeflate.deflate(docTxtSpecialCharsEncoded);
 
-                    var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos.x,  thisScrollPos.y], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]],
+                    var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]],
                         refsToJSON = JSON.stringify(refs);
                     fileRefsToJSON.push(refsToJSON); 
                 });
