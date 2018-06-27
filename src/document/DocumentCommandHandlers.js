@@ -21,18 +21,6 @@
  *
  */
 
-
-
-// HAD IT WORKING... REMOVE HANDLEOPENFILE() FUNCTION, RESTORE ORIGINAL, AND START PLAYING WITH IT FROM ORIGINAL STEP BY STEP. 
-
-// I THINK IT WAS WORKING WHEN I FORGOT TO HAVE UNSAVED CHANGES AND RELOADED ON SAVE! MAYBE CAN ONLY MODIFY LINE BY HAND WHEN CASE IS SUCH! TRY AND SEE WHY IF SO!
-
-
-
-
-
-
-
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
@@ -497,106 +485,6 @@ define(function (require, exports, module) {
      *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
-    /*
-    function handleFileOpen(commandData) {
-        var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
-            silent = (commandData && commandData.silent) || false,
-            paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
-            result = new $.Deferred(),
-            cursorPosX,
-            cursorPosY,
-            lastScrollPos;
-        */
-        /*
-        _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
-            .done(function (file) {
-                HealthLogger.fileOpened(file._path, false, file._encoding);
-                if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
-                    MainViewManager.setActivePaneId(paneId);
-                }
-
-                if (persistUndoHistory) {
-                    // IF TRUE, LOAD REFS INTO MEMORY FOR FILE, & PARSE FOR BELOW USAGE
-                    var loadedRefs       = window.localStorage.getItem("loadRefs__" + file._path),
-                        loadedRefsParsed = JSON.parse(loadedRefs);
-                    
-                    if (loadedRefs) {
-                        cursorPosX    = loadedRefsParsed[0][0].toString(),
-                        cursorPosY    = loadedRefsParsed[0][1].toString(),
-                        //scrollPosLine = loadedRefsParsed[1][0].toString(),
-                        //scrollPosCh   = loadedRefsParsed[1][1].toString();
-                        lastScrollPos = loadedRefsParsed[1];
-                    }
-                }
-            
-                // If a line and column number were given, position the editor accordingly.
-                if (fileInfo.line !== null) { //|| cursorPosX !== null) {
-                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
-                        fileInfo.column = 1;
-                    }
-                    
-                    if (!persistUndoHistory) { // TEST NORMAL FUNCTIONING AND CONSOLE.LOG FOR COMPARISON
-                        console.log("A1");
-                        
-                        console.log(cursorPosX);  
-                        
-                        fileInfo.line   = cursorPosX; 
-                        fileInfo.column = cursorPosY;
-                          
-                        console.log(fileInfo.line, fileInfo.column);  
-                        
-                        // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                        EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX  - 1,
-                                                                        cursorPosY    - 1,
-                                                                        true);
-                        console.log("A2");  
-                    } else {
-                        console.log("B1");
-                        
-                        console.log(fileInfo.line, fileInfo.column);  
-                          
-                        // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                        EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
-                                                                      fileInfo.column - 1,
-                                                                      true);
-                        console.log("B2");
-                    }
-                } else {
-                    console.log("C1");
-                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    fileInfo.line   = cursorPosX; 
-                    fileInfo.column = cursorPosY;
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
-                                                                    fileInfo.column - 1,
-                                                                    true); // 
-                    $(document).scrollTop(150);  
-                    console.log("C2");
-                }
-                console.log(file);
-            
-                result.resolve(file);
-            })
-        */
-          /*  
-            .fail(function (err) {
-                result.reject(err);
-            });
-
-        return result;
-        // Testing notes: here are some recommended manual tests for handleFileOpen, on Macintosh.
-        // Do all tests with brackets already running, and also with brackets not already running.
-        //
-        // drag a file onto brackets icon in desktop (this uses undecorated paths)
-        // drag a file onto brackets icon in taskbar (this uses undecorated paths)
-        // open a file from brackets sidebar (this uses undecorated paths)
-        // from command line: ...../Brackets.app/Contents path         - where 'path' is undecorated
-        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line"
-        // from command line: ...../Brackets.app path                  - where 'path' has the form "path:line:column"
-        // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated
-        // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
-    }
-*/
-
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
             silent = (commandData && commandData.silent) || false,
@@ -610,28 +498,18 @@ define(function (require, exports, module) {
                     MainViewManager.setActivePaneId(paneId);
                 }
 
-                // If a line and column number were given, position the editor accordingly.
-                if (fileInfo.line !== null) {
-                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
-                        fileInfo.column = 1;
-                    }
-
-                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
-                                                                      fileInfo.column - 1,
-                                                                      true);
-                } else {
-                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
-                        fileInfo.column = 1;
-                    }
+                if (!persistUndoHistory) { // ...load file as normal.
+                    // If a line and column number were given, position the editor accordingly.
+                    if (fileInfo.line !== null) {
+                        if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                            fileInfo.column = 1;
+                        }
                     
-                    fileInfo.line = 700;
-                    fileInfo.ch   = 15;
-                    
-                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
-                                                                      fileInfo.column - 1,
-                                                                      true);
+                        // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                        EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
+                                                                        fileInfo.column - 1,
+                                                                        true);
+                    }   
                 }
 
                 result.resolve(file);
@@ -667,6 +545,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             fileFullPath,
             refsToLoad,
+            cursorPos,
             parsedRefsToLoad,
             parsedHistory,
             docTxtToInflate,
@@ -678,7 +557,9 @@ define(function (require, exports, module) {
                 //  getOpenDocumentForPath will return null if there isn't a
                 //  supporting document for that file (e.g. an image)
                 var pathToFile = file.fullPath,
-                    doc = DocumentManager.getOpenDocumentForPath(pathToFile);
+                    doc = DocumentManager.getOpenDocumentForPath(pathToFile),
+                    cursorPosX,
+                    cursorPosY;
                     
                 if (persistUndoHistory) {
                     refsToLoad = window.localStorage.getItem("loadRefs__" + pathToFile);
@@ -687,7 +568,9 @@ define(function (require, exports, module) {
                         parsedRefsToLoad   = JSON.parse(refsToLoad),         
                         parsedHistory      = JSON.parse(parsedRefsToLoad[2]),
                         docTxtToInflate    = parsedRefsToLoad[3].toString();
-                        docTxtDecodedChars = He.decode(RawDeflate.inflate(docTxtToInflate));
+                        docTxtDecodedChars = He.decode(RawDeflate.inflate(docTxtToInflate)),
+                        cursorPosX         = parsedRefsToLoad[0][0],
+                        cursorPosY         = parsedRefsToLoad[0][1];   
                         
                         if (window.localStorage.getItem("loadRefs__" + pathToFile)) {
                             // Load prior text into editor
@@ -701,10 +584,16 @@ define(function (require, exports, module) {
                 /**
                  * If pref set to true, load current files saved undo/redo history into CodeMirror
                  */
-                if (persistUndoHistory && doc !== null) {
-                    // Check if history exists in localStorage before attempting to load
+                if (persistUndoHistory && doc !== null) {  // Make sure doc lives within file
+                    // Check if prior history exists in localStorage before attempting to load
                     if (window.localStorage.getItem("loadRefs__" + pathToFile)) {
-                        Editor.codeMirrorRef.setHistory(parsedHistory);
+                        // Load found saved history obj back into memory
+                        Editor.codeMirrorRef.setHistory(parsedHistory);   
+                        
+                        // Move cursor into recorded prior position:
+                        EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX,
+                                                                      cursorPosY,
+                                                                      true);
                     }
                 }
             })
