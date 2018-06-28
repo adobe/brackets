@@ -984,24 +984,20 @@ define(function (require, exports, module) {
                 docTxtSpecialCharsEncoded = He.encode(currentTxt),
                 curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
                 codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos],[currentTextObj], [curTxtDeflated], fullPathToFile],
-                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
-                unsavedDocs = [];  
+                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs);  
 
                 // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
                 // BUILD CODE TO SAVE ALL CODEMIRRORREFS TO LOCALSTORAGE WHEN MEM FULL:
                 var listOfFiles = (MainViewManager.getAllOpenFiles());
             
-                listOfFiles.forEach(function (file) {
+                unsavedDocs = listOfFiles.map(function (file) {
                     var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                     if (doc && doc.isDirty) {
-                        unsavedDocs.push(doc);
+                        doc;
                     }
                 });
 
-                var fileRefsToJSON = [];
-
-                // NytekSF - ToDo - use .map() -> fileRefsToJSON, below --->
-                unsavedDocs.forEach(function (file) {
+                var fileRefsToJSON = unsavedDocs.map(function (file) {
                     var thisCurrentFile    = file,
                         thisFileFullPath   = thisCurrentFile.file._path,
                         thisCurrentTxtObj  = file._masterEditor._codeMirror.getValue(),
@@ -1013,17 +1009,17 @@ define(function (require, exports, module) {
 
                         var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]], refsToJSON = JSON.stringify(refs);
                         
-                        fileRefsToJSON.push(refsToJSON); 
+                        return refsToJSON;
                     });
 
                     window.localStorage.clear();  // Making more room....
 
-                    fileRefsToJSON.forEach(function (fileRefs) {  // Restore unsaved changes in localStorage
+                    fileRefsToJSON.forEach(function (fileRefs) {  // Then restore unsaved changes to localStorage
                         var parsedJSONRefs = JSON.parse(fileRefs),
                         filePathFull   = parsedJSONRefs.pop().toString(),
                         fileRefs       = JSON.stringify(parsedJSONRefs);
                     
-                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);   // Add one per interation
+                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);   // Adding back one file per interation
                     });
                 }
             }
@@ -1058,24 +1054,19 @@ define(function (require, exports, module) {
             
             // Ensure if localStorage full, empty before proceeding to write
             try {
-               // console.log(cursorPos); // nyteksf - remove me
                 window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
             } catch (err) {
                 // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
-                // BUILD CODE TO SAVE ALL CODEMIRRORREFS TO LOCALSTORAGE WHEN MEM FULL:
                 var listOfFiles = (MainViewManager.getAllOpenFiles());
             
-                listOfFiles.forEach(function (file) {
+                unsavedDocs = listOfFiles.map(function (file) {
                     var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                     if (doc && doc.isDirty) {
-                        unsavedDocs.push(doc);
+                        return doc;
                     }
                 });
                 
-                var fileRefsToJSON = [];
-            
-                // NytekSF - ToDo - use .map() -> fileRefsToJSON, below --->
-                unsavedDocs.forEach(function (file) {
+                var fileRefsToJSON = unsavedDocs.map(function (file) {
                     var thisCurrentFile    = file,
                         thisFileFullPath   = thisCurrentFile.file._path,
                         thisCurrentTxtObj  = file._masterEditor._codeMirror.getValue(),
@@ -1087,10 +1078,11 @@ define(function (require, exports, module) {
 
                     var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]],
                         refsToJSON = JSON.stringify(refs);
-                    fileRefsToJSON.push(refsToJSON); 
+                    
+                    return refsToJSON; 
                 });
                 
-                window.localStorage.clear();  // Making room....
+                window.localStorage.clear();
 
                 fileRefsToJSON.forEach(function (fileRefs) {
                     var parsedJSONRefs = JSON.parse(fileRefs),
@@ -1124,7 +1116,7 @@ define(function (require, exports, module) {
             // to the document, or a sync from external disk changes)... so sync from the Document
             this._duringSync = true;
             this._applyChanges(changeList);
-            this._duringSync = false;//
+            this._duringSync = false;
         }
         // Else, Master editor:
         // we're the ground truth; nothing to do since Document change is just echoing our
