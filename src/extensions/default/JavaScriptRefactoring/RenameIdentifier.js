@@ -127,13 +127,23 @@ define(function (require, exports, module) {
                 }
             }
 
-            if (type === "local") {
-                editor.setSelections(refs);
-            } else {
-                editor.setSelections(refs.filter(function(element) {
+            var currentPosition = editor._codeMirror.posFromIndex(refsResp.offset),
+                refsArray = refs;
+            if(type !== "local") {
+                refsArray = refs.filter(function(element) {
                     return isInSameFile(element, refsResp);
-                }));
+                });
             }
+            for(var i = 0; i < refsArray.length; ++i) {
+                var element = refsArray[i];
+                if((element.start.line === currentPosition.line || element.end.line === currentPosition.line)
+                   && currentPosition.ch <= element.end.ch && currentPosition.ch >= element.start.ch) {
+                    element.primary = true;
+                    break;
+                }
+            }
+
+            editor.setSelections(refsArray);
         }
 
         /**

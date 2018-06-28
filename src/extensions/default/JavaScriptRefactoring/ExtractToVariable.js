@@ -37,11 +37,11 @@ define(function(require, exports, module) {
      * Does the actual extraction. i.e Replacing the text, Creating a variable
      * and multi select variable names
      */
-    function extract(scopes, parentStatement, expns, text) {
+    function extract(scopes, parentStatement, expns, text, insertPostion) {
         var varType          = "var",
             varName          = RefactoringUtils.getUniqueIdentifierName(scopes, "extracted"),
             varDeclaration   = varType + " " + varName + " = " + text + ";\n",
-            insertStartPos   = session.editor.posFromIndex(parentStatement.start),
+            insertStartPos   = insertPostion || session.editor.posFromIndex(parentStatement.start),
             selections       = [],
             doc              = session.editor.document,
             replaceExpnIndex = 0,
@@ -62,6 +62,17 @@ define(function(require, exports, module) {
             expns[i].end    = session.editor.posFromIndex(expns[i].end);
             expns[i].start  = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
             expns[i].end    = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
+
+            /* If there are multiple expressions . then second Expression onward
+               position need to be adjusted due to the variable replacement in previous expressions.
+            */
+            for (var j = 0; j < i; ++j) {
+                expns[i].start  = doc.adjustPosForChange(expns[i].start, varName.split("\n"),
+                                                         expns[j].start, expns[j].end);
+                expns[i].end    = doc.adjustPosForChange(expns[i].end, varName.split("\n"),
+                                                         expns[j].start, expns[j].end);
+            }
+            // End of Code for Position Adjustment of Multiple Expression.
 
             selections.push({
                 start: expns[i].start,
@@ -163,6 +174,7 @@ define(function(require, exports, module) {
      */
     function extractToVariable(ast, start, end, text, scopes) {
         var doc                   = session.editor.document,
+            editor = EditorManager.getActiveEditor(),
             parentExpn            = RefactoringUtils.getExpression(ast, start, end, doc.getText()),
             expns                 = [],
             parentBlockStatement,
@@ -178,8 +190,24 @@ define(function(require, exports, module) {
         if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
             parentBlockStatement = RefactoringUtils.findSurroundASTNode(ast, parentExpn, ["BlockStatement", "Program"]);
             expns                = findAllExpressions(parentBlockStatement, parentExpn, text);
-            parentStatement      = RefactoringUtils.findSurroundASTNode(ast, expns[0], ["Statement"]);
-            extract(scopes, parentStatement, expns, text);
+
+            RefactoringUtils.getScopeData(session, editor.posFromIndex(expns[0].start)).done(function(scope) {
+                var firstExpnsScopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText()),
+                    insertPostion;
+                parentStatement = RefactoringUtils.findSurroundASTNode(ast, expns[0], ["Statement"]);
+                if(scopes.length !== firstExpnsScopes.length) {
+                    var parentScope;
+                    if(expns[0].body && expns[0].body.type === "BlockStatement") {
+                        parentScope = firstExpnsScopes[firstExpnsScopes.length - scopes.length];
+                    } else {
+                        parentScope = firstExpnsScopes[firstExpnsScopes.length - scopes.length - 1];
+                    }
+
+                    var insertNode = RefactoringUtils.findSurroundASTNode(ast, parentScope.originNode, ["Statement"]);
+                    insertPostion = session.editor.posFromIndex(insertNode.start);
+                }
+                extract(scopes, parentStatement, expns, text, insertPostion);
+            });
         } else {
             parentStatement = RefactoringUtils.findSurroundASTNode(ast, parentExpn, ["Statement"]);
             extract(scopes, parentStatement, [{ start: start, end: end }], text);
