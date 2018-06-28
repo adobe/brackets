@@ -140,6 +140,14 @@ define(function (require, exports, module) {
         excludeFromHints: true
     });
     EventDispatcher.makeEventDispatcher(exports);
+    
+    var PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
+
+    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
+    });
+
+    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
 
     /**
      * Event triggered when File Save is cancelled, when prompted to save dirty files
@@ -464,19 +472,6 @@ define(function (require, exports, module) {
      * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
      */
     
-    
-    /**
-     * Preference to persist undo history between sessions
-     */
-    
-    var PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
-
-    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
-    });
-
-    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
-
     /**
      * Opens the given file and makes it the current file. Does NOT add it to the workingset.
      * @param {FileCommandData=} commandData - record with the following properties:
@@ -560,10 +555,10 @@ define(function (require, exports, module) {
                     cursorPosX,
                     cursorPosY;
                     
-                if (persistUnsavedChanges) {  // Retrieve file info
+                if (persistUnsavedChanges) {
                     refsToLoad = window.localStorage.getItem("loadRefs__" + pathToFile);
                         
-                    if (refsToLoad) {
+                    if (refsToLoad) {  // Verify that records exist for current document
                         parsedRefsToLoad   = JSON.parse(refsToLoad),         
                         parsedHistory      = JSON.parse(parsedRefsToLoad[2]),
                         docTxtToInflate    = parsedRefsToLoad[3].toString();
@@ -574,7 +569,7 @@ define(function (require, exports, module) {
                         // Load record of prior text into master editor
                         doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
                     }   
-                } 
+                }
             
                 result.resolve(doc);
             

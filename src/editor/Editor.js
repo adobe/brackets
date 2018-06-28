@@ -151,6 +151,13 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
+    
+    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
+        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
+    });
+    
+    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
+        PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
 
     // CodeMirror, html mode, set some tags do not close automatically.
     // We do not initialize "dontCloseTags" because otherwise we would overwrite the default behavior of CodeMirror.
@@ -906,18 +913,6 @@ define(function (require, exports, module) {
         // The update above may have inserted new lines - must hide any that fall outside our range
         this._updateHiddenLines();
     };
-
-    /**
-    * Preference to persist undo/redo history between Brackets sessions
-    */
-    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
-    });
-    
-    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
-        PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges",
-        fullPathToFile,
-        currentTextObj;
     
     /**
      * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
@@ -945,6 +940,7 @@ define(function (require, exports, module) {
             // that instead of talking to its master editor directly. It's not clear yet exactly
             // what the right Document API would be, though.
             if (!persistUnsavedChanges) {
+                // Load as per normal
                 this._duringSync = true;
                 this.document._masterEditor._applyChanges(changeList);
                 this._duringSync = false;
@@ -952,11 +948,7 @@ define(function (require, exports, module) {
                 // Update which lines are hidden inside our editor, since we're not going to go through
                 // _applyChanges() in our own editor.
                 this._updateHiddenLines();    
-            } else {
-                /**
-                 * Persistent Undo History:
-                 * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
-                 */
+            } else {  // Load document from last unsaved changes
                 fullPathToFile = this.document.file.fullPath,
                 currentTextObj = JSON.stringify(this._codeMirror.getHistory());
                 var currentTxt = this._codeMirror.getValue(),
@@ -972,10 +964,8 @@ define(function (require, exports, module) {
                 try {
                     window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
                 } catch (err) {
-                /**
-                 * Persistent Undo History:
-                 * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
-                 */
+                // MODAL HERE
+                    
                 fullPathToFile = this.document.file.fullPath,
                 currentTextObj = this._codeMirror.getHistory();
                 var currentTxt = this._codeMirror.getValue(),
@@ -984,24 +974,20 @@ define(function (require, exports, module) {
                 docTxtSpecialCharsEncoded = He.encode(currentTxt),
                 curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
                 codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos],[currentTextObj], [curTxtDeflated], fullPathToFile],
-                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
-                unsavedDocs = [];  
+                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs);  
 
                 // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
                 // BUILD CODE TO SAVE ALL CODEMIRRORREFS TO LOCALSTORAGE WHEN MEM FULL:
                 var listOfFiles = (MainViewManager.getAllOpenFiles());
             
-                listOfFiles.forEach(function (file) {
+                var unsavedDocs = listOfFiles.map(function (file) {
                     var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                     if (doc && doc.isDirty) {
-                        unsavedDocs.push(doc);
+                        return doc;
                     }
                 });
 
-                var fileRefsToJSON = [];
-
-                // NytekSF - ToDo - use .map() -> fileRefsToJSON, below --->
-                unsavedDocs.forEach(function (file) {
+                var fileRefsToJSON = unsavedDocs.map(function (file) {
                     var thisCurrentFile    = file,
                         thisFileFullPath   = thisCurrentFile.file._path,
                         thisCurrentTxtObj  = file._masterEditor._codeMirror.getValue(),
@@ -1013,17 +999,17 @@ define(function (require, exports, module) {
 
                         var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]], refsToJSON = JSON.stringify(refs);
                         
-                        fileRefsToJSON.push(refsToJSON); 
+                        return refsToJSON; 
                     });
 
                     window.localStorage.clear();  // Making more room....
 
-                    fileRefsToJSON.forEach(function (fileRefs) {  // Restore unsaved changes in localStorage
+                    fileRefsToJSON.forEach(function (fileRefs) {  // Restore unsaved changes to localStorage
                         var parsedJSONRefs = JSON.parse(fileRefs),
                         filePathFull   = parsedJSONRefs.pop().toString(),
                         fileRefs       = JSON.stringify(parsedJSONRefs);
                     
-                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);   // Add one per interation
+                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);   // Add one file to localStorage per interation
                     });
                 }
             }
