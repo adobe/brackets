@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
-        Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
@@ -58,9 +57,7 @@ define(function (require, exports, module) {
         StatusBar           = require("widgets/StatusBar"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         LanguageManager     = require("language/LanguageManager"),
-        _                   = require("thirdparty/lodash"),
-        CompressionTools    = require("thirdparty/rawinflate"),
-        He                  = require("thirdparty/he");
+        _                   = require("thirdparty/lodash");
 
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -161,8 +158,8 @@ define(function (require, exports, module) {
         var currentDoc          = DocumentManager.getCurrentDocument(),
             windowTitle         = brackets.config.app_title,
             currentlyViewedFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
-            currentlyViewedPath = currentlyViewedFile && currentlyViewedFile.fullPath,
-            readOnlyString      = (currentlyViewedFile && currentlyViewedFile.readOnly) ? "[Read Only] - " : "";
+            currentlyViewedPath = currentlyViewedFile.fullPath,
+            readOnlyString      = currentlyViewedFile.readOnly ? "[Read Only] - " : "";
 
         if (!brackets.nativeMenus) {
             if (currentlyViewedPath) {
@@ -463,19 +460,6 @@ define(function (require, exports, module) {
      * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
      * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
      */
-    
-    
-    /**
-     * Preference to persist undo history between sessions
-     */
-    
-    var PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
-
-    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
-    });
-
-    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
 
     /**
      * Opens the given file and makes it the current file. Does NOT add it to the workingset.
@@ -498,18 +482,16 @@ define(function (require, exports, module) {
                     MainViewManager.setActivePaneId(paneId);
                 }
 
-                if (!persistUnsavedChanges) { // ...load file as normal.
-                    // If a line and column number were given, position the editor accordingly.
-                    if (fileInfo.line !== null) {
-                        if (fileInfo.column === null || (fileInfo.column <= 0)) {
-                            fileInfo.column = 1;
-                        }
-                    
-                        // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                        EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
-                                                                        fileInfo.column - 1,
-                                                                        true);
-                    }   
+                // If a line and column number were given, position the editor accordingly.
+                if (fileInfo.line !== null) {
+                    if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                        fileInfo.column = 1;
+                    }
+
+                    // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
+                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
+                                                                      fileInfo.column - 1,
+                                                                      true);
                 }
 
                 result.resolve(file);
@@ -531,7 +513,7 @@ define(function (require, exports, module) {
         // from command line: open -a ...../Brackets.app path          - where 'path' is undecorated
         // do "View Source" from Adobe Scout version 1.2 or newer (this will use decorated paths of the form "path:line:column")
     }
-    
+
     /**
      * Opens the given file, makes it the current file, does NOT add it to the workingset
      * @param {FileCommandData} commandData
@@ -540,59 +522,16 @@ define(function (require, exports, module) {
      *   paneId: optional PaneId (defaults to active pane)
      * @return {$.Promise} a jQuery promise that will be resolved with @type {Document}
      */
-
     function handleDocumentOpen(commandData) {
         var result = new $.Deferred();
-        
         handleFileOpen(commandData)
             .done(function (file) {
-                //  if we succeeded with an open file
+                // if we succeeded with an open file
                 //  then we need to resolve that to a document.
                 //  getOpenDocumentForPath will return null if there isn't a
                 //  supporting document for that file (e.g. an image)
-                var pathToFile = file.fullPath,
-                    doc = DocumentManager.getOpenDocumentForPath(pathToFile),
-                    refsToLoad,
-                    parsedRefsToLoad,
-                    parsedHistory,
-                    docTxtToInflate,
-                    docTxtDecodedChars,
-                    cursorPosX,
-                    cursorPosY;
-                    
-                if (persistUnsavedChanges) {  // Retrieve file info
-                    refsToLoad = window.localStorage.getItem("loadRefs__" + pathToFile);
-                        
-                    if (refsToLoad) {
-                        parsedRefsToLoad   = JSON.parse(refsToLoad),         
-                        parsedHistory      = JSON.parse(parsedRefsToLoad[2]),
-                        docTxtToInflate    = parsedRefsToLoad[3].toString();
-                        docTxtDecodedChars = He.decode(RawDeflate.inflate(docTxtToInflate)),
-                        cursorPosX         = parsedRefsToLoad[0][0],
-                        cursorPosY         = parsedRefsToLoad[0][1];   
-                        
-                        // Load record of prior text into master editor
-                        doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
-                    }   
-                } 
-            
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 result.resolve(doc);
-            
-                /**
-                 * If pref set to true, load current files saved undo/redo history into CodeMirror
-                 */
-                if (persistUnsavedChanges && doc !== null) {  // Make sure doc lives within file
-                    // Check if prior history exists in localStorage before attempting to load
-                    if (refsToLoad) {
-                        // Load stashed prior history obj back into memory
-                        Editor.codeMirrorRef.setHistory(parsedHistory);   
-                        
-                        // Move cursor into the recorded prior position, and center screen
-                        EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX,
-                                                                      cursorPosY,
-                                                                      true);
-                    }
-                }
             })
             .fail(function (err) {
                 result.reject(err);
@@ -1102,14 +1041,6 @@ define(function (require, exports, module) {
             doc = (commandData && commandData.doc) || activeDoc,
             settings;
 
-	   // If pref set to true, attempt reload of prior undo/redo history
-        var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
-            pathToCurFile = doc.file._path;
-
-        if (persistUnsavedChanges) {
-            window.localStorage.removeItem("loadRefs__" + pathToCurFile);
-        }
-
         if (doc && !doc.isSaving) {
             if (doc.isUntitled()) {
                 if (doc === activeDoc) {
@@ -1321,13 +1252,6 @@ define(function (require, exports, module) {
                         // "Don't Save" case: even though we're closing the main editor, other views of
                         // the Document may remain in the UI. So we need to revert the Document to a clean
                         // copy of whatever's on disk.
-                        var pathToFile = file._path;
-                        
-                        // If pref set here, manually closing saves no changes for user
-                        if (persistUnsavedChanges) {
-                            //window.localStorage.removeItem("loadRefs__" + pathToFile);
-                        }
-                        
                         doClose(file);
 
                         // Only reload from disk if we've executed the Close for real.
@@ -1350,14 +1274,7 @@ define(function (require, exports, module) {
                 MainViewManager.focusActivePane();
             });
         } else {
-            var filePath = file._path;
-            
-            // If pref set, wipe associated localStorage history file
-            if (persistUnsavedChanges) {
-                window.localStorage.removeItem("history__" + filePath);
-            }
-            
-            // File is not open, or IS open but Document not dirty: therefore, close immediately
+            // File is not open, or IS open but Document not dirty: close immediately
             doClose(file);
             MainViewManager.focusActivePane();
             result.resolve();
@@ -1560,25 +1477,15 @@ define(function (require, exports, module) {
             }
         );
     }
-    
+
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
-            
         // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getContext();
-        
         if (!entry) {
             // Else use current file (not selected in ProjectManager if not visible in tree or workingset)
             entry = MainViewManager.getCurrentlyViewedFile();
-            
-            // If preference set to persistent undo/redo history
-            if (persistUnsavedChanges) {
-                // Removes history item from localStorage before rename
-                var oldFileName = MainViewManager.getCurrentlyViewedFile();
-                window.localStorage.removeItem("history__" + oldFileName._path);
-            }
         }
-    
         if (entry) {
             ProjectManager.renameItemInline(entry);
         }
@@ -1673,9 +1580,7 @@ define(function (require, exports, module) {
 
     /** Delete file command handler  **/
     function handleFileDelete() {
-        var entry = ProjectManager.getSelectedItem(),
-            fullPathToFile = entry._path;
-        
+        var entry = ProjectManager.getSelectedItem();
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_EXT_DELETED,
             Strings.CONFIRM_DELETE_TITLE,
@@ -1698,10 +1603,6 @@ define(function (require, exports, module) {
         )
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
-                    // Delete undo/redo history from localStorage if pref set to persist history
-                    if (persistUnsavedChanges) {
-                        window.localStorage.removeItem("loadRefs__" + fullPathToFile);
-                    }
                     ProjectManager.deleteItem(entry);
                 }
             });
