@@ -97,7 +97,7 @@ define(function (require, exports, module) {
         });
 
         if (wrapperName === TRY_CATCH) {
-            var cursorLine = current.editor.getSelection().start.line - 1,
+            var cursorLine = current.editor.getSelection().end.line - 1,
                 startCursorCh = current.document.getLine(cursorLine).indexOf("\/\/"),
                 endCursorCh = current.document.getLine(cursorLine).length;
 
