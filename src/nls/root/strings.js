@@ -40,6 +40,7 @@ define({
     "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to decode the contents of file.",
     "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} currently doesn't support UTF-16 encoded text files.",
     "CANNOT_PERSIST_CHANGES_TITLE"      : "Cannot Persist Unsaved Changes!",
+    "CANNOT_PERSIST_CHANGES_MESSAGE"    : "Do you want to clear the existing change history to record unsaved changes in the following files?",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",

@@ -505,7 +505,7 @@ define(function (require, exports, module) {
                                                                         fileInfo.column - 1,
                                                                         true);
                     }   
-                } else {   // Fall back on file to get last cursorPos if changes were saved
+                } else {   // Fall back on file to get last cursorPos if changes to doc were saved
                     if (!window.localStorage.getItem("loadRefs__" + file._path)) {
                         if (fileInfo.line !== null) {
                             if (fileInfo.column === null || (fileInfo.column <= 0)) {
