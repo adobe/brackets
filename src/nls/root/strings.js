@@ -39,6 +39,7 @@ define({
     "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to encode the contents of file.",
     "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to decode the contents of file.",
     "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} currently doesn't support UTF-16 encoded text files.",
+    "CANNOT_PERSIST_CHANGES_TITLE"      : "Cannot Persist Unsaved Changes!",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",

@@ -19,7 +19,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- */
+ */ 
 
 /*jslint regexp: true */
 
@@ -505,6 +505,18 @@ define(function (require, exports, module) {
                                                                         fileInfo.column - 1,
                                                                         true);
                     }   
+                } else {   // Fall back on file to get last cursorPos if changes were saved
+                    if (!window.localStorage.getItem("loadRefs__" + file._path)) {
+                        if (fileInfo.line !== null) {
+                            if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                                fileInfo.column = 1;
+                            }
+                    
+                            EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
+                                                                        fileInfo.column - 1,
+                                                                        true);
+                        }
+                    }
                 }
 
                 result.resolve(file);

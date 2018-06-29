@@ -59,102 +59,110 @@
  * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
  *     `editorInstance.on("eventname", handler);`
  */
-define(function (require, exports, module) {
+define(function(require, exports, module) {
     "use strict";
 
-    var AnimationUtils     = require("utils/AnimationUtils"),
-        Async              = require("utils/Async"),
-        CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
-        LanguageManager    = require("language/LanguageManager"),
-        EventDispatcher    = require("utils/EventDispatcher"),
-        Menus              = require("command/Menus"),
-        PerfUtils          = require("utils/PerfUtils"),
-        PopUpManager       = require("widgets/PopUpManager"),
+    var AnimationUtils = require("utils/AnimationUtils"),
+        Async = require("utils/Async"),
+        CodeMirror = require("thirdparty/CodeMirror/lib/codemirror"),
+        LanguageManager = require("language/LanguageManager"),
+        EventDispatcher = require("utils/EventDispatcher"),
+        Menus = require("command/Menus"),
+        PerfUtils = require("utils/PerfUtils"),
+        PopUpManager = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        Strings            = require("strings"),
-        TextRange          = require("document/TextRange").TextRange,
-        TokenUtils         = require("utils/TokenUtils"),
-        ValidationUtils    = require("utils/ValidationUtils"),
-        HTMLUtils          = require("language/HTMLUtils"),
-        ViewUtils          = require("utils/ViewUtils"),
-        MainViewManager    = require("view/MainViewManager"),
-        DocumentManager    = require("document/DocumentManager"),
-        _                  = require("thirdparty/lodash"),
-        CompressionTools   = require("thirdparty/rawdeflate"),
-        He                 = require("thirdparty/he");
+        Strings = require("strings"),
+        TextRange = require("document/TextRange").TextRange,
+        TokenUtils = require("utils/TokenUtils"),
+        ValidationUtils = require("utils/ValidationUtils"),
+        HTMLUtils = require("language/HTMLUtils"),
+        ViewUtils = require("utils/ViewUtils"),
+        MainViewManager = require("view/MainViewManager"),
+        DocumentManager = require("document/DocumentManager"),
+        FileUtils = require("file/FileUtils"),
+        Dialogs = require("widgets/Dialogs"),
+        DefaultDialogs = require("widgets/DefaultDialogs"),
+        ProjectManager = require("project/ProjectManager"),
+        _ = require("thirdparty/lodash"),
+        CompressionTools = require("thirdparty/rawdeflate"),
+        He = require("thirdparty/he");
 
     /** Editor preferences */
 
-    var CLOSE_BRACKETS      = "closeBrackets",
-        CLOSE_TAGS          = "closeTags",
-        DRAG_DROP           = "dragDropText",
-        HIGHLIGHT_MATCHES   = "highlightMatches",
-        LINEWISE_COPY_CUT   = "lineWiseCopyCut",
-        SCROLL_PAST_END     = "scrollPastEnd",
-        SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
-        SHOW_LINE_NUMBERS   = "showLineNumbers",
-        SMART_INDENT        = "smartIndent",
-        SOFT_TABS           = "softTabs",
-        SPACE_UNITS         = "spaceUnits",
-        STYLE_ACTIVE_LINE   = "styleActiveLine",
-        TAB_SIZE            = "tabSize",
-        UPPERCASE_COLORS    = "uppercaseColors",
-        USE_TAB_CHAR        = "useTabChar",
-        WORD_WRAP           = "wordWrap",
-        AUTO_HIDE_SEARCH    = "autoHideSearch",
-        INDENT_LINE_COMMENT   = "indentLineComment",
+    var CLOSE_BRACKETS = "closeBrackets",
+        CLOSE_TAGS = "closeTags",
+        DRAG_DROP = "dragDropText",
+        HIGHLIGHT_MATCHES = "highlightMatches",
+        LINEWISE_COPY_CUT = "lineWiseCopyCut",
+        SCROLL_PAST_END = "scrollPastEnd",
+        SHOW_CURSOR_SELECT = "showCursorWhenSelecting",
+        SHOW_LINE_NUMBERS = "showLineNumbers",
+        SMART_INDENT = "smartIndent",
+        SOFT_TABS = "softTabs",
+        SPACE_UNITS = "spaceUnits",
+        STYLE_ACTIVE_LINE = "styleActiveLine",
+        TAB_SIZE = "tabSize",
+        UPPERCASE_COLORS = "uppercaseColors",
+        USE_TAB_CHAR = "useTabChar",
+        WORD_WRAP = "wordWrap",
+        AUTO_HIDE_SEARCH = "autoHideSearch",
         INDENT_LINE_COMMENT = "indentLineComment",
-        INPUT_STYLE         = "inputStyle";
+        INDENT_LINE_COMMENT = "indentLineComment",
+        INPUT_STYLE = "inputStyle";
 
 
     /**
-      * A list of gutter name and priorities currently registered for editors.
-      * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
-      * @type {Array.<{name: string, priority: number, languageIds: Array}}
-      */
+     * A list of gutter name and priorities currently registered for editors.
+     * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
+     * @type {Array.<{name: string, priority: number, languageIds: Array}}
+     */
     var registeredGutters = [];
 
-    var cmOptions         = {};
+    var cmOptions = {};
 
     /**
      * Constants
      * @type {number}
      */
-    var MIN_SPACE_UNITS         =  1,
-        MIN_TAB_SIZE            =  1,
-        DEFAULT_SPACE_UNITS     =  4,
-        DEFAULT_TAB_SIZE        =  4,
-        MAX_SPACE_UNITS         = 10,
-        MAX_TAB_SIZE            = 10;
+    var MIN_SPACE_UNITS = 1,
+        MIN_TAB_SIZE = 1,
+        DEFAULT_SPACE_UNITS = 4,
+        DEFAULT_TAB_SIZE = 4,
+        MAX_SPACE_UNITS = 10,
+        MAX_TAB_SIZE = 10;
 
     var LINE_NUMBER_GUTTER = "CodeMirror-linenumbers",
-        LINE_NUMBER_GUTTER_PRIORITY     = 100,
-        CODE_FOLDING_GUTTER_PRIORITY    = 1000;
+        LINE_NUMBER_GUTTER_PRIORITY = 100,
+        CODE_FOLDING_GUTTER_PRIORITY = 1000;
 
     // Mappings from Brackets preferences to CodeMirror options
-    cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
-    cmOptions[CLOSE_TAGS]         = "autoCloseTags";
-    cmOptions[DRAG_DROP]          = "dragDrop";
-    cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
-    cmOptions[LINEWISE_COPY_CUT]  = "lineWiseCopyCut";
-    cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
+    cmOptions[CLOSE_BRACKETS] = "autoCloseBrackets";
+    cmOptions[CLOSE_TAGS] = "autoCloseTags";
+    cmOptions[DRAG_DROP] = "dragDrop";
+    cmOptions[HIGHLIGHT_MATCHES] = "highlightSelectionMatches";
+    cmOptions[LINEWISE_COPY_CUT] = "lineWiseCopyCut";
+    cmOptions[SCROLL_PAST_END] = "scrollPastEnd";
     cmOptions[SHOW_CURSOR_SELECT] = "showCursorWhenSelecting";
-    cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
-    cmOptions[SMART_INDENT]       = "smartIndent";
-    cmOptions[SPACE_UNITS]        = "indentUnit";
-    cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
-    cmOptions[TAB_SIZE]           = "tabSize";
-    cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
-    cmOptions[WORD_WRAP]          = "lineWrapping";
-    cmOptions[INPUT_STYLE]        = "inputStyle";
+    cmOptions[SHOW_LINE_NUMBERS] = "lineNumbers";
+    cmOptions[SMART_INDENT] = "smartIndent";
+    cmOptions[SPACE_UNITS] = "indentUnit";
+    cmOptions[STYLE_ACTIVE_LINE] = "styleActiveLine";
+    cmOptions[TAB_SIZE] = "tabSize";
+    cmOptions[USE_TAB_CHAR] = "indentWithTabs";
+    cmOptions[WORD_WRAP] = "lineWrapping";
+    cmOptions[INPUT_STYLE] = "inputStyle";
 
-    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
+    PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
 
     // CodeMirror, html mode, set some tags do not close automatically.
     // We do not initialize "dontCloseTags" because otherwise we would overwrite the default behavior of CodeMirror.
-    PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [] }, {
+    PreferencesManager.definePreference(CLOSE_TAGS, "object", {
+        whenOpening: true,
+        whenClosing: true,
+        indentTags: []
+    }, {
         description: Strings.DESCRIPTION_CLOSE_TAGS,
         keys: {
             dontCloseTags: {
@@ -177,10 +185,10 @@ define(function (require, exports, module) {
             }
         }
     });
-    PreferencesManager.definePreference(DRAG_DROP,          "boolean", false, {
+    PreferencesManager.definePreference(DRAG_DROP, "boolean", false, {
         description: Strings.DESCRIPTION_DRAG_DROP_TEXT
     });
-    PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false, {
+    PreferencesManager.definePreference(HIGHLIGHT_MATCHES, "boolean", false, {
         description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES,
         keys: {
             showToken: {
@@ -195,53 +203,53 @@ define(function (require, exports, module) {
             }
         }
     });
-    PreferencesManager.definePreference(LINEWISE_COPY_CUT,  "boolean", true, {
+    PreferencesManager.definePreference(LINEWISE_COPY_CUT, "boolean", true, {
         description: Strings.DESCRIPTION_LINEWISE_COPY_CUT
     });
-    PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false, {
+    PreferencesManager.definePreference(SCROLL_PAST_END, "boolean", false, {
         description: Strings.DESCRIPTION_SCROLL_PAST_END
     });
     PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false, {
         description: Strings.DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING
     });
-    PreferencesManager.definePreference(SHOW_LINE_NUMBERS,  "boolean", true, {
+    PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true, {
         description: Strings.DESCRIPTION_SHOW_LINE_NUMBERS
     });
-    PreferencesManager.definePreference(SMART_INDENT,       "boolean", true, {
+    PreferencesManager.definePreference(SMART_INDENT, "boolean", true, {
         description: Strings.DESCRIPTION_SMART_INDENT
     });
-    PreferencesManager.definePreference(SOFT_TABS,          "boolean", true, {
+    PreferencesManager.definePreference(SOFT_TABS, "boolean", true, {
         description: Strings.DESCRIPTION_SOFT_TABS
     });
-    PreferencesManager.definePreference(SPACE_UNITS,        "number", DEFAULT_SPACE_UNITS, {
+    PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS),
         description: Strings.DESCRIPTION_SPACE_UNITS
     });
-    PreferencesManager.definePreference(STYLE_ACTIVE_LINE,  "boolean", false, {
+    PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false, {
         description: Strings.DESCRIPTION_STYLE_ACTIVE_LINE
     });
-    PreferencesManager.definePreference(TAB_SIZE,           "number", DEFAULT_TAB_SIZE, {
+    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE),
         description: Strings.DESCRIPTION_TAB_SIZE
     });
-    PreferencesManager.definePreference(UPPERCASE_COLORS,   "boolean", false, {
+    PreferencesManager.definePreference(UPPERCASE_COLORS, "boolean", false, {
         description: Strings.DESCRIPTION_UPPERCASE_COLORS
     });
-    PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false, {
+    PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false, {
         description: Strings.DESCRIPTION_USE_TAB_CHAR
     });
-    PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
+    PreferencesManager.definePreference(WORD_WRAP, "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-  
-    PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
+
+    PreferencesManager.definePreference(AUTO_HIDE_SEARCH, "boolean", true, {
         description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
 
-    PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
+    PreferencesManager.definePreference(INDENT_LINE_COMMENT, "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
-    PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
+    PreferencesManager.definePreference(INPUT_STYLE, "string", "textarea", {
         description: Strings.DESCRIPTION_INPUT_STYLE
     });
 
@@ -259,8 +267,8 @@ define(function (require, exports, module) {
      * Constant: ignore upper boundary when centering text
      * @type {number}
      */
-    var BOUNDARY_CHECK_NORMAL   = 0,
-        BOUNDARY_IGNORE_TOP     = 1;
+    var BOUNDARY_CHECK_NORMAL = 0,
+        BOUNDARY_IGNORE_TOP = 1;
 
     /**
      * @private
@@ -341,7 +349,7 @@ define(function (require, exports, module) {
 
         var $container = $(container);
 
-        if (range) {    // attach this first: want range updated before we process a change
+        if (range) { // attach this first: want range updated before we process a change
             this._visibleRange = new TextRange(document, range.startLine, range.endLine);
         }
 
@@ -375,37 +383,39 @@ define(function (require, exports, module) {
 
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab": function () { self._handleTabKey(); },
+            "Tab": function() {
+                self._handleTabKey();
+            },
             "Shift-Tab": "indentLess",
 
-            "Left": function (instance) {
+            "Left": function(instance) {
                 self._handleSoftTabNavigation(-1, "moveH");
             },
-            "Right": function (instance) {
+            "Right": function(instance) {
                 self._handleSoftTabNavigation(1, "moveH");
             },
-            "Backspace": function (instance) {
+            "Backspace": function(instance) {
                 self._handleSoftTabNavigation(-1, "deleteH");
             },
-            "Delete": function (instance) {
+            "Delete": function(instance) {
                 self._handleSoftTabNavigation(1, "deleteH");
             },
-            "Esc": function (instance) {
+            "Esc": function(instance) {
                 if (self.getSelections().length > 1) {
                     CodeMirror.commands.singleSelection(instance);
                 } else {
                     self.removeAllInlineWidgets();
                 }
             },
-            "Home":      "goLineLeftSmart",
-            "Cmd-Left":  "goLineLeftSmart",
-            "End":       "goLineRight",
+            "Home": "goLineLeftSmart",
+            "Cmd-Left": "goLineLeftSmart",
+            "End": "goLineRight",
             "Cmd-Right": "goLineRight"
         };
 
         var currentOptions = this._currentOptions = _.zipObject(
             editorOptions,
-            _.map(editorOptions, function (prefName) {
+            _.map(editorOptions, function(prefName) {
                 return self._getOption(prefName);
             })
         );
@@ -419,31 +429,36 @@ define(function (require, exports, module) {
 
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
-	    this._codeMirror = new CodeMirror(container, {
-            autoCloseBrackets           : currentOptions[CLOSE_BRACKETS],
-            autoCloseTags               : currentOptions[CLOSE_TAGS],
-            coverGutterNextToScrollbar  : true,
-            cursorScrollMargin          : 3,
-            dragDrop                    : currentOptions[DRAG_DROP],
-            electricChars               : true,
-            extraKeys                   : codeMirrorKeyMap,
-            highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
-            indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
-            indentWithTabs              : currentOptions[USE_TAB_CHAR],
-            inputStyle                  : currentOptions[INPUT_STYLE],
-            lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
-            lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
-            lineWrapping                : currentOptions[WORD_WRAP],
-            matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
-            matchTags                   : { bothTags: true },
-            scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
-            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
-            smartIndent                 : currentOptions[SMART_INDENT],
-            styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
-            tabSize                     : currentOptions[TAB_SIZE],
-            readOnly                    : isReadOnly
+        this._codeMirror = new CodeMirror(container, {
+            autoCloseBrackets: currentOptions[CLOSE_BRACKETS],
+            autoCloseTags: currentOptions[CLOSE_TAGS],
+            coverGutterNextToScrollbar: true,
+            cursorScrollMargin: 3,
+            dragDrop: currentOptions[DRAG_DROP],
+            electricChars: true,
+            extraKeys: codeMirrorKeyMap,
+            highlightSelectionMatches: currentOptions[HIGHLIGHT_MATCHES],
+            indentUnit: currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
+            indentWithTabs: currentOptions[USE_TAB_CHAR],
+            inputStyle: currentOptions[INPUT_STYLE],
+            lineNumbers: currentOptions[SHOW_LINE_NUMBERS],
+            lineWiseCopyCut: currentOptions[LINEWISE_COPY_CUT],
+            lineWrapping: currentOptions[WORD_WRAP],
+            matchBrackets: {
+                maxScanLineLength: 50000,
+                maxScanLines: 1000
+            },
+            matchTags: {
+                bothTags: true
+            },
+            scrollPastEnd: !range && currentOptions[SCROLL_PAST_END],
+            showCursorWhenSelecting: currentOptions[SHOW_CURSOR_SELECT],
+            smartIndent: currentOptions[SMART_INDENT],
+            styleActiveLine: currentOptions[STYLE_ACTIVE_LINE],
+            tabSize: currentOptions[TAB_SIZE],
+            readOnly: isReadOnly
         });
-        
+
         // Can't get CodeMirror's focused state without searching for
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
         // options and track state with this._focused
@@ -453,16 +468,16 @@ define(function (require, exports, module) {
 
         this._renderGutters();
 
-        this.on("cursorActivity", function (event, editor) {
+        this.on("cursorActivity", function(event, editor) {
             self._handleCursorActivity(event);
         });
-        this.on("keypress", function (event, editor, domEvent) {
+        this.on("keypress", function(event, editor, domEvent) {
             self._handleKeypressEvents(domEvent);
         });
-        this.on("change", function (event, editor, changeList) {
+        this.on("change", function(event, editor, changeList) {
             self._handleEditorChange(changeList);
         });
-        this.on("focus", function (event, editor) {
+        this.on("focus", function(event, editor) {
             if (self._hostEditor) {
                 // Mark the host editor as the master editor for the hosting document
                 self._hostEditor.document._toggleMasterEditor(self._hostEditor);
@@ -493,26 +508,26 @@ define(function (require, exports, module) {
 
         // Add scrollTop property to this object for the scroll shadow code to use
         Object.defineProperty(this, "scrollTop", {
-            get: function () {
+            get: function() {
                 return this._codeMirror.getScrollInfo().top;
             }
         });
 
         // Add an $el getter for Pane Views
-        Object.defineProperty(this,  "$el", {
-            get: function () {
+        Object.defineProperty(this, "$el", {
+            get: function() {
                 return $(this.getRootElement());
             }
         });
-        
+
         // Export current CodeMirror instance to allow history persistence on file open
         exports.codeMirrorRef = this._codeMirror;
     }
-    
+
     EventDispatcher.makeEventDispatcher(Editor.prototype);
     EventDispatcher.markDeprecated(Editor.prototype, "keyEvent", "'keydown/press/up'");
-    
-    Editor.prototype.markPaneId = function (paneId) {
+
+    Editor.prototype.markPaneId = function(paneId) {
         this._paneId = paneId;
 
         // Also add this to the pool of full editors
@@ -524,7 +539,7 @@ define(function (require, exports, module) {
         this._doWorkingSetSync(null, this.document);
     };
 
-    Editor.prototype._doWorkingSetSync = function (event, doc) {
+    Editor.prototype._doWorkingSetSync = function(event, doc) {
         if (doc === this.document && this._paneId && this.document.isDirty) {
             MainViewManager.addToWorkingSet(this._paneId, this.document.file, -1, false);
         }
@@ -535,7 +550,7 @@ define(function (require, exports, module) {
      * Editor that is secretly providing the Document's backing state, then the Document reverts to
      * a read-only string-backed mode.
      */
-    Editor.prototype.destroy = function () {
+    Editor.prototype.destroy = function() {
         this.trigger("beforeDestroy", this);
 
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
@@ -551,7 +566,7 @@ define(function (require, exports, module) {
         this.document.off("languageChanged", this._handleDocumentLanguageChanged);
         this.document.off("_dirtyFlagChange", this._doWorkingSetSync);
 
-        if (this._visibleRange) {   // TextRange also refs the Document
+        if (this._visibleRange) { // TextRange also refs the Document
             this._visibleRange.dispose();
         }
 
@@ -565,7 +580,7 @@ define(function (require, exports, module) {
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
         // run, at least, since they may also need to release Document refs
         var self = this;
-        this._inlineWidgets.forEach(function (inlineWidget) {
+        this._inlineWidgets.forEach(function(inlineWidget) {
             self._removeInlineWidgetInternal(inlineWidget);
         });
     };
@@ -575,7 +590,7 @@ define(function (require, exports, module) {
      * Handle any cursor movement in editor, including selecting and unselecting text.
      * @param {!Event} event
      */
-    Editor.prototype._handleCursorActivity = function (event) {
+    Editor.prototype._handleCursorActivity = function(event) {
         this._updateStyleActiveLine();
     };
 
@@ -583,13 +598,13 @@ define(function (require, exports, module) {
      * @private
      * Removes any whitespace after one of ]{}) to prevent trailing whitespace when auto-indenting
      */
-    Editor.prototype._handleWhitespaceForElectricChars = function () {
-        var self        = this,
-            instance    = this._codeMirror,
+    Editor.prototype._handleWhitespaceForElectricChars = function() {
+        var self = this,
+            instance = this._codeMirror,
             selections,
             lineStr;
 
-        selections = this.getSelections().map(function (sel) {
+        selections = this.getSelections().map(function(sel) {
             lineStr = instance.getLine(sel.end.line);
 
             if (lineStr && !/\S/.test(lineStr)) {
@@ -608,7 +623,7 @@ define(function (require, exports, module) {
      * Handle CodeMirror key events.
      * @param {!Event} event
      */
-    Editor.prototype._handleKeypressEvents = function (event) {
+    Editor.prototype._handleKeypressEvents = function(event) {
         var keyStr = String.fromCharCode(event.which || event.keyCode);
 
         if (/[\]\{\}\)]/.test(keyStr)) {
@@ -622,14 +637,15 @@ define(function (require, exports, module) {
      * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
      *     The selections to indent.
      */
-    Editor.prototype._addIndentAtEachSelection = function (selections) {
+    Editor.prototype._addIndentAtEachSelection = function(selections) {
         var instance = this._codeMirror,
             usingTabs = instance.getOption("indentWithTabs"),
             indentUnit = instance.getOption("indentUnit"),
             edits = [];
 
-        _.each(selections, function (sel) {
-            var indentStr = "", i, numSpaces;
+        _.each(selections, function(sel) {
+            var indentStr = "",
+                i, numSpaces;
             if (usingTabs) {
                 indentStr = "\t";
             } else {
@@ -638,7 +654,12 @@ define(function (require, exports, module) {
                     indentStr += " ";
                 }
             }
-            edits.push({edit: {text: indentStr, start: sel.start}});
+            edits.push({
+                edit: {
+                    text: indentStr,
+                    start: sel.start
+                }
+            });
         });
 
         this.document.doMultipleEdits(edits);
@@ -650,12 +671,12 @@ define(function (require, exports, module) {
      * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
      *     The selections to indent.
      */
-    Editor.prototype._autoIndentEachSelection = function (selections) {
+    Editor.prototype._autoIndentEachSelection = function(selections) {
         // Capture all the line lengths, so we can tell if anything changed.
         // Note that this function should only be called if all selections are within a single line.
         var instance = this._codeMirror,
             lineLengths = {};
-        _.each(selections, function (sel) {
+        _.each(selections, function(sel) {
             lineLengths[sel.start.line] = instance.getLine(sel.start.line).length;
         });
 
@@ -666,11 +687,11 @@ define(function (require, exports, module) {
         var changed = false,
             newSelections = this.getSelections();
         if (newSelections.length === selections.length) {
-            _.each(selections, function (sel, index) {
+            _.each(selections, function(sel, index) {
                 var newSel = newSelections[index];
                 if (CodeMirror.cmpPos(sel.start, newSel.start) !== 0 ||
-                        CodeMirror.cmpPos(sel.end, newSel.end) !== 0 ||
-                        instance.getLine(sel.start.line).length !== lineLengths[sel.start.line]) {
+                    CodeMirror.cmpPos(sel.end, newSel.end) !== 0 ||
+                    instance.getLine(sel.start.line).length !== lineLengths[sel.start.line]) {
                     changed = true;
                     // Bail - we don't need to look any further once we've found a change.
                     return false;
@@ -689,7 +710,7 @@ define(function (require, exports, module) {
      * @private
      * Handle Tab key press.
      */
-    Editor.prototype._handleTabKey = function () {
+    Editor.prototype._handleTabKey = function() {
         // Tab key handling is done as follows:
         // 1. If any of the selections are multiline, just add one indent level to the
         //    beginning of all lines that intersect any selection.
@@ -714,7 +735,7 @@ define(function (require, exports, module) {
             selectionType = "indentAuto",
             selections = this.getSelections();
 
-        _.each(selections, function (sel) {
+        _.each(selections, function(sel) {
             if (sel.start.line !== sel.end.line) {
                 // Case 1 - we found a multiline selection. We can bail as soon as we find one of these.
                 selectionType = "indentAtBeginning";
@@ -726,22 +747,22 @@ define(function (require, exports, module) {
                 selectionType = "indentAtSelection";
             }
         });
-        
-        switch (selectionType) {
-        case "indentAtBeginning":
-            // Case 1
-            CodeMirror.commands.indentMore(instance);
-            break;
 
-        case "indentAtSelection":
-            // Case 2
-            this._addIndentAtEachSelection(selections);
-            break;
-                
-        case "indentAuto":
-            // Case 3
-            this._autoIndentEachSelection(selections);
-            break;
+        switch (selectionType) {
+            case "indentAtBeginning":
+                // Case 1
+                CodeMirror.commands.indentMore(instance);
+                break;
+
+            case "indentAtSelection":
+                // Case 2
+                this._addIndentAtEachSelection(selections);
+                break;
+
+            case "indentAuto":
+                // Case 3
+                this._autoIndentEachSelection(selections);
+                break;
         }
     };
 
@@ -751,14 +772,14 @@ define(function (require, exports, module) {
      * @param {number} direction Direction of movement: 1 for forward, -1 for backward
      * @param {string} functionName name of the CodeMirror function to call if we handle the key
      */
-    Editor.prototype._handleSoftTabNavigation = function (direction, functionName) {
+    Editor.prototype._handleSoftTabNavigation = function(direction, functionName) {
         var instance = this._codeMirror,
             overallJump = null;
 
         if (!instance.getOption("indentWithTabs") && PreferencesManager.get(SOFT_TABS)) {
             var indentUnit = instance.getOption("indentUnit");
 
-            _.each(this.getSelections(), function (sel) {
+            _.each(this.getSelections(), function(sel) {
                 if (CodeMirror.cmpPos(sel.start, sel.end) !== 0) {
                     // This is a range - it will just collapse/be deleted regardless of the jump we set, so
                     // we can just ignore it and continue. (We don't want to return false in this case since
@@ -767,8 +788,8 @@ define(function (require, exports, module) {
                 }
 
                 var cursor = sel.start,
-                    jump   = (indentUnit === 0) ? 1 : cursor.ch % indentUnit,
-                    line   = instance.getLine(cursor.line);
+                    jump = (indentUnit === 0) ? 1 : cursor.ch % indentUnit,
+                    line = instance.getLine(cursor.line);
 
                 // Don't do any soft tab handling if there are non-whitespace characters before the cursor in
                 // any of the selections.
@@ -803,7 +824,7 @@ define(function (require, exports, module) {
                 // out of the foreach, since as soon as we hit an inconsistent jump we don't
                 // have to look any further.
                 if (jump !== null &&
-                        (overallJump === null || overallJump === jump)) {
+                    (overallJump === null || overallJump === jump)) {
                     overallJump = jump;
                 } else {
                     overallJump = null;
@@ -824,7 +845,7 @@ define(function (require, exports, module) {
      * Uses "text/plain" if the language does not define a mode
      * @return {string} The mode to use
      */
-    Editor.prototype._getModeFromDocument = function () {
+    Editor.prototype._getModeFromDocument = function() {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert
         // here so we're always explicit, avoiding console noise.
@@ -835,13 +856,13 @@ define(function (require, exports, module) {
     /**
      * Selects all text and maintains the current scroll position.
      */
-    Editor.prototype.selectAllNoScroll = function () {
+    Editor.prototype.selectAllNoScroll = function() {
         var cm = this._codeMirror,
             info = this._codeMirror.getScrollInfo();
 
         // Note that we do not have to check for the visible range here. This
         // concern is handled internally by code mirror.
-        cm.operation(function () {
+        cm.operation(function() {
             cm.scrollTo(info.left, info.top);
             cm.execCommand("selectAll");
         });
@@ -850,7 +871,7 @@ define(function (require, exports, module) {
     /**
      * @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor)
      */
-    Editor.prototype.isTextSubset = function () {
+    Editor.prototype.isTextSubset = function() {
         return Boolean(this._visibleRange);
     };
 
@@ -858,12 +879,12 @@ define(function (require, exports, module) {
      * Ensures that the lines that are actually hidden in the inline editor correspond to
      * the desired visible range.
      */
-    Editor.prototype._updateHiddenLines = function () {
+    Editor.prototype._updateHiddenLines = function() {
         if (this._visibleRange) {
             var cm = this._codeMirror,
                 self = this;
-            cm.operation(function () {
-                self._hideMarks.forEach(function (mark) {
+            cm.operation(function() {
+                self._hideMarks.forEach(function(mark) {
                     if (mark) {
                         mark.clear();
                     }
@@ -875,7 +896,7 @@ define(function (require, exports, module) {
         }
     };
 
-    Editor.prototype._applyChanges = function (changeList) {
+    Editor.prototype._applyChanges = function(changeList) {
         // _visibleRange has already updated via its own Document listener. See if this change caused
         // it to lose sync. If so, our whole view is stale - signal our owner to close us.
         if (this._visibleRange) {
@@ -887,7 +908,7 @@ define(function (require, exports, module) {
 
         // Apply text changes to CodeMirror editor
         var cm = this._codeMirror;
-        cm.operation(function () {
+        cm.operation(function() {
             var change, newText, i;
             for (i = 0; i < changeList.length; i++) {
                 change = changeList[i];
@@ -908,16 +929,27 @@ define(function (require, exports, module) {
     };
 
     /**
-    * Preference to persist undo/redo history between Brackets sessions
-    */
+     * Preference to persist undo/redo history between Brackets sessions
+     */
     PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
         description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
     });
-    
+
     var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
         PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges",
         fullPathToFile,
         currentTextObj;
+
+    function _shimShortTitleForDocument(doc) {
+        // If the document is untitled then return the filename, ("Untitled-n.ext");
+        // otherwise show the project-relative path if the file is inside the
+        // current project or the full absolute path if it's not in the project.
+        if (doc.isUntitled()) {
+            return doc.file._name;
+        } else {
+            return ProjectManager.makeProjectRelativeIfPossible(doc.file._path);
+        }
+    }
     
     /**
      * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
@@ -927,7 +959,7 @@ define(function (require, exports, module) {
      *  - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
      *    to a Document change
      */
-    Editor.prototype._handleEditorChange = function (changeList) {
+    Editor.prototype._handleEditorChange = function(changeList) {
         // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
             return;
@@ -935,7 +967,7 @@ define(function (require, exports, module) {
 
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
         this.document._ensureMasterEditor();
-        
+
         if (this.document._masterEditor !== this) {
             // Secondary editor:
             // we're not the ground truth; if we got here, this was a real editor change (not a
@@ -951,75 +983,93 @@ define(function (require, exports, module) {
 
                 // Update which lines are hidden inside our editor, since we're not going to go through
                 // _applyChanges() in our own editor.
-                this._updateHiddenLines();    
+                this._updateHiddenLines();
             } else {
                 /**
                  * Persistent Undo History:
                  * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
                  */
                 fullPathToFile = this.document.file.fullPath,
-                currentTextObj = JSON.stringify(this._codeMirror.getHistory());
+                    currentTextObj = JSON.stringify(this._codeMirror.getHistory());
                 var currentTxt = this._codeMirror.getValue(),
-                scrollPos      = this.getScrollPos(),
-                cursorPos      = this.getCursorPos(),
-                docTxtSpecialCharsEncoded = He.encode(currentTxt),
-                curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
-                codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos.x, scrollPos.y], [currentTextObj], [curTxtDeflated], fullPathToFile],
-                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
-                unsavedDocs = [];  
+                    scrollPos = this.getScrollPos(),
+                    cursorPos = this.getCursorPos(),
+                    docTxtSpecialCharsEncoded = He.encode(currentTxt),
+                    curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
+                    codeMirrorRefs = [
+                        [cursorPos.line, cursorPos.ch, cursorPos.sticky],
+                        [scrollPos.x, scrollPos.y],
+                        [currentTextObj],
+                        [curTxtDeflated], 
+                        [fullPathToFile]
+                    ],
+                    codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
+                    unsavedDocs = [];
 
                 // Ensure if localStorage full, empty before proceeding to write
                 try {
                     window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
                 } catch (err) {
-                /**
-                 * Persistent Undo History:
-                 * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
-                 */
-                fullPathToFile = this.document.file.fullPath,
-                currentTextObj = this._codeMirror.getHistory();
-                var currentTxt = this._codeMirror.getValue(),
-                scrollPos      = this.getScrollPos(),
-                cursorPos      = this.getCursorPos(),
-                docTxtSpecialCharsEncoded = He.encode(currentTxt),
-                curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
-                codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos],[currentTextObj], [curTxtDeflated], fullPathToFile],
-                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs);  
+                    /**
+                     * Persistent Undo History:
+                     * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
+                     */
+                    fullPathToFile = this.document.file.fullPath,
+                        currentTextObj = this._codeMirror.getHistory();
+                    var currentTxt = this._codeMirror.getValue(),
+                        scrollPos = this.getScrollPos(),
+                        cursorPos = this.getCursorPos(),
+                        docTxtSpecialCharsEncoded = He.encode(currentTxt),
+                        curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
+                        codeMirrorRefs = [
+                            [cursorPos.line, cursorPos.ch, cursorPos.sticky],
+                            [scrollPos],
+                            [currentTextObj],
+                            [curTxtDeflated], fullPathToFile
+                        ],
+                        codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs);
 
-                // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
-                // BUILD CODE TO SAVE ALL CODEMIRRORREFS TO LOCALSTORAGE WHEN MEM FULL:
-                var listOfFiles = (MainViewManager.getAllOpenFiles());
-            
-                unsavedDocs = listOfFiles.map(function (file) {
-                    var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                    if (doc && doc.isDirty) {
-                        doc;
-                    }
-                });
+                    // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
+                    // BUILD CODE TO SAVE ALL CODEMIRRORREFS TO LOCALSTORAGE WHEN MEM FULL:
+                    var listOfFiles = (MainViewManager.getAllOpenFiles());
 
-                var fileRefsToJSON = unsavedDocs.map(function (file) {
-                    var thisCurrentFile    = file,
-                        thisFileFullPath   = thisCurrentFile.file._path,
-                        thisCurrentTxtObj  = file._masterEditor._codeMirror.getValue(),
-                        thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
-                        thisCursorPos      = file._masterEditor.getCursorPos(),
-                        thisScrollPos      = file._masterEditor.getScrollPos(),
-                        docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
-                        deflatedCurTxt     = RawDeflate.deflate(docTxtSpecialCharsEncoded);
+                    unsavedDocs = listOfFiles.map(function(file) {
+                        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                        if (doc && doc.isDirty) {
+                            doc;
+                        }
+                    });
 
-                        var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]], refsToJSON = JSON.stringify(refs);
-                        
+                    var fileRefsToJSON = unsavedDocs.map(function(file) {
+                        var thisCurrentFile = file,
+                            thisFileFullPath = thisCurrentFile.file._path,
+                            thisCurrentTxtObj = file._masterEditor._codeMirror.getValue(),
+                            thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
+                            thisCursorPos = file._masterEditor.getCursorPos(),
+                            thisScrollPos = file._masterEditor.getScrollPos(),
+                            docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
+                            deflatedCurTxt = RawDeflate.deflate(docTxtSpecialCharsEncoded);
+
+                        var refs = [
+                                [thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky],
+                                [thisScrollPos],
+                                [thisCurrentHistory],
+                                [deflatedCurTxt],
+                                [thisFileFullPath]
+                            ],
+                            refsToJSON = JSON.stringify(refs);
+
                         return refsToJSON;
                     });
 
-                    window.localStorage.clear();  // Making more room....
+                    window.localStorage.clear(); // Making more room....
 
-                    fileRefsToJSON.forEach(function (fileRefs) {  // Then restore unsaved changes to localStorage
+                    fileRefsToJSON.forEach(function(fileRefs) { // Then restore unsaved changes to localStorage
                         var parsedJSONRefs = JSON.parse(fileRefs),
-                        filePathFull   = parsedJSONRefs.pop().toString(),
-                        fileRefs       = JSON.stringify(parsedJSONRefs);
-                    
-                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);   // Adding back one file per interation
+                            filePathFull = parsedJSONRefs.pop().toString(),
+                            fileRefs = JSON.stringify(parsedJSONRefs);
+
+                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs); // Adding back one file per interation
                     });
                 }
             }
@@ -1035,62 +1085,104 @@ define(function (require, exports, module) {
         // Editor dispatches a change event before this event is dispatched, because
         // CodeHintManager needs to hook in here when other things are already done.
         this.trigger("editorChange", this, changeList);
-        
+
         /**
          * Persistent Undo History:
          * If pref set, will update Undo/Redo History in localStorage with each CodeMirror sync
          */
         if (persistUnsavedChanges) {
             fullPathToFile = this.document.file.fullPath,
-            currentTextObj = JSON.stringify(this._codeMirror.getHistory());
+                currentTextObj = JSON.stringify(this._codeMirror.getHistory());
             var currentTxt = this._codeMirror.getValue(),
-            scrollPos      = this.getScrollPos(),
-            cursorPos      = this.getCursorPos(),
-            docTxtSpecialCharsEncoded = He.encode(currentTxt),
-            curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
-            codeMirrorRefs = [[cursorPos.line, cursorPos.ch, cursorPos.sticky], [scrollPos], [currentTextObj], [curTxtDeflated], fullPathToFile],
-            codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
-            unsavedDocs = [];
+                scrollPos = this.getScrollPos(),
+                cursorPos = this.getCursorPos(),
+                docTxtSpecialCharsEncoded = He.encode(currentTxt),
+                curTxtDeflated = RawDeflate.deflate(docTxtSpecialCharsEncoded),
+                codeMirrorRefs = [
+                    [cursorPos.line, cursorPos.ch, cursorPos.sticky],
+                    [scrollPos],
+                    [currentTextObj],
+                    [curTxtDeflated], 
+                    [fullPathToFile]
+                ],
+                codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
+                unsavedDocs = [];
             
-            // Ensure if localStorage full, empty before proceeding to write
+            // Ensure if localStorage full, clear it before proceeding to write
             try {
                 window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
             } catch (err) {
-                // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
-                var listOfFiles = (MainViewManager.getAllOpenFiles());
-            
-                unsavedDocs = listOfFiles.map(function (file) {
-                    var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                    if (doc && doc.isDirty) {
-                        return doc;
-                    }
-                });
-                
-                var fileRefsToJSON = unsavedDocs.map(function (file) {
-                    var thisCurrentFile    = file,
-                        thisFileFullPath   = thisCurrentFile.file._path,
-                        thisCurrentTxtObj  = file._masterEditor._codeMirror.getValue(),
-                        thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
-                        thisCursorPos      = file._masterEditor.getCursorPos(),
-                        thisScrollPos      = file._masterEditor.getScrollPos(),
-                        docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
-                        deflatedCurTxt     = RawDeflate.deflate(docTxtSpecialCharsEncoded);
+                setTimeout(function() { // Allows current change in document to update
 
-                    var refs = [[thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky], [thisScrollPos], [thisCurrentHistory], [deflatedCurTxt], [thisFileFullPath]],
-                        refsToJSON = JSON.stringify(refs);
-                    
-                    return refsToJSON; 
-                });
-                
-                window.localStorage.clear();
+                    // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
+                    var listOfFiles = MainViewManager.getAllOpenFiles();
 
-                fileRefsToJSON.forEach(function (fileRefs) {
-                    var parsedJSONRefs = JSON.parse(fileRefs),
-                        filePathFull   = parsedJSONRefs.pop().toString(),
-                        fileRefs       = JSON.stringify(parsedJSONRefs);
+                    listOfFiles.forEach(function(file) {
+                        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                        if (doc && doc.isDirty) {
+                            unsavedDocs.push(doc);
+                        } 
+                    });
                     
-                    window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs); 
-                });
+                    if (unsavedDocs) {
+                        // Multiple unsaved files: show a single bulk prompt listing all files
+                        var message = "Do you want to clear the change history buffer to record unsaved changes in the following files?" + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shimShortTitleForDocument)); 
+                    
+                        Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                                Strings.CANNOT_PERSIST_CHANGES_TITLE,
+                                message,
+                                [
+                                    {
+                                        className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                                        id: Dialogs.DIALOG_BTN_CANCEL,
+                                        text: Strings.CANCEL
+                                    },
+                                    {
+                                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                        id: Dialogs.DIALOG_BTN_OK,
+                                        text: Strings.SAVE_AND_OVERWRITE
+                                    }
+                                ],
+                                "autodismiss"
+                            )
+                            .done(function(id) {
+                                if (id === Dialogs.DIALOG_BTN_OK) {
+                                    var fileRefsToJSON = unsavedDocs.map(function(file) {
+                                        var thisCurrentFile = file,
+                                            thisFileFullPath = thisCurrentFile.file._path,
+                                            thisCurrentTxtObj = file._masterEditor._codeMirror.getValue(),
+                                            thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
+                                            thisCursorPos = file._masterEditor.getCursorPos(),
+                                            thisScrollPos = file._masterEditor.getScrollPos(),
+                                            docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
+                                            deflatedCurTxt = RawDeflate.deflate(docTxtSpecialCharsEncoded);
+
+                                        var refs = [
+                                                [thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky],
+                                                [thisScrollPos],
+                                                [thisCurrentHistory],
+                                                [deflatedCurTxt],
+                                                [thisFileFullPath]
+                                            ],
+                                            refsToJSON = JSON.stringify(refs);
+
+                                        return refsToJSON;
+                                    });
+
+                                    window.localStorage.clear();
+
+                                    fileRefsToJSON.forEach(function(fileRefs) {
+                                        var parsedJSONRefs = JSON.parse(fileRefs),
+                                            filePathFull = parsedJSONRefs.pop().toString(),
+                                            fileRefs = JSON.stringify(parsedJSONRefs);
+
+                                        window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);
+                                    });
+                                }
+                            });
+                    } 
+                }, 250);
             }
         }
     };
@@ -1103,7 +1195,7 @@ define(function (require, exports, module) {
      *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
      *    the document an editor change that originated with us
      */
-    Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
+    Editor.prototype._handleDocumentChange = function(event, doc, changeList) {
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -1127,7 +1219,7 @@ define(function (require, exports, module) {
      * Responds to the Document's underlying file being deleted. The Document is now basically dead,
      * so we must close.
      */
-    Editor.prototype._handleDocumentDeleted = function (event) {
+    Editor.prototype._handleDocumentDeleted = function(event) {
         // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
         this.trigger("lostContent", event);
     };
@@ -1135,7 +1227,7 @@ define(function (require, exports, module) {
     /**
      * Responds to language changes, for instance when the file extension is changed.
      */
-    Editor.prototype._handleDocumentLanguageChanged = function (event) {
+    Editor.prototype._handleDocumentLanguageChanged = function(event) {
         this._codeMirror.setOption("mode", this._getModeFromDocument());
     };
 
@@ -1144,37 +1236,37 @@ define(function (require, exports, module) {
      * Install event handlers on the CodeMirror instance, translating them into
      * jQuery events on the Editor instance.
      */
-    Editor.prototype._installEditorListeners = function () {
+    Editor.prototype._installEditorListeners = function() {
         var self = this;
 
         // Redispatch these CodeMirror key events as Editor events
         function _onKeyEvent(instance, event) {
-            self.trigger("keyEvent", self, event);  // deprecated
+            self.trigger("keyEvent", self, event); // deprecated
             self.trigger(event.type, self, event);
-            return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
+            return event.defaultPrevented; // false tells CodeMirror we didn't eat the event
         }
-        this._codeMirror.on("keydown",  _onKeyEvent);
+        this._codeMirror.on("keydown", _onKeyEvent);
         this._codeMirror.on("keypress", _onKeyEvent);
-        this._codeMirror.on("keyup",    _onKeyEvent);
+        this._codeMirror.on("keyup", _onKeyEvent);
 
         // FUTURE: if this list grows longer, consider making this a more generic mapping
         // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
         // Document
         // Also, note that we use the new "changes" event in v4, which provides an array of
         // change objects. Our own event is still called just "change".
-        this._codeMirror.on("changes", function (instance, changeList) {
+        this._codeMirror.on("changes", function(instance, changeList) {
             self.trigger("change", self, changeList);
         });
-        this._codeMirror.on("beforeChange", function (instance, changeObj) {
+        this._codeMirror.on("beforeChange", function(instance, changeObj) {
             self.trigger("beforeChange", self, changeObj);
         });
-        this._codeMirror.on("cursorActivity", function (instance) {
+        this._codeMirror.on("cursorActivity", function(instance) {
             self.trigger("cursorActivity", self);
         });
-        this._codeMirror.on("beforeSelectionChange", function (instance, selectionObj) {
+        this._codeMirror.on("beforeSelectionChange", function(instance, selectionObj) {
             self.trigger("beforeSelectionChange", selectionObj);
         });
-        this._codeMirror.on("scroll", function (instance) {
+        this._codeMirror.on("scroll", function(instance) {
             // If this editor is visible, close all dropdowns on scroll.
             // (We don't want to do this if we're just scrolling in a non-visible editor
             // in response to some document change event.)
@@ -1186,33 +1278,33 @@ define(function (require, exports, module) {
         });
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
-        this._codeMirror.on("focus", function () {
+        this._codeMirror.on("focus", function() {
             self._focused = true;
             self.trigger("focus", self);
-            
+
         });
 
-        this._codeMirror.on("blur", function () {
+        this._codeMirror.on("blur", function() {
             self._focused = false;
             self.trigger("blur", self);
         });
 
-        this._codeMirror.on("update", function (instance) {
+        this._codeMirror.on("update", function(instance) {
             self.trigger("update", self);
         });
-        this._codeMirror.on("overwriteToggle", function (instance, newstate) {
+        this._codeMirror.on("overwriteToggle", function(instance, newstate) {
             self.trigger("overwriteToggle", self, newstate);
         });
 
         // Disable CodeMirror's drop handling if a file/folder is dropped
-        this._codeMirror.on("drop", function (cm, event) {
+        this._codeMirror.on("drop", function(cm, event) {
             var files = event.dataTransfer.files;
             if (files && files.length) {
                 event.preventDefault();
             }
         });
         // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
-        this._codeMirror.on("renderLine", function (cm, line, elt) {
+        this._codeMirror.on("renderLine", function(cm, line, elt) {
             var charWidth = self._codeMirror.defaultCharWidth();
             var off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
             elt.style.textIndent = "-" + off + "px";
@@ -1225,7 +1317,7 @@ define(function (require, exports, module) {
      * Semi-private: only Document should call this.
      * @param {!string} text
      */
-    Editor.prototype._resetText = function (text) {  // nyteksf
+    Editor.prototype._resetText = function(text) { // nyteksf
         var currentText = this._codeMirror.getValue();
 
         // compare with ignoring line-endings, issue #11826
@@ -1257,12 +1349,12 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     };
 
-   /**
-    * Gets the file associated with this editor
-    * This is a required Pane-View interface method
-    * @return {!File} the file associated with this editor
-    */
-    Editor.prototype.getFile = function () {
+    /**
+     * Gets the file associated with this editor
+     * This is a required Pane-View interface method
+     * @return {!File} the file associated with this editor
+     */
+    Editor.prototype.getFile = function() {
         return this.document.file;
     };
 
@@ -1277,7 +1369,7 @@ define(function (require, exports, module) {
      *  passing "head". A {line, ch} object will be returned.)
      * @return {!{line:number, ch:number}}
      */
-    Editor.prototype.getCursorPos = function (expandTabs, which) {
+    Editor.prototype.getCursorPos = function(expandTabs, which) {
         // Translate "start" and "end" to the official CM names (it actually
         // supports them as-is, but that isn't documented and we don't want to
         // rely on it).
@@ -1300,10 +1392,13 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} pos
      * @return {number}
      */
-    Editor.prototype.getColOffset = function (pos) {
-        var line    = this._codeMirror.getRange({line: pos.line, ch: 0}, pos),
+    Editor.prototype.getColOffset = function(pos) {
+        var line = this._codeMirror.getRange({
+                line: pos.line,
+                ch: 0
+            }, pos),
             tabSize = null,
-            column  = 0,
+            column = 0,
             i;
 
         for (i = 0; i < line.length; i++) {
@@ -1328,10 +1423,10 @@ define(function (require, exports, module) {
      * @param {number} column Display column number
      * @return {number}
      */
-    Editor.prototype.getCharIndexForColumn = function (lineNum, column) {
-        var line    = this._codeMirror.getLine(lineNum),
+    Editor.prototype.getCharIndexForColumn = function(lineNum, column) {
+        var line = this._codeMirror.getLine(lineNum),
             tabSize = null,
-            iCol    = 0,
+            iCol = 0,
             i;
 
         for (i = 0; iCol < column; i++) {
@@ -1357,9 +1452,12 @@ define(function (require, exports, module) {
      * @param {boolean=} expandTabs  If true, use the actual visual column number instead of the character offset as
      *      the "ch" parameter.
      */
-    Editor.prototype.setCursorPos = function (line, ch, center, expandTabs) {
+    Editor.prototype.setCursorPos = function(line, ch, center, expandTabs) {
         if (expandTabs) {
-            ch = this.getColOffset({line: line, ch: ch});
+            ch = this.getColOffset({
+                line: line,
+                ch: ch
+            });
         }
         this._codeMirror.setCursor(line, ch);
         if (center) {
@@ -1372,7 +1470,7 @@ define(function (require, exports, module) {
      * @param {(number|string)} width
      * @param {(number|string)} height
      */
-    Editor.prototype.setSize = function (width, height) {
+    Editor.prototype.setSize = function(width, height) {
         this._codeMirror.setSize(width, height);
     };
 
@@ -1388,7 +1486,7 @@ define(function (require, exports, module) {
      *
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
-    Editor.prototype.centerOnCursor = function (centerOptions) {
+    Editor.prototype.centerOnCursor = function(centerOptions) {
         var $scrollerElement = $(this.getScrollerElement());
         var editorHeight = $scrollerElement.height();
 
@@ -1408,7 +1506,7 @@ define(function (require, exports, module) {
         // not center if hit is in first half of screen because this
         // appears to be an unnecesary scroll.
         if ((_checkTopBoundary(centerOptions) && (screenCursorPosition < editorHeight * CENTERING_MARGIN)) ||
-                (_checkBottomBoundary(centerOptions) && (screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)))) {
+            (_checkBottomBoundary(centerOptions) && (screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)))) {
 
             var pos = documentCursorPosition - editorHeight / 2 + statusBarHeight;
             var info = this._codeMirror.getScrollInfo();
@@ -1422,11 +1520,11 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}}
      * @return {number}
      */
-    Editor.prototype.indexFromPos = function (coords) {
+    Editor.prototype.indexFromPos = function(coords) {
         return this._codeMirror.indexFromPos(coords);
     };
 
-    Editor.prototype.posFromIndex = function (index) {
+    Editor.prototype.posFromIndex = function(index) {
         return this._codeMirror.posFromIndex(index);
     };
 
@@ -1439,14 +1537,14 @@ define(function (require, exports, module) {
      * @param {boolean} endInclusive
      *
      */
-    Editor.prototype.posWithinRange = function (pos, start, end, endInclusive) {
+    Editor.prototype.posWithinRange = function(pos, start, end, endInclusive) {
         if (start.line <= pos.line && end.line >= pos.line) {
             if (endInclusive) {
-                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
-                    (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
+                return (start.line < pos.line || start.ch <= pos.ch) && // inclusive
+                    (end.line > pos.line || end.ch >= pos.ch); // inclusive
             } else {
-                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
-                    (end.line > pos.line   || end.ch > pos.ch);       // exclusive
+                return (start.line < pos.line || start.ch <= pos.ch) && // inclusive
+                    (end.line > pos.line || end.ch > pos.ch); // exclusive
             }
 
         }
@@ -1456,7 +1554,7 @@ define(function (require, exports, module) {
     /**
      * @return {boolean} True if there's a text selection; false if there's just an insertion point
      */
-    Editor.prototype.hasSelection = function () {
+    Editor.prototype.hasSelection = function() {
         return this._codeMirror.somethingSelected();
     };
 
@@ -1470,9 +1568,17 @@ define(function (require, exports, module) {
      */
     function _normalizeRange(anchorPos, headPos) {
         if (headPos.line < anchorPos.line || (headPos.line === anchorPos.line && headPos.ch < anchorPos.ch)) {
-            return {start: _copyPos(headPos), end: _copyPos(anchorPos), reversed: true};
+            return {
+                start: _copyPos(headPos),
+                end: _copyPos(anchorPos),
+                reversed: true
+            };
         } else {
-            return {start: _copyPos(anchorPos), end: _copyPos(headPos), reversed: false};
+            return {
+                start: _copyPos(anchorPos),
+                end: _copyPos(headPos),
+                reversed: false
+            };
         }
     }
 
@@ -1484,7 +1590,7 @@ define(function (require, exports, module) {
      * that would be changed if the user extended the selection) is before the anchor.
      * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}, reversed:boolean}
      */
-    Editor.prototype.getSelection = function () {
+    Editor.prototype.getSelection = function() {
         return _normalizeRange(this.getCursorPos(false, "anchor"), this.getCursorPos(false, "head"));
     };
 
@@ -1498,12 +1604,12 @@ define(function (require, exports, module) {
      * If `primary` is set, then that selection is the primary selection.
      * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>}
      */
-    Editor.prototype.getSelections = function () {
+    Editor.prototype.getSelections = function() {
         var primarySel = this.getSelection();
-        return _.map(this._codeMirror.listSelections(), function (sel) {
+        return _.map(this._codeMirror.listSelections(), function(sel) {
             var result = _normalizeRange(sel.anchor, sel.head);
             if (result.start.line === primarySel.start.line && result.start.ch === primarySel.start.ch &&
-                    result.end.line === primarySel.end.line && result.end.ch === primarySel.end.ch) {
+                result.end.line === primarySel.end.line && result.end.ch === primarySel.end.ch) {
                 result.primary = true;
             } else {
                 result.primary = false;
@@ -1531,15 +1637,19 @@ define(function (require, exports, module) {
      *      include the original objects passed in `selections`, so if it is later mutated the original passed-in selections will be
      *      mutated as well.
      */
-    Editor.prototype.convertToLineSelections = function (selections, options) {
+    Editor.prototype.convertToLineSelections = function(selections, options) {
         var self = this;
         options = options || {};
-        _.defaults(options, { expandEndAtStartOfLine: false, mergeAdjacent: true });
+        _.defaults(options, {
+            expandEndAtStartOfLine: false,
+            mergeAdjacent: true
+        });
 
         // Combine adjacent lines with selections so they don't collide with each other, as they would
         // if we did them individually.
-        var combinedSelections = [], prevSel;
-        _.each(selections, function (sel) {
+        var combinedSelections = [],
+            prevSel;
+        _.each(selections, function(sel) {
             var newSel = _.cloneDeep(sel);
 
             // Adjust selection to encompass whole lines.
@@ -1548,7 +1658,10 @@ define(function (require, exports, module) {
             // or if expandEndAtStartOfLine is set.
             var hasSelection = (newSel.start.line !== newSel.end.line) || (newSel.start.ch !== newSel.end.ch);
             if (options.expandEndAtStartOfLine || !hasSelection || newSel.end.ch !== 0) {
-                newSel.end = {line: newSel.end.line + 1, ch: 0};
+                newSel.end = {
+                    line: newSel.end.line + 1,
+                    ch: 0
+                };
             }
 
             // If the start of the new selection is within the range of the previous (expanded) selection, merge
@@ -1559,7 +1672,10 @@ define(function (require, exports, module) {
                 prevSel.selectionForEdit.end.line = newSel.end.line;
                 prevSel.selectionsToTrack.push(sel);
             } else {
-                prevSel = {selectionForEdit: newSel, selectionsToTrack: [sel]};
+                prevSel = {
+                    selectionForEdit: newSel,
+                    selectionsToTrack: [sel]
+                };
                 combinedSelections.push(prevSel);
             }
         });
@@ -1574,7 +1690,7 @@ define(function (require, exports, module) {
      *     by newlines) instead of just the primary selection. Default false.
      * @return {!string} The selected text.
      */
-    Editor.prototype.getSelectedText = function (allSelections) {
+    Editor.prototype.getSelectedText = function(allSelections) {
         if (allSelections) {
             return this._codeMirror.getSelection();
         } else {
@@ -1595,8 +1711,11 @@ define(function (require, exports, module) {
      * @param {?string} origin An optional string that describes what other selection or edit operations this
      *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
-    Editor.prototype.setSelection = function (start, end, center, centerOptions, origin) {
-        this.setSelections([{start: start, end: end || start}], center, centerOptions, origin);
+    Editor.prototype.setSelection = function(start, end, center, centerOptions, origin) {
+        this.setSelections([{
+            start: start,
+            end: end || start
+        }], center, centerOptions, origin);
     };
 
     /**
@@ -1614,16 +1733,22 @@ define(function (require, exports, module) {
      * @param {?string} origin An optional string that describes what other selection or edit operations this
      *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
-    Editor.prototype.setSelections = function (selections, center, centerOptions, origin) {
-        var primIndex = selections.length - 1, options;
+    Editor.prototype.setSelections = function(selections, center, centerOptions, origin) {
+        var primIndex = selections.length - 1,
+            options;
         if (origin) {
-            options = { origin: origin };
+            options = {
+                origin: origin
+            };
         }
-        this._codeMirror.setSelections(_.map(selections, function (sel, index) {
+        this._codeMirror.setSelections(_.map(selections, function(sel, index) {
             if (sel.primary) {
                 primIndex = index;
             }
-            return { anchor: sel.reversed ? sel.end : sel.start, head: sel.reversed ? sel.start : sel.end };
+            return {
+                anchor: sel.reversed ? sel.end : sel.start,
+                head: sel.reversed ? sel.start : sel.end
+            };
         }), primIndex, options);
         if (center) {
             this.centerOnCursor(centerOptions);
@@ -1635,7 +1760,7 @@ define(function (require, exports, module) {
      *
      * @param {?boolean} start
      */
-    Editor.prototype.toggleOverwrite = function (state) {
+    Editor.prototype.toggleOverwrite = function(state) {
         this._codeMirror.toggleOverwrite(state);
     };
 
@@ -1644,7 +1769,7 @@ define(function (require, exports, module) {
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
      * @param {!{line:number, ch:number}}
      */
-    Editor.prototype.selectWordAt = function (pos) {
+    Editor.prototype.selectWordAt = function(pos) {
         var word = this._codeMirror.findWordAt(pos);
         this.setSelection(word.anchor, word.head);
     };
@@ -1653,7 +1778,7 @@ define(function (require, exports, module) {
      * Gets the total number of lines in the document (includes lines not visible in the viewport)
      * @return {!number}
      */
-    Editor.prototype.lineCount = function () {
+    Editor.prototype.lineCount = function() {
         return this._codeMirror.lineCount();
     };
 
@@ -1662,8 +1787,11 @@ define(function (require, exports, module) {
      * @param {number} zero-based index of the line to test
      * @return {boolean} true if the line is fully visible, false otherwise
      */
-    Editor.prototype.isLineVisible = function (line) {
-        var coords = this._codeMirror.charCoords({line: line, ch: 0}, "local"),
+    Editor.prototype.isLineVisible = function(line) {
+        var coords = this._codeMirror.charCoords({
+                line: line,
+                ch: 0
+            }, "local"),
             scrollInfo = this._codeMirror.getScrollInfo(),
             top = scrollInfo.top,
             bottom = scrollInfo.top + scrollInfo.clientHeight;
@@ -1676,7 +1804,7 @@ define(function (require, exports, module) {
      * Gets the number of the first visible line in the editor.
      * @return {number} The 0-based index of the first visible line.
      */
-    Editor.prototype.getFirstVisibleLine = function () {
+    Editor.prototype.getFirstVisibleLine = function() {
         return (this._visibleRange ? this._visibleRange.startLine : 0);
     };
 
@@ -1684,7 +1812,7 @@ define(function (require, exports, module) {
      * Gets the number of the last visible line in the editor.
      * @return {number} The 0-based index of the last visible line.
      */
-    Editor.prototype.getLastVisibleLine = function () {
+    Editor.prototype.getLastVisibleLine = function() {
         return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
     };
 
@@ -1693,7 +1821,7 @@ define(function (require, exports, module) {
      * @param {!to} line to end hiding at (exclusive)
      * @return {TextMarker} The CodeMirror mark object that's hiding the lines
      */
-    Editor.prototype._hideLines = function (from, to) {
+    Editor.prototype._hideLines = function(from, to) {
         if (to <= from) {
             return;
         }
@@ -1702,11 +1830,18 @@ define(function (require, exports, module) {
         // the document, and that's the only hidden line, we can still actually hide it. Doing so
         // requires us to create a 0-length marked span, which would ordinarily be cleaned up by CM
         // if clearWithEmpty is true. See https://groups.google.com/forum/#!topic/codemirror/RB8VNF8ow2w
-        var value = this._codeMirror.markText(
-            {line: from, ch: 0},
-            {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
-            {collapsed: true, inclusiveLeft: true, inclusiveRight: true, clearWhenEmpty: false}
-        );
+        var value = this._codeMirror.markText({
+            line: from,
+            ch: 0
+        }, {
+            line: to - 1,
+            ch: this._codeMirror.getLine(to - 1).length
+        }, {
+            collapsed: true,
+            inclusiveLeft: true,
+            inclusiveRight: true,
+            clearWhenEmpty: false
+        });
 
         return value;
     };
@@ -1715,7 +1850,7 @@ define(function (require, exports, module) {
      * Gets the total height of the document in pixels (not the viewport)
      * @return {!number} height in pixels
      */
-    Editor.prototype.totalHeight = function () {
+    Editor.prototype.totalHeight = function() {
         return this.getScrollerElement().scrollHeight;
     };
 
@@ -1723,7 +1858,7 @@ define(function (require, exports, module) {
      * Gets the scroller element from the editor.
      * @return {!HTMLDivElement} scroller
      */
-    Editor.prototype.getScrollerElement = function () {
+    Editor.prototype.getScrollerElement = function() {
         return this._codeMirror.getScrollerElement();
     };
 
@@ -1731,7 +1866,7 @@ define(function (require, exports, module) {
      * Gets the root DOM node of the editor.
      * @return {!HTMLDivElement} The editor's root DOM node.
      */
-    Editor.prototype.getRootElement = function () {
+    Editor.prototype.getRootElement = function() {
         return this._codeMirror.getWrapperElement();
     };
 
@@ -1742,7 +1877,7 @@ define(function (require, exports, module) {
      * editors.
      * @return {!HTMLDivElement} The editor's lineSpace element.
      */
-    Editor.prototype._getLineSpaceElement = function () {
+    Editor.prototype._getLineSpaceElement = function() {
         return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
     };
 
@@ -1750,9 +1885,12 @@ define(function (require, exports, module) {
      * Returns the current scroll position of the editor.
      * @return {{x:number, y:number}} The x,y scroll position in pixels
      */
-    Editor.prototype.getScrollPos = function () {
+    Editor.prototype.getScrollPos = function() {
         var scrollInfo = this._codeMirror.getScrollInfo();
-        return { x: scrollInfo.left, y: scrollInfo.top };
+        return {
+            x: scrollInfo.left,
+            y: scrollInfo.top
+        };
     };
 
     /**
@@ -1760,7 +1898,7 @@ define(function (require, exports, module) {
      * @param {{x:number, y:number}} scrollPos - The x,y scroll position in pixels
      * @param {!number} heightDelta - The amount of delta H to apply to the scroll position
      */
-    Editor.prototype.adjustScrollPos = function (scrollPos, heightDelta) {
+    Editor.prototype.adjustScrollPos = function(scrollPos, heightDelta) {
         this._codeMirror.scrollTo(scrollPos.x, scrollPos.y + heightDelta);
     };
 
@@ -1769,7 +1907,7 @@ define(function (require, exports, module) {
      * @param {number} x scrollLeft position in pixels
      * @param {number} y scrollTop position in pixels
      */
-    Editor.prototype.setScrollPos = function (x, y) {
+    Editor.prototype.setScrollPos = function(x, y) {
         this._codeMirror.scrollTo(x, y);
     };
 
@@ -1777,7 +1915,7 @@ define(function (require, exports, module) {
      * Returns the current text height of the editor.
      * @return {number} Height of the text in pixels
      */
-    Editor.prototype.getTextHeight = function () {
+    Editor.prototype.getTextHeight = function() {
         return this._codeMirror.defaultTextHeight();
     };
 
@@ -1790,7 +1928,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that is resolved when the widget has been added (but might
      *     still be animating open). Never rejected.
      */
-    Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
+    Editor.prototype.addInlineWidget = function(pos, inlineWidget, scrollLineIntoView) {
         var self = this,
             queue = this._inlineWidgetQueues[pos.line],
             deferred = new $.Deferred();
@@ -1798,7 +1936,7 @@ define(function (require, exports, module) {
             queue = new Async.PromiseQueue();
             this._inlineWidgetQueues[pos.line] = queue;
         }
-        queue.add(function () {
+        queue.add(function() {
             self._addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView, deferred);
             return deferred.promise();
         });
@@ -1809,10 +1947,10 @@ define(function (require, exports, module) {
      * @private
      * Does the actual work of addInlineWidget().
      */
-    Editor.prototype._addInlineWidgetInternal = function (pos, inlineWidget, scrollLineIntoView, deferred) {
+    Editor.prototype._addInlineWidgetInternal = function(pos, inlineWidget, scrollLineIntoView, deferred) {
         var self = this;
 
-        this.removeAllInlineWidgetsForLine(pos.line).done(function () {
+        this.removeAllInlineWidgetsForLine(pos.line).done(function() {
             if (scrollLineIntoView === undefined) {
                 scrollLineIntoView = true;
             }
@@ -1821,9 +1959,11 @@ define(function (require, exports, module) {
                 self._codeMirror.scrollIntoView(pos);
             }
 
-            inlineWidget.info = self._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
-                                                               { coverGutter: true, noHScroll: true });
-            CodeMirror.on(inlineWidget.info.line, "delete", function () {
+            inlineWidget.info = self._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent, {
+                coverGutter: true,
+                noHScroll: true
+            });
+            CodeMirror.on(inlineWidget.info.line, "delete", function() {
                 self._removeInlineWidgetInternal(inlineWidget);
             });
             self._inlineWidgets.push(inlineWidget);
@@ -1831,7 +1971,7 @@ define(function (require, exports, module) {
             // Set up the widget to start closed, then animate open when its initial height is set.
             inlineWidget.$htmlContent.height(0);
             AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                .done(function () {
+                .done(function() {
                     deferred.resolve();
                 });
 
@@ -1844,7 +1984,7 @@ define(function (require, exports, module) {
     /**
      * Removes all inline widgets
      */
-    Editor.prototype.removeAllInlineWidgets = function () {
+    Editor.prototype.removeAllInlineWidgets = function() {
         // copy the array because _removeInlineWidgetInternal will modify the original
         var widgets = [].concat(this.getInlineWidgets());
 
@@ -1859,7 +1999,7 @@ define(function (require, exports, module) {
      * @param {number} inlineWidget The widget to remove.
      * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
-    Editor.prototype.removeInlineWidget = function (inlineWidget) {
+    Editor.prototype.removeInlineWidget = function(inlineWidget) {
         var deferred = new $.Deferred(),
             self = this;
 
@@ -1896,7 +2036,7 @@ define(function (require, exports, module) {
      * Removes all inline widgets for a given line
      * @param {number} lineNum The line number to modify
      */
-    Editor.prototype.removeAllInlineWidgetsForLine = function (lineNum) {
+    Editor.prototype.removeAllInlineWidgetsForLine = function(lineNum) {
         var lineInfo = this._codeMirror.lineInfo(lineNum),
             widgetInfos = (lineInfo && lineInfo.widgets) ? [].concat(lineInfo.widgets) : null,
             self = this;
@@ -1904,13 +2044,13 @@ define(function (require, exports, module) {
         if (widgetInfos && widgetInfos.length) {
             // Map from CodeMirror LineWidget to Brackets InlineWidget
             var inlineWidget,
-                allWidgetInfos = this._inlineWidgets.map(function (w) {
+                allWidgetInfos = this._inlineWidgets.map(function(w) {
                     return w.info;
                 });
 
             return Async.doInParallel(
                 widgetInfos,
-                function (info) {
+                function(info) {
                     // Lookup the InlineWidget object using the same index
                     inlineWidget = self._inlineWidgets[allWidgetInfos.indexOf(info)];
                     if (inlineWidget) {
@@ -1931,7 +2071,7 @@ define(function (require, exports, module) {
      * the widget has already been removed.
      * @param {InlineWidget} inlineWidget  an inline widget.
      */
-    Editor.prototype._removeInlineWidgetFromList = function (inlineWidget) {
+    Editor.prototype._removeInlineWidgetFromList = function(inlineWidget) {
         var l = this._inlineWidgets.length,
             i;
         for (i = 0; i < l; i++) {
@@ -1946,7 +2086,7 @@ define(function (require, exports, module) {
      * Removes the inline widget from the editor and notifies it to clean itself up.
      * @param {InlineWidget} inlineWidget  an inline widget.
      */
-    Editor.prototype._removeInlineWidgetInternal = function (inlineWidget) {
+    Editor.prototype._removeInlineWidgetInternal = function(inlineWidget) {
         if (!inlineWidget.isClosed) {
             this._removeInlineWidgetFromList(inlineWidget);
             inlineWidget.onClosed();
@@ -1959,18 +2099,18 @@ define(function (require, exports, module) {
      * inline's id, and the data parameter that was passed to addInlineWidget().
      * @return {!Array.<{id:number, data:Object}>}
      */
-    Editor.prototype.getInlineWidgets = function () {
+    Editor.prototype.getInlineWidgets = function() {
         return this._inlineWidgets;
     };
 
-      /**
+    /**
      * Returns the currently focused inline widget, if any.
      * @return {?InlineWidget}
      */
-    Editor.prototype.getFocusedInlineWidget = function () {
+    Editor.prototype.getFocusedInlineWidget = function() {
         var result = null;
 
-        this.getInlineWidgets().forEach(function (widget) {
+        this.getInlineWidgets().forEach(function(widget) {
             if (widget.hasFocus()) {
                 result = widget;
             }
@@ -1985,7 +2125,7 @@ define(function (require, exports, module) {
      *
      * @param {string} errorMsg Error message to display
      */
-    Editor.prototype.displayErrorMessageAtCursor = function (errorMsg) {
+    Editor.prototype.displayErrorMessageAtCursor = function(errorMsg) {
         var arrowBelow, cursorPos, cursorCoord, popoverRect,
             top, left, clip, arrowCenter, arrowLeft,
             self = this,
@@ -2016,10 +2156,10 @@ define(function (require, exports, module) {
 
         function _addListeners() {
             self
-                .on("blur.msgbox",           _removeMessagePopover)
-                .on("change.msgbox",         _removeMessagePopover)
+                .on("blur.msgbox", _removeMessagePopover)
+                .on("change.msgbox", _removeMessagePopover)
                 .on("cursorActivity.msgbox", _removeMessagePopover)
-                .on("update.msgbox",         _removeMessagePopover);
+                .on("update.msgbox", _removeMessagePopover);
         }
 
         // Only 1 message at a time
@@ -2048,15 +2188,15 @@ define(function (require, exports, module) {
         }
 
         // Estimate where to position popover.
-        top = (arrowBelow) ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
-                           : cursorCoord.bottom + POPOVER_MARGIN;
+        top = (arrowBelow) ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN :
+            cursorCoord.bottom + POPOVER_MARGIN;
         left = cursorCoord.left - (this._$messagePopover.width() / 2);
 
         popoverRect = {
-            top:    top,
-            left:   left,
+            top: top,
+            left: left,
             height: this._$messagePopover.height(),
-            width:  this._$messagePopover.width()
+            width: this._$messagePopover.width()
         };
 
         // See if popover is clipped on any side
@@ -2070,20 +2210,27 @@ define(function (require, exports, module) {
         }
 
         // Popover text and arrow are positioned individually
-        this._$messagePopover.css({"top": top, "left": left});
+        this._$messagePopover.css({
+            "top": top,
+            "left": left
+        });
 
         // Position popover arrow centered over/under cursor...
         arrowCenter = cursorCoord.left - left;
 
         // ... but don't let it slide off text box
         arrowCenter = Math.min(popoverRect.width - POPOVER_ARROW_HALF_BASE,
-                               Math.max(arrowCenter, POPOVER_ARROW_HALF_BASE));
+            Math.max(arrowCenter, POPOVER_ARROW_HALF_BASE));
 
         arrowLeft = arrowCenter - POPOVER_ARROW_HALF_WIDTH;
         if (arrowBelow) {
-            this._$messagePopover.find(".arrowBelow").css({"margin-left": arrowLeft});
+            this._$messagePopover.find(".arrowBelow").css({
+                "margin-left": arrowLeft
+            });
         } else {
-            this._$messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
+            this._$messagePopover.find(".arrowAbove").css({
+                "margin-left": arrowLeft
+            });
         }
 
         // Add listeners
@@ -2091,7 +2238,7 @@ define(function (require, exports, module) {
         _addListeners();
 
         // Animate open
-        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function() {
             // Make sure we still have a popover
             if (self._$messagePopover && self._$messagePopover.length > 0) {
                 self._$messagePopover.addClass("open");
@@ -2114,7 +2261,7 @@ define(function (require, exports, module) {
      * the top of the virtual scroll area (excluding the top padding).
      * @return {number}
      */
-    Editor.prototype.getVirtualScrollAreaTop = function () {
+    Editor.prototype.getVirtualScrollAreaTop = function() {
         var topPadding = this._getLineSpaceElement().offsetTop, // padding within mover
             scroller = this.getScrollerElement();
         return $(scroller).offset().top - scroller.scrollTop + topPadding;
@@ -2126,7 +2273,7 @@ define(function (require, exports, module) {
      * @param {!number} height The height of the widget.
      * @param {boolean=} ensureVisible Whether to scroll the entire widget into view. Default false.
      */
-    Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
+    Editor.prototype.setInlineWidgetHeight = function(inlineWidget, height, ensureVisible) {
         var self = this,
             node = inlineWidget.htmlContent,
             oldHeight = (node && $(node).height()) || 0,
@@ -2186,12 +2333,12 @@ define(function (require, exports, module) {
      * @param {!InlineWidget} inlineWidget
      * @return {number} The line number of the widget or -1 if not found.
      */
-    Editor.prototype._getInlineWidgetLineNumber = function (inlineWidget) {
+    Editor.prototype._getInlineWidgetLineNumber = function(inlineWidget) {
         return this._codeMirror.getLineNumber(inlineWidget.info.line);
     };
 
     /** Gives focus to the editor control */
-    Editor.prototype.focus = function () {
+    Editor.prototype.focus = function() {
         // Focusing an editor synchronously triggers focus/blur handlers. If a blur handler attemps to focus
         // another editor, we'll put CM in a bad state (because CM assumes programmatically focusing itself
         // will always succeed, and if you're in the middle of another focus change that appears to be untrue).
@@ -2210,7 +2357,7 @@ define(function (require, exports, module) {
     };
 
     /** Returns true if the editor has focus */
-    Editor.prototype.hasFocus = function () {
+    Editor.prototype.hasFocus = function() {
         return this._focused;
     };
 
@@ -2222,7 +2369,7 @@ define(function (require, exports, module) {
      * returns the view state for the editor
      * @return {!EditorViewState}
      */
-    Editor.prototype.getViewState = function () {
+    Editor.prototype.getViewState = function() {
         return {
             selections: this.getSelections(),
             scrollPos: this.getScrollPos()
@@ -2234,7 +2381,7 @@ define(function (require, exports, module) {
      * Restores the view state
      * @param {!EditorViewState} viewState - the view state object to restore
      */
-    Editor.prototype.restoreViewState = function (viewState) {
+    Editor.prototype.restoreViewState = function(viewState) {
         if (viewState.selection) {
             // We no longer write out single-selection, but there might be some view state
             // from an older version.
@@ -2252,7 +2399,7 @@ define(function (require, exports, module) {
      * Re-renders the editor UI
      * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
      */
-    Editor.prototype.refresh = function (handleResize) {
+    Editor.prototype.refresh = function(handleResize) {
         // If focus is currently in a child of the CodeMirror editor (e.g. in an inline widget), but not in
         // the CodeMirror input field itself, remember the focused item so we can restore focus after the
         // refresh (which might cause the widget to be removed from the display list temporarily).
@@ -2268,20 +2415,20 @@ define(function (require, exports, module) {
      * Re-renders the editor, and all children inline editors.
      * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
      */
-    Editor.prototype.refreshAll = function (handleResize) {
+    Editor.prototype.refreshAll = function(handleResize) {
         this.refresh(handleResize);
-        this.getInlineWidgets().forEach(function (inlineWidget) {
+        this.getInlineWidgets().forEach(function(inlineWidget) {
             inlineWidget.refresh();
         });
     };
 
     /** Undo the last edit. */
-    Editor.prototype.undo = function () {
+    Editor.prototype.undo = function() {
         this._codeMirror.undo();
     };
 
     /** Redo the last un-done edit. */
-    Editor.prototype.redo = function () {
+    Editor.prototype.redo = function() {
         this._codeMirror.redo();
     };
 
@@ -2291,12 +2438,12 @@ define(function (require, exports, module) {
      * @param {boolean} show true to show the editor, false to hide it
      * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
      */
-    Editor.prototype.notifyVisibilityChange = function (show, refresh) {
+    Editor.prototype.notifyVisibilityChange = function(show, refresh) {
         if (show && (refresh || refresh === undefined)) {
             this.refresh();
         }
         if (show) {
-            this._inlineWidgets.forEach(function (inlineWidget) {
+            this._inlineWidgets.forEach(function(inlineWidget) {
                 inlineWidget.onParentShown();
             });
         }
@@ -2308,7 +2455,7 @@ define(function (require, exports, module) {
      * @param {boolean} show true to show the editor, false to hide it
      * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
      */
-    Editor.prototype.setVisible = function (show, refresh) {
+    Editor.prototype.setVisible = function(show, refresh) {
         this.$el.css("display", (show ? "" : "none"));
         this.notifyVisibilityChange(show, refresh);
     };
@@ -2317,7 +2464,7 @@ define(function (require, exports, module) {
      * Returns true if the editor is fully visible--i.e., is in the DOM, all ancestors are
      * visible, and has a non-zero width/height.
      */
-    Editor.prototype.isFullyVisible = function () {
+    Editor.prototype.isFullyVisible = function() {
         return $(this.getRootElement()).is(":visible");
     };
 
@@ -2335,7 +2482,7 @@ define(function (require, exports, module) {
      *     naming the mode along with configuration options required by the mode.
      * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
-    Editor.prototype.getModeForRange = function (start, end, knownMixed) {
+    Editor.prototype.getModeForRange = function(start, end, knownMixed) {
         var outerMode = this._codeMirror.getMode(),
             startMode = TokenUtils.getModeAt(this._codeMirror, start),
             endMode = TokenUtils.getModeAt(this._codeMirror, end);
@@ -2361,14 +2508,14 @@ define(function (require, exports, module) {
      *     naming the mode along with configuration options required by the mode.
      * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
-    Editor.prototype.getModeForSelection = function () {
+    Editor.prototype.getModeForSelection = function() {
         // Check for mixed mode info
-        var self        = this,
-            sels        = this.getSelections(),
-            primarySel  = this.getSelection(),
-            outerMode   = this._codeMirror.getMode(),
-            startMode   = TokenUtils.getModeAt(this._codeMirror, primarySel.start),
-            isMixed     = (outerMode.name !== startMode.name);
+        var self = this,
+            sels = this.getSelections(),
+            primarySel = this.getSelection(),
+            outerMode = this._codeMirror.getMode(),
+            startMode = TokenUtils.getModeAt(this._codeMirror, primarySel.start),
+            isMixed = (outerMode.name !== startMode.name);
 
         if (isMixed) {
             // This is the magic code to let the code view know that we are in 'css' context
@@ -2379,7 +2526,7 @@ define(function (require, exports, module) {
             if (outerMode.name === 'htmlmixed' && primarySel.start.line === primarySel.end.line && primarySel.start.ch === primarySel.end.ch) {
                 var tagInfo = HTMLUtils.getTagInfo(this, primarySel.start, true),
                     tokenType = tagInfo.position.tokenType;
- 
+
                 if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name.toLowerCase() === 'style') {
                     return 'css';
                 }
@@ -2394,7 +2541,7 @@ define(function (require, exports, module) {
             }
 
             // If mixed mode, check that mode is the same at start & end of each selection
-            var hasMixedSel = _.some(sels, function (sel) {
+            var hasMixedSel = _.some(sels, function(sel) {
                 if (sels === primarySel) {
                     // We already checked this before, so we know it's not mixed.
                     return false;
@@ -2418,7 +2565,7 @@ define(function (require, exports, module) {
      * gets the language for the selection. (Javascript selected from an HTML document or CSS selected from an HTML document, etc...)
      * @return {!Language}
      */
-    Editor.prototype.getLanguageForSelection = function () {
+    Editor.prototype.getLanguageForSelection = function() {
         return this.document.getLanguage().getLanguageForMode(this.getModeForSelection());
     };
 
@@ -2428,7 +2575,7 @@ define(function (require, exports, module) {
      * @return {Object|String} Object or Name of syntax-highlighting mode
      * @see {@link LanguageManager::#getLanguageForPath|LanguageManager.getLanguageForPath} and {@link LanguageManager::Language#getMode|Language.getMode}.
      */
-    Editor.prototype.getModeForDocument = function () {
+    Editor.prototype.getModeForDocument = function() {
         return this._codeMirror.getOption("mode");
     };
 
@@ -2498,7 +2645,7 @@ define(function (require, exports, module) {
      * @param {string} prefName Name of preference to retrieve.
      * @return {*} current value of that pref
      */
-    Editor.prototype._getOption = function (prefName) {
+    Editor.prototype._getOption = function(prefName) {
         return PreferencesManager.get(prefName, PreferencesManager._buildContext(this.document.file.fullPath, this.document.getLanguage().getId()));
     };
 
@@ -2509,7 +2656,7 @@ define(function (require, exports, module) {
      *
      * @param {string} prefName Name of the preference to visibly update
      */
-    Editor.prototype._updateOption = function (prefName) {
+    Editor.prototype._updateOption = function(prefName) {
         var oldValue = this._currentOptions[prefName],
             newValue = this._getOption(prefName);
 
@@ -2519,9 +2666,9 @@ define(function (require, exports, module) {
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
                 this._codeMirror.setOption("indentUnit", newValue === true ?
-                                           this._currentOptions[TAB_SIZE] :
-                                           this._currentOptions[SPACE_UNITS]
-                                          );
+                    this._currentOptions[TAB_SIZE] :
+                    this._currentOptions[SPACE_UNITS]
+                );
             } else if (prefName === STYLE_ACTIVE_LINE) {
                 this._updateStyleActiveLine();
             } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
@@ -2549,7 +2696,7 @@ define(function (require, exports, module) {
      *
      * Used to ensure that "style active line" is turned off when there is a selection.
      */
-    Editor.prototype._updateStyleActiveLine = function () {
+    Editor.prototype._updateStyleActiveLine = function() {
         if (this.hasSelection()) {
             if (this._codeMirror.getOption("styleActiveLine")) {
                 this._codeMirror.setOption("styleActiveLine", false);
@@ -2565,7 +2712,7 @@ define(function (require, exports, module) {
      * @param {boolean=} forceRefresh - forces the editor to update its layout
      *                                   even if it already matches the container's height / width
      */
-    Editor.prototype.updateLayout = function (forceRefresh) {
+    Editor.prototype.updateLayout = function(forceRefresh) {
         var curRoot = this.getRootElement(),
             curWidth = $(curRoot).width(),
             $editorHolder = this.$el.parent(),
@@ -2594,7 +2741,7 @@ define(function (require, exports, module) {
      * Clears all marks from the gutter with the specified name.
      * @param {string} name The name of the gutter to clear.
      */
-    Editor.prototype.clearGutter = function (name) {
+    Editor.prototype.clearGutter = function(name) {
         this._codeMirror.clearGutter(name);
     };
 
@@ -2602,7 +2749,7 @@ define(function (require, exports, module) {
      * Renders all registered gutters
      * @private
      */
-    Editor.prototype._renderGutters = function () {
+    Editor.prototype._renderGutters = function() {
         var languageId = this.document.getLanguage().getId();
 
         function _filterByLanguages(gutter) {
@@ -2624,7 +2771,10 @@ define(function (require, exports, module) {
         // set to true, we explicitly add the line numbers gutter. This case occurs the first time the editor loads
         // and showLineNumbers is set to true in preferences
         if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0 && this._codeMirror.getOption(cmOptions[SHOW_LINE_NUMBERS])) {
-            registeredGutters.push({name: LINE_NUMBER_GUTTER, priority: LINE_NUMBER_GUTTER_PRIORITY});
+            registeredGutters.push({
+                name: LINE_NUMBER_GUTTER,
+                priority: LINE_NUMBER_GUTTER_PRIORITY
+            });
         }
 
         gutters = registeredGutters.sort(_sortByPriority)
@@ -2647,8 +2797,8 @@ define(function (require, exports, module) {
      * @param   {string}   gutterName The name of the gutter
      * @param   {object}   marker     The dom element representing the marker to the inserted in the gutter
      */
-    Editor.prototype.setGutterMarker = function (lineNumber, gutterName, marker) {
-        var gutterNameRegistered = registeredGutters.some(function (gutter) {
+    Editor.prototype.setGutterMarker = function(lineNumber, gutterName, marker) {
+        var gutterNameRegistered = registeredGutters.some(function(gutter) {
             return gutter.name === gutterName;
         });
 
@@ -2664,7 +2814,7 @@ define(function (require, exports, module) {
      * Returns the list of gutters current registered on all editors.
      * @return {!Array.<{name: string, priority: number}>}
      */
-    Editor.getRegisteredGutters = function () {
+    Editor.getRegisteredGutters = function() {
         return registeredGutters;
     };
 
@@ -2674,7 +2824,7 @@ define(function (require, exports, module) {
      * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than LINE_NUMBER_GUTTER_PRIORITY appear after the line numbers. Priority less than LINE_NUMBER_GUTTER_PRIORITY appear before.
      * @param {?Array<string>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
      */
-    Editor.registerGutter = function (name, priority, languageIds) {
+    Editor.registerGutter = function(name, priority, languageIds) {
         if (isNaN(priority)) {
             console.warn("A non-numeric priority value was passed to registerGutter. The value will default to 0.");
             priority = 0;
@@ -2685,8 +2835,12 @@ define(function (require, exports, module) {
             return;
         }
 
-        var gutter = {name: name, priority: priority, languages: languageIds},
-            gutterExists = registeredGutters.some(function (gutter) {
+        var gutter = {
+                name: name,
+                priority: priority,
+                languages: languageIds
+            },
+            gutterExists = registeredGutters.some(function(gutter) {
                 return gutter.name === name;
             });
 
@@ -2694,7 +2848,7 @@ define(function (require, exports, module) {
             registeredGutters.push(gutter);
         }
 
-        Editor.forEveryEditor(function (editor) {
+        Editor.forEveryEditor(function(editor) {
             editor._renderGutters();
         });
     };
@@ -2703,13 +2857,13 @@ define(function (require, exports, module) {
      * Unregisters the gutter with the specified name and removes it from the UI.
      * @param {string} name The name of the gutter to be unregistered.
      */
-    Editor.unregisterGutter = function (name) {
+    Editor.unregisterGutter = function(name) {
         var i, gutter;
-        registeredGutters = registeredGutters.filter(function (gutter) {
+        registeredGutters = registeredGutters.filter(function(gutter) {
             return gutter.name !== name;
         });
 
-        Editor.forEveryEditor(function (editor) {
+        Editor.forEveryEditor(function(editor) {
             editor._renderGutters();
         });
     };
@@ -2723,8 +2877,10 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setUseTabChar = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
+    Editor.setUseTabChar = function(value, fullPath) {
+        var options = fullPath && {
+            context: fullPath
+        };
         return PreferencesManager.set(USE_TAB_CHAR, value, options);
     };
 
@@ -2733,7 +2889,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    Editor.getUseTabChar = function (fullPath) {
+    Editor.getUseTabChar = function(fullPath) {
         return PreferencesManager.get(USE_TAB_CHAR, _buildPreferencesContext(fullPath));
     };
 
@@ -2744,8 +2900,10 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setTabSize = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
+    Editor.setTabSize = function(value, fullPath) {
+        var options = fullPath && {
+            context: fullPath
+        };
         return PreferencesManager.set(TAB_SIZE, value, options);
     };
 
@@ -2754,7 +2912,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {number}
      */
-    Editor.getTabSize = function (fullPath) {
+    Editor.getTabSize = function(fullPath) {
         return PreferencesManager.get(TAB_SIZE, _buildPreferencesContext(fullPath));
     };
 
@@ -2765,8 +2923,10 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setSpaceUnits = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
+    Editor.setSpaceUnits = function(value, fullPath) {
+        var options = fullPath && {
+            context: fullPath
+        };
         return PreferencesManager.set(SPACE_UNITS, value, options);
     };
 
@@ -2775,7 +2935,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {number}
      */
-    Editor.getSpaceUnits = function (fullPath) {
+    Editor.getSpaceUnits = function(fullPath) {
         return PreferencesManager.get(SPACE_UNITS, _buildPreferencesContext(fullPath));
     };
 
@@ -2786,8 +2946,10 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setCloseBrackets = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
+    Editor.setCloseBrackets = function(value, fullPath) {
+        var options = fullPath && {
+            context: fullPath
+        };
         return PreferencesManager.set(CLOSE_BRACKETS, value, options);
     };
 
@@ -2796,7 +2958,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    Editor.getCloseBrackets = function (fullPath) {
+    Editor.getCloseBrackets = function(fullPath) {
         return PreferencesManager.get(CLOSE_BRACKETS, _buildPreferencesContext(fullPath));
     };
 
@@ -2807,8 +2969,10 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setShowLineNumbers = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
+    Editor.setShowLineNumbers = function(value, fullPath) {
+        var options = fullPath && {
+            context: fullPath
+        };
         return PreferencesManager.set(SHOW_LINE_NUMBERS, value, options);
     };
 
@@ -2817,7 +2981,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    Editor.getShowLineNumbers = function (fullPath) {
+    Editor.getShowLineNumbers = function(fullPath) {
         return PreferencesManager.get(SHOW_LINE_NUMBERS, _buildPreferencesContext(fullPath));
     };
 
@@ -2828,7 +2992,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setShowActiveLine = function (value, fullPath) {
+    Editor.setShowActiveLine = function(value, fullPath) {
         return PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
 
@@ -2837,7 +3001,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    Editor.getShowActiveLine = function (fullPath) {
+    Editor.getShowActiveLine = function(fullPath) {
         return PreferencesManager.get(STYLE_ACTIVE_LINE, _buildPreferencesContext(fullPath));
     };
 
@@ -2848,8 +3012,10 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setWordWrap = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
+    Editor.setWordWrap = function(value, fullPath) {
+        var options = fullPath && {
+            context: fullPath
+        };
         return PreferencesManager.set(WORD_WRAP, value, options);
     };
 
@@ -2858,7 +3024,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    Editor.getWordWrap = function (fullPath) {
+    Editor.getWordWrap = function(fullPath) {
         return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
     };
 
@@ -2869,8 +3035,10 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    Editor.setIndentLineComment = function (value, fullPath) {
-        var options = fullPath && {context: fullPath};
+    Editor.setIndentLineComment = function(value, fullPath) {
+        var options = fullPath && {
+            context: fullPath
+        };
         return PreferencesManager.set(INDENT_LINE_COMMENT, value, options);
     };
 
@@ -2879,7 +3047,7 @@ define(function (require, exports, module) {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    Editor.getIndentLineComment = function (fullPath) {
+    Editor.getIndentLineComment = function(fullPath) {
         return PreferencesManager.get(INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
     };
 
@@ -2887,7 +3055,7 @@ define(function (require, exports, module) {
      * Runs callback for every Editor instance that currently exists
      * @param {!function(!Editor)} callback
      */
-    Editor.forEveryEditor = function (callback) {
+    Editor.forEveryEditor = function(callback) {
         _instances.forEach(callback);
     };
 
@@ -2898,35 +3066,35 @@ define(function (require, exports, module) {
      * line numbers are hidden.
      * @param {boolean} showLinePadding
      */
-    Editor._toggleLinePadding = function (showLinePadding) {
+    Editor._toggleLinePadding = function(showLinePadding) {
         // apply class to all pane DOM nodes
         var $holders = [];
-        _instances.forEach(function (editor) {
+        _instances.forEach(function(editor) {
             var $editorHolder = editor.$el.parent();
             if ($holders.indexOf($editorHolder) === -1) {
                 $holders.push($editorHolder);
             }
         });
 
-        _.each($holders, function ($holder) {
+        _.each($holders, function($holder) {
             $holder.toggleClass("show-line-padding", Boolean(showLinePadding));
         });
     };
-    
+
     Editor.LINE_NUMBER_GUTTER_PRIORITY = LINE_NUMBER_GUTTER_PRIORITY;
     Editor.CODE_FOLDING_GUTTER_PRIORITY = CODE_FOLDING_GUTTER_PRIORITY;
-    
+
     // Set up listeners for preference changes
-    editorOptions.forEach(function (prefName) {
-        PreferencesManager.on("change", prefName, function () {
-            _instances.forEach(function (editor) {
+    editorOptions.forEach(function(prefName) {
+        PreferencesManager.on("change", prefName, function() {
+            _instances.forEach(function(editor) {
                 editor._updateOption(prefName);
             });
         });
     });
-    
+
     // Define public API
-    exports.Editor                  = Editor;
-    exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;
-    exports.BOUNDARY_IGNORE_TOP     = BOUNDARY_IGNORE_TOP;
+    exports.Editor = Editor;
+    exports.BOUNDARY_CHECK_NORMAL = BOUNDARY_CHECK_NORMAL;
+    exports.BOUNDARY_IGNORE_TOP = BOUNDARY_IGNORE_TOP;
 });
