@@ -80,6 +80,7 @@ define(function(require, exports, module) {
         MainViewManager = require("view/MainViewManager"),
         DocumentManager = require("document/DocumentManager"),
         FileUtils = require("file/FileUtils"),
+        StringUtils = require("utils/StringUtils"),
         Dialogs = require("widgets/Dialogs"),
         DefaultDialogs = require("widgets/DefaultDialogs"),
         ProjectManager = require("project/ProjectManager"),
@@ -943,7 +944,7 @@ define(function(require, exports, module) {
         }
     }
     
-    // Stash a copy of current document text, history, etc.
+    // Stash a copy of current document text, history, etc. in localStorage
     function _captureUnsavedDocChanges(that) {
         fullPathToFile = that.document.file.fullPath,
         currentTextObj = JSON.stringify(that._codeMirror.getHistory());
@@ -960,26 +961,74 @@ define(function(require, exports, module) {
                 [fullPathToFile]
             ],
             codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
-            unsavedDocs = [];
+            unsavedDocs = [],
+            result = new $.Deferred(),
+            promise = result.promise();
 
         // Ensure if localStorage full, clear it before proceeding to write
         try {
             window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
-        } catch (err) {
-            setTimeout(function() { // Allows current change in document to update
-                // MOVE THIS INTO ITS OWN FUNCTION (D.R.Y.):
+            result.resolve();
+        } catch (err) { 
+            setTimeout(function() {  // Allows update to finish
                 var listOfFiles = MainViewManager.getAllOpenFiles();
 
-                listOfFiles.forEach(function(file) {
-                    var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                    if (doc && doc.isDirty) {
-                        unsavedDocs.push(doc);
-                    }
-                });
+                if (listOfFiles.length > 0) {
+                    listOfFiles.forEach(function(file) {
+                        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                        if (doc && doc.isDirty) {
+                            unsavedDocs.push(doc);
+                        }
+                    });
+                }
 
-                if (unsavedDocs) {
-                    // Multiple unsaved files: show a single bulk prompt listing all files
-                    var message = Strings.CANNOT_PERSIST_CHANGES_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shimShortTitleForDocument));
+                if (unsavedDocs.length === 0) {
+                    // NOOP; No dirty files detected
+                    result.reject();
+                }
+                else if (unsavedDocs.length === 1) {
+                    // Single dirty file detected
+                    var pathToFile = unsavedDocs[0].file._path,
+                        fileName = unsavedDocs[0].file._name,
+                        msg = StringUtils.format(
+                            Strings.CANNOT_PERSIST_CHANGES_MESSAGE,
+			                StringUtils.breakableUrl(fileName)
+                        );
+
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                        Strings.CANNOT_PERSIST_CHANGES_TITLE,
+                        msg, 
+                        [
+                            {
+                                className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                                id        : Dialogs.DIALOG_BTN_CANCEL,
+                                text      : Strings.CANCEL
+                            },
+                            {
+                                className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id        : Dialogs.DIALOG_BTN_OK,
+                                text      : Strings.SAVE_AND_OVERWRITE
+                            }
+                        ],
+                        "autoDismiss"
+                    )
+                    .done(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            // "Overwrite localStorage" case:
+                            
+                            window.localStorage.clear();
+
+                            window.localStorage.setItem("loadRefs__" + pathToFile, codeMirrorRefsToJSON);
+                            
+                            result.resolve();
+                        } else {
+                            result.reject();
+                        }
+                    });
+                } else if (unsavedDocs.length > 1) {
+                    // Multiple dirty files: show a single bulk prompt listing all files
+                    var message = Strings.MULTI_CANNOT_PERSIST_CHANGES_MSG + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shimShortTitleForDocument));
 
                     Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -996,7 +1045,7 @@ define(function(require, exports, module) {
                                     text: Strings.SAVE_AND_OVERWRITE
                                 }
                             ],
-                            "autodismiss"
+                            "autoDismiss"
                         )
                         .done(function(id) {
                             if (id === Dialogs.DIALOG_BTN_OK) {
@@ -1031,18 +1080,24 @@ define(function(require, exports, module) {
 
                                     window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);
                                 });
+
+                                result.resolve();
+                            } else {
+                                result.reject();
                             }
                         });
                     }
                 }, 250);
             }
+
+            return promise;
         }
 
     var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
         PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges",
         fullPathToFile,
         currentTextObj;
-    
+
     /**
      * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
      * There are several cases where we want to ignore a CodeMirror change:
@@ -1069,7 +1124,6 @@ define(function(require, exports, module) {
             // that instead of talking to its master editor directly. It's not clear yet exactly
             // what the right Document API would be, though.
             if (persistUnsavedChanges) {
-                // Persists Undo History:
                 _captureUnsavedDocChanges(this);
             } else {
                 this._duringSync = true;
@@ -1131,7 +1185,7 @@ define(function(require, exports, module) {
      * Responds to the Document's underlying file being deleted. The Document is now basically dead,
      * so we must close.
      */
-    Editor.prototype._handleDocumentDeleted = function(event) {
+    Editor.prototype._handleDocumentDeleted = function(event) { 
         // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
         this.trigger("lostContent", event);
     };
@@ -1186,7 +1240,7 @@ define(function(require, exports, module) {
                 Menus.closeAll();
             }
 
-            self.trigger("scroll", self);
+            self.trigger("scroll", self); 
         });
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
@@ -1213,7 +1267,7 @@ define(function(require, exports, module) {
             var files = event.dataTransfer.files;
             if (files && files.length) {
                 event.preventDefault();
-            }
+            } 
         });
         // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
         this._codeMirror.on("renderLine", function(cm, line, elt) {
