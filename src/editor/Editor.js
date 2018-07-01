@@ -156,7 +156,7 @@ define(function(require, exports, module) {
     PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
-    
+
     PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
         description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
     });
@@ -804,7 +804,7 @@ define(function(require, exports, module) {
                     if (indentUnit) {
                         jump = indentUnit - jump;
                     }
-                    
+
                     // Don't jump if it would take us past the end of the line, or if there are
                     // non-whitespace characters within the jump distance.
                     if (cursor.ch + jump > line.length || line.substr(cursor.ch, jump).search(/\S/) !== -1) {
@@ -943,12 +943,12 @@ define(function(require, exports, module) {
             return ProjectManager.makeProjectRelativeIfPossible(doc.file._path);
         }
     }
-    
+
     // Stash a copy of current document text, history, etc. in localStorage
     function _captureUnsavedDocChanges(that) {
-        fullPathToFile = that.document.file.fullPath,
-        currentTextObj = JSON.stringify(that._codeMirror.getHistory());
-        var currentTxt = that._codeMirror.getValue(),
+        var currentTextObj = JSON.stringify(that._codeMirror.getHistory()),
+            currentTxt = that._codeMirror.getValue(),
+            fullPathToFile = that.document.file._path,
             scrollPos = that.getScrollPos(),
             cursorPos = that.getCursorPos(),
             docTxtSpecialCharsEncoded = He.encode(currentTxt),
@@ -961,137 +961,134 @@ define(function(require, exports, module) {
                 [fullPathToFile]
             ],
             codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
+            fileHashId = that.document.file._hash,
             unsavedDocs = [],
             result = new $.Deferred(),
             promise = result.promise();
 
         // Ensure if localStorage full, clear it before proceeding to write
         try {
-            window.localStorage.setItem("loadRefs__" + fullPathToFile, codeMirrorRefsToJSON);
+            window.localStorage.setItem("loadRefs__" + fileHashId, codeMirrorRefsToJSON);
             result.resolve();
-        } catch (err) { 
-            setTimeout(function() {  // Allows update to finish
-                var listOfFiles = MainViewManager.getAllOpenFiles();
+        } catch (err) {
+            var listOfFiles = MainViewManager.getAllOpenFiles();
 
-                if (listOfFiles.length > 0) {
-                    listOfFiles.forEach(function(file) {
-                        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                        if (doc && doc.isDirty) {
-                            unsavedDocs.push(doc);
-                        }
-                    });
-                }
+            if (listOfFiles.length > 0) {
+                listOfFiles.forEach(function(file) {
+                    var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                    if (doc && doc.isDirty) {
+                        unsavedDocs.push(doc);
+                    }
+                });
+            }
 
-                if (unsavedDocs.length === 0) {
-                    // NOOP; No dirty files detected
-                    result.reject();
-                }
-                else if (unsavedDocs.length === 1) {
-                    // Single dirty file detected
-                    var pathToFile = unsavedDocs[0].file._path,
-                        fileName = unsavedDocs[0].file._name,
-                        msg = StringUtils.format(
-                            Strings.CANNOT_PERSIST_CHANGES_MESSAGE,
-			                StringUtils.breakableUrl(fileName)
-                        );
+            if (unsavedDocs.length === 0) {
+                // NOOP; No dirty files detected
+                result.reject();
+            } else if (unsavedDocs.length === 1) {
+                // Single dirty file detected
+                var file_Hash = unsavedDocs[0].file._hash,
+                    file_Name = unsavedDocs[0].file._name,
+                    msg = StringUtils.format(
+                        Strings.CANNOT_PERSIST_CHANGES_MESSAGE,
+                        StringUtils.breakableUrl(file_Name)
+                    );
 
-                    Dialogs.showModalDialog(
+                Dialogs.showModalDialog(
                         DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                         Strings.CANNOT_PERSIST_CHANGES_TITLE,
-                        msg, 
-                        [
-                            {
-                                className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                                id        : Dialogs.DIALOG_BTN_CANCEL,
-                                text      : Strings.CANCEL
+                        msg, [{
+                                className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                                id: Dialogs.DIALOG_BTN_CANCEL,
+                                text: Strings.CANCEL
                             },
                             {
-                                className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                                id        : Dialogs.DIALOG_BTN_OK,
-                                text      : Strings.SAVE_AND_OVERWRITE
+                                className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id: Dialogs.DIALOG_BTN_OK,
+                                text: Strings.SAVE_AND_OVERWRITE
                             }
                         ],
                         "autoDismiss"
                     )
-                    .done(function (id) {
+                    .done(function(id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // "Overwrite localStorage" case:
-                            
+
                             window.localStorage.clear();
 
-                            window.localStorage.setItem("loadRefs__" + pathToFile, codeMirrorRefsToJSON);
-                            
+                            window.localStorage.setItem("loadRefs__" + file_Hash, codeMirrorRefsToJSON);
+
                             result.resolve();
                         } else {
                             result.reject();
                         }
                     });
-                } else if (unsavedDocs.length > 1) {
-                    // Multiple dirty files: show a single bulk prompt listing all files
-                    var message = Strings.MULTI_CANNOT_PERSIST_CHANGES_MSG + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shimShortTitleForDocument));
+            } else if (unsavedDocs.length > 1) {
+                // Multiple dirty files: show a single bulk prompt listing all files
+                var message = Strings.MULTI_CANNOT_PERSIST_CHANGES_MSG + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shimShortTitleForDocument));
 
-                    Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
-                            Strings.CANNOT_PERSIST_CHANGES_TITLE,
-                            message, [
-                                {
-                                    className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                                    id: Dialogs.DIALOG_BTN_CANCEL,
-                                    text: Strings.CANCEL
-                                },
-                                {
-                                    className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                                    id: Dialogs.DIALOG_BTN_OK,
-                                    text: Strings.SAVE_AND_OVERWRITE
-                                }
-                            ],
-                            "autoDismiss"
-                        )
-                        .done(function(id) {
-                            if (id === Dialogs.DIALOG_BTN_OK) {
-                                var fileRefsToJSON = unsavedDocs.map(function(file) {
-                                    var thisCurrentFile = file,
-                                        thisFileFullPath = thisCurrentFile.file._path,
-                                        thisCurrentTxtObj = file._masterEditor._codeMirror.getValue(),
-                                        thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
-                                        thisCursorPos = file._masterEditor.getCursorPos(),
-                                        thisScrollPos = file._masterEditor.getScrollPos(),
-                                        docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
-                                        deflatedCurTxt = RawDeflate.deflate(docTxtSpecialCharsEncoded);
-
-                                    var refs = [
-                                            [thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky],
-                                            [thisScrollPos],
-                                            [thisCurrentHistory],
-                                            [deflatedCurTxt],
-                                            [thisFileFullPath]
-                                        ],
-                                        refsToJSON = JSON.stringify(refs);
-
-                                        return refsToJSON;
-                                });
-
-                                window.localStorage.clear();
-
-                                fileRefsToJSON.forEach(function(fileRefs) {
-                                    var parsedJSONRefs = JSON.parse(fileRefs),
-                                        filePathFull = parsedJSONRefs.pop().toString(),
-                                        fileRefs = JSON.stringify(parsedJSONRefs);
-
-                                    window.localStorage.setItem("loadRefs__" + filePathFull, fileRefs);
-                                });
-
-                                result.resolve();
-                            } else {
-                                result.reject();
+                Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                        Strings.CANNOT_PERSIST_CHANGES_TITLE,
+                        message, [{
+                                className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                                id: Dialogs.DIALOG_BTN_CANCEL,
+                                text: Strings.CANCEL
+                            },
+                            {
+                                className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id: Dialogs.DIALOG_BTN_OK,
+                                text: Strings.SAVE_AND_OVERWRITE
                             }
-                        });
-                    }
-                }, 250);
-            }
+                        ],
+                        "autoDismiss"
+                    )
+                    .done(function(id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            var fileRefsToJSON = unsavedDocs.map(function(file) {
+                                var thisCurrentFile = file,
+                                    thisFileFullPath = thisCurrentFile.file._path,
+                                    thisFileHash = thisCurrentFile.file._hash,
+                                    thisCurrentTxtObj = file._masterEditor._codeMirror.getValue(),
+                                    thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
+                                    thisCursorPos = file._masterEditor.getCursorPos(),
+                                    thisScrollPos = file._masterEditor.getScrollPos(),
+                                    docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
+                                    deflatedCurTxt = RawDeflate.deflate(docTxtSpecialCharsEncoded);
 
-            return promise;
+                                var refs = [
+                                        [thisCursorPos.line, thisCursorPos.ch, thisCursorPos.sticky],
+                                        [thisScrollPos],
+                                        [thisCurrentHistory],
+                                        [deflatedCurTxt],
+                                        [thisFileFullPath]
+                                    ],
+                                    refsToJSON = JSON.stringify(refs);
+
+                                return refsToJSON;
+                            });
+
+                            window.localStorage.clear();
+
+                            fileRefsToJSON.forEach(function(fileRefs) {
+                                var parsedJSONRefs = JSON.parse(fileRefs),
+                                    fileRefs = JSON.stringify(parsedJSONRefs);
+
+                                window.localStorage.setItem("loadRefs__" + thisFileHash, fileRefs);
+                            });
+
+                            result.resolve();
+                        } else {
+                            result.reject();
+                        }
+                    }).fail(function () {
+                        result.reject();
+                    });
+            }
         }
+
+        return promise;
+    }
 
     var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
         PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges",
@@ -1125,32 +1122,33 @@ define(function(require, exports, module) {
             // what the right Document API would be, though.
             if (persistUnsavedChanges) {
                 _captureUnsavedDocChanges(this);
-            } else {
-                this._duringSync = true;
-                this.document._masterEditor._applyChanges(changeList);
-                this._duringSync = false;
-
-                // Update which lines are hidden inside our editor, since we're not going to go through
-                // _applyChanges() in our own editor.
-                this._updateHiddenLines();
             }
+            
+            this._duringSync = true;
+            this.document._masterEditor._applyChanges(changeList);
+            this._duringSync = false;
+
+            // Update which lines are hidden inside our editor, since we're not going to go through
+            // _applyChanges() in our own editor.
+            this._updateHiddenLines();
         }
         // Else, Master editor:
         // we're the ground truth; nothing else to do, since Document listens directly to us
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
 
+        // Stash a copy of current document text, history, etc.
+        if (persistUnsavedChanges) {
+            _captureUnsavedDocChanges(this);
+        }
+            
         // The "editorChange" event is mostly for the use of the CodeHintManager.
         // It differs from the normal "change" event, that it's actually publicly usable,
         // whereas the "change" event should be listened to on the document. Also the
         // Editor dispatches a change event before this event is dispatched, because
         // CodeHintManager needs to hook in here when other things are already done.
         this.trigger("editorChange", this, changeList);
-
-        // Stash a copy of current document text, history, etc.
-        if (persistUnsavedChanges) {
-            _captureUnsavedDocChanges(this);
-        }
+        
     };
 
     /**
@@ -1185,7 +1183,7 @@ define(function(require, exports, module) {
      * Responds to the Document's underlying file being deleted. The Document is now basically dead,
      * so we must close.
      */
-    Editor.prototype._handleDocumentDeleted = function(event) { 
+    Editor.prototype._handleDocumentDeleted = function(event) {
         // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
         this.trigger("lostContent", event);
     };
@@ -1240,7 +1238,7 @@ define(function(require, exports, module) {
                 Menus.closeAll();
             }
 
-            self.trigger("scroll", self); 
+            self.trigger("scroll", self);
         });
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
@@ -1267,7 +1265,7 @@ define(function(require, exports, module) {
             var files = event.dataTransfer.files;
             if (files && files.length) {
                 event.preventDefault();
-            } 
+            }
         });
         // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
         this._codeMirror.on("renderLine", function(cm, line, elt) {

@@ -521,8 +521,8 @@ define(function (require, exports, module) {
 
                 result.resolve(file);
             })
-            .fail(function (err) {
-                result.reject(err);
+            .fail(function () {
+                result.reject();
             });
 
         return result;
@@ -565,10 +565,13 @@ define(function (require, exports, module) {
                     docTxtToInflate,
                     docTxtDecodedChars,
                     cursorPosX,
-                    cursorPosY;
+                    cursorPosY,
+                    scrollPos,
+                    fileHash = file._hash;
 
                 if (persistUnsavedChanges) {
-                    refsToLoad = window.localStorage.getItem("loadRefs__" + pathToFile);
+                    
+                    refsToLoad = window.localStorage.getItem("loadRefs__" + fileHash);
                         
                     if (refsToLoad) {  // Verify that records exist for current document
                         parsedRefsToLoad   = JSON.parse(refsToLoad),         
@@ -576,8 +579,9 @@ define(function (require, exports, module) {
                         docTxtToInflate    = parsedRefsToLoad[3].toString();
                         docTxtDecodedChars = He.decode(RawDeflate.inflate(docTxtToInflate)),
                         cursorPosX         = parsedRefsToLoad[0][0],
-                        cursorPosY         = parsedRefsToLoad[0][1];   
-                        
+                        cursorPosY         = parsedRefsToLoad[0][1],
+                        scrollPos          = parsedRefsToLoad[1];
+                         
                         // Load record of prior text into master editor
                         doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
                     }   
@@ -585,28 +589,35 @@ define(function (require, exports, module) {
             
                 result.resolve(doc);
             
-                /**
-                 * If pref set to true, load current files saved undo/redo history into CodeMirror
-                 */
-                if (persistUnsavedChanges && doc !== null) {  // Make sure doc lives within file
+                // If pref set to true, load current files saved history into CodeMirror
+                // Make sure doc lives within file
+                if (persistUnsavedChanges && doc !== null) {
                     // Check if prior history exists in localStorage before attempting to load
                     if (refsToLoad) {
                         // Load stashed prior history obj back into memory
-                        Editor.codeMirrorRef.setHistory(parsedHistory);   
+                        Editor.codeMirrorRef.setHistory(parsedHistory);
                         
-                        // Move cursor into the recorded prior position, and center screen
+                        // Input docs saved scroll position
+                        EditorManager.getCurrentFullEditor().setScrollPos(scrollPos);                       
+                        
+                        // Drop cursor into its recorded prior position and center screen around it
                         EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX,
                                                                       cursorPosY,
                                                                       true);
+                        
+                        console.log(EditorManager.getCurrentFullEditor().getCursorPos()); 
+                        console.log(parsedRefsToLoad);
+                        
+                        // Handle case where brackets crashes again before next sync occurs
+                        window.localStorage.setItem("loadRefs__" + fileHash, refsToLoad);
                     }
                 }
             })
-            .fail(function (err) {
-                result.reject(err);
+            .fail(function () {
+                result.reject();
             });
 
         return result.promise();
-
     }
 
     /**
@@ -1111,10 +1122,10 @@ define(function (require, exports, module) {
 
 	   // If pref set to true, attempt reload of prior undo/redo history
         var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
-            pathToCurFile = doc.file._path;
+            curFileHash = doc.file._hash;
 
         if (persistUnsavedChanges) {
-            window.localStorage.removeItem("loadRefs__" + pathToCurFile);
+            window.localStorage.removeItem("loadRefs__" + curFileHash);
         }
 
         if (doc && !doc.isSaving) {
@@ -1681,7 +1692,7 @@ define(function (require, exports, module) {
     /** Delete file command handler  **/
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem(),
-            fullPathToFile = entry._path;
+            thisFileHash = entry._hash;
         
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_EXT_DELETED,
@@ -1707,7 +1718,7 @@ define(function (require, exports, module) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     // Delete undo/redo history from localStorage if pref set to persist history
                     if (persistUnsavedChanges) {
-                        window.localStorage.removeItem("loadRefs__" + fullPathToFile);
+                        window.localStorage.removeItem("loadRefs__" + thisFileHash);
                     }
                     ProjectManager.deleteItem(entry);
                 }
