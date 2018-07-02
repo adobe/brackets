@@ -504,7 +504,9 @@ define(function (require, exports, module) {
                         EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
                                                                         fileInfo.column - 1,
                                                                         true);
-                    }   
+                    }
+                    result.resolve(file);
+                    
                 } else {   // Fall back on file to get last cursorPos if changes to current doc were saved
                     if (!window.localStorage.getItem("loadRefs__" + file._path)) {
                         if (fileInfo.line !== null) {
@@ -516,10 +518,12 @@ define(function (require, exports, module) {
                                                                         fileInfo.column - 1,
                                                                         true);
                         }
+                        
+                        result.resolve(file);
                     }
+                    
+                    result.reject(file);
                 }
-
-                result.resolve(file);
             })
             .fail(function () {
                 result.reject();
@@ -570,7 +574,6 @@ define(function (require, exports, module) {
                     fileHash = file._hash;
 
                 if (persistUnsavedChanges) {
-                    
                     refsToLoad = window.localStorage.getItem("loadRefs__" + fileHash);
                         
                     if (refsToLoad) {  // Verify that records exist for current document
@@ -584,10 +587,16 @@ define(function (require, exports, module) {
                          
                         // Load record of prior text into master editor
                         doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
-                    }   
+                        
+                        // Open file is unsynced and sets cursorPos back to 'X=0, Y=0'
+                        // Therefore, handle case where brackets crashes again before next sync can occur
+                        window.localStorage.setItem("loadRefs__" + fileHash, refsToLoad);
+                    }
+                    // Do not load doc if persistence is on
+                    result.reject(doc);
+                } else {
+                    result.resolve(doc);
                 }
-            
-                result.resolve(doc);
             
                 // If pref set to true, load current files saved history into CodeMirror
                 // Make sure doc lives within file
@@ -597,16 +606,13 @@ define(function (require, exports, module) {
                         // Load stashed prior history obj back into memory
                         Editor.codeMirrorRef.setHistory(parsedHistory);
                         
-                        // Input docs saved scroll position
+                        // Set doc to last recorded scroll position
                         EditorManager.getCurrentFullEditor().setScrollPos(scrollPos);                       
                         
-                        // Drop cursor into its recorded prior position and center screen around it
+                        // Drop cursor into recorded prior position and center screen around it
                         EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX,
                                                                       cursorPosY,
                                                                       true);
-
-                        // Handle case where brackets crashes again before next sync occurs
-                        window.localStorage.setItem("loadRefs__" + fileHash, refsToLoad);
                     }
                 }
             })
@@ -1379,10 +1385,10 @@ define(function (require, exports, module) {
                 MainViewManager.focusActivePane();
             });
         } else {
-            // If pref set, wipe associated change history file
+            // If pref set, try to wipe associated change history file if possible
             var hashForFile = file._hash;
             if (persistUnsavedChanges) {
-                window.localStorage.removeItem("history__" + hashForFile);
+                window.localStorage.removeItem("loadRefs__" + hashForFile);
             }
 
             // File is not open, or IS open but Document not dirty: therefore, close immediately
@@ -1404,7 +1410,7 @@ define(function (require, exports, module) {
             unsavedDocs = [];
 
         if (persistUnsavedChanges) {
-	    result.resolve();
+	       result.resolve();
         } else {
             list.forEach(function (file) {
             var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);

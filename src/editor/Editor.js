@@ -997,7 +997,9 @@ define(function(require, exports, module) {
                 Dialogs.showModalDialog(
                         DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                         Strings.CANNOT_PERSIST_CHANGES_TITLE,
-                        msg, [{
+                        msg, 
+                        [
+                            {
                                 className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
                                 id: Dialogs.DIALOG_BTN_CANCEL,
                                 text: Strings.CANCEL
@@ -1030,7 +1032,9 @@ define(function(require, exports, module) {
                 Dialogs.showModalDialog(
                         DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
                         Strings.CANNOT_PERSIST_CHANGES_TITLE,
-                        message, [{
+                        message, 
+                        [
+                            {
                                 className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
                                 id: Dialogs.DIALOG_BTN_CANCEL,
                                 text: Strings.CANCEL
