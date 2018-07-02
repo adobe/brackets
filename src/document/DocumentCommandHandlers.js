@@ -508,7 +508,7 @@ define(function (require, exports, module) {
                     result.resolve(file);
                     
                 } else {   // Fall back on file to get last cursorPos if changes to current doc were saved
-                    if (!window.localStorage.getItem("loadRefs__" + file._path)) {
+                    if (!window.localStorage.getItem("sessionId__" + file._hash)) {
                         if (fileInfo.line !== null) {
                             if (fileInfo.column === null || (fileInfo.column <= 0)) {
                                 fileInfo.column = 1;
@@ -520,9 +520,15 @@ define(function (require, exports, module) {
                         }
                         
                         result.resolve(file);
+                    } else {
+                        if (fileInfo.line !== null) {
+                            if (fileInfo.column === null || (fileInfo.column <= 0)) {
+                                fileInfo.column = 1;
+                            }
+                        }
+                        
+                        result.resolve(file);
                     }
-                    
-                    result.reject(file);
                 }
             })
             .fail(function () {
@@ -574,7 +580,7 @@ define(function (require, exports, module) {
                     fileHash = file._hash;
 
                 if (hotClose) {
-                    refsToLoad = window.localStorage.getItem("loadRefs__" + fileHash);
+                    refsToLoad = window.localStorage.getItem("sessionId__" + fileHash);
                         
                     if (refsToLoad) {  // Verify that records exist for current document
                         parsedRefsToLoad   = JSON.parse(refsToLoad),         
@@ -590,10 +596,10 @@ define(function (require, exports, module) {
                         
                         // Open file is unsynced and sets cursorPos back to 'X=0, Y=0'
                         // Therefore, handle case where brackets crashes again before next sync can occur
-                        window.localStorage.setItem("loadRefs__" + fileHash, refsToLoad);
+                        window.localStorage.setItem("sessionId__" + fileHash, refsToLoad);
                     }
-                    // Do not load doc if persistence is on
-                    result.reject(doc);
+                    // Do not load doc if persistence is on; use localStorage version
+                    result.reject();
                 } else {
                     result.resolve(doc);
                 }
@@ -1128,7 +1134,7 @@ define(function (require, exports, module) {
             curFileHash = doc.file._hash;
 
         if (hotClose) {
-            window.localStorage.removeItem("loadRefs__" + curFileHash);
+            window.localStorage.removeItem("sessionId__" + curFileHash);
         }
 
         if (doc && !doc.isSaving) {
@@ -1388,7 +1394,7 @@ define(function (require, exports, module) {
             // If pref set, try to wipe associated change history file if possible
             var hashForFile = file._hash;
             if (hotClose) {
-                window.localStorage.removeItem("loadRefs__" + hashForFile);
+                window.localStorage.removeItem("sessionId__" + hashForFile);
             }
 
             // File is not open, or IS open but Document not dirty: therefore, close immediately
@@ -1738,7 +1744,7 @@ define(function (require, exports, module) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     // Delete undo/redo history from localStorage if pref set to persist history
                     if (hotClose) {
-                        window.localStorage.removeItem("loadRefs__" + thisFileHash);
+                        window.localStorage.removeItem("sessionId__" + thisFileHash);
                     }
                     ProjectManager.deleteItem(entry);
                 }

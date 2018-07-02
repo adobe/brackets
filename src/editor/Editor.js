@@ -967,7 +967,7 @@ define(function(require, exports, module) {
 
         // Ensure if localStorage full, clear it before proceeding to write
         try {
-            window.localStorage.setItem("loadRefs__" + fileHashId, codeMirrorRefsToJSON);
+            window.localStorage.setItem("sessionId__" + fileHashId, codeMirrorRefsToJSON);
             result.resolve();
         } catch (err) {
             var listOfFiles = MainViewManager.getAllOpenFiles();
@@ -1017,7 +1017,7 @@ define(function(require, exports, module) {
 
                             window.localStorage.clear();
 
-                            window.localStorage.setItem("loadRefs__" + file_Hash, codeMirrorRefsToJSON);
+                            window.localStorage.setItem("sessionId__" + file_Hash, codeMirrorRefsToJSON);
 
                             result.resolve();
                         } else {
@@ -1077,7 +1077,7 @@ define(function(require, exports, module) {
                                 var parsedJSONRefs = JSON.parse(fileRefs),
                                     fileRefs = JSON.stringify(parsedJSONRefs);
 
-                                window.localStorage.setItem("loadRefs__" + thisFileHash, fileRefs);
+                                window.localStorage.setItem("sessionId__" + thisFileHash, fileRefs);
                             });
 
                             result.resolve();
