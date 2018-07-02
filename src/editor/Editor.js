@@ -156,9 +156,8 @@ define(function(require, exports, module) {
     PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
-
-    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
+    PreferencesManager.definePreference(HOT_CLOSE, "boolean", true, {
+        description: Strings.DESCRIPTION_HOT_CLOSE
     });
 
     // CodeMirror, html mode, set some tags do not close automatically.
@@ -1094,8 +1093,8 @@ define(function(require, exports, module) {
         return promise;
     }
 
-    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
-        PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges",
+    var hotClose = PreferencesManager.get(HOT_CLOSE),
+        HOT_CLOSE = "hotClose",
         fullPathToFile,
         currentTextObj;
 
@@ -1124,7 +1123,7 @@ define(function(require, exports, module) {
             // FUTURE: Technically we should add a replaceRange() method to Document and go through
             // that instead of talking to its master editor directly. It's not clear yet exactly
             // what the right Document API would be, though.
-            if (persistUnsavedChanges) {
+            if (hotClose) {
                 _captureUnsavedDocChanges(this);
             }
             
@@ -1142,7 +1141,7 @@ define(function(require, exports, module) {
         // been a change synced from another editor
 
         // Stash a copy of current document text, history, etc.
-        if (persistUnsavedChanges) {
+        if (hotClose) {
             _captureUnsavedDocChanges(this);
         }
             

@@ -141,13 +141,13 @@ define(function (require, exports, module) {
     });
     EventDispatcher.makeEventDispatcher(exports);
     
-    var PERSIST_UNSAVED_CHANGES = "persistUnsavedChanges";
+    var HOT_CLOSE = "hotClose";
 
-    PreferencesManager.definePreference(PERSIST_UNSAVED_CHANGES, "boolean", true, {
-        description: Strings.DESCRIPTION_PERSIST_UNSAVED_CHANGES
+    PreferencesManager.definePreference(HOT_CLOSE, "boolean", true, {
+        description: Strings.DESCRIPTION_HOT_CLOSE
     });
 
-    var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES);
+    var hotClose = PreferencesManager.get(HOT_CLOSE);
 
     /**
      * Event triggered when File Save is cancelled, when prompted to save dirty files
@@ -493,7 +493,7 @@ define(function (require, exports, module) {
                     MainViewManager.setActivePaneId(paneId);
                 }
 
-                if (!persistUnsavedChanges) { // ...load file as normal.
+                if (!hotClose) { // ...load file as normal.
                     // If a line and column number were given, position the editor accordingly.
                     if (fileInfo.line !== null) {
                         if (fileInfo.column === null || (fileInfo.column <= 0)) {
@@ -573,7 +573,7 @@ define(function (require, exports, module) {
                     scrollPos,
                     fileHash = file._hash;
 
-                if (persistUnsavedChanges) {
+                if (hotClose) {
                     refsToLoad = window.localStorage.getItem("loadRefs__" + fileHash);
                         
                     if (refsToLoad) {  // Verify that records exist for current document
@@ -600,7 +600,7 @@ define(function (require, exports, module) {
             
                 // If pref set to true, load current files saved history into CodeMirror
                 // Make sure doc lives within file
-                if (persistUnsavedChanges && doc !== null) {
+                if (hotClose && doc !== null) {
                     // Check if prior history exists in localStorage before attempting to load
                     if (refsToLoad) {
                         // Load stashed prior history obj back into memory
@@ -1124,10 +1124,10 @@ define(function (require, exports, module) {
             settings;
 
 	   // If pref set to true, attempt reload of prior undo/redo history
-        var persistUnsavedChanges = PreferencesManager.get(PERSIST_UNSAVED_CHANGES),
+        var hotClose = PreferencesManager.get(HOT_CLOSE),
             curFileHash = doc.file._hash;
 
-        if (persistUnsavedChanges) {
+        if (hotClose) {
             window.localStorage.removeItem("loadRefs__" + curFileHash);
         }
 
@@ -1295,7 +1295,7 @@ define(function (require, exports, module) {
         var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
 
         if (doc && doc.isDirty && !_forceClose && (MainViewManager.isExclusiveToPane(doc.file, paneId) || _spawnedRequest)) {
-            if (persistUnsavedChanges) {
+            if (hotClose) {
                 // Don't Save file changes. User is relying on file persistence.
                 doClose(file);
 
@@ -1387,7 +1387,7 @@ define(function (require, exports, module) {
         } else {
             // If pref set, try to wipe associated change history file if possible
             var hashForFile = file._hash;
-            if (persistUnsavedChanges) {
+            if (hotClose) {
                 window.localStorage.removeItem("loadRefs__" + hashForFile);
             }
 
@@ -1409,7 +1409,7 @@ define(function (require, exports, module) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
 
-        if (persistUnsavedChanges) {
+        if (hotClose) {
 	       result.resolve();
         } else {
             list.forEach(function (file) {
@@ -1610,7 +1610,7 @@ define(function (require, exports, module) {
             entry = MainViewManager.getCurrentlyViewedFile();
             
             // If preference set to persistent undo/redo history
-            if (persistUnsavedChanges) {
+            if (hotClose) {
                 // Removes history item from localStorage before rename
                 var oldFileName = MainViewManager.getCurrentlyViewedFile();
                 window.localStorage.removeItem("history__" + oldFileName._path);
@@ -1737,7 +1737,7 @@ define(function (require, exports, module) {
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     // Delete undo/redo history from localStorage if pref set to persist history
-                    if (persistUnsavedChanges) {
+                    if (hotClose) {
                         window.localStorage.removeItem("loadRefs__" + thisFileHash);
                     }
                     ProjectManager.deleteItem(entry);
