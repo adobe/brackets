@@ -19,7 +19,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- */ 
+ */
 
 /*jslint regexp: true */
 
@@ -604,10 +604,7 @@ define(function (require, exports, module) {
                         EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX,
                                                                       cursorPosY,
                                                                       true);
-                        
-                        console.log(EditorManager.getCurrentFullEditor().getCursorPos()); 
-                        console.log(parsedRefsToLoad);
-                        
+
                         // Handle case where brackets crashes again before next sync occurs
                         window.localStorage.setItem("loadRefs__" + fileHash, refsToLoad);
                     }
@@ -616,7 +613,7 @@ define(function (require, exports, module) {
             .fail(function () {
                 result.reject();
             });
-
+        
         return result.promise();
     }
 
@@ -1292,6 +1289,25 @@ define(function (require, exports, module) {
         var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
 
         if (doc && doc.isDirty && !_forceClose && (MainViewManager.isExclusiveToPane(doc.file, paneId) || _spawnedRequest)) {
+            if (persistUnsavedChanges) {
+                // Don't Save file changes. User is relying on file persistence.
+                doClose(file);
+
+                // Only reload from disk if we've executed the Close for real.
+                if (promptOnly) {
+                    result.resolve();
+                } else {
+                    // Even if there are no listeners attached to the document at this point, we want
+                    // to do the revert anyway, because clients who are listening to the global documentChange
+                    // event from the Document module (rather than attaching to the document directly),
+                    // such as the Find in Files panel, should get a change event. However, in that case,
+                    // we want to ignore errors during the revert, since we don't want a failed revert
+                    // to throw a dialog if the document isn't actually open in the UI.
+                    var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
+                    _doRevert(doc, suppressError)
+                        .then(result.resolve, result.reject);
+                }
+            } else {
             // Document is dirty: prompt to save changes before closing if only the document is exclusively
             // listed in the requested pane or this is part of a list close request
             var filename = FileUtils.getBaseName(doc.file.fullPath);
@@ -1339,12 +1355,6 @@ define(function (require, exports, module) {
                         // "Don't Save" case: even though we're closing the main editor, other views of
                         // the Document may remain in the UI. So we need to revert the Document to a clean
                         // copy of whatever's on disk.
-                        var pathToFile = file._path;
-                        
-                        // If pref set here, manually closing saves no changes for user
-                        if (persistUnsavedChanges) {
-                            //window.localStorage.removeItem("loadRefs__" + pathToFile);
-                        }
                         
                         doClose(file);
 
@@ -1364,17 +1374,17 @@ define(function (require, exports, module) {
                         }
                     }
                 });
+            }
             result.always(function () {
                 MainViewManager.focusActivePane();
             });
         } else {
-            var filePath = file._path;
-            
-            // If pref set, wipe associated localStorage history file
+            // If pref set, wipe associated change history file
+            var hashForFile = file._hash;
             if (persistUnsavedChanges) {
-                window.localStorage.removeItem("history__" + filePath);
+                window.localStorage.removeItem("history__" + hashForFile);
             }
-            
+
             // File is not open, or IS open but Document not dirty: therefore, close immediately
             doClose(file);
             MainViewManager.focusActivePane();
@@ -1393,7 +1403,10 @@ define(function (require, exports, module) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
 
-        list.forEach(function (file) {
+        if (persistUnsavedChanges) {
+	    result.resolve();
+        } else {
+            list.forEach(function (file) {
             var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
             if (doc && doc.isDirty) {
                 unsavedDocs.push(doc);
@@ -1458,6 +1471,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     }
                 });
+            }
         }
 
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
