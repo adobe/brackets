@@ -86,6 +86,7 @@ define(function(require, exports, module) {
         ProjectManager = require("project/ProjectManager"),
         _ = require("thirdparty/lodash"),
         CompressionTools = require("thirdparty/rawdeflate"),
+        CompressionTools = require("thirdparty/rawinflate"),
         He = require("thirdparty/he");
 
     /** Editor preferences */
@@ -960,16 +961,66 @@ define(function(require, exports, module) {
                 [fullPathToFile]
             ],
             codeMirrorRefsToJSON = JSON.stringify(codeMirrorRefs),
-            fileHashId = that.document.file._hash,
+            fullFilePath = that.document.file._path,
             unsavedDocs = [],
             result = new $.Deferred(),
             promise = result.promise();
 
         // Ensure if localStorage full, clear it before proceeding to write
         try {
-            window.localStorage.setItem("sessionId__" + fileHashId, codeMirrorRefsToJSON);
-            result.resolve();
+            console.log("EDITOR SYNC UNDER WAY....");
+
+            if (window.localStorage.getItem("sessionId__" + fullFilePath)) {
+                // The current doc has prior history attached in localStorage
+                console.log("EDITOR SYNC -- PRIOR HISTORY FOUND");
+                 
+                // Get and prep prior docTxt for comparison against current version
+                var parsedSessionRefs = JSON.parse(window.localStorage.getItem("sessionId__" + fullFilePath)),
+                    priorDocTxt = He.decode(RawDeflate.inflate(parsedSessionRefs[3].toString()));
+                 
+                // If text is the same as before, document is being opened or re-opened; do NOOP
+                if (currentTxt === priorDocTxt) { 
+                    console.log("EDITOR SYNC -- PRIOR -- NO CHANGES DETECTED"); 
+                    
+                    var lastCursorPosX    = parsedSessionRefs[0][0],
+                        lastCursorPosY    = parsedSessionRefs[0][1],
+                        lastChangeHistory = parsedSessionRefs[2];
+                    
+                    // Reset the editor
+                    that._codeMirror.undo();
+                    that._codeMirror.redo();
+                    
+                    // Reload history file
+                    that._codeMirror.setHistory(JSON.parse(lastChangeHistory));
+                    
+                    // Move cursor from [0,0] to prior positioning
+                    that.setCursorPos(lastCursorPosX, lastCursorPosY, true); 
+                    console.log(that.getCursorPos());
+                    priorDocTxt = null;
+                    
+                    result.reject(); 
+                    
+                    return promise; 
+                } else {
+                    console.log("EDITOR SYNC -- PRIOR -- CHANGE DETECTED");
+                    // A change has been detected, so record it to localStorage
+                    window.localStorage.setItem("sessionId__" + fullFilePath, codeMirrorRefsToJSON);
+                }
+            } else {
+                console.log("EDITOR SYNC -- NO PRIOR -- CHANGE DETECTED");
+                // No prior history for current document found, so record change
+                window.localStorage.setItem("sessionId__" + fullFilePath, codeMirrorRefsToJSON);
+            }  
+            
+            console.log(that.getCursorPos());
+            
+            result.resolve(); 
+            
+            // THE ABOVE FUNCTION RUNS ON FILE OPEN, AND CURSORPOS = 0,0,
+            // SO WHEN FILE IS OPEN NEXT TIME, CURSORPOS HAS BECOME 0,0.
         } catch (err) {
+            console.log(err); // REMOVE ME
+            
             var listOfFiles = MainViewManager.getAllOpenFiles();
 
             if (listOfFiles.length > 0) {
@@ -986,7 +1037,7 @@ define(function(require, exports, module) {
                 result.reject();
             } else if (unsavedDocs.length === 1) {
                 // Single dirty file detected
-                var file_Hash = unsavedDocs[0].file._hash,
+                var file_Path = unsavedDocs[0].file._path,
                     file_Name = unsavedDocs[0].file._name,
                     msg = StringUtils.format(
                         Strings.CANNOT_PERSIST_CHANGES_MESSAGE,
@@ -1017,7 +1068,7 @@ define(function(require, exports, module) {
 
                             window.localStorage.clear();
 
-                            window.localStorage.setItem("sessionId__" + file_Hash, codeMirrorRefsToJSON);
+                            window.localStorage.setItem("sessionId__" + file_Path, codeMirrorRefsToJSON);
 
                             result.resolve();
                         } else {
@@ -1051,7 +1102,6 @@ define(function(require, exports, module) {
                             var fileRefsToJSON = unsavedDocs.map(function(file) {
                                 var thisCurrentFile = file,
                                     thisFileFullPath = thisCurrentFile.file._path,
-                                    thisFileHash = thisCurrentFile.file._hash,
                                     thisCurrentTxtObj = file._masterEditor._codeMirror.getValue(),
                                     thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
                                     thisCursorPos = file._masterEditor.getCursorPos(),
@@ -1077,7 +1127,7 @@ define(function(require, exports, module) {
                                 var parsedJSONRefs = JSON.parse(fileRefs),
                                     fileRefs = JSON.stringify(parsedJSONRefs);
 
-                                window.localStorage.setItem("sessionId__" + thisFileHash, fileRefs);
+                                window.localStorage.setItem("sessionId__" + thisFileFullPath, fileRefs);
                             });
 
                             result.resolve();

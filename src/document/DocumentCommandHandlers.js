@@ -485,9 +485,13 @@ define(function (require, exports, module) {
             silent = (commandData && commandData.silent) || false,
             paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
             result = new $.Deferred();
-
+                
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
+                var filePath = file._path,
+                    refsToLoad = window.localStorage.getItem("sessionId__" + filePath),
+                    parsedRefsToLoad = JSON.parse(refsToLoad);
+            
                 HealthLogger.fileOpened(file._path, false, file._encoding);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
@@ -507,8 +511,9 @@ define(function (require, exports, module) {
                     }
                     result.resolve(file);
                     
-                } else {   // Fall back on file to get last cursorPos if changes to current doc were saved
-                    if (!window.localStorage.getItem("sessionId__" + file._hash)) {
+                } else {
+                    if (!refsToLoad) {  // Checks if doc had been saved
+                        // Fall back on file to get last cursorPos if changes were saved
                         if (fileInfo.line !== null) {
                             if (fileInfo.column === null || (fileInfo.column <= 0)) {
                                 fileInfo.column = 1;
@@ -527,6 +532,9 @@ define(function (require, exports, module) {
                             }
                         }
                         
+                        // Don't load version of doc txt from disk
+                        file._contents = null;
+                    
                         result.resolve(file);
                     }
                 }
@@ -569,38 +577,37 @@ define(function (require, exports, module) {
                 //  supporting document for that file (e.g. an image)
                 var pathToFile = file.fullPath,
                     doc = DocumentManager.getOpenDocumentForPath(pathToFile),
-                    refsToLoad,
-                    parsedRefsToLoad,
+                    refsToLoad = window.localStorage.getItem("sessionId__" + pathToFile),
+		            parsedRefsToLoad,
                     parsedHistory,
                     docTxtToInflate,
                     docTxtDecodedChars,
                     cursorPosX,
                     cursorPosY,
-                    scrollPos,
-                    fileHash = file._hash;
+                    scrollPos;
 
                 if (hotClose) {
-                    refsToLoad = window.localStorage.getItem("sessionId__" + fileHash);
-                        
-                    if (refsToLoad) {  // Verify that records exist for current document
-                        parsedRefsToLoad   = JSON.parse(refsToLoad),         
+                    if (refsToLoad) {
+                        parsedRefsToLoad   = JSON.parse(refsToLoad),
                         parsedHistory      = JSON.parse(parsedRefsToLoad[2]),
                         docTxtToInflate    = parsedRefsToLoad[3].toString();
                         docTxtDecodedChars = He.decode(RawDeflate.inflate(docTxtToInflate)),
                         cursorPosX         = parsedRefsToLoad[0][0],
                         cursorPosY         = parsedRefsToLoad[0][1],
                         scrollPos          = parsedRefsToLoad[1];
-                         
+                        
                         // Load record of prior text into master editor
                         doc._masterEditor._codeMirror.setValue(docTxtDecodedChars);
-                        
+                    
+                        // Verify that records exist for current document
                         // Open file is unsynced and sets cursorPos back to 'X=0, Y=0'
                         // Therefore, handle case where brackets crashes again before next sync can occur
-                        window.localStorage.setItem("sessionId__" + fileHash, refsToLoad);
+                        window.localStorage.setItem("sessionId__" + pathToFile, refsToLoad);
                     }
-                    // Do not load doc if persistence is on; use localStorage version
-                    result.reject();
+                    
+                    result.resolve(doc); 
                 } else {
+                    
                     result.resolve(doc);
                 }
             
@@ -613,12 +620,12 @@ define(function (require, exports, module) {
                         Editor.codeMirrorRef.setHistory(parsedHistory);
                         
                         // Set doc to last recorded scroll position
-                        EditorManager.getCurrentFullEditor().setScrollPos(scrollPos);                       
+                        EditorManager.getCurrentFullEditor().setScrollPos(scrollPos);                  
                         
                         // Drop cursor into recorded prior position and center screen around it
                         EditorManager.getCurrentFullEditor().setCursorPos(cursorPosX,
-                                                                      cursorPosY,
-                                                                      true);
+                                                                        cursorPosY,
+                                                                        true);
                     }
                 }
             })
@@ -1131,10 +1138,10 @@ define(function (require, exports, module) {
 
 	   // If pref set to true, attempt reload of prior undo/redo history
         var hotClose = PreferencesManager.get(HOT_CLOSE),
-            curFileHash = doc.file._hash;
+            curFilePath = doc.file._path;
 
         if (hotClose) {
-            window.localStorage.removeItem("sessionId__" + curFileHash);
+            window.localStorage.removeItem("sessionId__" + curFilePath);
         }
 
         if (doc && !doc.isSaving) {
@@ -1392,9 +1399,9 @@ define(function (require, exports, module) {
             });
         } else {
             // If pref set, try to wipe associated change history file if possible
-            var hashForFile = file._hash;
+            var pathForFile = file._path;
             if (hotClose) {
-                window.localStorage.removeItem("sessionId__" + hashForFile);
+                window.localStorage.removeItem("sessionId__" + pathForFile);
             }
 
             // File is not open, or IS open but Document not dirty: therefore, close immediately
@@ -1718,7 +1725,7 @@ define(function (require, exports, module) {
     /** Delete file command handler  **/
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem(),
-            thisFileHash = entry._hash;
+            thisFilePath = entry._path;
         
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_EXT_DELETED,
@@ -1744,7 +1751,7 @@ define(function (require, exports, module) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     // Delete undo/redo history from localStorage if pref set to persist history
                     if (hotClose) {
-                        window.localStorage.removeItem("sessionId__" + thisFileHash);
+                        window.localStorage.removeItem("sessionId__" + thisFilePath);
                     }
                     ProjectManager.deleteItem(entry);
                 }
