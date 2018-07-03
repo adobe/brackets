@@ -968,58 +968,56 @@ define(function(require, exports, module) {
 
         // Ensure if localStorage full, clear it before proceeding to write
         try {
-            console.log("EDITOR SYNC UNDER WAY....");
-
             if (window.localStorage.getItem("sessionId__" + fullFilePath)) {
-                // The current doc has prior history attached in localStorage
-                console.log("EDITOR SYNC -- PRIOR HISTORY FOUND");
-                 
-                // Get and prep prior docTxt for comparison against current version
+                // If the current doc has prior history attached, then reloading it without below check would cause cursorPos to shift to {'line': 0, 'ch': 0...}
+                
+                // Get prior docTxt for comparison against currently open version of text
                 var parsedSessionRefs = JSON.parse(window.localStorage.getItem("sessionId__" + fullFilePath)),
                     priorDocTxt = He.decode(RawDeflate.inflate(parsedSessionRefs[3].toString()));
                  
-                // If text is the same as before, document is being opened or re-opened; do NOOP
+                // If text is same as last load, document is being opened/re-opened; do NOOP
                 if (currentTxt === priorDocTxt) { 
-                    console.log("EDITOR SYNC -- PRIOR -- NO CHANGES DETECTED"); 
+                    priorDocTxt = null;
                     
                     var lastCursorPosX    = parsedSessionRefs[0][0],
                         lastCursorPosY    = parsedSessionRefs[0][1],
                         lastChangeHistory = parsedSessionRefs[2];
                     
-                    // Reset the editor
-                    that._codeMirror.undo();
-                    that._codeMirror.redo();
-                    
-                    // Reload history file
+                    // Reload found history file
                     that._codeMirror.setHistory(JSON.parse(lastChangeHistory));
                     
-                    // Move cursor from [0,0] to prior positioning
+                    // Move the cursor from "{'Line': 0, 'ch': 0 ...}" on this load to its prior position
                     that.setCursorPos(lastCursorPosX, lastCursorPosY, true); 
-                    console.log(that.getCursorPos());
-                    priorDocTxt = null;
                     
-                    result.reject(); 
+                    // Preserve updated stats for next crash/reload
+                    var curTxtObj = JSON.stringify(that._codeMirror.getHistory()),
+                        fullFilePath = that.document.file._path,
+                        newScrollPos = that.getScrollPos(),
+                        newCursorPos = that.getCursorPos(),
+                        curTxt = that._codeMirror.getValue(),
+                        docSpecialCharsEncoded = He.encode(curTxt),
+                        currentTxtDeflated = RawDeflate.deflate(docSpecialCharsEncoded),
+                        codeMirrorRefs = [
+                            [newCursorPos.line, newCursorPos.ch, newCursorPos.sticky],
+                            [newScrollPos],
+                            [curTxtObj],
+                            [currentTxtDeflated],
+                            [fullFilePath]
+                        ],
+                        updatedRefsToJSON = JSON.stringify(codeMirrorRefs);
                     
-                    return promise; 
+                    window.localStorage.setItem("sessionId__" + fullFilePath, updatedRefsToJSON);
                 } else {
-                    console.log("EDITOR SYNC -- PRIOR -- CHANGE DETECTED");
-                    // A change has been detected, so record it to localStorage
+                    // Change in text detected; recording to localStorage
                     window.localStorage.setItem("sessionId__" + fullFilePath, codeMirrorRefsToJSON);
                 }
             } else {
-                console.log("EDITOR SYNC -- NO PRIOR -- CHANGE DETECTED");
-                // No prior history for current document found, so record change
+                // No prior history for current doc found; recording change as per normal
                 window.localStorage.setItem("sessionId__" + fullFilePath, codeMirrorRefsToJSON);
-            }  
+            }
             
-            console.log(that.getCursorPos());
-            
-            result.resolve(); 
-            
-            // THE ABOVE FUNCTION RUNS ON FILE OPEN, AND CURSORPOS = 0,0,
-            // SO WHEN FILE IS OPEN NEXT TIME, CURSORPOS HAS BECOME 0,0.
+            result.resolve(that);
         } catch (err) {
-            console.log(err); // REMOVE ME
             
             var listOfFiles = MainViewManager.getAllOpenFiles();
 
@@ -1065,12 +1063,11 @@ define(function(require, exports, module) {
                     .done(function(id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // "Overwrite localStorage" case:
-
                             window.localStorage.clear();
 
                             window.localStorage.setItem("sessionId__" + file_Path, codeMirrorRefsToJSON);
 
-                            result.resolve();
+                            result.resolve(that);
                         } else {
                             result.reject();
                         }
@@ -1130,7 +1127,7 @@ define(function(require, exports, module) {
                                 window.localStorage.setItem("sessionId__" + thisFileFullPath, fileRefs);
                             });
 
-                            result.resolve();
+                            result.resolve(that);
                         } else {
                             result.reject();
                         }
