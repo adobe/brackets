@@ -1053,7 +1053,7 @@ define(function(require, exports, module) {
                     );
 
                 Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                        DefaultDialogs.DIALOG_ID_STORAGE_FULL,
                         Strings.CANNOT_PERSIST_CHANGES_TITLE,
                         msg, 
                         [
@@ -1087,7 +1087,7 @@ define(function(require, exports, module) {
                 var message = Strings.MULTI_CANNOT_PERSIST_CHANGES_MSG + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
 
                 Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
+                        DefaultDialogs.DIALOG_ID_STORAGE_FULL,
                         Strings.CANNOT_PERSIST_CHANGES_TITLE,
                         message, 
                         [
