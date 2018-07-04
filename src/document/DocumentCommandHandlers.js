@@ -141,13 +141,11 @@ define(function (require, exports, module) {
     });
     EventDispatcher.makeEventDispatcher(exports);
     
-    var HOT_CLOSE = "hotClose";
-
-    PreferencesManager.definePreference(HOT_CLOSE, "boolean", true, {
-        description: Strings.DESCRIPTION_HOT_CLOSE
-    });
-
-    var hotClose = PreferencesManager.get(HOT_CLOSE);
+    /**
+     * Event triggered on File change when pref is set to 'true'
+     */
+    var HOT_CLOSE = "hotClose",
+        hotClose = PreferencesManager.get(HOT_CLOSE);
 
     /**
      * Event triggered when File Save is cancelled, when prompted to save dirty files
@@ -1135,12 +1133,11 @@ define(function (require, exports, module) {
             activeDoc = activeEditor && activeEditor.document,
             doc = (commandData && commandData.doc) || activeDoc,
             settings;
-
-	   // If pref set to true, attempt reload of prior undo/redo history
-        var hotClose = PreferencesManager.get(HOT_CLOSE),
-            curFilePath = doc.file._path;
-
+        
+        // If pref set to true, attempt reload of prior undo/redo history
         if (hotClose) {
+            var curFilePath = doc.file._path;
+            
             window.localStorage.removeItem("sessionId__" + curFilePath);
         }
 

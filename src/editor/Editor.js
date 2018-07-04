@@ -157,10 +157,13 @@ define(function(require, exports, module) {
     PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
+    
+    var HOT_CLOSE = "hotClose";
+    
     PreferencesManager.definePreference(HOT_CLOSE, "boolean", true, {
         description: Strings.DESCRIPTION_HOT_CLOSE
     });
-
+    
     // CodeMirror, html mode, set some tags do not close automatically.
     // We do not initialize "dontCloseTags" because otherwise we would overwrite the default behavior of CodeMirror.
     PreferencesManager.definePreference(CLOSE_TAGS, "object", {
@@ -257,9 +260,9 @@ define(function(require, exports, module) {
     PreferencesManager.definePreference(INPUT_STYLE, "string", "textarea", {
         description: Strings.DESCRIPTION_INPUT_STYLE
     });
-
+    
     var editorOptions = Object.keys(cmOptions);
-
+    
     /** Editor preferences */
 
     /**
@@ -933,7 +936,10 @@ define(function(require, exports, module) {
         this._updateHiddenLines();
     };
 
-    function _shimShortTitleForDocument(doc) {
+    /**
+     * Gets short title of current document for display usage
+     */
+    function _shortTitleForDocument(doc) {
         // If the document is untitled then return the filename, ("Untitled-n.ext");
         // otherwise show the project-relative path if the file is inside the
         // current project or the full absolute path if it's not in the project.
@@ -944,7 +950,9 @@ define(function(require, exports, module) {
         }
     }
 
-    // Stash a copy of current document text, history, etc. in localStorage
+    /** 
+     * Stashes a copy of the current document text, history, etc. in localStorage
+     */
     function _captureUnsavedDocChanges(that) {
         var currentTextObj = JSON.stringify(that._codeMirror.getHistory()),
             currentTxt = that._codeMirror.getValue(),
@@ -966,16 +974,18 @@ define(function(require, exports, module) {
             result = new $.Deferred(),
             promise = result.promise();
 
-        // Ensure if localStorage full, clear it before proceeding to write
+        // Ensure if localStorage full, it's clear before proceeding to write changes
         try {
             if (window.localStorage.getItem("sessionId__" + fullFilePath)) {
-                // If the current doc has prior history attached, then reloading it without below check would cause cursorPos to shift to {'line': 0, 'ch': 0...}
+                // If the current doc has prior history attached, then opening/reloading 
+                // without below check would cause cursorPos to shift incorrectly to 
+                // {'line': 0, 'ch': 0...}
                 
-                // Get prior docTxt for comparison against currently open version of text
+                // Get recorded doc txt for comparison against currently open version of same
                 var parsedSessionRefs = JSON.parse(window.localStorage.getItem("sessionId__" + fullFilePath)),
                     priorDocTxt = He.decode(RawDeflate.inflate(parsedSessionRefs[3].toString()));
                  
-                // If text is same as last load, document is being opened/re-opened; do NOOP
+                // If cur text is same as last sync, document is being opened/re-opened; do NOOP
                 if (currentTxt === priorDocTxt) { 
                     priorDocTxt = null;
                     
@@ -983,13 +993,13 @@ define(function(require, exports, module) {
                         lastCursorPosY    = parsedSessionRefs[0][1],
                         lastChangeHistory = parsedSessionRefs[2];
                     
-                    // Reload found history file
+                    // Reload document change history file
                     that._codeMirror.setHistory(JSON.parse(lastChangeHistory));
                     
-                    // Move the cursor from "{'Line': 0, 'ch': 0 ...}" on this load to its prior position
+                    // Move cursor from "{'Line': 0, 'ch': 0 ...}" back to its prior position
                     that.setCursorPos(lastCursorPosX, lastCursorPosY, true); 
                     
-                    // Preserve updated stats for next crash/reload
+                    // Preserve updated stats for usage at next crash/reload event
                     var curTxtObj = JSON.stringify(that._codeMirror.getHistory()),
                         fullFilePath = that.document.file._path,
                         newScrollPos = that.getScrollPos(),
@@ -1031,7 +1041,7 @@ define(function(require, exports, module) {
             }
 
             if (unsavedDocs.length === 0) {
-                // NOOP; No dirty files detected
+                // NOOP; No dirty file(s) detected
                 result.reject();
             } else if (unsavedDocs.length === 1) {
                 // Single dirty file detected
@@ -1074,7 +1084,7 @@ define(function(require, exports, module) {
                     });
             } else if (unsavedDocs.length > 1) {
                 // Multiple dirty files: show a single bulk prompt listing all files
-                var message = Strings.MULTI_CANNOT_PERSIST_CHANGES_MSG + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shimShortTitleForDocument));
+                var message = Strings.MULTI_CANNOT_PERSIST_CHANGES_MSG + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
 
                 Dialogs.showModalDialog(
                         DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -1140,9 +1150,7 @@ define(function(require, exports, module) {
         return promise;
     }
 
-    var hotClose = PreferencesManager.get(HOT_CLOSE),
-        HOT_CLOSE = "hotClose",
-        fullPathToFile,
+    var fullPathToFile,
         currentTextObj;
 
     /**
@@ -1154,6 +1162,8 @@ define(function(require, exports, module) {
      *    to a Document change
      */
     Editor.prototype._handleEditorChange = function(changeList) {
+        var hotClose = PreferencesManager.get(HOT_CLOSE);
+        
         // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
             return;
@@ -1170,7 +1180,9 @@ define(function(require, exports, module) {
             // FUTURE: Technically we should add a replaceRange() method to Document and go through
             // that instead of talking to its master editor directly. It's not clear yet exactly
             // what the right Document API would be, though.
+            
             if (hotClose) {
+                // Stash a copy of current document text, history, cursorPos, & etc. in localStorage
                 _captureUnsavedDocChanges(this);
             }
             
@@ -1187,7 +1199,6 @@ define(function(require, exports, module) {
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
 
-        // Stash a copy of current document text, history, etc.
         if (hotClose) {
             _captureUnsavedDocChanges(this);
         }
