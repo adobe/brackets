@@ -85,8 +85,8 @@ define(function(require, exports, module) {
         DefaultDialogs = require("widgets/DefaultDialogs"),
         ProjectManager = require("project/ProjectManager"),
         _ = require("thirdparty/lodash"),
-        RawDeflate = require("thirdparty/rawdeflate"),
-        RawDeflate = require("thirdparty/rawinflate"),
+        DeflateUtils = require("thirdparty/rawdeflate"),
+        DeflateUtils = require("thirdparty/rawinflate"),
         He = require("thirdparty/he");
 
     /** Editor preferences */
@@ -954,7 +954,8 @@ define(function(require, exports, module) {
      * Stashes a copy of the current document text, history, etc. in localStorage
      */
     function _captureUnsavedDocChanges(that) {
-        var currentTextObj = JSON.stringify(that._codeMirror.getHistory()),
+        var curRawTxtObj = He.encode(JSON.stringify(that._codeMirror.getHistory())),
+            currentTextObj = RawDeflate.deflate(curRawTxtObj),
             currentTxt = that._codeMirror.getValue(),
             fullPathToFile = that.document.file._path,
             scrollPos = that.getScrollPos(),
@@ -964,7 +965,7 @@ define(function(require, exports, module) {
             codeMirrorRefs = [
                 [cursorPos.line, cursorPos.ch, cursorPos.sticky],
                 [scrollPos],
-                [currentTextObj],
+                [currentTextObj], 
                 [curTxtDeflated],
                 [fullPathToFile]
             ],
@@ -991,16 +992,16 @@ define(function(require, exports, module) {
                     
                     var lastCursorPosX    = parsedSessionRefs[0][0],
                         lastCursorPosY    = parsedSessionRefs[0][1],
-                        lastChangeHistory = parsedSessionRefs[2];
+                        lastChangeHistory = JSON.parse(He.decode(RawDeflate.inflate(parsedSessionRefs[2].toString())));
                     
                     // Reload document change history file
-                    that._codeMirror.setHistory(JSON.parse(lastChangeHistory));
+                    that._codeMirror.setHistory(lastChangeHistory);
                     
                     // Move cursor from "{'Line': 0, 'ch': 0 ...}" back to its prior position
                     that.setCursorPos(lastCursorPosX, lastCursorPosY, true); 
                     
                     // Preserve updated stats for usage at next crash/reload event
-                    var curTxtObj = JSON.stringify(that._codeMirror.getHistory()),
+                    var curTxtObj = RawDeflate.deflate(He.encode(JSON.stringify(that._codeMirror.getHistory()))),
                         fullFilePath = that.document.file._path,
                         newScrollPos = that.getScrollPos(),
                         newCursorPos = that.getCursorPos(),
@@ -1109,7 +1110,7 @@ define(function(require, exports, module) {
                             var fileRefsToJSON = unsavedDocs.map(function(file) {
                                 var thisFileFullPath = file.file._path,
                                     thisCurrentTxtObj = file._masterEditor._codeMirror.getValue(),
-                                    thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
+                                    thisCurrentHistory = RawDeflate.deflate(He.encode(JSON.stringify(file._masterEditor._codeMirror.getHistory()))),
                                     thisCursorPos = file._masterEditor.getCursorPos(),
                                     thisScrollPos = file._masterEditor.getScrollPos(),
                                     docTxtSpecialCharsEncoded = He.encode(thisCurrentTxtObj),
@@ -1130,9 +1131,8 @@ define(function(require, exports, module) {
                             window.localStorage.clear();
 
                             fileRefsToJSON.forEach(function(historyFile) {
-                                var parsedJSONFileRefs = JSON.parse(historyFile),
-                                    historyFile = JSON.stringify(parsedJSONFileRefs),
-                                    currentFilePath = historyFile._path;
+                                var currentFilePath = historyFile._path,
+                                    historyFile = RawDeflate.deflate(He.encode(JSON.stringify(historyFile)));
 
                                 window.localStorage.setItem("sessionId__" + currentFilePath, historyFile);
                             });

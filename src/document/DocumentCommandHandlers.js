@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        PerfUtils           = require("utils/PerfUtils"),
+        PerfUtils           = require("utils/PerfUtils"), 
         KeyEvent            = require("utils/KeyEvent"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         Menus               = require("command/Menus"),
@@ -59,8 +59,8 @@ define(function (require, exports, module) {
         WorkspaceManager    = require("view/WorkspaceManager"),
         LanguageManager     = require("language/LanguageManager"),
         _                   = require("thirdparty/lodash"),
-        RawDeflate          = require("thirdparty/rawinflate"),
-        RawDeflate          = require("thirdparty/rawinflate"),
+        DeflateUtils        = require("thirdparty/rawinflate"),
+        DeflateUtils        = require("thirdparty/rawinflate"),
         He                  = require("thirdparty/he");
 
     /**
@@ -588,8 +588,8 @@ define(function (require, exports, module) {
                 if (hotClose) {
                     if (refsToLoad) {
                         parsedRefsToLoad   = JSON.parse(refsToLoad),
-                        parsedHistory      = JSON.parse(parsedRefsToLoad[2]),
-                        docTxtToInflate    = parsedRefsToLoad[3].toString();
+                        parsedHistory      = JSON.parse(He.decode(RawDeflate.inflate(parsedRefsToLoad[2].toString()))),
+                        docTxtToInflate    = parsedRefsToLoad[3].toString(),
                         docTxtDecodedChars = He.decode(RawDeflate.inflate(docTxtToInflate)),
                         cursorPosX         = parsedRefsToLoad[0][0],
                         cursorPosY         = parsedRefsToLoad[0][1],
