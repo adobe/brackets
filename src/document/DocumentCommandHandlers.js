@@ -1137,7 +1137,6 @@ define(function (require, exports, module) {
         // If pref set to true, attempt reload of prior undo/redo history
         if (hotClose) {
             var curFilePath = doc.file._path;
-            
             window.localStorage.removeItem("sessionId__" + curFilePath);
         }
 
@@ -1395,13 +1394,7 @@ define(function (require, exports, module) {
                 MainViewManager.focusActivePane();
             });
         } else {
-            // If pref set, try to wipe associated change history file if possible
-            var pathForFile = file._path;
-            if (hotClose) {
-                window.localStorage.removeItem("sessionId__" + pathForFile);
-            }
-
-            // File is not open, or IS open but Document not dirty: therefore, close immediately
+           // File is not open, or IS open but Document not dirty: therefore, close immediately
             doClose(file);
             MainViewManager.focusActivePane();
             result.resolve();
@@ -1612,19 +1605,19 @@ define(function (require, exports, module) {
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
             
+        // If preference set to persistent undo/redo history
+        if (hotClose) {
+            // Removes history item from localStorage before rename
+            var fileName = MainViewManager.getCurrentlyViewedFile();
+            window.localStorage.removeItem("sessionId__" + fileName._path);
+        }
+        
         // Prefer selected sidebar item (which could be a folder)
         var entry = ProjectManager.getContext();
         
         if (!entry) {
             // Else use current file (not selected in ProjectManager if not visible in tree or workingset)
             entry = MainViewManager.getCurrentlyViewedFile();
-            
-            // If preference set to persistent undo/redo history
-            if (hotClose) {
-                // Removes history item from localStorage before rename
-                var oldFileName = MainViewManager.getCurrentlyViewedFile();
-                window.localStorage.removeItem("history__" + oldFileName._path);
-            }
         }
     
         if (entry) {
