@@ -89,8 +89,6 @@ define(function(require, exports, module) {
         CompressionUtils = require("thirdparty/rawinflate"),
         He = require("thirdparty/he");
 
-    console.log(RawDeflate, RawInflate); 
-
     /** Editor preferences */
 
     var CLOSE_BRACKETS = "closeBrackets",
