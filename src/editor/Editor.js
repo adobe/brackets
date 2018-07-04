@@ -85,8 +85,8 @@ define(function(require, exports, module) {
         DefaultDialogs = require("widgets/DefaultDialogs"),
         ProjectManager = require("project/ProjectManager"),
         _ = require("thirdparty/lodash"),
-        CompressionTools = require("thirdparty/rawdeflate"),
-        CompressionTools = require("thirdparty/rawinflate"),
+        RawDeflate = require("thirdparty/rawdeflate"),
+        RawDeflate = require("thirdparty/rawinflate"),
         He = require("thirdparty/he");
 
     /** Editor preferences */
@@ -1107,8 +1107,7 @@ define(function(require, exports, module) {
                     .done(function(id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             var fileRefsToJSON = unsavedDocs.map(function(file) {
-                                var thisCurrentFile = file,
-                                    thisFileFullPath = thisCurrentFile.file._path,
+                                var thisFileFullPath = file.file._path,
                                     thisCurrentTxtObj = file._masterEditor._codeMirror.getValue(),
                                     thisCurrentHistory = JSON.stringify(file._masterEditor._codeMirror.getHistory()),
                                     thisCursorPos = file._masterEditor.getCursorPos(),
