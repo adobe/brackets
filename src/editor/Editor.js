@@ -1129,12 +1129,12 @@ define(function(require, exports, module) {
 
                             window.localStorage.clear();
 
-                            fileRefsToJSON.forEach(function(file) {
-                                var parsedJSONFileRefs = JSON.parse(file),
-                                    file = JSON.stringify(parsedJSONFileRefs),
-                                    currentFilePath = file._path;
+                            fileRefsToJSON.forEach(function(historyFile) {
+                                var parsedJSONFileRefs = JSON.parse(historyFile),
+                                    historyFile = JSON.stringify(parsedJSONFileRefs),
+                                    currentFilePath = historyFile._path;
 
-                                window.localStorage.setItem("sessionId__" + currentFilePath, fileRefs);
+                                window.localStorage.setItem("sessionId__" + currentFilePath, historyFile);
                             });
 
                             result.resolve(that);
