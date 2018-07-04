@@ -85,9 +85,11 @@ define(function(require, exports, module) {
         DefaultDialogs = require("widgets/DefaultDialogs"),
         ProjectManager = require("project/ProjectManager"),
         _ = require("thirdparty/lodash"),
-        DeflateUtils = require("thirdparty/rawdeflate"),
-        DeflateUtils = require("thirdparty/rawinflate"),
+        CompressionUtils = require("thirdparty/rawdeflate"),
+        CompressionUtils = require("thirdparty/rawinflate"),
         He = require("thirdparty/he");
+
+    console.log(RawDeflate, RawInflate); 
 
     /** Editor preferences */
 

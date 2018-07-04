@@ -59,8 +59,8 @@ define(function (require, exports, module) {
         WorkspaceManager    = require("view/WorkspaceManager"),
         LanguageManager     = require("language/LanguageManager"),
         _                   = require("thirdparty/lodash"),
-        DeflateUtils        = require("thirdparty/rawinflate"),
-        DeflateUtils        = require("thirdparty/rawinflate"),
+        CompressionUtils    = require("thirdparty/rawinflate"),
+        CompressionUtils    = require("thirdparty/rawdeflate"),
         He                  = require("thirdparty/he");
 
     /**
