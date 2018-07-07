@@ -146,3 +146,19 @@
     };
     global._Brackets_LiveDev_Transport = WebSocketTransport;
 }(this));
+
+function loadEditor() {
+    
+    var divBlock = window.document.createElement( 'div' );
+    divBlock.setAttribute('id', "bramble");
+    divBlock.setAttribute('style', "height: 500px; width:400px; overflow: hidden; z-index: 10;position: fixed;right: 50;top: 50;");
+
+    window.document.body.appendChild( divBlock );
+    var scriptTag = window.document.createElement('script');
+    scriptTag.setAttribute('src', "thirdparty/require.min.js");
+    scriptTag.setAttribute('data-main', "hosted");
+    window.document.body.appendChild( scriptTag );
+
+}
+
+window.onload = loadEditor;

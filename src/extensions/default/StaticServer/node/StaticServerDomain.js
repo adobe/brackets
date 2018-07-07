@@ -213,11 +213,14 @@ function _createServer(path, port, createCompleteCallback) {
     }
 
     app = connect();
+    app.use(connect["static"](__dirname, { maxAge: STATIC_CACHE_MAX_AGE }));
     app.use(rewrite);
     // JSLint complains if we use `connect.static` because static is a
     // reserved word.
     app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }));
+    console.log("Inside server creation: " + path + " Directory Name:" + __dirname);
     app.use(connect.directory(path));
+
 
     server = http.createServer(app);
 
