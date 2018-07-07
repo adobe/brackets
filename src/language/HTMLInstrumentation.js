@@ -103,6 +103,21 @@ define(function (require, exports, module) {
         }
     }
 
+    function getTextFromTagId(editor, tagId) {
+        var marks = editor._codeMirror.getAllMarks(),
+            i,
+            markFound;
+        
+        markFound = _.find(marks, function (mark) {
+            return (mark.tagID === tagId);
+        });
+        if (markFound) {
+            return editor._codeMirror.getRange(markFound.find().from, markFound.find().to);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * @private
      * Filters the given marks to find the ones that correspond to instrumented tags,
@@ -822,6 +837,7 @@ define(function (require, exports, module) {
     exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
     exports._getTagIDAtDocumentPos      = _getTagIDAtDocumentPos;
     exports.getPositionFromTagId        = getPositionFromTagId;
+    exports.getTextFromTagId            = getTextFromTagId;
     exports._markTextFromDOM            = _markTextFromDOM;
     exports._updateDOM                  = _updateDOM;
     exports._allowIncremental           = allowIncremental;

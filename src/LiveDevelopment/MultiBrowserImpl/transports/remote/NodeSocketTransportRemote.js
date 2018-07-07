@@ -123,6 +123,19 @@
                 console.log("[Brackets LiveDev] Tried to send message over closed connection: " + msgStr);
             }
         },
+        
+        requestCode: function (msgStr) {
+            if (this._ws) {
+                // See comment in `connect()` above about why we wrap the message in a transport message
+                // object.
+                this._ws.send(JSON.stringify({
+                    type: "fetch-code-text-message",
+                    message: msgStr
+                }));
+            } else {
+                console.log("[Brackets LiveDev] Tried to send message over closed connection: " + msgStr);
+            }
+        },
 
         /**
          * Establish web socket connection.

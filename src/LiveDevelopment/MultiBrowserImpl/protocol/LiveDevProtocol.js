@@ -124,6 +124,35 @@ define(function (require, exports, module) {
             exports.trigger(event, msg);
         }
     }
+    
+    function _receiveCodeRequest(clientId, msgStr) {
+        var msg = JSON.parse(msgStr),
+            event = msg.method || "event",
+            deferred;
+        if (msg.id) {
+            deferred = _responseDeferreds[msg.id];
+            if (deferred) {
+                delete _responseDeferreds[msg.id];
+                if (msg.error) {
+                    deferred.reject(msg);
+                } else {
+                    deferred.resolve(msg);
+                }
+            }
+        } else if (msg.tagId) {
+             var editor = EditorManager.getActiveEditor(),
+                codeText = HTMLInstrumentation.getTextFromTagId(editor, parseInt(msg.tagId, 10));
+            if (codeText) {
+                console.log("Inside _receiveCodeRequest - " + codeText);
+                evaluate("_LD.fillCodeArea(\"" + codeText + "\")");
+                //evaluate("_LD.fillCodeArea(\"Hello\")");
+            }
+        } else {
+            // enrich received message with clientId
+            msg.clientId = clientId;
+            exports.trigger(event, msg);
+        }
+    }
 
     /**
      * @private
@@ -195,6 +224,9 @@ define(function (require, exports, module) {
             })
             .on("message.livedev", function (event, msg) {
                 _receive(msg[0], msg[1]);
+            })
+            .on("fetch-code-text-message.livedev", function (event, msg) {
+                _receiveCodeRequest(msg[0], msg[1]);
             })
             .on("close.livedev", function (event, msg) {
                 _close(msg[0]);

@@ -62,7 +62,7 @@ define(function (require, exports, module) {
     // We can simply retrigger the events we receive from the node domain directly, since they're in
     // the same format expected by clients of the transport.
 
-    ["connect", "message", "close"].forEach(function (type) {
+    ["connect", "message", "close", "fetch-code-text-message"].forEach(function (type) {
         NodeSocketTransportDomain.on(type, function () {
             console.log("NodeSocketTransport - event - " + type + " - " + JSON.stringify(Array.prototype.slice.call(arguments, 1)));
             // Remove the event object from the argument list.

@@ -128,6 +128,7 @@
          */
         send: function (msgStr) {
             transport.send(JSON.stringify(msgStr));
+            transport.requestCode(JSON.stringify(msgStr));
         }
     };
 
@@ -139,11 +140,16 @@
          * Evaluate an expresion and return its result.
          */
         evaluate: function (msg) {
-            console.log("Runtime.evaluate");
-            var result = eval(msg.params.expression);
-            MessageBroker.respond(msg, {
-                result: JSON.stringify(result) // TODO: in original protocol this is an object handle
-            });
+            var x = msg.params.expression.indexOf("_LD.fillCodeArea(");
+            if ( x >= 0) {
+                var res = msg.params.expression.substring(18, msg.params.expression.length - 2);
+                _LD.fillCodeArea(res);
+            } else {
+                console.log("Runtime.evaluate");
+                var result = eval(msg.params.expression);
+                MessageBroker.respond(msg, {
+                    result: JSON.stringify(result) // TODO: in original protocol this is an object handle
+            });}
         }
     };
 

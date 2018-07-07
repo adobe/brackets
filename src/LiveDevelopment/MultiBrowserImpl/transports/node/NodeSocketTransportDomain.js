@@ -81,6 +81,9 @@ function _createServer() {
         // TODO: make port configurable, or use random port
         _wsServer = new WebSocketServer({port: SOCKET_PORT});
         _wsServer.on("connection", function (ws) {
+            ws.on("fetch-code-text-message", function (msg) {
+                console.log("WebSocketServer - fetch-code-text-message - received - " + msg);
+            });
             ws.on("message", function (msg) {
                 console.log("WebSocketServer - received - " + msg);
                 var msgObj;
@@ -111,6 +114,13 @@ function _createServer() {
                     var client = _clientForSocket(ws);
                     if (client) {
                         _domainManager.emitEvent("nodeSocketTransport", "message", [client.id, msgObj.message]);
+                    } else {
+                        console.error("nodeSocketTransport: Couldn't locate client for message: " + msg);
+                    }
+                } else if (msgObj.type === "fetch-code-text-message") {
+                    var client2 = _clientForSocket(ws);
+                    if (client2) {
+                        _domainManager.emitEvent("nodeSocketTransport", "fetch-code-text-message", [client2.id, msgObj.message]);
                     } else {
                         console.error("nodeSocketTransport: Couldn't locate client for message: " + msg);
                     }
@@ -227,6 +237,14 @@ function init(domainManager) {
     domainManager.registerEvent(
         "nodeSocketTransport",
         "message",
+        [
+            {name: "clientID", type: "number", description: "ID of live preview page sending message"},
+            {name: "msg", type: "string", description: "JSON message from client page"}
+        ]
+    );
+    domainManager.registerEvent(
+        "nodeSocketTransport",
+        "fetch-code-text-message",
         [
             {name: "clientID", type: "number", description: "ID of live preview page sending message"},
             {name: "msg", type: "string", description: "JSON message from client page"}

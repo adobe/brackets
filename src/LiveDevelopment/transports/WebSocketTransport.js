@@ -53,6 +53,15 @@ define(function (require, exports, module) {
         }
     });
     
+    WebSocketTransportDomain.on("fetch-code-text-message", function (obj, message) {
+        console.log("WebSocketTransport - event - message" + " - " + message);
+        var editor = EditorManager.getActiveEditor(),
+            position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
+        if (position) {
+            editor.setCursorPos(position.line, position.ch, true);
+        }
+    });
+    
     function createWebSocketServer(port) {
         WebSocketTransportDomain.exec("start", parseInt(port, 10));
     }
