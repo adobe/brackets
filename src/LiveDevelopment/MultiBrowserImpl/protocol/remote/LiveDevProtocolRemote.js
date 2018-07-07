@@ -140,7 +140,7 @@
          * Evaluate an expresion and return its result.
          */
         evaluate: function (msg) {
-            var x = msg.params.expression.indexOf("_LD.fillCodeArea(");
+            var x = -1;//msg.params.expression.indexOf("_LD.fillCodeArea(");
             if ( x >= 0) {
                 var res = msg.params.expression.substring(18, msg.params.expression.length - 2);
                 _LD.fillCodeArea(res);

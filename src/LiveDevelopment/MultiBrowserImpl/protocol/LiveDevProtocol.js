@@ -144,7 +144,7 @@ define(function (require, exports, module) {
                 codeText = HTMLInstrumentation.getTextFromTagId(editor, parseInt(msg.tagId, 10));
             if (codeText) {
                 console.log("Inside _receiveCodeRequest - " + codeText);
-                evaluate("_LD.fillCodeArea(\"" + codeText + "\")");
+                evaluate("_LD.fillCodeArea(" + JSON.stringify(codeText) + ")");
                 //evaluate("_LD.fillCodeArea(\"Hello\")");
             }
         } else {

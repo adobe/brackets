@@ -112,7 +112,11 @@ define(function (require, exports, module) {
             return (mark.tagID === tagId);
         });
         if (markFound) {
-            return editor._codeMirror.getRange(markFound.find().from, markFound.find().to);
+            return {
+                text: editor._codeMirror.getRange(markFound.find().from, markFound.find().to),
+                from: markFound.find().from,
+                to: markFound.find().to
+            };
         } else {
             return null;
         }

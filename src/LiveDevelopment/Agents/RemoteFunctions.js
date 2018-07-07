@@ -660,9 +660,9 @@ function RemoteFunctions(config, remoteWSPort) {
         }
     }
 
-    function fillCodeArea(text) {
+    function fillCodeArea(textObj) {
         // change
-        window.document.getElementById("code-container").value = text;
+        window.document.getElementById("code-container").value = textObj.text;
     }
 
     // highlight a node
