@@ -246,9 +246,12 @@ define(function (require, exports, module) {
             .on("applyChangelist-message.livedev", function (event, msg) {
                 //_receiveCodeRequest(msg[0], msg[1]);
                 console.log('Recieved apply changelist' + msg);
-                var activeEditor = EditorManager.getActiveEditor();
-                if (activeEditor) {
-                    activeEditor._applyChanges([JSON.parse(msg[1]).changeList[0]]);
+                //var activeEditor = EditorManager.getActiveEditor();
+                var fileName = JSON.parse(msg[1]).fileName;
+                var doc = DocumentManager.getOpenDocumentForPath(fileName);
+                if (doc) {
+                    doc._ensureMasterEditor();
+                    doc._masterEditor._applyChanges([JSON.parse(msg[1]).changeList[0]]);
                 }
             })
             .on("close.livedev", function (event, msg) {
