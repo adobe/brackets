@@ -112,8 +112,14 @@ define(function (require, exports, module) {
             return (mark.tagID === tagId);
         });
         if (markFound) {
+            var fromLine = markFound.find().from;
+            var toLine  = markFound.find().to;
+            
+            fromLine.ch = 0;
+            toLine.ch = editor._codeMirror.getLine(toLine.line).length;
+
             return {
-                text: editor._codeMirror.getRange(markFound.find().from, markFound.find().to),
+                text: editor._codeMirror.getRange(fromLine, toLine),
                 from: markFound.find().from,
                 to: markFound.find().to
             };

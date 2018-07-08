@@ -49,7 +49,8 @@ define(function (require, exports, module) {
         RemoteFunctions       = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         EditorManager         = require("editor/EditorManager"),
         LiveDevMultiBrowser   = require("LiveDevelopment/LiveDevMultiBrowser"),
-        HTMLInstrumentation   = require("language/HTMLInstrumentation");
+        HTMLInstrumentation   = require("language/HTMLInstrumentation"),
+        DocumentManager     = require("document/DocumentManager");
 
     /**
      * @private
@@ -227,6 +228,14 @@ define(function (require, exports, module) {
             })
             .on("fetch-code-text-message.livedev", function (event, msg) {
                 _receiveCodeRequest(msg[0], msg[1]);
+            })
+            .on("applyChangelist-message.livedev", function (event, msg) {
+                //_receiveCodeRequest(msg[0], msg[1]);
+                console.log('Recieved apply changelist' + msg);
+                var activeEditor = EditorManager.getActiveEditor();
+                if (activeEditor) {
+                    activeEditor._applyChanges(JSON.parse(msg[1]));
+                }
             })
             .on("close.livedev", function (event, msg) {
                 _close(msg[0]);

@@ -68,6 +68,7 @@
         connect: function (url) {
             var self = this;
             this._ws = new WebSocket(url);
+            
 
             // One potential source of confusion: the transport sends two "types" of messages -
             // these are distinct from the protocol's own messages. This is because this transport
@@ -87,6 +88,7 @@
                     type: "connect",
                     url: global.location.href
                 }));
+                window.bracketsWS = self._ws;
                 console.log("[Brackets LiveDev] Connected to Brackets at " + url);
                 if (self._callbacks && self._callbacks.connect) {
                     self._callbacks.connect();
@@ -149,16 +151,77 @@
 
 function loadEditor() {
     
-    var divBlock = window.document.createElement( 'div' );
-    divBlock.setAttribute('id', "bramble");
-    divBlock.setAttribute('style', "height: 500px; width:400px; overflow: hidden; z-index: 10;position: fixed;right: 50;top: 50;");
+   
+    var mydivBlock = window.document.createElement( 'div' );
+    mydivBlock.setAttribute('id', "mydiv");
+    mydivBlock.setAttribute('style', "left:20px; top:50px; position: absolute;z-index: 3000000;background-color: #f1f1f1;text-align: center;border: 1px solid #d3d3d3;width: 500px;height: 500px; display:none");
+   
+    var mydivheader = window.document.createElement( 'div' );
+    mydivheader.setAttribute('id', "mydivheader");
+    mydivheader.setAttribute('style', "padding: 10px;cursor: move;z-index: 3000000;background-color: #2196F3;color: #fff;width: 100%;height: 100%");
+    
+    mydivBlock.appendChild( mydivheader );
 
-    window.document.body.appendChild( divBlock );
+    var bramblediv = window.document.createElement( 'div' );
+    bramblediv.setAttribute('id', "bramble");
+    bramblediv.setAttribute('style', "width: 100%;height: 100%;");
+    
+    mydivheader.appendChild( bramblediv );
+    
+    window.document.body.appendChild(mydivBlock);
+    
+    // Script tag
     var scriptTag = window.document.createElement('script');
     scriptTag.setAttribute('src', "thirdparty/require.min.js");
     scriptTag.setAttribute('data-main', "hosted");
     window.document.body.appendChild( scriptTag );
 
+    //mydivBlock.setAttribute("top", "20px");
+    //mydivBlock.setAttribute("left", "500px");
+
+    // Adding Drag capabilities.
+    dragElement(window.window.document.getElementById("mydiv"));
+
+    function dragElement(elmnt) {
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        if (window.document.getElementById(elmnt.id + "header")) {
+            /* if present, the header is where you move the DIV from:*/
+            window.document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+            /* otherwise, move the DIV from anywhere inside the DIV:*/
+            elmnt.onmousedown = dragMouseDown;
+        }
+
+        function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // get the mouse cursor position at startup:
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            window.document.onmouseup = closeDragElement;
+            // call a function whenever the cursor moves:
+            window.document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // calculate the new cursor position:
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // set the element's new position:
+            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            /* stop moving when mouse button is released:*/
+            window.document.onmouseup = null;
+            window.document.onmousemove = null;
+        }
+    }
 }
 
 window.onload = loadEditor;

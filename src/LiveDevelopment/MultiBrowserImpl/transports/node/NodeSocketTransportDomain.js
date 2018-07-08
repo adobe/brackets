@@ -124,6 +124,13 @@ function _createServer() {
                     } else {
                         console.error("nodeSocketTransport: Couldn't locate client for message: " + msg);
                     }
+                }  else if (msgObj.type === "applyChangelist-message") {
+                    var client3 = _clientForSocket(ws);
+                    if (client3) {
+                        _domainManager.emitEvent("nodeSocketTransport", "applyChangelist-message", [client3.id, msgObj.message]);
+                    } else {
+                        console.error("nodeSocketTransport: Couldn't locate client for message: " + msg);
+                    }
                 } else {
                     console.error("nodeSocketTransport: Got bad socket message type: " + msg);
                 }
@@ -245,6 +252,14 @@ function init(domainManager) {
     domainManager.registerEvent(
         "nodeSocketTransport",
         "fetch-code-text-message",
+        [
+            {name: "clientID", type: "number", description: "ID of live preview page sending message"},
+            {name: "msg", type: "string", description: "JSON message from client page"}
+        ]
+    );
+    domainManager.registerEvent(
+        "nodeSocketTransport",
+        "applyChangelist-message",
         [
             {name: "clientID", type: "number", description: "ID of live preview page sending message"},
             {name: "msg", type: "string", description: "JSON message from client page"}

@@ -659,10 +659,71 @@ function RemoteFunctions(config, remoteWSPort) {
             _remoteHighlight = null;
         }
     }
-
+    var isRegistered = false;
     function fillCodeArea(textObj) {
         // change
-        window.document.getElementById("code-container").value = textObj.text;
+        //window.document.getElementById("code-container").value = textObj.text;
+        if (window.bramble){
+            window.document.getElementById("mydiv").style.display = "block";
+            window.bramble.addNewFile({
+                filename: 'index.html',
+                contents: textObj.text
+            }, function(){
+                console.log('NewFileAdded');
+            });
+
+            function _onDocumentChanged(args) {
+                if (window.currentSelection) {
+                    // Check if line nos are changed. And if yes then
+                    // store them.
+                    // Hang on brother.
+
+                    // Normalize this to 
+                    var theCL = JSON.parse(args.changeList);
+                    if (theCL[0].origin !== "setValue"){
+                        
+                        theCL[0].from.line = window.currentSelection.from.line + theCL[0].from.line;
+                        theCL[0].to.line   = window.currentSelection.from.line + theCL[0].to.line;
+
+                        /*if (theCL[0].to) {
+                            var lineNos = window.currentSelection.from.line + args.noLines - 1;
+                            if (lineNos !== window.currentSelection.to.line ){
+                                theCL[0].to.line = window.currentSelection.from.line + theCL[0].to.line;
+                                window.currentSelection.to.line = lineNos;
+                            } else {
+                                theCL[0].to.line = window.currentSelection.to.line + theCL[0].to.line;
+                            }
+                        }*/
+
+                        var finalCL = JSON.stringify(theCL);
+                        console.log('Inside documentChange. Final CL is' + finalCL);
+                        //if (theCL[0].from){
+                        //    window.currentSelection.from.line = theCL[0].from.line;
+                        //    window.currentSelection.from.ch = theCL[0].from.ch;
+                        //}
+                        
+                       /* if (theCL[0].to){
+                            window.currentSelection.to.line = theCL[0].to.line;
+                            window.currentSelection.to.ch = theCL[0].to.ch;
+                        }*/
+
+                        window.bracketsWS.send(JSON.stringify({
+                            type: "applyChangelist-message",
+                            message: finalCL
+                        }));
+                    }
+                }
+            }
+
+            //window.bramble.off("documentChange", _onDocumentChanged);
+            if (!isRegistered) {
+                isRegistered = true;
+                // Also hook on to document change notification.
+                window.bramble.on("documentChange", _onDocumentChanged);
+            }
+        }
+
+        window.currentSelection = textObj;
     }
 
     // highlight a node
@@ -1055,6 +1116,7 @@ function RemoteFunctions(config, remoteWSPort) {
 
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
+        window.bracketsWS = _ws;
         _ws.onopen = function () {
             window.document.addEventListener("click", onDocumentClick);
         };
