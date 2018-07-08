@@ -319,6 +319,8 @@ define(function (require, exports, module) {
                 }
             }
         });
+
+        window.allRelatedDocs = _relatedDocuments;
     }
 
     /**
@@ -709,6 +711,7 @@ define(function (require, exports, module) {
                 .done(function () {
                     _setStatus(STATUS_CONNECTING);
                     _doLaunchAfterServerReady(doc);
+                    window.activeHTMLDoc = doc;
                 })
                 .fail(function () {
                     _showWrongDocError();

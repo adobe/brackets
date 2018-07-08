@@ -660,16 +660,36 @@ function RemoteFunctions(config, remoteWSPort) {
         }
     }
     var isRegistered = false;
+    window.allRelatedDocuments = {};
+
     function fillCodeArea(textObj) {
         // change
         //window.document.getElementById("code-container").value = textObj.text;
         if (window.bramble){
-            window.document.getElementById("mydiv").style.display = "block";
+
+            function loadFile(fileName, contents, fullPath) {
+                window.bramble.addNewFile({
+                    filename: fileName,
+                    contents: contents
+                }, function(args){
+                    window.allRelatedDocuments[fileName] = fullPath;
+                });
+            }
+                        
+            textObj.StyleSheetContents.forEach(function(styleSheet){
+                if (!window.allRelatedDocuments[styleSheet.url]) {
+                    loadFile(styleSheet.url, styleSheet.text, styleSheet.fullPath);
+                }
+            });
+            
+            // Finally load the index.html with the content.
             window.bramble.addNewFile({
-                filename: 'index.html',
+                filename: textObj.activeDocName,
                 contents: textObj.text
             }, function(){
-                console.log('NewFileAdded');
+                window.activeDocName = textObj.activeDocName;
+                window.activeFullPath = textObj.activeFullPath;
+                window.document.getElementById("mydiv").style.display = "block";
             });
 
             function _onDocumentChanged(args) {
@@ -682,8 +702,14 @@ function RemoteFunctions(config, remoteWSPort) {
                     var theCL = JSON.parse(args.changeList);
                     if (theCL[0].origin !== "setValue"){
                         
-                        theCL[0].from.line = window.currentSelection.from.line + theCL[0].from.line;
-                        theCL[0].to.line   = window.currentSelection.from.line + theCL[0].to.line;
+                        var targetFileName;
+                        if ( window.activeDocName === args.fileName) {
+                            theCL[0].from.line = window.currentSelection.from.line + theCL[0].from.line;
+                            theCL[0].to.line   = window.currentSelection.from.line + theCL[0].to.line;
+                            targetFileName = window.activeFullPath;
+                        } else {
+                            targetFileName = window.allRelatedDocuments[args.fileName];
+                        }
 
                         /*if (theCL[0].to) {
                             var lineNos = window.currentSelection.from.line + args.noLines - 1;
@@ -695,7 +721,13 @@ function RemoteFunctions(config, remoteWSPort) {
                             }
                         }*/
 
-                        var finalCL = JSON.stringify(theCL);
+                        var interCL = {
+                            fileName: targetFileName,
+                            changeList: theCL
+                        };
+                        
+                        var finalCL = JSON.stringify(interCL);
+
                         console.log('Inside documentChange. Final CL is' + finalCL);
                         //if (theCL[0].from){
                         //    window.currentSelection.from.line = theCL[0].from.line;

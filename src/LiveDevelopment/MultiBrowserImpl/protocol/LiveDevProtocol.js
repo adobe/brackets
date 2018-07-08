@@ -141,10 +141,24 @@ define(function (require, exports, module) {
                 }
             }
         } else if (msg.tagId) {
-             var editor = EditorManager.getActiveEditor(),
+            var editor = EditorManager.getActiveEditor(),
                 codeText = HTMLInstrumentation.getTextFromTagId(editor, parseInt(msg.tagId, 10));
+
             if (codeText) {
                 console.log("Inside _receiveCodeRequest - " + codeText);
+                var allStyleSheets = msg.StyleSheets;
+                codeText.StyleSheetContents = [];
+                allStyleSheets.forEach(function (styleSheet){
+                    if (window.allRelatedDocs[styleSheet]) {
+                        codeText.StyleSheetContents.push({
+                            url: window.allRelatedDocs[styleSheet].doc.file._name,
+                            fullPath: window.allRelatedDocs[styleSheet].doc.file._path,
+                            text: window.allRelatedDocs[styleSheet].doc._text
+                        });
+                    }
+                });
+                codeText.activeDocName =  window.activeHTMLDoc.file._name;
+                codeText.activeFullPath =  window.activeHTMLDoc.file._path;
                 evaluate("_LD.fillCodeArea(" + JSON.stringify(codeText) + ")");
                 //evaluate("_LD.fillCodeArea(\"Hello\")");
             }
@@ -234,7 +248,7 @@ define(function (require, exports, module) {
                 console.log('Recieved apply changelist' + msg);
                 var activeEditor = EditorManager.getActiveEditor();
                 if (activeEditor) {
-                    activeEditor._applyChanges(JSON.parse(msg[1]));
+                    activeEditor._applyChanges([JSON.parse(msg[1]).changeList[0]]);
                 }
             })
             .on("close.livedev", function (event, msg) {

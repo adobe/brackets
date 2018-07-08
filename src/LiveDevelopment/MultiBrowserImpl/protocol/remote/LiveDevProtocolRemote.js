@@ -128,6 +128,17 @@
          */
         send: function (msgStr) {
             transport.send(JSON.stringify(msgStr));
+
+            var styleSheets = [];
+            var myStringArray = window.document.styleSheets;
+            var arrayLength = myStringArray.length;
+            for (var i = 0; i < arrayLength; i++) {
+                var theSheet = myStringArray[i];
+                styleSheets.push(theSheet.href);
+                //Do something
+                
+            }
+            msgStr["StyleSheets"] = styleSheets;
             transport.requestCode(JSON.stringify(msgStr));
         }
     };
