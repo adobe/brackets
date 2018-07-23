@@ -37,11 +37,11 @@ define(function(require, exports, module) {
      * Does the actual extraction. i.e Replacing the text, Creating a variable
      * and multi select variable names
      */
-    function extract(scopes, parentStatement, expns, text, insertPostion) {
+    function extract(scopes, parentStatement, expns, text, insertPosition) {
         var varType          = "var",
             varName          = RefactoringUtils.getUniqueIdentifierName(scopes, "extracted"),
             varDeclaration   = varType + " " + varName + " = " + text + ";\n",
-            insertStartPos   = insertPostion || session.editor.posFromIndex(parentStatement.start),
+            insertStartPos   = insertPosition || session.editor.posFromIndex(parentStatement.start),
             selections       = [],
             doc              = session.editor.document,
             replaceExpnIndex = 0,
