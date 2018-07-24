@@ -419,6 +419,7 @@
      *                         requester  : ID of the current requester domain}
      */
     function initNode(initObj) {
+        var resetUpdateProgres = false;
         if (!isNodeDomainInitialized) {
             MessageIds = initObj.messageIds;
             updateDir = path.resolve(initObj.updateDir);
@@ -426,8 +427,9 @@
             installStatusFilePath = path.resolve(updateDir, installStatusFile);
             registerNodeFunctions();
             isNodeDomainInitialized = true;
-            postMessageToBrackets(MessageIds.SET_UPDATE_IN_PROGRESS_STATE, initObj.requester.toString(), false);
+            resetUpdateProgres = true;
         }
+        postMessageToBrackets(MessageIds.NODE_DOMAIN_INITIALIZED, initObj.requester.toString(), resetUpdateProgres);
         requesters[initObj.requester.toString()] = true;
         postMessageToBrackets(MessageIds.REGISTER_BRACKETS_FUNCTIONS, initObj.requester.toString());
     }
