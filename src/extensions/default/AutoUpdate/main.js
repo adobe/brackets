@@ -223,6 +223,7 @@ define(function (require, exports, module) {
 
         if (downloadCompleted && updateInitiatedInPrevSession) {
             var isNewVersion = checkIfVersionUpdated();
+            updateJsonHandler.reset();
             if (isNewVersion) {
                 // We get here if the update was successful
                 UpdateInfoBar.showUpdateBar({
@@ -280,19 +281,14 @@ define(function (require, exports, module) {
 
      /**
      * Initializes the state of parsed content from updateHelper.json
+     * returns Promise Object Which is resolved when parsing is success
+     * and rejected if parsing is failed.
      */
     function initState() {
+        var result = $.Deferred();
         updateJsonHandler.parse()
             .done(function() {
-            checkIfAnotherSessionInProgress()
-                .done(function (inProgress) {
-                    if (!inProgress) {
-                        checkUpdateStatus();
-                    }
-                })
-                .fail(function () {
-                    checkUpdateStatus();
-                });
+                result.resolve();
             })
             .fail(function (code) {
                 var logMsg;
@@ -311,7 +307,9 @@ define(function (require, exports, module) {
                     break;
                 }
                 console.log(logMsg);
+                result.reject();
             });
+        return result.promise();
     }
 
 
@@ -321,15 +319,13 @@ define(function (require, exports, module) {
      */
     function setupAutoUpdate() {
         updateJsonHandler = new StateHandler(updateJsonPath);
+        updateDomain.on('data', receiveMessageFromNode);
 
         updateDomain.exec('initNode', {
             messageIds: MessageIds,
             updateDir: updateDir,
             requester: domainID
         });
-
-        updateDomain.on('data', receiveMessageFromNode);
-        initState();
     }
 
 
@@ -594,11 +590,17 @@ define(function (require, exports, module) {
     /**
      * Enables/disables the state of "Auto Update In Progress" in UpdateHandler.json
      */
-    function setAutoUpdateInProgressFlag(flag) {
-        updateJsonHandler.parse()
-            .done(function() {
-                setUpdateStateInJSON("autoUpdateInProgress", flag);
-        });
+    function nodeDomainInitialized(reset) {
+        initState()
+            .done(function () {
+                var inProgress = updateJsonHandler.get(updateProgressKey);
+                if (inProgress && reset) {
+                    setUpdateStateInJSON(updateProgressKey, !reset)
+                        .always(checkUpdateStatus);
+                 } else if (!inProgress) {
+                    checkUpdateStatus();
+                }
+            });
     }
 
 
@@ -636,7 +638,6 @@ define(function (require, exports, module) {
         enableCheckForUpdateEntry(true);
         console.error(message);
 
-        setUpdateStateInJSON("autoUpdateInProgress", false);
     }
 
     /**
@@ -1124,7 +1125,7 @@ define(function (require, exports, module) {
 
         ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
     }
-    functionMap["brackets.setAutoUpdateInProgress"]     = setAutoUpdateInProgressFlag;
+    functionMap["brackets.nodeDomainInitialized"]     = nodeDomainInitialized;
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
 });
