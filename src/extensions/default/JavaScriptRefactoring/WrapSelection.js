@@ -268,9 +268,7 @@ define(function (require, exports, module) {
         var propertyNodeArray = parentNode.properties;
         // Find the last Propery Node before endIndex
         var properyEndNode = propertyNodeArray.find(function (element) {
-            if (endIndex >= element.start && endIndex < element.end) {
-                return element;
-            }
+            return (endIndex >= element.start && endIndex < element.end);
         });
 
         //Get Current Selected Property End Index;

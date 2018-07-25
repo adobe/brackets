@@ -137,10 +137,8 @@ define(function (require, exports, module) {
 
             // Finding the Primary Reference in Array
             var primaryRef = refsArray.find(function (element) {
-                if ((element.start.line === currentPosition.line || element.end.line === currentPosition.line)
-                        && currentPosition.ch <= element.end.ch && currentPosition.ch >= element.start.ch) {
-                    return element;
-                }
+                return ((element.start.line === currentPosition.line || element.end.line === currentPosition.line)
+                        && currentPosition.ch <= element.end.ch && currentPosition.ch >= element.start.ch);
             });
             // Setting the primary flag of Primary Refence to true
             primaryRef.primary = true;

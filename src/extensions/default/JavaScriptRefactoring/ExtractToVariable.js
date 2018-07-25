@@ -46,7 +46,8 @@ define(function(require, exports, module) {
             selections       = [],
             doc              = session.editor.document,
             replaceExpnIndex = 0,
-            posToIndent;
+            posToIndent,
+            edits            = [];
 
         // If parent statement is expression statement, then just append var declaration
         // Ex: "add(1, 2)" will become "var extracted = add(1, 2)"
@@ -67,20 +68,16 @@ define(function(require, exports, module) {
             expns[i].start  = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
             expns[i].end    = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
-            /* If there are multiple expressions . then second Expression onward
-               position need to be adjusted due to the variable replacement in previous expressions.
-            */
-            for (var j = replaceExpnIndex; j < i; ++j) {
-                expns[i].start  = doc.adjustPosForChange(expns[i].start, varName.split("\n"),
-                                                         expns[j].start, expns[j].end);
-                expns[i].end    = doc.adjustPosForChange(expns[i].end, varName.split("\n"),
-                                                         expns[j].start, expns[j].end);
-            }
-            // End of Code for Position Adjustment of Multiple Expression.
-
-            selections.push({
-                start: expns[i].start,
-                end: {line: expns[i].start.line, ch: expns[i].start.ch + varName.length}
+            edits.push({
+                edit: {
+                    text: varName,
+                    start: expns[i].start,
+                    end: expns[i].end
+                },
+                selection: {
+                    start: expns[i].start,
+                    end: {line: expns[i].start.line, ch: expns[i].start.ch + varName.length}
+                }
             });
         }
 
@@ -88,15 +85,12 @@ define(function(require, exports, module) {
         doc.batchOperation(function() {
             doc.replaceRange(varDeclaration, insertStartPos);
 
-            for (var i = replaceExpnIndex; i < expns.length; ++i) {
-                doc.replaceRange(varName, expns[i].start, expns[i].end);
-            }
+            selections = doc.doMultipleEdits(edits);
             selections.push({
                 start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
                 end:   {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
                 primary: true
             });
-
             session.editor.setSelections(selections);
             session.editor._codeMirror.indentLine(posToIndent.line, "smart");
         });
