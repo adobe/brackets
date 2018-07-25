@@ -41,7 +41,8 @@ define(function(require, exports, module) {
         var varType          = "var",
             varName          = RefactoringUtils.getUniqueIdentifierName(scopes, "extracted"),
             varDeclaration   = varType + " " + varName + " = " + text + ";\n",
-            insertStartPos   = insertPosition || session.editor.posFromIndex(parentStatement.start),
+            parentStatementStartPos = session.editor.posFromIndex(parentStatement.start),
+            insertStartPos   = insertPosition || parentStatementStartPos,
             selections       = [],
             doc              = session.editor.document,
             replaceExpnIndex = 0,
@@ -49,7 +50,10 @@ define(function(require, exports, module) {
 
         // If parent statement is expression statement, then just append var declaration
         // Ex: "add(1, 2)" will become "var extracted = add(1, 2)"
-        if (parentStatement.type === "ExpressionStatement" && RefactoringUtils.isEqual(parentStatement.expression, expns[0])) {
+        if (parentStatement.type === "ExpressionStatement" &&
+                RefactoringUtils.isEqual(parentStatement.expression, expns[0]) &&
+                insertStartPos.line === parentStatementStartPos.line &&
+                insertStartPos.ch === parentStatementStartPos.ch) {
             varDeclaration = varType + " " + varName + " = ";
             replaceExpnIndex = 1;
         }
@@ -66,7 +70,7 @@ define(function(require, exports, module) {
             /* If there are multiple expressions . then second Expression onward
                position need to be adjusted due to the variable replacement in previous expressions.
             */
-            for (var j = 0; j < i; ++j) {
+            for (var j = replaceExpnIndex; j < i; ++j) {
                 expns[i].start  = doc.adjustPosForChange(expns[i].start, varName.split("\n"),
                                                          expns[j].start, expns[j].end);
                 expns[i].end    = doc.adjustPosForChange(expns[i].end, varName.split("\n"),
@@ -195,16 +199,18 @@ define(function(require, exports, module) {
                 var firstExpnsScopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText()),
                     insertPostion;
                 parentStatement = RefactoringUtils.findSurroundASTNode(ast, expns[0], ["Statement"]);
-                if(scopes.length !== firstExpnsScopes.length) {
+                if (scopes.length < firstExpnsScopes.length) {
                     var parentScope;
-                    if(expns[0].body && expns[0].body.type === "BlockStatement") {
+                    if (expns[0].body && expns[0].body.type === "BlockStatement") {
                         parentScope = firstExpnsScopes[firstExpnsScopes.length - scopes.length];
                     } else {
                         parentScope = firstExpnsScopes[firstExpnsScopes.length - scopes.length - 1];
                     }
 
                     var insertNode = RefactoringUtils.findSurroundASTNode(ast, parentScope.originNode, ["Statement"]);
-                    insertPostion = session.editor.posFromIndex(insertNode.start);
+                    if (insertNode) {
+                        insertPostion = session.editor.posFromIndex(insertNode.start);
+                    }
                 }
                 extract(scopes, parentStatement, expns, text, insertPostion);
             });
@@ -281,7 +287,13 @@ define(function(require, exports, module) {
 
                 // If only one surround expression, extract
                 if (expns.length === 1) {
-                    extractToVariable(ast, expns[0].start, expns[0].end, expns[0].value, scopes);
+                    RefactoringUtils.getScopeData(session, editor.posFromIndex(expns[0].start))
+                        .done(function(expnscope) {
+                            scopes = RefactoringUtils.getAllScopes(ast, expnscope, doc.getText());
+                            extractToVariable(ast, expns[0].start, expns[0].end, expns[0].value, scopes);
+                        }).fail(function() {
+                            editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
+                        });
                     return;
                 }
 
@@ -299,7 +311,13 @@ define(function(require, exports, module) {
                 inlineMenu.open(expns);
 
                 inlineMenu.onSelect(function (expnId) {
-                    extractToVariable(ast, expns[expnId].start, expns[expnId].end, expns[expnId].value, scopes);
+                    RefactoringUtils.getScopeData(session, editor.posFromIndex(expns[expnId].start))
+                        .done(function(expnscope) {
+                            scopes = RefactoringUtils.getAllScopes(ast, expnscope, doc.getText());
+                            extractToVariable(ast, expns[expnId].start, expns[expnId].end, expns[expnId].value, scopes);
+                        }).fail(function() {
+                            editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
+                        });
                     inlineMenu.close();
                 });
 

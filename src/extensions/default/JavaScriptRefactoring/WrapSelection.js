@@ -264,14 +264,18 @@ define(function (require, exports, module) {
             return;
         }
 
-        //Get Current Selected Property End Index;
+
         var propertyNodeArray = parentNode.properties;
-        for(var i=0; i<propertyNodeArray.length; ++i) {
-            if(endIndex >= propertyNodeArray[i].start && endIndex < propertyNodeArray[i].end) {
-                propertyEndPos = editor._codeMirror.posFromIndex(propertyNodeArray[i].end);
-                break;
+        // Find the last Propery Node before endIndex
+        var properyEndNode = propertyNodeArray.find(function (element) {
+            if (endIndex >= element.start && endIndex < element.end) {
+                return element;
             }
-        }
+        });
+
+        //Get Current Selected Property End Index;
+        propertyEndPos = editor.posFromIndex(properyEndNode.end);
+
 
         //We have to add ',' so we need to find position of current property selected
         isLastNode = current.isLastNodeInScope(current.ast, endIndex);
