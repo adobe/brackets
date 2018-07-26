@@ -240,6 +240,16 @@ define(function(require, exports, module) {
             expns,
             inlineMenu;
 
+        function callExtractToVariable(startPos, endPos, value) {
+            RefactoringUtils.getScopeData(session, editor.posFromIndex(startPos))
+                .done(function(expnscope) {
+                    scopes = RefactoringUtils.getAllScopes(ast, expnscope, doc.getText());
+                    extractToVariable(ast, startPos, endPos, value, scopes);
+                }).fail(function() {
+                    editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
+                });
+        }
+
         RefactoringUtils.getScopeData(session, editor.posFromIndex(start)).done(function(scope) {
             ast = RefactoringUtils.getAST(doc.getText());
             scopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText());
@@ -281,13 +291,7 @@ define(function(require, exports, module) {
 
                 // If only one surround expression, extract
                 if (expns.length === 1) {
-                    RefactoringUtils.getScopeData(session, editor.posFromIndex(expns[0].start))
-                        .done(function(expnscope) {
-                            scopes = RefactoringUtils.getAllScopes(ast, expnscope, doc.getText());
-                            extractToVariable(ast, expns[0].start, expns[0].end, expns[0].value, scopes);
-                        }).fail(function() {
-                            editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
-                        });
+                    callExtractToVariable(expns[0].start, expns[0].end, expns[0].value);
                     return;
                 }
 
@@ -305,13 +309,7 @@ define(function(require, exports, module) {
                 inlineMenu.open(expns);
 
                 inlineMenu.onSelect(function (expnId) {
-                    RefactoringUtils.getScopeData(session, editor.posFromIndex(expns[expnId].start))
-                        .done(function(expnscope) {
-                            scopes = RefactoringUtils.getAllScopes(ast, expnscope, doc.getText());
-                            extractToVariable(ast, expns[expnId].start, expns[expnId].end, expns[expnId].value, scopes);
-                        }).fail(function() {
-                            editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
-                        });
+                    callExtractToVariable(expns[expnId].start, expns[expnId].end, expns[expnId].value);
                     inlineMenu.close();
                 });
 
