@@ -414,6 +414,19 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Displays the last menu which was closed due to Scrolling
+     */
+    InlineMenu.prototype.openRemovedMenu = function () {
+        if (this.opened === true) {
+            if (this.$menu && !this.$menu.hasClass("open")) {
+                var menuPos = this._calcMenuLocation();
+                this.$menu.addClass("open")
+                    .css({"left": menuPos.left, "top": menuPos.top, "width": menuPos.width + "px"});
+            }
+        }
+    };
+
+    /**
      * Closes the menu
      */
     InlineMenu.prototype.close = function () {

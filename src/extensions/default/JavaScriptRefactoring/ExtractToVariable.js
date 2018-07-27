@@ -265,6 +265,11 @@ define(function(require, exports, module) {
                 inlineMenu = new InlineMenu(session.editor, Strings.EXTRACTTO_VARIABLE_SELECT_EXPRESSION);
 
                 inlineMenu.onHover(function (expnId) {
+                    editor.off("scroll.inlinemenu");
+                    editor.on("scroll.inlinemenu", function() {
+                        editor.off("scroll.inlinemenu");
+                        inlineMenu.openRemovedMenu();
+                    });
                     editor.setSelection(editor.posFromIndex(expns[expnId].start), editor.posFromIndex(expns[expnId].end));
                 });
 
