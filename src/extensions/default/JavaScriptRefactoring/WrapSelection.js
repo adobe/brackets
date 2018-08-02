@@ -97,7 +97,7 @@ define(function (require, exports, module) {
         });
 
         if (wrapperName === TRY_CATCH) {
-            var cursorLine = current.editor.getSelection().start.line - 1,
+            var cursorLine = current.editor.getSelection().end.line - 1,
                 startCursorCh = current.document.getLine(cursorLine).indexOf("\/\/"),
                 endCursorCh = current.document.getLine(cursorLine).length;
 
@@ -247,8 +247,9 @@ define(function (require, exports, module) {
 
         var token = TokenUtils.getTokenAt(current.cm, current.cm.posFromIndex(endIndex)),
             isLastNode,
-            lineEndPos,
-            templateParams;
+            templateParams,
+            parentNode,
+            propertyEndPos;
 
         //Create getters and setters only if selected reference is a property
         if (token.type !== "property") {
@@ -256,15 +257,26 @@ define(function (require, exports, module) {
             return;
         }
 
+        parentNode = current.getParentNode(current.ast, endIndex);
         // Check if selected propery is child of a object expression
-        if (!current.getParentNode(current.ast, endIndex)) {
+        if (!parentNode || !parentNode.properties) {
             current.editor.displayErrorMessageAtCursor(Strings.ERROR_GETTERS_SETTERS);
             return;
         }
 
+
+        var propertyNodeArray = parentNode.properties;
+        // Find the last Propery Node before endIndex
+        var properyEndNode = propertyNodeArray.find(function (element) {
+            return (endIndex >= element.start && endIndex < element.end);
+        });
+
+        //Get Current Selected Property End Index;
+        propertyEndPos = editor.posFromIndex(properyEndNode.end);
+
+
         //We have to add ',' so we need to find position of current property selected
         isLastNode = current.isLastNodeInScope(current.ast, endIndex);
-        lineEndPos = current.lineEndPosition(current.startPos.line);
         templateParams = {
             "getName": token.string,
             "setName": token.string,
@@ -276,11 +288,11 @@ define(function (require, exports, module) {
         current.document.batchOperation(function() {
             if (isLastNode) {
                 //Add ',' in the end of current line
-                current.document.replaceRange(",", lineEndPos, lineEndPos);
-                lineEndPos.ch++;
+                current.document.replaceRange(",", propertyEndPos, propertyEndPos);
             }
+            propertyEndPos.ch++;
 
-            current.editor.setSelection(lineEndPos); //Selection on line end
+            current.editor.setSelection(propertyEndPos); //Selection on line end
 
             // Add getters and setters for given token using template at current cursor position
             current.replaceTextFromTemplate(GETTERS_SETTERS, templateParams);
