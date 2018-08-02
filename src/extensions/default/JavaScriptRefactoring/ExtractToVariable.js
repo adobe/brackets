@@ -303,6 +303,19 @@ define(function(require, exports, module) {
                 inlineMenu = new InlineMenu(session.editor, Strings.EXTRACTTO_VARIABLE_SELECT_EXPRESSION);
 
                 inlineMenu.onHover(function (expnId) {
+                    // Remove the scroll Handlers If already Attached.
+                    editor.off("scroll.inlinemenu");
+                    // Add a scroll handler If Selection Range is not View.
+                    // This is Added for a Bug, where Menu used not to open for the first Time
+                    if(!editor.isLineVisible(editor.posFromIndex(expns[expnId].end).line)) {
+                        editor.on("scroll.inlinemenu", function() {
+                            // Remove the Handlers so that If scroll event is triggerd again by any other operation
+                            // Menu should not be reopened.
+                            // Menu Should be reopened only if Scroll event is triggered by onHover.
+                            editor.off("scroll.inlinemenu");
+                            inlineMenu.openRemovedMenu();
+                        });
+                    }
                     editor.setSelection(editor.posFromIndex(expns[expnId].start), editor.posFromIndex(expns[expnId].end));
                 });
 
