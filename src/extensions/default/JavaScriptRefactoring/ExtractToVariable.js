@@ -267,6 +267,8 @@ define(function(require, exports, module) {
                 inlineMenu.onHover(function (expnId) {
                     // Remove the scroll Handlers If already Attached.
                     editor.off("scroll.inlinemenu");
+                    // Add a scroll handler If Selection Range is not View.
+                    // This is Added for a Bug, where Menu used not to open for the irst Time
                     if(!editor.isLineVisible(editor.posFromIndex(expns[expnId].end).line)) {
                         editor.on("scroll.inlinemenu", function() {
                             // Remove the Handlers so that If scroll event is triggerd again by any other operation
