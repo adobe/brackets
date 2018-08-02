@@ -267,13 +267,15 @@ define(function(require, exports, module) {
                 inlineMenu.onHover(function (expnId) {
                     // Remove the scroll Handlers If already Attached.
                     editor.off("scroll.inlinemenu");
-                    editor.on("scroll.inlinemenu", function() {
-                        // Remove the Handlers so that If scroll event is triggerd again by any other operation
-                        // Menu should not be reopened.
-                        // Menu Should be reopened only if Scroll event is triggered by onHover.
-                        editor.off("scroll.inlinemenu");
-                        inlineMenu.openRemovedMenu();
-                    });
+                    if(!editor.isLineVisible(editor.posFromIndex(expns[expnId].end).line)) {
+                        editor.on("scroll.inlinemenu", function() {
+                            // Remove the Handlers so that If scroll event is triggerd again by any other operation
+                            // Menu should not be reopened.
+                            // Menu Should be reopened only if Scroll event is triggered by onHover.
+                            editor.off("scroll.inlinemenu");
+                            inlineMenu.openRemovedMenu();
+                        });
+                    }
                     editor.setSelection(editor.posFromIndex(expns[expnId].start), editor.posFromIndex(expns[expnId].end));
                 });
 
