@@ -127,13 +127,23 @@ define(function (require, exports, module) {
                 }
             }
 
-            if (type === "local") {
-                editor.setSelections(refs);
-            } else {
-                editor.setSelections(refs.filter(function(element) {
+            var currentPosition = editor.posFromIndex(refsResp.offset),
+                refsArray = refs;
+            if (type !== "local") {
+                refsArray = refs.filter(function (element) {
                     return isInSameFile(element, refsResp);
-                }));
+                });
             }
+
+            // Finding the Primary Reference in Array
+            var primaryRef = refsArray.find(function (element) {
+                return ((element.start.line === currentPosition.line || element.end.line === currentPosition.line)
+                        && currentPosition.ch <= element.end.ch && currentPosition.ch >= element.start.ch);
+            });
+            // Setting the primary flag of Primary Refence to true
+            primaryRef.primary = true;
+
+            editor.setSelections(refsArray);
         }
 
         /**

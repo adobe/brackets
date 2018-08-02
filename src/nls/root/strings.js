@@ -689,7 +689,7 @@ define({
     "ERROR_EXTRACTTO_VARIABLE_MULTICURSORS"     : "Extract to Variable does not work in multicursors",
     "ERROR_EXTRACTTO_FUNCTION_MULTICURSORS"     : "Extract to Function does not work in multicursors",
     "EXTRACTTO_FUNCTION_SELECT_SCOPE"           : "Choose destination scope",
-    "EXTRACTTO_VARIABLE_SELECT_EXPRESSION"      : "Select a expression",
+    "EXTRACTTO_VARIABLE_SELECT_EXPRESSION"      : "Select an expression",
     "CMD_REFACTORING_RENAME"                    : "Rename",
     "CMD_REFACTORING_TRY_CATCH"                 : "Wrap in Try Catch",
     "CMD_REFACTORING_CONDITION"                 : "Wrap in Condition",

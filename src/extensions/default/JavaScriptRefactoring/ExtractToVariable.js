@@ -37,19 +37,24 @@ define(function(require, exports, module) {
      * Does the actual extraction. i.e Replacing the text, Creating a variable
      * and multi select variable names
      */
-    function extract(scopes, parentStatement, expns, text) {
+    function extract(scopes, parentStatement, expns, text, insertPosition) {
         var varType          = "var",
             varName          = RefactoringUtils.getUniqueIdentifierName(scopes, "extracted"),
             varDeclaration   = varType + " " + varName + " = " + text + ";\n",
-            insertStartPos   = session.editor.posFromIndex(parentStatement.start),
+            parentStatementStartPos = session.editor.posFromIndex(parentStatement.start),
+            insertStartPos   = insertPosition || parentStatementStartPos,
             selections       = [],
             doc              = session.editor.document,
             replaceExpnIndex = 0,
-            posToIndent;
+            posToIndent,
+            edits            = [];
 
         // If parent statement is expression statement, then just append var declaration
         // Ex: "add(1, 2)" will become "var extracted = add(1, 2)"
-        if (parentStatement.type === "ExpressionStatement" && RefactoringUtils.isEqual(parentStatement.expression, expns[0])) {
+        if (parentStatement.type === "ExpressionStatement" &&
+                RefactoringUtils.isEqual(parentStatement.expression, expns[0]) &&
+                insertStartPos.line === parentStatementStartPos.line &&
+                insertStartPos.ch === parentStatementStartPos.ch) {
             varDeclaration = varType + " " + varName + " = ";
             replaceExpnIndex = 1;
         }
@@ -63,9 +68,16 @@ define(function(require, exports, module) {
             expns[i].start  = doc.adjustPosForChange(expns[i].start, varDeclaration.split("\n"), insertStartPos, insertStartPos);
             expns[i].end    = doc.adjustPosForChange(expns[i].end, varDeclaration.split("\n"), insertStartPos, insertStartPos);
 
-            selections.push({
-                start: expns[i].start,
-                end: {line: expns[i].start.line, ch: expns[i].start.ch + varName.length}
+            edits.push({
+                edit: {
+                    text: varName,
+                    start: expns[i].start,
+                    end: expns[i].end
+                },
+                selection: {
+                    start: expns[i].start,
+                    end: {line: expns[i].start.line, ch: expns[i].start.ch + varName.length}
+                }
             });
         }
 
@@ -73,15 +85,12 @@ define(function(require, exports, module) {
         doc.batchOperation(function() {
             doc.replaceRange(varDeclaration, insertStartPos);
 
-            for (var i = replaceExpnIndex; i < expns.length; ++i) {
-                doc.replaceRange(varName, expns[i].start, expns[i].end);
-            }
+            selections = doc.doMultipleEdits(edits);
             selections.push({
                 start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
                 end:   {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
                 primary: true
             });
-
             session.editor.setSelections(selections);
             session.editor._codeMirror.indentLine(posToIndent.line, "smart");
         });
@@ -163,6 +172,7 @@ define(function(require, exports, module) {
      */
     function extractToVariable(ast, start, end, text, scopes) {
         var doc                   = session.editor.document,
+            editor = EditorManager.getActiveEditor(),
             parentExpn            = RefactoringUtils.getExpression(ast, start, end, doc.getText()),
             expns                 = [],
             parentBlockStatement,
@@ -178,8 +188,26 @@ define(function(require, exports, module) {
         if (doc.getText().substr(parentExpn.start, parentExpn.end - parentExpn.start) === text) {
             parentBlockStatement = RefactoringUtils.findSurroundASTNode(ast, parentExpn, ["BlockStatement", "Program"]);
             expns                = findAllExpressions(parentBlockStatement, parentExpn, text);
-            parentStatement      = RefactoringUtils.findSurroundASTNode(ast, expns[0], ["Statement"]);
-            extract(scopes, parentStatement, expns, text);
+
+            RefactoringUtils.getScopeData(session, editor.posFromIndex(expns[0].start)).done(function(scope) {
+                var firstExpnsScopes = RefactoringUtils.getAllScopes(ast, scope, doc.getText()),
+                    insertPostion;
+                parentStatement = RefactoringUtils.findSurroundASTNode(ast, expns[0], ["Statement"]);
+                if (scopes.length < firstExpnsScopes.length) {
+                    var parentScope;
+                    if (expns[0].body && expns[0].body.type === "BlockStatement") {
+                        parentScope = firstExpnsScopes[firstExpnsScopes.length - scopes.length];
+                    } else {
+                        parentScope = firstExpnsScopes[firstExpnsScopes.length - scopes.length - 1];
+                    }
+
+                    var insertNode = RefactoringUtils.findSurroundASTNode(ast, parentScope.originNode, ["Statement"]);
+                    if (insertNode) {
+                        insertPostion = session.editor.posFromIndex(insertNode.start);
+                    }
+                }
+                extract(scopes, parentStatement, expns, text, insertPostion);
+            });
         } else {
             parentStatement = RefactoringUtils.findSurroundASTNode(ast, parentExpn, ["Statement"]);
             extract(scopes, parentStatement, [{ start: start, end: end }], text);
@@ -211,6 +239,16 @@ define(function(require, exports, module) {
             scopes,
             expns,
             inlineMenu;
+
+        function callExtractToVariable(startPos, endPos, value) {
+            RefactoringUtils.getScopeData(session, editor.posFromIndex(startPos))
+                .done(function(expnscope) {
+                    scopes = RefactoringUtils.getAllScopes(ast, expnscope, doc.getText());
+                    extractToVariable(ast, startPos, endPos, value, scopes);
+                }).fail(function() {
+                    editor.displayErrorMessageAtCursor(Strings.ERROR_TERN_FAILED);
+                });
+        }
 
         RefactoringUtils.getScopeData(session, editor.posFromIndex(start)).done(function(scope) {
             ast = RefactoringUtils.getAST(doc.getText());
@@ -253,7 +291,7 @@ define(function(require, exports, module) {
 
                 // If only one surround expression, extract
                 if (expns.length === 1) {
-                    extractToVariable(ast, expns[0].start, expns[0].end, expns[0].value, scopes);
+                    callExtractToVariable(expns[0].start, expns[0].end, expns[0].value);
                     return;
                 }
 
@@ -271,7 +309,7 @@ define(function(require, exports, module) {
                 inlineMenu.open(expns);
 
                 inlineMenu.onSelect(function (expnId) {
-                    extractToVariable(ast, expns[expnId].start, expns[expnId].end, expns[expnId].value, scopes);
+                    callExtractToVariable(expns[expnId].start, expns[expnId].end, expns[expnId].value);
                     inlineMenu.close();
                 });
 
