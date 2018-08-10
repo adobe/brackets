@@ -246,6 +246,7 @@ define(function (require, exports, module) {
         }
 
         var token = TokenUtils.getTokenAt(current.cm, current.cm.posFromIndex(endIndex)),
+            commaString = ",",
             isLastNode,
             templateParams,
             parentNode,
@@ -267,16 +268,38 @@ define(function (require, exports, module) {
 
         var propertyNodeArray = parentNode.properties;
         // Find the last Propery Node before endIndex
-        var properyEndNode = propertyNodeArray.find(function (element) {
+        var properyNodeIndex = propertyNodeArray.findIndex(function (element) {
             return (endIndex >= element.start && endIndex < element.end);
         });
 
+        var propertyNode = propertyNodeArray[properyNodeIndex];
+
         //Get Current Selected Property End Index;
-        propertyEndPos = editor.posFromIndex(properyEndNode.end);
+        propertyEndPos = editor.posFromIndex(propertyNode.end);
 
 
         //We have to add ',' so we need to find position of current property selected
         isLastNode = current.isLastNodeInScope(current.ast, endIndex);
+        var NextpropertyNode, nextPropertyStartPos;
+        if(!isLastNode && properyNodeIndex + 1 <= propertyNodeArray.length-1) {
+            NextpropertyNode = propertyNodeArray[properyNodeIndex + 1];
+            nextPropertyStartPos = editor.posFromIndex(NextpropertyNode.start);
+
+            if(propertyEndPos.line !== nextPropertyStartPos.line) {
+                propertyEndPos = current.lineEndPosition(current.startPos.line);
+            } else {
+                propertyEndPos = nextPropertyStartPos;
+                commaString = ", ";
+            }
+        }
+
+        var getSetPos;
+        if (isLastNode) {
+            getSetPos = current.document.adjustPosForChange(propertyEndPos, commaString.split("\n"),
+                                                            propertyEndPos, propertyEndPos);
+        } else {
+            getSetPos = propertyEndPos;
+        }
         templateParams = {
             "getName": token.string,
             "setName": token.string,
@@ -288,18 +311,17 @@ define(function (require, exports, module) {
         current.document.batchOperation(function() {
             if (isLastNode) {
                 //Add ',' in the end of current line
-                current.document.replaceRange(",", propertyEndPos, propertyEndPos);
+                current.document.replaceRange(commaString, propertyEndPos, propertyEndPos);
             }
-            propertyEndPos.ch++;
 
-            current.editor.setSelection(propertyEndPos); //Selection on line end
+            current.editor.setSelection(getSetPos); //Selection on line end
 
             // Add getters and setters for given token using template at current cursor position
             current.replaceTextFromTemplate(GETTERS_SETTERS, templateParams);
 
             if (!isLastNode) {
                 // Add ',' at the end setter
-                current.document.replaceRange(",", current.editor.getSelection().start, current.editor.getSelection().start);
+                current.document.replaceRange(commaString, current.editor.getSelection().start, current.editor.getSelection().start);
             }
         });
     }
