@@ -280,10 +280,10 @@ define(function (require, exports, module) {
 
         //We have to add ',' so we need to find position of current property selected
         isLastNode = current.isLastNodeInScope(current.ast, endIndex);
-        var NextpropertyNode, nextPropertyStartPos;
-        if(!isLastNode && properyNodeIndex + 1 <= propertyNodeArray.length-1) {
-            NextpropertyNode = propertyNodeArray[properyNodeIndex + 1];
-            nextPropertyStartPos = editor.posFromIndex(NextpropertyNode.start);
+        var nextPropertNode, nextPropertyStartPos;
+        if(!isLastNode && properyNodeIndex + 1 <= propertyNodeArray.length - 1) {
+            nextPropertNode = propertyNodeArray[properyNodeIndex + 1];
+            nextPropertyStartPos = editor.posFromIndex(nextPropertNode.start);
 
             if(propertyEndPos.line !== nextPropertyStartPos.line) {
                 propertyEndPos = current.lineEndPosition(current.startPos.line);
