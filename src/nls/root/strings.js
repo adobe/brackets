@@ -38,7 +38,10 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "Unknown encoding format",
     "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to encode the contents of file.",
     "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} was not able to decode the contents of file.",
-    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} currently doesn't support UTF-16 encoded text files.",
+    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} currently doesn't support UTF-16 encoded text files.", 
+    "CANNOT_PERSIST_CHANGES_TITLE"      : "Cannot Persist Unsaved Changes",
+    "CANNOT_PERSIST_CHANGES_MESSAGE"    : "Do you want to clear and overwrite the change history for document <span class='dialog-filename'>{0}</span>?",
+    "MULTI_CANNOT_PERSIST_CHANGES_MSG"  : "Do you want to clear and overwrite the change histories for the following files?",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
@@ -728,6 +731,7 @@ define({
     "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Clear files not in Working Set",
 
     // Descriptions of core preferences
+    "DESCRIPTION_HOT_CLOSE"                          : "true to persist changes in unsaved files",
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false to remove the \"Close Others Above\" from the Working Files context menu",
     "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "false to remove the \"Close Others Below\" from the Working Files context menu",
