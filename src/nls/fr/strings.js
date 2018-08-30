@@ -689,7 +689,7 @@ define({
 	"ERROR_EXTRACTTO_VARIABLE_MULTICURSORS": "L’option Extraire vers variable ne fonctionne pas en cas de curseurs multiples",
 	"ERROR_EXTRACTTO_FUNCTION_MULTICURSORS": "L’option Extraire vers fonction ne fonctionne pas en cas de curseurs multiples",
 	"EXTRACTTO_FUNCTION_SELECT_SCOPE": "Choisir la portée cible",
-	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "Select an expression",
+	"EXTRACTTO_VARIABLE_SELECT_EXPRESSION": "Sélectionner une expression",
 	"CMD_REFACTORING_RENAME": "Renommer",
 	"CMD_REFACTORING_TRY_CATCH": "Encapsuler dans Try/Catch",
 	"CMD_REFACTORING_CONDITION": "Encapsuler dans Condition",
