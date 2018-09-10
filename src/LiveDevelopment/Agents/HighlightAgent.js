@@ -61,6 +61,13 @@ define(function HighlightAgent(require, exports, module) {
         _highlight = {};
     }
 
+    /** Highlight the DOM nodes avaiable at the locations.
+     * @param {locationArray} locations
+     */
+    function highlightElementsAtPoints(locations) {
+        RemoteAgent.call("highlightElementsAtPoints", locations);
+    }
+
     /** Highlight a single node using DOM.highlightNode
      * @param {DOMNode} node
      */
@@ -150,6 +157,7 @@ define(function HighlightAgent(require, exports, module) {
 
     // Export public functions
     exports.hide = hide;
+    exports.highlightElementsAtPoints = highlightElementsAtPoints;
     exports.node = node;
     exports.rule = rule;
     exports.domElement = domElement;

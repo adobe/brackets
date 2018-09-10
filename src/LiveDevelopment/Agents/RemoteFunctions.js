@@ -22,7 +22,7 @@
  */
 
 /*jslint forin: true */
-/*global Node, MessageEvent */
+/*global Node, MessageEvent, window */
 /*theseus instrument: false */
 
 /**
@@ -115,6 +115,13 @@ function RemoteFunctions(config, remoteWSPort) {
             }
         } else {
             element.removeAttribute(key);
+        }
+        if (name === "stickyhighlight") {
+            // notify that the stickyhighlight has changed
+            _ws.send(JSON.stringify({
+                type: "message",
+                message: "stickyhighlightchanged"
+            }));
         }
     }
     
@@ -257,6 +264,7 @@ function RemoteFunctions(config, remoteWSPort) {
         this.trigger = !!trigger;
         this.elements = [];
         this.selector = "";
+        this.locations = [];
     }
 
     Highlight.prototype = {
@@ -489,8 +497,15 @@ function RemoteFunctions(config, remoteWSPort) {
                 highlight.style
             );
 
+            if (config.stickyHighlight) {
+                _setStyleValues(
+                    config.remoteHighlight.stickyHighlight,
+                    highlight.style
+                );
+            }
 
-            if (doAnimation) {
+
+            if (doAnimation && !config.stickyHighlight) {
                 _setStyleValues(transitionValues, highlight.style);
 
                 window.setTimeout(function () {
@@ -508,7 +523,11 @@ function RemoteFunctions(config, remoteWSPort) {
             if (this.trigger) {
                 _trigger(element, "highlight", 1);
             }
-            
+            if (this === _remoteHighlight && config.stickyHighlight) {
+                var elementPos = this.elements.length + 1;
+                _trigger(element, "stickyhighlight", "highlight_" + elementPos);
+            }
+
             if ((!window.event || window.event instanceof MessageEvent) && !isInViewport(element)) {
                 var top = getDocumentOffsetTop(element);
                 if (top) {
@@ -534,17 +553,31 @@ function RemoteFunctions(config, remoteWSPort) {
                     _trigger(this.elements[i], "highlight", 0);
                 }
             }
+            if (this === _remoteHighlight && config.stickyHighlight) {
+                for (i = 0; i < this.elements.length; i++) {
+                    _trigger(this.elements[i], "stickyhighlight");
+                }
+            }
 
             this.elements = [];
         },
 
         redraw: function () {
-            var i, highlighted;
+            var i, highlighted = [];
 
             // When redrawing a selector-based highlight, run a new selector
             // query to ensure we have the latest set of elements to highlight.
             if (this.selector) {
                 highlighted = window.document.querySelectorAll(this.selector);
+            } else if (this.locations) {
+                this.locations.forEach(function(location) {
+                    if (location.x && location.y) {
+                        var domElement = window.document.elementFromPoint(location.x, location.y);
+                        if (domElement) {
+                            highlighted.push(domElement);
+                        }
+                    }
+                });
             } else {
                 highlighted = this.elements.slice(0);
             }
@@ -639,6 +672,21 @@ function RemoteFunctions(config, remoteWSPort) {
         lastKeepAliveTime = Date.now();
     }
 
+    function highlightElementsAtPoints(locations) {
+        hideHighlight();
+
+        locations.forEach(function(location) {
+            if (location.x && location.y) {
+                var domElement = window.document.elementFromPoint(location.x, location.y);
+                if (domElement) {
+                    highlight(domElement);
+                }
+            }
+        });
+
+        _remoteHighlight.locations = locations;
+    }
+
     // show goto
     function showGoto(targets) {
         if (!_currentMenu) {
@@ -683,7 +731,7 @@ function RemoteFunctions(config, remoteWSPort) {
 
     // redraw active highlights
     function redrawHighlights() {
-        if (_remoteHighlight) {
+        if (_remoteHighlight && config.highlight) {
             _remoteHighlight.redraw();
         }
     }
@@ -1014,8 +1062,13 @@ function RemoteFunctions(config, remoteWSPort) {
     function getSimpleDOM() {
         return JSON.stringify(_domElementToJSON(window.document.documentElement));
     }
-    
+
     function updateConfig(newConfig) {
+        // if highlight option is changing then switch off the highlight and wait for a new selection
+        if ((config.stickyHighlight && newConfig.highlight) ||
+            (newConfig.stickyHighlight && config.highlight)) {
+            hideHighlight();
+        }
         config = JSON.parse(newConfig);
         return JSON.stringify(config);
     }
@@ -1063,15 +1116,16 @@ function RemoteFunctions(config, remoteWSPort) {
     }
     
     return {
-        "DOMEditHandler"        : DOMEditHandler,
-        "keepAlive"             : keepAlive,
-        "showGoto"              : showGoto,
-        "hideHighlight"         : hideHighlight,
-        "highlight"             : highlight,
-        "highlightRule"         : highlightRule,
-        "redrawHighlights"      : redrawHighlights,
-        "applyDOMEdits"         : applyDOMEdits,
-        "getSimpleDOM"          : getSimpleDOM,
-        "updateConfig"          : updateConfig
+        "highlightElementsAtPoints" : highlightElementsAtPoints,
+        "DOMEditHandler"            : DOMEditHandler,
+        "keepAlive"                 : keepAlive,
+        "showGoto"                  : showGoto,
+        "hideHighlight"             : hideHighlight,
+        "highlight"                 : highlight,
+        "highlightRule"             : highlightRule,
+        "redrawHighlights"          : redrawHighlights,
+        "applyDOMEdits"             : applyDOMEdits,
+        "getSimpleDOM"              : getSimpleDOM,
+        "updateConfig"              : updateConfig
     };
 }

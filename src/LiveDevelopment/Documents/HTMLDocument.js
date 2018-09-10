@@ -189,7 +189,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         var editor = this.editor,
             ids = [];
 
-        if (Inspector.config.highlight) {
+        if (Inspector.config.highlight || Inspector.config.stickyHighlight) {
             if (editor) {
                 _.each(editor.getSelections(), function (sel) {
                     var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(

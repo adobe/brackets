@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     var FileUtils           = require("file/FileUtils"),
         NodeDomain          = require("utils/NodeDomain"),
         EditorManager       = require("editor/EditorManager"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         HTMLInstrumentation = require("language/HTMLInstrumentation");
 
     // The node extension that actually provides the WebSocket server.
@@ -46,10 +47,14 @@ define(function (require, exports, module) {
 
     WebSocketTransportDomain.on("message", function (obj, message) {
         console.log("WebSocketTransport - event - message" + " - " + message);
-        var editor = EditorManager.getActiveEditor(),
-            position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
-        if (position) {
-            editor.setCursorPos(position.line, position.ch, true);
+        if (message === "stickyhighlightchanged") {
+            Inspector.trigger("stickyhighlightchanged");
+        } else {
+            var editor = EditorManager.getActiveEditor(),
+                position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
+            if (position) {
+                editor.setCursorPos(position.line, position.ch, true);
+            }
         }
     });
     

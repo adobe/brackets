@@ -162,6 +162,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_WORD_WRAP);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
+        menu.addMenuItem(Commands.FILE_LIVE_STICKY_HIGHLIGHT);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_TOGGLE_INSPECTION);
 
