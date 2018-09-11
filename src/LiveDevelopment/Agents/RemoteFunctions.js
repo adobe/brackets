@@ -1093,6 +1093,15 @@ function RemoteFunctions(config, remoteWSPort) {
                 message: element.getAttribute('data-brackets-id')
             }));
         }
+
+        if (config.stickyHighlight && element) {
+            if (_validEvent(event)) {
+                highlight(element);
+            } else {
+                hideHighlight();
+                highlight(element);
+            }
+        }
     }
     
     
