@@ -264,7 +264,6 @@ function RemoteFunctions(config, remoteWSPort) {
         this.trigger = !!trigger;
         this.elements = [];
         this.selector = "";
-        this.locations = [];
     }
 
     Highlight.prototype = {
@@ -680,8 +679,6 @@ function RemoteFunctions(config, remoteWSPort) {
                 }
             }
         });
-
-        _remoteHighlight.locations = locations;
     }
 
     // show goto
