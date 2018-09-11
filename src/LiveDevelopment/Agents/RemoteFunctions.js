@@ -124,7 +124,7 @@ function RemoteFunctions(config, remoteWSPort) {
             }));
         }
     }
-    
+
     // Checks if the element is in Viewport in the client browser
     function isInViewport(element) {
         var rect = element.getBoundingClientRect();
@@ -136,7 +136,7 @@ function RemoteFunctions(config, remoteWSPort) {
             rect.right <= (window.innerWidth || html.clientWidth)
         );
     }
-    
+
     // returns the distance from the top of the closest relatively positioned parent element
     function getDocumentOffsetTop(element) {
         return element.offsetTop + (element.offsetParent ? getDocumentOffsetTop(element.offsetParent) : 0);
@@ -296,21 +296,21 @@ function RemoteFunctions(config, remoteWSPort) {
             if (elementBounds.width === 0 && elementBounds.height === 0) {
                 return;
             }
-            
+
             var realElBorder = {
               right: elementStyling.getPropertyValue('border-right-width'),
               left: elementStyling.getPropertyValue('border-left-width'),
               top: elementStyling.getPropertyValue('border-top-width'),
               bottom: elementStyling.getPropertyValue('border-bottom-width')
             };
-            
+
             var borderBox = elementStyling.boxSizing === 'border-box';
-            
+
             var innerWidth = parseFloat(elementStyling.width),
                 innerHeight = parseFloat(elementStyling.height),
                 outerHeight = innerHeight,
                 outerWidth = innerWidth;
-                
+
             if (!borderBox) {
                 innerWidth += parseFloat(elementStyling.paddingLeft) + parseFloat(elementStyling.paddingRight);
                 innerHeight += parseFloat(elementStyling.paddingTop) + parseFloat(elementStyling.paddingBottom);
@@ -319,65 +319,63 @@ function RemoteFunctions(config, remoteWSPort) {
                 outerHeight = innerHeight + parseFloat(realElBorder.bottom) + parseFloat(realElBorder.top);
             }
 
-          
+
             var visualisations = {
                 horizontal: "left, right",
                 vertical: "top, bottom"
             };
-          
+
             var drawPaddingRect = function(side) {
               var elStyling = {};
-                
+
               if (visualisations.horizontal.indexOf(side) >= 0) {
                 elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
                 elStyling['height'] = innerHeight + "px";
                 elStyling['top'] = 0;
-                  
+
                   if (borderBox) {
                     elStyling['height'] = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
                   }
-                
+
               } else {
                 elStyling['height'] = elementStyling.getPropertyValue('padding-' + side);  
                 elStyling['width'] = innerWidth + "px";
                 elStyling['left'] = 0;
-                  
+
                   if (borderBox) {
                     elStyling['width'] = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
                   }
               }
-                
+
               elStyling[side] = 0;
               elStyling['position'] = 'absolute';
-              
+
               return elStyling;
             };
-          
-          var drawMarginRect = function(side) {
-            var elStyling = {};
-            
-            var margin = [];
-            margin['right'] = parseFloat(elementStyling.getPropertyValue('margin-right'));
-            margin['top'] = parseFloat(elementStyling.getPropertyValue('margin-top'));
-            margin['bottom'] = parseFloat(elementStyling.getPropertyValue('margin-bottom'));
-            margin['left'] = parseFloat(elementStyling.getPropertyValue('margin-left'));
-          
-            if(visualisations['horizontal'].indexOf(side) >= 0) {
 
-              elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
-              elStyling['height'] = outerHeight + margin['top'] + margin['bottom'] + "px";
-              elStyling['top'] = "-" + (margin['top'] + parseFloat(realElBorder.top))  + "px";
-            } else {
-              elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);
-              elStyling['width'] = outerWidth + "px";
-              elStyling['left'] = "-" + realElBorder.left;
-            }
+            var drawMarginRect = function(side) {
+                var elStyling = {};
+                var margin = [];
+                margin['right'] = parseFloat(elementStyling.getPropertyValue('margin-right'));
+                margin['top'] = parseFloat(elementStyling.getPropertyValue('margin-top'));
+                margin['bottom'] = parseFloat(elementStyling.getPropertyValue('margin-bottom'));
+                margin['left'] = parseFloat(elementStyling.getPropertyValue('margin-left'));
 
-            elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
-            elStyling['position'] = 'absolute';
+                if (visualisations['horizontal'].indexOf(side) >= 0) {
+                    elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
+                    elStyling['height'] = outerHeight + margin['top'] + margin['bottom'] + "px";
+                    elStyling['top'] = "-" + (margin['top'] + parseFloat(realElBorder.top))  + "px";
+                } else {
+                    elStyling['height'] = elementStyling.getPropertyValue('margin-' + side);
+                    elStyling['width'] = outerWidth + "px";
+                    elStyling['left'] = "-" + realElBorder.left;
+                }
 
-            return elStyling;
-          };
+                elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
+                elStyling['position'] = 'absolute';
+
+                return elStyling;
+            };
 
             var setVisibility = function (el) {
                 if (
@@ -390,28 +388,28 @@ function RemoteFunctions(config, remoteWSPort) {
                     el.display = 'block';
                 }
             };
-            
+
             var mainBoxStyles = config.remoteHighlight.stylesToSet;
-            
+
             var paddingVisualisations = [
               drawPaddingRect('top'),
               drawPaddingRect('right'),
               drawPaddingRect('bottom'),
               drawPaddingRect('left')  
             ];
-                
+
             var marginVisualisations = [
               drawMarginRect('top'),
               drawMarginRect('right'),
               drawMarginRect('bottom'),
               drawMarginRect('left')  
             ];
-            
+
             var setupVisualisations = function (arr, config) {
                 var i;
                 for (i = 0; i < arr.length; i++) {
                     setVisibility(arr[i]);
-                    
+
                     // Applies to every visualisationElement (padding or margin div)
                     arr[i]["transform"] = "none";
                     var el = window.document.createElement("div"),
@@ -426,7 +424,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     highlight.appendChild(el);
                 }
             };
-            
+
             setupVisualisations(
                 marginVisualisations,
                 config.remoteHighlight.marginStyling
@@ -435,15 +433,15 @@ function RemoteFunctions(config, remoteWSPort) {
                 paddingVisualisations,
                 config.remoteHighlight.paddingStyling
             );
-            
+
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
-            		
+
             var el = element,		
             offsetLeft = 0,		
             offsetTop  = 0;		
-             		
+
             // Probably the easiest way to get elements position without including transform		
             do {		
                offsetLeft += el.offsetLeft;		
@@ -471,7 +469,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 "transform-origin": elementStyling.getPropertyValue('transform-origin'),		
                 "border-color": config.remoteHighlight.borderColor
             };
-            
+
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
 
             var animateStartValues = config.remoteHighlight.animateStartValue;
@@ -569,15 +567,6 @@ function RemoteFunctions(config, remoteWSPort) {
             // query to ensure we have the latest set of elements to highlight.
             if (this.selector) {
                 highlighted = window.document.querySelectorAll(this.selector);
-            } else if (this.locations) {
-                this.locations.forEach(function(location) {
-                    if (location.x && location.y) {
-                        var domElement = window.document.elementFromPoint(location.x, location.y);
-                        if (domElement) {
-                            highlighted.push(domElement);
-                        }
-                    }
-                });
             } else {
                 highlighted = this.elements.slice(0);
             }
@@ -652,14 +641,22 @@ function RemoteFunctions(config, remoteWSPort) {
     }
 
     function onKeyDown(event) {
-        if (!_setup && _validEvent(event)) {
-            window.document.addEventListener("keyup", onKeyUp);
-            window.document.addEventListener("mouseover", onMouseOver);
-            window.document.addEventListener("mouseout", onMouseOut);
-            window.document.addEventListener("mousemove", onMouseMove);
-            window.document.addEventListener("click", onClick);
-            _localHighlight = new Highlight("#ecc", true);
-            _setup = true;
+        if (experimental) {
+            if (!_setup && _validEvent(event)) {
+                window.document.addEventListener("keyup", onKeyUp);
+                window.document.addEventListener("mouseover", onMouseOver);
+                window.document.addEventListener("mouseout", onMouseOut);
+                window.document.addEventListener("mousemove", onMouseMove);
+                window.document.addEventListener("click", onClick);
+                _localHighlight = new Highlight("#ecc", true);
+                _setup = true;
+            }
+        }
+        if (config.stickyHighlight) {
+            if (event.keyCode === 27) {
+                // escape key maps to keycode `27`
+                hideHighlight();
+            }
         }
     }
 
@@ -731,7 +728,7 @@ function RemoteFunctions(config, remoteWSPort) {
 
     // redraw active highlights
     function redrawHighlights() {
-        if (_remoteHighlight && config.highlight) {
+        if (_remoteHighlight) {
             _remoteHighlight.redraw();
         }
     }
@@ -1076,17 +1073,15 @@ function RemoteFunctions(config, remoteWSPort) {
     // init
     _editHandler = new DOMEditHandler(window.document);
 
-    if (experimental) {
-        window.document.addEventListener("keydown", onKeyDown);
-    }
-    
+    window.document.addEventListener("keydown", onKeyDown);
+
     var _ws = null;
 
     function onDocumentClick(event) {
         var element = event.target,
             currentDataId,
             newDataId;
-        
+
         if (_ws && element && element.hasAttribute('data-brackets-id')) {
             _ws.send(JSON.stringify({
                 type: "message",
@@ -1095,35 +1090,35 @@ function RemoteFunctions(config, remoteWSPort) {
         }
 
         if (config.stickyHighlight && element) {
-            if (_validEvent(event)) {
-                highlight(element);
-            } else {
-                hideHighlight();
-                highlight(element);
+            var clearExistingHighlight = false;
+            if (!event.altKey) {
+                // clear existing highlight, if any, if alt is not pressed
+                clearExistingHighlight = true;
             }
+            highlight(element, clearExistingHighlight);
         }
     }
-    
-    
+
+
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
             window.document.addEventListener("click", onDocumentClick);
         };
-                
+
         _ws.onmessage = function (evt) {
         };
-                
+
         _ws.onclose = function () {
             // websocket is closed
             window.document.removeEventListener("click", onDocumentClick);
         };
     }
-    
+
     if (remoteWSPort) {
         createWebSocket();
     }
-    
+
     return {
         "highlightElementsAtPoints" : highlightElementsAtPoints,
         "DOMEditHandler"            : DOMEditHandler,
