@@ -1306,6 +1306,9 @@ define(function (require, exports, module) {
                 secondPane = _panes[SECOND_PANE],
                 fileList = secondPane.getViewList(),
                 lastViewed = getCurrentlyViewedFile();
+            if(firstPane.getCurrentlyViewedFile() == null && secondPane.getCurrentlyViewedFile != null){
+                lastViewed = secondPane.getCurrentlyViewedFile();
+            }
 
             Resizer.removeSizable(firstPane.$el);
             firstPane.mergeFrom(secondPane);
