@@ -91,11 +91,11 @@ define(function main(require, exports, module) {
             "opacity": 0.6
         },
         "stickyHighlight": {
-            "outline": "1px solid rgba(84, 156, 253, 1)"
+            "border": "1px solid rgba(84, 156, 253, 1)"
         },
         "stickyHighlight:hover": {
             "background-color": "rgba(84, 156, 253, 0.25)",
-            "outline": "1px solid rgba(84, 156, 253, 1)"
+            "border": "1px solid rgba(84, 156, 253, 1)"
         },
         "paddingStyling": {
             "border-width": "1px",
