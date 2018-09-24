@@ -1125,9 +1125,7 @@ function RemoteFunctions(config, remoteWSPort) {
         }
 
         if (!_hoverHighlight) {
-            // The color passed to Highlight constructor is not used as of now,
-            // So passing a dummy color value
-            _hoverHighlight = new Highlight("#cfc");
+            _hoverHighlight = new Highlight();
         }
 
         _hoverHighlight.clear();
