@@ -1079,13 +1079,6 @@ function RemoteFunctions(config, remoteWSPort) {
             currentDataId,
             newDataId;
 
-        if (_ws && element && element.hasAttribute('data-brackets-id')) {
-            _ws.send(JSON.stringify({
-                type: "message",
-                message: element.getAttribute('data-brackets-id')
-            }));
-        }
-
         if (config.stickyHighlight && element) {
             var clearExistingHighlight = false;
             if (!event.altKey) {
@@ -1093,6 +1086,33 @@ function RemoteFunctions(config, remoteWSPort) {
                 clearExistingHighlight = true;
             }
             highlight(element, clearExistingHighlight);
+
+            if (_remoteHighlight) {
+                var selectedElements = _remoteHighlight.elements;
+                var messageIds = [];
+                selectedElements.forEach(function (element) {
+                    if (element.hasAttribute('data-brackets-id')) {
+                        messageIds.push(element.getAttribute('data-brackets-id'));
+                    }
+                });
+                if (messageIds.length > 1) {
+                    _ws.send(JSON.stringify({
+                        type: "message",
+                        message: messageIds
+                    }));
+                } else {
+                    _ws.send(JSON.stringify({
+                        type: "message",
+                        message: element.getAttribute('data-brackets-id')
+                    }));
+                }
+            }
+
+        } else if (_ws && element && element.hasAttribute('data-brackets-id')) {
+            _ws.send(JSON.stringify({
+                type: "message",
+                message: element.getAttribute('data-brackets-id')
+            }));
         }
     }
 
