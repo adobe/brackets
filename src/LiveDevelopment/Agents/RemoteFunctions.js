@@ -719,6 +719,10 @@ function RemoteFunctions(config, remoteWSPort) {
             _remoteHighlight.clear();
             _remoteHighlight = null;
         }
+        if (_hoverHighlight) {
+            _hoverHighlight.clear();
+            _hoverHighlight = null;
+        }
     }
 
     // highlight a node
@@ -1077,12 +1081,21 @@ function RemoteFunctions(config, remoteWSPort) {
     }
 
     function updateConfig(newConfig) {
-        // if highlight option is changing then switch off the highlight and wait for a new selection
-        if ((config.stickyHighlight && newConfig.highlight) ||
-            (newConfig.stickyHighlight && config.highlight)) {
+        newConfig = JSON.parse(newConfig);
+
+        // if stickyHighlight option is changing then setup or teardown stickyhighlight and
+        // also switch off the highlight and wait for a new selection
+        if (!config.stickyHighlight && newConfig.stickyHighlight) {
+            setUpStickyHighlight();
             hideHighlight();
         }
-        config = JSON.parse(newConfig);
+        else if (config.stickyHighlight && !newConfig.stickyHighlight) {
+            tearDownStickyHighlight();
+            hideHighlight();
+        }
+
+        config = newConfig;
+
         return JSON.stringify(config);
     }
 
@@ -1132,13 +1145,27 @@ function RemoteFunctions(config, remoteWSPort) {
         _hoverHighlight.add(element, false, true);
     }
 
+    // sets up sticky hightlight specific things
+    function setUpStickyHighlight() {
+        if (!experimental) {
+            window.document.addEventListener("mouseover", onDocumentHover, true);
+        }
+    }
+
+    // tears down sticky highlight specific things
+    function tearDownStickyHighlight() {
+        if (!experimental) {
+            window.document.removeEventListener("mouseover", onDocumentHover, true);
+        }
+    }
+
 
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
             window.document.addEventListener("click", onDocumentClick);
-            if (!experimental && config.stickyHighlight) {
-                window.document.addEventListener("mouseover", onDocumentHover);
+            if (config.stickyHighlight) {
+                setUpStickyHighlight();
             }
         };
 
@@ -1148,8 +1175,8 @@ function RemoteFunctions(config, remoteWSPort) {
         _ws.onclose = function () {
             // websocket is closed
             window.document.removeEventListener("click", onDocumentClick);
-            if (!experimental && config.stickyHighlight) {
-                window.document.removeEventListener("mouseover", onDocumentHover);
+            if (config.stickyHighlight) {
+                tearDownStickyHighlight();
             }
         };
     }
