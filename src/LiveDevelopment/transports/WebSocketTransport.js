@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         NodeDomain          = require("utils/NodeDomain"),
         EditorManager       = require("editor/EditorManager"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         HTMLInstrumentation = require("language/HTMLInstrumentation");
 
     // The node extension that actually provides the WebSocket server.
@@ -50,10 +51,16 @@ define(function (require, exports, module) {
         if (message === "stickyhighlightchanged") {
             Inspector.trigger("stickyhighlightchanged");
         } else {
-            var editor = EditorManager.getActiveEditor(),
-                position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
-            if (position) {
-                editor.setCursorPos(position.line, position.ch, true);
+            try {
+                LiveDevelopment.pauseSelectionSync(true);
+                var editor = EditorManager.getActiveEditor(),
+                    position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
+                if (position) {
+                    editor.setCursorPos(position.line, position.ch, true);
+                }
+                LiveDevelopment.pauseSelectionSync(false);
+            } catch (e) {
+                LiveDevelopment.pauseSelectionSync(false);
             }
         }
     });

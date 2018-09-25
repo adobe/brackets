@@ -61,6 +61,8 @@ define(function HTMLDocumentModule(require, exports, module) {
             this.doc.addRef();
         }
 
+        this.selectionSyncPaused = false;
+
         this.editor = editor;
         this._instrumentationEnabled = false;
 
@@ -189,7 +191,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         var editor = this.editor,
             ids = [];
 
-        if (Inspector.config.highlight || Inspector.config.stickyHighlight) {
+        if ( !this.selectionSyncPaused && ( Inspector.config.highlight || Inspector.config.stickyHighlight ) ) {
             if (editor) {
                 _.each(editor.getSelections(), function (sel) {
                     var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
@@ -407,6 +409,14 @@ define(function HTMLDocumentModule(require, exports, module) {
             this._highlight.clear();
             this._highlight = null;
         }
+    };
+
+    /**
+     * Pause Highlight Sync
+     * @param {boolean} pause - status of the selection sync to be set
+     */
+    HTMLDocument.prototype.pauseSelectionSync = function (pause) {
+        this.selectionSyncPaused = pause;
     };
 
     // Export the class

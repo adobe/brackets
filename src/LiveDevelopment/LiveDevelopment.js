@@ -1527,6 +1527,15 @@ define(function LiveDevelopment(require, exports, module) {
         return _server && _server.getBaseUrl();
     }
 
+    /**
+     * Pause Highlight Sync
+     * @param {boolean} pause - status of the selection sync to be set
+     */
+    function pauseSelectionSync(pause) {
+        if (_liveDocument) {
+            _liveDocument.pauseSelectionSync(pause);
+        }
+    }
 
     EventDispatcher.makeEventDispatcher(exports);
 
@@ -1550,4 +1559,6 @@ define(function LiveDevelopment(require, exports, module) {
     exports.init                = init;
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
     exports.getServerBaseUrl    = getServerBaseUrl;
+    exports.pauseSelectionSync  = pauseSelectionSync;
+
 });
