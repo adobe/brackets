@@ -259,11 +259,19 @@ function RemoteFunctions(config, remoteWSPort) {
         }
     };
 
+    Highlight.instanceCounter = 0;
+
     function Highlight(color, trigger) {
         this.color = color;
         this.trigger = !!trigger;
         this.elements = [];
         this.selector = "";
+
+        Highlight.instanceCounter++;
+
+        // A unique class name for every instance of Highlight
+        // for easy removal
+        this.className = HIGHLIGHT_CLASSNAME + "_" + Highlight.instanceCounter;
     }
 
     Highlight.prototype = {
@@ -276,7 +284,7 @@ function RemoteFunctions(config, remoteWSPort) {
             }
             return false;
         },
-        _makeHighlightDiv: function (element, doAnimation) {
+        _makeHighlightDiv: function (element, doAnimation, useHoverStyles) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
                 elementStyling = window.getComputedStyle(element),
@@ -424,16 +432,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 }
             };
 
-            setupVisualisations(
-                marginVisualisations,
-                config.remoteHighlight.marginStyling
-            );
-            setupVisualisations(
-                paddingVisualisations,
-                config.remoteHighlight.paddingStyling
-            );
-
-            highlight.className = HIGHLIGHT_CLASSNAME;
+            highlight.className = HIGHLIGHT_CLASSNAME + " " + this.className;
 
             var offset = _screenOffset(element);
 
@@ -489,20 +488,40 @@ function RemoteFunctions(config, remoteWSPort) {
             }
 
             _setStyleValues(mergedStyles, highlight.style);
+
+            // Do not do animations and visualisations when stickyHighlight is enabled
+            if (config.stickyHighlight) {
+                if (useHoverStyles) {
+                    _setStyleValues(
+                        config.remoteHighlight["stickyHighlight:hover"],
+                        highlight.style
+                    );
+                } else {
+                    _setStyleValues(
+                        config.remoteHighlight.stickyHighlight,
+                        highlight.style
+                    );
+                }
+
+                window.document.body.appendChild(highlight);
+                return ;
+            }
+
+            setupVisualisations(
+                marginVisualisations,
+                config.remoteHighlight.marginStyling
+            );
+            setupVisualisations(
+                paddingVisualisations,
+                config.remoteHighlight.paddingStyling
+            );
+
             _setStyleValues(
                 doAnimation ? animateStartValues : animateEndValues,
                 highlight.style
             );
 
-            if (config.stickyHighlight) {
-                _setStyleValues(
-                    config.remoteHighlight.stickyHighlight,
-                    highlight.style
-                );
-            }
-
-
-            if (doAnimation && !config.stickyHighlight) {
+            if (doAnimation) {
                 _setStyleValues(transitionValues, highlight.style);
 
                 window.setTimeout(function () {
@@ -513,7 +532,7 @@ function RemoteFunctions(config, remoteWSPort) {
             window.document.body.appendChild(highlight);
         },
 
-        add: function (element, doAnimation) {
+        add: function (element, doAnimation, useHoverStyles) {
             if (this._elementExists(element) || element === window.document) {
                 return;
             }
@@ -534,11 +553,11 @@ function RemoteFunctions(config, remoteWSPort) {
             }
             this.elements.push(element);
 
-            this._makeHighlightDiv(element, doAnimation);
+            this._makeHighlightDiv(element, doAnimation, useHoverStyles);
         },
 
         clear: function () {
-            var i, highlights = window.document.querySelectorAll("." + HIGHLIGHT_CLASSNAME),
+            var i, highlights = window.document.querySelectorAll("." + this.className),
                 body = window.document.body;
 
             for (i = 0; i < highlights.length; i++) {
@@ -699,6 +718,10 @@ function RemoteFunctions(config, remoteWSPort) {
         if (_remoteHighlight) {
             _remoteHighlight.clear();
             _remoteHighlight = null;
+        }
+        if (_hoverHighlight) {
+            _hoverHighlight.clear();
+            _hoverHighlight = null;
         }
     }
 
@@ -1058,12 +1081,21 @@ function RemoteFunctions(config, remoteWSPort) {
     }
 
     function updateConfig(newConfig) {
-        // if highlight option is changing then switch off the highlight and wait for a new selection
-        if ((config.stickyHighlight && newConfig.highlight) ||
-            (newConfig.stickyHighlight && config.highlight)) {
+        newConfig = JSON.parse(newConfig);
+
+        // if stickyHighlight option is changing then setup or teardown stickyhighlight and
+        // also switch off the highlight and wait for a new selection
+        if (!config.stickyHighlight && newConfig.stickyHighlight) {
+            setUpStickyHighlight();
             hideHighlight();
         }
-        config = JSON.parse(newConfig);
+        else if (config.stickyHighlight && !newConfig.stickyHighlight) {
+            tearDownStickyHighlight();
+            hideHighlight();
+        }
+
+        config = newConfig;
+
         return JSON.stringify(config);
     }
 
@@ -1116,11 +1148,45 @@ function RemoteFunctions(config, remoteWSPort) {
         }
     }
 
+    var _hoverHighlight;
+
+    function onDocumentHover(event) {
+        var element = event.target;
+
+        if (!element) {
+            return;
+        }
+
+        if (!_hoverHighlight) {
+            _hoverHighlight = new Highlight();
+        }
+
+        _hoverHighlight.clear();
+        _hoverHighlight.add(element, false, true);
+    }
+
+    // sets up sticky hightlight specific things
+    function setUpStickyHighlight() {
+        if (!experimental) {
+            window.document.addEventListener("mouseover", onDocumentHover, true);
+        }
+    }
+
+    // tears down sticky highlight specific things
+    function tearDownStickyHighlight() {
+        if (!experimental) {
+            window.document.removeEventListener("mouseover", onDocumentHover, true);
+        }
+    }
+
 
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
             window.document.addEventListener("click", onDocumentClick);
+            if (config.stickyHighlight) {
+                setUpStickyHighlight();
+            }
         };
 
         _ws.onmessage = function (evt) {
@@ -1129,6 +1195,9 @@ function RemoteFunctions(config, remoteWSPort) {
         _ws.onclose = function () {
             // websocket is closed
             window.document.removeEventListener("click", onDocumentClick);
+            if (config.stickyHighlight) {
+                tearDownStickyHighlight();
+            }
         };
     }
 
