@@ -339,8 +339,11 @@
                 "parameters": [
                     { "name": "width", "type": "integer", "description": "Overriding width value in pixels (minimum 0, maximum 10000000). 0 disables the override." },
                     { "name": "height", "type": "integer", "description": "Overriding height value in pixels (minimum 0, maximum 10000000). 0 disables the override." },
-                    { "name": "fontScaleFactor", "type": "number", "description": "Overriding font scale factor value (must be positive). 1 disables the override." },
-                    { "name": "fitWindow", "type": "boolean", "description": "Whether a view that exceeds the available browser window area should be scaled down to fit." }
+                    { "name": "deviceScaleFactor", "type": "number", "description": "Overriding font scale factor value (must be positive). 1 disables the override." },
+                    { "name": "mobile", "type": "boolean", "description": "Whether a view that exceeds the available browser window area should be scaled down to fit." },
+                    { "name" : "scale", "type": "number"},
+                    { "name" : "screenWidth", "type": "integer"},
+                    { "name" : "screenHeight", "type": "integer"}
                 ],
                 "hidden": true
             },

@@ -47,6 +47,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_LIVE_PREVIEW_MB_MODE = "file.toggleLivePreviewMB";   // LiveDevelopment/main.js      _toggleLivePreviewMultiBrowser()
     exports.CMD_RELOAD_LIVE_PREVIEW     = "file.reloadLivePreview";     // LiveDevelopment/main.js      _handleReloadLivePreviewCommand()
     exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";      // LiveDevelopment/main.js      _handlePreviewHighlightCommand()
+    exports.FILE_LIVE_STICKY_HIGHLIGHT  = "file.previewStickyHighlight";// LiveDevelopment/main.js      _handlePreviewStickyHighlightCommand()
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";       // ProjectManager.js            _projectSettings()
     exports.FILE_RENAME                 = "file.rename";                // DocumentCommandHandlers.js   handleFileRename()
     exports.FILE_DELETE                 = "file.delete";                // DocumentCommandHandlers.js   handleFileDelete()

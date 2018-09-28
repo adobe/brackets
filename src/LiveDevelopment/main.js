@@ -82,13 +82,20 @@ define(function main(require, exports, module) {
     // "livedev.remoteHighlight" preference
     var PREF_REMOTEHIGHLIGHT = "remoteHighlight";
     var remoteHighlightPref = prefs.definePreference(PREF_REMOTEHIGHLIGHT, "object", {
-        animateStartValue: {
+        "animateStartValue": {
             "background-color": "rgba(0, 162, 255, 0.5)",
             "opacity": 0
         },
-        animateEndValue: {
+        "animateEndValue": {
             "background-color": "rgba(0, 162, 255, 0)",
             "opacity": 0.6
+        },
+        "stickyHighlight": {
+            "border": "1px solid rgba(84, 156, 253, 1)"
+        },
+        "stickyHighlight:hover": {
+            "background-color": "rgba(84, 156, 253, 0.25)",
+            "border": "1px solid rgba(84, 156, 253, 1)"
         },
         "paddingStyling": {
             "border-width": "1px",
@@ -253,6 +260,7 @@ define(function main(require, exports, module) {
             // Add checkmark when status is STATUS_ACTIVE; otherwise remove it
             CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevImpl.STATUS_ACTIVE);
             CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(status === LiveDevImpl.STATUS_ACTIVE);
+            CommandManager.get(Commands.FILE_LIVE_STICKY_HIGHLIGHT).setEnabled(status === LiveDevImpl.STATUS_ACTIVE);
         });
     }
 
@@ -260,15 +268,32 @@ define(function main(require, exports, module) {
         CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setChecked(config.highlight);
     }
 
-    function _handlePreviewHighlightCommand() {
-        config.highlight = !config.highlight;
+    function _updateStickyHighlightCheckmark() {
+        CommandManager.get(Commands.FILE_LIVE_STICKY_HIGHLIGHT).setChecked(config.stickyHighlight);
+    }
+
+    function _handleHighlightOptionChanged(toggleOption, falseOption) {
+        config[toggleOption] = !config[toggleOption];
+        if (config[toggleOption]) {
+            config[falseOption] = false;
+        }
         _updateHighlightCheckmark();
+        _updateStickyHighlightCheckmark();
         if (config.highlight) {
             LiveDevImpl.showHighlight();
         } else {
             LiveDevImpl.hideHighlight();
         }
         PreferencesManager.setViewState("livedev.highlight", config.highlight);
+        PreferencesManager.setViewState("livedev.stickyHighlight", config.stickyHighlight);
+    }
+
+    function _handlePreviewStickyHighlightCommand() {
+        _handleHighlightOptionChanged("stickyHighlight", "highlight");
+    }
+
+    function _handlePreviewHighlightCommand() {
+        _handleHighlightOptionChanged("highlight", "stickyHighlight");
     }
 
     /**
@@ -385,7 +410,7 @@ define(function main(require, exports, module) {
                 config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
                        
                 if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
-                    LiveDevImpl.agents.remote.call("updateConfig",JSON.stringify(config));
+                    LiveDevImpl.agents.remote.call("updateConfig", JSON.stringify(config));
                 }
             });
 
@@ -398,15 +423,30 @@ define(function main(require, exports, module) {
             _updateHighlightCheckmark();
         });
 
+    PreferencesManager.stateManager.definePreference("livedev.stickyHighlight", "boolean", false)
+        .on("change", function () {
+            config.stickyHighlight = PreferencesManager.getViewState("livedev.stickyHighlight");
+            _updateStickyHighlightCheckmark();
+            if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
+                LiveDevImpl.agents.remote.call("updateConfig", JSON.stringify(config));
+            }
+        });
+
     config.highlight = PreferencesManager.getViewState("livedev.highlight");
+    config.stickyHighlight = PreferencesManager.getViewState("livedev.stickyHighlight");
 
     // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
     CommandManager.register(Strings.CMD_LIVE_HIGHLIGHT, Commands.FILE_LIVE_HIGHLIGHT, _handlePreviewHighlightCommand);
-    CommandManager.register(Strings.CMD_RELOAD_LIVE_PREVIEW, Commands.CMD_RELOAD_LIVE_PREVIEW, _handleReloadLivePreviewCommand);
-    CommandManager.register(Strings.CMD_TOGGLE_LIVE_PREVIEW_MB_MODE, Commands.TOGGLE_LIVE_PREVIEW_MB_MODE, _toggleLivePreviewMultiBrowser);
+    CommandManager.register(Strings.CMD_LIVE_STICKY_HIGHLIGHT,
+        Commands.FILE_LIVE_STICKY_HIGHLIGHT, _handlePreviewStickyHighlightCommand);
+    CommandManager.register(Strings.CMD_RELOAD_LIVE_PREVIEW,
+        Commands.CMD_RELOAD_LIVE_PREVIEW, _handleReloadLivePreviewCommand);
+    CommandManager.register(Strings.CMD_TOGGLE_LIVE_PREVIEW_MB_MODE,
+        Commands.TOGGLE_LIVE_PREVIEW_MB_MODE, _toggleLivePreviewMultiBrowser);
 
     CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(false);
+    CommandManager.get(Commands.FILE_LIVE_STICKY_HIGHLIGHT).setEnabled(false);
 
     // Export public functions
 });

@@ -34,6 +34,8 @@ define(function (require, exports, module) {
     var FileUtils           = require("file/FileUtils"),
         NodeDomain          = require("utils/NodeDomain"),
         EditorManager       = require("editor/EditorManager"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         HTMLInstrumentation = require("language/HTMLInstrumentation");
 
     // The node extension that actually provides the WebSocket server.
@@ -46,10 +48,47 @@ define(function (require, exports, module) {
 
     WebSocketTransportDomain.on("message", function (obj, message) {
         console.log("WebSocketTransport - event - message" + " - " + message);
-        var editor = EditorManager.getActiveEditor(),
-            position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
-        if (position) {
-            editor.setCursorPos(position.line, position.ch, true);
+        if (message === "stickyhighlightchanged") {
+            Inspector.trigger("stickyhighlightchanged");
+        } else {
+            try {
+                LiveDevelopment.pauseSelectionSync(true);
+                var selectionId = parseInt(message, 10);
+                if (Number.isNaN(selectionId)) {
+                    // maybe it is json
+                    try {
+                        var editor = EditorManager.getActiveEditor();
+                        selectionId = JSON.parse(message);
+                        var positions = [];
+                        selectionId.forEach(function (selId) {
+                            positions.push(HTMLInstrumentation.getPositionFromTagId(editor, parseInt(selId, 10)));
+                        });
+                        positions = positions.map(function (position) {
+                            return { "start": {
+                                "line": position.line,
+                                "ch": position.ch
+                            }, "end": {
+                                "line": position.line,
+                                "ch": position.ch
+                            }
+                            };
+                        });
+                        editor.setSelections(positions);
+                    } catch (e) {
+                        // do nothing;
+                        console.log("message of undefined type - " + message);
+                    }
+                } else {
+                    var editor = EditorManager.getActiveEditor(),
+                        position = HTMLInstrumentation.getPositionFromTagId(editor, parseInt(message, 10));
+                    if (position) {
+                        editor.setCursorPos(position.line, position.ch, true);
+                    }
+                }
+                LiveDevelopment.pauseSelectionSync(false);
+            } catch (e) {
+                LiveDevelopment.pauseSelectionSync(false);
+            }
         }
     });
     

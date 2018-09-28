@@ -188,8 +188,8 @@ define(function CSSAgent(require, exports, module) {
 
         // Manually fire getAllStyleSheets since it will be removed from
         // Inspector.json in a future update
-        Inspector.send("CSS", "getAllStyleSheets").done(function (res) {
-            res.headers.forEach(function (header) {
+        Inspector.send("CSS", "getAllStyleSheets").done(function (result) {
+            result.headers.forEach(function (header) {
                 // _styleSheetAdded will ignore duplicates
                 _getAllStyleSheetsNotFound = false;
                 _styleSheetAdded(null, { header: header });
@@ -224,12 +224,19 @@ define(function CSSAgent(require, exports, module) {
         Inspector.CSS.off(".CSSAgent");
     }
 
+    /**
+     * Provides the url for a given style sheed id
+     */
+    function getURLForStyleSheetId(styleSheetId) {
+        return _styleSheetDetails[styleSheetId] && _styleSheetDetails[styleSheetId].canonicalizedURL;
+    }
 
     EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.enable = enable;
     exports.styleForURL = styleForURL;
+    exports.getURLForStyleSheetId = getURLForStyleSheetId;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;

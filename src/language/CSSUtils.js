@@ -1421,7 +1421,7 @@ define(function (require, exports, module) {
     }
 
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
-    function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
+    function _findMatchingRulesInCSSFiles(selector, resultSelectors, cssFileFilter) {
         var result          = new $.Deferred();
 
         // Load one CSS file and search its contents
@@ -1447,6 +1447,9 @@ define(function (require, exports, module) {
 
         ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]))
             .done(function (cssFiles) {
+                if (cssFileFilter) {
+                    cssFiles = cssFiles.filter(cssFileFilter);
+                }
                 // Load index of all CSS files; then process each CSS file in turn (see above)
                 Async.doInParallel(cssFiles, function (fileInfo, number) {
                     return _loadFileAndScan(fileInfo.fullPath, selector);
@@ -1855,6 +1858,7 @@ define(function (require, exports, module) {
     exports.getRangeSelectors = getRangeSelectors;
     exports.getCompleteSelectors = getCompleteSelectors;
     exports.isCSSPreprocessorFile = isCSSPreprocessorFile;
+    exports._findMatchingRulesInCSSFiles = _findMatchingRulesInCSSFiles;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;

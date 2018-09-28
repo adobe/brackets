@@ -68,7 +68,11 @@ function _createServer(socketPort) {
                 }
 
                 if (msgObj.type === "message") {
-                    _domainManager.emitEvent("webSocketTransport", "message", msgObj.message);
+                    if (typeof msgObj.message === "string") {
+                        _domainManager.emitEvent("webSocketTransport", "message", msgObj.message);
+                    } else {
+                        _domainManager.emitEvent("webSocketTransport", "message", JSON.stringify(msgObj.message));
+                    }
                 } else {
                     console.error("webSocketTransport: Got bad socket message type: " + msg);
                 }
