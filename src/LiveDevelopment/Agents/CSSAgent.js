@@ -224,12 +224,19 @@ define(function CSSAgent(require, exports, module) {
         Inspector.CSS.off(".CSSAgent");
     }
 
+    /**
+     * 
+     */
+    function getURLForStyleSheetId(styleSheetId) {
+        return _styleSheetDetails[styleSheetId] && _styleSheetDetails[styleSheetId].canonicalizedURL;
+    }
 
     EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.enable = enable;
     exports.styleForURL = styleForURL;
+    exports.getURLForStyleSheetId = getURLForStyleSheetId;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;
