@@ -118,10 +118,8 @@ define(function (require, exports, module) {
             
             it("should return correct start and end line numbers for es6 class definitions and methods", function () {
                 runs(function () {
-                    doneLoading = false;
-                    init(this, es6ClassesFileEntry);
+                    waitsForDone(init(this, es6ClassesFileEntry));
                 });
-                waitsFor(function () { return doneLoading; }, 1000);
 
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "Shape", [ {start:  0, end:  9} ]);
