@@ -234,7 +234,6 @@ define(function CSSAgent(require, exports, module) {
     /**
      * Returns styleSheetDetails object
      */
-
     function getStyleSheetDetails() {
         return _styleSheetDetails;
     }
