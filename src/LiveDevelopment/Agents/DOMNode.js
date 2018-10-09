@@ -146,6 +146,8 @@ define(function DOMNodeModule(require, exports, module) {
         } else if (payload.childNodeCount) {
             this.agent.requestChildNodes(this);
         }
+
+        this._setPseudoElements(payload.pseudoElements);
     };
 
     /** Create child nodes from the given payload
@@ -158,6 +160,28 @@ define(function DOMNodeModule(require, exports, module) {
             node = new DOMNode(this.agent, payload);
             this.appendChild(node);
         }
+    };
+
+    /** Create pseudoElements child nodes from the given payload
+     * @param [[DOM.Node]] payload of pseudoElements
+     */
+    DOMNode.prototype._setPseudoElements = function _setPseudoElements(pseudoElementsPayload) {
+        this._pseudoElements = {};
+        if (!pseudoElementsPayload) {
+            return;
+        }
+        var i, payload, node;
+        for (i in pseudoElementsPayload) {
+            payload = pseudoElementsPayload[i];
+            node = new DOMNode(this.agent, payload);
+            node.parent = this;
+            this._pseudoElements[payload.pseudoType] = node;
+        }
+    };
+
+    /** Get pseudo elements of a node */
+    DOMNode.prototype.pseudoElements = function pseudoElements() {
+        return this._pseudoElements;
     };
 
     /** Construct the payload for this node */

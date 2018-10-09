@@ -231,11 +231,20 @@ define(function CSSAgent(require, exports, module) {
         return _styleSheetDetails[styleSheetId] && _styleSheetDetails[styleSheetId].canonicalizedURL;
     }
 
+    /**
+     * Returns styleSheetDetails object
+     */
+
+    function getStyleSheetDetails() {
+        return _styleSheetDetails;
+    }
+
     EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.enable = enable;
     exports.styleForURL = styleForURL;
+    exports.getStyleSheetDetails = getStyleSheetDetails;
     exports.getURLForStyleSheetId = getURLForStyleSheetId;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
