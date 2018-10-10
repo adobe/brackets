@@ -184,6 +184,7 @@ define(function DOMAgent(require, exports, module) {
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
         Inspector.DOM.getDocument(function onGetDocument(res) {
+            exports.document = res;
             exports.trigger("getDocument", res);
             // res = {root}
             _idToNode = {};
@@ -318,6 +319,10 @@ define(function DOMAgent(require, exports, module) {
         Inspector.DOM.off(".DOMAgent");
     }
 
+    /** Return id to DOM Node mapping object */
+    function getIdToNodeMap() {
+        return _idToNode;
+    }
 
     EventDispatcher.makeEventDispatcher(exports);
 
@@ -334,4 +339,5 @@ define(function DOMAgent(require, exports, module) {
     exports.applyChange = applyChange;
     exports.load = load;
     exports.unload = unload;
+    exports.getIdToNodeMap = getIdToNodeMap;
 });
