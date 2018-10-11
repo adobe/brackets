@@ -1538,6 +1538,17 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /**
+     * Get Live document parent path
+     */
+    function getLiveDocParentPath() {
+        var docParentPath = "";
+        if (_liveDocument && _liveDocument.doc) {
+            docParentPath = _liveDocument.doc.file ? _liveDocument.doc.file._parentPath : "";
+        }
+        return docParentPath;
+    }
+
     EventDispatcher.makeEventDispatcher(exports);
 
     // For unit testing
@@ -1561,5 +1572,5 @@ define(function LiveDevelopment(require, exports, module) {
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
     exports.getServerBaseUrl    = getServerBaseUrl;
     exports.pauseSelectionSync  = pauseSelectionSync;
-
+    exports.getLiveDocParentPath = getLiveDocParentPath;
 });
