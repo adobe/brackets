@@ -209,7 +209,7 @@
     "text-emphasis-position":      {"values": ["above", "below", "left", "right"]},
     "text-emphasis-style":         {"values": ["circle", "dot", "double-circle", "filled", "none", "open", "sesame", "triangle"]},
     "text-indent":                 {"values": ["inherit"]},
-    "text-justify":                {"values": ["auto", "none", "inter-word", "inter-character"]},
+    "text-justify":                {"values": ["auto", "none", "inter-word", "inter-character", "inherit"]},
     "text-overflow":               {"values": ["clip", "ellipsis", "inherit"]},
     "text-shadow":                 {"values": []},
     "text-rendering":              {"values": ["auto", "geometricPrecision", "optimizeLegibility", "optimizeSpeed"]},
