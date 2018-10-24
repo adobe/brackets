@@ -115,3 +115,9 @@ code contributions, reviewing pull requests, and providing feedback and suggesti
 direction of the project.
 
 Even if you're not a committer, you're still welcome to give feedback on any pull request!
+
+
+###Name:Neeshma C Paul
+ -Place:Kerala,India
+ -Github:[Neeeshmacpaul](https://github.com/Neeshmacpaul)
+ -Linkedin:[Neeshma C Paul](https://www.linkedin.com/in/neeshma-c-paul-5b1526149/)
