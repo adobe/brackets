@@ -605,7 +605,7 @@ define(function (require, exports, module) {
      * @param {{from: Pos, to: Pos, text: Array, origin: string}} changeList
      */
     function _handleChange(event, editor, changeList) {
-        if (lastChar && editor === keyDownEditor) {
+        if (lastChar && (editor === keyDownEditor || lastChar === ">")) {
             keyDownEditor = null;
             if (_inSession(editor)) {
                 var charToRetest = lastChar;

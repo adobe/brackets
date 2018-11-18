@@ -155,6 +155,11 @@ define(function (require, exports, module) {
     require("JSUtils/Session");
     require("JSUtils/ScopeManager");
 
+    //Load lsp related module
+    require("lsp/LSPInterface");
+    require("lsp/LanguageTool");
+    require("lsp/ClientTemplate");
+
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables

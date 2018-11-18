@@ -324,6 +324,12 @@
         "mode": "pug",
         "fileExtensions": ["pug", "jade"],
         "lineComment": ["//"]
+    },
+
+    "dockerfile": {
+        "name": "DockerFile",
+        "mode": ["dockerfile","text/x-dockerfile"],
+        "fileExtensions": ["dockerfile"]
     }
 
 }
