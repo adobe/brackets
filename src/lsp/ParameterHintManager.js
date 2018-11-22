@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"),
+        HintsUtils2     = require("lsp/HintUtils2"),
         ScopeManager    = brackets.getModule("JSUtils/ScopeManager");
 
     
@@ -152,14 +153,11 @@ define(function (require, exports, module) {
             }
         }
 
-        /*if (hints) {
-            $hintContent.append($("<span>")
-                    .append(_.escape(hints))
-                    .addClass("current-parameter"));
-            //HintsUtils2.formatParameterHint(hints.parameters, appendSeparators, appendParameter);
-        } else {*/
+        if (hints.length > 0) {
+            HintsUtils2.formatParameterHint(hints, appendSeparators, appendParameter);
+        } else {
             $hintContent.append(_.escape(hints));
-        //}
+        }
     }
 
     /**
@@ -212,13 +210,11 @@ define(function (require, exports, module) {
      *
      */
     function dismissHint() {
-
         if (hintState.visible) {
             $hintContainer.hide();
             $hintContent.empty();
             hintState = {};
             session.editor.off("cursorActivity", handleCursorActivity);
-
             if (!preserveHintStack) {
                 clearFunctionHintStack();
             }
@@ -241,28 +237,6 @@ define(function (require, exports, module) {
      *
      */
     function popUpHint(pushExistingHint, hint, functionInfo) {
-
-        /*functionInfo = functionInfo || session.getFunctionInfo();
-        if (!functionInfo.inFunctionCall) {
-            dismissHint();
-            return null;
-        }
-
-        if (hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
-
-            var pushHint = pushExistingHint && isHintDisplayed();
-            if (pushHint) {
-                pushHintOnStack();
-                preserveHintStack = true;
-            }
-
-            dismissHint();
-            preserveHintStack = false;
-        } else if (isHintDisplayed()) {
-            return null;
-        }
-
-        hintState.functionCallPos = functionInfo.functionCallPos;*/
         dismissHint();
         var request = null;
         var $deferredPopUp = $.Deferred();
@@ -278,7 +252,7 @@ define(function (require, exports, module) {
 
         request.done(function (label) {
             var cm = session.editor._codeMirror,
-                pos = cm.charCoords(session.editor.getCursorPos());//functionInfo.functionCallPos);
+                pos = cm.charCoords(session.editor.getCursorPos());
 
             formatHint(label);
 
@@ -306,16 +280,12 @@ define(function (require, exports, module) {
      */
     function popUpHintAtOpenParen() {
         var functionInfo = session.getFunctionInfo();
-        //if (functionInfo.inFunctionCall) {
-            var token = session.getToken();
-
-            if (token && token.string === "(") {
-                return popUpHint();
-         //   }
+        var token = session.getToken();
+        if (token && token.string === "(") {
+            return popUpHint();
         } else {
             dismissHint();
         }
-
         return null;
     }
 
@@ -413,13 +383,13 @@ define(function (require, exports, module) {
      */
     function addCommands() {
         /* Register the command handler */
-        CommandManager.register(Strings.CMD_SHOW_PARAMETER_HINT, SHOW_PARAMETER_HINT_CMD_ID, handleShowParameterHint);
+        //CommandManager.register(Strings.CMD_SHOW_PARAMETER_HINT, SHOW_PARAMETER_HINT_CMD_ID, handleShowParameterHint);
 
         // Add the menu items
-        var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
+        /*var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
         if (menu) {
             menu.addMenuItem(SHOW_PARAMETER_HINT_CMD_ID, KeyboardPrefs.showParameterHint, Menus.AFTER, Commands.SHOW_CODE_HINTS);
-        }
+        }*/
 
         // Close the function hint when commands are executed, except for the commands
         // to show function hints for code hints.
@@ -440,7 +410,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function(){
     // Create the function hint container
     $hintContainer = $(hintContainerHTML).appendTo($("body"));
-    $hintContent = $hintContainer.find(".function-hint-content");
+    $hintContent = $hintContainer.find(".function-hint-content-new");
     });
 
     exports.PUSH_EXISTING_HINT      = PUSH_EXISTING_HINT;

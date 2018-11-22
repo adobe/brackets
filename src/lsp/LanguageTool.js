@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2018 - present Adobe Systems Incorporated. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 define(function (require, exports, module) {
     "use strict";
 
@@ -15,7 +38,7 @@ define(function (require, exports, module) {
         Session                 = require("JSUtils/Session"),
         CodeHintManager         = brackets.getModule("editor/CodeHintManager"),
         CommandManager          = brackets.getModule("command/CommandManager"),
-        Commands             = brackets.getModule("command/Commands"),
+        Commands                = brackets.getModule("command/Commands"),
         Menus                   = brackets.getModule('command/Menus'),
         util                    = require("lsp/Util");
 
@@ -27,6 +50,12 @@ define(function (require, exports, module) {
     function LanguageClient() {
     };
 
+    /**
+     * Determine whether hints are available for a given editor context
+     * @param {Editor} editor - the current editor context
+     * @param {string} implicitChar - charCode of the last pressed key
+     * @return {boolean} - are hints available in the current context.
+     */
     LanguageClient.prototype.hasHints = function (editor, implicitChar){
         let langId = editor.document.getLanguage().getId();
         if (langId in _clientList) {
@@ -36,6 +65,11 @@ define(function (require, exports, module) {
         return false;
     };
 
+    /**
+     * Return a list of hints, possibly deferred, for the current editor context
+     * @param   {String} implicitChar - charCode of the last pressed key
+     * @returns {jQuery.Deferred} hint response as defined by the CodeHintManager API 
+     */
     LanguageClient.prototype.getHints = function (implicitChar) {
         let pos = this.editor.getCursorPos();
         let content = this.editor.document.getText();
@@ -99,6 +133,13 @@ define(function (require, exports, module) {
         return $deferredHints;
     };
 
+
+    /**
+     * Inserts the hint selected by the user into the current editor.
+     * @param   {jQuery.Object} $completion - hint object to insert into current editor
+     * @returns {boolean} - should a new hinting session be requested
+     *      immediately after insertion? 
+     */
     LanguageClient.prototype.insertHint = function ($completion) {
         var cursor  = _session.getCursor(),
             query   = _session.getQuery(),
@@ -115,8 +156,17 @@ define(function (require, exports, module) {
             txt = token.insertText;
         }
         this.editor.document.replaceRange(txt, start, end);
+        
+        // Return false to indicate that another hinting session is not needed
+        return false;
     };
 
+    /**
+     * Send Request to LSP Server
+     * @param   {String} serverName - server where message is to be sent
+     * @param   {Object} msgObj - json object containg information associated with the request
+     * @returns {Object} $deffered Object  
+     */
     LanguageClient.prototype.getParameterHints = function(){
         let pos = this.editor.getCursorPos();
         let content = this.editor.document.getText();
@@ -159,15 +209,12 @@ define(function (require, exports, module) {
                     label = element.label;
                     let param = element.parameters;
                     param.forEach(ele =>{
-                        let obj = {};
-                        obj.name = ele.label;
-                        obj.type = "var";
-                        paramList.push(obj);
+                        paramList.push(ele.label);
                     });
                 });
             }
             if(paramList.length > 0){
-                $deferredHints.resolve(label);//paramList)
+                $deferredHints.resolve(paramList)
             }
             else{
                 $deferredHints.reject();
@@ -179,14 +226,29 @@ define(function (require, exports, module) {
         return $deferredHints;
     };
     
+    /**
+     * Send Request to LSP Server Interface
+     * @param   {Object} client - Client which has invoked the request
+     * @param   {Object} msgObj - json object containg information associated with the request
+     * @returns {Object} $deffered Object  
+     */
     function postRequest(client, msgObj){
         return LSPInterface.postRequest(client.getServerName(), msgObj);
     };
 
+    /**
+     * Send Notification to LSP Server Interface
+     * @param   {Object} client - Client which has invoked the notification
+     * @param   {Object} msgObj - json object containg information associated with the notification
+     */
     function postNotification(client, msgObj){
         LSPInterface.postNotification(client.getServerName(), msgObj);
     };
 
+    /**
+     * Initialize/Enable language tooling support for the LSP server associated with client
+     * @param   {Object} client - Client which is registering the LSP server
+     */
     function initLanguageTooling(client){
         let serverName = client.getServerName();
         let msgObj = {};
@@ -211,11 +273,22 @@ define(function (require, exports, module) {
         });
     };
 
+    /**
+     * Register a callback function to the custom method client wants to support
+     * @param   {Object} client - Client which has rtegistered the LSP server
+     * @param   {String} method - Method that client wants to support
+     * @param   {Function} callback -  callback function
+     */
     function registerCallback(client, method, callback){
         let serverName = client.getServerName();
         LSPInterface.registerCallback(serverName, method, callback);
     };
 
+    /**
+     * Get the client registerd to provide tooling support for the current document
+     * @param   {Object} document - Current active document loaded in Editor
+     * @returns {Object} client - Client register to support the active language  
+     */
     function getActiveClient(document){
         let languageId = document.getLanguage().getId();
         if(_clientList[languageId]){
@@ -223,6 +296,12 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * When the editor is changed, reset the hinting session and cached
+     * information, and reject any pending deferred requests.
+     * @param {!Editor} editor - editor context to be initialized.
+     * @param {?Editor} previousEditor - the previous editor.
+     */
     function initializeSession(editor, previousEditor) {
         let session = new Session(editor);
         let client = getActiveClient(editor.document);
@@ -234,6 +313,11 @@ define(function (require, exports, module) {
         ParameterHintManager.setSession(session);
     };
 
+    /**
+     * Connects to the given editor, creating a new Session & adding listeners
+     * @param   {?Editor} editor - editor context on which to listen for
+     * @param   {?Editor} previousEditor - the previous editor
+     */
     function installEditorListeners(editor, previousEditor) {
         if (editor ){//&& HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
             initializeSession(editor, previousEditor);
@@ -248,6 +332,10 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Uninstall editor change listeners
+     * @param {Editor} editor - editor context on which to stop listening
+     */
     function uninstallEditorListeners(editor) {
         if (editor) {
             editor.off(HintUtils.eventName("change"));
@@ -255,6 +343,10 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Send Request to LSP Server to unload the current document
+     * @param   {Object} document - Current document loaded into editor.
+     */
     function closeDocument(document){
         let docPathUri = "file://"+document.file._path;
         let client = getActiveClient(document);
@@ -269,6 +361,10 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Send Request to LSP Server to load the current document
+     * @param   {Object} document - Current document loaded into editor.
+     */
     function openDocument(document){
         let content = document.getText();
         let docPathUri = "file://"+document.file._path;
@@ -286,6 +382,15 @@ define(function (require, exports, module) {
         }
     };
     
+    /** 
+     * Handle the activeEditorChange event fired by EditorManager.
+     * Uninstalls the change listener on the previous editor
+     * and installs a change listener on the new editor.
+     *
+     * @param {Event} event - editor change event (ignored)
+     * @param {Editor} current - the new current editor context
+     * @param {Editor} previous - the previous editor context
+     */
     function handleActiveEditorChange(event, current, previous) {
         if (previous) {
             previous.document
@@ -306,11 +411,18 @@ define(function (require, exports, module) {
         installEditorListeners(current, previous);
     };
 
+    /**
+     * Utility function to make the jump
+     * @param   {Object} curPos - target postion fo the cursor after the jump
+     */
     function setJumpSelection(curPos){
         EditorManager.getCurrentFullEditor().setCursorPos(curPos.line, curPos.ch, true);
         EditorManager.getCurrentFullEditor().setSelection(curPos);
     };
 
+    /**
+     * Method to handle jump to definition feature. 
+     */
     function handleJumpToDefinition(){
         let editor = EditorManager.getFocusedEditor();
         let client = getActiveClient(editor.document);
@@ -357,6 +469,10 @@ define(function (require, exports, module) {
         });
     };
 
+    /**
+     * Publish the diagnostics information related to current document
+     * @param   {Object} msgObj - json object containg information associated with 'textDocument/publishDiagnostics' notification from server
+     */
     function publishDiagnostics(msgObj){
         let diagnostics = msgObj.param.params.diagnostics;
         let errors = [];
@@ -369,9 +485,12 @@ define(function (require, exports, module) {
             errors.push(err);
         });
         _diagnostics = {errors: errors};
-        CodeInspection.requestRun("PHP Diagnostics");
+        CodeInspection.requestRun("Diagnostics");
     };
     
+    /**
+     * Overriding the appReady for LanguageTool
+     */
     AppInit.appReady(function () {
 
 
@@ -381,12 +500,7 @@ define(function (require, exports, module) {
         //DocumentManager.on("documentRefreshed",(event, doc)=>{openDocument(doc)});
         //installEditorListeners(EditorManager.getActiveEditor());
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-hints.css");
-
-        /*var MY_COMMAND_ID_FORWARD = 'gotodefinition';
-        CommandManager.register('Go To Definition', MY_COMMAND_ID_FORWARD, handleGoToDef);
-        var contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-        contextMenu.addMenuItem(MY_COMMAND_ID_FORWARD);*/
-
+        ParameterHintManager.addCommands();
     });
 
     exports.initLanguageTooling = initLanguageTooling;

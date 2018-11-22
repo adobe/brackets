@@ -285,7 +285,7 @@ span.brackets-hints-with-type-details {
     font-style: italic;
 }
 
-#function-hint-container {
+#function-hint-container-new {
     display: none;
 
     background: #fff;
@@ -302,7 +302,7 @@ span.brackets-hints-with-type-details {
     box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
 }
 
-#function-hint-container .function-hint-content {
+#function-hint-container-new .function-hint-content-new {
 }
 
 .brackets-hints .current-parameter {
@@ -332,7 +332,7 @@ span.brackets-hints-with-type-details {
     font-family: SourceCodePro;
 }
 
-.dark #function-hint-container {
+.dark #function-hint-container-new {
     background: #000;
     border: 1px solid rgba(255,255,255,0.15);
     color: #fff;
