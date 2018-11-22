@@ -134,7 +134,7 @@ define(function (require, exports, module) {
         var hints = label;//session.getParameterHint(functionInfo.functionCallPos);
 
         $hintContent.empty();
-        $hintContent.addClass("brackets-js-hints");
+        $hintContent.addClass("brackets-hints");
 
         function appendSeparators(separators) {
             $hintContent.append(separators);

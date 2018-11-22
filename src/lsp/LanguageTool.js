@@ -26,7 +26,6 @@ define(function (require, exports, module) {
 
     var AppInit                 = brackets.getModule("utils/AppInit"),
         ParameterHintManager    = require("lsp/ParameterHintManager"),
-        HintUtils               = brackets.getModule("JSUtils/HintUtils"),
         ScopeManager            = brackets.getModule("JSUtils/ScopeManager"),
         LanguageManager         = brackets.getModule("language/LanguageManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
@@ -71,10 +70,8 @@ define(function (require, exports, module) {
      * @returns {jQuery.Deferred} hint response as defined by the CodeHintManager API 
      */
     LanguageClient.prototype.getHints = function (implicitChar) {
-        let pos = this.editor.getCursorPos();
-        let cursor = _session.getCursor();
-        let token = _session.getToken(cursor);
-        if(token && Util.hintable(token)){
+        let pos = this.editor.getCursorPos();;
+        if(implicitChar && Util.hintable(implicitChar)){
             let content = this.editor.document.getText();
             let $deferredHints = $.Deferred();
             let docPath = this.editor.document.file._path;
@@ -321,7 +318,7 @@ define(function (require, exports, module) {
         if (editor ){//&& HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
             initializeSession(editor, previousEditor);
             editor
-                .on(HintUtils.eventName("change"), function (event, editor, changeList) {
+                .on("change.brackets-hints", function (event, editor, changeList) {
                         ScopeManager.handleFileChange(changeList);
                         ParameterHintManager.popUpHintAtOpenParen();
                 });
@@ -337,7 +334,7 @@ define(function (require, exports, module) {
      */
     function uninstallEditorListeners(editor) {
         if (editor) {
-            editor.off(HintUtils.eventName("change"));
+            editor.off("change.brackets-hints");
             ParameterHintManager.uninstallListeners(editor);
         }
     };
@@ -393,12 +390,12 @@ define(function (require, exports, module) {
     function handleActiveEditorChange(event, current, previous) {
         if (previous) {
             previous.document
-                .off(HintUtils.eventName("languageChanged"));
+                .off("languageChanged.brackets-hints");
             closeDocument(previous.document);
         }
         if (current) {
             current.document
-                .on(HintUtils.eventName("languageChanged"), function () {
+                .on("languageChanged.brackets-hints", function () {
                     uninstallEditorListeners(current);
                     installEditorListeners(current);
                     openDocument(current.document); 
@@ -491,7 +488,7 @@ define(function (require, exports, module) {
      * Overriding the appReady for LanguageTool
      */
     AppInit.appReady(function () {
-        EditorManager.on(HintUtils.eventName("activeEditorChange"), handleActiveEditorChange);
+        EditorManager.on("activeEditorChange.brackets-hints", handleActiveEditorChange);
         EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-hints.css");
         ParameterHintManager.addCommands();
