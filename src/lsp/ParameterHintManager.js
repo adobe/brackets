@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2018 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,9 +60,6 @@ define(function (require, exports, module) {
     var POINTER_TOP_OFFSET          = 4,    // Size of margin + border of hint.
         POSITION_BELOW_OFFSET       = 4;    // Amount to adjust to top position when the preview bubble is below the text
 
-    // keep jslint from complaining about handleCursorActivity being used before
-    // it was defined.
-    var handleCursorActivity;
 
     /**
      * Update the current session for use by the Function Hint Manager.
@@ -214,7 +211,6 @@ define(function (require, exports, module) {
             $hintContainer.hide();
             $hintContent.empty();
             hintState = {};
-            session.editor.off("cursorActivity", handleCursorActivity);
             if (!preserveHintStack) {
                 clearFunctionHintStack();
             }
@@ -260,8 +256,6 @@ define(function (require, exports, module) {
             positionHint(pos.left, pos.top, pos.bottom);
             hintState.visible = true;
             hintState.fnType = label;
-
-            session.editor.on("cursorActivity", handleCursorActivity);
             $deferredPopUp.resolveWith(null);
         }).fail(function () {
             hintState = {};
@@ -287,71 +281,6 @@ define(function (require, exports, module) {
             dismissHint();
         }
         return null;
-    }
-
-    /**
-     *  Show the parameter the cursor is on in bold when the cursor moves.
-     *  Dismiss the pop up when the cursor moves off the function.
-     */
-    handleCursorActivity = function () {
-        var functionInfo = session.getFunctionInfo();
-
-        if (functionInfo.inFunctionCall) {
-            // If in a different function hint, then dismiss the old one and
-            // display the new one if there is one on the stack
-            if (hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
-                if (popHintFromStack()) {
-                    var poppedFunctionCallPos = hintState.functionCallPos,
-                        currentFunctionCallPos = functionInfo.functionCallPos;
-
-                    if (poppedFunctionCallPos.line === currentFunctionCallPos.line &&
-                            poppedFunctionCallPos.ch === currentFunctionCallPos.ch) {
-                        preserveHintStack = true;
-                        popUpHint(OVERWRITE_EXISTING_HINT,
-                            hintState.fnType, functionInfo);
-                        preserveHintStack = false;
-                        return;
-                    }
-                } else {
-                    dismissHint();
-                }
-            }
-
-            formatHint(functionInfo);
-            return;
-        }
-
-        dismissHint();
-    };
-
-    /**
-     * Enable cursor tracking in the current session.
-     *
-     * @param {Session} session - session to start cursor tracking on.
-     */
-    function startCursorTracking(session) {
-        session.editor.on("cursorActivity", handleCursorActivity);
-    }
-
-    /**
-     * Stop cursor tracking in the current session.
-     *
-     * Use this to move the cursor without changing the function hint state.
-     *
-     * @param {Session} session - session to stop cursor tracking on.
-     */
-    function stopCursorTracking(session) {
-        session.editor.off("cursorActivity", handleCursorActivity);
-    }
-
-    /**
-     * Show a parameter hint in its own pop-up.
-     *
-     */
-    function handleShowParameterHint() {
-
-        // Pop up function hint
-        popUpHint();
     }
 
     /**
@@ -382,17 +311,6 @@ define(function (require, exports, module) {
      * Add the function hint command at start up.
      */
     function addCommands() {
-        /* Register the command handler */
-        //CommandManager.register(Strings.CMD_SHOW_PARAMETER_HINT, SHOW_PARAMETER_HINT_CMD_ID, handleShowParameterHint);
-
-        // Add the menu items
-        /*var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
-        if (menu) {
-            menu.addMenuItem(SHOW_PARAMETER_HINT_CMD_ID, KeyboardPrefs.showParameterHint, Menus.AFTER, Commands.SHOW_CODE_HINTS);
-        }*/
-
-        // Close the function hint when commands are executed, except for the commands
-        // to show function hints for code hints.
         CommandManager.on("beforeExecuteCommand", function (event, commandId) {
             if (commandId !== SHOW_PARAMETER_HINT_CMD_ID &&
                     commandId !== Commands.SHOW_CODE_HINTS) {
@@ -413,17 +331,10 @@ define(function (require, exports, module) {
     $hintContent = $hintContainer.find(".function-hint-content-new");
     });
 
-    exports.PUSH_EXISTING_HINT      = PUSH_EXISTING_HINT;
     exports.addCommands             = addCommands;
-    exports.dismissHint             = dismissHint;
     exports.installListeners        = installListeners;
     exports.uninstallListeners      = uninstallListeners;
-    exports.isHintDisplayed         = isHintDisplayed;
-    exports.popUpHint               = popUpHint;
     exports.popUpHintAtOpenParen    = popUpHintAtOpenParen;
     exports.setSession              = setSession;
-    exports.startCursorTracking     = startCursorTracking;
-    exports.stopCursorTracking      = stopCursorTracking;
     exports.registerHintProvider    = registerHintProvider;
-
 });

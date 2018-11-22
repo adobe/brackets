@@ -23,10 +23,9 @@
 
 define(function (require, exports, module) {
     "use strict";
+
     function formatTypeDataForToken($hintObj, token) {
-
         $hintObj.addClass('brackets-hints-with-type-details');
-
         if (token.detail) {
             if (token.detail.trim() !== '?') {
                 if (token.detail.length < 30) {
@@ -39,13 +38,19 @@ define(function (require, exports, module) {
                 $('<span>keyword</span>').appendTo($hintObj).addClass("brackets-hints-keyword");
             }
         }
-
         if (token.documentation) {
             $hintObj.attr('title', token.documentation);
             $('<span></span>').text(token.documentation.trim()).appendTo($hintObj).addClass("hint-doc");
         }
     }
 
-    exports.formatTypeDataForToken = formatTypeDataForToken;
+    function hintable(token){
+        if(token.string == '(' || token.string == ' '){
+            return false;
+        }
+        return true;
+    }
 
+    exports.hintable = hintable;
+    exports.formatTypeDataForToken = formatTypeDataForToken;
 });

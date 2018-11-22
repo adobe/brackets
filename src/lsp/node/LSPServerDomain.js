@@ -111,7 +111,7 @@
 
     /**
      * Register new LSP Server
-     * @param   {Object} initParam - Object containg all the information related to initialization adn registration of the server
+     * @param   {Object} initParam - Object containg all the information related to initialization and registration of the server
      */
     function registerLSPServer(initParam) {
         let serverName = initParam.serverName;

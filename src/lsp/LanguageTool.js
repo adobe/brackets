@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
         Menus                   = brackets.getModule('command/Menus'),
-        util                    = require("lsp/Util");
+        Util                    = require("lsp/Util");
 
     let _commandID = {};
     let _clientList = {};
@@ -72,65 +72,64 @@ define(function (require, exports, module) {
      */
     LanguageClient.prototype.getHints = function (implicitChar) {
         let pos = this.editor.getCursorPos();
-        let content = this.editor.document.getText();
-        let $deferredHints = $.Deferred();
-        let docPath = this.editor.document.file._path;
-        let docPathUri = "file://"+docPath;
-        let client = getActiveClient(this.editor.document);
-        postNotification(client,{
-            method:"textDocument/didChange", 
-            param:{
+        let cursor = _session.getCursor();
+        let token = _session.getToken(cursor);
+        if(token && Util.hintable(token)){
+            let content = this.editor.document.getText();
+            let $deferredHints = $.Deferred();
+            let docPath = this.editor.document.file._path;
+            let docPathUri = "file://"+docPath;
+            let client = getActiveClient(this.editor.document);
+            postNotification(client,{
+                method:"textDocument/didChange", 
+                param:{
+                    textDocument: {
+                        uri: docPathUri,
+                        version: 1
+                    },
+                    contentChanges: [
+                        {
+                            text: content
+                        }
+                    ]
+                }
+            });
+
+            postRequest(client,{method:"textDocument/completion", param:{
                 textDocument: {
-                    uri: docPathUri,
-                    version: 1
+                    uri: docPathUri
                 },
-                contentChanges: [
-                    {
-                        text: content
+                position: {
+                    line: pos.line,
+                    character: pos.ch
+                }}
+            }).done(function(msgObj){
+                var hints = [];
+                if(msgObj.param.result){
+                    let res;
+                    if(msgObj.param.result instanceof Array){
+                        res = msgObj.param.result;
                     }
-                ]
-            }
-        });
-
-        postRequest(client,{method:"textDocument/completion", param:{
-			textDocument: {
-				uri: docPathUri
-			},
-			position: {
-				line: pos.line,
-				character: pos.ch
-			}}
-        }).done(function(msgObj){
-            var hints = [];
-            if(msgObj.param.result){
-                let res;
-                if(msgObj.param.result instanceof Array){
-                    res = msgObj.param.result;
+                    else{
+                        res = msgObj.param.result.items;
+                    }
+                    res.forEach(element => {
+                        var $fHint = $("<span>")
+                        .addClass("brackets-hints")
+                        .text(element.label);
+                        
+                        $fHint.data("token",element);
+                        Util.formatTypeDataForToken($fHint, element);
+                        hints.push($fHint);
+                    });
                 }
-                else{
-                    res = msgObj.param.result.items;
-                }
-                res.forEach(element => {
-                    var $fHint = $("<span>")
-                    .addClass("brackets-hints")
-                    .text(element.label);
-                    
-                    $fHint.data("token",element);
-                    util.formatTypeDataForToken($fHint, element);
-                    hints.push($fHint);
-                });
-            }
-            if(hints.length > 0){
                 $deferredHints.resolve({"hints":hints});
-            }
-            else{
+            }).fail(function(){
                 $deferredHints.reject();
-            }
-        }).fail(function(){
-            $deferredHints.reject();
-        });
-
-        return $deferredHints;
+            });
+            return $deferredHints;
+        }
+        return null;
     };
 
 
@@ -492,13 +491,8 @@ define(function (require, exports, module) {
      * Overriding the appReady for LanguageTool
      */
     AppInit.appReady(function () {
-
-
         EditorManager.on(HintUtils.eventName("activeEditorChange"), handleActiveEditorChange);
         EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
-
-        //DocumentManager.on("documentRefreshed",(event, doc)=>{openDocument(doc)});
-        //installEditorListeners(EditorManager.getActiveEditor());
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-hints.css");
         ParameterHintManager.addCommands();
     });
