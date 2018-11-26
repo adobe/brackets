@@ -31,8 +31,8 @@ define(function (require, exports, module) {
         CommandManager  = brackets.getModule("command/CommandManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Menus           = brackets.getModule("command/Menus"),
-        Strings         = brackets.getModule("strings"),
-        HintsUtils2     = require("lsp/HintUtils2"),
+        Strings         = brackets.getModule("strings"), 
+        Utils           = require("lsp/Utils"),
         ScopeManager    = brackets.getModule("JSUtils/ScopeManager");
 
     
@@ -42,8 +42,7 @@ define(function (require, exports, module) {
     var SHOW_PARAMETER_HINT_CMD_ID   = "showParameterHint", // string must MATCH string in native code (brackets_extensions)
         PUSH_EXISTING_HINT           = true,
         OVERWRITE_EXISTING_HINT      = false,
-        hintContainerHTML            = require("text!lsp/ParameterHintTemplate.html"),
-        KeyboardPrefs                = JSON.parse(require("text!lsp/keyboard.json"));
+        hintContainerHTML            = require("text!lsp/ParameterHintTemplate.html");
 
     var $hintContainer,    // function hint container
         $hintContent,      // function hint content holder
@@ -151,7 +150,7 @@ define(function (require, exports, module) {
         }
 
         if (hints.length > 0) {
-            HintsUtils2.formatParameterHint(hints, appendSeparators, appendParameter);
+            Utils.formatParameterHint(hints, appendSeparators, appendParameter);
         } else {
             $hintContent.append(_.escape(hints));
         }

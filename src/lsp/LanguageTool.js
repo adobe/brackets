@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
         Menus                   = brackets.getModule('command/Menus'),
-        Util                    = require("lsp/Util");
+        Utils                   = require("lsp/Utils");
 
     let _commandID = {};
     let _clientList = {};
@@ -70,8 +70,11 @@ define(function (require, exports, module) {
      * @returns {jQuery.Deferred} hint response as defined by the CodeHintManager API 
      */
     LanguageClient.prototype.getHints = function (implicitChar) {
+        if(this.editor === null){
+            return null;
+        }
         let pos = this.editor.getCursorPos();;
-        if(implicitChar && Util.hintable(implicitChar)){
+        if(implicitChar && Utils.hintable(implicitChar)){
             let content = this.editor.document.getText();
             let $deferredHints = $.Deferred();
             let docPath = this.editor.document.file._path;
@@ -116,7 +119,7 @@ define(function (require, exports, module) {
                         .text(element.label);
                         
                         $fHint.data("token",element);
-                        Util.formatTypeDataForToken($fHint, element);
+                        Utils.formatTypeDataForToken($fHint, element);
                         hints.push($fHint);
                     });
                 }
@@ -151,8 +154,9 @@ define(function (require, exports, module) {
         if (token.insertText) {
             txt = token.insertText;
         }
-        this.editor.document.replaceRange(txt, start, end);
-        
+        if(this.editor){
+            this.editor.document.replaceRange(txt, start, end);
+        }
         // Return false to indicate that another hinting session is not needed
         return false;
     };
@@ -164,6 +168,9 @@ define(function (require, exports, module) {
      * @returns {Object} $deffered Object  
      */
     LanguageClient.prototype.getParameterHints = function(){
+        if(this.editor === null){
+            return null;
+        }
         let pos = this.editor.getCursorPos();
         let content = this.editor.document.getText();
         let $deferredHints = $.Deferred();

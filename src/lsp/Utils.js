@@ -44,13 +44,50 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Check whether to show codehint at the current token 
+     * @param   {String} token - current char entered by user
+     * @returns {Bool} true/false - whether to show codehint or not
+     */
     function hintable(token){
-        if(token.string == '(' || token.string == ' '){
+        if(token.string === '(' || token.string === ' '){
             return false;
         }
         return true;
     }
 
+    /**
+     * Format the given parameter array. Handles separators between
+     * parameters, syntax for optional parameters, and the order of the
+     * parameter type and parameter name.
+     *
+     * @param {!Array.<{label: string}>} params - array of parameter labels
+     * @param {function(string)=} appendSeparators - callback function to append separators.
+     * @param {function(string, number)=} appendParameter - callback function to append parameter.
+     * @return {string} - formatted parameter hint
+     */
+    function formatParameterHint(params, appendSeparators, appendParameter) {
+        var result = "",
+            pendingOptional = false;
+
+        params.forEach(function (value, i) {
+            var param = value,
+                separators = "";
+            if (i > 0) {
+                separators += ", ";
+            }
+            if (appendSeparators) {
+                appendSeparators(separators);
+            }
+            result += separators;
+            if (appendParameter) {
+                appendParameter(param, i);
+            }
+            result += param;
+        });
+    }
+
     exports.hintable = hintable;
     exports.formatTypeDataForToken = formatTypeDataForToken;
+    exports.formatParameterHint = formatParameterHint;
 });
