@@ -217,7 +217,7 @@ define(function (require, exports, module) {
                 });
             }
             if(paramList.length > 0){
-                $deferredHints.resolve(paramList)
+                $deferredHints.resolve(paramList);
             }
             else{
                 $deferredHints.reject();

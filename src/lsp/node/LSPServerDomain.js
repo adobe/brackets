@@ -21,6 +21,8 @@
  *
  */
 
+/*global exports */
+/*global process*/
 (function () {
     "use strict";
 
@@ -120,9 +122,9 @@
             
             _lspProcess[serverName] = child_process.fork(serverPath, ["--node-ipc"]);
         
-            process.on('SIGINT', ()=>{process.exit()}); 
-            process.on('SIGTERM', ()=>{process.exit()});
-            process.on('exit', ()=>{_lspProcess[serverName].kill()});
+            process.on('SIGINT', ()=>{process.exit();}); 
+            process.on('SIGTERM', ()=>{process.exit();});
+            process.on('exit', ()=>{_lspProcess[serverName].kill();});
 
             initialize(initParam);
             isNodeDomainInitialized[serverName] = true;
@@ -198,4 +200,4 @@
     };
 
     exports.init = init;
-})();
+}());

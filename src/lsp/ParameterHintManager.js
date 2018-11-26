@@ -130,7 +130,7 @@ define(function (require, exports, module) {
      *  of the function call.
      */
     function formatHint(label) {
-        var hints = label;//session.getParameterHint(functionInfo.functionCallPos);
+        var hints = label;
 
         $hintContent.empty();
         $hintContent.addClass("brackets-hints");
