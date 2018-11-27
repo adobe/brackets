@@ -446,22 +446,20 @@ define(function (require, exports, module) {
 				character: pos.ch
 			}}
         }).done(function(msgObj){
-            if(msgObj.method === "textDocument/definition"){
-                if(msgObj.param.result){
-                    let docUri = msgObj.param.result.uri;
-                    let curPos = {};
-                    curPos.line = msgObj.param.result.range.start.line;
-                    curPos.ch = msgObj.param.result.range.start.character;
-                    if(docUri !== docPathUri){
-                        let docPath = docUri.substr(7);
-                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: docPath})
-                        .done(function () {
-                            setJumpSelection(curPos);
-                        });
-                    }
-                    else{ //definition is in current document
+            if(msgObj.param.result){
+                let docUri = msgObj.param.result.uri;
+                let curPos = {};
+                curPos.line = msgObj.param.result.range.start.line;
+                curPos.ch = msgObj.param.result.range.start.character;
+                if(docUri !== docPathUri){
+                    let docPath = docUri.substr(7);
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: docPath})
+                    .done(function () {
                         setJumpSelection(curPos);
-                    }
+                    });
+                }
+                else{ //definition is in current document
+                    setJumpSelection(curPos);
                 }
             }
         }).fail(function(){

@@ -73,16 +73,13 @@
     function postMessageToBrackets(data) {
         _domainManager.emitEvent(_domainName, 'data', [data]);
     };
-
+    process.on('warning', e => console.warn(e.stack));
     /**
      * Communication channel for request/response between Brackets and LSP Server
      * @param   {Object} msgObj - Object containing information needs to be pass to the server
      */
     function receiveRequestFromBrackets(msgObj) {
         sendRequestToServer(msgObj.serverName, msgObj.method,msgObj.param,msgObj.id);
-        _lspProcess[msgObj.serverName].on('message', (json) => {
-            postMessageToBrackets({serverName: msgObj.serverName, method:msgObj.method, param:json});
-        });
     };
 
     /**
@@ -106,8 +103,8 @@
             processId: process.pid,
             capabilities: capabilities
         },-1);
-        _lspProcess[_serverName].once('message', (json) => {
-            postMessageToBrackets({serverName: _serverName, method:"initialize", param:json});
+        _lspProcess[_serverName].on('message', (json) => {
+            postMessageToBrackets({serverName: _serverName, param:json});
         });
     };
 

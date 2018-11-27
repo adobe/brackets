@@ -45,13 +45,7 @@ define(function (require, exports, module) {
 
     var $hintContainer,    // function hint container
         $hintContent,      // function hint content holder
-
-        /** @type {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number},
-        *           fnType: Array.<Object}}
-        */
         hintState = {},
-        hintStack = [],    // stack for previous function hint to restore
-        preserveHintStack, // close a function hint without clearing stack
         session;           // current editor session, updated by main
 
     // Constants
@@ -125,13 +119,10 @@ define(function (require, exports, module) {
     /**
      *  Bold the parameter at the caret.
      *
-     *  @param {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number}}} functionInfo -
-     *  tells if the caret is in a function call and the position
-     *  of the function call.
+     *  @param hints Array of parameters needs to be displayed
      */
-    function formatHint(label) {
-        var hints = label;
-
+    function formatHint(hints) {
+        
         $hintContent.empty();
         $hintContent.addClass("brackets-hints");
 
@@ -157,51 +148,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Save the state of the current hint. Called when popping up a parameter hint
-     * for a parameter, when the parameter already part of an existing parameter
-     * hint.
-     */
-    function pushHintOnStack() {
-        hintStack.push(hintState);
-    }
-
-    /**
-     * Restore the state of the previous function hint.
-     *
-     * @return {boolean} - true the a parameter hint has been popped, false otherwise.
-     */
-    function popHintFromStack() {
-        if (hintStack.length > 0) {
-            hintState = hintStack.pop();
-            hintState.visible = false;
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Reset the function hint stack.
-     */
-    function clearFunctionHintStack() {
-        hintStack = [];
-    }
-
-    /**
-     * Test if the function call at the cursor is different from the currently displayed
-     * function hint.
-     *
-     * @param {{line:number, ch:number}} functionCallPos - the offset of the function call.
-     * @return {boolean}
-     */
-    function hasFunctionCallPosChanged(functionCallPos) {
-        var oldFunctionCallPos = hintState.functionCallPos;
-        return (oldFunctionCallPos === undefined ||
-            oldFunctionCallPos.line !== functionCallPos.line ||
-            oldFunctionCallPos.ch !== functionCallPos.ch);
-    }
-
-    /**
      * Dismiss the function hint.
      *
      */
@@ -211,50 +157,36 @@ define(function (require, exports, module) {
             $hintContent.empty();
             hintState = {};
             session.editor.off("cursorActivity", handleCursorActivity);
-            if (!preserveHintStack) {
-                clearFunctionHintStack();
-            }
         }
     }
 
     /**
      * Pop up a function hint on the line above the caret position.
-     *
-     * @param {boolean=} pushExistingHint - if true, push the existing hint on the stack. Default is false, not
-     * to push the hint.
-     * @param {string=} hint - function hint string from Language server.
-     * @param {{inFunctionCall: boolean, functionCallPos:
-     * {line: number, ch: number}}=} functionInfo -
-     * if the functionInfo is already known, it can be passed in to avoid
-     * figuring it out again.
      * @return {jQuery.Promise} - The promise will not complete until the
      *      hint has completed. Returns null, if the function hint is already
      *      displayed or there is no function hint at the cursor.
      *
      */
-    function popUpHint(pushExistingHint, hint, functionInfo) {
+    function popUpHint() {
         dismissHint();
         var request = null;
         var $deferredPopUp = $.Deferred();
         let langId = session.editor.document.getLanguage().getId();
-        if (!hint && clientList[langId]) {
+        if (clientList[langId]) {
             request = clientList[langId].getParameterHints();
         } else {
             request = $.Deferred();
-            request.resolveWith(null, [hint]);
+            request.resolveWith(null);
             $deferredPopUp.resolveWith(null);
         }
 
         request.done(function (label) {
             var cm = session.editor._codeMirror,
                 pos = cm.charCoords(session.editor.getCursorPos());
-
             formatHint(label);
-
             $hintContainer.show();
             positionHint(pos.left, pos.top, pos.bottom);
             hintState.visible = true;
-            hintState.fnType = label;
             session.editor.on("cursorActivity", handleCursorActivity);
             $deferredPopUp.resolveWith(null);
         }).fail(function () {

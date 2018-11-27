@@ -66,8 +66,8 @@
         if(msgObj.param.method && _callbackList[msgObj.serverName+msgObj.param.method]){
             _callbackList[msgObj.serverName+msgObj.param.method](msgObj);
         }
-        if($deferredResponse[msgObj.serverName+msgObj.method+msgObj.param.id]){
-            $deferredResponse[msgObj.serverName+msgObj.method+msgObj.param.id].resolve(msgObj);
+        if($deferredResponse[msgObj.serverName+msgObj.param.id]){
+            $deferredResponse[msgObj.serverName+msgObj.param.id].resolve(msgObj);
         }
     }
     
@@ -89,10 +89,10 @@
      */
     function postRequest(serverName, msgObj) {
         msgObj.id  = getNextReqId(serverName);
-        $deferredResponse[serverName+msgObj.method+msgObj.id] = $.Deferred();
+        $deferredResponse[serverName+msgObj.id] = $.Deferred();
         msgObj.serverName = serverName;
         _serverDomain.exec('request', msgObj);
-        return $deferredResponse[serverName+msgObj.method+msgObj.id];
+        return $deferredResponse[serverName+msgObj.id];
     }
 
     /**
