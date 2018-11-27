@@ -26,7 +26,85 @@ define(function (require, exports, module) {
 
     var ProjectManager          = require("project/ProjectManager");
     
-    var _capabilities = {}; //client specific capabilities
+    var _capabilities = { //client specific capabilities
+        workspace: {
+            applyEdit: true,
+            configuration: false,
+            workspaceEdit: {
+              documentChanges: true
+            },
+            workspaceFolders: false,
+            didChangeConfiguration: {
+              dynamicRegistration: false
+            },
+            didChangeWatchedFiles: {
+              dynamicRegistration: false
+            },
+            symbol: {
+              dynamicRegistration: false
+            },
+            executeCommand: {
+              dynamicRegistration: false
+            }
+          },
+        textDocument: {
+            synchronization: {
+                dynamicRegistration: false,
+                willSave: true,
+                willSaveWaitUntil: true,
+                didSave: true
+            },
+            completion: {
+                dynamicRegistration: false,
+                completionItem: {
+                snippetSupport: false,
+                commitCharactersSupport: false
+                },
+                contextSupport: true
+            },
+            hover: {
+                dynamicRegistration: false
+            },
+            signatureHelp: {
+                dynamicRegistration: false
+            },
+            references: {
+                dynamicRegistration: false
+            },
+            documentHighlight: {
+                dynamicRegistration: false
+            },
+            documentSymbol: {
+                dynamicRegistration: false,
+                hierarchicalDocumentSymbolSupport: false
+            },
+            formatting: {
+                dynamicRegistration: false
+            },
+            rangeFormatting: {
+                dynamicRegistration: false
+            },
+            onTypeFormatting: {
+                dynamicRegistration: false
+            },
+            definition: {
+                dynamicRegistration: false
+            },
+            codeAction: {
+                dynamicRegistration: false
+            },
+            codeLens: {
+                dynamicRegistration: false
+            },
+            documentLink: {
+                dynamicRegistration: false
+            },
+            rename: {
+                dynamicRegistration: false
+            }
+        },
+        experimental: {}
+    };
 
     class Client{
         /**

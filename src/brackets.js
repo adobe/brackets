@@ -159,6 +159,7 @@ define(function (require, exports, module) {
     require("lsp/LSPInterface");
     require("lsp/LanguageTool");
     require("lsp/ClientTemplate");
+    require("lsp/LSPSession");
 
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 

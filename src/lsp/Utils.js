@@ -56,6 +56,38 @@ define(function (require, exports, module) {
         return true;
     }
 
+     /**
+     * Check whether the current char code can be a part of identifier
+     * @param   {Char} code - character code to be checked
+     * @returns {Bool} true/false - is Identifier char
+     */
+    function isIdentifierChar(code){
+        //taken from Acorn ** INCOMPLETE**
+        if (code < 48){ return code === 36;}
+        if (code < 58){ return true;}
+        if (code < 65){ return false;}
+        if (code < 91){ return true;}
+        if (code < 97){ return code === 95;}
+        if (code < 123){ return true;}
+    }
+
+    /**
+     * Check whether the charcters in curr string can be a part of identifier
+     * @param   {String} key - string to be checked
+     * @returns {Bool} true/false - input can be a part of identifier.
+     */
+    function maybeIdentifier(key){
+        //TODO: This should be dynamic based on the doc language
+        let result = false;
+        for (let i = 0; i < key.length; i++) {
+            result = isIdentifierChar(key.charCodeAt(i));
+            if (!result) {
+                break;
+            }
+        }
+        return result;
+    }
+
     /**
      * Format the given parameter array. Handles separators between
      * parameters, syntax for optional parameters, and the order of the
@@ -90,4 +122,5 @@ define(function (require, exports, module) {
     exports.hintable = hintable;
     exports.formatTypeDataForToken = formatTypeDataForToken;
     exports.formatParameterHint = formatParameterHint;
+    exports.maybeIdentifier = maybeIdentifier;
 });

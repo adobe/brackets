@@ -26,15 +26,14 @@ define(function (require, exports, module) {
 
     var AppInit                 = brackets.getModule("utils/AppInit"),
         ParameterHintManager    = require("lsp/ParameterHintManager"),
-        ScopeManager            = brackets.getModule("JSUtils/ScopeManager"),
+        LSPInterface            = require("lsp/LSPInterface"),
+        LSPSession              = require("lsp/LSPSession"),
         LanguageManager         = brackets.getModule("language/LanguageManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         EditorManager           = brackets.getModule('editor/EditorManager'),
         CodeInspection          = brackets.getModule("language/CodeInspection"),
-        LSPInterface            = require("lsp/LSPInterface"),
-        Session                 = require("JSUtils/Session"),
         CodeHintManager         = brackets.getModule("editor/CodeHintManager"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
@@ -151,8 +150,9 @@ define(function (require, exports, module) {
         end         = {line: cursor.line, ch: cursor.ch};
 
         txt = token.label;
-        if (token.insertText) {
-            txt = token.insertText;
+        if (token.textEdit && token.textEdit.newText) {
+            txt = token.textEdit.newText;
+            start = {line: token.textEdit.range.start.line, ch: token.textEdit.range.start.character};
         }
         if(this.editor){
             this.editor.document.replaceRange(txt, start, end);
@@ -306,13 +306,11 @@ define(function (require, exports, module) {
      * @param {?Editor} previousEditor - the previous editor.
      */
     function initializeSession(editor, previousEditor) {
-        let session = new Session(editor);
+        let session = new LSPSession(editor);
         let client = getActiveClient(editor.document);
         if(client){
             _session = session;
         }
-        ScopeManager.handleEditorChange(session, editor.document,
-            previousEditor ? previousEditor.document : null);
         ParameterHintManager.setSession(session);
     };
 
@@ -324,9 +322,7 @@ define(function (require, exports, module) {
     function installEditorListeners(editor, previousEditor) {
         if (editor ){//&& HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
             initializeSession(editor, previousEditor);
-            editor
-                .on("change.brackets-hints", function (event, editor, changeList) {
-                        ScopeManager.handleFileChange(changeList);
+            editor.on("change.brackets-hints", function (event, editor, changeList) {
                         ParameterHintManager.popUpHintAtOpenParen();
                 });
             ParameterHintManager.installListeners(editor);

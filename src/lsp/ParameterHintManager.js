@@ -32,8 +32,7 @@ define(function (require, exports, module) {
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"), 
-        Utils           = require("lsp/Utils"),
-        ScopeManager    = brackets.getModule("JSUtils/ScopeManager");
+        Utils           = require("lsp/Utils");
 
     
     var clientList = {};
@@ -59,6 +58,7 @@ define(function (require, exports, module) {
     var POINTER_TOP_OFFSET          = 4,    // Size of margin + border of hint.
         POSITION_BELOW_OFFSET       = 4;    // Amount to adjust to top position when the preview bubble is below the text
 
+    var handleCursorActivity;
 
     /**
      * Update the current session for use by the Function Hint Manager.
@@ -210,6 +210,7 @@ define(function (require, exports, module) {
             $hintContainer.hide();
             $hintContent.empty();
             hintState = {};
+            session.editor.off("cursorActivity", handleCursorActivity);
             if (!preserveHintStack) {
                 clearFunctionHintStack();
             }
@@ -221,7 +222,7 @@ define(function (require, exports, module) {
      *
      * @param {boolean=} pushExistingHint - if true, push the existing hint on the stack. Default is false, not
      * to push the hint.
-     * @param {string=} hint - function hint string from tern.
+     * @param {string=} hint - function hint string from Language server.
      * @param {{inFunctionCall: boolean, functionCallPos:
      * {line: number, ch: number}}=} functionInfo -
      * if the functionInfo is already known, it can be passed in to avoid
@@ -239,7 +240,6 @@ define(function (require, exports, module) {
         if (!hint && clientList[langId]) {
             request = clientList[langId].getParameterHints();
         } else {
-            session.setFnType(hint);
             request = $.Deferred();
             request.resolveWith(null, [hint]);
             $deferredPopUp.resolveWith(null);
@@ -255,6 +255,7 @@ define(function (require, exports, module) {
             positionHint(pos.left, pos.top, pos.bottom);
             hintState.visible = true;
             hintState.fnType = label;
+            session.editor.on("cursorActivity", handleCursorActivity);
             $deferredPopUp.resolveWith(null);
         }).fail(function () {
             hintState = {};
@@ -272,7 +273,6 @@ define(function (require, exports, module) {
      *      displayed or there is no function hint at the cursor.
      */
     function popUpHintAtOpenParen() {
-        var functionInfo = session.getFunctionInfo();
         var token = session.getToken();
         if (token && token.string === "(") {
             return popUpHint();
@@ -281,6 +281,13 @@ define(function (require, exports, module) {
         }
         return null;
     }
+
+     /**
+     *  Dismiss the pop up when the cursor moves off.
+     */
+    handleCursorActivity = function () {
+        dismissHint();
+    };
 
     /**
      * Install function hint listeners.
