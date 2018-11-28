@@ -446,7 +446,7 @@ define(function (require, exports, module) {
 				character: pos.ch
 			}}
         }).done(function(msgObj){
-            if(msgObj.param.result){
+            if(msgObj.param.result && msgObj.param.result.range){
                 let docUri = msgObj.param.result.uri;
                 let curPos = {};
                 curPos.line = msgObj.param.result.range.start.line;

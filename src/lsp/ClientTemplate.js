@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     
     var _capabilities = { //client specific capabilities
         workspace: {
-            applyEdit: true,
+            applyEdit: false,
             configuration: false,
             workspaceEdit: {
               documentChanges: true
@@ -50,9 +50,9 @@ define(function (require, exports, module) {
         textDocument: {
             synchronization: {
                 dynamicRegistration: false,
-                willSave: true,
+                willSave: false,
                 willSaveWaitUntil: true,
-                didSave: true
+                didSave: false
             },
             completion: {
                 dynamicRegistration: false,
