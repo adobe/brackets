@@ -56,7 +56,7 @@ define(function (require, exports, module) {
      */
     function _wrapSelectedStatements (wrapperName, err) {
         var editor = EditorManager.getActiveEditor();
-        if (!editor) {
+        if (!editor || editor.getModeForSelection() !== "javascript") {
             return;
         }
         initializeRefactoringSession(editor);
