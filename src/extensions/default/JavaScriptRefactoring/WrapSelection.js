@@ -56,12 +56,11 @@ define(function (require, exports, module) {
      */
     function _wrapSelectedStatements (wrapperName, err) {
         var editor = EditorManager.getActiveEditor();
-        if (!editor || editor.getModeForSelection() !== "javascript") {
+        if (editor.getModeForSelection() !== "javascript") {
             if(wrapperName === TRY_CATCH) {
-                 editor.displayErrorMessageAtCursor(Strings.ERROR_TRY_CATCH);
-            }
-            else if(wrapperName === WRAP_IN_CONDITION) {
-                 editor.displayErrorMessageAtCursor(Strings.ERROR_WRAP_IN_CONDITION);
+                editor.displayErrorMessageAtCursor(Strings.ERROR_TRY_CATCH);
+            }else if(wrapperName === WRAP_IN_CONDITION) {
+                editor.displayErrorMessageAtCursor(Strings.ERROR_WRAP_IN_CONDITION);
             }
             return;
         }

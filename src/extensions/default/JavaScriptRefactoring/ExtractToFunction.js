@@ -271,7 +271,7 @@ define(function(require, exports, module) {
             result.resolve(Strings.ERROR_EXTRACTTO_FUNCTION_MULTICURSORS);
             return;
         }
-        if (!editor || editor.getModeForSelection() !== "javascript") {
+        if (editor.getModeForSelection() !== "javascript") {
             editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_FUNCTION_NOT_VALID);
             return;
         }
