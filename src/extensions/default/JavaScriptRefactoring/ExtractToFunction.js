@@ -271,6 +271,9 @@ define(function(require, exports, module) {
             result.resolve(Strings.ERROR_EXTRACTTO_FUNCTION_MULTICURSORS);
             return;
         }
+        if (!editor || editor.getModeForSelection() !== "javascript") {
+            return;
+        }
         initializeSession(editor);
 
         var selection = editor.getSelection(),

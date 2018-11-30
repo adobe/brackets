@@ -225,6 +225,9 @@ define(function(require, exports, module) {
             editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_MULTICURSORS);
             return;
         }
+        if (!editor || editor.getModeForSelection() !== "javascript") {
+            return;
+        }
 
         initializeSession(editor);
 
