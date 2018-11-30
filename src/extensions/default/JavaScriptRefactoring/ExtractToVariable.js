@@ -226,6 +226,7 @@ define(function(require, exports, module) {
             return;
         }
         if (!editor || editor.getModeForSelection() !== "javascript") {
+            editor.displayErrorMessageAtCursor(Strings.ERROR_EXTRACTTO_VARIABLE_NOT_VALID);
             return;
         }
 
