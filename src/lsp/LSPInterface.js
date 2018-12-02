@@ -114,6 +114,14 @@
     }
 
     /**
+     * Restart all lsp Servers
+     * @param   {Object} msgObj - Object containg information associated with the reloading
+     *                            new project root folder
+     */
+    function reloadAllLSPServers(msgObj){
+        _serverDomain.exec('reinitializeLSPServers',msgObj);
+    }
+    /**
      * Overriding the appReady for LSPInterface
      */
     AppInit.appReady(function () {
@@ -138,4 +146,5 @@
     exports.postNotification = postNotification;
     exports.postRequest = postRequest;
     exports.registerCallback = registerCallback;
+    exports.reloadAllLSPServers = reloadAllLSPServers;
 });

@@ -30,6 +30,7 @@ define(function (require, exports, module) {
         LSPSession              = require("lsp/LSPSession"),
         LanguageManager         = brackets.getModule("language/LanguageManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         EditorManager           = brackets.getModule('editor/EditorManager'),
@@ -257,8 +258,8 @@ define(function (require, exports, module) {
         let msgObj = {};
         msgObj.serverName = client.getServerName();
         msgObj.serverPath = client.getServerPath();
-        msgObj.rootPath = client.getProjectRootUri();
-        msgObj.capabilities = client.getCapabilities();
+        msgObj.rootPath = ProjectManager.getProjectRoot().fullPath;
+        msgObj.capabilities = Utils.getCapabilities();
         LSPInterface.registerLSPServer(msgObj);
 
         let languageId = client.getLanguageId();
@@ -270,6 +271,7 @@ define(function (require, exports, module) {
         ParameterHintManager.registerHintProvider(languageClient, [languageId], 0);
 
         registerCallback(client, 'textDocument/publishDiagnostics', publishDiagnostics);
+
         CodeInspection.register(languageId, {
             name: "Diagnostics",
             scanFile: ()=>{return _diagnostics;}
@@ -375,12 +377,20 @@ define(function (require, exports, module) {
                     languageId: languageID,
                     version: 1,
                     uri: docPathUri,
-                    text: content}
+                    text: content
+                    }
                 }
             });
         }
     };
     
+    function handleProjectOpen(){
+        let msgObj = {};
+        msgObj.capabilities = Utils.getCapabilities();
+        msgObj.rootPath = ProjectManager.getProjectRoot().fullPath;
+        LSPInterface.reloadAllLSPServers(msgObj);
+    }
+
     /** 
      * Handle the activeEditorChange event fired by EditorManager.
      * Uninstalls the change listener on the previous editor
@@ -493,6 +503,7 @@ define(function (require, exports, module) {
         EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-hints.css");
         ParameterHintManager.addCommands();
+        ProjectManager.on("projectOpen", function () { handleProjectOpen();});
     });
 
     exports.initLanguageTooling = initLanguageTooling;

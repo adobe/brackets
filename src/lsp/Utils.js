@@ -118,7 +118,94 @@ define(function (require, exports, module) {
             result += param;
         });
     }
-
+    /**
+     * get IDE capabilities
+     * @returns _capabilities - json containing capabilities supported by client
+     */
+    function getCapabilities(){
+        let _capabilities = { //client specific capabilities
+            workspace: {
+                applyEdit: false,
+                configuration: false,
+                workspaceEdit: {
+                documentChanges: true
+                },
+                workspaceFolders: true,
+                didChangeConfiguration: {
+                dynamicRegistration: false
+                },
+                didChangeWatchedFiles: {
+                dynamicRegistration: false
+                },
+                symbol: {
+                dynamicRegistration: false
+                },
+                executeCommand: {
+                dynamicRegistration: false
+                }
+            },
+            textDocument: {
+                synchronization: {
+                    dynamicRegistration: false,
+                    willSave: false,
+                    willSaveWaitUntil: true,
+                    didSave: false
+                },
+                completion: {
+                    dynamicRegistration: false,
+                    completionItem: {
+                    snippetSupport: false,
+                    commitCharactersSupport: false
+                    },
+                    contextSupport: true
+                },
+                hover: {
+                    dynamicRegistration: false
+                },
+                signatureHelp: {
+                    dynamicRegistration: false
+                },
+                references: {
+                    dynamicRegistration: false
+                },
+                documentHighlight: {
+                    dynamicRegistration: false
+                },
+                documentSymbol: {
+                    dynamicRegistration: false,
+                    hierarchicalDocumentSymbolSupport: false
+                },
+                formatting: {
+                    dynamicRegistration: false
+                },
+                rangeFormatting: {
+                    dynamicRegistration: false
+                },
+                onTypeFormatting: {
+                    dynamicRegistration: false
+                },
+                definition: {
+                    dynamicRegistration: false
+                },
+                codeAction: {
+                    dynamicRegistration: false
+                },
+                codeLens: {
+                    dynamicRegistration: false
+                },
+                documentLink: {
+                    dynamicRegistration: false
+                },
+                rename: {
+                    dynamicRegistration: false
+                }
+            },
+            experimental: {}
+        };
+        return _capabilities;
+    }
+    
+    exports.getCapabilities = getCapabilities;
     exports.hintable = hintable;
     exports.formatTypeDataForToken = formatTypeDataForToken;
     exports.formatParameterHint = formatParameterHint;

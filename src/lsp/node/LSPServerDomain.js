@@ -23,6 +23,8 @@
 
 /*global exports */
 /*global process*/
+/*global _*/
+
 (function () {
     "use strict";
 
@@ -48,7 +50,7 @@
             method: method,
             params: params
         };
-        _lspProcess[serverName].send(message);
+        _lspProcess[serverName].process.send(message);
     };
 
     /**
@@ -63,7 +65,7 @@
             method: method,
             params: params
         };
-        _lspProcess[serverName].send(message);
+        _lspProcess[serverName].process.send(message);
     };
 
     /**
@@ -95,18 +97,45 @@
      * @param   {Object} initParam - Object containing all the inforamtion related to initialization request
      */
     function initialize(initParam) {
-        let _serverName = initParam.serverName;
+        let serverName = initParam.serverName;
         let capabilities = initParam.capabilities;
         let rootPath = initParam.rootPath;
-        sendRequestToServer(_serverName,"initialize", {
+        sendRequestToServer(serverName,"initialize", {
             rootPath: rootPath,
             processId: process.pid,
             capabilities: capabilities
         },-1);
-        _lspProcess[_serverName].on('message', (json) => {
-            postMessageToBrackets({serverName: _serverName, param:json});
+        _lspProcess[serverName].process.on('message', (json) => {
+            postMessageToBrackets({serverName: serverName, param:json});
         });
     };
+
+    /**
+     * Utility function to fork new process for lasp server
+     * @param {String} path - Path to the server
+     * @returns {Object} child - child process running server
+     */
+    function forkProcess(path){
+        let child  = child_process.fork(path, ["--node-ipc"]);
+        process.on('SIGINT', ()=>{process.exit();}); 
+        process.on('SIGTERM', ()=>{process.exit();});
+        process.on('exit', ()=>{child.kill();});
+        return child;
+    }
+    
+    /**
+     * Reinitialize all the servers registered by sending init req
+     * @param   {Object} initObj - Object containing all the inforamtion related to re-initialization request
+     */
+    function reinitializeLSPServers(initObj){
+        for (let serverName in _lspProcess) {
+            //kill the existing server
+            _lspProcess[serverName].process.kill();
+            _lspProcess[serverName].process = forkProcess(_lspProcess[serverName].path);
+            initObj.serverName = serverName;
+            initialize(initObj);
+        };
+    }
 
     /**
      * Register new LSP Server
@@ -116,13 +145,9 @@
         let serverName = initParam.serverName;
         let serverPath = initParam.serverPath;
         if (!isNodeDomainInitialized[serverName]) {
-            
-            _lspProcess[serverName] = child_process.fork(serverPath, ["--node-ipc"]);
-        
-            process.on('SIGINT', ()=>{process.exit();}); 
-            process.on('SIGTERM', ()=>{process.exit();});
-            process.on('exit', ()=>{_lspProcess[serverName].kill();});
-
+            _lspProcess[serverName] = {};
+            _lspProcess[serverName].path = serverPath;
+            _lspProcess[serverName].process = forkProcess(serverPath);
             initialize(initParam);
             isNodeDomainInitialized[serverName] = true;
         }
@@ -148,6 +173,22 @@
                     name: "initObj",
                     type: "object",
                     description: "json object containing init information"
+                }
+            ],
+            []
+        );
+
+        _domainManager.registerCommand(
+            _domainName,
+            "reinitializeLSPServers",
+            reinitializeLSPServers,
+            true,
+            "Initializes node for lsp",
+            [
+                {
+                    name: "initObj",
+                    type: "object",
+                    description: "json object containing re-init information"
                 }
             ],
             []

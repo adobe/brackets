@@ -26,86 +26,6 @@ define(function (require, exports, module) {
 
     var ProjectManager          = require("project/ProjectManager");
     
-    var _capabilities = { //client specific capabilities
-        workspace: {
-            applyEdit: false,
-            configuration: false,
-            workspaceEdit: {
-              documentChanges: true
-            },
-            workspaceFolders: false,
-            didChangeConfiguration: {
-              dynamicRegistration: false
-            },
-            didChangeWatchedFiles: {
-              dynamicRegistration: false
-            },
-            symbol: {
-              dynamicRegistration: false
-            },
-            executeCommand: {
-              dynamicRegistration: false
-            }
-          },
-        textDocument: {
-            synchronization: {
-                dynamicRegistration: false,
-                willSave: false,
-                willSaveWaitUntil: true,
-                didSave: false
-            },
-            completion: {
-                dynamicRegistration: false,
-                completionItem: {
-                snippetSupport: false,
-                commitCharactersSupport: false
-                },
-                contextSupport: true
-            },
-            hover: {
-                dynamicRegistration: false
-            },
-            signatureHelp: {
-                dynamicRegistration: false
-            },
-            references: {
-                dynamicRegistration: false
-            },
-            documentHighlight: {
-                dynamicRegistration: false
-            },
-            documentSymbol: {
-                dynamicRegistration: false,
-                hierarchicalDocumentSymbolSupport: false
-            },
-            formatting: {
-                dynamicRegistration: false
-            },
-            rangeFormatting: {
-                dynamicRegistration: false
-            },
-            onTypeFormatting: {
-                dynamicRegistration: false
-            },
-            definition: {
-                dynamicRegistration: false
-            },
-            codeAction: {
-                dynamicRegistration: false
-            },
-            codeLens: {
-                dynamicRegistration: false
-            },
-            documentLink: {
-                dynamicRegistration: false
-            },
-            rename: {
-                dynamicRegistration: false
-            }
-        },
-        experimental: {}
-    };
-
     class Client{
         /**
          * Get name of the LSP Server. Client needs to implement this method
@@ -124,23 +44,7 @@ define(function (require, exports, module) {
         }
 
         /**
-         * Gat root directory of the Project currently loaded
-         * @returns {string}  Root directory of the Project currently loaded
-         */
-        getProjectRootUri(){
-            return ProjectManager.getProjectRoot().fullPath;
-        }
-
-        /**
-         * Get Capabilities of the editor
-         * @returns {Object}  Json Object containg capabalities
-         */
-        getCapabilities(){
-            return _capabilities;
-        }
-
-        /**
-         * Gat Language Id of the language client wants to register server for
+         * Get Language Id of the language client wants to register server for
          * @returns {string}  Language Id of the labguage server supports.
          */
         getLanguageId(){
