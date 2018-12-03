@@ -486,12 +486,12 @@ define(function (require, exports, module) {
 
             } else {
                 // Update not present for current platform
-                return;
+                return false;
             }
 
             if (!checksum || !downloadURL || !installerName) {
                 console.warn("AutoUpdate : asset information incorrect for the update");
-                return;
+                return false;
             }
 
             var updateParams = {

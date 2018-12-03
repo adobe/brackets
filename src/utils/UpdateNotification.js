@@ -512,7 +512,12 @@ define(function (require, exports, module) {
      */
     function handleUpdateProcess(updates) {
         var handler = _updateProcessHandler || _defaultUpdateProcessHandler;
-        handler(updates);
+        var success = handler(updates);
+        if (_updateProcessHandler && !success) {
+            // Give a chance to default handler in case
+            // the auot update mechanism has failed.
+            _defaultUpdateProcessHandler(updates);
+        }
     }
 
     /**
