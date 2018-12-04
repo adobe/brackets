@@ -23,7 +23,6 @@
 
 /*global exports */
 /*global process*/
-/*global _*/
 
 (function () {
     "use strict";
@@ -75,7 +74,7 @@
     function postMessageToBrackets(data) {
         _domainManager.emitEvent(_domainName, 'data', [data]);
     };
-    process.on('warning', e => console.warn(e.stack));
+    
     /**
      * Communication channel for request/response between Brackets and LSP Server
      * @param   {Object} msgObj - Object containing information needs to be pass to the server
@@ -111,7 +110,7 @@
     };
 
     /**
-     * Utility function to fork new process for lasp server
+     * Utility function to fork new process for lsp server
      * @param {String} path - Path to the server
      * @returns {Object} child - child process running server
      */
@@ -183,7 +182,7 @@
             "reinitializeLSPServers",
             reinitializeLSPServers,
             true,
-            "Initializes node for lsp",
+            "Re-initializes node for lsp",
             [
                 {
                     name: "initObj",

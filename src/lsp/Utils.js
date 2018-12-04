@@ -118,6 +118,7 @@ define(function (require, exports, module) {
             result += param;
         });
     }
+    
     /**
      * get IDE capabilities
      * @returns _capabilities - json containing capabilities supported by client

@@ -23,8 +23,6 @@
 
 define(function (require, exports, module) {
     "use strict";
-
-    var ProjectManager          = require("project/ProjectManager");
     
     class Client{
         /**
