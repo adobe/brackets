@@ -26,13 +26,13 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "grunt": "0.3.9",
-    "grunt-css": "0.2.0",
-    "grunt-compare-size": "0.1.4",
-    "grunt-html": "0.1.1",
-    "request": "2.9.153",
-    "rimraf": "2.0.1",
-    "testswarm": "0.2.2"
+    "grunt": "1.0.3",
+    "grunt-css": "0.5.4",
+    "grunt-compare-size": "0.4.2",
+    "grunt-html": "10.1.0",
+    "request": "2.88.0",
+    "rimraf": "2.6.2",
+    "testswarm": "1.1.0"
   },
   "keywords": []
 }
