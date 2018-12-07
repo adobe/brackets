@@ -1,0 +1,20 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "package.json",
+        "src/JSUtils/node/package.json",
+        "src/JSUtils/package.json",
+        "src/extensions/default/AutoUpdate/node/package.json",
+        "src/extensions/default/CodeFolding/package.json",
+        "src/extensions/default/DarkTheme/package.json",
+        "src/extensions/default/JavaScriptCodeHints/package.json",
+        "src/extensions/default/JavaScriptQuickEdit/unittest-files/jquery-ui/package.json",
+        "src/extensions/default/LightTheme/package.json",
+        "src/extensions/samples/BracketsConfigCentral/package.json",
+        "src/extensions/samples/LocalizationExample/package.json",
+        "src/package.json"
+      ]
+    }
+  }
+}
