@@ -16,3 +16,4 @@ branches:
   only:
     - master
     - release
+    - /^greenkeeper/.*$/
