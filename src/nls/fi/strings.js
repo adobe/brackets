@@ -65,7 +65,10 @@ define({
     "ERROR_SAVING_FILE"                 : "Tapahtui virhe yritettäessä tallentaa tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Virhe nimettäessä {0}a uudelleen",
     "ERROR_RENAMING_FILE"               : "Tapahtui virhe yritettäessä nimetä uudelleen {2}a <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Tiedosto tai hakemisto ei kuulu avoinna olevaan projektiin. Valitettavasti vain projektin tiedostoja voi nimetä uudelleen tällä hetkellä.",
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Tiedosto tai hakemisto ei kuulu avoinna olevaan projektiin. Valitettavasti vain projektitiedostoja voi nimetä uudelleen tällä hetkellä.",
+    "ERROR_MOVING_FILE_TITLE"           : "Virhe siirrettäessä {0}a",
+    "ERROR_MOVING_FILE"                 : "Tapahtui virhe yritettäessä siirtää {2}a <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_MOVING_NOT_IN_PROJECT"       : "Tiedostoa tai hakemistoa ei voi siirtää, koska se ei kuulu nykyiseen projektiin.",
     "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa {0}a",
     "ERROR_DELETING_FILE"               : "Tapahtui virhe yritettäessä poistaa {2}a <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Virheellinen {0}",
@@ -138,6 +141,10 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä {APP_NAME}in ulkopuolella.<br /><br />Haluatko tallentaa tiedoston ja korvata kyseiset muutokset?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä {APP_NAME}in ulkopuolella, mutta sillä on tallentamattomia muutoksia myös {APP_NAME}issa.<br /><br />Kumman version haluat säilyttää?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> on poistettu levyltä {APP_NAME}in ulkopuolella, mutta sillä on tallentamattomia muutoksia {APP_NAME}issa.<br /><br />Haluatko säilyttää muutoksesi?",
+
+    // Window unload warning messages
+    "WINDOW_UNLOAD_WARNING"                      : "Haluatko varmasti siirtyä eri URL-osoitteeseen ja poistua Bracketsistä?",
+    "WINDOW_UNLOAD_WARNING_WITH_UNSAVED_CHANGES" : "Sinulla on tallentamattomia muutoksia. Haluatko varmasti siirtyä eri URL-osoitteeseen ja poistua Bracketsistä?",
 
     // Generic dialog/button labels
     "DONE"                              : "Valmis",
@@ -405,6 +412,7 @@ define({
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Järjestä tyypin mukaan",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automaattinen järjestys",
     "CMD_THEMES"                          : "Teemat\u2026",
+    "CMD_TOGGLE_SEARCH_AUTOHIDE"          : "Sulje haku automaattisesti",
 
     // Navigate menu commands
     "NAVIGATE_MENU"                       : "Siirry",
@@ -449,6 +457,7 @@ define({
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
     "RELEASE_BUILD"                        : "koontiversio",
     "DEVELOPMENT_BUILD"                    : "kehityskoontiversio",
+    "PRERELEASE_BUILD"                     : "esijulkaisun koontiversio",
     "RELOAD_FROM_DISK"                     : "Lataa uudelleen levyltä",
     "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset editorissa",
     "CLOSE_DONT_SAVE"                      : "Sulje (Älä tallenna)",
@@ -669,6 +678,31 @@ define({
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript-tiedoston päättelyongelma",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} kohtasi vaikeuksia tiedoston <span class='dialog-filename'>{0}</span> käsittelyssä.<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeitä, määrittelyyn siirtymistä tai pikamuokkausta varten. Avaa projektin tiedosto <code>.brackets.json</code> ja muokkaa kohtaa <code>jscodehints.detectedExclusions</code>, niin saat tiedoston takaisin käyttöön.<br><br>Tämä on todennäköisesti {APP_NAME}in bugi. Jos voit luovuttaa kopion tästä tiedostosta, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>ilmoita virheestä</a> ja laita mukaan linkki kyseiseen tiedostoon, kiitos!",
 
+    // extensions/default/JavascriptRefactoring
+    "CMD_REFACTOR"                              : "Muotoile uudelleen",
+    "CMD_EXTRACTTO_VARIABLE"                    : "Poimi muuttujaksi",
+    "CMD_EXTRACTTO_FUNCTION"                    : "Poimi funktioksi",
+    "ERROR_TERN_FAILED"                         : "Dataa ei voitu hakea Ternistä",
+    "ERROR_EXTRACTTO_VARIABLE_NOT_VALID"        : "Valinta ei muodosta lauseketta",
+    "ERROR_EXTRACTTO_FUNCTION_NOT_VALID"        : "Valitun lohkon tulee olla lausejoukko tai lauseke",
+    "ERROR_EXTRACTTO_VARIABLE_MULTICURSORS"     : "Muuttujan poiminta ei toimi usealla kohdistimella",
+    "ERROR_EXTRACTTO_FUNCTION_MULTICURSORS"     : "Funktion poiminta ei toimi usealla kohdistimella",
+    "EXTRACTTO_FUNCTION_SELECT_SCOPE"           : "Valitse näkyvyysalue",
+    "EXTRACTTO_VARIABLE_SELECT_EXPRESSION"      : "Valitse lauseke",
+    "CMD_REFACTORING_RENAME"                    : "Nimeä uudelleen",
+    "CMD_REFACTORING_TRY_CATCH"                 : "Sijoita try\u2013catch-lohkoon",
+    "CMD_REFACTORING_CONDITION"                 : "Sijoita ehtoon",
+    "CMD_REFACTORING_GETTERS_SETTERS"           : "Luo gettereitä ja settereitä",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Muuta nuolifunktioksi",
+    "DESCRIPTION_CODE_REFACTORING"              : "Ota JavaScript-koodin uudelleenmuotoilu käyttöön tai poista se käytöstä",
+    "ERROR_TRY_CATCH"                           : "Valitse kelvollista koodia try\u2013catch-lohkoon sijoitettavaksi",
+    "ERROR_WRAP_IN_CONDITION"                   : "Valitse kelvollista koodia ehtolohkoon sijoitettavaksi",
+    "ERROR_ARROW_FUNCTION"                      : "Aseta kohdistin funktiolausekkeeseen",
+    "ERROR_GETTERS_SETTERS"                     : "Aseta kohdistin oliolausekkeen jäsenen kohdalle",
+    "ERROR_RENAME_MULTICURSOR"                  : "Useaa kohdistinta käytettäessä ei voi nimetä uudelleen.",
+    "ERROR_RENAME_QUICKEDIT"                    : "Tätä tunnistetta ei voi nimetä uudelleen, koska siihen viitataan tämän funktion ulkopuolella",
+    "ERROR_RENAME_GENERAL"                      : "Valittua tekstiä ei voi nimetä uudelleen",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
@@ -725,7 +759,7 @@ define({
     "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Korosta vain, kun valinta on kokonainen ilmaus",
     "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "true: lisää parhaillaan valittu koodivihje, kun painetaan sarkainnäppäintä",
     "DESCRIPTION_NO_HINTS_ON_DOT"                    : "true: älä näytä JS-koodivihjeitä automaattisesti, kun . kirjoitetaan",
-    "DESCRIPTION_JSLINT_OPTIONS"                     : "Objekti, joka sisältää JSLintin oletusasetukset",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Olio, joka sisältää JSLintin oletusasetukset",
     "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "true: salli sijoituslausekkeet",
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "true: salli bittioperaattorit",
     "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "true, jos tavalliset selaimen globaalit pitää määritellä ennalta",
@@ -782,6 +816,7 @@ define({
     "DESCRIPTION_USE_TAB_CHAR"                       : "true: käytä sarkainmerkkejä välilyöntien sijaan",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true: luo suuraakkosin kirjoitettuja hex-värejä sisäisessä värieditorissa",
     "DESCRIPTION_WORD_WRAP"                          : "Katkaise rivit, jotka ylittävät näyttöalueen leveyden",
+    "DESCRIPTION_SEARCH_AUTOHIDE"                    : "Sulje haku heti, kun editori valitaan",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Luettelo tiedostoista, joiden on havaittu aiheuttavan sen, että Tern ajautuu pois hallinnasta",
     "DESCRIPTION_INFERENCE_TIMEOUT"                  : "Aika, jonka jälkeen Tern aikakatkaistaan, sen yrittäessä ymmärtää tiedostoja",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true: näytä virheet tilapalkissa",
@@ -805,7 +840,41 @@ define({
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true: ota rivikommenttien sisennys käyttöön",
     "DESCRIPTION_RECENT_FILES_NAV"                   : "Ota viimeaikaisiin tiedostoihin siirtyminen käyttöön tai poista se käytöstä",
     "DESCRIPTION_LIVEDEV_WEBSOCKET_PORT"             : "WebSocket-palvelimen käyttämä portti esikatselua varten",
-    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Esikatselun korostuksen asetukset"
+    "DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS"        : "Esikatselun korostuksen asetukset",
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "false: poista esikatselun käänteinen tarkastelu käytöstä",
+
+    // Strings for Auto Update
+    "DOWNLOAD_FAILED"                                : "Lataus epäonnistui.",
+    "DOWNLOAD_COMPLETE"                              : "Lataus valmis!",
+    "UPDATE_SUCCESSFUL"                              : "Päivitys onnistui!",
+    "UPDATE_FAILED"                                  : "Päivitys epäonnistui!",
+    "VALIDATION_FAILED"                              : "Tarkistus epäonnistui!",
+    "INITIALISATION_FAILED"                          : "Alustus epäonnistui!",
+    "CLEANUP_FAILED"                                 : "Siivous epäonnistui!",
+    "WARNING_TYPE"                                   : "Varoitus!",
+    "CLICK_RESTART_TO_UPDATE"                        : "Päivitä Brackets napsauttamalla Käynnistä uudelleen.",
+    "UPDATE_ON_NEXT_LAUNCH"                          : "Päivitys tulee voimaan uudelleenkäynnistyksen jälkeen.",
+    "VALIDATE_EXTENSIONS"                            : "Tarkista kaikki laajennuksesi.",
+    "GO_TO_SITE"                                     : "Yritä uudelleen siirtymällä osoitteeseen <a href = \"http://brackets.io/\"> brackets.io </a>.",
+    "INTERNET_UNAVAILABLE"                           : "Verkkoyhteyttä ei ole saatavilla.",
+    "UPDATEDIR_READ_FAILED"                          : "Päivityshakemistoa ei voitu lukea.",
+    "UPDATEDIR_CLEAN_FAILED"                         : "Päivityshakemistoa ei voitu siivota.",
+    "INITIAL_DOWNLOAD"                               : "Ladataan päivitystä\u2026",
+    "RETRY_DOWNLOAD"                                 : "Lataus epäonnistui. Yritetään uudelleen\u2026 Yritys ",
+    "VALIDATING_INSTALLER"                           : "Lataus valmis! Tarkistetaan asenninta\u2026",
+    "CHECKSUM_DID_NOT_MATCH"                         : "Tarkistussumma ei täsmää.",
+    "INSTALLER_NOT_FOUND"                            : "Asenninta ei löytynyt.",
+    "DOWNLOAD_ERROR"                                 : "Latauksen aikana tapahtui virhe.",
+    "NETWORK_SLOW_OR_DISCONNECTED"                   : "Verkkoon ei ole yhdistetty, tai se on liian hidas.",
+    "RESTART_BUTTON"                                 : "Käynnistä uudelleen",
+    "LATER_BUTTON"                                   : "Myöhemmin",
+    "DESCRIPTION_AUTO_UPDATE"                        : "Ota Bracketsin automaattinen päivitys käyttöön tai poista se käytöstä",
+    "AUTOUPDATE_ERROR"                               : "Virhe!",
+    "AUTOUPDATE_IN_PROGRESS"                         : "Päivitys on jo meneillään.",
+
+    "NUMBER_WITH_PERCENTAGE"                         : "{0}\xA0%",
+    // Strings for Related Files
+    "CMD_FIND_RELATED_FILES"                         : "Etsi liittyviä tiedostoja"
 });
 
-/* Last translated for 6ac21ffbe51dde2256fe6c44be007f3cd1390e7a */
+/* Last translated for afcbff03bb51b1e275dac2f9f0afbfa23ef79856 */
