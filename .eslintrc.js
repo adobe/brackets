@@ -1,5 +1,6 @@
 module.exports = {
     "rules": {
+        //test//
         // the rules below should be sorted in a same way they are sorted on http://eslint.org/docs/rules page
         // http://eslint.org/docs/rules/#possible-errors
         "no-caller": 2,
