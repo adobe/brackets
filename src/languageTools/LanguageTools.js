@@ -23,114 +23,133 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
-    var MessageHandler =  require("languageTools/MessageTools");
-    
-    function LanguageClientProxy(name, path, domain) {
-        var _domain = domain,
-            _name = name,
-            _path = path;
-    }
-    
-    /*
-        RequestParams creator - sendNotifications/request
-    */
 
-    /*
-        ReponseParams transformer - used by OnNotifications
-    */
-    
+    var MessageHandler = require("languageTools/MessageHandler"),
+        ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json"));
+
+    function LanguageClientProxy(name, path, domainInterface) {
+        this._name = name;
+        this._path = path;
+        this._domainInterface = domainInterface;
+        this._startClient = null;
+        this._stopClient = null;
+        this._notifyClient = null;
+        this._requestClient = null;
+
+        this._init();
+    }
+
     /**
         Requests
     */
-    LanguageClientProxy.prototype.start = function() {
-        var self = this;
-        
-        MessageHandler.startLanguageClient(this)
-            .done(function() {
-                console.log("Language client started successfully for path : ", self._path);
-            })
-            .fail(function() {
-                console.error("Couldn't start language client for path : ", self._path)
-            })
+    LanguageClientProxy.prototype.start = function (params) {
+        var params = MessageHandler.constructRequestParams(ToolingInfo.LANGUAGE_SERVICE.START, params);
+        return this._startClient(params);
     }
-    
+
+    LanguageClientProxy.prototype._init = function () {
+        this._domainInterface.registerMethods([
+            {
+                methodName: ToolingInfo.LANGUAGE_SERVICE.REQUEST,
+                methodHandle: this._onRequestHandler.bind(this)
+            },
+            {
+                methodName: ToolingInfo.LANGUAGE_SERVICE.NOTIFY,
+                methodHandle: this._onNotificationHandler.bind(this)
+            }
+        ]);
+
+        //create function interfaces for Client Domain
+        this._startClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.START, true);
+        this._stopClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.STOP);
+        this._notifyClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.NOTIFY);
+        this._requestClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.REQUEST, true);
+    }
+
+    LanguageClientProxy.prototype._onRequestHandler = function () {
+
+    };
+
+    LanguageClientProxy.prototype._onNotificationHandler = function () {
+
+    };
+
     //shutdown
-    LanguageClientProxy.prototype.shutdownToolingServive = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.stop = function () {
+        return this._stopClient();
+    };
+
     //cancelRequest
-    LanguageClientProxy.prototype.cancelRequest = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.cancelRequest = function () {
+
+    };
+
     //customRequest
-    LanguageClientProxy.prototype.customRequest = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.customRequest = function () {
+
+    };
+
     /**
         textDocument requests
     */
     //completion
-    LanguageClientProxy.prototype.requestHints = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.requestHints = function () {
+
+    };
+
     //completionItemResolve
     LanguageClientProxy.prototype.getAdditionalInfoForHint = function () {
-        
-    }
-    
+
+    };
+
     //hover
-    LanguageClientProxy.prototype.requestHoverHints = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.requestHoverHints = function () {
+
+    };
+
     //signatureHelp
-    LanguageClientProxy.prototype.requestParameterHints = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.requestParameterHints = function () {
+
+    };
+
     //gotoDefinition
-    LanguageClientProxy.prototype.gotoDefinition = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.gotoDefinition = function () {
+
+    };
+
     //gotoDeclaration
-    LanguageClientProxy.prototype.gotoDeclaration = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.gotoDeclaration = function () {
+
+    };
+
     //gotoImplementation
-    LanguageClientProxy.prototype.gotoImplementation = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.gotoImplementation = function () {
+
+    };
+
     //findReferences
-    LanguageClientProxy.prototype.findReferences = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.findReferences = function () {
+
+    };
+
     //documentHighlight
-    LanguageClientProxy.prototype.resolveHighlightsForPos = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.resolveHighlightsForPos = function () {
+
+    };
+
     //documentSymbol
-    LanguageClientProxy.prototype.requestSymbols = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.requestSymbols = function () {
+
+    };
+
     /**
         workspace requests
     */
     //workspaceSymbol
-    LanguageClientProxy.prototype.requestSymbolsForWorkspace = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.requestSymbolsForWorkspace = function () {
+
+    };
+
     /*
         Unimplemented Requests
             textDocument
@@ -145,11 +164,11 @@ define(function (require, exports, module) {
               rename
               prepareRename
               foldingRange
-    
+
             client
                 registerCapability
                 unregisterCapability
-                
+
             workspace
                 executeCommand (codeAction, codeLens) - response is applyEdit
     */
@@ -159,149 +178,134 @@ define(function (require, exports, module) {
         Window OnNotifications
     */
     //showMessage
-    LanguageClientProxy.prototype.onShowMessage = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.onShowMessage = function () {
+
+    };
+
     //showMessageRequest
-    LanguageClientProxy.prototype.onShowMessageWithRequest = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.onShowMessageWithRequest = function () {
+
+    };
+
     //logMessage
-    LanguageClientProxy.prototype.onLogMessage = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.onLogMessage = function () {
+
+    };
+
     /**
         healthData/logging OnNotifications
     */
     //telemetry
-    LanguageClientProxy.prototype.onLoggingInfoEvent = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.onLoggingInfoEvent = function () {
+
+    };
+
     /**
         textDocument OnNotifications
     */
     //onPublishDiagnostics
-    LanguageClientProxy.prototype.onDiagnostics = function() {
-    
-    }
-    
+    LanguageClientProxy.prototype.onDiagnostics = function () {
+
+    };
+
     /**
         workspace OnNotifications
     */
     //getConfiguration
-    LanguageClientProxy.prototype.onConfigurationRequest = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.onConfigurationRequest = function () {
+
+    };
+
     //getWorkspaceFolders
-    LanguageClientProxy.prototype.onWorkspaceFoldersRequest = function() {
-        
-    }
+    LanguageClientProxy.prototype.onWorkspaceFoldersRequest = function () {
+
+    };
 
     /*
         Unimplemented OnNotifications
             workspace
                 applyEdit (codeAction, codeLens)
     */
-    
+
     /**
         SendNotifications
     */
     //exit
-    LanguageClientProxy.prototype.exitToolingServive = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.exitToolingServive = function () {
+
+    };
+
     //customNotification
-    LanguageClientProxy.prototype.sendCustomNotification = function() {
-        
-    }
-    
-    
+    LanguageClientProxy.prototype.sendCustomNotification = function () {
+
+    };
+
+
     /**
         workspace SendNotifications
     */
     //didChangeWorkspaceFolders
-    LanguageClientProxy.prototype.notifyWorkspaceFoldersChanged = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.notifyWorkspaceFoldersChanged = function () {
+
+    };
+
     //didChangeConfiguration
-    LanguageClientProxy.prototype.notifyConfigurationChanged = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.notifyConfigurationChanged = function () {
+
+    };
+
     //didChangeWatchedFiles
-    LanguageClientProxy.prototype.notifyWatchedFilesChanged = function() {
-        
-    }
-    
-    
+    LanguageClientProxy.prototype.notifyWatchedFilesChanged = function () {
+
+    };
+
+
     /**
         textDocument SendNotifications
     */
     //didOpenTextDocument
-    LanguageClientProxy.prototype.notifyTextDocumentOpened = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.notifyTextDocumentOpened = function () {
+
+    };
+
     //didCloseTextDocument
-    LanguageClientProxy.prototype.notifyTextDocumentClosed = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.notifyTextDocumentClosed = function () {
+
+    };
+
     //didChangeTextDocument
-    LanguageClientProxy.prototype.notifyTextDocumentChanged = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.notifyTextDocumentChanged = function () {
+
+    };
+
     //willSaveTextDocument
-    LanguageClientProxy.prototype.notifyDocumentSaveEvent = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.notifyDocumentSaveEvent = function () {
+
+    };
+
     //willSaveWaitUntilTextDocument
-    LanguageClientProxy.prototype.notifyDocumentSaveEventWithWait = function() {
-        
-    }
-    
+    LanguageClientProxy.prototype.notifyDocumentSaveEventWithWait = function () {
+
+    };
+
     //didSaveTextDocument
-    LanguageClientProxy.prototype.notifyTextDocumentSave = function() {
-        
-    }
-    
-    
-    //Miscellaneous APIs
-    /*
-        initialize
-        initialized //has to be sent before other request
-        
-        Server related APIs (masked as service)
-            restart all services
-            restart a service
-            project root change 
-    */
-    function intiateToolingService(clientFilePath) {
-        /*dependencyInjection For LanguageClient
-            create node domain with
-                - fileFilePath //full file path, will createLanguageClient
-                - ToolingService for Type (or infer),
-                - OptionsFile //full file Path
-        */
+    LanguageClientProxy.prototype.notifyTextDocumentSave = function () {
+
+    };
+
+    function intiateToolingService(clientName, clientFilePath) {
         var result = $.Deferred();
-        
-        MessageHandler.initiateMessagingService(clientFilePath)
-            .done(function (clientInfo) {
-                var languageClient = new LanguageClientProxy(clientInfo.clientId, clientFilePath, clientInfo.clientDomain); 
+
+        MessageHandler.initiateLanguageClient(clientName, clientFilePath)
+            .done(function (languageClientInfo) {
+                var languageClient = new LanguageClientProxy(languageClientInfo.name, clientFilePath, languageClientInfo.interface);
+
                 result.resolve(languageClient);
             })
             .fail(result.reject);
-        
+
         return result;
     }
 
+    exports.intiateToolingService = intiateToolingService;
 });
