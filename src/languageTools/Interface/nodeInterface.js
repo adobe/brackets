@@ -26,14 +26,14 @@
 define(function (require, exports, module) {
     "use strict";
 
-    function nodeCommunication(domain) {
+    function BracketsToNodeInterface(domain) {
         this.domain = domain;
         this.bracketsFn = {};
 
         this._registerDataEvent();
     }
 
-    nodeCommunication.prototype._messageHandler = function (evt, params) {
+    BracketsToNodeInterface.prototype._messageHandler = function (evt, params) {
         var methodName = params.method,
             self = this;
 
@@ -88,11 +88,11 @@ define(function (require, exports, module) {
     };
 
 
-    nodeCommunication.prototype._registerDataEvent = function () {
+    BracketsToNodeInterface.prototype._registerDataEvent = function () {
         this.domain.on("data", this._messageHandler.bind(this));
     };
 
-    nodeCommunication.prototype.createInterface = function (methodName, isAsync) {
+    BracketsToNodeInterface.prototype.createInterface = function (methodName, isAsync) {
         var self = this;
         return function (params) {
             var execEvent = isAsync ? "asyncData" : "data";
@@ -104,19 +104,19 @@ define(function (require, exports, module) {
         };
     };
 
-    nodeCommunication.prototype.registerMethod = function (methodName, methodHandle) {
+    BracketsToNodeInterface.prototype.registerMethod = function (methodName, methodHandle) {
         if (methodName && methodHandle &&
             typeof methodName === "string" && typeof methodHandle === "function") {
             this.bracketsFn[methodName] = methodHandle;
         }
     };
 
-    nodeCommunication.prototype.registerMethods = function (methodList) {
+    BracketsToNodeInterface.prototype.registerMethods = function (methodList) {
         var self = this;
         methodList.forEach(function (methodObj) {
             self.registerMethod(methodObj.methodName, methodObj.methodHandle);
         });
     };
 
-    exports.nodeCommunication = nodeCommunication;
+    exports.BracketsToNodeInterface = BracketsToNodeInterface;
 });
