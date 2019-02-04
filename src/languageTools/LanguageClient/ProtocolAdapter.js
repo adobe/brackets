@@ -27,7 +27,8 @@
 "use strict";
 
 var protocol = require("vscode-languageserver-protocol"),
-    nodeURL = require('url');
+    nodeURL = require("url"),
+    ToolingInfo = require("./../ToolingInfo.json")
 
 //atom-languageclient
 function pathToUri(filePath) {
@@ -38,6 +39,7 @@ function pathToUri(filePath) {
     return encodeURI(`file://${newPath}`).replace(/[?#]/g, encodeURIComponent);
 }
 
+//atom-languageclient
 function uriToPath(uri) {
     var url = nodeURL.URL.parse(uri);
     if (url.protocol !== 'file:' || url.path === undefined) {
@@ -58,44 +60,29 @@ function uriToPath(uri) {
 function _constructParamsAndRelay(relay, type, params) {
     var _params;
     switch (type) {
-        case "initialize":
-        {
-            _params = {
-                rootPath: params.rootPath,
-                rootUri: pathToUri(params.rootPath),
-                processId : process.pid,
-                capabilities : params.capabilities
-            }
-                
-            return initialize(relay, _params);
-            break;
-        }
         case "cancelRequest":
         {
-            //Code stub for future implementation
             break;
         }
-        case "showMessageRequest":
+        case "showSelectMessage":
         {
             _params = {
                 type : type,
-                eventType : "onRequest",
                 params : params
             }
-            return relay(params);
+            return relay(_params);
             break;
         }
         case "showMessage":
         case "logMessage":
         case "telemetry":
-        case "publishDiagnostics":
+        case "diagnostics":
         {
             _params = {
                 type : type,
-                eventType : "onNotification",
                 params : params
             }
-            relay(params);
+            relay(_params);
             break;
         }
         case "symbols":
@@ -113,16 +100,6 @@ function _constructParamsAndRelay(relay, type, params) {
             
             break;
         }
-        case "willSave":
-        {
-            
-            break;
-        }
-        case "willSaveWaitUntil":
-        {
-            
-            break;
-        }
         case "didSave":
         {
             
@@ -133,7 +110,7 @@ function _constructParamsAndRelay(relay, type, params) {
             
             break;
         }
-        case "completion":
+        case "codehints":
         {
             
             break;
@@ -178,88 +155,6 @@ function _constructParamsAndRelay(relay, type, params) {
             
             break;
         }
-            
-        /** TODO: Code stubs for future implementation */
-        case "executeCommand":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "applyEdit":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "typeDefinition":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "codeAction":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "formatting":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "rangeFormatting":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "onTypeFormatting":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "rename":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "prepareRename":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "registerCapability":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "unregisterCapability":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "workspaceFolders":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "didChangeWorkspaceFolders":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "didChangeConfiguration":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "configuration":
-        {
-            //Code stub for future implementation
-            break;
-        }
-        case "didChangedWatchedFiles":
-        {
-            //Code stub for future implementation
-            break;
-        }
     }
 }
 
@@ -276,24 +171,7 @@ function sendCustomNotification(connection, type, params) {
     connection.sendNotification(type, params);
 }
 
-
-/** General Requests */
-function initialize(connection, params) {
-    return connection.sendRequest(protocol.InitializeRequest.type, params);
-}
-
-function initialized(connection) {
-    connection.sendNotification(protocol.InitializedNotification.type, {});
-}
-
-function shutdown(connection) {
-    return connection.sendRequest(protocol.ShutdownRequest.type);
-}
-
-function exit(connection) {
-    connection.sendNotification(protocol.ExitNotification.type);
-}
-
+/** For Notification messages */
 function didOpenTextDocument(connection, params) {
     connection.sendNotification(protocol.DidOpenTextDocumentNotification.type, params);
 }
@@ -310,12 +188,13 @@ function willSaveTextDocument(connection, params) {
     connection.sendNotification(protocol.WillSaveTextDocumentNotification.type, params);
 }
 
-function willSaveWaitUntilTextDocument(connection, params) {
-    return connection.sendRequest(protocol.WillSaveTextDocumentWaitUntilRequest.type, params);
-}
-
 function didSaveTextDocument(connection, params) {
     connection.sendNotification(protocol.DidSaveTextDocumentNotification.type, params);
+}
+
+/** For Request messages */
+function willSaveWaitUntilTextDocument(connection, params) {
+    return connection.sendRequest(protocol.WillSaveTextDocumentWaitUntilRequest.type, params);
 }
 
 function completion(connection, params) {
@@ -354,67 +233,39 @@ function workspaceSymbol(connection, params) {
     return connection.sendRequest(protocol.WorkspaceSymbolRequest.type, params);
 }
 
-/*
-
-function codeLens(connection, params) {
-    return connection.sendRequest(protocol.CodeLensRequest.type, params);
+/**
+ * Server commands
+ */
+function initialize(connection, params) {
+    var _params = {
+        rootPath: params.rootPath,
+        rootUri: pathToUri(params.rootPath),
+        processId : process.pid,
+        capabilities : params.capabilities
+    }
+    
+    return connection.sendRequest(protocol.InitializeRequest.type, _params);
 }
 
-function codeAction(connection, params) {
-    return connection.sendRequest(protocol.CodeActionRequest.type, params);
+function initialized(connection) {
+    connection.sendNotification(protocol.InitializedNotification.type);
 }
 
-function didChangeWatchedFiles(connection, params) {
-    connection.sendNotification(protocol.DidChangeWatchedFilesNotification.type, params);
+function shutdown(connection) {
+    return connection.sendRequest(protocol.ShutdownRequest.type);
 }
 
-function onApplyEdit(connection, callback) {
-    connection.onRequest(protocol.ApplyWorkspaceEditRequest.type, callback);
+function exit(connection) {
+    connection.sendNotification(protocol.ExitNotification.type);
 }
-
-function didChangeConfiguration(connection, params) {
-    connection.sendNotification(protocol.DidChangeConfigurationNotification.type, params);
-}
-
-function codeLensResolve(connection, params) {
-    return connection.sendRequest(protocol.CodeLensResolveRequest.type, params);
-}
-
-function documentLink(connection, params) {
-    return connection.sendRequest(protocol.DocumentLinkRequest.type, params);
-}
-
-function documentLinkResolve(connection, params) {
-    return connection.sendRequest(protocol.DocumentLinkResolveRequest.type, params);
-}
-
-function documentFormatting(connection, params) {
-    return connection.sendRequest(protocol.DocumentFormattingRequest.type, params);
-}
-
-function documentRangeFormatting(connection, params) {
-    return connection.sendRequest(protocol.DocumentRangeFormattingRequest.type, params);
-}
-
-function documentOnTypeFormatting(connection, params) {
-    return connection.sendRequest(protocol.DocumentOnTypeFormattingRequest.type, params);
-}
-
-function rename(connection, params) {
-    return connection.sendRequest(protocol.RenameRequest.type, params);
-}
-
-function executeCommand(connection, params) {
-    return connection.sendRequest(protocol.ExecuteCommandRequest.type, params);
-}
-
-*/
 
 function processRequest(connection, message) {
     return _constructParamsAndRelay(connection, message.type, message.params);
 }
 
-function 
+function processNotification(connection, message) {
+    _constructParamsAndRelay(connection, message.type, message.params);
+} 
 
 function attachOnNotificationHandlers(connection, handler) {
     function _callbackFactory(type) {
@@ -457,6 +308,7 @@ function attachOnRequestHandlers(connection, handler) {
     connection.onRequest(protocol.ShowMessageRequest.type, _callbackFactory(protocol.ShowMessageRequest.type));
 }
 
+exports.initialize = initialize;
 exports.initialized = initialized;
 exports.shutdown = shutdown;
 exports.exit = exit;
@@ -464,3 +316,6 @@ exports.onCustom = onCustom;
 exports.sendCustomRequest = sendCustomRequest;
 exports.sendCustomNotification = sendCustomNotification;
 exports.processRequest = processRequest;
+exports.processNotification = processNotification;
+exports.attachOnNotificationHandlers = attachOnNotificationHandlers;
+exports.attachOnRequestHandlers = attachOnRequestHandlers;

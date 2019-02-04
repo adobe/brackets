@@ -28,11 +28,21 @@
 
     "use strict";
 
-    var crypto = require("crypto"),
-        EventEmitter = require("events"),
+    var EventEmitter = require("events"),
         bracketsEventHandler = new EventEmitter();
 
-    function bracketsCommunication(domainManager, domainName) {
+    /** https://gist.github.com/LeverOne/1308368 */
+    function _generateUUID() {
+        var result,
+            numericSeed;
+        for (
+            result = numericSeed = ''; numericSeed++ < 36; result += numericSeed * 51 & 52 ? (numericSeed ^ 15 ? 8 ^ Math.random() * (numericSeed ^ 20 ? 16 : 4) : 4).toString(16) : '-'
+        );
+
+        return result;
+    }
+
+    function NodeToBracketsInterface(domainManager, domainName) {
         this.domainManager = domainManager;
         this.domainName = domainName;
         this.nodeFn = {};
@@ -40,7 +50,7 @@
         this._registerDataEvents();
     }
 
-    bracketsCommunication.prototype.processRequest = function (params) {
+    NodeToBracketsInterface.prototype.processRequest = function (params) {
         var methodName = params.method;
         if (this.nodeFn[methodName]) {
             var method = this.nodeFn[methodName];
@@ -48,7 +58,7 @@
         }
     };
 
-    bracketsCommunication.prototype.processAsyncRequest = function (params, resolver) {
+    NodeToBracketsInterface.prototype.processAsyncRequest = function (params, resolver) {
         var methodName = params.method;
         if (this.nodeFn[methodName]) {
             var method = this.nodeFn[methodName];
@@ -61,7 +71,7 @@
         }
     };
 
-    bracketsCommunication.prototype.processResponse = function (params) {
+    NodeToBracketsInterface.prototype.processResponse = function (params) {
         if (params.requestId) {
             if (params.error) {
                 bracketsEventHandler.emit(params.requestId, params.error);
@@ -73,7 +83,7 @@
         }
     };
 
-    bracketsCommunication.prototype.createInterface = function (methodName, respond) {
+    NodeToBracketsInterface.prototype.createInterface = function (methodName, respond) {
         var self = this;
         return function (params) {
             var callObject = {
@@ -83,7 +93,7 @@
 
             var retval = undefined;
             if (respond) {
-                var requestId = crypto.createHash('md5').update(Date.now().toString()).digest('hex');
+                var requestId = _generateUUID();
 
                 callObject["respond"] = true;
                 callObject["requestId"] = requestId;
@@ -106,7 +116,7 @@
         };
     };
 
-    bracketsCommunication.prototype.registerMethod = function (methodName, methodHandle) {
+    NodeToBracketsInterface.prototype.registerMethod = function (methodName, methodHandle) {
         var self = this;
         if (methodName && methodHandle &&
             typeof methodName === "string" && typeof methodHandle === "function") {
@@ -114,13 +124,14 @@
         }
     };
 
-    bracketsCommunication.prototype.registerMethods = function (methodList) {
+    NodeToBracketsInterface.prototype.registerMethods = function (methodList) {
+        var self = this;
         methodList.forEach(function (methodObj) {
-            this.registerMethod(methodObj.methodName, methodObj.methodHandle);
+            self.registerMethod(methodObj.methodName, methodObj.methodHandle);
         });
     };
 
-    bracketsCommunication.prototype._registerDataEvents = function () {
+    NodeToBracketsInterface.prototype._registerDataEvents = function () {
         if (!this.domainManager.hasDomain(this.domainName)) {
             this.domainManager.registerDomain(this.domainName, {
                 major: 0,
@@ -194,5 +205,5 @@
         );
     };
 
-    exports.bracketsCommunication = bracketsCommunication;
+    exports.NodeToBracketsInterface = NodeToBracketsInterface;
 }());

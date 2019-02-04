@@ -20,17 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+/*global exports*/
 
-define(function (require, exports, module) {
+(function () {
     "use strict";
 
-    //Capabilities
-    /**
-     * get IDE capabilities
-     * @returns _capabilities - json containing capabilities supported by client
-     */
     function getCapabilities() {
-        let _capabilities = { //client specific capabilities
+        return {
+            //brackets default capabilties
             workspace: {
                 applyEdit: false,
                 configuration: false,
@@ -109,77 +106,7 @@ define(function (require, exports, module) {
             },
             experimental: {}
         };
-        return _capabilities;
-    }
-
-    //Messages
-    function getMessages() {
-        var _messages = {
-            "SERVER": {
-                "INITIALIZE": "initialize", //Send the project root in this
-                "INITIALIZED_RESPONSE": "initialized",
-                "SHUTDOWN_SERVER": "shutdown",
-                "CLOSE_SERVER_PROCESS": "exit",
-                "CANCEL_REQUEST": "cancelRequest", //Send request id with every request for identification
-                "CUSTOM_REQUEST": "customRequest"
-            },
-            "SERVER_NOTIFICATIONS": {
-                "SHOW_MESSAGE": "showMessage",
-                "REQUEST_MESSAGE": "showMessageRequest",
-                "LOG_MESSAGE": "logMessage"
-            },
-            "USAGE_DATA": {
-                "LOG_TELEMETRY": "telemetry"
-            },
-            "CLIENT_DYNAMIC_EVENTS": { //Dynamic changes like changes of project root, or file changes
-                "REGISTER": "registerCapability",
-                "UNREGISTER": "unregisterCapability"
-            },
-            "PROJECT": {
-                "REQUEST_PROJECT_FOLDERS": "workspaceFolders",
-                "PROJECT_FOLDERS_CHANGED": "didChangeWorkspaceFolders", //Sent from client to server
-                "CONFIGURATION_CHANGED": "didChangeConfiguration",
-                "REQUEST_CONFIGURATION": "configuration",
-                "WATCHED_FILES_CHANGED": "didChangedWatchedFiles",
-                "LIST_SYMBOLS": "symbols",
-                "EXECUTE_COMMAND": "executeCommand", //Send by client to server to trigger command execution, which cause changes on client side on response,
-                //like codelens, formatting etc.
-                "APPLY_EDIT": "applyEdit" //Response from server on execute command request from client
-            },
-            "SYNCHRONIZE": {
-                "DOCUMENT_OPENED": "didOpen",
-                "DOCUMENT_CHANGED": "didChange",
-                "DOCUMENT_WILL_SAVE": "willSave",
-                "DOCUMENT_WILL_SAVE_WITH_WAIT": "willSaveWaitUntil",
-                "DOCUMENT_SAVED": "didSave",
-                "DOCUMENT_CLOSED": "didClose"
-            },
-            "DIAGNOSTICS": {
-                "RECIEVE_DIAGNOSTICS": "publishDiagnostics"
-            },
-            "FEATURE": {
-                "CODE_HINTS": "completion",
-                "CODE_HINT_INFO": "completionResolve",
-                "PARAMETER_HINTS": "signatureHelp",
-                "JUMP_TO_DECLARATION": "declaration",
-                "JUMP_TO_DEFINITION": "definition",
-                "JUMP_TO_TYPEDEF": "typeDefinition",
-                "JUMP_TO_IMPL": "implementation",
-                "FIND_REFERENCES": "references",
-                "HIGHLIGHT_REFRENCES": "documentHighlight",
-                "LIST_SYMBOLS": "documentSymbol",
-                "CODE_ACTION": "codeAction",
-                "CODE_FORMATTING": "formatting",
-                "RANGE_FORMATTING": "rangeFormatting",
-                "ONTYPE_FORMATTING": "onTypeFormatting",
-                "RENAME": "rename",
-                "VALIDATE_RENAME": "prepareRename"
-            }
-        };
-
-        return _messages;
     }
 
     exports.getCapabilities = getCapabilities;
-    exports.getMessages = getMessages;
-});
+}());
