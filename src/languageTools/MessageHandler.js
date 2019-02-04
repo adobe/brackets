@@ -24,24 +24,54 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var ToolingInfo     = brackets.getModule("languageTools/ToolingInfo"),
-        ProjectManager  = brackets.getModule("project/ProjectManager");
+    var ToolingInfo     = JSON.parse(require("text!languageTools/ToolingInfo.json")),
+        NodeDomain = require("utils/NodeDomain"),
+        BracketsToNodeInterface = require("languageTools/Interface/nodeInterface").BracketsToNodeInterface,
+        ProjectManager  = require("project/ProjectManager");
     
     var messages = ToolingInfo.getMessages,
         capabilities = ToolingInfo.getCapabilities,
         nodeDomains = {},
+        nodeInterfaces = {},
         _currentNodeDomain = null,
         lastRequestForLanguageClient = {};
 
     
     function _createNodeDomain(domainName, domainPath)
     {
-        return new nodeDomain(domainName, domainPath); ;
+        return new NodeDomain(domainName, domainPath); ;
     }
     
-    function registerLanguageClientDomain(domainPath) {
+    /*
+        RequestParams creator - sendNotifications/request
+    */
+    function constructRequestParams(type, params) {
+        var jsonParams = {},
+            params = params ? params :{};
+        
+        switch (type) {
+            case ToolingInfo.LANGUAGE_SERVICE.START : {
+                jsonParams = {
+                    rootPath : ProjectManager.getProjectRoot().fullPath,
+                    capabilities : params.capabilities ? params.capabilities : false
+                }
+                break;
+            }
+        }
+        
+        return jsonParams;
+    }
+
+    /*
+        ReponseParams transformer - used by OnNotifications
+    */
+    function constructNotificationParams(type) {
+        
+    }
+    
+    function loadLanguageClientDomain(clientName, domainPath) {
         //generate a random hash name for the domain, this is the client id
-        var domainName = btoa(domainPath),
+        var domainName = clientName,
             result = $.Deferred(),
             languageClientDomain = _createNodeDomain(domainName, domainPath);
         
@@ -49,9 +79,7 @@ define(function (require, exports, module) {
             languageClientDomain.promise()
                 .done(function () {
                     console.log(domainPath+ " domain successfully created");
-                    nodeDomains[domainName] = languageClientDomain;
-                    languageClientDomain.on('data', _processResponse);
-                    result.resolve(domainName); 
+                    result.resolve(languageClientDomain); 
                 })
                 .fail(function (err) {
                     console.error(domainPath+" domain could not be created.");
@@ -65,104 +93,48 @@ define(function (require, exports, module) {
         return result;
     }
     
-    
-    
-    /**
-     * Constructs the message to be sent to the languageClient
-     * @param {string} type [[Description]]
-     */
-    function constructMessage(type, ) {
-        
+    function createNodeInterfaceForDomain(languageClientDomain) {
+        var nodeInterface = new BracketsToNodeInterface(languageClientDomain);
+
+        return nodeInterface; 
     }
     
-    function _processResponse(evt, params) {
-        if (params.eventType === "onNotification") {
-            switch (params.type) {
-                 "logMessage": {
-                     
-                 },
-                 "showMessage": {
-                     
-                 },
-                 "telemetry": {
-                     
-                 },
-                 "publishDiagnostics": {
-                     
-                 }
-            }
-        } else if (params.eventType === "onRequest") {
-            switch (params.type) {
-                    
-            }
-        }
+    function registerLanguageClientInterface(domainName, languageClientInterface) {
+        nodeInterfaces[domainName] = languageClientInterface;
     }
     
-    function sendRequest() {
-        
+    function registerLanguageClientDomain(domainName, languageClientDomain) {
+        nodeDomains[domainName] = languageClientDomain;
     }
     
-    function registerEventHandler() {
-        
+    function _getNodeDomain(domainName) {
+        return nodeDomains[domainName];
     }
     
-    function notify() {
-        
+    function _getNodeInterface(domainName) {
+        return nodeInterfaces[domainName];
     }
     
-    function _getNodeDomain(domainId) {
-        return nodeDomains[domainId];
-    }
-    
-    function attachNotificationHandlers() {
-        
-    }
-    
-    function attachRequestHandlers() {
-        
-    }
-    
-    function startLanguageClient(clientId) {
-        var result = $.Deferred(),
-            clientDomain = _getNodeDomain(clientId);
-        
-        if (clientDomain) {
-            clientDomain.exec("start", {
-                clientId : clientId,
-                type : messages.SERVER.INITIALIZE,
-                params : {
-                    rootPath : ProjectManager.getProjectRoot().fullPath,
-                    capabilities: capabilities
-                }
-            })
-            .done(function (result) {
-                if (result) {
-                    result.resolve({
-                        clientId : clientId,
-                        clientDomain : clientDomain
-                    });
-                } else {
-                    result.reject();
-                }
-            })
-            .fail(result.reject);
-        } else {
-            result.reject();
-        }
-        
-        return result;
-    }
-    
-    function initiateMessagingService(clientFilePath) {
+    function initiateLanguageClient(clientName, clientFilePath) {
         var result = $.Deferred();
         
-        registerLanguageClientDomain(clientFilePath)
-            .done(startLanguageClient)
-            .done(result.resolve)
-            .fail(result.reject);
-        
+        loadLanguageClientDomain(clientName, clientFilePath)
+            .then(function (languageClientDomain) {
+                var languageClientInterface = createNodeInterfaceForDomain(languageClientDomain);
+            
+                registerLanguageClientDomain(clientName, languageClientDomain);
+                registerLanguageClientInterface(clientName, languageClientInterface);
+            
+                result.resolve({
+                    name : clientName,
+                    interface: languageClientInterface
+                });
+            }, result.reject);
         
         return result;
     }
 
+    exports.initiateLanguageClient = initiateLanguageClient;
+    exports.constructRequestParams = constructRequestParams;
+    exports.constructNotificationParams = constructNotificationParams;
 });

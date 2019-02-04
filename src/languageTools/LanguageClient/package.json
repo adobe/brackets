@@ -2,7 +2,7 @@
   "name": "langaugeclient",
   "version": "1.0.0",
   "description": "Brackets language client interface for Language Server Protocol",
-  "main": "main.js",
+  "main": "LanguageClient.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
