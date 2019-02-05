@@ -23,6 +23,7 @@
 
 /*global exports */
 /*eslint no-console: 0*/
+/* eslint no-empty: ["error", { "allowEmptyCatch": true }] */
 (function () {
     "use strict";
 
@@ -61,15 +62,15 @@
         var numRestarts = this.restarts.length;
         if (numRestarts < 5) {
             return Actions.OnClose.Restart;
-        } else {
-            var timeBetweenFiveRestarts = this.restartsTimes[numRestarts - 1] - this.restarts[0];
-            if (timeBetweenFiveRestarts <= 3 * 60 * 1000) { //3 minutes
-                return Actions.OnClose.Stop;
-            } else {
-                this.restarts.shift();
-                return Actions.OnClose.Restart;
-            }
         }
+
+        var timeBetweenFiveRestarts = this.restartsTimes[numRestarts - 1] - this.restarts[0];
+        if (timeBetweenFiveRestarts <= 3 * 60 * 1000) { //3 minutes
+            return Actions.OnClose.Stop;
+        }
+
+        this.restarts.shift();
+        return Actions.OnClose.Restart;
     };
 
     function _getOnCloseHandler(connection, actionController, restartLanguageClient) {
@@ -89,17 +90,17 @@
             if (action === Actions.OnClose.Restart) {
                 restartLanguageClient();
             }
-        }
+        };
     }
 
     function _getOnErrorHandler(actionController, stopLanguageClient) {
         return function (errorData) {
             var action = actionController.getOnErrorAction(errorData);
-            
+
             if(action === Actions.OnError.Stop) {
                 stopLanguageClient();
             }
-        }
+        };
     }
 
     function Logger() {}

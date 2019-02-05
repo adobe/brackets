@@ -22,7 +22,6 @@
  */
 
 /*eslint no-invalid-this: 0*/
-
 define(function (require, exports, module) {
     "use strict";
 

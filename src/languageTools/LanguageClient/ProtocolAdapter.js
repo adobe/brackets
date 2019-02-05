@@ -21,9 +21,6 @@
  *
  */
 
-//Transform params to LSP kind (We will end up here from LanguageClient.processRequest)
-
-
 "use strict";
 
 var protocol = require("vscode-languageserver-protocol"),
@@ -60,11 +57,16 @@ function uriToPath(uri) {
 function _constructParamsAndRelay(relay, type, params) {
     var _params;
     switch (type) {
-        case "cancelRequest":
+        case ToolingInfo.LANGUAGE_SERVICE.CANCEL_REQUEST:
         {
             break;
         }
-        case "showSelectMessage":
+        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST: {
+            
+            break;
+        }
+        case ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE:
+        case ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS:
         {
             _params = {
                 type : type,
@@ -73,10 +75,10 @@ function _constructParamsAndRelay(relay, type, params) {
             return relay(_params);
             break;
         }
-        case "showMessage":
-        case "logMessage":
-        case "telemetry":
-        case "diagnostics":
+        case ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE:
+        case ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE:
+        case ToolingInfo.SERVICE_EVENTS.TELEMETRY:
+        case ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS:
         {
             _params = {
                 type : type,
@@ -85,72 +87,72 @@ function _constructParamsAndRelay(relay, type, params) {
             relay(_params);
             break;
         }
-        case "symbols":
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
         {
             
             break;
         }
-        case "didOpen":
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
         {
             
             break;
         }
-        case "didChange":
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
         {
             
             break;
         }
-        case "didSave":
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
         {
             
             break;
         }
-        case "didClose":
+        case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
         {
             
             break;
         }
-        case "codehints":
+        case ToolingInfo.FEATURES.CODE_HINTS:
         {
             
             break;
         }
-        case "completionResolve":
+        case ToolingInfo.FEATURES.CODE_HINT_INFO:
         {
             
             break;
         }
-        case "signatureHelp":
+        case ToolingInfo.FEATURES.PARAMETER_HINTS:
         {
             
             break;
         }
-        case "declaration":
+        case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
         {
             
             break;
         }
-        case "definition":
+        case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
         {
             
             break;
         }
-        case "implementation":
+        case ToolingInfo.FEATURES.JUMP_TO_IMPL:
         {
             
             break;
         }
-        case "references":
+        case ToolingInfo.FEATURES.FIND_REFERENCES:
         {
             
             break;
         }
-        case "documentHighlight":
+        case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
         {
             
             break;
         }
-        case "documentSymbol":
+        case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
         {
             
             break;
@@ -184,29 +186,21 @@ function didCloseTextDocument(connection, params) {
     connection.sendNotification(protocol.DidCloseTextDocumentNotification.type, params);
 }
 
-function willSaveTextDocument(connection, params) {
-    connection.sendNotification(protocol.WillSaveTextDocumentNotification.type, params);
-}
-
 function didSaveTextDocument(connection, params) {
     connection.sendNotification(protocol.DidSaveTextDocumentNotification.type, params);
 }
 
-/** For Request messages */
-function willSaveWaitUntilTextDocument(connection, params) {
-    return connection.sendRequest(protocol.WillSaveTextDocumentWaitUntilRequest.type, params);
+function didChangeWorkspaceFolders(connection, params) {
+    connection.sendNotification(protocol.DidChangeWorkspaceFoldersNotification.type, params)
 }
 
+/** For Request messages */
 function completion(connection, params) {
     return connection.sendRequest(protocol.CompletionRequest.type, params);
 }
 
 function completionItemResolve(connection, params) {
     return connection.sendRequest(protocol.CompletionResolveRequest.type, params);
-}
-
-function hover(connection, params) {
-    return connection.sendRequest(protocol.HoverRequest.type, params);
 }
 
 function signatureHelp(connection, params) {
@@ -217,12 +211,16 @@ function gotoDefinition(connection, params) {
     return connection.sendRequest(protocol.DefinitionRequest.type, params);
 }
 
-function findReferences(connection, params) {
-    return connection.sendRequest(protocol.ReferencesRequest.type, params);
+function gotoDeclaration(connection, params) {
+    return connection.sendRequest(protocol.DeclarationRequest.type, params);
 }
 
-function documentHighlight(connection, params) {
-    return connection.sendRequest(protocol.DocumentHighlightRequest.type, params);
+function gotoImplementation(connection, params) {
+    return connection.sendRequest(protocol.ImplementationRequest.type, params);
+}
+
+function findReferences(connection, params) {
+    return connection.sendRequest(protocol.ReferencesRequest.type, params);
 }
 
 function documentSymbol(connection, params) {
@@ -270,20 +268,20 @@ function processNotification(connection, message) {
 function attachOnNotificationHandlers(connection, handler) {
     function _callbackFactory(type) {
         switch (type) {
-            case protocol.ShowMessageNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, "showMessage");
+            case ToolingInfo.protocol.ShowMessageNotification.type: {
+                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE);
                 break;
             }      
-            case protocol.LogMessageNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, "logMessage");
+            case ToolingInfo.protocol.LogMessageNotification.type: {
+                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE);
                 break;
             }      
-            case protocol.TelemetryEventNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, "telemetry");
+            case ToolingInfo.protocol.TelemetryEventNotification.type: {
+                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.TELEMETRY);
                 break;
             }      
-            case protocol.PublishDiagnosticsNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, "publishDiagnostics");
+            case ToolingInfo.protocol.PublishDiagnosticsNotification.type: {
+                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS);
                 break;
             }      
         }
@@ -298,10 +296,14 @@ function attachOnNotificationHandlers(connection, handler) {
 function attachOnRequestHandlers(connection, handler) {
     function _callbackFactory(type) {
         switch (type) {
-            case protocol.ShowMessageRequest.type: {
-                return _constructParamsAndRelay.bind(null, handler, "showMessageRequest");
+            case ToolingInfo.protocol.ShowMessageRequest.type: {
+                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE);
                 break;
-            }       
+            }
+            case ToolingInfo.protocol.WorkspaceFoldersRequest.type: {
+                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS);
+                break;
+            }
         }
     }
     
