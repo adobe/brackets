@@ -5,7 +5,8 @@
         "REQUEST": "request",
         "NOTIFY": "notify",
         "CANCEL_REQUEST": "cancelRequest",
-        "CUSTOM_MESSAGE": "customMessage"
+        "CUSTOM_REQUEST": "customRequest",
+        "CUSTOM_NOTIFICATION": "customNotification"
     },
     "SERVICE_EVENTS": {
         "SHOW_MESSAGE": "showMessage",
