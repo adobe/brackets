@@ -109,7 +109,7 @@ define(function (require, exports, module) {
     LanguageClientProxy.prototype._notify = function (type, params) {
         params = MessageHandler.constructNotificationParams(type, params);
         if (params) {
-            this._requestClient(params);
+            this._notifyClient(params);
         } else {
             console.log("Invalid Parameters provided for notification type : ", type);
         }
