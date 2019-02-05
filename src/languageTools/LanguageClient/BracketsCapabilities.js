@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global exports*/
 
+/*global exports*/
 (function () {
     "use strict";
 

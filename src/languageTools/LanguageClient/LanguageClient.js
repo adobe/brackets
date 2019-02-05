@@ -21,9 +21,10 @@
  *
  */
 
-/*global exports */
-/*global process, Buffer*/
-
+/*global exports, Promise */
+/*eslint no-console: 0*/
+/*eslint strict: ["error", "global"]*/
+/*eslint max-len: ["error", { "code": 200 }]*/
 "use strict";
 
 var ProtocolAdapter = require("./ProtocolAdapter"),
@@ -33,28 +34,22 @@ var ProtocolAdapter = require("./ProtocolAdapter"),
     ToolingInfo = require("./../ToolingInfo.json"),
     NodeToBracketsInterface = require("./../Interface/bracketsInterface").NodeToBracketsInterface;
 
-function btoa(str) {
-    return Buffer.from(str).toString('base64');
-}
-
 function LanguageClient(clientName, options, domainManager) {
     this._clientName = clientName;
     this._bracketsInterface = null;
     this._notifyBrackets = null;
     this._requestBrackets = null;
     this._connection = null,
-        this._startUpParams = null, //_projectRoot, capabilties, workspaceFolders etc.
-        this._initialized = false,
-        this._options = options;
+    this._startUpParams = null, //_projectRoot, capabilties, workspaceFolders etc.
+    this._initialized = false,
+    this._options = options;
 
 
     this._init(domainManager);
 }
 
 
-
 LanguageClient.prototype._createConnection = function () {
-    var self = this;
     var restartLanguageClient = this.start.bind(this),
         stopLanguageClient = this.stop.bind(this);
 
@@ -63,7 +58,7 @@ LanguageClient.prototype._createConnection = function () {
         .then(function (connectionArgs) {
             return Connection.createConnection(connectionArgs.reader, connectionArgs.writer, restartLanguageClient, stopLanguageClient);
         });
-}
+};
 
 
 LanguageClient.prototype.start = function (params) {
@@ -80,7 +75,7 @@ LanguageClient.prototype.start = function (params) {
         .then(function (connection) {
             connection.listen();
             self._connection = connection;
-        
+
             return ProtocolAdapter.initialize(connection, self._startUpParams);
         }).then(function (result) {
             self._initialized = result;
@@ -113,12 +108,12 @@ LanguageClient.prototype.stop = function () {
 };
 
 LanguageClient.prototype.request = function (params) {
-    return ProtocolAdapter.processRequest(connection, params);
+    return ProtocolAdapter.processRequest(this._connection, params);
 };
 
 
 LanguageClient.prototype.notify = function (params) {
-    ProtocolAdapter.processNotification(connection, params);
+    ProtocolAdapter.processNotification(this._connection, params);
 };
 
 LanguageClient.prototype._init = function (domainManager) {
