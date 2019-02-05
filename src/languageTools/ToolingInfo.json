@@ -5,7 +5,7 @@
         "REQUEST": "request",
         "NOTIFY": "notify",
         "CANCEL_REQUEST": "cancelRequest",
-        "CUSTOM_REQUEST": "customRequest"
+        "CUSTOM_MESSAGE": "customMessage"
     },
     "SERVICE_EVENTS": {
         "SHOW_MESSAGE": "showMessage",
@@ -15,8 +15,7 @@
     },
     "SERVICE_REQUESTS": {
         "REQUEST_PROJECT_ROOTS": "requestProjectRoots",
-        "SHOW_SELECT_MESSAGE": "showSelectMessage",
-        "LIST_SYMBOLS": "symbols"
+        "SHOW_SELECT_MESSAGE": "showSelectMessage"
     },
     "SYNCHRONIZE_EVENTS": {
         "DOCUMENT_OPENED": "didOpen",

@@ -23,7 +23,7 @@
 
 /*global require, Promise, exports*/
 /*eslint no-invalid-this: 0*/
-
+/*eslint max-len: ["error", { "code": 200 }]*/
 (function () {
 
     "use strict";
@@ -32,15 +32,19 @@
         bracketsEventHandler = new EventEmitter();
 
     /** https://gist.github.com/LeverOne/1308368 */
+    /*eslint-disable */
     function _generateUUID() {
         var result,
             numericSeed;
         for (
-            result = numericSeed = ''; numericSeed++ < 36; result += numericSeed * 51 & 52 ? (numericSeed ^ 15 ? 8 ^ Math.random() * (numericSeed ^ 20 ? 16 : 4) : 4).toString(16) : '-'
+            result = numericSeed = '';
+            numericSeed++ < 36;
+            result += numericSeed * 51 & 52 ? (numericSeed ^ 15 ? 8 ^ Math.random() * (numericSeed ^ 20 ? 16 : 4) : 4).toString(16) : '-'
         );
 
         return result;
     }
+    /*eslint-enable */
 
     function NodeToBracketsInterface(domainManager, domainName) {
         this.domainManager = domainManager;
