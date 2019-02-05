@@ -21,141 +21,167 @@
  *
  */
 
+/*eslint-env es6, node*/
+/*eslint max-len: ["error", { "code": 200 }]*/
+/*eslint no-fallthrough: 0*/
 "use strict";
 
 var protocol = require("vscode-languageserver-protocol"),
-    nodeURL = require("url"),
-    ToolingInfo = require("./../ToolingInfo.json")
-
-//atom-languageclient
-function pathToUri(filePath) {
-    var newPath = filePath.replace(/\\/g, '/');
-    if (newPath[0] !== '/') {
-        newPath = `/${newPath}`;
-    }
-    return encodeURI(`file://${newPath}`).replace(/[?#]/g, encodeURIComponent);
-}
-
-//atom-languageclient
-function uriToPath(uri) {
-    var url = nodeURL.URL.parse(uri);
-    if (url.protocol !== 'file:' || url.path === undefined) {
-        return uri;
-    }
-
-    let filePath = decodeURIComponent(url.path);
-    if (process.platform === 'win32') {
-        // Deal with Windows drive names
-        if (filePath[0] === '/') {
-            filePath = filePath.substr(1);
-        }
-        return filePath.replace(/\//g, '\\');
-    }
-    return filePath;
-}
+    ToolingInfo = require("./../ToolingInfo.json"),
+    Utils = require("./Utils");
 
 function _constructParamsAndRelay(relay, type, params) {
-    var _params;
+    var _params,
+        handler = null;
+
     switch (type) {
-        case ToolingInfo.LANGUAGE_SERVICE.CANCEL_REQUEST:
+    case ToolingInfo.LANGUAGE_SERVICE.CANCEL_REQUEST:
         {
+                //TODO
             break;
         }
-        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST: {
-            
+    case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
+        return sendCustomRequest(relay, params.type, params.params);
+    case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
+        {
+            sendCustomNotification(relay, params.type, params.params);
             break;
         }
-        case ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE:
-        case ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS:
+    case ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE:
+    case ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS:
         {
             _params = {
-                type : type,
-                params : params
-            }
+                type: type,
+                params: params
+            };
             return relay(_params);
-            break;
         }
-        case ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE:
-        case ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE:
-        case ToolingInfo.SERVICE_EVENTS.TELEMETRY:
-        case ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS:
+    case ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE:
+    case ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE:
+    case ToolingInfo.SERVICE_EVENTS.TELEMETRY:
+    case ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS:
         {
             _params = {
-                type : type,
-                params : params
-            }
+                type: type,
+                params: params
+            };
             relay(_params);
             break;
         }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
+    case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
         {
-            
+            _params = {
+                textDocument: {
+                    uri: Utils.pathToUri(params.filePath),
+                    languageId: params.languageId,
+                    version: 1,
+                    text: params.fileContent
+                }
+            };
+            didOpenTextDocument(relay, _params);
             break;
         }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
+    case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
         {
-            
+            _params = {
+                textDocument: {
+                    uri: Utils.pathToUri(params.filePath),
+                    version: 2
+                },
+                contentChanges: {
+                    text: params.fileContent
+                }
+            };
+            didChangeTextDocument(relay, _params);
             break;
         }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
+    case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
         {
-            
+            _params = {
+                textDocument: {
+                    uri: Utils.pathToUri(params.filePath)
+                }
+            };
+
+            if (params.fileContent) {
+                _params['text'] = params.fileContent;
+            }
+
+            didSaveTextDocument(relay, _params);
             break;
         }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
+    case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
         {
-            
+            _params = {
+                textDocument: {
+                    uri: Utils.pathToUri(params.filePath)
+                }
+            };
+
+            didCloseTextDocument(relay, _params);
             break;
         }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
+    case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
         {
-            
+            //TODO
+            didChangeWorkspaceFolders(relay, params);
             break;
         }
-        case ToolingInfo.FEATURES.CODE_HINTS:
+    case ToolingInfo.FEATURES.CODE_HINTS:
+        handler = completion;
+    case ToolingInfo.FEATURES.PARAMETER_HINTS:
+        handler = handler ? handler : signatureHelp;
+    case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
+        handler = handler ? handler : gotoDeclaration;
+    case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
+        handler = handler ? handler : gotoDefinition;
+    case ToolingInfo.FEATURES.JUMP_TO_IMPL:
         {
-            
-            break;
+            handler = handler ? handler : gotoImplementation;
+            _params = {
+                textDocument: {
+                    uri: Utils.pathToUri(params.filePath)
+                },
+                position: Utils.convertToLSPPosition(params.cursorPos)
+            };
+
+            return handler(relay, _params);
         }
-        case ToolingInfo.FEATURES.CODE_HINT_INFO:
+    case ToolingInfo.FEATURES.CODE_HINT_INFO:
         {
-            
-            break;
+            return completionItemResolve(relay, params);
         }
-        case ToolingInfo.FEATURES.PARAMETER_HINTS:
+    case ToolingInfo.FEATURES.FIND_REFERENCES:
         {
-            
-            break;
+            _params = {
+                textDocument: {
+                    uri: Utils.pathToUri(params.filePath)
+                },
+                position: Utils.convertToLSPPosition(params.cursorPos),
+                context: {
+                    includeDeclaration: params.includeDeclaration
+                }
+            };
+
+            return findReferences(relay, _params);
         }
-        case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
+    case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
         {
-            
-            break;
+            _params = {
+                textDocument: {
+                    uri: Utils.pathToUri(params.filePath)
+                }
+            };
+
+            return documentSymbol(relay, _params);
         }
-        case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
+    case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
         {
-            
-            break;
-        }
-        case ToolingInfo.FEATURES.JUMP_TO_IMPL:
-        {
-            
-            break;
-        }
-        case ToolingInfo.FEATURES.FIND_REFERENCES:
-        {
-            
-            break;
-        }
-        case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
-        {
-            
-            break;
-        }
-        case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
-        {
-            
-            break;
+            _params = {
+                query: params.query
+            };
+
+            return workspaceSymbol(relay, _params);
         }
     }
 }
@@ -191,7 +217,7 @@ function didSaveTextDocument(connection, params) {
 }
 
 function didChangeWorkspaceFolders(connection, params) {
-    connection.sendNotification(protocol.DidChangeWorkspaceFoldersNotification.type, params)
+    connection.sendNotification(protocol.DidChangeWorkspaceFoldersNotification.type, params);
 }
 
 /** For Request messages */
@@ -237,11 +263,11 @@ function workspaceSymbol(connection, params) {
 function initialize(connection, params) {
     var _params = {
         rootPath: params.rootPath,
-        rootUri: pathToUri(params.rootPath),
-        processId : process.pid,
-        capabilities : params.capabilities
-    }
-    
+        rootUri: Utils.pathToUri(params.rootPath),
+        processId: process.pid,
+        capabilities: params.capabilities
+    };
+
     return connection.sendRequest(protocol.InitializeRequest.type, _params);
 }
 
@@ -263,30 +289,22 @@ function processRequest(connection, message) {
 
 function processNotification(connection, message) {
     _constructParamsAndRelay(connection, message.type, message.params);
-} 
+}
 
 function attachOnNotificationHandlers(connection, handler) {
     function _callbackFactory(type) {
         switch (type) {
-            case ToolingInfo.protocol.ShowMessageNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE);
-                break;
-            }      
-            case ToolingInfo.protocol.LogMessageNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE);
-                break;
-            }      
-            case ToolingInfo.protocol.TelemetryEventNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.TELEMETRY);
-                break;
-            }      
-            case ToolingInfo.protocol.PublishDiagnosticsNotification.type: {
-                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS);
-                break;
-            }      
+        case ToolingInfo.protocol.ShowMessageNotification.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE);
+        case ToolingInfo.protocol.LogMessageNotification.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE);
+        case ToolingInfo.protocol.TelemetryEventNotification.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.TELEMETRY);
+        case ToolingInfo.protocol.PublishDiagnosticsNotification.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS);
         }
     }
-    
+
     connection.onNotification(protocol.ShowMessageNotification.type, _callbackFactory(protocol.ShowMessageNotification.type));
     connection.onNotification(protocol.LogMessageNotification.type, _callbackFactory(protocol.LogMessageNotification.type));
     connection.onNotification(protocol.TelemetryEventNotification.type, _callbackFactory(protocol.TelemetryEventNotification.type));
@@ -296,17 +314,13 @@ function attachOnNotificationHandlers(connection, handler) {
 function attachOnRequestHandlers(connection, handler) {
     function _callbackFactory(type) {
         switch (type) {
-            case ToolingInfo.protocol.ShowMessageRequest.type: {
-                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE);
-                break;
-            }
-            case ToolingInfo.protocol.WorkspaceFoldersRequest.type: {
-                return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS);
-                break;
-            }
+        case ToolingInfo.protocol.ShowMessageRequest.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE);
+        case ToolingInfo.protocol.WorkspaceFoldersRequest.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS);
         }
     }
-    
+
     connection.onRequest(protocol.ShowMessageRequest.type, _callbackFactory(protocol.ShowMessageRequest.type));
 }
 
