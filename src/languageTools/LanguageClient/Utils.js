@@ -26,7 +26,6 @@
 
 var nodeURL = require("url");
 
-//atom-languageclient
 function pathToUri(filePath) {
     var newPath = filePath.replace(/\\/g, '/');
     if (newPath[0] !== '/') {
@@ -35,7 +34,6 @@ function pathToUri(filePath) {
     return encodeURI(`file://${newPath}`).replace(/[?#]/g, encodeURIComponent);
 }
 
-//atom-languageclient
 function uriToPath(uri) {
     var url = nodeURL.URL.parse(uri);
     if (url.protocol !== 'file:' || url.path === undefined) {
@@ -44,7 +42,6 @@ function uriToPath(uri) {
 
     let filePath = decodeURIComponent(url.path);
     if (process.platform === 'win32') {
-        // Deal with Windows drive names
         if (filePath[0] === '/') {
             filePath = filePath.substr(1);
         }

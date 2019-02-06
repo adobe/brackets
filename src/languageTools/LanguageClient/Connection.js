@@ -40,7 +40,6 @@
         }
     };
 
-    //Based on vscode-languageClient
     function ActionController() {
         this.retartsTimes = [];
     }
