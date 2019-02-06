@@ -154,6 +154,11 @@ define(function (require, exports, module) {
     //Load common JS module
     require("JSUtils/Session");
     require("JSUtils/ScopeManager");
+    
+    //load Language Tools Module 
+    require("languageTools/LanguageTools");
+    require("languageTools/MessageHandler");
+    require("languageTools/Interface/nodeInterface");
 
     //Load lsp related module
     require("lsp/ClientTemplate");
