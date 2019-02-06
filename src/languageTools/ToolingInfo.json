@@ -1,0 +1,39 @@
+{
+    "LANGUAGE_SERVICE": {
+        "START": "start",
+        "STOP": "stop",
+        "REQUEST": "request",
+        "NOTIFY": "notify",
+        "CANCEL_REQUEST": "cancelRequest",
+        "CUSTOM_REQUEST": "customRequest",
+        "CUSTOM_NOTIFICATION": "customNotification"
+    },
+    "SERVICE_EVENTS": {
+        "SHOW_MESSAGE": "showMessage",
+        "LOG_MESSAGE": "logMessage",
+        "TELEMETRY": "telemetry",
+        "DIAGNOSTICS": "diagnostics"
+    },
+    "SERVICE_REQUESTS": {
+        "REQUEST_PROJECT_ROOTS": "requestProjectRoots",
+        "SHOW_SELECT_MESSAGE": "showSelectMessage"
+    },
+    "SYNCHRONIZE_EVENTS": {
+        "DOCUMENT_OPENED": "didOpen",
+        "DOCUMENT_CHANGED": "didChange",
+        "DOCUMENT_SAVED": "didSave",
+        "DOCUMENT_CLOSED": "didClose",
+        "PROJECT_FOLDERS_CHANGED": "projectRootsChanged"
+    },
+    "FEATURES": {
+        "CODE_HINTS": "codehints",
+        "CODE_HINT_INFO": "hintInfo",
+        "PARAMETER_HINTS": "parameterHints",
+        "JUMP_TO_DECLARATION": "declaration",
+        "JUMP_TO_DEFINITION": "definition",
+        "JUMP_TO_IMPL": "implementation",
+        "FIND_REFERENCES": "references",
+        "DOCUMENT_SYMBOLS": "documentSymbols",
+        "PROJECT_SYMBOLS": "projectSymbols"
+    }
+}
