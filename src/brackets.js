@@ -160,12 +160,6 @@ define(function (require, exports, module) {
     require("languageTools/MessageHandler");
     require("languageTools/Interface/nodeInterface");
 
-    //Load lsp related module
-    require("lsp/ClientTemplate");
-    require("lsp/LSPInterface");
-    require("lsp/LanguageTool");
-    require("lsp/LSPSession");
-
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
