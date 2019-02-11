@@ -272,17 +272,17 @@ define(function (require, exports, module) {
 
     //didCloseTextDocument
     LanguageClientProxy.prototype.notifyTextDocumentClosed = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED, params);
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED, params);
     };
 
     //didChangeTextDocument
     LanguageClientProxy.prototype.notifyTextDocumentChanged = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED, params);
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED, params);
     };
 
     //didSaveTextDocument
     LanguageClientProxy.prototype.notifyTextDocumentSave = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED, params);
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED, params);
     };
 
     /**

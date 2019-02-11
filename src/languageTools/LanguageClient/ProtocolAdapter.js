@@ -294,13 +294,13 @@ function processNotification(connection, message) {
 function attachOnNotificationHandlers(connection, handler) {
     function _callbackFactory(type) {
         switch (type) {
-        case ToolingInfo.protocol.ShowMessageNotification.type:
+        case protocol.ShowMessageNotification.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE);
-        case ToolingInfo.protocol.LogMessageNotification.type:
+        case protocol.LogMessageNotification.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE);
-        case ToolingInfo.protocol.TelemetryEventNotification.type:
+        case protocol.TelemetryEventNotification.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.TELEMETRY);
-        case ToolingInfo.protocol.PublishDiagnosticsNotification.type:
+        case protocol.PublishDiagnosticsNotification.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS);
         }
     }
@@ -314,14 +314,15 @@ function attachOnNotificationHandlers(connection, handler) {
 function attachOnRequestHandlers(connection, handler) {
     function _callbackFactory(type) {
         switch (type) {
-        case ToolingInfo.protocol.ShowMessageRequest.type:
+        case protocol.ShowMessageRequest.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE);
-        case ToolingInfo.protocol.WorkspaceFoldersRequest.type:
+        case protocol.WorkspaceFoldersRequest.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS);
         }
     }
 
     connection.onRequest(protocol.ShowMessageRequest.type, _callbackFactory(protocol.ShowMessageRequest.type));
+    connection.onRequest(protocol.WorkspaceFoldersRequest.type, _callbackFactory(protocol.WorkspaceFoldersRequest.type));
 }
 
 exports.initialize = initialize;
