@@ -86,11 +86,11 @@ function _constructParamsAndRelay(relay, type, params) {
             _params = {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath),
-                    version: 2
+                    version: 1
                 },
-                contentChanges: {
+                contentChanges: [{
                     text: params.fileContent
-                }
+                }]
             };
             didChangeTextDocument(relay, _params);
             break;
