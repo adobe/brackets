@@ -72,7 +72,7 @@ define(function (require, exports, module) {
             return $.Deferred().reject();
         }
 
-        var requestHandler = this.this._onRequestHandler[params.type];
+        var requestHandler = this._onRequestHandler[params.type];
         if(requestHandler && typeof requestHandler === "function") {
             return requestHandler.call(null, params.params);
         }
