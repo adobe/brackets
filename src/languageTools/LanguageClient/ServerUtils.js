@@ -232,7 +232,7 @@
                                     process: serverProcess,
                                     reader: protocolObj[0],
                                     writer: protocolObj[1]
-                                });
+                                }, communication);
 
                                 resolve(result);
                             }).catch(reject);
