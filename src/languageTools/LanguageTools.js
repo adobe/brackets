@@ -336,7 +336,9 @@ define(function (require, exports, module) {
     LanguageClientProxy.prototype._handleProjectOpen = function () {
         var self = this;
 
-        self.stop().done(self.start);
+        self.stop().done(function() {
+            self.start();
+        });
         //TODO : the case where server supports change of workspace folders
         //TODO : Reload with extensions case
     };
