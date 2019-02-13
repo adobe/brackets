@@ -57,6 +57,8 @@ LanguageClient.prototype._createConnection = function () {
     return ServerUtils.startServerAndGetConnectionArgs(serverOptions)
         .then(function (connectionArgs) {
             return Connection.createConnection(connectionArgs.reader, connectionArgs.writer, restartLanguageClient, stopLanguageClient);
+        }).catch(function (err) {
+            console.error("Couldn't establish connection", err);
         });
 };
 

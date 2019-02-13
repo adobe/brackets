@@ -211,6 +211,10 @@
                         result = _createReaderAndWriteByCommunicationType({
                             process: serverProcess
                         }, communication);
+                        
+                        resolve(result);
+                    } else {
+                        reject(null);
                     }
                     break;
                 }
@@ -324,9 +328,9 @@
                 cwd = cwd || __dirname;
             }
 
-            var options = Object.assign({}.sOptions.options);
+            var options = Object.assign({}, sOptions.options);
             options.cwd = cwd,
-                options.execArgv = options.execArgv || [];
+            options.execArgv = options.execArgv || [];
             options.silent = true;
 
             return options;
