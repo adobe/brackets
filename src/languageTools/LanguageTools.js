@@ -291,12 +291,12 @@ define(function (require, exports, module) {
 
     //customNotification
     LanguageClientProxy.prototype.sendCustomNotification = function (params) {
-        this._notifyClient(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION, params);
+        this._notify(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION, params);
     };
 
     //customRequest
     LanguageClientProxy.prototype.customRequest = function (params) {
-        return this._requestClient(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST, params);
+        return this._request(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST, params);
     };
 
     //TODO: this needs to be moved to tooling manager

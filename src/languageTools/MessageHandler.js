@@ -103,6 +103,10 @@ define(function (require, exports, module) {
                 }
                 break;
             }
+        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
+            {
+                jsonParams = _createParams(type, params);
+            }
         }
 
         return jsonParams;
@@ -149,6 +153,10 @@ define(function (require, exports, module) {
                     //TODO
                 jsonParams = _createParams(type, params);
                 break;
+            }
+        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
+            {
+                jsonParams = _createParams(type, params);
             }
         }
 
