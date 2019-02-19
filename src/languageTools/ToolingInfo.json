@@ -15,7 +15,6 @@
         "DIAGNOSTICS": "diagnostics"
     },
     "SERVICE_REQUESTS": {
-        "REQUEST_PROJECT_ROOTS": "requestProjectRoots",
         "SHOW_SELECT_MESSAGE": "showSelectMessage"
     },
     "SYNCHRONIZE_EVENTS": {

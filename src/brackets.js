@@ -158,7 +158,7 @@ define(function (require, exports, module) {
     //load Language Tools Module 
     require("languageTools/LanguageTools");
     require("languageTools/MessageHandler");
-    require("languageTools/Interface/nodeInterface");
+    require("languageTools/BracketsToNodeInterface");
 
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
