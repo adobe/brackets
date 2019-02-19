@@ -51,7 +51,7 @@
         this.domainName = domainName;
         this.nodeFn = {};
 
-        this._registerDataEvents();
+        this._registerDataEvents(domainManager, domainName);
     }
 
     NodeToBracketsInterface.prototype.processRequest = function (params) {
@@ -135,16 +135,16 @@
         });
     };
 
-    NodeToBracketsInterface.prototype._registerDataEvents = function () {
-        if (!this.domainManager.hasDomain(this.domainName)) {
-            this.domainManager.registerDomain(this.domainName, {
+    NodeToBracketsInterface.prototype._registerDataEvents = function (domainManager, domainName) {
+        if (!domainManager.hasDomain(domainName)) {
+            domainManager.registerDomain(domainName, {
                 major: 0,
                 minor: 1
             });
         }
 
-        this.domainManager.registerCommand(
-            this.domainName,
+        domainManager.registerCommand(
+            domainName,
             "data",
             this.processRequest.bind(this),
             false,
@@ -159,8 +159,8 @@
             []
         );
 
-        this.domainManager.registerCommand(
-            this.domainName,
+        domainManager.registerCommand(
+            domainName,
             "response",
             this.processResponse.bind(this),
             false,
@@ -175,8 +175,8 @@
             []
         );
 
-        this.domainManager.registerCommand(
-            this.domainName,
+        domainManager.registerCommand(
+            domainName,
             "asyncData",
             this.processAsyncRequest.bind(this),
             true,
@@ -196,8 +196,8 @@
             []
         );
 
-        this.domainManager.registerEvent(
-            this.domainName,
+        domainManager.registerEvent(
+            domainName,
             "data",
             [
                 {

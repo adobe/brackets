@@ -325,7 +325,8 @@ define(function (require, exports, module) {
             current.document
                 .on("languageChanged.language-tools", function () {
                     //TODO: Also need to attach listeners for Parameter Hints
-                    _sendDocumentOpenNotification(currentLanguageId, current.document);
+                    var languageId = LanguageManager.getLanguageForPath(current.document.file.fullPath).getId();
+                    _sendDocumentOpenNotification(languageId, current.document);
                 });
             //TODO: Also need to attach listeners for Parameter Hints
             _sendDocumentOpenNotification(currentLanguageId, current.document);
