@@ -65,6 +65,12 @@ LanguageClient.prototype._createConnection = function () {
 
 LanguageClient.prototype.start = function (params) {
     var self = this;
+
+    //Check to see if a connection to a language server already exists.
+    if (self._connection) {
+        return Promise.resolve(true);
+    }
+
     self._connection = null;
     self._startUpParams = params ? params : self._startUpParams;
 
