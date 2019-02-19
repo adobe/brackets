@@ -27,8 +27,8 @@
 "use strict";
 
 var protocol = require("vscode-languageserver-protocol"),
-    ToolingInfo = require("./../ToolingInfo.json"),
-    Utils = require("./Utils");
+    Utils = require("./Utils"),
+    ToolingInfo = LanguageClientInfo.toolingInfo;
 
 function _constructParamsAndRelay(relay, type, params) {
     var _params,
@@ -48,7 +48,6 @@ function _constructParamsAndRelay(relay, type, params) {
             break;
         }
     case ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE:
-    case ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS:
         {
             _params = {
                 type: type,
@@ -123,8 +122,13 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
         {
-            //TODO
-            didChangeWorkspaceFolders(relay, params);
+            _params = {
+                event: {
+                    added: params.foldersAdded,
+                    removed: params.foldersRemoved
+                }
+            };
+            didChangeWorkspaceFolders(relay, _params);
             break;
         }
     case ToolingInfo.FEATURES.CODE_HINTS:
@@ -316,13 +320,10 @@ function attachOnRequestHandlers(connection, handler) {
         switch (type) {
         case protocol.ShowMessageRequest.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE);
-        case protocol.WorkspaceFoldersRequest.type:
-            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.REQUEST_PROJECT_ROOTS);
         }
     }
 
     connection.onRequest(protocol.ShowMessageRequest.type, _callbackFactory(protocol.ShowMessageRequest.type));
-    connection.onRequest(protocol.WorkspaceFoldersRequest.type, _callbackFactory(protocol.WorkspaceFoldersRequest.type));
 }
 
 exports.initialize = initialize;

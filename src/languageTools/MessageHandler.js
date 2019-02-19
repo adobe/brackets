@@ -28,9 +28,20 @@ define(function (require, exports, module) {
 
     var ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json")),
         NodeDomain = require("utils/NodeDomain"),
-        EditorManager = require('editor/EditorManager'),
-        BracketsToNodeInterface = require("languageTools/Interface/nodeInterface").BracketsToNodeInterface,
+        EditorManager = require("editor/EditorManager"),
+        FileUtils = require("file/FileUtils"),
+        BracketsToNodeInterface = require("languageTools/BracketsToNodeInterface").BracketsToNodeInterface,
         ProjectManager = require("project/ProjectManager");
+
+    //Register paths required for Language Client and also register default brackets capabilities.
+    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath = "node/RegisterLanguageClientInfo",
+        _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/"),
+        clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
+
+    //Init node with Information required by Language Client
+    clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
 
     var nodeDomains = {},
         nodeInterfaces = {};
@@ -46,6 +57,22 @@ define(function (require, exports, module) {
             params: params
         };
     }
+
+    function hasValidProp(obj, prop) {
+        return (obj && obj[prop] !== undefined && obj[prop] !== null);
+    }
+
+    function hasValidProps(obj, props) {
+        var retval = !!obj,
+            len = props.length,
+            i;
+
+        for (i = 0; retval && (i < len); i ++) {
+            retval = (retval && obj[props[i]] !== undefined && obj[props[i]] !== null);
+        }
+
+        return retval;
+    }
     /*
         RequestParams creator - sendNotifications/request
     */
@@ -58,7 +85,7 @@ define(function (require, exports, module) {
         case ToolingInfo.LANGUAGE_SERVICE.START:
             {
                 jsonParams = {
-                    rootPath: params.rootPath ? params.rootPath : ProjectManager.getProjectRoot().fullPath,
+                    rootPath: hasValidProp(params, "rootPath") ? params.rootPath : ProjectManager.getProjectRoot().fullPath,
                     capabilities: params.capabilities ? params.capabilities : false
                 };
                 break;
@@ -70,8 +97,8 @@ define(function (require, exports, module) {
         case ToolingInfo.FEATURES.JUMP_TO_IMPL:
             {
                 jsonParams = _createParams(type, {
-                    filePath: params.filePath ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath),
-                    cursorPos: params.cursorPos ? params.cursorPos : activeEditor.getCursorPos()
+                    filePath: hasValidProp(params, "filePath") ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath),
+                    cursorPos: hasValidProp(params, "cursorPos") ? params.cursorPos : activeEditor.getCursorPos()
                 });
                 break;
             }
@@ -83,8 +110,8 @@ define(function (require, exports, module) {
         case ToolingInfo.FEATURES.FIND_REFERENCES:
             {
                 jsonParams = _createParams(type, {
-                    filePath: params.filePath ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath),
-                    cursorPos: params.cursorPos ? params.cursorPos : activeEditor.getCursorPos(),
+                    filePath: hasValidProp(params, "filePath") ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath),
+                    cursorPos: hasValidProp(params, "cursorPos") ? params.cursorPos : activeEditor.getCursorPos(),
                     includeDeclaration: params.includeDeclaration ? params.includeDeclaration : false
                 });
                 break;
@@ -92,7 +119,7 @@ define(function (require, exports, module) {
         case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
             {
                 jsonParams = _createParams(type, {
-                    filePath: params.filePath ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath)
+                    filePath: hasValidProp(params, "filePath") ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath)
                 });
                 break;
             }
@@ -122,36 +149,37 @@ define(function (require, exports, module) {
         switch (type) {
         case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
             {
-                if (params.filePath && params.fileContent && params.languageId) {
+                if (hasValidProps(params, ["filePath", "fileContent", "languageId"])) {
                     jsonParams = _createParams(type, params);
                 }
                 break;
             }
         case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
             {
-                if (params.filePath && params.fileContent) {
+                if (hasValidProps(params, ["filePath", "fileContent"])) {
                     jsonParams = _createParams(type, params);
                 }
                 break;
             }
         case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
             {
-                if (params.filePath) {
+                if (hasValidProp(params, "filePath")) {
                     jsonParams = _createParams(type, params);
                 }
                 break;
             }
         case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
             {
-                if (params.filePath) {
+                if (hasValidProp(params, "filePath")) {
                     jsonParams = _createParams(type, params);
                 }
                 break;
             }
         case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
             {
-                    //TODO
-                jsonParams = _createParams(type, params);
+                if (hasValidProps(params, ["foldersAdded", "foldersRemoved"])) {
+                    jsonParams = _createParams(type, params);
+                }
                 break;
             }
         case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:

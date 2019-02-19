@@ -21,7 +21,7 @@
  *
  */
 
-/*global exports, Promise */
+/*global exports, Promise, LanguageClientInfo */
 /*eslint no-console: 0*/
 /*eslint strict: ["error", "global"]*/
 /*eslint max-len: ["error", { "code": 200 }]*/
@@ -30,9 +30,8 @@
 var ProtocolAdapter = require("./ProtocolAdapter"),
     ServerUtils = require("./ServerUtils"),
     Connection = require("./Connection"),
-    BracketsCapabilities = require("./BracketsCapabilities"),
-    ToolingInfo = require("./../ToolingInfo.json"),
-    NodeToBracketsInterface = require("./../Interface/bracketsInterface").NodeToBracketsInterface;
+    NodeToBracketsInterface = require("./NodeToBracketsInterface").NodeToBracketsInterface,
+    ToolingInfo = LanguageClientInfo.toolingInfo;
 
 function LanguageClient(clientName, options, domainManager) {
     this._clientName = clientName;
@@ -76,7 +75,7 @@ LanguageClient.prototype.start = function (params) {
 
     //We default to standard capabilties
     if (!self._startUpParams.capabilities) {
-        self._startUpParams.capabilities = BracketsCapabilities.getCapabilities();
+        self._startUpParams.capabilities = LanguageClientInfo.defaultBracketsCapabilities;
     }
 
     return self._createConnection()
