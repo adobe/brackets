@@ -135,15 +135,20 @@ function init(domainManager) {
         "initialize",
         initialize,
         false,
-        "Receive an absolute path for LanguageClient",
+        "Initialize node environment for Language Client Module",
         [
             {
-                name: "params",
+                name: "bracketsSourcePath",
+                type: "string",
+                description: "Absolute path to the brackets source"
+            },
+            {
+                name: "toolingInfo",
                 type: "object",
-                description: "json object containing message info"
+                description: "Tooling Info json to be used by Language Client"
             }
         ],
-            []
+        []
     );
 }
 
