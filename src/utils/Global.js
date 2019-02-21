@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         }
 
         return OS;
-    }
+    };
 
     global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
 
