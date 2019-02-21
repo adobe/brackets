@@ -31,8 +31,14 @@ var protocol = require("vscode-languageserver-protocol"),
     ToolingInfo = LanguageClientInfo.toolingInfo;
 
 function _constructParamsAndRelay(relay, type, params) {
-    var _params,
+    var _params = null,
         handler = null;
+    
+    //Check for param object format. We won't change anything if the object if preformatted.
+    if (params.format === "spec") {
+        params.format = undefined;
+        _params = JSON.parse(JSON.stringify(params));
+    }
 
     switch (type) {
     case ToolingInfo.LANGUAGE_SERVICE.CANCEL_REQUEST:
@@ -69,7 +75,7 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
         {
-            _params = {
+            _params = _params || {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath),
                     languageId: params.languageId,
@@ -82,7 +88,7 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
         {
-            _params = {
+            _params = _params || {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath),
                     version: 1
@@ -96,22 +102,23 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
         {
-            _params = {
-                textDocument: {
-                    uri: Utils.pathToUri(params.filePath)
+            if (!_params) {
+                _params = {
+                    textDocument: {
+                        uri: Utils.pathToUri(params.filePath)
+                    }
+                };
+
+                if (params.fileContent) {
+                    _params['text'] = params.fileContent;
                 }
-            };
-
-            if (params.fileContent) {
-                _params['text'] = params.fileContent;
             }
-
             didSaveTextDocument(relay, _params);
             break;
         }
     case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
         {
-            _params = {
+            _params = _params || {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath)
                 }
@@ -122,7 +129,7 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
         {
-            _params = {
+            _params = _params || {
                 event: {
                     added: params.foldersAdded,
                     removed: params.foldersRemoved
@@ -142,7 +149,7 @@ function _constructParamsAndRelay(relay, type, params) {
     case ToolingInfo.FEATURES.JUMP_TO_IMPL:
         {
             handler = handler ? handler : gotoImplementation;
-            _params = {
+            _params = _params || {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath)
                 },
@@ -157,7 +164,7 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.FEATURES.FIND_REFERENCES:
         {
-            _params = {
+            _params = _params || {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath)
                 },
@@ -171,7 +178,7 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
         {
-            _params = {
+            _params = _params || {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath)
                 }
@@ -181,7 +188,7 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
         {
-            _params = {
+            _params = _params || {
                 query: params.query
             };
 
