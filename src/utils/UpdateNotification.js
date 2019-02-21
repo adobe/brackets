@@ -262,6 +262,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Checks whether a build is applicable to the current platform.
+     */
+    function _checkBuildApplicability(buildInfo) {
+        return !buildInfo.platforms || buildInfo.platforms[brackets.getPlatformInfo()];
+    }
+
+    /**
      * Return a new array of version information that is newer than "buildNumber".
      * Returns null if there is no new version information.
      */
@@ -270,9 +277,11 @@ define(function (require, exports, module) {
         // should get through the search quickly.
         var lastIndex = 0;
         var len = versionInfo.length;
+        var versionEntry;
 
         while (lastIndex < len) {
-            if (versionInfo[lastIndex].buildNumber <= buildNumber) {
+            versionEntry = versionInfo[lastIndex];
+            if (versionEntry.buildNumber <= buildNumber && _checkBuildApplicability(versionEntry)) {
                 break;
             }
             lastIndex++;

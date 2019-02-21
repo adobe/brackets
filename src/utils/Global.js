@@ -83,6 +83,24 @@ define(function (require, exports, module) {
         global.brackets.platform = "win";
     }
 
+    // Expose platform info for build applicability consumption
+    global.brackets.getPlatformInfo = function () {
+        var OS = "";
+
+        if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
+            OS = "WIN";
+        } else if (/Mac/.test(window.navigator.userAgent)) {
+            OS = "OSX";
+        } else if (/Linux|X11/.test(window.navigator.userAgent)) {
+            OS = "LINUX32";
+            if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
+                OS = "LINUX64";
+            }
+        }
+
+        return OS;
+    }
+
     global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
 
     // Are we in a desktop shell with a native menu bar?
