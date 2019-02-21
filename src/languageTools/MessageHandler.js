@@ -43,9 +43,6 @@ define(function (require, exports, module) {
     //Init node with Information required by Language Client
     clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
 
-    var nodeDomains = {},
-        nodeInterfaces = {};
-
 
     function _createNodeDomain(domainName, domainPath) {
         return new NodeDomain(domainName, domainPath);
@@ -81,6 +78,12 @@ define(function (require, exports, module) {
             activeEditor = EditorManager.getActiveEditor();
 
         params = params ? params : {};
+        
+        //Don't construct if the formatting is done by the caller
+        if (params.format === "spec") {
+            return params;
+        }
+        
         switch (type) {
         case ToolingInfo.LANGUAGE_SERVICE.START:
             {
@@ -146,6 +149,12 @@ define(function (require, exports, module) {
         var jsonParams = null;
 
         params = params ? params : {};
+        
+        //Don't construct if the formatting is done by the caller
+        if (params.format === "spec") {
+            return params;
+        }
+        
         switch (type) {
         case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
             {
@@ -221,31 +230,12 @@ define(function (require, exports, module) {
         return nodeInterface;
     }
 
-    function registerLanguageClientInterface(domainName, languageClientInterface) {
-        nodeInterfaces[domainName] = languageClientInterface;
-    }
-
-    function registerLanguageClientDomain(domainName, languageClientDomain) {
-        nodeDomains[domainName] = languageClientDomain;
-    }
-
-    function getNodeDomain(domainName) {
-        return nodeDomains[domainName];
-    }
-
-    function getNodeInterface(domainName) {
-        return nodeInterfaces[domainName];
-    }
-
     function initiateLanguageClient(clientName, clientFilePath) {
         var result = $.Deferred();
 
         loadLanguageClientDomain(clientName, clientFilePath)
             .then(function (languageClientDomain) {
                 var languageClientInterface = createNodeInterfaceForDomain(languageClientDomain);
-
-                registerLanguageClientDomain(clientName, languageClientDomain);
-                registerLanguageClientInterface(clientName, languageClientInterface);
 
                 result.resolve({
                     name: clientName,
@@ -259,6 +249,4 @@ define(function (require, exports, module) {
     exports.initiateLanguageClient = initiateLanguageClient;
     exports.constructRequestParams = constructRequestParams;
     exports.constructNotificationParams = constructNotificationParams;
-    exports.getNodeDomain = getNodeDomain;
-    exports.getNodeInterface = getNodeInterface;
 });
