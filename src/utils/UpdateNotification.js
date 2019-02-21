@@ -278,21 +278,22 @@ define(function (require, exports, module) {
         var lastIndex = 0;
         var len = versionInfo.length;
         var versionEntry;
+        var validBuildEntries;
 
         while (lastIndex < len) {
             versionEntry = versionInfo[lastIndex];
-            if (versionEntry.buildNumber <= buildNumber && _checkBuildApplicability(versionEntry)) {
+            if (versionEntry.buildNumber <= buildNumber) {
                 break;
             }
             lastIndex++;
         }
 
         if (lastIndex > 0) {
-            return versionInfo.slice(0, lastIndex);
+            // Filter recent update entries based on applicability to current platform
+            validBuildEntries = versionInfo.slice(0, lastIndex).filter(_checkBuildApplicability);
         }
 
-        // No new version info
-        return null;
+        return validBuildEntries;
     }
 
     /**
@@ -455,7 +456,7 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                if (allUpdates) {
+                if (allUpdates && allUpdates.length > 0) {
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
 
