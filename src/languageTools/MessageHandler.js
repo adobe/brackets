@@ -30,8 +30,7 @@ define(function (require, exports, module) {
         NodeDomain = require("utils/NodeDomain"),
         EditorManager = require("editor/EditorManager"),
         FileUtils = require("file/FileUtils"),
-        BracketsToNodeInterface = require("languageTools/BracketsToNodeInterface").BracketsToNodeInterface,
-        ProjectManager = require("project/ProjectManager");
+        BracketsToNodeInterface = require("languageTools/BracketsToNodeInterface").BracketsToNodeInterface;
 
     //Register paths required for Language Client and also register default brackets capabilities.
     var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
@@ -74,8 +73,7 @@ define(function (require, exports, module) {
         RequestParams creator - sendNotifications/request
     */
     function constructRequestParams(type, params) {
-        var jsonParams = null,
-            activeEditor = EditorManager.getActiveEditor();
+        var jsonParams = null;
 
         params = params ? params : {};
         
@@ -87,10 +85,10 @@ define(function (require, exports, module) {
         switch (type) {
         case ToolingInfo.LANGUAGE_SERVICE.START:
             {
-                jsonParams = {
-                    rootPath: hasValidProp(params, "rootPath") ? params.rootPath : ProjectManager.getProjectRoot().fullPath,
-                    capabilities: params.capabilities ? params.capabilities : false
-                };
+                if (hasValidProp(params, "rootPath")) {
+                    jsonParams = _createParams(type, params);
+                    jsonParams["capabilities"] = params.capabilities ? params.capabilities : false;
+                }
                 break;
             }
         case ToolingInfo.FEATURES.CODE_HINTS:
@@ -99,10 +97,9 @@ define(function (require, exports, module) {
         case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
         case ToolingInfo.FEATURES.JUMP_TO_IMPL:
             {
-                jsonParams = _createParams(type, {
-                    filePath: hasValidProp(params, "filePath") ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath),
-                    cursorPos: hasValidProp(params, "cursorPos") ? params.cursorPos : activeEditor.getCursorPos()
-                });
+                if (hasValidProps(params, ["filePath", "cursorPos"])) {
+                    jsonParams = _createParams(type, params);
+                }
                 break;
             }
         case ToolingInfo.FEATURES.CODE_HINT_INFO:
@@ -112,18 +109,17 @@ define(function (require, exports, module) {
             }
         case ToolingInfo.FEATURES.FIND_REFERENCES:
             {
-                jsonParams = _createParams(type, {
-                    filePath: hasValidProp(params, "filePath") ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath),
-                    cursorPos: hasValidProp(params, "cursorPos") ? params.cursorPos : activeEditor.getCursorPos(),
-                    includeDeclaration: params.includeDeclaration ? params.includeDeclaration : false
-                });
+                if (hasValidProps(params, ["filePath", "cursorPos"])) {
+                    jsonParams = _createParams(type, params);
+                    jsonParams["includeDeclaration"] = params.includeDeclaration ? params.includeDeclaration : false;
+                }
                 break;
             }
         case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
             {
-                jsonParams = _createParams(type, {
-                    filePath: hasValidProp(params, "filePath") ? params.filePath : (activeEditor.document.file._path || activeEditor.document.file.fullPath)
-                });
+                if (hasValidProp(params, "filePath")) {
+                    jsonParams = _createParams(type, params);
+                }
                 break;
             }
         case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
