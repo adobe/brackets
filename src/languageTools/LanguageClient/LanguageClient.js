@@ -31,9 +31,25 @@ var ProtocolAdapter = require("./ProtocolAdapter"),
     ServerUtils = require("./ServerUtils"),
     Connection = require("./Connection"),
     NodeToBracketsInterface = require("./NodeToBracketsInterface").NodeToBracketsInterface,
-    ToolingInfo = LanguageClientInfo.toolingInfo;
+    ToolingInfo = LanguageClientInfo.toolingInfo,
+    MESSAGE_TYPE = {
+        BRACKETS: "brackets",
+        SERVER: "server"
+    };
 
-function LanguageClient(clientName, options, domainManager) {
+function validateHandler(handler) {
+    var retval = false;
+
+    if (handler && typeof handler === "function") {
+        retval = true;
+    } else {
+        console.warn("Handler validation failed. Handler should be of type 'function'. Provided handler is of type :", typeof handler);
+    }
+
+    return retval;
+}
+
+function LanguageClient(clientName, domainManager, options) {
     this._clientName = clientName;
     this._bracketsInterface = null;
     this._notifyBrackets = null;
@@ -41,7 +57,9 @@ function LanguageClient(clientName, options, domainManager) {
     this._connection = null,
     this._startUpParams = null, //_projectRoot, capabilties, workspaceFolders etc.
     this._initialized = false,
-    this._options = options;
+    this._onRequestHandler = {};
+    this._onNotificationHandlers = {};
+    this._options = options || null;
 
 
     this._init(domainManager);
@@ -49,6 +67,10 @@ function LanguageClient(clientName, options, domainManager) {
 
 
 LanguageClient.prototype._createConnection = function () {
+    if (!this._options || !this._options.serverOptions) {
+        return Promise.reject("No valid options provided for client :", this._clientName);
+    }
+
     var restartLanguageClient = this.start.bind(this),
         stopLanguageClient = this.stop.bind(this);
 
@@ -61,6 +83,13 @@ LanguageClient.prototype._createConnection = function () {
         });
 };
 
+LanguageClient.prototype.setOptions = function (options) {
+    if (options && typeof options === "object") {
+        this._options = options;
+    } else {
+        console.error("Invalid options provided for client :", this._clientName);
+    }
+};
 
 LanguageClient.prototype.start = function (params) {
     var self = this;
@@ -91,7 +120,7 @@ LanguageClient.prototype.start = function (params) {
             ProtocolAdapter.initialized(self._connection);
             return result;
         }).catch(function (error) {
-            console.error('Starting client failed', error);
+            console.error('Starting client failed because :', error);
             console.error('Couldn\'t start client :', self._clientName);
 
             return error;
@@ -115,12 +144,61 @@ LanguageClient.prototype.stop = function () {
 };
 
 LanguageClient.prototype.request = function (params) {
+    var messageParams = params.params;
+    if (messageParams && messageParams.messageType === MESSAGE_TYPE.BRACKETS) {
+        if (!messageParams.type) {
+            console.log("Invalid brackets request");
+            return Promise.reject();
+        }
+
+        var requestHandler = this._onRequestHandler[messageParams.type];
+        if(validateHandler(requestHandler)) {
+            return requestHandler.call(null, messageParams.params);
+        }
+        console.log("No handler provided for brackets request type : ", messageParams.type);
+        return Promise.reject();
+    }
     return ProtocolAdapter.processRequest(this._connection, params);
+
 };
 
-
 LanguageClient.prototype.notify = function (params) {
-    ProtocolAdapter.processNotification(this._connection, params);
+    var messageParams = params.params;
+    if (messageParams && messageParams.messageType === MESSAGE_TYPE.BRACKETS) {
+        if (!messageParams.type) {
+            console.log("Invalid brackets notification");
+            return;
+        }
+
+        var notificationHandlers = this._onNotificationHandlers[messageParams.type];
+        if(notificationHandlers && Array.isArray(notificationHandlers) && notificationHandlers.length) {
+            notificationHandlers.forEach(function (handler) {
+                if(validateHandler(handler)) {
+                    handler.call(null, messageParams.params);
+                }
+            });
+        } else {
+            console.log("No handlers provided for brackets notification type : ", messageParams.type);
+        }
+    } else {
+        ProtocolAdapter.processNotification(this._connection, params);
+    }
+};
+
+LanguageClient.prototype.addOnRequestHandler = function (type, handler) {
+    if (validateHandler(handler)) {
+        this._onRequestHandler[type] = handler;
+    }
+};
+
+LanguageClient.prototype.addOnNotificationHandler = function (type, handler) {
+    if (validateHandler(handler)) {
+        if (!this._onNotificationHandlers[type]) {
+            this._onNotificationHandlers[type] = [];
+        }
+
+        this._onNotificationHandlers[type].push(handler);
+    }
 };
 
 LanguageClient.prototype._init = function (domainManager) {
