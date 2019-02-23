@@ -28,7 +28,6 @@ define(function (require, exports, module) {
 
     var ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json")),
         NodeDomain = require("utils/NodeDomain"),
-        EditorManager = require("editor/EditorManager"),
         FileUtils = require("file/FileUtils"),
         BracketsToNodeInterface = require("languageTools/BracketsToNodeInterface").BracketsToNodeInterface;
 
@@ -76,12 +75,12 @@ define(function (require, exports, module) {
         var jsonParams = null;
 
         params = params ? params : {};
-        
+
         //Don't construct if the formatting is done by the caller
         if (params.format === "spec") {
             return params;
         }
-        
+
         switch (type) {
         case ToolingInfo.LANGUAGE_SERVICE.START:
             {
@@ -145,12 +144,12 @@ define(function (require, exports, module) {
         var jsonParams = null;
 
         params = params ? params : {};
-        
+
         //Don't construct if the formatting is done by the caller
         if (params.format === "spec") {
             return params;
         }
-        
+
         switch (type) {
         case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
             {
