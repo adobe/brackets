@@ -21,7 +21,31 @@
  *
  */
 
-/*global JSLINT */
+/*property
+    DESCRIPTION_JSLINT_OPTIONS, DESCRIPTION_JSLINT_OPTIONS_ASS,
+    DESCRIPTION_JSLINT_OPTIONS_BITWISE, DESCRIPTION_JSLINT_OPTIONS_BROWSER,
+    DESCRIPTION_JSLINT_OPTIONS_CLOSURE, DESCRIPTION_JSLINT_OPTIONS_CONTINUE,
+    DESCRIPTION_JSLINT_OPTIONS_COUCH, DESCRIPTION_JSLINT_OPTIONS_DEBUG,
+    DESCRIPTION_JSLINT_OPTIONS_DEVEL, DESCRIPTION_JSLINT_OPTIONS_EQEQ,
+    DESCRIPTION_JSLINT_OPTIONS_ES6, DESCRIPTION_JSLINT_OPTIONS_EVIL,
+    DESCRIPTION_JSLINT_OPTIONS_FORIN, DESCRIPTION_JSLINT_OPTIONS_INDENT,
+    DESCRIPTION_JSLINT_OPTIONS_MAXERR, DESCRIPTION_JSLINT_OPTIONS_MAXLEN,
+    DESCRIPTION_JSLINT_OPTIONS_NEWCAP, DESCRIPTION_JSLINT_OPTIONS_NODE,
+    DESCRIPTION_JSLINT_OPTIONS_NOMEN, DESCRIPTION_JSLINT_OPTIONS_PASSFAIL,
+    DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS, DESCRIPTION_JSLINT_OPTIONS_REGEXP,
+    DESCRIPTION_JSLINT_OPTIONS_RHINO, DESCRIPTION_JSLINT_OPTIONS_SLOPPY,
+    DESCRIPTION_JSLINT_OPTIONS_STUPID, DESCRIPTION_JSLINT_OPTIONS_SUB,
+    DESCRIPTION_JSLINT_OPTIONS_TODO, DESCRIPTION_JSLINT_OPTIONS_UNPARAM,
+    DESCRIPTION_JSLINT_OPTIONS_VARS, DESCRIPTION_JSLINT_OPTIONS_WHITE, Editor,
+    JSLINT_NAME, Type, WARNING, ass, bitwise, browser, ch, clone, closure,
+    column, continue, couch, debug, definePreference, description, devel, eqeq,
+    errors, es6, evil, forin, get, getExtensionPrefs, getModule, getSpaceUnits,
+    getTabSize, getUseTabChar, indent, initial, isEqual, keys, line, log, map,
+    maxerr, maxlen, message, name, newcap, node, nomen, ok, on, passfail,
+    plusplus, pos, predef, regexp, register, replace, requestRun, rhino,
+    scanFile, sloppy, some, stop, stupid, sub, todo, type, unparam, vars,
+    warnings, white
+*/
 
 /**
  * Provides JSLint results via the core linting extension point
@@ -30,6 +54,7 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load JSLint, a non-module lib
+    // this will be added as a global
     require("thirdparty/jslint/jslint");
 
     // Load dependent modules
@@ -49,6 +74,23 @@ define(function (require, exports, module) {
      */
     var _lastRunOptions;
 
+    // The current list is available from http://jslint.com/help.html
+    // - bitwise
+    // - browser
+    // - convert
+    // - couch
+    // - devel
+    // - eval
+    // - for
+    // - fudge
+    // - getset
+    // - maxerr
+    // - maxlen
+    // - multivar
+    // - node
+    // - single
+    // - this
+    // - white
     prefs.definePreference("options", "object", undefined, {
         description: Strings.DESCRIPTION_JSLINT_OPTIONS,
         keys: {
@@ -217,7 +259,7 @@ define(function (require, exports, module) {
      */
     function lintOneFile(text, fullPath) {
         // If a line contains only whitespace (here spaces or tabs), remove the whitespace
-        text = text.replace(/^[ \t]+$/gm, "");
+        text = text.replace(/^[\u0020\t]+$/gm, "");
 
         var options = prefs.get("options");
 
@@ -243,28 +285,36 @@ define(function (require, exports, module) {
             options.browser = true;
         }
 
-        var jslintResult = JSLINT(text, options);
+        // TODO(Ingo): die Options werden nicht beachtet
+        var jslintResult = jslint(text, options, options.predef);
+        console.log(jslintResult);
 
-        if (!jslintResult) {
+        if (!jslintResult.ok) {
             // Remove any trailing null placeholder (early-abort indicator)
-            var errors = JSLINT.errors.filter(function (err) { return err !== null; });
+            //var errors = JSLINT.errors.filter(function (err) { return err !== null; });
 
-            errors = errors.map(function (jslintError) {
+            var errors = jslintResult.warnings.map(function (jslintError) {
                 return {
                     // JSLint returns 1-based line/col numbers
-                    pos: { line: jslintError.line - 1, ch: jslintError.character - 1 },
-                    message: jslintError.reason,
+//                    pos: { line: jslintError.line - 1, ch: jslintError.character - 1 },
+                    pos: { line: jslintError.line, ch: jslintError.column },
+                    message: jslintError.message,
                     type: CodeInspection.Type.WARNING
                 };
             });
 
             var result = { errors: errors };
 
-            // If array terminated in a null it means there was a stop notice
-            if (errors.length !== JSLINT.errors.length) {
-                result.aborted = true;
-                errors[errors.length - 1].type = CodeInspection.Type.META;
+            // TODO(Ingo) wann ist das mal false?
+            if (jslintResult.stop) {
+//                result.aborted = true;
             }
+
+            // If array terminated in a null it means there was a stop notice
+//            if (errors.length !== JSLINT.errors.length) {
+//                result.aborted = true;
+//                errors[errors.length - 1].type = CodeInspection.Type.META;
+//            }
 
             return result;
         }

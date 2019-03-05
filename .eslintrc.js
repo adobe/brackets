@@ -57,7 +57,7 @@ module.exports = {
                 "CodeMirror.Pos",
                 "Immutable.Map",
                 "Immutable.List",
-                "JSLINT"
+                "jslint"
             ]
         }],
         "new-parens": 2,
@@ -79,6 +79,7 @@ module.exports = {
         "ArrayBuffer": false,
         "Uint32Array": false,
         "WebSocket": false,
-        "XMLHttpRequest": false
+        "XMLHttpRequest": false,
+        "jslint": false
     }
 };
