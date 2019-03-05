@@ -329,27 +329,6 @@ define(function (require, exports, module) {
     }
 
 
-     /**
-     * Generates the extension for installer file, based on platform
-     * @returns {string} - OS - current OS }
-     */
-    function getPlatformInfo() {
-        var OS = "";
-
-        if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
-            OS = "WIN";
-        } else if (/Mac/.test(window.navigator.userAgent)) {
-            OS = "OSX";
-        } else if (/Linux|X11/.test(window.navigator.userAgent)) {
-            OS = "LINUX32";
-            if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
-                OS = "LINUX64";
-            }
-        }
-
-        return OS;
-    }
-
     /**
      * Initializes the state for AutoUpdate process
      * @returns {$.Deferred} - a jquery promise,
@@ -466,7 +445,7 @@ define(function (require, exports, module) {
                 console.warn("AutoUpdate : updates information not available.");
                 return;
             }
-            var OS = getPlatformInfo(),
+            var OS = brackets.getPlatformInfo(),
                 checksum,
                 downloadURL,
                 installerName,
