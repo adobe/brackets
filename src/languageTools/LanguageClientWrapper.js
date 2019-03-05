@@ -87,7 +87,7 @@ define(function (require, exports, module) {
 
     LanguageClientWrapper.prototype._onRequestDelegator = function (params) {
         if (!params || !params.type) {
-            console.log("Invalid Parameters provided for server request type : ", params.type);
+            console.log("Invalid server request");
             return $.Deferred().reject();
         }
 
@@ -102,7 +102,8 @@ define(function (require, exports, module) {
 
     LanguageClientWrapper.prototype._onNotificationDelegator = function (params) {
         if (!params || !params.type) {
-            console.log("Invalid Parameters provided for server notification type : ", params.type);
+            console.log("Invalid server notification");
+            return;
         }
 
         var notificationHandlers = this._onNotificationHandlers[params.type];
@@ -307,7 +308,7 @@ define(function (require, exports, module) {
     };
 
     //customRequest
-    LanguageClientWrapper.prototype.customRequest = function (params) {
+    LanguageClientWrapper.prototype.sendCustomRequest = function (params) {
         return this._request(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST, params);
     };
 
