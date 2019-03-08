@@ -293,7 +293,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tamaño do tabulador:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} liña",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} liñas",
-    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensións desactivadas”,
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensións desactivadas",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "SOB",
     "STATUSBAR_INSOVR_TOOLTIP"              : "Fai clic para trocar entre o modo inserir (INS) e o modo sobrescribir (SOB)",
