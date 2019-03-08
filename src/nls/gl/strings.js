@@ -309,7 +309,7 @@ define({
     "MULTIPLE_ERRORS"                       : "{1} problemas de {0}",
     "NO_ERRORS"                             : "Non se atoparon problemas de {0} - Bo traballo!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Non se atoparon problemas - Bo traballo!",
-    "LINT_DISABLED"                         : "A inspección de código está desactivada”,
+    "LINT_DISABLED"                         : "A inspección de código está desactivada",
     "NO_LINT_AVAILABLE"                     : "Non hai inspección de código dispoñible para {0}",
     "NOTHING_TO_LINT"                       : "Non hai nada para inspeccionar",
     "LINTER_TIMED_OUT"                      : "{0} esgotou o tempo despois de agardar {1} ms",
