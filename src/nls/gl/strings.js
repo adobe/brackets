@@ -836,7 +836,7 @@ define({
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false para abrir o ficheiro de preferencias no panel da esquerda/arriba",
     "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true para contraer os paneis despois que o último ficheiro se peche dende o botón da cabeceira do panel",
     "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Toggle when to show the close and flip-view buttons on the header.",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Este é un ficheiro de só lectura con las preferencias soportadas\n * por {APP_NAME}.\n * Podes usar este archivo como referencia para modificar tu archivo de\n * preferencias \"brackets.json\" abierto en el otro panel.\n * Para más información sobre como usar las preferencias dentro de\n * {APP_NAME}, podes consultar la página web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Este é un ficheiro de só lectura coas preferencias soportadas\n * por {APP_NAME}.\n * Emprega este ficheiro como referencia para modificar o teu ficheiro de\n * preferencias \"brackets.json\" aberto no outro panel.\n * Para máis información de como usar as preferencias dentro d0\n * {APP_NAME}, podes consultar a páxina web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Predefinido"
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true para activar o modo de só código e ocultar tódolos outros elementos da interface no {APP_NAME}",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "true para activar o sangrado das liñas de comentarios",
