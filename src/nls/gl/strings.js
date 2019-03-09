@@ -760,7 +760,7 @@ define({
     "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "Resaltar tódalas cadeas que coincidan coa cadea onde se atopa o cursor (non se precisa selección)",
     "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Resaltar só cando a selección é unha cadea completa",
     "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "true para inserir a suxestión de código ao premer o tabulador",
-    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "true para ocultar suxestións de código automaticamente en JS cando \".\" é tipado”,
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "true para ocultar suxestións de código automaticamente en JS cando \".\" é tipado",
     "DESCRIPTION_JSLINT_OPTIONS"                     : "Un obxecto cos axustes predefinidos de JSLint",
     "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "true para permitir expresións de asignación",
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "true para permitir os operadores bit a bit",
