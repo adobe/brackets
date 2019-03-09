@@ -502,7 +502,7 @@ define({
     "INSTALL"                              : "Instalar",
     "UPDATE"                               : "Actualizar",
     "REMOVE"                               : "Eliminar",
-    "DISABLE"                              : "Desactivar”,
+    "DISABLE"                              : "Desactivar",
     "ENABLE"                               : "Activar",
     "OVERWRITE"                            : "Sobrescribir",
     "CANT_REMOVE_DEV"                      : "As extensións no cartafol \"dev\" débense eliminar manualmente.",
