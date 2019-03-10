@@ -28,14 +28,18 @@
 
 var protocol = require("vscode-languageserver-protocol"),
     Utils = require("./Utils"),
-    ToolingInfo = LanguageClientInfo.toolingInfo;
+    ToolingInfo = LanguageClientInfo.toolingInfo,
+    MESSAGE_FORMAT = {
+        BRACKETS: "brackets",
+        LSP: "lsp"
+    };
 
 function _constructParamsAndRelay(relay, type, params) {
     var _params = null,
         handler = null;
     
     //Check for param object format. We won't change anything if the object if preformatted.
-    if (params.format === "spec") {
+    if (params.format === MESSAGE_FORMAT.LSP) {
         params.format = undefined;
         _params = JSON.parse(JSON.stringify(params));
     }
@@ -43,7 +47,7 @@ function _constructParamsAndRelay(relay, type, params) {
     switch (type) {
     case ToolingInfo.LANGUAGE_SERVICE.CANCEL_REQUEST:
         {
-                //TODO
+            //TODO
             break;
         }
     case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
