@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         BracketsToNodeInterface = require("languageTools/BracketsToNodeInterface").BracketsToNodeInterface;
 
     //Register paths required for Language Client and also register default brackets capabilities.
-    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
+    var _bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
         _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath = "node/RegisterLanguageClientInfo",
         _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/"),

@@ -32,13 +32,13 @@ span.brackets-hints-with-type-details {
     font-weight: 100;
     font-style: italic !important;
     margin-right: 5px;
-    float:right;
+    float: right;
 }
 
 .hint-description {
     display: none;
     color: #d4d4d4;
-    word-wrap: break-word;	
+    word-wrap: break-word;
     white-space: normal;
     box-sizing: border-box;
 }
@@ -71,17 +71,17 @@ span.brackets-hints-with-type-details {
 
 .dark .brackets-hints-type-details {
     color: #696969 !important;
-} 
+}
 
 .highlight .brackets-hints-type-details {
-    display:none;
+    display: none;
 }
 
 .brackets-hints-keyword {
     font-weight: 100;
     font-style: italic !important;
     margin-right: 5px;
-    float:right;
+    float: right;
     color: #6495ed !important;
 }
 
@@ -97,8 +97,8 @@ span.brackets-hints-with-type-details {
     z-index: 15;
     left: 400px;
     top: 40px;
-	height: auto;
-	width: auto;
+    height: auto;
+    width: auto;
     overflow: scroll;
 
     padding: 1px 6px;
@@ -120,7 +120,7 @@ span.brackets-hints-with-type-details {
 
 .dark #function-hint-container-new {
     background: #000;
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: #fff;
     box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
 }
