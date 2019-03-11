@@ -50,9 +50,9 @@ define(function (require, exports, module) {
 
     function _withNamespace(event) {
         var retval = event.split(" ")
-                        .filter((value) => !!value)
-                        .map((value) => value + ".language-tools")
-                        .join(" ");
+            .filter((value) => !!value)
+            .map((value) => value + ".language-tools")
+            .join(" ");
 
         return retval;
     }
@@ -66,12 +66,12 @@ define(function (require, exports, module) {
     }
 
     function _attachEventHandlers() {
-        EditorManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.EDITOR_CHANGE_EVENT), _eventHandler);//(event, current, previous)
-        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_OPEN_EVENT), _eventHandler);//(event, directory)
-        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_CLOSE_EVENT), _eventHandler);//(event, directory)
-        DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_DIRTY_EVENT), _eventHandler);//(event, document)
-        DocumentModule.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_CHANGE_EVENT), _eventHandler);//(event, document, changeList)
-        DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.FILE_RENAME_EVENT), _eventHandler);//(event, oldName, newName)
+        EditorManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.EDITOR_CHANGE_EVENT), _eventHandler); //(event, current, previous)
+        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_OPEN_EVENT), _eventHandler); //(event, directory)
+        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_CLOSE_EVENT), _eventHandler); //(event, directory)
+        DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_DIRTY_EVENT), _eventHandler); //(event, document)
+        DocumentModule.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_CHANGE_EVENT), _eventHandler); //(event, document, changeList)
+        DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.FILE_RENAME_EVENT), _eventHandler); //(event, oldName, newName)
     }
 
     _attachEventHandlers();

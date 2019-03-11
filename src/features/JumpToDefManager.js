@@ -24,17 +24,17 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Commands                    = require("command/Commands"),
-        AppInit                     = require("utils/AppInit"),
-        CommandManager              = require("command/CommandManager"),
-        EditorManager               = require("editor/EditorManager"),
-        PerfUtils                   = require("utils/PerfUtils"),
-        Menus                       = require("command/Menus"),
+    var Commands = require("command/Commands"),
+        AppInit = require("utils/AppInit"),
+        CommandManager = require("command/CommandManager"),
+        EditorManager = require("editor/EditorManager"),
+        PerfUtils = require("utils/PerfUtils"),
+        Menus = require("command/Menus"),
         ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler;
 
     var _providerRegistrationHandler = new ProviderRegistrationHandler(),
-        registerJumpToDefProvider    = _providerRegistrationHandler.registerProvider.bind(_providerRegistrationHandler),
-        removeJumpToDefProvider      = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
+        registerJumpToDefProvider = _providerRegistrationHandler.registerProvider.bind(_providerRegistrationHandler),
+        removeJumpToDefProvider = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
 
 
     /**
@@ -94,6 +94,6 @@ define(function (require, exports, module) {
         Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
     });
 
-    exports.registerJumpToDefProvider    = registerJumpToDefProvider;
-    exports.removeJumpToDefProvider      = removeJumpToDefProvider;
+    exports.registerJumpToDefProvider = registerJumpToDefProvider;
+    exports.removeJumpToDefProvider = removeJumpToDefProvider;
 });

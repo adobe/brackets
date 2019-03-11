@@ -27,37 +27,37 @@ define(function (require, exports, module) {
 
     var _ = require("thirdparty/lodash");
 
-    var Commands        = require("command/Commands"),
-        AppInit         = require("utils/AppInit"),
-        CommandManager  = require("command/CommandManager"),
-        EditorManager   = require("editor/EditorManager"),
-        KeyEvent        = require("utils/KeyEvent"),
-        Strings         = require("strings"),
+    var Commands = require("command/Commands"),
+        AppInit = require("utils/AppInit"),
+        CommandManager = require("command/CommandManager"),
+        EditorManager = require("editor/EditorManager"),
+        KeyEvent = require("utils/KeyEvent"),
+        Strings = require("strings"),
         ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler;
 
 
     /** @const {string} Show Function Hint command ID */
-    var SHOW_PARAMETER_HINT_CMD_ID   = "showParameterHint", // string must MATCH string in native code (brackets_extensions)
-        hintContainerHTML            = require("text!htmlContent/parameter-hint-template.html");
+    var SHOW_PARAMETER_HINT_CMD_ID = "showParameterHint", // string must MATCH string in native code (brackets_extensions)
+        hintContainerHTML = require("text!htmlContent/parameter-hint-template.html");
 
-    var $hintContainer,    // function hint container
-        $hintContent,      // function hint content holder
+    var $hintContainer, // function hint container
+        $hintContent, // function hint content holder
         hintState = {},
-        lastChar         = null,
-        sessionEditor    = null,
-        keyDownEditor    = null;
+        lastChar = null,
+        sessionEditor = null,
+        keyDownEditor = null;
 
     // Constants
-    var POINTER_TOP_OFFSET          = 4,    // Size of margin + border of hint.
-        POSITION_BELOW_OFFSET       = 4;    // Amount to adjust to top position when the preview bubble is below the text
+    var POINTER_TOP_OFFSET = 4, // Size of margin + border of hint.
+        POSITION_BELOW_OFFSET = 4; // Amount to adjust to top position when the preview bubble is below the text
 
     // keep jslint from complaining about handleCursorActivity being used before
     // it was defined.
     var handleCursorActivity;
 
     var _providerRegistrationHandler = new ProviderRegistrationHandler(),
-        registerHintProvider    = _providerRegistrationHandler.registerProvider.bind(_providerRegistrationHandler),
-        removeHintProvider      = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
+        registerHintProvider = _providerRegistrationHandler.registerProvider.bind(_providerRegistrationHandler),
+        removeHintProvider = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
 
     /**
      * Position a function hint.
@@ -67,10 +67,10 @@ define(function (require, exports, module) {
      * @param {number} ybot
      */
     function positionHint(xpos, ypos, ybot) {
-        var hintWidth  = $hintContainer.width(),
+        var hintWidth = $hintContainer.width(),
             hintHeight = $hintContainer.height(),
-            top           = ypos - hintHeight - POINTER_TOP_OFFSET,
-            left          = xpos,
+            top = ypos - hintHeight - POINTER_TOP_OFFSET,
+            left = xpos,
             $editorHolder = $("#editor-holder"),
             editorLeft;
 
@@ -256,11 +256,11 @@ define(function (require, exports, module) {
             }
         });
 
-        if(sessionProvider) {
+        if (sessionProvider) {
             request = sessionProvider.getParameterHints();
         }
 
-        if(request) {
+        if (request) {
             request.done(function (parameterHint) {
                 var cm = editor._codeMirror,
                     pos = cm.charCoords(editor.getCursorPos());
@@ -298,14 +298,14 @@ define(function (require, exports, module) {
      */
     function installListeners(editor) {
         editor.on("keydown.ParameterHints", function (event, editor, domEvent) {
-            if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                    dismissHint(editor);
+                }
+            }).on("scroll.ParameterHints", function () {
                 dismissHint(editor);
-            }
-        }).on("scroll.ParameterHints", function () {
-            dismissHint(editor);
-        })
-        .on("editorChange.ParameterHints", _handleChange)
-        .on("keypress.ParameterHints", _handleKeypressEvent);
+            })
+            .on("editorChange.ParameterHints", _handleChange)
+            .on("keypress.ParameterHints", _handleKeypressEvent);
     }
 
     /**
@@ -343,23 +343,23 @@ define(function (require, exports, module) {
         if (previous) {
             //Removing all old Handlers
             previous.document
-                    .off("languageChanged.ParameterHints");
+                .off("languageChanged.ParameterHints");
             uninstallListeners(previous);
         }
 
         if (current) {
             current.document
-                    .on("languageChanged.ParameterHints", function () {
-                        // If current doc's language changed, reset our state by treating it as if the user switched to a
-                        // different document altogether
-                        uninstallListeners(current);
-                        installListeners(current);
-                    });
+                .on("languageChanged.ParameterHints", function () {
+                    // If current doc's language changed, reset our state by treating it as if the user switched to a
+                    // different document altogether
+                    uninstallListeners(current);
+                    installListeners(current);
+                });
             installListeners(current);
         }
     }
 
-    AppInit.appReady(function(){
+    AppInit.appReady(function () {
         // Create the function hint container
         $hintContainer = $(hintContainerHTML).appendTo($("body"));
         $hintContent = $hintContainer.find(".function-hint-content-new");
@@ -369,12 +369,12 @@ define(function (require, exports, module) {
 
         CommandManager.on("beforeExecuteCommand", function (event, commandId) {
             if (commandId !== SHOW_PARAMETER_HINT_CMD_ID &&
-                    commandId !== Commands.SHOW_CODE_HINTS) {
+                commandId !== Commands.SHOW_CODE_HINTS) {
                 dismissHint();
             }
         });
     });
 
-    exports.registerHintProvider    = registerHintProvider;
-    exports.removeHintProvider      = removeHintProvider;
+    exports.registerHintProvider = registerHintProvider;
+    exports.removeHintProvider = removeHintProvider;
 });
