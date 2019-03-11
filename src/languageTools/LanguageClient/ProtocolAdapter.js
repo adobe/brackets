@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2019 - present Adobe. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,7 @@
  *
  */
 
+/*global LanguageClientInfo*/
 /*eslint-env es6, node*/
 /*eslint max-len: ["error", { "code": 200 }]*/
 /*eslint no-fallthrough: 0*/
@@ -28,14 +29,18 @@
 
 var protocol = require("vscode-languageserver-protocol"),
     Utils = require("./Utils"),
-    ToolingInfo = LanguageClientInfo.toolingInfo;
+    ToolingInfo = LanguageClientInfo.toolingInfo,
+    MESSAGE_FORMAT = {
+        BRACKETS: "brackets",
+        LSP: "lsp"
+    };
 
 function _constructParamsAndRelay(relay, type, params) {
     var _params = null,
         handler = null;
-    
+
     //Check for param object format. We won't change anything if the object if preformatted.
-    if (params.format === "spec") {
+    if (params.format === MESSAGE_FORMAT.LSP) {
         params.format = undefined;
         _params = JSON.parse(JSON.stringify(params));
     }
@@ -43,7 +48,7 @@ function _constructParamsAndRelay(relay, type, params) {
     switch (type) {
     case ToolingInfo.LANGUAGE_SERVICE.CANCEL_REQUEST:
         {
-                //TODO
+            //TODO
             break;
         }
     case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
