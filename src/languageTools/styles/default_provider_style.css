@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+
+span.brackets-hints-with-type-details {
+    width: 300px;
+    display: inline-block;
+}
+
+.brackets-hints-type-details {
+    color: #a3a3a3 !important;
+    font-weight: 100;
+    font-style: italic !important;
+    margin-right: 5px;
+    float:right;
+}
+
+.hint-description {
+    display: none;
+    color: #d4d4d4;
+    word-wrap: break-word;	
+    white-space: normal;
+    box-sizing: border-box;
+}
+
+.hint-doc {
+    display: none;
+    padding-right: 10px !important;
+    color: grey;
+    word-wrap: break-word;
+    white-space: normal;
+    box-sizing: border-box;
+    float: left;
+    clear: left;
+    max-height: 2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1em;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.highlight .hint-description {
+    display: block;
+    color: #6495ed !important;
+}
+
+.highlight .hint-doc {
+    display: -webkit-box;
+}
+
+.dark .brackets-hints-type-details {
+    color: #696969 !important;
+} 
+
+.highlight .brackets-hints-type-details {
+    display:none;
+}
+
+.brackets-hints-keyword {
+    font-weight: 100;
+    font-style: italic !important;
+    margin-right: 5px;
+    float:right;
+    color: #6495ed !important;
+}
+
+.brackets-hints .matched-hint {
+    font-weight: 500;
+}
+
+#function-hint-container-new {
+    display: none;
+
+    background: #fff;
+    position: absolute;
+    z-index: 15;
+    left: 400px;
+    top: 40px;
+	height: auto;
+	width: auto;
+    overflow: scroll;
+
+    padding: 1px 6px;
+    text-align: center;
+
+    border-radius: 3px;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
+}
+
+#function-hint-container-new .function-hint-content-new {
+    text-align: left;
+}
+
+.brackets-hints .current-parameter {
+    font-weight: 500;
+}
+
+/* Dark Styles */
+
+.dark #function-hint-container-new {
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
+}
+
+.dark .hint-doc {
+    color: #ccc;
+}
+
+.dark .hint-description {
+    color: #ccc;
+}

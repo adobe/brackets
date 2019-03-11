@@ -159,6 +159,13 @@ define(function (require, exports, module) {
     require("languageTools/LanguageTools");
     require("languageTools/MessageHandler");
     require("languageTools/BracketsToNodeInterface");
+	require("languageTools/DefaultProviders");
+	require("languageTools/DefaultEventHandlers");
+	
+	//load language features
+	require("features/ParameterHintsManager");
+	require("features/JumpToDefManager");
+	
 
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
