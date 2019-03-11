@@ -96,7 +96,7 @@
         return function (errorData) {
             var action = actionController.getOnErrorAction(errorData);
 
-            if(action === Actions.OnError.Stop) {
+            if (action === Actions.OnError.Stop) {
                 stopLanguageClient();
             }
         };

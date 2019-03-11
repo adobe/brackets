@@ -27,10 +27,10 @@ define(function (require, exports, module) {
     "use strict";
 
     var ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json")),
-		MESSAGE_FORMAT = {
-			BRACKETS : "brackets",
-			LSP : "lsp"
-		};
+        MESSAGE_FORMAT = {
+            BRACKETS: "brackets",
+            LSP: "lsp"
+        };
 
     function _addTypeInformation(type, params) {
         return {
@@ -48,7 +48,7 @@ define(function (require, exports, module) {
             len = props.length,
             i;
 
-        for (i = 0; retval && (i < len); i ++) {
+        for (i = 0; retval && (i < len); i++) {
             retval = (retval && obj[props[i]] !== undefined && obj[props[i]] !== null);
         }
 
@@ -68,56 +68,56 @@ define(function (require, exports, module) {
         }
 
         switch (type) {
-        case ToolingInfo.LANGUAGE_SERVICE.START:
-            {
-                if (hasValidProp(params, "rootPath")) {
-                    validatedParams = params;
-                    validatedParams.capabilities = validatedParams.capabilities || false;
+            case ToolingInfo.LANGUAGE_SERVICE.START:
+                {
+                    if (hasValidProp(params, "rootPath")) {
+                        validatedParams = params;
+                        validatedParams.capabilities = validatedParams.capabilities || false;
+                    }
+                    break;
                 }
-                break;
-            }
-        case ToolingInfo.FEATURES.CODE_HINTS:
-        case ToolingInfo.FEATURES.PARAMETER_HINTS:
-        case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
-        case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
-        case ToolingInfo.FEATURES.JUMP_TO_IMPL:
-            {
-                if (hasValidProps(params, ["filePath", "cursorPos"])) {
+            case ToolingInfo.FEATURES.CODE_HINTS:
+            case ToolingInfo.FEATURES.PARAMETER_HINTS:
+            case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
+            case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
+            case ToolingInfo.FEATURES.JUMP_TO_IMPL:
+                {
+                    if (hasValidProps(params, ["filePath", "cursorPos"])) {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.FEATURES.CODE_HINT_INFO:
+                {
+                    validatedParams = params;
+                    break;
+                }
+            case ToolingInfo.FEATURES.FIND_REFERENCES:
+                {
+                    if (hasValidProps(params, ["filePath", "cursorPos"])) {
+                        validatedParams = params;
+                        validatedParams.includeDeclaration = validatedParams.includeDeclaration || false;
+                    }
+                    break;
+                }
+            case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
+                {
+                    if (hasValidProp(params, "filePath")) {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
+                {
+                    if (params && params.query && typeof params.query === "string") {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
+                {
                     validatedParams = params;
                 }
-                break;
-            }
-        case ToolingInfo.FEATURES.CODE_HINT_INFO:
-            {
-                validatedParams = params;
-                break;
-            }
-        case ToolingInfo.FEATURES.FIND_REFERENCES:
-            {
-                if (hasValidProps(params, ["filePath", "cursorPos"])) {
-                    validatedParams = params;
-                    validatedParams.includeDeclaration = validatedParams.includeDeclaration || false;
-                }
-                break;
-            }
-        case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
-            {
-                if (hasValidProp(params, "filePath")) {
-                    validatedParams = params;
-                }
-                break;
-            }
-        case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
-            {
-                if (params && params.query && typeof params.query === "string") {
-                    validatedParams = params;
-                }
-                break;
-            }
-        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
-            {
-                validatedParams = params;
-            }
         }
 
         return validatedParams;
@@ -137,45 +137,45 @@ define(function (require, exports, module) {
         }
 
         switch (type) {
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
-            {
-                if (hasValidProps(params, ["filePath", "fileContent", "languageId"])) {
+            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
+                {
+                    if (hasValidProps(params, ["filePath", "fileContent", "languageId"])) {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
+                {
+                    if (hasValidProps(params, ["filePath", "fileContent"])) {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
+                {
+                    if (hasValidProp(params, "filePath")) {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
+                {
+                    if (hasValidProp(params, "filePath")) {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
+                {
+                    if (hasValidProps(params, ["foldersAdded", "foldersRemoved"])) {
+                        validatedParams = params;
+                    }
+                    break;
+                }
+            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
+                {
                     validatedParams = params;
                 }
-                break;
-            }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
-            {
-                if (hasValidProps(params, ["filePath", "fileContent"])) {
-                    validatedParams = params;
-                }
-                break;
-            }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
-            {
-                if (hasValidProp(params, "filePath")) {
-                    validatedParams = params;
-                }
-                break;
-            }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
-            {
-                if (hasValidProp(params, "filePath")) {
-                    validatedParams = params;
-                }
-                break;
-            }
-        case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
-            {
-                if (hasValidProps(params, ["foldersAdded", "foldersRemoved"])) {
-                    validatedParams = params;
-                }
-                break;
-            }
-        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
-            {
-                validatedParams = params;
-            }
         }
 
         return validatedParams;
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
         }
 
         var requestHandler = this._onRequestHandler[params.type];
-        if(validateHandler(requestHandler)) {
+        if (validateHandler(requestHandler)) {
             return requestHandler.call(null, params.params);
         }
         console.log("No handler provided for server request type : ", params.type);
@@ -259,9 +259,9 @@ define(function (require, exports, module) {
         }
 
         var notificationHandlers = this._onNotificationHandlers[params.type];
-        if(notificationHandlers && Array.isArray(notificationHandlers) && notificationHandlers.length) {
+        if (notificationHandlers && Array.isArray(notificationHandlers) && notificationHandlers.length) {
             notificationHandlers.forEach(function (handler) {
-                if(validateHandler(handler)) {
+                if (validateHandler(handler)) {
                     handler.call(null, params.params);
                 }
             });
