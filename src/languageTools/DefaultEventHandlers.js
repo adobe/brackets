@@ -147,6 +147,15 @@ define(function (require, exports, module) {
             });
         }
     };
+    
+    EventPropagationProvider.prototype.handleAppClose = function (event) {
+        //Also handles Reload with Extensions
+        if (!this.client) {
+            return;
+        }
+
+        this.client.stop();
+    };
 
     EventPropagationProvider.prototype.registerClientForEditorEvent = function () {
         if (this.client) {
@@ -155,7 +164,8 @@ define(function (require, exports, module) {
                 handleProjectClose = this.handleProjectClose.bind(this),
                 handleDocumentDirty = this.handleDocumentDirty.bind(this),
                 handleDocumentChange = this.handleDocumentChange.bind(this),
-                handleDocumentRename = this.handleDocumentRename.bind(this);
+                handleDocumentRename = this.handleDocumentRename.bind(this),
+                handleAppClose = this.handleAppClose.bind(this);
 
             this.client.addOnEditorChangeHandler(handleActiveEditorChange);
             this.client.addOnProjectOpenHandler(handleProjectOpen);
@@ -163,6 +173,7 @@ define(function (require, exports, module) {
             this.client.addOnDocumentDirtyFlagChangeHandler(handleDocumentDirty);
             this.client.addOnDocumentChangeHandler(handleDocumentChange);
             this.client.addOnFileRenameHandler(handleDocumentRename);
+            this.client.addBeforeAppClose(handleAppClose);
 
             this.handleActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         } else {

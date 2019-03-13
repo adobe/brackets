@@ -291,6 +291,11 @@ define(function (require, exports, module) {
             filePath: docPath,
             cursorPos: pos
         }).done(function (msgObj) {
+            //For Older servers
+            if (Array.isArray(msgObj)) {
+                msgObj = msgObj[0];
+            }
+
             if (msgObj && msgObj.range) {
                 var docUri = msgObj.uri,
                     startCurPos = {};
