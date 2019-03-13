@@ -21,7 +21,7 @@
  *
  */
 
-/*global exports, process, Promise, __dirname*/
+/*global exports, process, Promise, __dirname, LanguageClientInfo*/
 /*eslint no-console: 0*/
 /*eslint no-fallthrough: 0*/
 /* eslint no-empty: ["error", { "allowEmptyCatch": true }] */
@@ -109,11 +109,11 @@
                 {
                     if (resp.process) {
                         resp.process.stderr.on('data', function (data) {
-                            console.error('Error: "%s"', String(data));
+                            console.error('[Server logs @ stderr] "%s"', String(data));
                         });
 
                         resp.process.stdout.on('data', function (data) {
-                            console.info('Result: "%s"', String(data));
+                            console.info('[Server logs @ stdout] "%s"', String(data));
                         });
 
                         retval = {
@@ -127,7 +127,7 @@
                 {
                     if (resp.process) {
                         resp.process.stderr.on('data', function (data) {
-                            console.error('Error: "%s"', String(data));
+                            console.error('[Server logs @ stderr] "%s"', String(data));
                         });
 
                         retval = {
@@ -142,11 +142,11 @@
                 {
                     if (resp.reader && resp.writer && resp.process) {
                         resp.process.stderr.on('data', function (data) {
-                            console.error('Error: "%s"', String(data));
+                            console.error('[Server logs @ stderr] "%s"', String(data));
                         });
 
                         resp.process.stdout.on('data', function (data) {
-                            console.info('Result: "%s"', String(data));
+                            console.info('[Server logs @ stdout] "%s"', String(data));
                         });
 
                         retval = {
@@ -174,12 +174,12 @@
             };
         } else if (resp.process) {
             retval = {
-                reader: protocol.StreamMessageReader(resp.process.stdout),
-                writer: protocol.StreamMessageWriter(resp.process.stdin)
+                reader: new protocol.StreamMessageReader(resp.process.stdout),
+                writer: new protocol.StreamMessageWriter(resp.process.stdin)
             };
 
             resp.process.stderr.on('data', function (data) {
-                console.error('[Error] "%s"', String(data));
+                console.error('[Server logs @ stderr] "%s"', String(data));
             });
         }
 
