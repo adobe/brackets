@@ -41,7 +41,8 @@ define(function (require, exports, module) {
             PROJECT_CLOSE_EVENT: "beforeProjectClose",
             DOCUMENT_DIRTY_EVENT: "dirtyFlagChange",
             DOCUMENT_CHANGE_EVENT: "documentChange",
-            FILE_RENAME_EVENT: "fileNameChange"
+            FILE_RENAME_EVENT: "fileNameChange",
+            BEFORE_APP_CLOSE: "beforeAppClose"
         };
 
     function registerLanguageClient(clientName, languageClient) {
@@ -72,6 +73,7 @@ define(function (require, exports, module) {
         DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_DIRTY_EVENT), _eventHandler); //(event, document)
         DocumentModule.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_CHANGE_EVENT), _eventHandler); //(event, document, changeList)
         DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.FILE_RENAME_EVENT), _eventHandler); //(event, oldName, newName)
+        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.BEFORE_APP_CLOSE), _eventHandler); //(event, oldName, newName)
     }
 
     _attachEventHandlers();
