@@ -139,15 +139,15 @@ define(function (require, exports, module) {
                 filePath: oldName
             });
         }
-        
+
         var newDocLanguageId = LanguageManager.getLanguageForPath(newName).getId();
-        if (this.client._languages.includes(docLanguageId)) {
+        if (this.client._languages.includes(newDocLanguageId)) {
             this.client.notifyTextDocumentClosed({
                 filePath: oldName
             });
         }
     };
-    
+
     EventPropagationProvider.prototype.handleAppClose = function (event) {
         //Also handles Reload with Extensions
         if (!this.client) {
