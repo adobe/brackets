@@ -212,7 +212,8 @@ define(function (require, exports, module) {
             "beforeProjectClose": [],
             "dirtyFlagChange": [],
             "documentChange": [],
-            "fileNameChange": []
+            "fileNameChange": [],
+            "beforeAppClose": []
         };
 
         this._init();
@@ -500,6 +501,12 @@ define(function (require, exports, module) {
     LanguageClientWrapper.prototype.addOnFileRenameHandler = function (handler) {
         if (validateHandler(handler)) {
             this._onEventHandlers["fileNameChange"].push(handler);
+        }
+    };
+    
+    LanguageClientWrapper.prototype.addBeforeAppClose = function (handler) {
+        if (validateHandler(handler)) {
+            this._onEventHandlers["beforeAppClose"].push(handler);
         }
     };
 

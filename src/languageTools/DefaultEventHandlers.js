@@ -60,9 +60,12 @@ define(function (require, exports, module) {
         if (previous) {
             previous.document
                 .off("languageChanged.language-tools");
-            this.client.notifyTextDocumentClosed({
-                filePath: (previous.document.file._path || previous.document.file.fullPath)
-            });
+            var previousLanguageId = LanguageManager.getLanguageForPath(previous.document.file.fullPath).getId();
+            if (this.client._languages.includes(previousLanguageId)) {
+                this.client.notifyTextDocumentClosed({
+                    filePath: (previous.document.file._path || previous.document.file.fullPath)
+                });
+            }
         }
         if (current) {
             var currentLanguageId = LanguageManager.getLanguageForPath(current.document.file.fullPath).getId();
@@ -102,9 +105,12 @@ define(function (require, exports, module) {
         }
 
         if (!document.isDirty) {
-            this.client.notifyTextDocumentSave({
-                filePath: (document.file._path || document.file.fullPath)
-            });
+            var docLanguageId = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+            if (this.client._languages.includes(docLanguageId)) {
+                this.client.notifyTextDocumentSave({
+                    filePath: (document.file._path || document.file.fullPath)
+                });
+            }
         }
     };
 
@@ -113,10 +119,13 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.client.notifyTextDocumentChanged({
-            filePath: (document.file._path || document.file.fullPath),
-            fileContent: document.getText()
-        });
+        var docLanguageId = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        if (this.client._languages.includes(docLanguageId)) {
+            this.client.notifyTextDocumentChanged({
+                filePath: (document.file._path || document.file.fullPath),
+                fileContent: document.getText()
+            });
+        }
     };
 
     EventPropagationProvider.prototype.handleDocumentRename = function (event, oldName, newName) {
@@ -124,9 +133,28 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.client.notifyTextDocumentClosed({
-            filePath: oldName
-        });
+        var oldDocLanguageId = LanguageManager.getLanguageForPath(oldName).getId();
+        if (this.client._languages.includes(oldDocLanguageId)) {
+            this.client.notifyTextDocumentClosed({
+                filePath: oldName
+            });
+        }
+        
+        var newDocLanguageId = LanguageManager.getLanguageForPath(newName).getId();
+        if (this.client._languages.includes(docLanguageId)) {
+            this.client.notifyTextDocumentClosed({
+                filePath: oldName
+            });
+        }
+    };
+    
+    EventPropagationProvider.prototype.handleAppClose = function (event) {
+        //Also handles Reload with Extensions
+        if (!this.client) {
+            return;
+        }
+
+        this.client.stop();
     };
 
     EventPropagationProvider.prototype.registerClientForEditorEvent = function () {
@@ -136,7 +164,8 @@ define(function (require, exports, module) {
                 handleProjectClose = this.handleProjectClose.bind(this),
                 handleDocumentDirty = this.handleDocumentDirty.bind(this),
                 handleDocumentChange = this.handleDocumentChange.bind(this),
-                handleDocumentRename = this.handleDocumentRename.bind(this);
+                handleDocumentRename = this.handleDocumentRename.bind(this),
+                handleAppClose = this.handleAppClose.bind(this);
 
             this.client.addOnEditorChangeHandler(handleActiveEditorChange);
             this.client.addOnProjectOpenHandler(handleProjectOpen);
@@ -144,6 +173,7 @@ define(function (require, exports, module) {
             this.client.addOnDocumentDirtyFlagChangeHandler(handleDocumentDirty);
             this.client.addOnDocumentChangeHandler(handleDocumentChange);
             this.client.addOnFileRenameHandler(handleDocumentRename);
+            this.client.addBeforeAppClose(handleAppClose);
 
             this.handleActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         } else {
