@@ -198,11 +198,12 @@
         return new Promise(function (resolve, reject) {
             var serverProcess = null,
                 result = null,
-                protocolTransport = null;
+                protocolTransport = null,
+                type = typeof communication === "object" ? communication.type : communication;
 
             var processFunc = isRuntime ? cp.spawn : cp.fork;
 
-            switch (communication) {
+            switch (type) {
                 case CommunicationTypes.NodeIPC.type:
                 case CommunicationTypes.StandardIO.type:
                     {
@@ -210,7 +211,7 @@
                         if (_isServerProcessValid(serverProcess)) {
                             result = _createReaderAndWriteByCommunicationType({
                                 process: serverProcess
-                            }, communication);
+                            }, type);
 
                             resolve(result);
                         } else {
@@ -222,10 +223,15 @@
                     {
                         protocolTransport = protocol.createClientPipeTransport(processArgs.pipeName);
                     }
-                default:
+                case CommunicationTypes.Socket.type:
                     {
                         if (communication && communication.type === CommunicationTypes.Socket.type) {
                             protocolTransport = protocol.createClientSocketTransport(communication.port);
+                        }
+                        
+                        if (!protocolTransport) {
+                            reject("Invalid Communications Object. Can't create connection with server");
+                            return;
                         }
 
                         protocolTransport.then(function (transportObj) {
@@ -236,7 +242,7 @@
                                         process: serverProcess,
                                         reader: protocolObj[0],
                                         writer: protocolObj[1]
-                                    }, communication);
+                                    }, type);
 
                                     resolve(result);
                                 }).catch(reject);
