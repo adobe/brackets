@@ -78,7 +78,7 @@ define(function (require, exports, module) {
 
     _attachEventHandlers();
 
-    function intiateToolingService(clientName, clientFilePath, languages) {
+    function initiateToolingService(clientName, clientFilePath, languages) {
         var result = $.Deferred();
 
         MessageHandler.initiateLanguageClient(clientName, clientFilePath)
@@ -96,5 +96,5 @@ define(function (require, exports, module) {
         return result;
     }
 
-    exports.intiateToolingService = intiateToolingService;
+    exports.initiateToolingService = initiateToolingService;
 });
