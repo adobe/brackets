@@ -222,10 +222,10 @@ define(function (require, exports, module) {
             hintState = {};
 
             if (editor) {
-                editor.off("cursorActivity.ParameterHints", handleCursorActivity);
+                editor.off("cursorActivity.ParameterHinting", handleCursorActivity);
                 sessionEditor = null;
             } else if (sessionEditor) {
-                sessionEditor.off("cursorActivity.ParameterHints", handleCursorActivity);
+                sessionEditor.off("cursorActivity.ParameterHinting", handleCursorActivity);
                 sessionEditor = null;
             }
         }
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
                 hintState.visible = true;
 
                 sessionEditor = editor;
-                editor.on("cursorActivity.ParameterHints", handleCursorActivity);
+                editor.on("cursorActivity.ParameterHinting", handleCursorActivity);
                 $deferredPopUp.resolveWith(null);
             }).fail(function () {
                 hintState = {};
@@ -297,15 +297,15 @@ define(function (require, exports, module) {
      *      changes
      */
     function installListeners(editor) {
-        editor.on("keydown.ParameterHints", function (event, editor, domEvent) {
+        editor.on("keydown.ParameterHinting", function (event, editor, domEvent) {
                 if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     dismissHint(editor);
                 }
-            }).on("scroll.ParameterHints", function () {
+            }).on("scroll.ParameterHinting", function () {
                 dismissHint(editor);
             })
-            .on("editorChange.ParameterHints", _handleChange)
-            .on("keypress.ParameterHints", _handleKeypressEvent);
+            .on("editorChange.ParameterHinting", _handleChange)
+            .on("keypress.ParameterHinting", _handleKeypressEvent);
     }
 
     /**
@@ -313,7 +313,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      */
     function uninstallListeners(editor) {
-        editor.off(".ParameterHints");
+        editor.off(".ParameterHinting");
     }
 
     function _handleKeypressEvent(jqEvent, editor, event) {
@@ -343,13 +343,13 @@ define(function (require, exports, module) {
         if (previous) {
             //Removing all old Handlers
             previous.document
-                .off("languageChanged.ParameterHints");
+                .off("languageChanged.ParameterHinting");
             uninstallListeners(previous);
         }
 
         if (current) {
             current.document
-                .on("languageChanged.ParameterHints", function () {
+                .on("languageChanged.ParameterHinting", function () {
                     // If current doc's language changed, reset our state by treating it as if the user switched to a
                     // different document altogether
                     uninstallListeners(current);

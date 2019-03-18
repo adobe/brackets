@@ -336,7 +336,7 @@
             return options;
         }
 
-        var communication = serverOptions.communication,
+        var communication = serverOptions.communication || CommunicationTypes.StandardIO.type,
             args = _getArguments(serverOptions),
             options = _getOptions(serverOptions),
             processArgs = {
