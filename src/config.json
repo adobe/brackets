@@ -85,6 +85,7 @@
         "tar": "2.2.1",
         "webpack": "2.2.1",
         "xmldoc": "0.1.2",
+        "xmlhttprequest": "^1.7.0",
         "zlib": "1.0.5"
     },
     "scripts": {

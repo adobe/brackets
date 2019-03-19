@@ -34,6 +34,10 @@ define(function (require, exports, module) {
         FindUtils                   = require("search/FindUtils"),
         StringUtils                 = require("utils/StringUtils"),
         EventDispatcher             = require("utils/EventDispatcher"),
+        AdobeAnalytics              = require("analytics/AdobeAnalyticsLogger"),
+        FileSystem                  = brackets.getModule("filesystem/FileSystem"),
+
+
 
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
@@ -222,10 +226,11 @@ define(function (require, exports, module) {
      * needs to be logged- should be a js var compatible string
      */
     function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType) {
-        var isEventDataAlreadySent = PreferencesManager.getViewState(eventName),
-            isHDTracking   = PreferencesManager.getExtensionPrefs("healthData").get("healthDataTracking"),
-            eventParams = {};
-        if (isHDTracking && !isEventDataAlreadySent && eventName && eventCategory) {
+        var result                  = new $.Deferred(),
+            isHDTracking            = PreferencesManager.getExtensionPrefs("healthData").get("healthDataTracking"),
+            eventParams             = {};
+
+        if (isHDTracking && eventName && eventCategory) {
             eventParams =  {
                 eventName: eventName,
                 eventCategory: eventCategory,
@@ -233,7 +238,9 @@ define(function (require, exports, module) {
                 eventType: eventType || "",
                 eventSubType: eventSubType || ""
             };
-            notifyHealthManagerToSendData(eventParams);
+
+            AdobeAnalytics.logToAdobeAnalytics(eventParams);
+            result.resolve();
         }
     }
 
