@@ -132,7 +132,7 @@ define(function (require, exports, module) {
         params = params ? params : {};
 
         //Don't validate if the formatting is done by the caller
-        if (params.format === "spec") {
+        if (params.format === MESSAGE_FORMAT.LSP) {
             return params;
         }
 
@@ -314,7 +314,12 @@ define(function (require, exports, module) {
     //start
     LanguageClientWrapper.prototype.start = function (params) {
         params = validateRequestParams(ToolingInfo.LANGUAGE_SERVICE.START, params);
-        return this._startClient(params);
+        if (params) {
+            return this._startClient(params);
+        }
+        
+        console.log("Invalid Parameters provided for request type : start");
+        return $.Deferred().reject();
     };
 
     //shutdown
@@ -536,4 +541,8 @@ define(function (require, exports, module) {
 
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
+    
+    //For unit testting 
+    exports.validateRequestParams = validateRequestParams;
+    exports.validateNotificationParams = validateNotificationParams;
 });

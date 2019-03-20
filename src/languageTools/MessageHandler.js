@@ -33,6 +33,8 @@ define(function (require, exports, module) {
 
     //Register paths required for Language Client and also register default brackets capabilities.
     var _bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
+        // The native directory path ends with either "test" or "src". 
+        _bracketsPath = _bracketsPath.replace(/\/test$/, "/src"), // convert from "test" to "src"
         _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath = "node/RegisterLanguageClientInfo",
         _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/"),
