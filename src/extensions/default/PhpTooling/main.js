@@ -21,7 +21,7 @@
  *
  */
 define(function (require, exports, module) {
-	"use strict";
+    "use strict";
 
     var LanguageTools = brackets.getModule("languageTools/LanguageTools"),
         AppInit = brackets.getModule("utils/AppInit"),
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
     }, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
     });
-    
+
     PreferencesManager.on("change", "php", function () {
         var newPhpConfig = PreferencesManager.get("php");
 
@@ -70,16 +70,16 @@ define(function (require, exports, module) {
         }
         phpConfig = newPhpConfig;
     });
-	
+
     var handleProjectOpen = function (event, directory) {
         _client.stop()
             .done(function (){
                 setTimeout(function () {
                     _client.start({
-                    rootPath : directory.fullPath
-                });
-            }, 1500);
-       });
+                        rootPath: directory.fullPath
+                    });
+                }, 1500);
+            });
     };
 
     function registerToolingProviders(client) {
@@ -89,15 +89,15 @@ define(function (require, exports, module) {
             jdProvider = new DefaultProviders.JumpToDefProvider(languageClient),
             lProvider = new DefaultProviders.LintingProvider(languageClient);
 
-            CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
-            ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
-            JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
-            CodeInspection.register(["php"], {
-                name: "Diagnostics",
-                scanFile: lProvider.getInspectionResults.bind(lProvider)
-            });
+        CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
+        ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
+        JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
+        CodeInspection.register(["php"], {
+            name: "Diagnostics",
+            scanFile: lProvider.getInspectionResults.bind(lProvider)
+        });
 
-            languageClient.addOnDiagnostics(lProvider.setInspectionResults.bind(lProvider));
+        languageClient.addOnDiagnostics(lProvider.setInspectionResults.bind(lProvider));
     }
 
     function startPhpServer() {
@@ -117,11 +117,11 @@ define(function (require, exports, module) {
                     evtHandler.registerClientForEditorEvent();
 
                     if (phpConfig["showDiagnosisOnType"]) {
-                        _client.addOnDocumentChangeHandler(function () { 
+                        _client.addOnDocumentChangeHandler(function () {
                             CodeInspection.requestRun("Diagnostics");
                         });
                     } else {
-                        _client.addOnDocumentDirtyFlagChangeHandler(function (event, document) { 
+                        _client.addOnDocumentDirtyFlagChangeHandler(function (event, document) {
                             if (!document.isDirty) {
                                 CodeInspection.requestRun("Diagnostics");
                             }
@@ -138,8 +138,12 @@ define(function (require, exports, module) {
                 } else {
                     err = StringUtils.format(Strings[err[0]], err[1]);
                 }
-                var Buttons = [{ className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL, text: Strings.CANCEL },
-                                { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_DOWNLOAD, text: Strings.CMD_OPEN_PREFERENCES}];
+                var Buttons = [
+                    { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
+                        text: Strings.CANCEL },
+                    { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_DOWNLOAD,
+                        text: Strings.CMD_OPEN_PREFERENCES}
+                ];
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.PHP_SERVER_ERROR_TITLE,
@@ -177,13 +181,12 @@ define(function (require, exports, module) {
         }
     }
 
-	AppInit.appReady(function () {
-		LanguageTools.intiateToolingService(clientName, clientFilePath, ['php'])
-			.done(function (client) {
-				_client = client;
-                EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
-                LanguageManager.on("languageModified.php", languageModifiedHandler);
-                activeEditorChangeHandler(null, EditorManager.getActiveEditor());
-			});
-	});
+    AppInit.appReady(function () {
+        LanguageTools.intiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
+            _client = client;
+            EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
+            LanguageManager.on("languageModified.php", languageModifiedHandler);
+            activeEditorChangeHandler(null, EditorManager.getActiveEditor());
+        });
+    });
 });

@@ -22,6 +22,8 @@
  */
 /*global exports */
 /*global process */
+/*eslint-env es6, node*/
+/*eslint max-len: ["error", { "code": 200 }]*/
 "use strict";
 
 var LanguageClient = require(global.LanguageClientInfo.languageClientPath).LanguageClient,
@@ -51,12 +53,12 @@ function validatePhpExecutable(confParams) {
         execa.stdout(executablePath, ['--version'])
         .then(function (stdout) {
              // Parse version and discard OS info like 7.0.8--0ubuntu0.16.04.2
-            const match = stdout.match(/^PHP ([^\s]+)/m);
+            var match = stdout.match(/^PHP ([^\s]+)/m);
             if (!match) {
                 reject("PHP_VERSION_INVALID");
                 return;
             }
-            let version = match[1].split('-')[0];
+            var version = match[1].split('-')[0];
             // Convert PHP prerelease format like 7.0.0rc1 to 7.0.0-rc1
             if (!/^\d+.\d+.\d+$/.test(version)) {
                 version = version.replace(/(\d+.\d+.\d+)/, '$1-');
@@ -107,7 +109,9 @@ var serverOptions = function (){
                     console.log('PHP Language Server:', str);
                 });
                 childProcess.on('exit', function (code, signal) {
-                    console.log("Language server exited " + (signal ? "from signal " + signal : "with exit code " + code));
+                    console.log(
+                        "Language server exited " + (signal ? "from signal " + signal : "with exit code " + code)
+                    );
                 });
                 return childProcess;
             });
