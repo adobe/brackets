@@ -44,7 +44,7 @@ module.exports = function (grunt) {
     
     function runNpmInstall(where, callback, includeDevDependencies) {
         var envFlag = includeDevDependencies ? "" : " --production";
-        grunt.log.writeln("running npm install --production in " + where);
+        grunt.log.writeln("running npm install" + envFlag + " in " + where);
         exec('npm install' + envFlag, { cwd: './' + where }, function (err, stdout, stderr) {
             if (err) {
                 grunt.log.error(stderr);
