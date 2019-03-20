@@ -1,0 +1,7 @@
+{
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "felixfbecker/language-server": "^5.4"
+    }
+}
