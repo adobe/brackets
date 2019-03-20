@@ -76,7 +76,6 @@ function validatePhpExecutable(confParams) {
             }
             return;
         });
-
     });
 }
 

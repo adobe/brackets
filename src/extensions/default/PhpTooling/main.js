@@ -23,18 +23,18 @@
 define(function (require, exports, module) {
 	"use strict";
 
-	var LanguageTools = brackets.getModule("languageTools/LanguageTools"),
-		AppInit = brackets.getModule("utils/AppInit"),
-		ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
-		ProjectManager = brackets.getModule("project/ProjectManager"),
+    var LanguageTools = brackets.getModule("languageTools/LanguageTools"),
+        AppInit = brackets.getModule("utils/AppInit"),
+        ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
+        ProjectManager = brackets.getModule("project/ProjectManager"),
         EditorManager =  brackets.getModule("editor/EditorManager"),
         LanguageManager =  brackets.getModule("language/LanguageManager"),
-		CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-		ParameterHintManager = brackets.getModule("features/ParameterHintsManager"),
-		JumpToDefManager = brackets.getModule("features/JumpToDefManager"),
-		CodeInspection = brackets.getModule("language/CodeInspection"),
-		DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
-		DefaultEventHandlers = brackets.getModule("languageTools/DefaultEventHandlers"),
+        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        ParameterHintManager = brackets.getModule("features/ParameterHintsManager"),
+        JumpToDefManager = brackets.getModule("features/JumpToDefManager"),
+        CodeInspection = brackets.getModule("language/CodeInspection"),
+        DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
+        DefaultEventHandlers = brackets.getModule("languageTools/DefaultEventHandlers"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
         Dialogs             = brackets.getModule("widgets/Dialogs"),
@@ -43,9 +43,9 @@ define(function (require, exports, module) {
         CommandManager         = brackets.getModule("command/CommandManager"),
         StringUtils             = brackets.getModule("utils/StringUtils");
 
-	var clientFilePath = ExtensionUtils.getModulePath(module, "client.js"),
-		clientName = "PhpClient",
-		_client = null,
+    var clientFilePath = ExtensionUtils.getModulePath(module, "client.js"),
+        clientName = "PhpClient",
+        _client = null,
         phpConfig = {},
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
 
@@ -71,16 +71,16 @@ define(function (require, exports, module) {
         phpConfig = newPhpConfig;
     });
 	
-	var handleProjectOpen = function (event, directory) {
-		_client.stop()
-			.done(function (){
-            setTimeout(function (){
-				_client.start({
-					rootPath : directory.fullPath
-				});
+    var handleProjectOpen = function (event, directory) {
+        _client.stop()
+            .done(function (){
+                setTimeout(function () {
+                    _client.start({
+                    rootPath : directory.fullPath
+                });
             }, 1500);
-		});
-	};
+       });
+    };
 
     function registerToolingProviders(client) {
         var languageClient = client || _client;
