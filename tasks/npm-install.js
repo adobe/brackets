@@ -42,9 +42,10 @@ module.exports = function (grunt) {
     
     temp.track();
     
-    function runNpmInstall(where, callback) {
+    function runNpmInstall(where, callback, includeDevDependencies) {
+        var envFlag = includeDevDependencies ? "" : " --production";
         grunt.log.writeln("running npm install --production in " + where);
-        exec('npm install --production', { cwd: './' + where }, function (err, stdout, stderr) {
+        exec('npm install' + envFlag, { cwd: './' + where }, function (err, stdout, stderr) {
             if (err) {
                 grunt.log.error(stderr);
             } else {
@@ -71,7 +72,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask("npm-install-src", "Install node_modules to the src folder", function () {
         var _done = this.async(),
-            dirs = ["src", "src/JSUtils", "src/JSUtils/node"],
+            dirs = ["src", "src/JSUtils", "src/JSUtils/node", "src/languageTools/LanguageClient"],
             done = _.after(dirs.length, _done);
         dirs.forEach(function (dir) {
             runNpmInstall(dir, function (err) {
@@ -99,10 +100,34 @@ module.exports = function (grunt) {
         });
     });
 
+    grunt.registerTask("npm-install-test", "Install node_modules for tests", function () {
+        var _done = this.async();
+        var testDirs = [
+            "spec/LanguageTools-test-files"
+        ];
+        testDirs.forEach(function (dir) {
+            glob("test/" + dir + "/**/package.json", function (err, files) {
+                if (err) {
+                    grunt.log.error(err);
+                    return _done(false);
+                }
+                files = files.filter(function (path) {
+                    return path.indexOf("node_modules") === -1;
+                });
+                var done = _.after(files.length, _done);
+                files.forEach(function (file) {
+                    runNpmInstall(path.dirname(file), function (err) {
+                        return err ? _done(false) : done();
+                    }, true);
+                });
+            });
+        });
+    });
+
     grunt.registerTask(
         "npm-install-source",
         "Install node_modules for src folder and default extensions which have package.json defined",
-        ["npm-install-src", "copy:thirdparty", "npm-install-extensions"]
+        ["npm-install-src", "copy:thirdparty", "npm-install-extensions", "npm-install-test"]
     );
     
     function getNodeModulePackageUrl(extensionName) {
