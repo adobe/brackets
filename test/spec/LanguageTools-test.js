@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2019 - present Adobe. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,9 @@
  */
 
 /*jslint regexp: true */
-/*global describe, it, expect, spyOn, runs, waitsForDone, waitsForFail, beforeEach, afterEach */
-
+/*global describe, it, expect, spyOn, runs, waitsForDone, waitsForFail, afterEach */
+/*eslint indent: 0*/
+/*eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
     'use strict';
 
@@ -139,7 +140,7 @@ define(function (require, exports, module) {
                             notificationStatus = true;
                             retval.resolve();
                         }
-                    })
+                    });
 
                     client.sendCustomNotification({
                         messageType: "brackets",
@@ -180,7 +181,7 @@ define(function (require, exports, module) {
                     var requestPromise = requestWithPromise();
                     requestPromise.done(function (returnVal) {
                         result = returnVal;
-                    })
+                    });
 
                     waitsForDone(requestPromise, "RequestInterface");
                 });
@@ -207,7 +208,7 @@ define(function (require, exports, module) {
                     var requestPromise = requestWithPromise();
                     requestPromise.fail(function (returnVal) {
                         result = returnVal;
-                    })
+                    });
 
                     waitsForFail(requestPromise, "RequestInterface");
                 });
@@ -404,7 +405,7 @@ define(function (require, exports, module) {
                         });
                     }
 
-                    waitsForDone(restartPromise, "RestartClient")
+                    waitsForDone(restartPromise, "RestartClient");
                 });
 
                 runs(function () {
@@ -426,7 +427,7 @@ define(function (require, exports, module) {
                         });
                     }
 
-                    waitsForDone(stopPromise, "StopClient")
+                    waitsForDone(stopPromise, "StopClient");
                 });
 
                 runs(function () {
@@ -456,7 +457,7 @@ define(function (require, exports, module) {
                         stopStatus = true;
                     }
 
-                    waitsForDone(stopPromise, "StopClient")
+                    waitsForDone(stopPromise, "StopClient");
                 });
 
                 runs(function () {
@@ -492,7 +493,7 @@ define(function (require, exports, module) {
                         return client.start({
                             rootPath: projectPath
                         });
-                    })
+                    });
 
                     startPromise.done(function (capabilities) {
                         startResult = capabilities;
@@ -535,7 +536,7 @@ define(function (require, exports, module) {
                         return client.start({
                             rootPath: projectPath
                         });
-                    })
+                    });
 
                     startPromise.done(function (capabilities) {
                         startResult = capabilities;
@@ -578,7 +579,7 @@ define(function (require, exports, module) {
                         return client.start({
                             rootPath: projectPath
                         });
-                    })
+                    });
 
                     startPromise.done(function (capabilities) {
                         startResult = capabilities;
@@ -618,7 +619,7 @@ define(function (require, exports, module) {
                         return client.start({
                             rootPath: projectPath
                         });
-                    })
+                    });
 
                     startPromise.done(function (capabilities) {
                         startResult = capabilities;
@@ -661,7 +662,7 @@ define(function (require, exports, module) {
                         return client.start({
                             rootPath: projectPath
                         });
-                    })
+                    });
 
                     startPromise.done(function (capabilities) {
                         startResult = capabilities;
@@ -704,7 +705,7 @@ define(function (require, exports, module) {
                         return client.start({
                             rootPath: projectPath
                         });
-                    })
+                    });
 
                     startPromise.done(function (capabilities) {
                         startResult = capabilities;
@@ -747,7 +748,7 @@ define(function (require, exports, module) {
                         return client.start({
                             rootPath: projectPath
                         });
-                    })
+                    });
 
                     startPromise.done(function (capabilities) {
                         startResult = capabilities;
@@ -1001,7 +1002,6 @@ define(function (require, exports, module) {
                 featurePromise,
                 extension,
                 client = null,
-                notificationReceivedMap = {},
                 docPath1 = projectPath + "/sample1.txt",
                 docPath2 = projectPath + "/sample2.txt",
                 pos = {
@@ -1078,11 +1078,11 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
-                    expect(requestResponse.received).toBeTruthy()
+                    expect(requestResponse.received).toBeTruthy();
                 });
             });
 
@@ -1105,7 +1105,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1138,7 +1138,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1166,7 +1166,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1187,7 +1187,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1208,7 +1208,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1229,7 +1229,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1250,7 +1250,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1270,7 +1270,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1290,7 +1290,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1313,7 +1313,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerRequest")
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
@@ -1331,12 +1331,12 @@ define(function (require, exports, module) {
                         languageId: languageId,
                         filePath: docPath1,
                         fileContent: fileContent
-                    })
+                    });
                     requestPromise.done(function (response) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerNotification")
+                    waitsForDone(requestPromise, "ServerNotification");
                 });
 
                 runs(function () {
@@ -1352,12 +1352,12 @@ define(function (require, exports, module) {
                     requestPromise = createPromiseForNotification("textDocument/didClose");
                     client.notifyTextDocumentClosed({
                         filePath: docPath1
-                    })
+                    });
                     requestPromise.done(function (response) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerNotification")
+                    waitsForDone(requestPromise, "ServerNotification");
                 });
 
                 runs(function () {
@@ -1373,12 +1373,12 @@ define(function (require, exports, module) {
                     requestPromise = createPromiseForNotification("textDocument/didSave");
                     client.notifyTextDocumentSave({
                         filePath: docPath2
-                    })
+                    });
                     requestPromise.done(function (response) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerNotification")
+                    waitsForDone(requestPromise, "ServerNotification");
                 });
 
                 runs(function () {
@@ -1395,12 +1395,12 @@ define(function (require, exports, module) {
                     client.notifyTextDocumentChanged({
                         filePath: docPath2,
                         fileContent: fileContent
-                    })
+                    });
                     requestPromise.done(function (response) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerNotification")
+                    waitsForDone(requestPromise, "ServerNotification");
                 });
 
                 runs(function () {
@@ -1417,12 +1417,12 @@ define(function (require, exports, module) {
                     client.notifyProjectRootsChanged({
                         foldersAdded: ["path1", "path2"],
                         foldersRemoved: ["path3"]
-                    })
+                    });
                     requestPromise.done(function (response) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerNotification")
+                    waitsForDone(requestPromise, "ServerNotification");
                 });
 
                 runs(function () {
@@ -1438,12 +1438,12 @@ define(function (require, exports, module) {
                     requestPromise = createPromiseForNotification("textDocument/publishDiagnostics");
                     client.sendCustomNotification({
                         type: "custom/triggerDiagnostics"
-                    })
+                    });
                     requestPromise.done(function (response) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerNotification")
+                    waitsForDone(requestPromise, "ServerNotification");
                 });
 
                 runs(function () {
@@ -1469,7 +1469,7 @@ define(function (require, exports, module) {
                         requestResponse = response;
                     });
 
-                    waitsForDone(requestPromise, "ServerNotification")
+                    waitsForDone(requestPromise, "ServerNotification");
                 });
 
                 runs(function () {
@@ -1490,7 +1490,7 @@ define(function (require, exports, module) {
                         });
                     }
 
-                    waitsForDone(stopPromise, "StopClient")
+                    waitsForDone(stopPromise, "StopClient");
                 });
 
                 runs(function () {

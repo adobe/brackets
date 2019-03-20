@@ -78,7 +78,7 @@ define(function (require, exports, module) {
     }
 
     _attachEventHandlers();
-    
+
     function listenToCustomEvent(eventModule, eventName) {
         eventModule.on(_withNamespace(eventName), _eventHandler);
     }

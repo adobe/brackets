@@ -22,6 +22,7 @@
  */
 
 /*eslint no-console: 0*/
+/*eslint indent: 0*/
 /*eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
     "use strict";
@@ -317,7 +318,7 @@ define(function (require, exports, module) {
         if (params) {
             return this._startClient(params);
         }
-        
+
         console.log("Invalid Parameters provided for request type : start");
         return $.Deferred().reject();
     };
@@ -508,7 +509,7 @@ define(function (require, exports, module) {
             this._onEventHandlers["fileNameChange"].push(handler);
         }
     };
-    
+
     LanguageClientWrapper.prototype.addBeforeAppClose = function (handler) {
         if (validateHandler(handler)) {
             this._onEventHandlers["beforeAppClose"].push(handler);
@@ -541,8 +542,8 @@ define(function (require, exports, module) {
 
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
-    
-    //For unit testting 
+
+    //For unit testting
     exports.validateRequestParams = validateRequestParams;
     exports.validateNotificationParams = validateNotificationParams;
 });
