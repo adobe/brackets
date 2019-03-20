@@ -62,8 +62,8 @@ define(function (require, exports, module) {
     PreferencesManager.on("change", "php", function () {
         var newPhpConfig = PreferencesManager.get("php");
 
-        if((newPhpConfig["executablePath"] !== phpConfig["executablePath"])
-            || (newPhpConfig["enablePhpTooling"] !== phpConfig["enablePhpTooling"]))  {
+        if ((newPhpConfig["executablePath"] !== phpConfig["executablePath"])
+                || (newPhpConfig["enablePhpTooling"] !== phpConfig["enablePhpTooling"])) {
             phpConfig = newPhpConfig;
             startPhpServer();
             return;
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
 
     var handleProjectOpen = function (event, directory) {
         _client.stop()
-            .done(function (){
+            .done(function () {
                 setTimeout(function () {
                     _client.start({
                         rootPath: directory.fullPath
@@ -82,12 +82,11 @@ define(function (require, exports, module) {
             });
     };
 
-    function registerToolingProviders(client) {
-        var languageClient = client || _client;
-        var chProvider = new DefaultProviders.CodeHintsProvider(languageClient),
-            phProvider = new DefaultProviders.ParameterHintsProvider(languageClient),
-            jdProvider = new DefaultProviders.JumpToDefProvider(languageClient),
-            lProvider = new DefaultProviders.LintingProvider(languageClient);
+    function registerToolingProviders() {
+        var chProvider = new DefaultProviders.CodeHintsProvider(_client),
+            phProvider = new DefaultProviders.ParameterHintsProvider(_client),
+            jdProvider = new DefaultProviders.JumpToDefProvider(_client),
+            lProvider = new DefaultProviders.LintingProvider(_client);
 
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
@@ -97,68 +96,82 @@ define(function (require, exports, module) {
             scanFile: lProvider.getInspectionResults.bind(lProvider)
         });
 
-        languageClient.addOnDiagnostics(lProvider.setInspectionResults.bind(lProvider));
+        _client.addOnDiagnostics(lProvider.setInspectionResults.bind(lProvider));
+    }
+
+    function addEventHandlers() {
+        _client.addOnLogMessage(function () {});
+        _client.addOnShowMessage(function () {});
+        var evtHandler = new DefaultEventHandlers.EventPropagationProvider(_client);
+        evtHandler.registerClientForEditorEvent();
+
+        if (phpConfig["showDiagnosisOnType"]) {
+            _client.addOnDocumentChangeHandler(function () {
+                CodeInspection.requestRun("Diagnostics");
+            });
+        } else {
+            _client.addOnDocumentDirtyFlagChangeHandler(function (event, document) {
+                if (!document.isDirty) {
+                    CodeInspection.requestRun("Diagnostics");
+                }
+            });
+        }
+
+        _client.addOnProjectOpenHandler(handleProjectOpen);
+    }
+
+    function validatePhpExecutable() {
+        var result = $.Deferred();
+
+        _client.sendCustomRequest({
+            messageType: "brackets",
+            type: "validatePhpExecutable",
+            params: phpConfig
+        }).done(result.resolve).fail(result.reject);
+
+        return result;
+    }
+
+    function showErrorPopUp(err) {
+        if (typeof (err) === "string") {
+            err = Strings[err];
+        } else {
+            err = StringUtils.format(Strings[err[0]], err[1]);
+        }
+        var Buttons = [
+            { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
+                text: Strings.CANCEL },
+            { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_DOWNLOAD,
+                text: Strings.CMD_OPEN_PREFERENCES}
+        ];
+        Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            Strings.PHP_SERVER_ERROR_TITLE,
+            err,
+            Buttons
+        ).done(function (id) {
+            if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
+                if (CommandManager.get(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW)) {
+                    CommandManager.execute(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW);
+                } else {
+                    CommandManager.execute(Commands.CMD_OPEN_PREFERENCES);
+                }
+            }
+        });
     }
 
     function startPhpServer() {
-        if(_client && phpConfig["enablePhpTooling"]) {
-            _client.sendCustomRequest({
-                messageType: "brackets",
-                type: "validatePhpExecutable",
-                params: phpConfig
-            }).done(function (){
-                _client.start({
-                    rootPath: ProjectManager.getProjectRoot()._path
-                }).done(function (result) {
-                    registerToolingProviders();
-                    _client.addOnLogMessage(function () {});
-                    _client.addOnShowMessage(function () {});
-                    var evtHandler = new DefaultEventHandlers.EventPropagationProvider(_client);
-                    evtHandler.registerClientForEditorEvent();
-
-                    if (phpConfig["showDiagnosisOnType"]) {
-                        _client.addOnDocumentChangeHandler(function () {
-                            CodeInspection.requestRun("Diagnostics");
-                        });
-                    } else {
-                        _client.addOnDocumentDirtyFlagChangeHandler(function (event, document) {
-                            if (!document.isDirty) {
-                                CodeInspection.requestRun("Diagnostics");
-                            }
-                        });
-                    }
-
-                    _client.addOnProjectOpenHandler(handleProjectOpen);
-
-                    console.log("php Language Server started");
-                });
-            }).fail(function(err) {
-                if(typeof(err) === "string") {
-                    err = Strings[err];
-                } else {
-                    err = StringUtils.format(Strings[err[0]], err[1]);
-                }
-                var Buttons = [
-                    { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
-                        text: Strings.CANCEL },
-                    { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_DOWNLOAD,
-                        text: Strings.CMD_OPEN_PREFERENCES}
-                ];
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.PHP_SERVER_ERROR_TITLE,
-                    err,
-                    Buttons
-                ).done(function (id) {
-                    if(id === Dialogs.DIALOG_BTN_DOWNLOAD) {
-                        if(CommandManager.get(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW)) {
-                            CommandManager.execute(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW);
-                        } else {
-                            CommandManager.execute(Commands.CMD_OPEN_PREFERENCES);
-                        }
-                    }
-                });
-            });
+        if (_client && phpConfig["enablePhpTooling"]) {
+            validatePhpExecutable()
+                .done(function () {
+                    _client.start({
+                        rootPath: ProjectManager.getProjectRoot()._path
+                    }).done(function (result) {
+                        console.log("php Language Server started");
+                        registerToolingProviders();
+                        addEventHandlers();
+                    });
+                }).fail(showErrorPopUp);
         }
     }
 
@@ -182,7 +195,7 @@ define(function (require, exports, module) {
     }
 
     AppInit.appReady(function () {
-        LanguageTools.intiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
+        LanguageTools.initiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
             _client = client;
             EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
             LanguageManager.on("languageModified.php", languageModifiedHandler);

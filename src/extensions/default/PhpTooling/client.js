@@ -49,17 +49,13 @@ function validatePhpExecutable(confParams) {
             return;
         }
 
-        // Check path (if PHP is available and version is ^7.0.0)
-        execa.stdout(executablePath, ['--version'])
-        .then(function (stdout) {
-             // Parse version and discard OS info like 7.0.8--0ubuntu0.16.04.2
-            var match = stdout.match(/^PHP ([^\s]+)/m);
-            if (!match) {
+        execa.stdout(executablePath, ['--version']).then(function (output) {
+            var matchStr = output.match(/^PHP ([^\s]+)/m);
+            if (!matchStr) {
                 reject("PHP_VERSION_INVALID");
                 return;
             }
-            var version = match[1].split('-')[0];
-            // Convert PHP prerelease format like 7.0.0rc1 to 7.0.0-rc1
+            var version = matchStr[1].split('-')[0];
             if (!/^\d+.\d+.\d+$/.test(version)) {
                 version = version.replace(/(\d+.\d+.\d+)/, '$1-');
             }
@@ -68,8 +64,7 @@ function validatePhpExecutable(confParams) {
                 return;
             }
             resolve();
-        })
-        .catch(function(err) {
+        }).catch(function (err) {
             if (err.code === 'ENOENT') {
                 reject("PHP_EXECUTABLE_NOT_FOUND");
             } else {
@@ -81,11 +76,9 @@ function validatePhpExecutable(confParams) {
     });
 }
 
-var serverOptions = function (){
+var serverOptions = function () {
         return new Promise(function (resolve, reject) {
-            // Use a TCP socket because of problems with blocking STDIO
             var server = net.createServer(function (socket) {
-                // 'connection' listener
                 console.log('PHP process connected');
                 socket.on('end', function () {
                     console.log('PHP process disconnected');
@@ -96,10 +89,8 @@ var serverOptions = function (){
                     writer: socket
                 });
             });
-            // Listen on random port
             server.listen(0, '127.0.0.1', function () {
-                var pathToPHP = __dirname + "/vendor/bin/php-language-server.php";
-                // The server is implemented in PHP
+                var pathToPHP = __dirname + "/vendor/felixfbecker/language-server/bin/php-language-server.php";
                 var childProcess = cp.spawn(executablePath, [
                     pathToPHP,
                     '--tcp=127.0.0.1:' + server.address().port
