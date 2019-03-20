@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "vscode-languageserver": "^5.3.0-next.1"
+  }
+}

@@ -39,7 +39,7 @@ function _constructParamsAndRelay(relay, type, params) {
     var _params = null,
         handler = null;
 
-    //Check for param object format. We won't change anything if the object if preformatted.
+    //Check for param object format. We won't change anything if the object is preformatted.
     if (params.format === MESSAGE_FORMAT.LSP) {
         params.format = undefined;
         _params = JSON.parse(JSON.stringify(params));

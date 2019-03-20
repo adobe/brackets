@@ -67,6 +67,7 @@ define(function (require, exports, module) {
     }
 
     function _attachEventHandlers() {
+        //Attach standard listeners
         EditorManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.EDITOR_CHANGE_EVENT), _eventHandler); //(event, current, previous)
         ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_OPEN_EVENT), _eventHandler); //(event, directory)
         ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_CLOSE_EVENT), _eventHandler); //(event, directory)
@@ -77,6 +78,10 @@ define(function (require, exports, module) {
     }
 
     _attachEventHandlers();
+
+    function listenToCustomEvent(eventModule, eventName) {
+        eventModule.on(_withNamespace(eventName), _eventHandler);
+    }
 
     function initiateToolingService(clientName, clientFilePath, languages) {
         var result = $.Deferred();
@@ -97,4 +102,5 @@ define(function (require, exports, module) {
     }
 
     exports.initiateToolingService = initiateToolingService;
+    exports.listenToCustomEvent = listenToCustomEvent;
 });

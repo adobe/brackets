@@ -142,8 +142,8 @@ define(function (require, exports, module) {
 
         var newDocLanguageId = LanguageManager.getLanguageForPath(newName).getId();
         if (this.client._languages.includes(newDocLanguageId)) {
-            this.client.notifyTextDocumentClosed({
-                filePath: oldName
+            this.client.notifyTextDocumentOpened({
+                filePath: newName
             });
         }
     };
