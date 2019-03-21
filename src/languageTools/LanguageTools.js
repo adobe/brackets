@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var MessageHandler = require("languageTools/ClientLoader"),
+    var ClientLoader = require("languageTools/ClientLoader"),
         EditorManager = require("editor/EditorManager"),
         ProjectManager = require("project/ProjectManager"),
         DocumentManager = require("document/DocumentManager"),
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
     function initiateToolingService(clientName, clientFilePath, languages) {
         var result = $.Deferred();
 
-        MessageHandler.initiateLanguageClient(clientName, clientFilePath)
+        ClientLoader.initiateLanguageClient(clientName, clientFilePath)
             .done(function (languageClientInfo) {
                 var languageClientName = languageClientInfo.name,
                     languageClientInterface = languageClientInfo.interface,
