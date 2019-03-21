@@ -1022,7 +1022,7 @@ define(function (require, exports, module) {
                         }
                     });
                 } else {
-                    client.addOnDiagnostics(function (params) {
+                    client.addOnCodeInspection(function (params) {
                         promise.resolve(params);
                     });
                 }
