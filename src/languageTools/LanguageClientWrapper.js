@@ -405,7 +405,7 @@ define(function (require, exports, module) {
         textDocument OnNotifications
     */
     //onPublishDiagnostics
-    LanguageClientWrapper.prototype.addOnDiagnostics = function (handler) {
+    LanguageClientWrapper.prototype.addOnCodeInspection = function (handler) {
         this._addOnNotificationHandler(ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS, handler);
     };
 
