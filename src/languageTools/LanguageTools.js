@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var MessageHandler = require("languageTools/MessageHandler"),
+    var MessageHandler = require("languageTools/ClientLoader"),
         EditorManager = require("editor/EditorManager"),
         ProjectManager = require("project/ProjectManager"),
         DocumentManager = require("document/DocumentManager"),

@@ -105,7 +105,7 @@ define(function (require, exports, module) {
     
     //load Language Tools Module
     require("languageTools/LanguageTools");
-    require("languageTools/MessageHandler");
+    require("languageTools/ClientLoader");
     require("languageTools/BracketsToNodeInterface");
     require("languageTools/DefaultProviders");
     require("languageTools/DefaultEventHandlers");
