@@ -50,9 +50,10 @@ define(function (require, exports, module) {
             enablePhpTooling: true,
             executablePath: "php",
             memoryLimit: "4095M",
-            showDiagnosisOnType: false
+            validateOnSave: true
         },
-        DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
+        DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView",
+        phpServerRunning = false;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -64,7 +65,7 @@ define(function (require, exports, module) {
         if ((newPhpConfig["executablePath"] !== phpConfig["executablePath"])
                 || (newPhpConfig["enablePhpTooling"] !== phpConfig["enablePhpTooling"])) {
             phpConfig = newPhpConfig;
-            startPhpServer();
+            runPhpServer();
             return;
         }
         phpConfig = newPhpConfig;
@@ -104,7 +105,7 @@ define(function (require, exports, module) {
         var evtHandler = new DefaultEventHandlers.EventPropagationProvider(_client);
         evtHandler.registerClientForEditorEvent();
 
-        if (phpConfig["showDiagnosisOnType"]) {
+        if (!phpConfig["validateOnSave"]) {
             _client.addOnDocumentChangeHandler(function () {
                 CodeInspection.requestRun("Diagnostics");
             });
@@ -159,16 +160,44 @@ define(function (require, exports, module) {
         });
     }
 
-    function startPhpServer() {
+    function handlePostPhpServerStart() {
+        if (!phpServerRunning) {
+            phpServerRunning = true;
+            registerToolingProviders();
+            addEventHandlers();
+            EditorManager.off("activeEditorChange.php");
+            LanguageManager.off("languageModified.php");
+        }
+    }
+
+    function restart(project) {
+        var result = $.Deferred();
+        _client.stop()
+            .done(function () {
+                setTimeout(function () {
+                    _client.start({
+                        rootPath: project.rootPath
+                    }).done(result.resolve).fail(result.reject);
+                }, 1500);
+            })
+            .fail(result.reject);
+
+        return result;
+    }
+
+    function runPhpServer() {
         if (_client && phpConfig["enablePhpTooling"]) {
             validatePhpExecutable()
                 .done(function () {
-                    _client.start({
+                    var startFunc = _client.start.bind(_client);
+                    if (phpServerRunning) {
+                        startFunc = restart;
+                    }
+                    startFunc({
                         rootPath: ProjectManager.getProjectRoot()._path
                     }).done(function (result) {
                         console.log("php Language Server started");
-                        registerToolingProviders();
-                        addEventHandlers();
+                        handlePostPhpServerStart();
                     });
                 }).fail(showErrorPopUp);
         }
@@ -178,7 +207,7 @@ define(function (require, exports, module) {
         if (current) {
             var language = current.document.getLanguage();
             if (language.getId() === "php") {
-                startPhpServer();
+                runPhpServer();
                 EditorManager.off("activeEditorChange.php");
                 LanguageManager.off("languageModified.php");
             }
@@ -187,7 +216,7 @@ define(function (require, exports, module) {
 
     function languageModifiedHandler(event, language) {
         if (language && language.getId() === "php") {
-            startPhpServer();
+            runPhpServer();
             EditorManager.off("activeEditorChange.php");
             LanguageManager.off("languageModified.php");
         }
