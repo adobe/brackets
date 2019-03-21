@@ -46,16 +46,15 @@ define(function (require, exports, module) {
     var clientFilePath = ExtensionUtils.getModulePath(module, "client.js"),
         clientName = "PhpClient",
         _client = null,
-        phpConfig = {},
+        phpConfig = {
+            enablePhpTooling: true,
+            showDiagnosisOnType: false,
+            executablePath: "php",
+            memoryLimit: "4095M"
+        },
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
 
-    PreferencesManager.definePreference("php", "object", {
-        enablePhpTooling: true,
-        showDiagnosisOnType: false,
-        executablePath: "php",
-        validate_executablePath: "php",
-        memoryLimit: "default"
-    }, {
+    PreferencesManager.definePreference("php", "object", phpConfig {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
     });
 

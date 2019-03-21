@@ -37,11 +37,9 @@ var LanguageClient = require(global.LanguageClientInfo.languageClientPath).Langu
 
 function validatePhpExecutable(confParams) {
     executablePath = confParams["executablePath"] ||
-        confParams["validate_executablePath"] ||
         (process.platform === 'win32' ? 'php.exe' : 'php');
 
-    memoryLimit = confParams["memoryLimit"] || 'default';
-    memoryLimit = memoryLimit === "default" ? '4095M' : memoryLimit;
+    memoryLimit = confParams["memoryLimit"] || '4095M';
 
     return new Promise(function (resolve, reject) {
         if (memoryLimit !== '-1' && !/^\d+[KMG]?$/.exec(memoryLimit)) {
