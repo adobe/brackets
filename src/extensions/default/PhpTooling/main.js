@@ -48,13 +48,13 @@ define(function (require, exports, module) {
         _client = null,
         phpConfig = {
             enablePhpTooling: true,
-            showDiagnosisOnType: false,
             executablePath: "php",
-            memoryLimit: "4095M"
+            memoryLimit: "4095M",
+            showDiagnosisOnType: false
         },
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
 
-    PreferencesManager.definePreference("php", "object", phpConfig {
+    PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
     });
 
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
             scanFile: lProvider.getInspectionResults.bind(lProvider)
         });
 
-        _client.addOnDiagnostics(lProvider.setInspectionResults.bind(lProvider));
+        _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
     }
 
     function addEventHandlers() {
