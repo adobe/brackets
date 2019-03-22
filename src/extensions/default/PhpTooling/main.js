@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         JumpToDefManager = brackets.getModule("features/JumpToDefManager"),
         CodeInspection = brackets.getModule("language/CodeInspection"),
         DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
+        CodeHintsProvider = require("CodeHintsProvider").CodeHintsProvider,
         DefaultEventHandlers = brackets.getModule("languageTools/DefaultEventHandlers"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
@@ -53,7 +54,9 @@ define(function (require, exports, module) {
             validateOnSave: true
         },
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView",
-        phpServerRunning = false;
+        phpServerRunning = false,
+        serverCapabilities,
+        currentRootPath;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -79,18 +82,24 @@ define(function (require, exports, module) {
                         rootPath: directory.fullPath
                     });
                 }, 1500);
+            }).fail(function () {
+                console.log("Error encountered while stoping Php Server.");
             });
     };
 
     function registerToolingProviders() {
-        var chProvider = new DefaultProviders.CodeHintsProvider(_client),
+        var chProvider = new CodeHintsProvider(_client),
             phProvider = new DefaultProviders.ParameterHintsProvider(_client),
-            jdProvider = new DefaultProviders.JumpToDefProvider(_client),
-            lProvider = new DefaultProviders.LintingProvider(_client);
+            lProvider = new DefaultProviders.LintingProvider(_client),
+            jdProvider;
+
+        if (serverCapabilities && serverCapabilities.definitionProvider) {
+            jdProvider = new DefaultProviders.JumpToDefProvider(_client);
+            JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
+        }
 
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
-        JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeInspection.register(["php"], {
             name: "Diagnostics",
             scanFile: lProvider.getInspectionResults.bind(lProvider)
@@ -193,10 +202,12 @@ define(function (require, exports, module) {
                     if (phpServerRunning) {
                         startFunc = restart;
                     }
+                    currentRootPath = ProjectManager.getProjectRoot()._path;
                     startFunc({
-                        rootPath: ProjectManager.getProjectRoot()._path
+                        rootPath: currentRootPath
                     }).done(function (result) {
                         console.log("php Language Server started");
+                        serverCapabilities = result.capabilities;
                         handlePostPhpServerStart();
                     });
                 }).fail(showErrorPopUp);

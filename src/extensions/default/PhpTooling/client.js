@@ -91,7 +91,8 @@ var serverOptions = function () {
                 var pathToPHP = __dirname + "/vendor/felixfbecker/language-server/bin/php-language-server.php";
                 var childProcess = cp.spawn(executablePath, [
                     pathToPHP,
-                    '--tcp=127.0.0.1:' + server.address().port
+                    '--tcp=127.0.0.1:' + server.address().port,
+                    '--memory-limit=' + memoryLimit
                 ]);
                 childProcess.stderr.on('data', function (chunk) {
                     var str = chunk.toString();
