@@ -100,7 +100,7 @@ LanguageClient.prototype.start = function (params) {
     }
 
     self._connection = null;
-    self._startUpParams = params ? params : self._startUpParams;
+    self._startUpParams = params || self._startUpParams;
 
     //We default to standard capabilties
     if (!self._startUpParams.capabilities) {

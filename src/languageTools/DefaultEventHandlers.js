@@ -28,7 +28,8 @@ define(function (require, exports, module) {
 
     var LanguageManager = require("language/LanguageManager"),
         EditorManager = require("editor/EditorManager"),
-        ProjectManager = require("project/ProjectManager");
+        ProjectManager = require("project/ProjectManager"),
+        PathConverters = require("languageTools/PathConverters");
 
     function EventPropagationProvider(client) {
         this.client = client;
@@ -157,6 +158,15 @@ define(function (require, exports, module) {
         this.client.stop();
     };
 
+    function handleProjectFoldersRequest(event) {
+        var projectRoot = ProjectManager.getProjectRoot(),
+            workspaceFolders = [projectRoot];
+
+        workspaceFolders = PathConverters.convertToWorkspaceFolders(workspaceFolders);
+
+        return $.Deferred().resolve(workspaceFolders);
+    };
+
     EventPropagationProvider.prototype.registerClientForEditorEvent = function () {
         if (this.client) {
             var handleActiveEditorChange = this.handleActiveEditorChange.bind(this),
@@ -174,6 +184,7 @@ define(function (require, exports, module) {
             this.client.addOnDocumentChangeHandler(handleDocumentChange);
             this.client.addOnFileRenameHandler(handleDocumentRename);
             this.client.addBeforeAppClose(handleAppClose);
+            this.client.onProjectFoldersRequest(handleProjectFoldersRequest);
 
             this.handleActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         } else {

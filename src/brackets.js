@@ -156,6 +156,7 @@ define(function (require, exports, module) {
     require("JSUtils/ScopeManager");
 
     //load Language Tools Module
+    require("languageTools/PathConverters");
     require("languageTools/LanguageTools");
     require("languageTools/ClientLoader");
     require("languageTools/BracketsToNodeInterface");
