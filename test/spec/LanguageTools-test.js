@@ -1014,17 +1014,30 @@ define(function (require, exports, module) {
             function createPromiseForNotification(type) {
                 var promise = $.Deferred();
 
-                if (type !== "textDocument/publishDiagnostics") {
-                    client.addOnLogMessage(function (params) {
-                        if (params.received && params.received.type &&
-                            params.received.type === type) {
+                switch (type) {
+                    case "textDocument/publishDiagnostics": {
+                        client.addOnCodeInspection(function (params) {
                             promise.resolve(params);
-                        }
-                    });
-                } else {
-                    client.addOnCodeInspection(function (params) {
-                        promise.resolve(params);
-                    });
+                        });
+                        break;
+                    }
+                    case "custom/serverNotification":
+                    case "custom/requestSuccessNotification":
+                    case "custom/requestFailedNotification":
+                        {
+                        client.onCustomNotification(type, function (params) {
+                            promise.resolve(params);
+                        });
+                        break;
+                    }
+                    default: {
+                        client.addOnLogMessage(function (params) {
+                            if (params.received && params.received.type &&
+                                params.received.type === type) {
+                                promise.resolve(params);
+                            }
+                        });
+                    }
                 }
 
                 return promise;
@@ -1047,6 +1060,14 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(client).toBeTruthy();
                     expect(client._name).toEqual("FeatureClient");
+
+                    client.onDynamicCapabilityRegistration(function () {
+                        return $.Deferred().resolve();
+                    });
+
+                    client.onDynamicCapabilityUnregistration(function () {
+                        return $.Deferred().resolve();
+                    });
 
                     startPromise = client.start({
                         rootPath: projectPath
@@ -1470,6 +1491,82 @@ define(function (require, exports, module) {
                     });
 
                     waitsForDone(requestPromise, "ServerNotification");
+                });
+
+                runs(function () {
+                    expect(requestResponse.received).toBeTruthy();
+                });
+            });
+
+            it("should successfully handle a custom server notification", function () {
+                var requestPromise,
+                    requestResponse = null;
+
+                runs(function () {
+
+                    requestPromise = createPromiseForNotification("custom/serverNotification");
+                    client.sendCustomNotification({
+                        type: "custom/getNotification"
+                    });
+                    requestPromise.done(function (response) {
+                        requestResponse = response;
+                    });
+
+                    waitsForDone(requestPromise, "ServerNotification");
+                });
+
+                runs(function () {
+                    expect(requestResponse.received).toBeTruthy();
+                });
+            });
+
+            it("should successfully handle a custom server request on resolve", function () {
+                var requestPromise,
+                    requestResponse = null;
+
+                runs(function () {
+
+                    requestPromise = createPromiseForNotification("custom/requestSuccessNotification");
+                    client.onCustomRequest("custom/serverRequest", function (params) {
+                        return $.Deferred().resolve(params);
+                    });
+
+                    client.sendCustomNotification({
+                        type: "custom/getRequest"
+                    });
+
+                    requestPromise.done(function (response) {
+                        requestResponse = response;
+                    });
+
+                    waitsForDone(requestPromise, "ServerRequest");
+                });
+
+                runs(function () {
+                    expect(requestResponse.received).toBeTruthy();
+                });
+            });
+
+            it("should successfully handle a custom server request on reject", function () {
+                var requestPromise,
+                    requestResponse = null;
+
+                runs(function () {
+
+                    requestPromise = createPromiseForNotification("custom/requestFailedNotification");
+                    client.onCustomRequest("custom/serverRequest", function (params) {
+                        return $.Deferred().reject(params);
+                    });
+
+                    client.sendCustomNotification({
+                        type: "custom/getRequest"
+                    });
+
+                    requestPromise.done(function (response) {
+                        requestResponse = response;
+                    });
+
+                    waitsForDone(requestPromise, "ServerRequest");
                 });
 
                 runs(function () {
