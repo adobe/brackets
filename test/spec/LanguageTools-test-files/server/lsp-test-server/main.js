@@ -185,20 +185,60 @@ connection.onDidSaveTextDocument(function (params) {
 });
 
 connection.onNotification(function (type, params) {
-    if (type !== "custom/triggerDiagnostics") {
-        connection.sendNotification(vls.LogMessageNotification.type, {
-            received: {
-                type: type,
-                params: params
+    switch (type) {
+        case "custom/triggerDiagnostics":
+            {
+                connection.sendDiagnostics({
+                    received: {
+                        type: type,
+                        params: params
+                    }
+                });
+                break;
             }
-        });
-    } else {
-        connection.sendDiagnostics({
-            received: {
-                type: type,
-                params: params
+        case "custom/getNotification":
+            {
+                connection.sendNotification("custom/serverNotification", {
+                    received: {
+                        type: type,
+                        params: params
+                    }
+                });
+                break;
             }
-        });
+        case "custom/getRequest":
+            {
+                connection.sendRequest("custom/serverRequest", {
+                    received: {
+                        type: type,
+                        params: params
+                    }
+                }).then(function (resolveResponse) {
+                    connection.sendNotification("custom/requestSuccessNotification", {
+                        received: {
+                            type: "custom/requestSuccessNotification",
+                            params: resolveResponse
+                        }
+                    });
+                }).catch(function (rejectResponse) {
+                    connection.sendNotification("custom/requestFailedNotification", {
+                        received: {
+                            type: "custom/requestFailedNotification",
+                            params: rejectResponse
+                        }
+                    });
+                });
+                break;
+            }
+        default:
+            {
+                connection.sendNotification(vls.LogMessageNotification.type, {
+                    received: {
+                        type: type,
+                        params: params
+                    }
+                });
+            }
     }
 });
 

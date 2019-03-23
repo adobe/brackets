@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         switch (type) {
             case ToolingInfo.LANGUAGE_SERVICE.START:
                 {
-                    if (hasValidProp(params, "rootPath")) {
+                    if (hasValidProp(params, "rootPaths") || hasValidProp(params, "rootPath")) {
                         validatedParams = params;
                         validatedParams.capabilities = validatedParams.capabilities || false;
                     }
@@ -205,6 +205,7 @@ define(function (require, exports, module) {
         this._requestClient = null;
         this._onRequestHandler = {};
         this._onNotificationHandlers = {};
+        this._dynamicCapabilities = {};
 
         //Initialize with keys for brackets events we want to tap into.
         this._onEventHandlers = {
@@ -246,6 +247,14 @@ define(function (require, exports, module) {
         }
 
         var requestHandler = this._onRequestHandler[params.type];
+        if (params.type === ToolingInfo.SERVICE_REQUESTS.REGISTRATION_REQUEST) {
+            return this._registrationShim(params.params, requestHandler);
+        }
+
+        if (params.type === ToolingInfo.SERVICE_REQUESTS.UNREGISTRATION_REQUEST) {
+            return this._unregistrationShim(params.params, requestHandler);
+        }
+
         if (validateHandler(requestHandler)) {
             return requestHandler.call(null, params.params);
         }
@@ -328,6 +337,14 @@ define(function (require, exports, module) {
         return this._stopClient();
     };
 
+    //restart
+    LanguageClientWrapper.prototype.restart = function (params) {
+        var self = this;
+        return this.stop().done(function () {
+            return self.start(params);
+        });
+    };
+
     /**
         textDocument requests
     */
@@ -385,12 +402,12 @@ define(function (require, exports, module) {
     */
     //showMessage
     LanguageClientWrapper.prototype.addOnShowMessage = function (handler) {
-        this._addOnNotificationHandler(ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE, handler);
+        this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.SHOW_MESSAGE, handler);
     };
 
     //logMessage
     LanguageClientWrapper.prototype.addOnLogMessage = function (handler) {
-        this._addOnNotificationHandler(ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE, handler);
+        this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.LOG_MESSAGE, handler);
     };
 
     /**
@@ -398,7 +415,7 @@ define(function (require, exports, module) {
     */
     //telemetry
     LanguageClientWrapper.prototype.addOnTelemetryEvent = function (handler) {
-        this._addOnNotificationHandler(ToolingInfo.SERVICE_EVENTS.TELEMETRY, handler);
+        this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.TELEMETRY, handler);
     };
 
     /**
@@ -406,7 +423,7 @@ define(function (require, exports, module) {
     */
     //onPublishDiagnostics
     LanguageClientWrapper.prototype.addOnCodeInspection = function (handler) {
-        this._addOnNotificationHandler(ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS, handler);
+        this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.DIAGNOSTICS, handler);
     };
 
     /**
@@ -416,6 +433,40 @@ define(function (require, exports, module) {
     //showMessageRequest - handler must return promise
     LanguageClientWrapper.prototype.onShowMessageWithRequest = function (handler) {
         this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE, handler);
+    };
+
+    LanguageClientWrapper.prototype.onProjectFoldersRequest = function (handler) {
+        this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.PROJECT_FOLDERS_REQUEST, handler);
+    };
+
+    LanguageClientWrapper.prototype._registrationShim = function (params, handler) {
+        var self = this;
+
+        var registrations = params.registrations;
+        registrations.forEach(function (registration) {
+            var id = registration.id;
+            self._dynamicCapabilities[id] = registration;
+        });
+        return validateHandler(handler) ? handler(params) : $.Deferred().resolve();
+    };
+
+    LanguageClientWrapper.prototype.onDynamicCapabilityRegistration = function (handler) {
+        this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.REGISTRATION_REQUEST, handler);
+    };
+
+    LanguageClientWrapper.prototype._unregistrationShim = function (params, handler) {
+        var self = this;
+
+        var unregistrations = params.unregistrations;
+        unregistrations.forEach(function (unregistration) {
+            var id = unregistration.id;
+            delete self._dynamicCapabilities[id];
+        });
+        return validateHandler(handler) ? handler(params) : $.Deferred().resolve();
+    };
+
+    LanguageClientWrapper.prototype.onDynamicCapabilityUnregistration = function (handler) {
+        this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.UNREGISTRATION_REQUEST, handler);
     };
 
     /*
@@ -468,9 +519,17 @@ define(function (require, exports, module) {
         this._notify(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION, params);
     };
 
+    LanguageClientWrapper.prototype.onCustomNotification = function (type, handler) {
+        this._addOnNotificationHandler(type, handler);
+    };
+
     //customRequest
     LanguageClientWrapper.prototype.sendCustomRequest = function (params) {
         return this._request(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST, params);
+    };
+
+    LanguageClientWrapper.prototype.onCustomRequest = function (type, handler) {
+        this._addOnRequestHandler(type, handler);
     };
 
     //Handling Brackets Events
@@ -540,6 +599,9 @@ define(function (require, exports, module) {
         }
     };
 
+    LanguageClientWrapper.prototype.getDynamicCapabilities = function () {
+        return this._dynamicCapabilities;
+    };
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
 

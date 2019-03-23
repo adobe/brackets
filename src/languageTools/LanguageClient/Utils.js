@@ -24,7 +24,8 @@
 /*eslint-env es6, node*/
 "use strict";
 
-var nodeURL = require("url");
+var nodeURL = require("url"),
+    path = require("path");
 
 function pathToUri(filePath) {
     var newPath = filePath.replace(/\\/g, '/');
@@ -57,6 +58,21 @@ function convertToLSPPosition(pos) {
     };
 }
 
+function convertToWorkspaceFolders(paths) {
+    var workspaceFolders = paths.map(function (folderPath) {
+        var uri = pathToUri(folderPath),
+            name = path.basename(folderPath);
+
+        return {
+            uri: uri,
+            name: name
+        };
+    });
+
+    return workspaceFolders;
+}
+
 exports.uriToPath = uriToPath;
 exports.pathToUri = pathToUri;
 exports.convertToLSPPosition = convertToLSPPosition;
+exports.convertToWorkspaceFolders = convertToWorkspaceFolders;

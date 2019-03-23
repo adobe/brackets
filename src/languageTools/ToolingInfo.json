@@ -8,14 +8,17 @@
         "CUSTOM_REQUEST": "customRequest",
         "CUSTOM_NOTIFICATION": "customNotification"
     },
-    "SERVICE_EVENTS": {
+    "SERVICE_NOTIFICATIONS": {
         "SHOW_MESSAGE": "showMessage",
         "LOG_MESSAGE": "logMessage",
         "TELEMETRY": "telemetry",
         "DIAGNOSTICS": "diagnostics"
     },
     "SERVICE_REQUESTS": {
-        "SHOW_SELECT_MESSAGE": "showSelectMessage"
+        "SHOW_SELECT_MESSAGE": "showSelectMessage",
+        "REGISTRATION_REQUEST": "registerDynamicCapability",
+        "UNREGISTRATION_REQUEST": "unregisterDynamicCapability",
+        "PROJECT_FOLDERS_REQUEST": "projectFoldersRequest"
     },
     "SYNCHRONIZE_EVENTS": {
         "DOCUMENT_OPENED": "didOpen",

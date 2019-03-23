@@ -46,11 +46,6 @@ function _constructParamsAndRelay(relay, type, params) {
     }
 
     switch (type) {
-    case ToolingInfo.LANGUAGE_SERVICE.CANCEL_REQUEST:
-        {
-            //TODO
-            break;
-        }
     case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
         return sendCustomRequest(relay, params.type, params.params);
     case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
@@ -59,6 +54,9 @@ function _constructParamsAndRelay(relay, type, params) {
             break;
         }
     case ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE:
+    case ToolingInfo.SERVICE_REQUESTS.REGISTRATION_REQUEST:
+    case ToolingInfo.SERVICE_REQUESTS.UNREGISTRATION_REQUEST:
+    case ToolingInfo.SERVICE_REQUESTS.PROJECT_FOLDERS_REQUEST:
         {
             _params = {
                 type: type,
@@ -66,10 +64,10 @@ function _constructParamsAndRelay(relay, type, params) {
             };
             return relay(_params);
         }
-    case ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE:
-    case ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE:
-    case ToolingInfo.SERVICE_EVENTS.TELEMETRY:
-    case ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS:
+    case ToolingInfo.SERVICE_NOTIFICATIONS.SHOW_MESSAGE:
+    case ToolingInfo.SERVICE_NOTIFICATIONS.LOG_MESSAGE:
+    case ToolingInfo.SERVICE_NOTIFICATIONS.TELEMETRY:
+    case ToolingInfo.SERVICE_NOTIFICATIONS.DIAGNOSTICS:
         {
             _params = {
                 type: type,
@@ -134,10 +132,16 @@ function _constructParamsAndRelay(relay, type, params) {
         }
     case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
         {
+            var foldersAdded = params.foldersAdded || [],
+                foldersRemoved = params.foldersRemoved || [];
+
+            foldersAdded = Utils.convertToWorkspaceFolders(foldersAdded);
+            foldersRemoved = Utils.convertToWorkspaceFolders(foldersRemoved);
+
             _params = _params || {
                 event: {
-                    added: params.foldersAdded,
-                    removed: params.foldersRemoved
+                    added: foldersAdded,
+                    removed: foldersRemoved
                 }
             };
             didChangeWorkspaceFolders(relay, _params);
@@ -277,11 +281,27 @@ function workspaceSymbol(connection, params) {
  * Server commands
  */
 function initialize(connection, params) {
+    var rootPath = params.rootPath,
+        workspaceFolders = params.rootPaths;
+
+    if(!rootPath && workspaceFolders && Array.isArray(workspaceFolders)) {
+        rootPath = workspaceFolders[0];
+    }
+
+    if (!workspaceFolders) {
+        workspaceFolders = [rootPath];
+    }
+
+    if (workspaceFolders.length) {
+        workspaceFolders = Utils.convertToWorkspaceFolders(workspaceFolders);
+    }
+
     var _params = {
-        rootPath: params.rootPath,
-        rootUri: Utils.pathToUri(params.rootPath),
+        rootPath: rootPath,
+        rootUri: Utils.pathToUri(rootPath),
         processId: process.pid,
-        capabilities: params.capabilities
+        capabilities: params.capabilities,
+        workspaceFolders: workspaceFolders
     };
 
     return connection.sendRequest(protocol.InitializeRequest.type, _params);
@@ -311,13 +331,13 @@ function attachOnNotificationHandlers(connection, handler) {
     function _callbackFactory(type) {
         switch (type) {
         case protocol.ShowMessageNotification.type:
-            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.SHOW_MESSAGE);
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_NOTIFICATIONS.SHOW_MESSAGE);
         case protocol.LogMessageNotification.type:
-            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.LOG_MESSAGE);
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_NOTIFICATIONS.LOG_MESSAGE);
         case protocol.TelemetryEventNotification.type:
-            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.TELEMETRY);
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_NOTIFICATIONS.TELEMETRY);
         case protocol.PublishDiagnosticsNotification.type:
-            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_EVENTS.DIAGNOSTICS);
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_NOTIFICATIONS.DIAGNOSTICS);
         }
     }
 
@@ -325,6 +345,13 @@ function attachOnNotificationHandlers(connection, handler) {
     connection.onNotification(protocol.LogMessageNotification.type, _callbackFactory(protocol.LogMessageNotification.type));
     connection.onNotification(protocol.TelemetryEventNotification.type, _callbackFactory(protocol.TelemetryEventNotification.type));
     connection.onNotification(protocol.PublishDiagnosticsNotification.type, _callbackFactory(protocol.PublishDiagnosticsNotification.type));
+    connection.onNotification(function (type, params) {
+        var _params = {
+            type: type,
+            params: params
+        };
+        handler(_params);
+    });
 }
 
 function attachOnRequestHandlers(connection, handler) {
@@ -332,10 +359,30 @@ function attachOnRequestHandlers(connection, handler) {
         switch (type) {
         case protocol.ShowMessageRequest.type:
             return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE);
+        case protocol.RegistrationRequest.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.REGISTRATION_REQUEST);
+        case protocol.UnregistrationRequest.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.UNREGISTRATION_REQUEST);
+        case protocol.WorkspaceFoldersRequest.type:
+            return _constructParamsAndRelay.bind(null, handler, ToolingInfo.SERVICE_REQUESTS.PROJECT_FOLDERS_REQUEST);
         }
     }
 
     connection.onRequest(protocol.ShowMessageRequest.type, _callbackFactory(protocol.ShowMessageRequest.type));
+    connection.onRequest(protocol.RegistrationRequest.type, _callbackFactory(protocol.RegistrationRequest.type));
+    // See https://github.com/Microsoft/vscode-languageserver-node/issues/199
+    connection.onRequest("client/registerFeature", _callbackFactory(protocol.RegistrationRequest.type));
+    connection.onRequest(protocol.UnregistrationRequest.type, _callbackFactory(protocol.UnregistrationRequest.type));
+    // See https://github.com/Microsoft/vscode-languageserver-node/issues/199
+    connection.onRequest("client/unregisterFeature", _callbackFactory(protocol.UnregistrationRequest.type));
+    connection.onRequest(protocol.WorkspaceFoldersRequest.type, _callbackFactory(protocol.WorkspaceFoldersRequest.type));
+    connection.onRequest(function (type, params) {
+        var _params = {
+            type: type,
+            params: params
+        };
+        return handler(_params);
+    });
 }
 
 exports.initialize = initialize;
