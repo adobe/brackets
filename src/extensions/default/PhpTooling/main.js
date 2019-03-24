@@ -75,16 +75,24 @@ define(function (require, exports, module) {
     });
 
     var handleProjectOpen = function (event, directory) {
-        _client.stop()
-            .done(function () {
-                setTimeout(function () {
-                    _client.start({
-                        rootPath: directory.fullPath
-                    }).done(handlePostPhpServerStart);
-                }, 1500);
-            }).fail(function () {
-                console.log("Error encountered while stoping Php Server.");
+        if(serverCapabilities["workspace"] && serverCapabilities["workspace"]["workspaceFolders"]) {
+            _client.notifyProjectRootsChanged({
+                foldersAdded: [directory.fullPath],
+                foldersRemoved: [currentRootPath]
             });
+            handlePostPhpServerStart();
+        } else {
+            _client.stop()
+                .done(function () {
+                    setTimeout(function () {
+                        _client.start({
+                            rootPath: directory.fullPath
+                        }).done(handlePostPhpServerStart);
+                    }, 1500);
+                }).fail(function () {
+                    console.log("Error encountered while stoping Php Server.");
+                });
+        }
     };
 
     function registerToolingProviders() {
@@ -173,6 +181,7 @@ define(function (require, exports, module) {
             LanguageManager.off("languageModified.php");
         }
 
+        currentRootPath = ProjectManager.getProjectRoot()._path;
         setTimeout(function () {
             CodeInspection.requestRun("Diagnostics");
         }, 1500);
