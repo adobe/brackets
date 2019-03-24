@@ -80,7 +80,7 @@ define(function (require, exports, module) {
                 foldersAdded: [directory.fullPath],
                 foldersRemoved: [currentRootPath]
             });
-            handlePostPhpServerStart();
+            currentRootPath = directory.fullPath;
         } else {
             _client.stop()
                 .done(function () {
