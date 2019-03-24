@@ -51,7 +51,7 @@ define(function (require, exports, module) {
             enablePhpTooling: true,
             executablePath: "php",
             memoryLimit: "4095M",
-            validateOnSave: true
+            validateOnType: "false"
         },
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView",
         phpServerRunning = false,
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
                 setTimeout(function () {
                     _client.start({
                         rootPath: directory.fullPath
-                    });
+                    }).done(handlePostPhpServerStart);
                 }, 1500);
             }).fail(function () {
                 console.log("Error encountered while stoping Php Server.");
@@ -114,15 +114,10 @@ define(function (require, exports, module) {
         var evtHandler = new DefaultEventHandlers.EventPropagationProvider(_client);
         evtHandler.registerClientForEditorEvent();
 
-        if (!phpConfig["validateOnSave"]) {
+
+        if (phpConfig["validateOnType"] !== "false") {
             _client.addOnDocumentChangeHandler(function () {
                 CodeInspection.requestRun("Diagnostics");
-            });
-        } else {
-            _client.addOnDocumentDirtyFlagChangeHandler(function (event, document) {
-                if (!document.isDirty) {
-                    CodeInspection.requestRun("Diagnostics");
-                }
             });
         }
 
@@ -177,6 +172,10 @@ define(function (require, exports, module) {
             EditorManager.off("activeEditorChange.php");
             LanguageManager.off("languageModified.php");
         }
+
+        setTimeout(function () {
+            CodeInspection.requestRun("Diagnostics");
+        }, 1500);
     }
 
     function restart(project) {

@@ -28,20 +28,18 @@ define(function (require, exports, module) {
 
     var _ = brackets.getModule("thirdparty/lodash");
 
-    var EditorManager = brackets.getModule('editor/EditorManager'),
-        ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
+    var DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
+        EditorManager = brackets.getModule('editor/EditorManager'),
         TokenUtils = brackets.getModule("utils/TokenUtils"),
         StringMatch = brackets.getModule("utils/StringMatch"),
         matcher = new StringMatch.StringMatcher({
             preferPrefixMatches: true
         });
 
-    ExtensionUtils.loadStyleSheet(module, "../../../languageTools/styles/default_provider_style.css");
     var phpSuperGlobalVariables = JSON.parse(require("text!phpGlobals.json"));
 
     function CodeHintsProvider(client) {
-        this.client = client;
-        this.query = "";
+        this.defaultCodeHintProviders = new DefaultProviders.CodeHintsProvider(client);
     }
 
     function formatTypeDataForToken($hintObj, token) {
@@ -80,15 +78,11 @@ define(function (require, exports, module) {
     }
 
     CodeHintsProvider.prototype.hasHints = function (editor, implicitChar) {
-        if (!this.client) {
-            return false;
-        }
-
-        return true;
+        return this.defaultCodeHintProviders.hasHints(editor, implicitChar);
     };
 
     CodeHintsProvider.prototype.getHints = function (implicitChar) {
-        if (!this.client) {
+        if (!this.defaultCodeHintProviders.client) {
             return null;
         }
 
@@ -96,9 +90,9 @@ define(function (require, exports, module) {
             pos = editor.getCursorPos(),
             docPath = editor.document.file._path,
             $deferredHints = $.Deferred(),
-            self = this;
+            self = this.defaultCodeHintProviders;
 
-        this.client.requestHints({
+        this.defaultCodeHintProviders.client.requestHints({
             filePath: docPath,
             cursorPos: pos
         }).done(function (msgObj) {
@@ -111,12 +105,14 @@ define(function (require, exports, module) {
                 // There is a bug in Php Language Server, Php Language Server does not provide superGlobals
                 // Variables as completion. so these variables are being explicity put in response objects
                 // below code should be removed if php server fix this bug.
-                for(var key in phpSuperGlobalVariables) {
-                    res.push({
-                        label: key,
-                        documentation: phpSuperGlobalVariables[key].description,
-                        detail: phpSuperGlobalVariables[key].type
-                    });
+                if(self.query) {
+                    for(var key in phpSuperGlobalVariables) {
+                        res.push({
+                            label: key,
+                            documentation: phpSuperGlobalVariables[key].description,
+                            detail: phpSuperGlobalVariables[key].type
+                        });
+                    }
                 }
 
                 var filteredHints = filterWithQueryAndMatcher(res, self.query);
@@ -157,48 +153,7 @@ define(function (require, exports, module) {
     };
 
     CodeHintsProvider.prototype.insertHint = function ($hint) {
-        var start = {
-                line: -1,
-                ch: -1
-            },
-            end = {
-                line: -1,
-                ch: -1
-            },
-            editor = EditorManager.getActiveEditor(),
-            cursor = editor.getCursorPos(),
-            token = $hint.data("token"),
-            txt = null,
-            query = this.query;
-
-        start = {
-            line: cursor.line,
-            ch: cursor.ch - query.length
-        };
-
-        end = {
-            line: cursor.line,
-            ch: cursor.ch
-        };
-
-        txt = token.label;
-        if (token.textEdit && token.textEdit.newText) {
-            txt = token.textEdit.newText;
-            start = {
-                line: token.textEdit.range.start.line,
-                ch: token.textEdit.range.start.character
-            };
-            end = {
-                line: token.textEdit.range.end.line,
-                ch: token.textEdit.range.end.character
-            };
-        }
-
-        if (editor) {
-            editor.document.replaceRange(txt, start, end);
-        }
-        // Return false to indicate that another hinting session is not needed
-        return false;
+        return this.defaultCodeHintProviders.insertHint($hint);
     };
 
     exports.CodeHintsProvider = CodeHintsProvider;
