@@ -872,8 +872,17 @@ define({
     "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
     "AUTOUPDATE_ERROR"                               : "Error!",
     "AUTOUPDATE_IN_PROGRESS"                         : "An update is already in progress.",
-    
+
     "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
-    "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
+    "CMD_FIND_RELATED_FILES"                         : "Find Related Files",
+
+    ///String for Php Tooling Extensions
+    "PHP_VERSION_INVALID"                            : "Error parsing PHP version. Please check the output of php --version",
+    "PHP_UNSUPPORTED_VERSION"                        : "The language server needs at least PHP 7 installed. Version found: {0}",
+    "PHP_EXECUTABLE_NOT_FOUND"                       : "PHP executable not found. Install PHP 7 and add it to your PATH or set the executablePath in php preference settings",
+    "PHP_PROCESS_SPAWN_ERROR"                        : "Error encountered spawning PHP process with error code: {0}",
+    "PHP_SERVER_ERROR_TITLE"                         : "PHP Server Error",
+    "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "The memory limit you\'d provided is not numeric, nor -1 nor valid php shorthand notation! Check your php preference settings",
+    "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings"
 });
