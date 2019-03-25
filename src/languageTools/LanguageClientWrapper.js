@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     function validateRequestParams(type, params) {
         var validatedParams = null;
 
-        params = params ? params : {};
+        params = params || {};
 
         //Don't validate if the formatting is done by the caller
         if (params.format === MESSAGE_FORMAT.LSP) {
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
     function validateNotificationParams(type, params) {
         var validatedParams = null;
 
-        params = params ? params : {};
+        params = params || {};
 
         //Don't validate if the formatting is done by the caller
         if (params.format === MESSAGE_FORMAT.LSP) {
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
         this._name = name;
         this._path = path;
         this._domainInterface = domainInterface;
-        this._languages = languages ? languages : [];
+        this._languages = languages || [];
         this._startClient = null;
         this._stopClient = null;
         this._notifyClient = null;
