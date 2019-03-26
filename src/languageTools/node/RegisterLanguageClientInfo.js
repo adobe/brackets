@@ -224,6 +224,11 @@ var domainName = "LanguageClientInfo",
         }
     };
 
+function syncPreferences(prefs) {
+    global.LanguageClientInfo = global.LanguageClientInfo || {};
+    global.LanguageClientInfo.preferences = prefs || global.LanguageClientInfo.preferences || {};
+}
+
 function initialize(bracketsSourcePath, toolingInfo) {
     var normalizedBracketsSourcePath = bracketsSourcePath.split(BACKWARD_SLASH).join(FORWARD_SLASH),
         bracketsSourcePathArray = normalizedBracketsSourcePath.split(FORWARD_SLASH),
@@ -233,6 +238,7 @@ function initialize(bracketsSourcePath, toolingInfo) {
     global.LanguageClientInfo.languageClientPath = languageClientAbsolutePath;
     global.LanguageClientInfo.defaultBracketsCapabilities = defaultBracketsCapabilities;
     global.LanguageClientInfo.toolingInfo = toolingInfo;
+    global.LanguageClientInfo.preferences = {};
 }
 
 function init(domainManager) {
@@ -259,6 +265,22 @@ function init(domainManager) {
                 name: "toolingInfo",
                 type: "object",
                 description: "Tooling Info json to be used by Language Client"
+            }
+        ],
+        []
+    );
+
+    domainManager.registerCommand(
+        domainName,
+        "syncPreferences",
+        syncPreferences,
+        false,
+        "Sync language tools preferences for Language Client Module",
+        [
+            {
+                name: "prefs",
+                type: "object",
+                description: "Language tools preferences"
             }
         ],
         []
