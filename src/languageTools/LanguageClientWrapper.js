@@ -206,6 +206,7 @@ define(function (require, exports, module) {
         this._onRequestHandler = {};
         this._onNotificationHandlers = {};
         this._dynamicCapabilities = {};
+        this._serverCapabilities = {};
 
         //Initialize with keys for brackets events we want to tap into.
         this._onEventHandlers = {
@@ -602,6 +603,14 @@ define(function (require, exports, module) {
     LanguageClientWrapper.prototype.getDynamicCapabilities = function () {
         return this._dynamicCapabilities;
     };
+    
+    LanguageClientWrapper.prototype.getServerCapabilities = function () {
+        return this._serverCapabilities;
+    }
+    
+    LanguageClientWrapper.prototype.setServerCapabilities = function (serverCapabilities) {
+        this._serverCapabilities = serverCapabilities;
+    }
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
 
