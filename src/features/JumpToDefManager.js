@@ -25,11 +25,10 @@ define(function (require, exports, module) {
     "use strict";
 
     var Commands = require("command/Commands"),
+        Strings = require("strings"),
         AppInit = require("utils/AppInit"),
         CommandManager = require("command/CommandManager"),
         EditorManager = require("editor/EditorManager"),
-        PerfUtils = require("utils/PerfUtils"),
-        Menus = require("command/Menus"),
         ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler;
 
     var _providerRegistrationHandler = new ProviderRegistrationHandler(),
@@ -53,7 +52,6 @@ define(function (require, exports, module) {
             var language = editor.getLanguageForSelection(),
                 enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
 
-            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
 
             enabledProviders.some(function (item, index) {
                 if (item.provider.canJumpToDef(editor)) {
@@ -67,20 +65,15 @@ define(function (require, exports, module) {
 
                 if (request) {
                     request.done(function () {
-                        PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
                         result.resolve();
                     }).fail(function () {
-                        // terminate timer that was started above
-                        PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
                         result.reject();
                     });
                 } else {
-                    // terminate timer that was started above
-                    PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
                     result.reject();
                 }
             } else {
-                EditorManager.doJumpToDef();
+                result.reject();
             }
         } else {
             result.reject();
@@ -89,10 +82,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    AppInit.htmlReady(function () {
-        CommandManager.get(Commands.NAVIGATE_JUMPTO_DEFINITION)._commandFn = _doJumpToDef;
-        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
-    });
+    CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
 
     exports.registerJumpToDefProvider = registerJumpToDefProvider;
     exports.removeJumpToDefProvider = removeJumpToDefProvider;
