@@ -137,6 +137,10 @@ define(function (require, exports, module) {
             return PathUtils;
         }
     });
+    
+    //load language features
+    require("features/ParameterHintsManager");
+    require("features/JumpToDefManager");
 
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -162,10 +166,6 @@ define(function (require, exports, module) {
     require("languageTools/BracketsToNodeInterface");
     require("languageTools/DefaultProviders");
     require("languageTools/DefaultEventHandlers");
-
-	//load language features
-    require("features/ParameterHintsManager");
-    require("features/JumpToDefManager");
 
 
     PerfUtils.addMeasurement("brackets module dependencies resolved");

@@ -41,7 +41,8 @@ define(function (require, exports, module) {
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
         HintUtils            = brackets.getModule("JSUtils/HintUtils"),
         HintUtils2           = require("HintUtils2"),
-        ParameterHintManager = require("ParameterHintManager");
+        ParameterHintProvider = require("ParameterHintsProvider").JSParameterHintsProvider,
+        phProvider            = new ParameterHintProvider();
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
@@ -341,14 +342,26 @@ define(function (require, exports, module) {
          * Verify there is no parameter hint at the current cursor.
          */
         function expectNoParameterHint() {
-            expect(ParameterHintManager.popUpHint()).toBe(null);
+            var requestStatus = undefined;
+            runs(function () {
+                var request = phProvider._getParameterHint();
+                request.done(function (status) {
+                    requestStatus = status;
+                });
+
+                waitsForDone(request, "ParameterHints");
+            });
+         
+            runs(function () {
+                expect(requestStatus).toBe(null);
+            });  
         }
 
         /**
          * Verify the parameter hint is not visible.
          */
         function expectParameterHintClosed() {
-            expect(ParameterHintManager.isHintDisplayed()).toBe(false);
+            expect(phProvider.isHintDisplayed()).toBe(false);
         }
 
         /*
@@ -386,9 +399,19 @@ define(function (require, exports, module) {
          * @param {number} expectedParameter - the parameter at cursor.
          */
         function expectParameterHint(expectedParams, expectedParameter) {
-            var request = ParameterHintManager.popUpHint();
+            var requestStatus = undefined;
+            runs(function () {
+                var request = phProvider._getParameterHint();
+                request.done(function (status) {
+                    requestStatus = status;
+                });
+
+                waitsForDone(request, "ParameterHints");
+            });
+            
+            
             if (expectedParams === null) {
-                expect(request).toBe(null);
+                expect(requestStatus).toBe(null);
                 return;
             }
 
