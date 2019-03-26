@@ -876,7 +876,6 @@ define({
     "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files",
-
     ///String for Php Tooling Extensions
     "PHP_VERSION_INVALID"                            : "Error parsing PHP version. Please check the output of php --version",
     "PHP_UNSUPPORTED_VERSION"                        : "The language server needs at least PHP 7 installed. Version found: {0}",
@@ -884,5 +883,7 @@ define({
     "PHP_PROCESS_SPAWN_ERROR"                        : "Error encountered spawning PHP process with error code: {0}",
     "PHP_SERVER_ERROR_TITLE"                         : "PHP Server Error",
     "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "The memory limit you\'d provided is not numeric, nor -1 nor valid php shorthand notation! Check your php preference settings",
-    "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings"
+    "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings",
+    //Strings for LanguageTools Preferences
+    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
 });

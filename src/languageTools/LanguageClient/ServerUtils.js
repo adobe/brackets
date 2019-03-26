@@ -21,7 +21,7 @@
  *
  */
 
-/*global exports, process, Promise, __dirname, LanguageClientInfo*/
+/*global exports, process, Promise, __dirname, global*/
 /*eslint no-console: 0*/
 /*eslint no-fallthrough: 0*/
 /* eslint no-empty: ["error", { "allowEmptyCatch": true }] */
@@ -109,11 +109,15 @@
                 {
                     if (resp.process) {
                         resp.process.stderr.on('data', function (data) {
-                            console.error('[Server logs @ stderr] "%s"', String(data));
+                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                                console.error('[Server logs @ stderr] "%s"', String(data));
+                            }
                         });
 
                         resp.process.stdout.on('data', function (data) {
-                            console.info('[Server logs @ stdout] "%s"', String(data));
+                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                                console.info('[Server logs @ stdout] "%s"', String(data));
+                            }
                         });
 
                         retval = {
@@ -127,7 +131,9 @@
                 {
                     if (resp.process) {
                         resp.process.stderr.on('data', function (data) {
-                            console.error('[Server logs @ stderr] "%s"', String(data));
+                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                                console.error('[Server logs @ stderr] "%s"', String(data));
+                            }
                         });
 
                         retval = {
@@ -142,11 +148,15 @@
                 {
                     if (resp.reader && resp.writer && resp.process) {
                         resp.process.stderr.on('data', function (data) {
-                            console.error('[Server logs @ stderr] "%s"', String(data));
+                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                                console.error('[Server logs @ stderr] "%s"', String(data));
+                            }
                         });
 
                         resp.process.stdout.on('data', function (data) {
-                            console.info('[Server logs @ stdout] "%s"', String(data));
+                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                                console.info('[Server logs @ stdout] "%s"', String(data));
+                            }
                         });
 
                         retval = {
@@ -179,7 +189,9 @@
             };
 
             resp.process.stderr.on('data', function (data) {
-                console.error('[Server logs @ stderr] "%s"', String(data));
+                if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                    console.error('[Server logs @ stderr] "%s"', String(data));
+                }
             });
         }
 

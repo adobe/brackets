@@ -44,6 +44,11 @@ define(function (require, exports, module) {
     //Init node with Information required by Language Client
     clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
 
+    function syncPrefsWithDomain(languageToolsPrefs) {
+        if (clientInfoDomain) {
+            clientInfoDomain.exec("syncPreferences", languageToolsPrefs);
+        }
+    }
 
     function _createNodeDomain(domainName, domainPath) {
         return new NodeDomain(domainName, domainPath);
@@ -96,4 +101,5 @@ define(function (require, exports, module) {
     }
 
     exports.initiateLanguageClient = initiateLanguageClient;
+    exports.syncPrefsWithDomain = syncPrefsWithDomain;
 });
