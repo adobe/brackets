@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         TokenUtils = require("utils/TokenUtils"),
         StringMatch = require("utils/StringMatch"),
         CodeInspection = require("language/CodeInspection"),
+        PathConverters = require("languageTools/PathConverters"),
         matcher = new StringMatch.StringMatcher({
             preferPrefixMatches: true
         });
@@ -83,6 +84,11 @@ define(function (require, exports, module) {
 
     CodeHintsProvider.prototype.hasHints = function (editor, implicitChar) {
         if (!this.client) {
+            return false;
+        }
+        
+        var serverCapabilities = this.client.getServerCapabilities();
+        if (!serverCapabilities || !serverCapabilities.completionProvider) {
             return false;
         }
 
@@ -200,6 +206,11 @@ define(function (require, exports, module) {
         if (!this.client) {
             return false;
         }
+        
+        var serverCapabilities = this.client.getServerCapabilities();
+        if (!serverCapabilities || !serverCapabilities.signatureHelpProvider) {
+            return false;
+        }
 
         return true;
     };
@@ -269,6 +280,11 @@ define(function (require, exports, module) {
         if (!this.client) {
             return false;
         }
+        
+        var serverCapabilities = this.client.getServerCapabilities();
+        if (!serverCapabilities || !serverCapabilities.definitionProvider) {
+            return false;
+        }
 
         return true;
     };
@@ -284,7 +300,7 @@ define(function (require, exports, module) {
         var editor = EditorManager.getFocusedEditor(),
             pos = editor.getCursorPos(),
             docPath = editor.document.file._path,
-            docPathUri = "file://" + docPath,
+            docPathUri = PathConverters.pathToUri(docPath),
             $deferredHints = $.Deferred();
 
         this.client.gotoDefinition({
@@ -293,7 +309,7 @@ define(function (require, exports, module) {
         }).done(function (msgObj) {
             //For Older servers
             if (Array.isArray(msgObj)) {
-                msgObj = msgObj[0];
+                msgObj = msgObj[msgObj.length - 1];
             }
 
             if (msgObj && msgObj.range) {
@@ -303,7 +319,7 @@ define(function (require, exports, module) {
                 startCurPos.ch = msgObj.range.start.character;
 
                 if (docUri !== docPathUri) {
-                    let documentPath = docUri.substr(7);
+                    let documentPath = PathConverters.uriToPath(docUri);
                     CommandManager.execute(Commands.FILE_OPEN, {
                             fullPath: documentPath
                         })
@@ -324,7 +340,7 @@ define(function (require, exports, module) {
     };
 
     function LintingProvider() {
-        this._results = null;
+        this._results = {};
     }
 
     /**
@@ -332,8 +348,9 @@ define(function (require, exports, module) {
      * @param   {Object} msgObj - json object containg information associated with 'textDocument/publishDiagnostics' notification from server
      */
     LintingProvider.prototype.setInspectionResults = function (msgObj) {
-        let diagnostics = msgObj.diagnostics;
-        let errors = [];
+        let diagnostics = msgObj.diagnostics,
+            filePath = PathConverters.uriToPath(msgObj.uri),
+            errors = [];
         diagnostics.forEach(obj => {
             let err = {
                 pos: {
@@ -346,13 +363,13 @@ define(function (require, exports, module) {
             errors.push(err);
         });
 
-        this._results = {
+        this._results[filePath] = {
             errors: errors
         };
     };
 
-    LintingProvider.prototype.getInspectionResults = function () {
-        return this._results;
+    LintingProvider.prototype.getInspectionResults = function (fileText, filePath) {
+        return this._results[filePath];
     };
 
     exports.CodeHintsProvider = CodeHintsProvider;

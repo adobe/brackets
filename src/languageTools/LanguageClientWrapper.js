@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     function validateRequestParams(type, params) {
         var validatedParams = null;
 
-        params = params ? params : {};
+        params = params || {};
 
         //Don't validate if the formatting is done by the caller
         if (params.format === MESSAGE_FORMAT.LSP) {
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
     function validateNotificationParams(type, params) {
         var validatedParams = null;
 
-        params = params ? params : {};
+        params = params || {};
 
         //Don't validate if the formatting is done by the caller
         if (params.format === MESSAGE_FORMAT.LSP) {
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
         this._name = name;
         this._path = path;
         this._domainInterface = domainInterface;
-        this._languages = languages ? languages : [];
+        this._languages = languages || [];
         this._startClient = null;
         this._stopClient = null;
         this._notifyClient = null;
@@ -206,6 +206,7 @@ define(function (require, exports, module) {
         this._onRequestHandler = {};
         this._onNotificationHandlers = {};
         this._dynamicCapabilities = {};
+        this._serverCapabilities = {};
 
         //Initialize with keys for brackets events we want to tap into.
         this._onEventHandlers = {
@@ -602,6 +603,14 @@ define(function (require, exports, module) {
     LanguageClientWrapper.prototype.getDynamicCapabilities = function () {
         return this._dynamicCapabilities;
     };
+    
+    LanguageClientWrapper.prototype.getServerCapabilities = function () {
+        return this._serverCapabilities;
+    }
+    
+    LanguageClientWrapper.prototype.setServerCapabilities = function (serverCapabilities) {
+        this._serverCapabilities = serverCapabilities;
+    }
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
 

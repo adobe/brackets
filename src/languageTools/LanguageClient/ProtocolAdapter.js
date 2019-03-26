@@ -150,14 +150,14 @@ function _constructParamsAndRelay(relay, type, params) {
     case ToolingInfo.FEATURES.CODE_HINTS:
         handler = completion;
     case ToolingInfo.FEATURES.PARAMETER_HINTS:
-        handler = handler ? handler : signatureHelp;
+        handler = handler || signatureHelp;
     case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
-        handler = handler ? handler : gotoDeclaration;
+        handler = handler || gotoDeclaration;
     case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
-        handler = handler ? handler : gotoDefinition;
+        handler = handler || gotoDefinition;
     case ToolingInfo.FEATURES.JUMP_TO_IMPL:
         {
-            handler = handler ? handler : gotoImplementation;
+            handler = handler || gotoImplementation;
             _params = _params || {
                 textDocument: {
                     uri: Utils.pathToUri(params.filePath)
