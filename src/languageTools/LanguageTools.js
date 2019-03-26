@@ -32,9 +32,14 @@ define(function (require, exports, module) {
         ProjectManager = require("project/ProjectManager"),
         DocumentManager = require("document/DocumentManager"),
         DocumentModule = require("document/Document"),
+        PreferencesManager = require("preferences/PreferencesManager"),
+        Strings = require("strings"),
         LanguageClientWrapper = require("languageTools/LanguageClientWrapper").LanguageClientWrapper;
 
     var languageClients = new Map(),
+        languageToolsPrefs = {
+            showServerLogsInConsole: false
+        },
         BRACKETS_EVENTS_NAMES = {
             EDITOR_CHANGE_EVENT: "activeEditorChange",
             PROJECT_OPEN_EVENT: "projectOpen",
@@ -44,6 +49,16 @@ define(function (require, exports, module) {
             FILE_RENAME_EVENT: "fileNameChange",
             BEFORE_APP_CLOSE: "beforeAppClose"
         };
+
+    PreferencesManager.definePreference("languageTools", "object", languageToolsPrefs, {
+        description: Strings.LANGUAGE_TOOLS_PREFERENCES
+    });
+
+    PreferencesManager.on("change", "languageTools", function () {
+        languageToolsPrefs = PreferencesManager.get("languageTools");
+
+        ClientLoader.syncPrefsWithDomain(languageToolsPrefs);
+    });
 
     function registerLanguageClient(clientName, languageClient) {
         languageClients.set(clientName, languageClient);
