@@ -47,6 +47,7 @@ define(function (require, exports, module) {
     var clientFilePath = ExtensionUtils.getModulePath(module, "client.js"),
         clientName = "PhpClient",
         _client = null,
+        evtHandler,
         phpConfig = {
             enablePhpTooling: true,
             executablePath: "php",
@@ -99,13 +100,9 @@ define(function (require, exports, module) {
         var chProvider = new CodeHintsProvider(_client),
             phProvider = new DefaultProviders.ParameterHintsProvider(_client),
             lProvider = new DefaultProviders.LintingProvider(_client),
-            jdProvider;
-
-        if (serverCapabilities && serverCapabilities.definitionProvider) {
             jdProvider = new DefaultProviders.JumpToDefProvider(_client);
-            JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
-        }
 
+        JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
         CodeInspection.register(["php"], {
@@ -119,7 +116,7 @@ define(function (require, exports, module) {
     function addEventHandlers() {
         _client.addOnLogMessage(function () {});
         _client.addOnShowMessage(function () {});
-        var evtHandler = new DefaultEventHandlers.EventPropagationProvider(_client);
+        evtHandler = new DefaultEventHandlers.EventPropagationProvider(_client);
         evtHandler.registerClientForEditorEvent();
 
 
@@ -172,7 +169,10 @@ define(function (require, exports, module) {
         });
     }
 
-    function handlePostPhpServerStart() {
+    function handlePostPhpServerStart(result) {
+        if(result) {
+            _client.setServerCapabilities(result.capabilities);
+        }
         if (!phpServerRunning) {
             phpServerRunning = true;
             registerToolingProviders();
@@ -181,6 +181,7 @@ define(function (require, exports, module) {
             LanguageManager.off("languageModified.php");
         }
 
+        evtHandler.handleActiveEditorChange(null, EditorManager.getActiveEditor());
         currentRootPath = ProjectManager.getProjectRoot()._path;
         setTimeout(function () {
             CodeInspection.requestRun("Diagnostics");
@@ -216,7 +217,7 @@ define(function (require, exports, module) {
                     }).done(function (result) {
                         console.log("php Language Server started");
                         serverCapabilities = result.capabilities;
-                        handlePostPhpServerStart();
+                        handlePostPhpServerStart(result);
                     });
                 }).fail(showErrorPopUp);
         }
