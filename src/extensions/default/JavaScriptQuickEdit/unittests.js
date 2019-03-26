@@ -275,7 +275,7 @@ define(function (require, exports, module) {
 
             describe("Code hints tests within quick edit window ", function () {
                 var JSCodeHints,
-                    ParameterHintManager;
+                    ParameterHintProvider;
 
                 /*
                  * Ask provider for hints at current cursor position; expect it to
@@ -380,9 +380,18 @@ define(function (require, exports, module) {
                  * @param {number} expectedParameter - the parameter at cursor.
                  */
                 function expectParameterHint(expectedParams, expectedParameter) {
-                    var request = ParameterHintManager.popUpHint();
+                    var requestStatus = undefined;
+                    runs(function () {
+                        var request = phProvider._getParameterHint();
+                        request.done(function (status) {
+                            requestStatus = status;
+                        });
+
+                        waitsForDone(request, "ParameterHints");
+                    });
+         
                     if (expectedParams === null) {
-                        expect(request).toBe(null);
+                        expect(requestStatus).toBe(null);
                         return;
                     }
 
@@ -462,7 +471,7 @@ define(function (require, exports, module) {
                     var extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").
                                 getRequireContextForExtension("JavaScriptCodeHints");
                     JSCodeHints = extensionRequire("main");
-                    ParameterHintManager = extensionRequire("ParameterHintManager");
+                    ParameterHintProvider = extensionRequire("ParameterHintsProvider").JSParameterHintsProvider();
                 }
 
                 beforeEach(function () {
@@ -472,7 +481,7 @@ define(function (require, exports, module) {
 
                 afterEach(function () {
                     JSCodeHints = null;
-                    ParameterHintManager = null;
+                    ParameterHintProvider = null;
                 });
 
                 it("should see code hint lists in quick editor", function () {

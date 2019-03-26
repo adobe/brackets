@@ -26,22 +26,24 @@ define(function (require, exports, module) {
 
     var _ = brackets.getModule("thirdparty/lodash");
 
-    var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
-        EditorManager        = brackets.getModule("editor/EditorManager"),
-        Commands             = brackets.getModule("command/Commands"),
-        CommandManager       = brackets.getModule("command/CommandManager"),
-        LanguageManager      = brackets.getModule("language/LanguageManager"),
-        AppInit              = brackets.getModule("utils/AppInit"),
-        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-        StringMatch          = brackets.getModule("utils/StringMatch"),
-        ProjectManager       = brackets.getModule("project/ProjectManager"),
-        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
-        Strings              = brackets.getModule("strings"),
-        ParameterHintManager = require("ParameterHintManager"),
-        HintUtils            = brackets.getModule("JSUtils/HintUtils"),
-        ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
-        Session              = brackets.getModule("JSUtils/Session"),
-        Acorn                = require("node_modules/acorn/dist/acorn");
+    var CodeHintManager           = brackets.getModule("editor/CodeHintManager"),
+        EditorManager             = brackets.getModule("editor/EditorManager"),
+        Commands                  = brackets.getModule("command/Commands"),
+        CommandManager            = brackets.getModule("command/CommandManager"),
+        LanguageManager           = brackets.getModule("language/LanguageManager"),
+        AppInit                   = brackets.getModule("utils/AppInit"),
+        ExtensionUtils            = brackets.getModule("utils/ExtensionUtils"),
+        StringMatch               = brackets.getModule("utils/StringMatch"),
+        ProjectManager            = brackets.getModule("project/ProjectManager"),
+        PreferencesManager        = brackets.getModule("preferences/PreferencesManager"),
+        Strings                   = brackets.getModule("strings"),
+        JSParameterHintsProvider  = require("./ParameterHintsProvider").JSParameterHintsProvider,
+        ParameterHintsManager     = brackets.getModule("features/ParameterHintsManager"),
+        HintUtils                 = brackets.getModule("JSUtils/HintUtils"),
+        ScopeManager              = brackets.getModule("JSUtils/ScopeManager"),
+        Session                   = brackets.getModule("JSUtils/Session"),
+        JumpToDefManager          = brackets.getModule("features/JumpToDefManager"),
+        Acorn                     = require("node_modules/acorn/dist/acorn");
 
     var session            = null,  // object that encapsulates the current session state
         cachedCursor       = null,  // last cursor of the current hinting session
@@ -55,7 +57,8 @@ define(function (require, exports, module) {
         ignoreChange;           // can ignore next "change" event if true;
 
     // Languages that support inline JavaScript
-    var _inlineScriptLanguages = ["html", "php"];
+    var _inlineScriptLanguages = ["html", "php"],
+        phProvider = new JSParameterHintsProvider();
 
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", [], {
@@ -642,7 +645,7 @@ define(function (require, exports, module) {
             session = new Session(editor);
             ScopeManager.handleEditorChange(session, editor.document,
                 previousEditor ? previousEditor.document : null);
-            ParameterHintManager.setSession(session);
+            phProvider.setSession(session);
             cachedHints = null;
         }
 
@@ -667,11 +670,9 @@ define(function (require, exports, module) {
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
                             ScopeManager.handleFileChange(changeList);
-                            ParameterHintManager.popUpHintAtOpenParen();
                         }
                         ignoreChange = false;
                     });
-                ParameterHintManager.installListeners(editor);
             } else {
                 session = null;
             }
@@ -686,7 +687,6 @@ define(function (require, exports, module) {
         function uninstallEditorListeners(editor) {
             if (editor) {
                 editor.off(HintUtils.eventName("change"));
-                ParameterHintManager.uninstallListeners(editor);
             }
         }
 
@@ -719,10 +719,21 @@ define(function (require, exports, module) {
             installEditorListeners(current, previous);
         }
 
-        /*
-         * Handle JumptoDefiniton menu/keyboard command.
+        function setJumpPosition(curPos) {
+            EditorManager.getCurrentFullEditor().setCursorPos(curPos.line, curPos.ch, true);
+        }
+
+        function JSJumpToDefProvider() {
+        }
+
+        JSJumpToDefProvider.prototype.canJumpToDef = function (editor, implicitChar) {
+            return true;
+        };
+
+        /**
+         * Method to handle jump to definition feature.
          */
-        function handleJumpToDefinition() {
+        JSJumpToDefProvider.prototype.doJumpToDef = function () {
             var offset,
                 handleJumpResponse;
 
@@ -891,18 +902,18 @@ define(function (require, exports, module) {
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 
+        ParameterHintsManager.registerHintProvider(phProvider, ["javascript"], 0);
         // init
-        EditorManager.registerJumpToDefProvider(handleJumpToDefinition);
+        var jdProvider = new JSJumpToDefProvider();
+        JumpToDefManager.registerJumpToDefProvider(jdProvider, ["javascript"], 0);
 
         var jsHints = new JSHints();
         CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
-
-        ParameterHintManager.addCommands();
 
         // for unit testing
         exports.getSession = getSession;
         exports.jsHintProvider = jsHints;
         exports.initializeSession = initializeSession;
-        exports.handleJumpToDefinition = handleJumpToDefinition;
+        exports.handleJumpToDefinition = jdProvider.doJumpToDef.bind(jdProvider);
     });
 });
