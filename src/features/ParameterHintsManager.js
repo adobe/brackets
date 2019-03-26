@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         AppInit = require("utils/AppInit"),
         CommandManager = require("command/CommandManager"),
         EditorManager = require("editor/EditorManager"),
+        Menus = require("command/Menus"),
         KeyEvent = require("utils/KeyEvent"),
         Strings = require("strings"),
         ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler;
@@ -38,7 +39,18 @@ define(function (require, exports, module) {
 
     /** @const {string} Show Function Hint command ID */
     var SHOW_PARAMETER_HINT_CMD_ID = "showParameterHint", // string must MATCH string in native code (brackets_extensions)
-        hintContainerHTML = require("text!htmlContent/parameter-hint-template.html");
+        hintContainerHTML = require("text!htmlContent/parameter-hint-template.html"),
+        KeyboardPrefs = {
+            "showParameterHint": [
+                {
+                    "key": "Ctrl-Shift-Space"
+                },
+                {
+                    "key": "Ctrl-Shift-Space",
+                    "platform": "mac"
+                }
+            ]
+        };
 
     var $hintContainer, // function hint container
         $hintContent, // function hint content holder
@@ -124,7 +136,7 @@ define(function (require, exports, module) {
 
         appendParameter("(", "", -1);
         params.forEach(function (value, i) {
-            var param = value.label,
+            var param = value.label || value.type,
                 documentation = value.documentation,
                 separators = "";
 
@@ -153,9 +165,9 @@ define(function (require, exports, module) {
 
             result += separators;
 
-            /*if (!typesOnly) {
+            if (!typesOnly && value.name) {
                 param += " " + value.name;
-            }*/
+            }
 
             if (appendParameter) {
                 appendParameter(param, documentation, i);
@@ -235,16 +247,21 @@ define(function (require, exports, module) {
      * Pop up a function hint on the line above the caret position.
      *
      * @param {object=} editor - current Active Editor
+     * @param {boolean} True if hints are invoked through cursor activity.
      * @return {jQuery.Promise} - The promise will not complete until the
      *      hint has completed. Returns null, if the function hint is already
      *      displayed or there is no function hint at the cursor.
      *
      */
-    function popUpHint(editor) {
+    function popUpHint(editor, onCursorActivity) {
         var request = null;
         var $deferredPopUp = $.Deferred();
         var sessionProvider = null;
 
+        if (onCursorActivity) {
+            dismissHint(editor);
+        }
+        
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
@@ -257,7 +274,7 @@ define(function (require, exports, module) {
         });
 
         if (sessionProvider) {
-            request = sessionProvider.getParameterHints();
+            request = sessionProvider.getParameterHints(onCursorActivity);
         }
 
         if (request) {
@@ -272,6 +289,7 @@ define(function (require, exports, module) {
                 hintState.visible = true;
 
                 sessionEditor = editor;
+
                 editor.on("cursorActivity.ParameterHinting", handleCursorActivity);
                 $deferredPopUp.resolveWith(null);
             }).fail(function () {
@@ -287,7 +305,11 @@ define(function (require, exports, module) {
      *  Dismiss the pop up when the cursor moves off the function.
      */
     handleCursorActivity = function (event, editor) {
-        dismissHint(editor);
+        if (editor) {
+            popUpHint(editor, true);
+        } else {
+            dismissHint();
+        }
     };
 
     /**
@@ -359,7 +381,24 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Show a parameter hint in its own pop-up.
+     *
+     */
+    function handleShowParameterHint() {
+        var editor = EditorManager.getActiveEditor();
+        // Pop up function hint
+        popUpHint(editor);
+    }
+
     AppInit.appReady(function () {
+        CommandManager.register(Strings.CMD_SHOW_PARAMETER_HINT, SHOW_PARAMETER_HINT_CMD_ID, handleShowParameterHint);
+
+        // Add the menu items
+        var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
+        if (menu) {
+            menu.addMenuItem(SHOW_PARAMETER_HINT_CMD_ID, KeyboardPrefs.showParameterHint, Menus.AFTER, Commands.SHOW_CODE_HINTS);
+        }
         // Create the function hint container
         $hintContainer = $(hintContainerHTML).appendTo($("body"));
         $hintContent = $hintContainer.find(".function-hint-content-new");

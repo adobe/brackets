@@ -123,7 +123,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";    // DocumentCommandHandlers.js   handleShowInTree()
     exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";          // DocumentCommandHandlers.js   handleShowInOS()
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";         // QuickOpen.js                 doFileSearch()
-    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";  // EditorManager.js             _doJumpToDef()
+    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";  // JumpToDefManager.js             _doJumpToDef()
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";    // QuickOpen.js                 doDefinitionSearch()
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";          // QuickOpen.js                 doGotoLine()
     exports.NAVIGATE_GOTO_FIRST_PROBLEM = "navigate.gotoFirstProblem";  // CodeInspection.js            handleGotoFirstProblem()
