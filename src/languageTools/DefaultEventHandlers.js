@@ -185,8 +185,6 @@ define(function (require, exports, module) {
             this.client.addOnFileRenameHandler(handleDocumentRename);
             this.client.addBeforeAppClose(handleAppClose);
             this.client.onProjectFoldersRequest(handleProjectFoldersRequest);
-
-            this.handleActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         } else {
             console.log("No client provided for event propagation");
         }
