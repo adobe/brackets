@@ -253,15 +253,12 @@ define(function (require, exports, module) {
      *      displayed or there is no function hint at the cursor.
      *
      */
-    function popUpHint(editor, onCursorActivity) {
+    function popUpHint(editor, explicit, onCursorActivity) {
         var request = null;
         var $deferredPopUp = $.Deferred();
         var sessionProvider = null;
 
-        if (onCursorActivity) {
-            dismissHint(editor);
-        }
-        
+        dismissHint(editor);
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
@@ -274,14 +271,15 @@ define(function (require, exports, module) {
         });
 
         if (sessionProvider) {
-            request = sessionProvider.getParameterHints(onCursorActivity);
+            request = sessionProvider.getParameterHints(explicit, onCursorActivity);
         }
 
         if (request) {
             request.done(function (parameterHint) {
                 var cm = editor._codeMirror,
-                    pos = cm.charCoords(editor.getCursorPos());
+                    pos = parameterHint.functionCallPos || editor.getCursorPos();
 
+                pos = cm.charCoords(pos);
                 formatHint(parameterHint);
 
                 $hintContainer.show();
@@ -289,7 +287,6 @@ define(function (require, exports, module) {
                 hintState.visible = true;
 
                 sessionEditor = editor;
-
                 editor.on("cursorActivity.ParameterHinting", handleCursorActivity);
                 $deferredPopUp.resolveWith(null);
             }).fail(function () {
@@ -306,7 +303,7 @@ define(function (require, exports, module) {
      */
     handleCursorActivity = function (event, editor) {
         if (editor) {
-            popUpHint(editor, true);
+            popUpHint(editor, false, true);
         } else {
             dismissHint();
         }
@@ -388,7 +385,7 @@ define(function (require, exports, module) {
     function handleShowParameterHint() {
         var editor = EditorManager.getActiveEditor();
         // Pop up function hint
-        popUpHint(editor);
+        popUpHint(editor, true, false);
     }
 
     AppInit.appReady(function () {
