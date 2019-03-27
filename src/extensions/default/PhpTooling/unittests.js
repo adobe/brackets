@@ -20,12 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global describe, runs, beforeEach, it, expect, waitsFor, waitsForDone, waitsForFail, beforeFirst, afterLast */
+/*global describe, runs, beforeEach, it, expect, waitsFor, waitsForDone, beforeFirst, afterLast */
 define(function (require, exports, module) {
     'use strict';
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileSystem      = brackets.getModule("filesystem/FileSystem"),
         Strings         = brackets.getModule("strings"),
         FileUtils       = brackets.getModule("file/FileUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils");
@@ -33,31 +32,19 @@ define(function (require, exports, module) {
     var phpToolingExtension,
         testWindow,
         $,
-        _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
-        _unittestFilesFolderName = "unittest-files",
-        _unittestFilesFolder = [_modulePath, _unittestFilesFolderName].join("/"),
-        EditorManager,
-        editor,
         PreferencesManager,
-        CodeInspection,
-        errorPopUpDismissed;
+        CodeInspection;
 
-    var ERROR_POPUP = "#modal-header",
-        ERROR_POPUP_STRING = "#modal-body",
-        ERROR_POPUP_CANCEL_BTN = "#modal-footer",
-        UERROR_POPUP_OPEN_BTN = '#update-btn-restart';
-
-    describe("phpTooling", function () {
+    describe("PhpTooling", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/",
-            testFile = "test1.php",
-            oldFile;
+            testFile = "test1.php";
 
         beforeFirst(function () {
 
             // Create a new window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
-                $ = testWindow.$
+                $ = testWindow.$;
                 var brackets = testWindow.brackets;
                 phpToolingExtension = brackets.test.ExtensionLoader.getRequireContextForExtension("phpTooling");
             });
@@ -70,7 +57,6 @@ define(function (require, exports, module) {
 
 
         beforeEach(function () {
-            EditorManager = testWindow.brackets.test.EditorManager;
             PreferencesManager = testWindow.brackets.test.PreferencesManager;
             CodeInspection = testWindow.brackets.test.CodeInspection;
             CodeInspection.toggleEnabled(true);
@@ -206,11 +192,16 @@ define(function (require, exports, module) {
 
         it("should attempt to start php server and fail due to lower version of php", function () {
             var phpExecutable = testWindow.brackets.platform === "mac" ? "/mac/invalidphp" : "/win/invalidphp";
-            PreferencesManager.set("php", {"executablePath": testFolder + phpExecutable}, {locations: {scope: "session"}});
+            PreferencesManager.set("php", {
+                "executablePath": testFolder + phpExecutable
+            }, {
+                locations: {scope: "session"}
+            });
             waitForMilliSeconds(5000);
             runs(function () {
                 checkErrorPopUp();
-                checkPopUpString(Strings.PHP_SERVER_ERROR_TITLE, StringUtils.format(Strings.PHP_UNSUPPORTED_VERSION, "5.6.30"));
+                checkPopUpString(Strings.PHP_SERVER_ERROR_TITLE,
+                                 StringUtils.format(Strings.PHP_UNSUPPORTED_VERSION, "5.6.30"));
                 checkPopUpButton("CANCEL");
             });
         });
