@@ -65,11 +65,11 @@ define(function (require, exports, module) {
 
         return workspaceFolders;
     }
-    
+
     function convertPosixToWinPath(path) {
         return path.replace(/\//g, '\\');
     }
-    
+
     function convertWinToPosixPath(path) {
         return path.replace(/\\/g, '/');
     }
