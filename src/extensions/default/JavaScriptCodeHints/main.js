@@ -867,7 +867,7 @@ define(function (require, exports, module) {
             requestJumpToDef(session, offset);
 
             return result.promise();
-        }
+        };
 
         /*
          * Helper for QuickEdit jump-to-definition request.
