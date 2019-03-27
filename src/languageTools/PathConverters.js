@@ -39,13 +39,13 @@ define(function (require, exports, module) {
             if (filePath[0] === '/') {
                 filePath = filePath.substr(1);
             }
-            return filePath.replace(/\//g, '\\');
+            return filePath;
         }
         return filePath;
     }
 
     function pathToUri(filePath) {
-        var newPath = filePath.replace(/\\/g, '/');
+        var newPath = convertWinToPosixPath(filePath);
         if (newPath[0] !== '/') {
             newPath = `/${newPath}`;
         }
@@ -66,7 +66,17 @@ define(function (require, exports, module) {
         return workspaceFolders;
     }
 
+    function convertPosixToWinPath(path) {
+        return path.replace(/\//g, '\\');
+    }
+
+    function convertWinToPosixPath(path) {
+        return path.replace(/\\/g, '/');
+    }
+
     exports.uriToPath = uriToPath;
     exports.pathToUri = pathToUri;
+    exports.convertPosixToWinPath = convertPosixToWinPath;
+    exports.convertPosixToWinPath = convertPosixToWinPath;
     exports.convertToWorkspaceFolders = convertToWorkspaceFolders;
 });
