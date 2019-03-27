@@ -39,7 +39,7 @@ define(function (require, exports, module) {
             if (filePath[0] === '/') {
                 filePath = filePath.substr(1);
             }
-            return convertPosixToWinPath(filePath);
+            return filePath;
         }
         return filePath;
     }
