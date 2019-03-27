@@ -106,7 +106,7 @@ define(function (require, exports, module) {
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
         CodeInspection.register(["php"], {
-            name: "Diagnostics",
+            name: Strings.PHP_DIAGNOSTICS,
             scanFile: lProvider.getInspectionResults.bind(lProvider)
         });
 
@@ -122,7 +122,7 @@ define(function (require, exports, module) {
 
         if (phpConfig["validateOnType"] !== "false") {
             _client.addOnDocumentChangeHandler(function () {
-                CodeInspection.requestRun("Diagnostics");
+                CodeInspection.requestRun(Strings.PHP_DIAGNOSTICS);
             });
         }
 
@@ -151,7 +151,7 @@ define(function (require, exports, module) {
             { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
                 text: Strings.CANCEL },
             { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_DOWNLOAD,
-                text: Strings.CMD_OPEN_PREFERENCES}
+                text: Strings.OPEN_PREFERENNCES}
         ];
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
         evtHandler.handleActiveEditorChange(null, EditorManager.getActiveEditor());
         currentRootPath = ProjectManager.getProjectRoot()._path;
         setTimeout(function () {
-            CodeInspection.requestRun("Diagnostics");
+            CodeInspection.requestRun(Strings.PHP_DIAGNOSTICS);
         }, 1500);
     }
 

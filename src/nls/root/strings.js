@@ -876,14 +876,18 @@ define({
     "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files",
-    ///String for Php Tooling Extensions
-    "PHP_VERSION_INVALID"                            : "Error parsing PHP version. Please check the output of php --version",
-    "PHP_UNSUPPORTED_VERSION"                        : "The language server needs at least PHP 7 installed. Version found: {0}",
-    "PHP_EXECUTABLE_NOT_FOUND"                       : "PHP executable not found. Install PHP 7 and add it to your PATH or set the executablePath in php preference settings",
-    "PHP_PROCESS_SPAWN_ERROR"                        : "Error encountered spawning PHP process with error code: {0}",
-    "PHP_SERVER_ERROR_TITLE"                         : "PHP Server Error",
-    "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "The memory limit you\'d provided is not numeric, nor -1 nor valid php shorthand notation! Check your php preference settings",
-    "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings",
+    
     //Strings for LanguageTools Preferences
-    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
+    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools",
+    
+    ///String for Php Tooling Extensions
+    "PHP_VERSION_INVALID"                            : "Error parsing PHP version. Please check the output of the “php –version” command.",
+    "PHP_UNSUPPORTED_VERSION"                        : "Install PHP7 runtime for enabling PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more. Version found: {0}",
+    "PHP_EXECUTABLE_NOT_FOUND"                       : "PHP runtime not found. Install PHP7 runtime and set the path to system PATH or executablePath in php Preferences appropriately.",
+    "PHP_PROCESS_SPAWN_ERROR"                        : "Error code {0} encountered while starting the PHP process.",
+    "PHP_SERVER_ERROR_TITLE"                         : "Error",
+    "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "The memory limit you provided is invalid. Review the PHP preferences to set the correct value.",
+    "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings",
+    "OPEN_PREFERENNCES"                              : "Open Preferences",
+    "PHP_DIAGNOSTICS"                                : "Diagnostics"
 });

@@ -58,5 +58,18 @@
 	"$this": {
 		"description": "Refers to the current object",
 		"type": "array"
+	},
+	"parent": {
+		"description": "",
+		"type": ""
+	},
+	"self": {
+		"description": "",
+		"type": ""
+	},
+	"_destruct": {
+		"description": "",
+		"type": ""
 	}
+
 }
