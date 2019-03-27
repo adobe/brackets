@@ -236,7 +236,7 @@ define(function (require, exports, module) {
                 let res;
                 res = msgObj.signatures;
                 activeParameter = msgObj.activeParameter;
-                if (res) {
+                if (res && res.length) {
                     res.forEach(function (element) {
                         label = element.documentation;
                         let param = element.parameters;
@@ -247,13 +247,15 @@ define(function (require, exports, module) {
                             });
                         });
                     });
+                    
+                    $deferredHints.resolve({
+                        parameters: paramList,
+                        currentIndex: activeParameter,
+                        functionDocumentation: label
+                    });
+                } else {
+                    $deferredHints.reject();
                 }
-
-                $deferredHints.resolve({
-                    parameters: paramList,
-                    currentIndex: activeParameter,
-                    functionDocumentation: label
-                });
             } else {
                 $deferredHints.reject();
             }
