@@ -22,7 +22,7 @@
  */
 
 /*jslint regexp: true */
-/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -345,11 +345,11 @@ define(function (require, exports, module) {
             var requestStatus = undefined;
             runs(function () {
                 var request = phProvider._getParameterHint();
-                request.done(function (status) {
+                request.fail(function (status) {
                     requestStatus = status;
                 });
 
-                waitsForDone(request, "ParameterHints");
+                waitsForFail(request, "ParameterHints");
             });
          
             runs(function () {
@@ -364,31 +364,6 @@ define(function (require, exports, module) {
             expect(phProvider.isHintDisplayed()).toBe(false);
         }
 
-        /*
-         * Wait for a hint response object to resolve, then apply a callback
-         * to the result
-         *
-         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
-         *      possibly deferred
-         * @param {Function} callback - the callback to apply to the resolved
-         *      hint response object
-         */
-        function _waitForParameterHint(hintObj, callback) {
-            var complete = false,
-                hint = null;
-
-            hintObj.done(function () {
-                hint = JSCodeHints.getSession().getParameterHint();
-                complete = true;
-            });
-
-            waitsFor(function () {
-                return complete;
-            }, "Expected parameter hint did not resolve", 3000);
-
-            runs(function () { callback(hint); });
-        }
-
         /**
          * Show a function hint based on the code at the cursor. Verify the
          * hint matches the passed in value.
@@ -399,22 +374,9 @@ define(function (require, exports, module) {
          * @param {number} expectedParameter - the parameter at cursor.
          */
         function expectParameterHint(expectedParams, expectedParameter) {
-            var requestStatus = undefined;
-            runs(function () {
-                var request = phProvider._getParameterHint();
-                request.done(function (status) {
-                    requestStatus = status;
-                });
-
-                waitsForDone(request, "ParameterHints");
-            });
+            var requestHints = undefined,
+                request = null;
             
-            
-            if (expectedParams === null) {
-                expect(requestStatus).toBe(null);
-                return;
-            }
-
             function expectHint(hint) {
                 var params = hint.parameters,
                     n = params.length,
@@ -436,11 +398,29 @@ define(function (require, exports, module) {
                 }
 
             }
+            
+            runs(function () {
+                request = phProvider._getParameterHint();
+                
+                if (expectedParams === null) {
+                    request.fail(function (result) {
+                        requestHints = result;
+                    });
 
-            if (request) {
-                _waitForParameterHint(request, expectHint);
+                    waitsForFail(request, "ParameterHints");
+                } else {
+                    request.done(function (result) {
+                        requestHints = result;
+                    });
+
+                    waitsForDone(request, "ParameterHints");
+                }
+            });
+
+            if (expectedParams === null) {
+                expect(requestHints).toBe(null);
             } else {
-                expectHint(JSCodeHints.getSession().getParameterHint());
+                expectHint(requestHints);
             }
         }
 

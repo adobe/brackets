@@ -21,7 +21,7 @@
  *
  */
 
-/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone */
+/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
     "use strict";
@@ -345,31 +345,6 @@ define(function (require, exports, module) {
                     });
                 }
 
-                /*
-                 * Wait for a hint response object to resolve, then apply a callback
-                 * to the result
-                 *
-                 * @param {Object + jQuery.Deferred} hintObj - a hint response object,
-                 *      possibly deferred
-                 * @param {Function} callback - the callback to apply to the resolved
-                 *      hint response object
-                 */
-                function _waitForParameterHint(hintObj, callback) {
-                    var complete = false,
-                        hint = null;
-
-                    hintObj.done(function () {
-                        hint = JSCodeHints.getSession().getParameterHint();
-                        complete = true;
-                    });
-
-                    waitsFor(function () {
-                        return complete;
-                    }, "Expected parameter hint did not resolve", 3000);
-
-                    runs(function () { callback(hint); });
-                }
-
                 /**
                  * Show a function hint based on the code at the cursor. Verify the
                  * hint matches the passed in value.
@@ -380,20 +355,8 @@ define(function (require, exports, module) {
                  * @param {number} expectedParameter - the parameter at cursor.
                  */
                 function expectParameterHint(expectedParams, expectedParameter) {
-                    var requestStatus = undefined;
-                    runs(function () {
-                        var request = phProvider._getParameterHint();
-                        request.done(function (status) {
-                            requestStatus = status;
-                        });
-
-                        waitsForDone(request, "ParameterHints");
-                    });
-         
-                    if (expectedParams === null) {
-                        expect(requestStatus).toBe(null);
-                        return;
-                    }
+                    var requestHints = undefined,
+                        request = null;
 
                     function expectHint(hint) {
                         var params = hint.parameters,
@@ -417,10 +380,28 @@ define(function (require, exports, module) {
 
                     }
 
-                    if (request) {
-                        _waitForParameterHint(request, expectHint);
+                    runs(function () {
+                        request = ParameterHintProvider._getParameterHint();
+
+                        if (expectedParams === null) {
+                            request.fail(function (result) {
+                                requestHints = result;
+                            });
+
+                            waitsForFail(request, "ParameterHints");
+                        } else {
+                            request.done(function (result) {
+                                requestHints = result;
+                            });
+
+                            waitsForDone(request, "ParameterHints");
+                        }
+                    });
+
+                    if (expectedParams === null) {
+                        expect(requestHints).toBe(null);
                     } else {
-                        expectHint(JSCodeHints.getSession().getParameterHint());
+                        expectHint(requestHints);
                     }
                 }
 

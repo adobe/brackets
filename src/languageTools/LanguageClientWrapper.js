@@ -606,11 +606,11 @@ define(function (require, exports, module) {
     
     LanguageClientWrapper.prototype.getServerCapabilities = function () {
         return this._serverCapabilities;
-    }
+    };
     
     LanguageClientWrapper.prototype.setServerCapabilities = function (serverCapabilities) {
         this._serverCapabilities = serverCapabilities;
-    }
+    };
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
 
