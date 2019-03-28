@@ -236,7 +236,7 @@ define(function (require, exports, module) {
 
         //create function interfaces
         this._startClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.START, true);
-        this._stopClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.STOP);
+        this._stopClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.STOP, true);
         this._notifyClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.NOTIFY);
         this._requestClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.REQUEST, true);
     };
@@ -341,7 +341,7 @@ define(function (require, exports, module) {
     //restart
     LanguageClientWrapper.prototype.restart = function (params) {
         var self = this;
-        return this.stop().done(function () {
+        return this.stop().then(function () {
             return self.start(params);
         });
     };
