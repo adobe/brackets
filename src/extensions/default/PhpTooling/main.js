@@ -83,16 +83,9 @@ define(function (require, exports, module) {
             });
             currentRootPath = directory.fullPath;
         } else {
-            _client.stop()
-                .done(function () {
-                    setTimeout(function () {
-                        _client.start({
-                            rootPath: directory.fullPath
-                        }).done(handlePostPhpServerStart);
-                    }, 1500);
-                }).fail(function () {
-                    console.log("Error encountered while stoping Php Server.");
-                });
+            _client.restart({
+                rootPath: directory.fullPath
+            }).done(handlePostPhpServerStart);
         }
     };
 
@@ -169,10 +162,7 @@ define(function (require, exports, module) {
         });
     }
 
-    function handlePostPhpServerStart(result) {
-        if(result) {
-            _client.setServerCapabilities(result.capabilities);
-        }
+    function handlePostPhpServerStart() {
         if (!phpServerRunning) {
             phpServerRunning = true;
             registerToolingProviders();
@@ -188,28 +178,13 @@ define(function (require, exports, module) {
         }, 1500);
     }
 
-    function restart(project) {
-        var result = $.Deferred();
-        _client.stop()
-            .done(function () {
-                setTimeout(function () {
-                    _client.start({
-                        rootPath: project.rootPath
-                    }).done(result.resolve).fail(result.reject);
-                }, 1500);
-            })
-            .fail(result.reject);
-
-        return result;
-    }
-
     function runPhpServer() {
         if (_client && phpConfig["enablePhpTooling"]) {
             validatePhpExecutable()
                 .done(function () {
                     var startFunc = _client.start.bind(_client);
                     if (phpServerRunning) {
-                        startFunc = restart;
+                        startFunc = _client.restart.bind(_client);
                     }
                     currentRootPath = ProjectManager.getProjectRoot()._path;
                     startFunc({
@@ -217,7 +192,7 @@ define(function (require, exports, module) {
                     }).done(function (result) {
                         console.log("php Language Server started");
                         serverCapabilities = result.capabilities;
-                        handlePostPhpServerStart(result);
+                        handlePostPhpServerStart();
                     });
                 }).fail(showErrorPopUp);
         }
