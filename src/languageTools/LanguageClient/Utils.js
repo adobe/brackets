@@ -28,7 +28,7 @@ var nodeURL = require("url"),
     path = require("path");
 
 function pathToUri(filePath) {
-    var newPath = filePath.replace(/\\/g, '/');
+    var newPath = convertWinToPosixPath(filePath);
     if (newPath[0] !== '/') {
         newPath = `/${newPath}`;
     }
@@ -46,9 +46,17 @@ function uriToPath(uri) {
         if (filePath[0] === '/') {
             filePath = filePath.substr(1);
         }
-        return filePath.replace(/\//g, '\\');
+        return filePath;
     }
     return filePath;
+}
+
+function convertPosixToWinPath(filePath) {
+    return filePath.replace(/\//g, '\\');
+}
+
+function convertWinToPosixPath(filePath) {
+    return filePath.replace(/\\/g, '/');
 }
 
 function convertToLSPPosition(pos) {
@@ -74,5 +82,7 @@ function convertToWorkspaceFolders(paths) {
 
 exports.uriToPath = uriToPath;
 exports.pathToUri = pathToUri;
+exports.convertPosixToWinPath = convertPosixToWinPath;
+exports.convertWinToPosixPath = convertWinToPosixPath;
 exports.convertToLSPPosition = convertToLSPPosition;
 exports.convertToWorkspaceFolders = convertToWorkspaceFolders;
