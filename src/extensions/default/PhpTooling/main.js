@@ -250,4 +250,7 @@ define(function (require, exports, module) {
             activeEditorChangeHandler(null, EditorManager.getActiveEditor());
         });
     });
+
+    //Only for Unit testing
+    exports.getClient = function() { return _client; };
 });
