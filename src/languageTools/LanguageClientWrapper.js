@@ -326,7 +326,14 @@ define(function (require, exports, module) {
     LanguageClientWrapper.prototype.start = function (params) {
         params = validateRequestParams(ToolingInfo.LANGUAGE_SERVICE.START, params);
         if (params) {
-            return this._startClient(params);
+            var self = this;
+            return this._startClient(params)
+                    .then(function (result) {
+                        self.setServerCapabilities(result.capabilities);
+                        return $.Deferred().resolve(result);
+                    }, function (err) {
+                        return $.Deferred().reject(err);
+                    });
         }
 
         console.log("Invalid Parameters provided for request type : start");
@@ -603,11 +610,11 @@ define(function (require, exports, module) {
     LanguageClientWrapper.prototype.getDynamicCapabilities = function () {
         return this._dynamicCapabilities;
     };
-    
+
     LanguageClientWrapper.prototype.getServerCapabilities = function () {
         return this._serverCapabilities;
     };
-    
+
     LanguageClientWrapper.prototype.setServerCapabilities = function (serverCapabilities) {
         this._serverCapabilities = serverCapabilities;
     };
