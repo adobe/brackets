@@ -58,6 +58,7 @@ define(function (require, exports, module) {
         });
 
         afterLast(function () {
+            waitsForDone(phpToolingExtension.getClient().stop(), "stoping php server");
             SpecRunnerUtils.closeTestWindow();
             testWindow = null;
         });
