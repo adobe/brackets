@@ -39,10 +39,21 @@ define(function (require, exports, module) {
     var _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath = "node/RegisterLanguageClientInfo",
         _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
+        clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath),
+        //Init node with Information required by Language Client
+        clientInfoLoadedPromise = clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo),
+        //Clients that have to be loaded once the LanguageClient info is successfully loaded on the
+        //node side.
+        pendingClientsToBeLoaded = [];
 
-    //Init node with Information required by Language Client
-    clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
+    //Attach success and failure function for the clientInfoLoadedPromise
+    clientInfoLoadedPromise.then(function () {
+        pendingClientsToBeLoaded.forEach(function (pendingClient) {
+            pendingClient.load();
+        });
+    }, function () {
+        console.log("Failed to Initialize LanguageClient Module Information.");
+    });
 
     function syncPrefsWithDomain(languageToolsPrefs) {
         if (clientInfoDomain) {
@@ -84,18 +95,30 @@ define(function (require, exports, module) {
         return nodeInterface;
     }
 
-    function initiateLanguageClient(clientName, clientFilePath) {
-        var result = $.Deferred();
-
+    function _clientLoader(clientName, clientFilePath, clientPromise) {
         loadLanguageClientDomain(clientName, clientFilePath)
             .then(function (languageClientDomain) {
                 var languageClientInterface = createNodeInterfaceForDomain(languageClientDomain);
 
-                result.resolve({
+                clientPromise.resolve({
                     name: clientName,
                     interface: languageClientInterface
                 });
-            }, result.reject);
+            }, clientPromise.reject);
+    }
+
+    function initiateLanguageClient(clientName, clientFilePath) {
+        var result = $.Deferred();
+
+        //Only load clients after the LanguageClient Info has been initialized
+        if (clientInfoLoadedPromise.state() === "pending") {
+            var pendingClient = {
+                load: _clientLoader.bind(null, clientName, clientFilePath, result)
+            };
+            pendingClientsToBeLoaded.push(pendingClient);
+        } else {
+            _clientLoader(clientName, clientFilePath, result);
+        }
 
         return result;
     }
