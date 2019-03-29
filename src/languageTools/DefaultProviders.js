@@ -21,6 +21,7 @@
  *
  */
 
+/*global Map*/
 /* eslint-disable indent */
 /* eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
@@ -342,8 +343,19 @@ define(function (require, exports, module) {
     };
 
     function LintingProvider() {
-        this._results = {};
+        this._results = new Map();
     }
+
+    LintingProvider.prototype.clearExistingResults = function (filePath) {
+        var filePathProvided = !!filePath;
+
+        if (filePathProvided) {
+            this._results.delete(filePath);
+        } else {
+            //clear all results
+            this._results.clear();
+        }
+    };
 
     /**
      * Publish the diagnostics information related to current document
@@ -365,13 +377,13 @@ define(function (require, exports, module) {
             errors.push(err);
         });
 
-        this._results[filePath] = {
+        this._results.set(filePath, {
             errors: errors
-        };
+        });
     };
 
     LintingProvider.prototype.getInspectionResults = function (fileText, filePath) {
-        return this._results[filePath];
+        return this._results.get(filePath);
     };
 
     exports.CodeHintsProvider = CodeHintsProvider;
