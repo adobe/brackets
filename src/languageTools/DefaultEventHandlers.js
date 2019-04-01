@@ -27,7 +27,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var LanguageManager = require("language/LanguageManager"),
-        EditorManager = require("editor/EditorManager"),
         ProjectManager = require("project/ProjectManager"),
         PathConverters = require("languageTools/PathConverters");
 
