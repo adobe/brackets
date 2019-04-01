@@ -65,12 +65,10 @@ define(function (require, exports, module) {
     }
 
     function _withNamespace(event) {
-        var retval = event.split(" ")
+        return event.split(" ")
             .filter((value) => !!value)
             .map((value) => value + ".language-tools")
             .join(" ");
-
-        return retval;
     }
 
     function _eventHandler() {

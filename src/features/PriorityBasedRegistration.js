@@ -88,7 +88,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @private
      * Remove a code hint provider
      * @param {!CodeHintProvider} provider Code hint provider to remove
      * @param {(string|Array.<string>)=} targetLanguageId Optional set of

@@ -155,29 +155,20 @@ define(function (require, exports, module) {
     };
 
     CodeHintsProvider.prototype.insertHint = function ($hint) {
-        var start = {
-                line: -1,
-                ch: -1
-            },
-            end = {
-                line: -1,
-                ch: -1
-            },
-            editor = EditorManager.getActiveEditor(),
+        var editor = EditorManager.getActiveEditor(),
             cursor = editor.getCursorPos(),
             token = $hint.data("token"),
             txt = null,
-            query = this.query;
+            query = this.query,
+            start = {
+                line: cursor.line,
+                ch: cursor.ch - query.length
+            },
 
-        start = {
-            line: cursor.line,
-            ch: cursor.ch - query.length
-        };
-
-        end = {
-            line: cursor.line,
-            ch: cursor.ch
-        };
+            end = {
+                line: cursor.line,
+                ch: cursor.ch
+            };
 
         txt = token.label;
         if (token.textEdit && token.textEdit.newText) {
@@ -269,7 +260,7 @@ define(function (require, exports, module) {
 
     /**
      * Utility function to make the jump
-     * @param   {Object} curPos - target postion fo the cursor after the jump
+     * @param   {Object} curPos - target postion for the cursor after the jump
      */
     function setJumpPosition(curPos) {
         EditorManager.getCurrentFullEditor().setCursorPos(curPos.line, curPos.ch, true);
@@ -359,14 +350,15 @@ define(function (require, exports, module) {
 
     /**
      * Publish the diagnostics information related to current document
-     * @param   {Object} msgObj - json object containg information associated with 'textDocument/publishDiagnostics' notification from server
+     * @param   {Object} msgObj - json object containing information associated with 'textDocument/publishDiagnostics' notification from server
      */
     LintingProvider.prototype.setInspectionResults = function (msgObj) {
         let diagnostics = msgObj.diagnostics,
             filePath = PathConverters.uriToPath(msgObj.uri),
             errors = [];
-        diagnostics.forEach(obj => {
-            let err = {
+        
+        errors = diagnostics.map(function (obj) {
+            return {
                 pos: {
                     line: obj.range.start.line,
                     ch: obj.range.start.character
@@ -374,7 +366,6 @@ define(function (require, exports, module) {
                 message: obj.message,
                 type: (obj.severity === 1 ? CodeInspection.Type.ERROR : (obj.severity === 2 ? CodeInspection.Type.WARNING : CodeInspection.Type.META))
             };
-            errors.push(err);
         });
 
         this._results.set(filePath, {
