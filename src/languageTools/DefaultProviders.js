@@ -87,7 +87,7 @@ define(function (require, exports, module) {
         if (!this.client) {
             return false;
         }
-        
+
         var serverCapabilities = this.client.getServerCapabilities();
         if (!serverCapabilities || !serverCapabilities.completionProvider) {
             return false;
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
         if (!this.client) {
             return false;
         }
-        
+
         var serverCapabilities = this.client.getServerCapabilities();
         if (!serverCapabilities || !serverCapabilities.signatureHelpProvider) {
             return false;
@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                             });
                         });
                     });
-                    
+
                     $deferredHints.resolve({
                         parameters: paramList,
                         currentIndex: activeParameter,
@@ -274,7 +274,7 @@ define(function (require, exports, module) {
         if (!this.client) {
             return false;
         }
-        
+
         var serverCapabilities = this.client.getServerCapabilities();
         if (!serverCapabilities || !serverCapabilities.definitionProvider) {
             return false;
@@ -356,7 +356,7 @@ define(function (require, exports, module) {
         let diagnostics = msgObj.diagnostics,
             filePath = PathConverters.uriToPath(msgObj.uri),
             errors = [];
-        
+
         errors = diagnostics.map(function (obj) {
             return {
                 pos: {

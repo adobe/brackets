@@ -26,14 +26,14 @@ define(function (require, exports, module) {
 
     var ScopeManager = brackets.getModule("JSUtils/ScopeManager"),
         OVERWRITE_EXISTING_HINT = false;
-    
+
     function JSParameterHintsProvider() {
         this.hintState = {};
         this.hintStack = [];
         this.preserveHintStack = null; // close a function hint without clearing stack
         this.session = null; // current editor session, updated by main
     }
-        
+
     /**
      * Update the current session for use by the Function Hint Manager.
      *
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
             request = $.Deferred();
             request.resolveWith(null, [hint]);
         }
-        
+
         var self = this;
         request.done(function (fnType) {
             var hints = self.session.getParameterHint(functionInfo.functionCallPos);
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
     JSParameterHintsProvider.prototype.getParameterHints = function (explicit, onCursorActivity) {
         var functionInfo = this.session.getFunctionInfo(),
             result = null;
-        
+
         if (!onCursorActivity) {
             if (functionInfo.inFunctionCall) {
                 var token = this.session.getToken();
@@ -193,13 +193,13 @@ define(function (require, exports, module) {
             }
 
             return $.Deferred().reject(null);
-        } 
-        
+        }
+
         if (!functionInfo.inFunctionCall) {
             this.cleanHintState();
             return $.Deferred().reject(null);
         }
-        
+
         // If in a different function hint, then dismiss the old one and
         // display the new one if there is one on the stack
         if (this.hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
