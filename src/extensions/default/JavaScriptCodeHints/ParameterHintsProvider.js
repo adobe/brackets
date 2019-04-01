@@ -26,14 +26,14 @@ define(function (require, exports, module) {
 
     var ScopeManager = brackets.getModule("JSUtils/ScopeManager"),
         OVERWRITE_EXISTING_HINT = false;
-    
+
     function JSParameterHintsProvider() {
         this.hintState = {};
         this.hintStack = [];
         this.preserveHintStack = null; // close a function hint without clearing stack
         this.session = null; // current editor session, updated by main
     }
-        
+
     /**
      * Update the current session for use by the Function Hint Manager.
      *
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
         functionInfo = functionInfo || this.session.getFunctionInfo();
         if (!functionInfo.inFunctionCall) {
             this.cleanHintState();
-            result.reject(null);
+            return result.reject(null);
         }
 
         if (this.hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
@@ -144,7 +144,7 @@ define(function (require, exports, module) {
             this.cleanHintState();
             this.preserveHintStack = false;
         } else if (this.isHintDisplayed()) {
-            result.reject(null);
+            return result.reject(null);
         }
 
         this.hintState.functionCallPos = functionInfo.functionCallPos;
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
             request = $.Deferred();
             request.resolveWith(null, [hint]);
         }
-        
+
         var self = this;
         request.done(function (fnType) {
             var hints = self.session.getParameterHint(functionInfo.functionCallPos);
@@ -180,49 +180,49 @@ define(function (require, exports, module) {
     JSParameterHintsProvider.prototype.getParameterHints = function (explicit, onCursorActivity) {
         var functionInfo = this.session.getFunctionInfo(),
             result = null;
-        
-        if (onCursorActivity) {
+
+        if (!onCursorActivity) {
             if (functionInfo.inFunctionCall) {
-                // If in a different function hint, then dismiss the old one and
-                // display the new one if there is one on the stack
-                if (this.hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
-                    if (this.popHintFromStack()) {
-                        var poppedFunctionCallPos = this.hintState.functionCallPos,
-                            currentFunctionCallPos = this.functionInfo.functionCallPos;
+                var token = this.session.getToken();
 
-                        if (poppedFunctionCallPos.line === currentFunctionCallPos.line &&
-                                poppedFunctionCallPos.ch === currentFunctionCallPos.ch) {
-                            this.preserveHintStack = true;
-                            result = this._getParameterHint(OVERWRITE_EXISTING_HINT,
-                                this.hintState.fnType, functionInfo);
-                            this.preserveHintStack = false;
-                            return result;
-                        }
-                    } else {
-                        this.cleanHintState();
-                    }
+                if ((token && token.string === "(") || explicit) {
+                    return this._getParameterHint();
                 }
-
-                var hints = this.session.getParameterHint(functionInfo.functionCallPos);
-                hints.functionCallPos = functionInfo.functionCallPos;
-                return $.Deferred().resolve(hints);
+            } else {
+                this.cleanHintState();
             }
 
+            return $.Deferred().reject(null);
+        }
+
+        if (!functionInfo.inFunctionCall) {
             this.cleanHintState();
             return $.Deferred().reject(null);
         }
 
-        if (functionInfo.inFunctionCall) {
-            var token = this.session.getToken();
+        // If in a different function hint, then dismiss the old one and
+        // display the new one if there is one on the stack
+        if (this.hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
+            if (this.popHintFromStack()) {
+                var poppedFunctionCallPos = this.hintState.functionCallPos,
+                    currentFunctionCallPos = this.functionInfo.functionCallPos;
 
-            if ((token && token.string === "(") || explicit) {
-                return this._getParameterHint();
+                if (poppedFunctionCallPos.line === currentFunctionCallPos.line &&
+                        poppedFunctionCallPos.ch === currentFunctionCallPos.ch) {
+                    this.preserveHintStack = true;
+                    result = this._getParameterHint(OVERWRITE_EXISTING_HINT,
+                        this.hintState.fnType, functionInfo);
+                    this.preserveHintStack = false;
+                    return result;
+                }
+            } else {
+                this.cleanHintState();
             }
-        } else {
-            this.cleanHintState();
         }
 
-        return $.Deferred().reject(null);
+        var hints = this.session.getParameterHint(functionInfo.functionCallPos);
+        hints.functionCallPos = functionInfo.functionCallPos;
+        return $.Deferred().resolve(hints);
     };
 
     exports.JSParameterHintsProvider = JSParameterHintsProvider;
