@@ -27,7 +27,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var LanguageManager = require("language/LanguageManager"),
-        EditorManager = require("editor/EditorManager"),
         ProjectManager = require("project/ProjectManager"),
         PathConverters = require("languageTools/PathConverters");
 
@@ -37,7 +36,7 @@ define(function (require, exports, module) {
         this.currentProject = ProjectManager.getProjectRoot();
     }
 
-    EventPropagationProvider.prototype._sendDocumentOpenNotification = function (languageId, document) {
+    EventPropagationProvider.prototype._sendDocumentOpenNotification = function (languageId, doc) {
         if (!this.client) {
             return;
         }
@@ -45,8 +44,8 @@ define(function (require, exports, module) {
         if (this.client._languages.includes(languageId)) {
             this.client.notifyTextDocumentOpened({
                 languageId: languageId,
-                filePath: (document.file._path || document.file.fullPath),
-                fileContent: document.getText()
+                filePath: (doc.file._path || doc.file.fullPath),
+                fileContent: doc.getText()
             });
         }
     };
@@ -100,31 +99,31 @@ define(function (require, exports, module) {
         this.previousProject = directory.fullPath;
     };
 
-    EventPropagationProvider.prototype.handleDocumentDirty = function (event, document) {
+    EventPropagationProvider.prototype.handleDocumentDirty = function (event, doc) {
         if (!this.client) {
             return;
         }
 
-        if (!document.isDirty) {
-            var docLanguageId = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        if (!doc.isDirty) {
+            var docLanguageId = LanguageManager.getLanguageForPath(doc.file.fullPath).getId();
             if (this.client._languages.includes(docLanguageId)) {
                 this.client.notifyTextDocumentSave({
-                    filePath: (document.file._path || document.file.fullPath)
+                    filePath: (doc.file._path || doc.file.fullPath)
                 });
             }
         }
     };
 
-    EventPropagationProvider.prototype.handleDocumentChange = function (event, document, changeList) {
+    EventPropagationProvider.prototype.handleDocumentChange = function (event, doc, changeList) {
         if (!this.client) {
             return;
         }
 
-        var docLanguageId = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        var docLanguageId = LanguageManager.getLanguageForPath(doc.file.fullPath).getId();
         if (this.client._languages.includes(docLanguageId)) {
             this.client.notifyTextDocumentChanged({
-                filePath: (document.file._path || document.file.fullPath),
-                fileContent: document.getText()
+                filePath: (doc.file._path || doc.file.fullPath),
+                fileContent: doc.getText()
             });
         }
     };

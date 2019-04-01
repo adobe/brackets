@@ -41,7 +41,7 @@
     };
 
     function ActionController() {
-        this.retartsTimes = [];
+        this.restartsTimes = [];
     }
 
     ActionController.prototype.getOnErrorAction = function (errorData) {
@@ -56,19 +56,19 @@
 
     ActionController.prototype.getOnCloseAction = function () {
         var currentTime = Date.now();
-        this.retartsTimes.push(currentTime);
+        this.restartsTimes.push(currentTime);
 
-        var numRestarts = this.restarts.length;
+        var numRestarts = this.restartsTimes.length;
         if (numRestarts < 5) {
             return Actions.OnClose.Restart;
         }
 
-        var timeBetweenFiveRestarts = this.restartsTimes[numRestarts - 1] - this.restarts[0];
+        var timeBetweenFiveRestarts = this.restartsTimes[numRestarts - 1] - this.restartsTimes[0];
         if (timeBetweenFiveRestarts <= 3 * 60 * 1000) { //3 minutes
             return Actions.OnClose.Stop;
         }
 
-        this.restarts.shift();
+        this.restartsTimes.shift();
         return Actions.OnClose.Restart;
     };
 
