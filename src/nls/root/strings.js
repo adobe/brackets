@@ -886,5 +886,8 @@ define({
     "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "The memory limit you provided is invalid. Review the PHP preferences to set the correct value.",
     "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings",
     "OPEN_PREFERENNCES"                              : "Open Preferences",
-    "PHP_DIAGNOSTICS"                                : "Diagnostics"
+    "PHP_DIAGNOSTICS"                                : "Diagnostics",
+
+    //Strings for LanguageTools Preferences
+    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
 });
