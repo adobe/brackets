@@ -80,5 +80,15 @@ module.exports = {
         "Uint32Array": false,
         "WebSocket": false,
         "XMLHttpRequest": false
+    },
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "script",
+        "ecmaFeatures": {
+          "arrowFunctions": true,
+          "binaryLiterals": true,
+          "blockBindings": true,
+          "classes": true
+        }
     }
 };

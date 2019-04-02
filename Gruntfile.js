@@ -82,6 +82,9 @@ module.exports = function (grunt) {
                         src: [
                             'extensibility/node/**',
                             'JSUtils/node/**',
+                            'languageTools/node/**',
+                            'languageTools/styles/**',
+                            'languageTools/LanguageClient/**',
                             '!extensibility/node/spec/**',
                             '!extensibility/node/node_modules/**/{test,tst}/**/*',
                             '!extensibility/node/node_modules/**/examples/**/*',
