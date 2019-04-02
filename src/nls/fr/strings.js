@@ -876,4 +876,7 @@ define({
 	"NUMBER_WITH_PERCENTAGE": "{0} %",
     // Strings for Related Files
 	"CMD_FIND_RELATED_FILES": "Trouver les fichiers associés"
+    
+    //Strings for LanguageTools Preferences
+    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
 });
