@@ -1,0 +1,19 @@
+{
+  "name": "brackets-language-client",
+  "version": "1.0.0",
+  "description": "Brackets language client interface for Language Server Protocol",
+  "main": "LanguageClient.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "LSP",
+    "LanguageClient",
+    "Brackets"
+  ],
+  "author": "Adobe",
+  "license": "MIT",
+  "dependencies": {
+    "vscode-languageserver-protocol": "^3.14.1"
+  }
+}

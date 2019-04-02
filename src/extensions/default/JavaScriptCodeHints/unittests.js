@@ -22,7 +22,7 @@
  */
 
 /*jslint regexp: true */
-/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -41,7 +41,8 @@ define(function (require, exports, module) {
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
         HintUtils            = brackets.getModule("JSUtils/HintUtils"),
         HintUtils2           = require("HintUtils2"),
-        ParameterHintManager = require("ParameterHintManager");
+        ParameterHintProvider = require("ParameterHintsProvider").JSParameterHintsProvider,
+        phProvider            = new ParameterHintProvider();
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
@@ -341,39 +342,26 @@ define(function (require, exports, module) {
          * Verify there is no parameter hint at the current cursor.
          */
         function expectNoParameterHint() {
-            expect(ParameterHintManager.popUpHint()).toBe(null);
+            var requestStatus = undefined;
+            runs(function () {
+                var request = phProvider._getParameterHint();
+                request.fail(function (status) {
+                    requestStatus = status;
+                });
+
+                waitsForFail(request, "ParameterHints");
+            });
+         
+            runs(function () {
+                expect(requestStatus).toBe(null);
+            });  
         }
 
         /**
          * Verify the parameter hint is not visible.
          */
         function expectParameterHintClosed() {
-            expect(ParameterHintManager.isHintDisplayed()).toBe(false);
-        }
-
-        /*
-         * Wait for a hint response object to resolve, then apply a callback
-         * to the result
-         *
-         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
-         *      possibly deferred
-         * @param {Function} callback - the callback to apply to the resolved
-         *      hint response object
-         */
-        function _waitForParameterHint(hintObj, callback) {
-            var complete = false,
-                hint = null;
-
-            hintObj.done(function () {
-                hint = JSCodeHints.getSession().getParameterHint();
-                complete = true;
-            });
-
-            waitsFor(function () {
-                return complete;
-            }, "Expected parameter hint did not resolve", 3000);
-
-            runs(function () { callback(hint); });
+            expect(phProvider.isHintDisplayed()).toBe(false);
         }
 
         /**
@@ -386,12 +374,9 @@ define(function (require, exports, module) {
          * @param {number} expectedParameter - the parameter at cursor.
          */
         function expectParameterHint(expectedParams, expectedParameter) {
-            var request = ParameterHintManager.popUpHint();
-            if (expectedParams === null) {
-                expect(request).toBe(null);
-                return;
-            }
-
+            var requestHints = undefined,
+                request = null;
+            
             function expectHint(hint) {
                 var params = hint.parameters,
                     n = params.length,
@@ -413,11 +398,29 @@ define(function (require, exports, module) {
                 }
 
             }
+            
+            runs(function () {
+                request = phProvider._getParameterHint();
+                
+                if (expectedParams === null) {
+                    request.fail(function (result) {
+                        requestHints = result;
+                    });
 
-            if (request) {
-                _waitForParameterHint(request, expectHint);
+                    waitsForFail(request, "ParameterHints");
+                } else {
+                    request.done(function (result) {
+                        requestHints = result;
+                    });
+
+                    waitsForDone(request, "ParameterHints");
+                }
+            });
+
+            if (expectedParams === null) {
+                expect(requestHints).toBe(null);
             } else {
-                expectHint(JSCodeHints.getSession().getParameterHint());
+                expectHint(requestHints);
             }
         }
 

@@ -102,6 +102,18 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror/addon/mode/overlay");
     require("thirdparty/CodeMirror/addon/search/searchcursor");
     require("thirdparty/CodeMirror/keymap/sublime");
+    
+    //load Language Tools Module
+    require("languageTools/PathConverters");
+    require("languageTools/LanguageTools");
+    require("languageTools/ClientLoader");
+    require("languageTools/BracketsToNodeInterface");
+    require("languageTools/DefaultProviders");
+    require("languageTools/DefaultEventHandlers");
+
+	//load language features
+    require("features/ParameterHintsManager");
+    require("features/JumpToDefManager");
 
     var selectedSuites,
         params          = new UrlParams(),
