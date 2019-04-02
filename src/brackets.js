@@ -137,6 +137,10 @@ define(function (require, exports, module) {
             return PathUtils;
         }
     });
+    
+    //load language features
+    require("features/ParameterHintsManager");
+    require("features/JumpToDefManager");
 
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -154,6 +158,15 @@ define(function (require, exports, module) {
     //Load common JS module
     require("JSUtils/Session");
     require("JSUtils/ScopeManager");
+
+    //load Language Tools Module
+    require("languageTools/PathConverters");
+    require("languageTools/LanguageTools");
+    require("languageTools/ClientLoader");
+    require("languageTools/BracketsToNodeInterface");
+    require("languageTools/DefaultProviders");
+    require("languageTools/DefaultEventHandlers");
+
 
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
