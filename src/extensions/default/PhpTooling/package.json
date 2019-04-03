@@ -1,0 +1,14 @@
+{
+  "name": "php-Tooling",
+  "version": "1.0.0",
+  "description": "Advanced Tooling support for PHP",
+  "author": "niteskum",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "composer require felixfbecker/language-server && composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs"
+  },
+  "dependencies": {
+    "execa": "1.0.0",
+    "semver": "5.6.0"
+  }
+}
