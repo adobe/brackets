@@ -1,16 +1,12 @@
-matrix:
-  include:
-    - language: node_js
-      sudo: false # use container-based Travis infrastructure
-      node_js:
-        - "6"
-      before_script:
-        - npm install -g grunt-cli
-        - npm install -g jasmine-node
-
-    - language: php
-      php: 
-        - nightly
+language: generic
+sudo: false # use container-based Travis infrastructure
+node_js:
+  - "6"
+php:
+  - "7.0"
+before_script:
+  - npm install -g grunt-cli
+  - npm install -g jasmine-node
 notifications:
   webhooks:
     urls:
