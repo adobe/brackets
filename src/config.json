@@ -90,7 +90,7 @@
     "scripts": {
         "prepush": "npm run eslint",
         "postinstall": "grunt install",
-        "test": "grunt test cla-check-pull",
+        //"test": "grunt test cla-check-pull",
         "eslint": "grunt eslint"
     },
     "licenses": [
