@@ -523,6 +523,13 @@ define(function (require, exports, module) {
         ThemeSettings.showDialog();
     }
 
+    /** Handle enabling swapPaneContent in MainViewManager */
+    function _handleSwapPaneContent(){
+        if (PreferencesManager.get("mainView.swapPaneContent", PreferencesManager.CURRENT_PROJECT)) {
+            MainViewManager.swapPaneContent();
+        }
+    }
+
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE,  _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE,  _handleDecreaseFontSize);
@@ -530,6 +537,13 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,      _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,    _handleScrollLineDown);
     CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN_SETTINGS, _handleThemeSettings);
+
+    CommandManager.register(Strings.CMD_SWAP_PANE_CONTENT, Commands.CMD_SWAP_PANE_CONTENT, _handleSwapPaneContent);
+
+    // Define swapPaneVisibleContent, which controls whether to enable command to swap visible content between panes.
+    PreferencesManager.definePreference("mainView.swapPaneContent", "boolean", false, {
+        description: Strings.CMD_SWAP_PANE_CONTENT
+    });
 
     prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
         description: Strings.DESCRIPTION_FONT_SIZE

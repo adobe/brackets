@@ -25,7 +25,7 @@
  * MainViewManager manages the arrangement of all open panes as well as provides the controller
  * logic behind all views in the MainView (e.g. ensuring that a file doesn't appear in 2 lists)
  *
- * Each pane contains one or more views wich are created by a view factory and inserted into a pane list.
+ * Each pane contains one or more views which are created by a view factory and inserted into a pane list.
  * There may be several panes managed by the MainViewManager with each pane containing a list of views.
  * The panes are always visible and the layout is determined by the MainViewManager and the user.
  *
@@ -139,6 +139,7 @@ define(function (require, exports, module) {
      * @private
      */
     var SECOND_PANE         = "second-pane";
+
 
     /*
      * NOTE: The following commands and constants will change
@@ -842,6 +843,62 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+
+    /**
+     * swaps current views to opposite panes
+     */
+    function swapPaneContent() {
+
+        var activeFileInactiveView,
+            inactiveFileActiveView,
+            activePaneId = getActivePaneId(),
+            inactivePaneId = activePaneId === FIRST_PANE ? SECOND_PANE : FIRST_PANE,
+            activePane = _getPane(activePaneId),
+            inactivePane = _getPane(inactivePaneId),
+            activeFile = activePane.getCurrentlyViewedFile(),
+            inactiveFile = inactivePane.getCurrentlyViewedFile();
+
+        // Check if one of the panes is empty move and open currently viewed  file in opposite pane.
+        // if both are empty do nothing.
+        if (!activeFile || !inactiveFile) {
+            if (!activeFile && inactiveFile) {
+                _moveView(inactivePaneId, activePaneId, inactiveFile, 0);
+            } else if (!inactiveFile && activeFile) {
+                _moveView(activePaneId, inactivePaneId, activeFile, 0);
+            }
+
+        } else {
+
+            // check if currently viewed file is present in opposing pane.  If it is open the file.
+            // if it is not add it to the opposite pane and open.
+            activeFileInactiveView = inactivePane.getViewForPath(activeFile.fullPath);
+            inactiveFileActiveView = activePane.getViewForPath(inactiveFile.fullPath);
+
+            if (inactiveFileActiveView) {
+                CommandManager.execute(Commands.FILE_OPEN, {
+                    fullPath: inactiveFile.fullPath,
+                    paneId: activePaneId
+                });
+            } else {
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
+                    fullPath: inactiveFile.fullPath,
+                    paneId: activePaneId
+                });
+            }
+
+            if (activeFileInactiveView) {
+                CommandManager.execute(Commands.FILE_OPEN, {
+                    fullPath: activeFile.fullPath,
+                    paneId: inactivePaneId
+                });
+            } else {
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
+                    fullPath: activeFile.fullPath,
+                    paneId: inactivePaneId
+                });
+            }
+        }
+    };
 
     /**
      * Switch between panes
@@ -1750,6 +1807,7 @@ define(function (require, exports, module) {
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;
     exports.switchPaneFocus               = switchPaneFocus;
+    exports.swapPaneContent               = swapPaneContent;
 
     // Layout
     exports.setLayoutScheme               = setLayoutScheme;
