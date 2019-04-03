@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     var PreferencesManager          = require("preferences/PreferencesManager"),
         LanguageManager             = require("language/LanguageManager"),
         FileUtils                   = require("file/FileUtils"),
+        FileSystem                  = require("filesystem/FileSystem"),
         PerfUtils                   = require("utils/PerfUtils"),
         FindUtils                   = require("search/FindUtils"),
         StringUtils                 = require("utils/StringUtils"),
@@ -165,6 +166,92 @@ define(function (require, exports, module) {
             fileEncCountMap[encoding]++;
             setHealthData(healthData);
         }
+
+
+        sendAnalyticsData("usagefileOpen" + language._name,
+                            "usage",
+                            "fileOpen",
+                            language._name.toLowerCase()
+                         );
+
+    }
+
+    /**
+     * Whenever a file is saved call this function.
+     * The function will send the analytics Data
+     * We only log the standard filetypes and fileSize
+     * @param {String} filePath The path of the file to be registered
+     */
+    function fileSaved(docToSave) {
+        if (!docToSave) {
+            return;
+        }
+        var fileType = docToSave.language ? docToSave.language._name : "";
+        sendAnalyticsData("usagefileSave" + fileType,
+                            "usage",
+                            "fileSave",
+                            fileType.toLowerCase()
+                         );
+    }
+
+    /**
+     * Whenever a file is closed call this function.
+     * The function will send the analytics Data.
+     * We only log the standard filetypes and fileSize
+     * @param {String} filePath The path of the file to be registered
+     */
+    function fileClosed(file) {
+        if (!file) {
+            return;
+        }
+        var language = LanguageManager.getLanguageForPath(file._path),
+            size = -1;
+
+        function _sendData(fileSize) {
+            var subType = "";
+
+            if(fileSize/1024 < 1) {
+
+                if(fileSize === -1) {
+                    subType = "";
+                }
+                if(fileSize < 10) {
+                    subType = "Size_0_10KB";
+                } else if (fileSize < 50) {
+                    subType = "Size_10_50KB";
+                } else if (fileSize < 100) {
+                    subType = "Size_50_100KB";
+                } else if (fileSize < 500) {
+                    subType = "Size_100_500KB";
+                } else {
+                    subType = "Size_500KB_1MB";
+                }
+
+            } else {
+                fileSize = fileSize/1024;
+                if(fileSize < 2) {
+                    subType = "Size_1_2MB";
+                } else if(fileSize < 5) {
+                    subType = "Size_2_5MB";
+                } else {
+                    subType = "Size_Above_5MB";
+                }
+            }
+
+            sendAnalyticsData("usagefileClose" + language._name + subType,
+                                "usage",
+                                "fileClose",
+                                language._name.toLowerCase(),
+                                subType
+                             );
+        }
+
+        file.stat(function(err, fileStat) {
+            if(!err) {
+                size = fileStat.size.valueOf()/1024;
+            }
+            _sendData(size);
+        });
     }
 
     /**
@@ -243,6 +330,8 @@ define(function (require, exports, module) {
     exports.getAggregatedHealthData   = getAggregatedHealthData;
     exports.clearHealthData           = clearHealthData;
     exports.fileOpened                = fileOpened;
+    exports.fileSaved                 = fileSaved;
+    exports.fileClosed                = fileClosed;
     exports.setProjectDetail          = setProjectDetail;
     exports.searchDone                = searchDone;
     exports.setHealthLogsEnabled      = setHealthLogsEnabled;
