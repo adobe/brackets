@@ -872,11 +872,22 @@ define({
 	"DESCRIPTION_AUTO_UPDATE": "Brackets の自動更新を有効化/無効化",
 	"AUTOUPDATE_ERROR": "エラー!",
 	"AUTOUPDATE_IN_PROGRESS": "更新は既に進行中です。",
-    
+
 	"NUMBER_WITH_PERCENTAGE": "{0}%",
     // Strings for Related Files
-	"CMD_FIND_RELATED_FILES": "関連するファイルを検索"
-    
+	"CMD_FIND_RELATED_FILES": "関連するファイルを検索",
+
+    ///String for Php Tooling Extensions
+	"PHP_VERSION_INVALID": "Error parsing PHP version. Please check the output of the “php –version” command.",
+	"PHP_UNSUPPORTED_VERSION": "Install PHP7 runtime for enabling PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more. Version found: {0}",
+	"PHP_EXECUTABLE_NOT_FOUND": "PHP runtime not found. Install PHP7 runtime and set the path to system PATH or executablePath in php Preferences appropriately.",
+	"PHP_PROCESS_SPAWN_ERROR": "Error code {0} encountered while starting the PHP process.",
+	"PHP_SERVER_ERROR_TITLE": "エラー",
+	"PHP_SERVER_MEMORY_LIMIT_INVALID": "The memory limit you provided is invalid. Review the PHP preferences to set the correct value.",
+	"DESCRIPTION_PHP_TOOLING_CONFIGURATION": "PHP Tooling default configuration settings",
+	"OPEN_PREFERENNCES": "環境設定を開く",
+	"PHP_DIAGNOSTICS": "Diagnostics"
+
     //Strings for LanguageTools Preferences
     LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
 });
