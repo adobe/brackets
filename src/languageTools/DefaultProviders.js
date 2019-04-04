@@ -337,7 +337,6 @@ define(function (require, exports, module) {
         this._results = new Map();
         this._promiseMap = new Map();
         this._validateOnType = false;
-        this._linterName = "";
     }
 
     LintingProvider.prototype.clearExistingResults = function (filePath) {
@@ -384,7 +383,7 @@ define(function (require, exports, module) {
             var editor = EditorManager.getActiveEditor(),
                 docPath = editor ? editor.document.file._path : "";
             if (filePath === docPath) {
-                CodeInspection.requestRun(this._linterName);
+                CodeInspection.requestRun();
             }
         }
     };

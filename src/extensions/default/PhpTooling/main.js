@@ -107,7 +107,7 @@ define(function (require, exports, module) {
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
         CodeInspection.register(["php"], {
-            name: Strings.PHP_DIAGNOSTICS,
+            name: "",
             scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)
         });
 
@@ -123,7 +123,6 @@ define(function (require, exports, module) {
 
         if (phpConfig["validateOnType"] !== "false") {
             lProvider._validateOnType = true;
-            lProvider._linterName = Strings.PHP_DIAGNOSTICS;
         }
 
         _client.addOnProjectOpenHandler(handleProjectOpen);
