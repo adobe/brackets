@@ -335,9 +335,9 @@ define(function (require, exports, module) {
 
     function LintingProvider() {
         this._results = new Map();
-        this._defferedLintingPromise = new Map();
-        this._ValidateOnType = false;
-        this._lintingName = "";
+        this._promiseMap = new Map();
+        this._validateOnType = false;
+        this._linterName = "";
     }
 
     LintingProvider.prototype.clearExistingResults = function (filePath) {
@@ -345,11 +345,11 @@ define(function (require, exports, module) {
 
         if (filePathProvided) {
             this._results.delete(filePath);
-            this._defferedLintingPromise.delete(filePath);
+            this._promiseMap.delete(filePath);
         } else {
             //clear all results
             this._results.clear();
-            this._defferedLintingPromise.clear();
+            this._promiseMap.clear();
         }
     };
 
@@ -376,12 +376,16 @@ define(function (require, exports, module) {
         this._results.set(filePath, {
             errors: errors
         });
-        if(this._defferedLintingPromise.get(filePath)) {
-           this._defferedLintingPromise.get(filePath).resolve(this._results.get(filePath));
-           this._defferedLintingPromise.delete(filePath);
+        if(this._promiseMap.get(filePath)) {
+           this._promiseMap.get(filePath).resolve(this._results.get(filePath));
+           this._promiseMap.delete(filePath);
         }
-        if (this._ValidateOnType) {
-            CodeInspection.requestRun(this._lintingName);
+        if (this._validateOnType) {
+            var editor = EditorManager.getActiveEditor(),
+                docPath = editor ? editor.document.file._path : "";
+            if (filePath === docPath) {
+                CodeInspection.requestRun(this._linterName);
+            }
         }
     };
 
@@ -391,7 +395,7 @@ define(function (require, exports, module) {
         if (this._results.get(filePath)) {
             return result.resolve(this._results.get(filePath));
         }
-        this._defferedLintingPromise.set(filePath, result);
+        this._promiseMap.set(filePath, result);
         return result;
     };
 

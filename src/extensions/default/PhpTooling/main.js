@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         var newPhpConfig = PreferencesManager.get("php");
 
         if (lProvider && newPhpConfig["validateOnType"] !== phpConfig["validateOnType"]) {
-            lProvider._ValidateOnType = !(newPhpConfig["validateOnType"] === "false");
+            lProvider._validateOnType = !(newPhpConfig["validateOnType"] === "false");
         }
         if ((newPhpConfig["executablePath"] !== phpConfig["executablePath"])
                 || (newPhpConfig["enablePhpTooling"] !== phpConfig["enablePhpTooling"])) {
@@ -122,8 +122,8 @@ define(function (require, exports, module) {
 
 
         if (phpConfig["validateOnType"] !== "false") {
-            lProvider._ValidateOnType = true;
-            lProvider._lintingName = Strings.PHP_DIAGNOSTICS;
+            lProvider._validateOnType = true;
+            lProvider._linterName = Strings.PHP_DIAGNOSTICS;
         }
 
         _client.addOnProjectOpenHandler(handleProjectOpen);
