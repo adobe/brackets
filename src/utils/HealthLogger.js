@@ -39,6 +39,14 @@ define(function (require, exports, module) {
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
 
+    var commonStrings = { USAGE: "usage",
+        FILE_OPEN: "fileOpen",
+        FILE_SAVE: "fileSave",
+        FILE_CLOSE: "fileClose",
+        LANGUAGE_CHANGE: "languageChange",
+        LANGUAGE_SERVER_PROTOCOL: "languageServerProtocol"
+    };
+
     EventDispatcher.makeEventDispatcher(exports);
 
     /**
@@ -168,9 +176,9 @@ define(function (require, exports, module) {
         }
 
 
-        sendAnalyticsData("usagefileOpen" + language._name,
-                            "usage",
-                            "fileOpen",
+        sendAnalyticsData(commonStrings.USAGE + commonStrings.FILE_OPEN + language._name,
+                            commonStrings.USAGE,
+                            commonStrings.FILE_OPEN,
                             language._name.toLowerCase()
                          );
 
@@ -187,9 +195,9 @@ define(function (require, exports, module) {
             return;
         }
         var fileType = docToSave.language ? docToSave.language._name : "";
-        sendAnalyticsData("usagefileSave" + fileType,
-                            "usage",
-                            "fileSave",
+        sendAnalyticsData(commonStrings.USAGE + commonStrings.FILE_SAVE + fileType,
+                            commonStrings.USAGE,
+                            commonStrings.FILE_SAVE,
                             fileType.toLowerCase()
                          );
     }
@@ -238,9 +246,9 @@ define(function (require, exports, module) {
                 }
             }
 
-            sendAnalyticsData("usagefileClose" + language._name + subType,
-                                "usage",
-                                "fileClose",
+            sendAnalyticsData(commonStrings.USAGE + commonStrings.FILE_CLOSE + language._name + subType,
+                                commonStrings.USAGE,
+                                commonStrings.FILE_CLOSE,
                                 language._name.toLowerCase(),
                                 subType
                              );
@@ -337,6 +345,7 @@ define(function (require, exports, module) {
     exports.setHealthLogsEnabled      = setHealthLogsEnabled;
     exports.shouldLogHealthData       = shouldLogHealthData;
     exports.init                      = init;
+    exports.sendAnalyticsData         = sendAnalyticsData;
 
     // constants
     // searchType for searchDone()
@@ -351,5 +360,5 @@ define(function (require, exports, module) {
     exports.SEARCH_CASE_SENSITIVE     = "searchCaseSensitive";
     // A new search context on search bar up-Gives an idea of number of times user did a discrete search
     exports.SEARCH_NEW                = "searchNew";
-    exports.sendAnalyticsData         = sendAnalyticsData;
+    exports.commonStrings = commonStrings;
 });

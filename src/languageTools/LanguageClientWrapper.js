@@ -653,11 +653,11 @@ define(function (require, exports, module) {
             HealthLogger = require("utils/HealthLogger");
 
          HealthLogger.sendAnalyticsData(
-           "usagelanguageServerProtocol" + typeStr + languageName,
-              "usage",
-              "languageServerProtocol",
-              typeStr,
-              languageName.toLowerCase()
+            HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL + typeStr + languageName,
+            HealthLogger.commonStrings.USAGE,
+            HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL,
+            typeStr,
+            languageName.toLowerCase()
           );
     }
 

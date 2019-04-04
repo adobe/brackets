@@ -469,9 +469,10 @@ define(function (require, exports, module) {
                 filelanguageName = lang ? lang._name : "";
 
             HealthLogger.sendAnalyticsData(
-                "usagelanguageChange" + filelanguageName + fileType,
-                "usage",
-                "languageChange",
+                HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_CHANGE
+                + filelanguageName + fileType,
+                HealthLogger.commonStrings.USAGE,
+                HealthLogger.commonStrings.LANGUAGE_CHANGE,
                 filelanguageName.toLowerCase(),
                 fileType
             );
