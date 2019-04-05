@@ -335,6 +335,8 @@ define(function (require, exports, module) {
 
     function LintingProvider() {
         this._results = new Map();
+        this._promiseMap = new Map();
+        this._validateOnType = false;
     }
 
     LintingProvider.prototype.clearExistingResults = function (filePath) {
@@ -342,9 +344,11 @@ define(function (require, exports, module) {
 
         if (filePathProvided) {
             this._results.delete(filePath);
+            this._promiseMap.delete(filePath);
         } else {
             //clear all results
             this._results.clear();
+            this._promiseMap.clear();
         }
     };
 
@@ -371,6 +375,27 @@ define(function (require, exports, module) {
         this._results.set(filePath, {
             errors: errors
         });
+        if(this._promiseMap.get(filePath)) {
+           this._promiseMap.get(filePath).resolve(this._results.get(filePath));
+           this._promiseMap.delete(filePath);
+        }
+        if (this._validateOnType) {
+            var editor = EditorManager.getActiveEditor(),
+                docPath = editor ? editor.document.file._path : "";
+            if (filePath === docPath) {
+                CodeInspection.requestRun();
+            }
+        }
+    };
+
+    LintingProvider.prototype.getInspectionResultsAsync = function (fileText, filePath) {
+        var result = $.Deferred();
+
+        if (this._results.get(filePath)) {
+            return result.resolve(this._results.get(filePath));
+        }
+        this._promiseMap.set(filePath, result);
+        return result;
     };
 
     LintingProvider.prototype.getInspectionResults = function (fileText, filePath) {

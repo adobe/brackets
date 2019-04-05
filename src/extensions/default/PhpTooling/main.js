@@ -57,7 +57,11 @@ define(function (require, exports, module) {
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView",
         phpServerRunning = false,
         serverCapabilities,
-        currentRootPath;
+        currentRootPath,
+        chProvider,
+        phProvider,
+        lProvider,
+        jdProvider;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -66,6 +70,9 @@ define(function (require, exports, module) {
     PreferencesManager.on("change", "php", function () {
         var newPhpConfig = PreferencesManager.get("php");
 
+        if (lProvider && newPhpConfig["validateOnType"] !== phpConfig["validateOnType"]) {
+            lProvider._validateOnType = !(newPhpConfig["validateOnType"] === "false");
+        }
         if ((newPhpConfig["executablePath"] !== phpConfig["executablePath"])
                 || (newPhpConfig["enablePhpTooling"] !== phpConfig["enablePhpTooling"])) {
             phpConfig = newPhpConfig;
@@ -76,6 +83,7 @@ define(function (require, exports, module) {
     });
 
     var handleProjectOpen = function (event, directory) {
+        lProvider.clearExistingResults();
         if(serverCapabilities["workspace"] && serverCapabilities["workspace"]["workspaceFolders"]) {
             _client.notifyProjectRootsChanged({
                 foldersAdded: [directory.fullPath],
@@ -90,17 +98,17 @@ define(function (require, exports, module) {
     };
 
     function registerToolingProviders() {
-        var chProvider = new CodeHintsProvider(_client),
-            phProvider = new DefaultProviders.ParameterHintsProvider(_client),
-            lProvider = new DefaultProviders.LintingProvider(_client),
-            jdProvider = new DefaultProviders.JumpToDefProvider(_client);
+        chProvider = new CodeHintsProvider(_client),
+        phProvider = new DefaultProviders.ParameterHintsProvider(_client),
+        lProvider = new DefaultProviders.LintingProvider(_client),
+        jdProvider = new DefaultProviders.JumpToDefProvider(_client);
 
         JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
         CodeInspection.register(["php"], {
-            name: Strings.PHP_DIAGNOSTICS,
-            scanFile: lProvider.getInspectionResults.bind(lProvider)
+            name: "",
+            scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)
         });
 
         _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
@@ -114,9 +122,7 @@ define(function (require, exports, module) {
 
 
         if (phpConfig["validateOnType"] !== "false") {
-            _client.addOnDocumentChangeHandler(function () {
-                CodeInspection.requestRun(Strings.PHP_DIAGNOSTICS);
-            });
+            lProvider._validateOnType = true;
         }
 
         _client.addOnProjectOpenHandler(handleProjectOpen);
@@ -170,12 +176,8 @@ define(function (require, exports, module) {
             EditorManager.off("activeEditorChange.php");
             LanguageManager.off("languageModified.php");
         }
-
         evtHandler.handleActiveEditorChange(null, EditorManager.getActiveEditor());
         currentRootPath = ProjectManager.getProjectRoot()._path;
-        setTimeout(function () {
-            CodeInspection.requestRun(Strings.PHP_DIAGNOSTICS);
-        }, 1500);
     }
 
     function runPhpServer() {
