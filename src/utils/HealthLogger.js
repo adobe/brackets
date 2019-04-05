@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     var PreferencesManager          = require("preferences/PreferencesManager"),
         LanguageManager             = require("language/LanguageManager"),
         FileUtils                   = require("file/FileUtils"),
-        FileSystem                  = require("filesystem/FileSystem"),
         PerfUtils                   = require("utils/PerfUtils"),
         FindUtils                   = require("search/FindUtils"),
         StringUtils                 = require("utils/StringUtils"),
@@ -44,7 +43,10 @@ define(function (require, exports, module) {
         FILE_SAVE: "fileSave",
         FILE_CLOSE: "fileClose",
         LANGUAGE_CHANGE: "languageChange",
-        LANGUAGE_SERVER_PROTOCOL: "languageServerProtocol"
+        LANGUAGE_SERVER_PROTOCOL: "languageServerProtocol",
+        CODE_HINTS: "codeHints",
+        PARAM_HINTS: "parameterHints",
+        JUMP_TO_DEF: "jumpToDefinition"
     };
 
     EventDispatcher.makeEventDispatcher(exports);

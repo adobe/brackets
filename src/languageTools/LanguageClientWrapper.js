@@ -361,7 +361,7 @@ define(function (require, exports, module) {
         return this._request(ToolingInfo.FEATURES.CODE_HINTS, params)
             .then(function(response) {
                 if(response && response.items && response.items.length) {
-                    logAnalyticsData("codeHints");
+                    logAnalyticsData("CODE_HINTS");
                 }
                 return $.Deferred().resolve(response);
             }, function(err) {
@@ -379,7 +379,7 @@ define(function (require, exports, module) {
         return this._request(ToolingInfo.FEATURES.PARAMETER_HINTS, params)
             .then(function(response) {
                 if (response && response.signatures && response.signatures.length) {
-                    logAnalyticsData("parameterHints");
+                    logAnalyticsData("PARAM_HINTS");
                 }
                 return $.Deferred().resolve(response);
             }, function(err) {
@@ -392,7 +392,7 @@ define(function (require, exports, module) {
         return this._request(ToolingInfo.FEATURES.JUMP_TO_DEFINITION, params)
             .then(function(response) {
                 if(response && response.range) {
-                    logAnalyticsData("jumpToDefinition");
+                    logAnalyticsData("JUMP_TO_DEF");
                 }
                 return $.Deferred().resolve(response);
             }, function(err) {
@@ -645,12 +645,13 @@ define(function (require, exports, module) {
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
 
-    function logAnalyticsData(typeStr) {
+    function logAnalyticsData(typeStrKey) {
         var editor =  require("editor/EditorManager").getActiveEditor(),
             document = editor ? editor.document : null,
             language = document ? document.language : null,
             languageName = language ? language._name : "",
-            HealthLogger = require("utils/HealthLogger");
+            HealthLogger = require("utils/HealthLogger"),
+            typeStr = HealthLogger.commonStrings[typeStrKey] || "";
 
          HealthLogger.sendAnalyticsData(
             HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL + typeStr + languageName,
