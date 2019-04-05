@@ -650,10 +650,10 @@ define({
     // extensions/default/HealthData
 	"HEALTH_DATA_NOTIFICATION": "Health Report Preferences",
 	"HEALTH_FIRST_POPUP_TITLE": "Rapport d’intégrité de {APP_NAME}",
-	"HEALTH_DATA_DO_TRACK": "Partager des informations anonymes sur la façon dont j’utilise {APP_NAME}",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "<p>Afin d’améliorer {APP_NAME}, nous transmettons régulièrement des statistiques limitées et <strong>anonymes</strong> à Adobe sur la manière dont vous utilisez {APP_NAME}. Ces données permettent de hiérarchiser les fonctionnalités à traiter, de détecter les bugs éventuels et d’identifier les problèmes d’utilisation.<br><br>Pour voir les renseignements collectés et choisir ceux que vous ne souhaitez pas partager, cliquez sur <strong>Aide > Rapport d’intégrité</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lisez cet article pour en savoir plus concernant le rapport d’intégrité de {APP_NAME}</a>",
+	"HEALTH_DATA_DO_TRACK": "Share pseudonymous information on how I use {APP_NAME}",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "In order to improve {APP_NAME}, we periodically send limited, <strong>pseudonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a>",
 	"HEALTH_DATA_PREVIEW": "Rapport d’intégrité de {APP_NAME}",
-	"HEALTH_DATA_PREVIEW_INTRO": "<p>Afin d’améliorer {APP_NAME}, nous transmettons régulièrement des statistiques limitées et <strong>anonymes</strong> à Adobe sur la manière dont vous utilisez {APP_NAME}. Ces données permettent de hiérarchiser les fonctionnalités à traiter, de détecter les bugs éventuels et d’identifier les problèmes d’utilisation. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lisez cet article concernant le rapport d’intégrité de {APP_NAME}</a> et découvrez en quoi il est utile à la communauté {APP_NAME} tout en préservant votre confidentialité.</p><p>Vous trouverez ci-dessous un résumé des données qui seront envoyées dans le cadre de votre prochain rapport d’intégrité <em>si</em> vous décidez d’activer cette option.</p>",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>In order to improve {APP_NAME}, we periodically send limited, <strong>pseudonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
@@ -885,8 +885,7 @@ define({
 	"PHP_SERVER_ERROR_TITLE": "Erreur",
 	"PHP_SERVER_MEMORY_LIMIT_INVALID": "The memory limit you provided is invalid. Review the PHP preferences to set the correct value.",
 	"DESCRIPTION_PHP_TOOLING_CONFIGURATION": "PHP Tooling default configuration settings",
-	"OPEN_PREFERENNCES": "Ouvrir les préférences",
-	"PHP_DIAGNOSTICS": "Diagnostics"
+	"OPEN_PREFERENNCES": "Ouvrir les préférences"
 
     //Strings for LanguageTools Preferences
     LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
