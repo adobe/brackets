@@ -28,8 +28,7 @@ define(function (require, exports, module) {
 
     var EditorManager = brackets.getModule("editor/EditorManager"),
         QuickOpen = brackets.getModule("search/QuickOpen"),
-        QuickOpenHelper = brackets.getModule("search/QuickOpenHelper"),
-        Commands        = brackets.getModule("command/Commands"),
+        Commands = brackets.getModule("command/Commands"),
         DocumentManager = brackets.getModule("document/DocumentManager"),
         StringMatch = brackets.getModule("utils/StringMatch"),
         StringUtils = brackets.getModule("utils/StringUtils"),
@@ -41,13 +40,6 @@ define(function (require, exports, module) {
         return (query[0] === "@") || (query[0] === "#");
     }
 
-    /**
-     * Scroll to the selected item in the current document (unless no query string entered yet,
-     * in which case the topmost list item is irrelevant)
-     * @param {?SearchResult} selectedItem
-     * @param {string} query
-     * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
-     */
     function itemFocus(selectedItem, query, explicit) {
         if (!selectedItem || (query.length < 2 && !explicit)) {
             return;
@@ -55,26 +47,31 @@ define(function (require, exports, module) {
         if (selectedItem.fileLocation.docSymbol) {
             var fileLocation = selectedItem.fileLocation;
 
-            var from = {line: fileLocation.lineFrom, ch: fileLocation.chFrom};
-            var to = {line: fileLocation.lineTo, ch: fileLocation.chTo};
+            var from = {
+                line: fileLocation.lineFrom,
+                ch: fileLocation.chFrom
+            };
+            var to = {
+                line: fileLocation.lineTo,
+                ch: fileLocation.chTo
+            };
             EditorManager.getCurrentFullEditor().setSelection(from, to, true);
         }
     }
 
-    /**
-     * Scroll to the selected item in the current document (unless no query string entered yet,
-     * in which case the topmost list item is irrelevant)
-     * @param {?SearchResult} selectedItem
-     * @param {string} query
-     */
     function itemSelect(selectedItem, query) {
         if (selectedItem.fileLocation.docSymbol) {
             itemFocus(selectedItem, query, true);
         } else {
             var fullPath = selectedItem.fileLocation && selectedItem.fileLocation.fullPath;
-            var from = {line: selectedItem.fileLocation.lineFrom, ch: selectedItem.fileLocation.chFrom};
+            var from = {
+                line: selectedItem.fileLocation.lineFrom,
+                ch: selectedItem.fileLocation.chFrom
+            };
             if (fullPath) {
-                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
+                        fullPath: fullPath
+                    })
                     .done(function () {
                         if (from) {
                             var editor = EditorManager.getCurrentFullEditor();
