@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     var _ = brackets.getModule("thirdparty/lodash");
 
     var EditorManager = require('editor/EditorManager'),
+        DocumentManager = require('document/DocumentManager'),
         ExtensionUtils = require("utils/ExtensionUtils"),
         CommandManager = require("command/CommandManager"),
         Commands = require("command/Commands"),
@@ -402,8 +403,73 @@ define(function (require, exports, module) {
         return this._results.get(filePath);
     };
 
+    function ReferencesProvider(client) {
+        this.client = client;
+    }
+
+    ReferencesProvider.prototype.hasReferences = function() {
+        return true;
+    };
+
+    ReferencesProvider.prototype.getReferences = function() {
+        var editor = EditorManager.getActiveEditor(),
+            pos = editor.getCursorPos(),
+            docPath = editor.document.file._path,
+            result = $.Deferred();
+
+        if (this.client) {
+            this.client.findReferences({
+                filePath: docPath,
+                cursorPos: pos
+            }).done(function(msgObj){
+                    if(msgObj ) {
+                        var referenceModel = {};
+                        referenceModel.results = {};
+                        referenceModel.numFiles = 0;
+                        var fulfilled = 0,
+                            queryInfo = "";
+                        msgObj.forEach((element, i) => {
+                            var filePath = PathConverters.uriToPath(element.uri);
+                            DocumentManager.getDocumentForPath(filePath)
+                                .done(function(doc) {
+                                    var startRange = {line: element.range.start.line, ch: element.range.start.character};
+                                    var endRange = {line: element.range.end.line, ch: element.range.end.character};
+                                    var match = {
+                                        start: startRange,
+                                        end: endRange,
+                                        line: doc.getLine(element.range.start.line)
+                                    };
+                                    if(!referenceModel.results[filePath]) {
+                                        referenceModel.numFiles = referenceModel.numFiles + 1;
+                                        referenceModel.results[filePath] = {"matches": []};
+                                    }
+                                    if(!queryInfo) {
+                                        referenceModel.queryInfo = doc.getRange(startRange, endRange);
+                                    }
+                                    referenceModel.results[filePath]["matches"].push(match);
+                                }).always(function() {
+                                    fulfilled++;
+                                    if(fulfilled === msgObj.length) {
+                                        referenceModel.numMatches = msgObj.length;
+                                        referenceModel.allResultsAvailable = true;
+                                        result.resolve(referenceModel);
+                                    }
+                                });
+                        });
+                    } else {
+                        result.reject();
+                    }
+                }).fail(function(){
+                    result.reject();
+                });
+            return result.promise();
+        }
+        return result.reject();
+    };
+
     exports.CodeHintsProvider = CodeHintsProvider;
     exports.ParameterHintsProvider = ParameterHintsProvider;
     exports.JumpToDefProvider = JumpToDefProvider;
     exports.LintingProvider = LintingProvider;
+    exports.ReferencesProvider = ReferencesProvider;
 });

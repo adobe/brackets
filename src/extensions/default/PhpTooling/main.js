@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         ParameterHintManager = brackets.getModule("features/ParameterHintsManager"),
         JumpToDefManager = brackets.getModule("features/JumpToDefManager"),
+        FindReferencesManager = brackets.getModule("features/FindReferencesManager"),
         CodeInspection = brackets.getModule("language/CodeInspection"),
         DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
         CodeHintsProvider = require("CodeHintsProvider").CodeHintsProvider,
@@ -61,7 +62,8 @@ define(function (require, exports, module) {
         chProvider,
         phProvider,
         lProvider,
-        jdProvider;
+        jdProvider,
+        refProvider;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -101,11 +103,13 @@ define(function (require, exports, module) {
         chProvider = new CodeHintsProvider(_client),
         phProvider = new DefaultProviders.ParameterHintsProvider(_client),
         lProvider = new DefaultProviders.LintingProvider(_client),
-        jdProvider = new DefaultProviders.JumpToDefProvider(_client);
+        jdProvider = new DefaultProviders.JumpToDefProvider(_client),
+        refProvider = new DefaultProviders.ReferencesProvider(_client);
 
         JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
+        FindReferencesManager.registerFindReferencesProvider(refProvider, ["php"], 0);
         CodeInspection.register(["php"], {
             name: "",
             scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)

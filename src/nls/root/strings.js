@@ -888,5 +888,8 @@ define({
     "OPEN_PREFERENNCES"                              : "Open Preferences",
 
     //Strings for LanguageTools Preferences
-    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
+    "LANGUAGE_TOOLS_PREFERENCES"                       : "Preferences for Language Tools",
+    "FIND_ALL_REFERENCES"                            : "Find All References",
+    "FIND_IN_FILES_REFERENCES"                       : "references",
+    "FIND_IN_FILES_REFERENCE"                        : "reference"
 });
