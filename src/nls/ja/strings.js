@@ -650,10 +650,10 @@ define({
     // extensions/default/HealthData
 	"HEALTH_DATA_NOTIFICATION": "Health Report Preferences",
 	"HEALTH_FIRST_POPUP_TITLE": "{APP_NAME} の正常性レポート",
-	"HEALTH_DATA_DO_TRACK": "{APP_NAME} の使用方法に関する情報を匿名で共有します",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<br><br>お客様のデータを確認するには、または、データを共有しないように選択するには、<strong>ヘルプ／正常性レポート</strong>を選択してください。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポートに関する詳細情報</a>",
+	"HEALTH_DATA_DO_TRACK": "{APP_NAME} の使用方法に関する偽名情報を共有します",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>偽名</strong>の統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<br><br>お客様のデータを確認するには、または、データを共有しないように選択するには、<strong>ヘルプ／正常性レポート</strong>を選択してください。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポートに関する詳細情報</a>",
 	"HEALTH_DATA_PREVIEW": "{APP_NAME} の正常性レポート",
-	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>について、またこれが {APP_NAME} コミュニティにどのように役立ち、プライバシーを保護するかついて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em></p>",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>偽名</strong>の統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>について、またこれが {APP_NAME} コミュニティにどのように役立ち、プライバシーを保護するかついて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em> </p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
@@ -872,8 +872,21 @@ define({
 	"DESCRIPTION_AUTO_UPDATE": "Brackets の自動更新を有効化/無効化",
 	"AUTOUPDATE_ERROR": "エラー!",
 	"AUTOUPDATE_IN_PROGRESS": "更新は既に進行中です。",
-    
+
 	"NUMBER_WITH_PERCENTAGE": "{0}%",
     // Strings for Related Files
-	"CMD_FIND_RELATED_FILES": "関連するファイルを検索"
+	"CMD_FIND_RELATED_FILES": "関連するファイルを検索",
+
+    ///String for Php Tooling Extensions
+	"PHP_VERSION_INVALID": "PHP バージョンを解析する際のエラーです。“php –version” コマンドの出力を確認してください。",
+	"PHP_UNSUPPORTED_VERSION": "コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールを有効化するために、PHP7 ランタイムをインストールします。検出されたバージョン: {0}",
+	"PHP_EXECUTABLE_NOT_FOUND": "PHP ランタイムが見つかりません。PHP7 ランタイムをインストールして、PHP の環境設定で適切に “executablePath” を更新してください。これにより、コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールが有効になります。",
+	"PHP_PROCESS_SPAWN_ERROR": "PHP プロセスを起動中に、エラーコード {0} が発生しました。",
+	"PHP_SERVER_ERROR_TITLE": "エラー",
+	"PHP_SERVER_MEMORY_LIMIT_INVALID": "指定したメモリ制限は無効です。正しい値を設定するために、PHP の環境設定を確認してください。",
+	"DESCRIPTION_PHP_TOOLING_CONFIGURATION": "PHP ツールのデフォルト設定",
+	"OPEN_PREFERENNCES": "環境設定を開く"
+
+    //Strings for LanguageTools Preferences
+    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
 });
