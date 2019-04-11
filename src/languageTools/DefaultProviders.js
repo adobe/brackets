@@ -408,12 +408,21 @@ define(function (require, exports, module) {
     }
 
     ReferencesProvider.prototype.hasReferences = function() {
+        if (!this.client) {
+            return false;
+        }
+
+        var serverCapabilities = this.client.getServerCapabilities();
+        if (!serverCapabilities || !serverCapabilities.referencesProvider) {
+            return false;
+        }
+
         return true;
     };
 
-    ReferencesProvider.prototype.getReferences = function() {
-        var editor = EditorManager.getActiveEditor(),
-            pos = editor.getCursorPos(),
+    ReferencesProvider.prototype.getReferences = function(hostEditor, curPos) {
+        var editor = hostEditor || EditorManager.getActiveEditor(),
+            pos = curPos || editor ? editor.getCursorPos() : null,
             docPath = editor.document.file._path,
             result = $.Deferred();
 
