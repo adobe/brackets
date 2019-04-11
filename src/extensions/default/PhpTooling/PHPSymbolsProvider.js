@@ -127,6 +127,15 @@ define(function (require, exports, module) {
     };
 
     PHPSymbolsProvider.prototype.getDocumentSymbols = function (query, matcher) {
+        if (!this.client) {
+            return $.Deferred().reject();
+        }
+
+        var serverCapabilities = this.client.getServerCapabilities();
+        if (!serverCapabilities || !serverCapabilities.documentSymbolProvider) {
+            return $.Deferred().reject();
+        }
+
         var editor = EditorManager.getActiveEditor(),
             docPath = editor.document.file._path,
             retval = $.Deferred();
@@ -134,7 +143,6 @@ define(function (require, exports, module) {
         this.client.requestSymbolsForDocument({
             filePath: docPath
         }).done(function (results) {
-            console.log("Document Symbols:", results);
             var resultList = transFormToSymbolList(query, matcher, results, true);
             retval.resolve(resultList);
         });
@@ -143,12 +151,20 @@ define(function (require, exports, module) {
     };
 
     PHPSymbolsProvider.prototype.getWorkspaceSymbols = function (query, matcher) {
+        if (!this.client) {
+            return $.Deferred().reject();
+        }
+
+        var serverCapabilities = this.client.getServerCapabilities();
+        if (!serverCapabilities || !serverCapabilities.workspaceSymbolProvider) {
+            return $.Deferred().reject();
+        }
+
         var retval = $.Deferred();
 
         this.client.requestSymbolsForWorkspace({
             query: query
         }).done(function (results) {
-            console.log("Workspace Symbols:", results);
             var resultList = transFormToSymbolList(query, matcher, results);
             retval.resolve(resultList);
         });

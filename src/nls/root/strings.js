@@ -421,7 +421,6 @@ define({
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
     "CMD_FIND_DOCUMENT_SYMBOLS"           : "Find Document Symbols",
     "CMD_FIND_PROJECT_SYMBOLS"            : "Find Project Symbols",
-    "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
     "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Problem",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
