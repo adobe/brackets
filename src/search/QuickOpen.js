@@ -613,6 +613,12 @@ define(function (require, exports, module) {
             case "@":
                 dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
                 break;
+            case "~":
+                dialogLabel = Strings.CMD_FIND_DOCUMENT_SYMBOLS + "\u2026";
+                break;
+            case "#":
+                dialogLabel = Strings.CMD_FIND_PROJECT_SYMBOLS + "\u2026";
+                break;
             default:
                 dialogLabel = "";
                 break;
@@ -731,6 +737,16 @@ define(function (require, exports, module) {
             beginSearch("@", getCurrentEditorSelectedText());
         }
     }
+    
+    function doSymbolSearchInDocument() {
+        if (DocumentManager.getCurrentDocument()) {
+            beginSearch("~", getCurrentEditorSelectedText());
+        }
+    }
+    
+    function doSymbolSearchInProject() {
+        beginSearch("#", getCurrentEditorSelectedText());
+    }
 
     // Listen for a change of project to invalidate our file list
     ProjectManager.on("projectOpen", function () {
@@ -739,6 +755,8 @@ define(function (require, exports, module) {
 
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
+    CommandManager.register(Strings.CMD_FIND_DOCUMENT_SYMBOLS,    Commands.NAVIGATE_FIND_DOCUMENT_SYMBOLS,  doSymbolSearchInDocument);
+    CommandManager.register(Strings.CMD_FIND_PROJECT_SYMBOLS,    Commands.NAVIGATE_FIND_PROJECT_SYMBOLS,  doSymbolSearchInProject);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
     exports.beginSearch             = beginSearch;

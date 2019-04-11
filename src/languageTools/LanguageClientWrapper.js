@@ -110,7 +110,7 @@ define(function (require, exports, module) {
                 }
             case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
                 {
-                    if (params && params.query && typeof params.query === "string") {
+                    if (hasValidProp(params, "query") && typeof params.query === "string") {
                         validatedParams = params;
                     }
                     break;

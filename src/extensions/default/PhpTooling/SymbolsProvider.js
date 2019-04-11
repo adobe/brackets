@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
 
     function match(query) {
-        return (query[0] === "@") || (query[0] === "#");
+        return (query[0] === "~") || (query[0] === "#");
     }
 
     function itemFocus(selectedItem, query, explicit) {
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
 
     function _resultsFormatter(item, query) {
         if (item.fileLocation.docSymbol) {
-            query = query.slice(query.indexOf("@") + 1, query.length);
+            query = query.slice(query.indexOf("~") + 1, query.length);
             var displayName = highlightMatch(item);
             if (item.fileLocation.containerName) {
                 return "<li>" + displayName + " (" + item.fileLocation.type + ")" + "<br /><span class='quick-open-path'>" + item.fileLocation.containerName + "</span></li>";
@@ -247,8 +247,8 @@ define(function (require, exports, module) {
 
     PHPSymbolsProvider.prototype.search = function (query, matcher) {
         var queryText = "";
-        if (query.startsWith("@")) {
-            queryText = query.slice(query.indexOf("@") + 1, query.length);
+        if (query.startsWith("~")) {
+            queryText = query.slice(query.indexOf("~") + 1, query.length);
             return this.getDocumentSymbols(queryText, matcher);
         } else if (query.startsWith("#")) {
             queryText = query.slice(query.indexOf("#") + 1, query.length);
