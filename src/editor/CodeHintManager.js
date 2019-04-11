@@ -239,7 +239,7 @@ define(function (require, exports, module) {
         CodeHintList        = require("editor/CodeHintList").CodeHintList,
         PreferencesManager  = require("preferences/PreferencesManager");
 
-    var hintProviders    = { "all" : [] },
+    var hintProviders    = { "all": [] },
         lastChar         = null,
         sessionProvider  = null,
         sessionEditor    = null,
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
      */
     function registerHintProvider(providerInfo, languageIds, priority) {
         var providerObj = { provider: providerInfo,
-                            priority: priority || 0 };
+            priority: priority || 0 };
 
         if (languageIds.indexOf("all") !== -1) {
             // Ignore anything else in languageIds and just register for every language. This includes
@@ -401,10 +401,10 @@ define(function (require, exports, module) {
                     (hintList.isOpen() ||
                      (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
-            } else {
-                // the editor has changed
-                _endSession();
             }
+                // the editor has changed
+            _endSession();
+
         }
         return false;
     }
@@ -507,10 +507,21 @@ define(function (require, exports, module) {
 
             sessionEditor = editor;
             hintList = new CodeHintList(sessionEditor, insertHintOnTab, maxCodeHints);
-            hintList.onHighlight(function ($hint) {
-                // If the current hint provider listening for hint item highlight change
-                if (sessionProvider.onHighlight) {
-                    sessionProvider.onHighlight($hint);
+            hintList.onHighlight(function ($hint, $hintDescContainer) {
+                if (hintList.enableDescription && $hintDescContainer && $hintDescContainer.length) {
+                    // If the current hint provider listening for hint item highlight change
+                    if (sessionProvider.onHighlight) {
+                        sessionProvider.onHighlight($hint, $hintDescContainer);
+                    }
+                    
+                    // Update the hint description
+                    if (sessionProvider.updateHintDescription) {
+                        sessionProvider.updateHintDescription($hint, $hintDescContainer);
+                    }
+                } else {
+                    if (sessionProvider.onHighlight) {
+                        sessionProvider.onHighlight($hint);
+                    }
                 }
             });
             hintList.onSelect(function (hint) {
@@ -565,7 +576,7 @@ define(function (require, exports, module) {
     function _handleKeyupEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
         if (_inSession(editor)) {
-          if (event.keyCode === KeyEvent.DOM_VK_HOME || 
+            if (event.keyCode === KeyEvent.DOM_VK_HOME ||
                   event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
@@ -714,7 +725,7 @@ define(function (require, exports, module) {
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
     EditorManager.on("activeEditorChange", activeEditorChangeHandler);
- 
+
     // Dismiss code hints before executing any command other than showing code hints since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is

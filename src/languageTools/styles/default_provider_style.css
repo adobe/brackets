@@ -132,3 +132,45 @@ span.brackets-hints-with-type-details {
 .dark .hint-description {
     color: #ccc;
 }
+
+#codehint-desc {
+    background: #e6e6e6;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    float: left;
+    top: 34px;
+    border-radius: 1px !important;
+    border-top-left-radius: 0px !important;
+    border-top-right-radius: 0px !important;
+    overflow-x: hidden;
+    min-height: 30px;
+    max-height: 120px !important
+}
+
+.dark #codehint-desc {
+    background: #2c2c2c;
+}
+
+.desc-detail {
+    padding: 5px 15px 5px 15px;
+    color: #1473e6;
+    font-weight:bold;
+    font-size: 1.2em;
+}
+
+.dark .desc-detail {
+    color: #46a0f5;
+    line-height: inherit;
+}
+
+.desc-doc {
+    padding: 5px 15px 5px 15px;
+    color: #424242;
+    font-size: 1.1em;
+    white-space: pre-wrap;
+}
+
+.dark .desc-doc {
+    color: #b1b1b1
+}

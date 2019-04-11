@@ -36,7 +36,19 @@ define(function (require, exports, module) {
             preferPrefixMatches: true
         });
 
-    var phpSuperGlobalVariables = JSON.parse(require("text!phpGlobals.json"));
+    var phpSuperGlobalVariables = JSON.parse(require("text!phpGlobals.json")),
+        hintType = {
+             "2": "Method",
+             "3": "Function",
+             "4": "Constructor",
+             "6": "Variable",
+             "7": "Class",
+             "8": "Interface",
+             "9": "Module",
+             "10": "Property",
+             "14": "Keyword",
+             "21": "Constant"
+        };
 
     function CodeHintsProvider(client) {
         this.defaultCodeHintProviders = new DefaultProviders.CodeHintsProvider(client);
@@ -44,22 +56,7 @@ define(function (require, exports, module) {
 
     function formatTypeDataForToken($hintObj, token) {
         $hintObj.addClass('brackets-hints-with-type-details');
-        if (token.detail) {
-            if (token.detail.trim() !== '?') {
-                if (token.detail.length < 30) {
-                    $('<span>' + token.detail.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("brackets-hints-type-details");
-                }
-                $('<span>' + token.detail.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("hint-description");
-            }
-        } else {
-            if (token.keyword) {
-                $('<span>keyword</span>').appendTo($hintObj).addClass("brackets-hints-keyword");
-            }
-        }
-        if (token.documentation) {
-            $hintObj.attr('title', token.documentation);
-            $('<span></span>').text(token.documentation.trim()).appendTo($hintObj).addClass("hint-doc");
-        }
+        $hintObj.data('completionItem', token);
     }
 
     function filterWithQueryAndMatcher(hints, query) {
@@ -102,6 +99,7 @@ define(function (require, exports, module) {
             self.query = context.token.string.slice(0, context.pos.ch - context.token.start);
             if (msgObj) {
                 var res = msgObj.items || [];
+                console.log("results:", res);
                 // There is a bug in Php Language Server, Php Language Server does not provide superGlobals
                 // Variables as completion. so these variables are being explicity put in response objects
                 // below code should be removed if php server fix this bug.
@@ -143,7 +141,9 @@ define(function (require, exports, module) {
             }
 
             $deferredHints.resolve({
-                "hints": hints
+                "hints": hints,
+                "selectInitial": true,
+                "enableDescription": true
             });
         }).fail(function () {
             $deferredHints.reject();
@@ -154,6 +154,32 @@ define(function (require, exports, module) {
 
     CodeHintsProvider.prototype.insertHint = function ($hint) {
         return this.defaultCodeHintProviders.insertHint($hint);
+    };
+
+    CodeHintsProvider.prototype.updateHintDescription = function ($hint, $hintDescContainer) {
+        var $hintObj = $hint.find('.brackets-hints-with-type-details'),
+            token = $hintObj.data('completionItem'),
+            $desc = $('<div>');
+
+        $hintDescContainer.empty();
+        if(!token) {
+            return;
+        }
+
+        if (token.detail) {
+            if (token.detail.trim() !== '?') {
+                $('<div>' + token.detail.split('->').join(':').toString().trim() + '</div>').appendTo($desc).addClass("desc-detail");
+            }
+        } else {
+            if (hintType[token.kind]) {
+                $('<div>' + hintType[token.kind] + '</div>').appendTo($desc).addClass("desc-detail");
+            }
+        }
+        if (token.documentation) {
+            $('<div></div>').html(token.documentation.trim()).appendTo($desc).addClass("desc-doc");
+        }
+
+        $hintDescContainer.append($desc);
     };
 
     exports.CodeHintsProvider = CodeHintsProvider;
