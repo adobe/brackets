@@ -522,8 +522,8 @@ define(function (require, exports, module) {
      */
     function handleUpdateProcess(updates) {
         var handler = _updateProcessHandler || _defaultUpdateProcessHandler;
-        var success = handler(updates);
-        if (_updateProcessHandler && !success) {
+        var initSuccess = handler(updates);
+        if (_updateProcessHandler && !initSuccess) {
             // Give a chance to default handler in case
             // the auot update mechanism has failed.
             _defaultUpdateProcessHandler(updates);
