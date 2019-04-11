@@ -54,7 +54,7 @@ define(function (require, exports, module) {
         this.defaultCodeHintProviders = new DefaultProviders.CodeHintsProvider(client);
     }
 
-    function formatTypeDataForToken($hintObj, token) {
+    function setStyleAndCacheToken($hintObj, token) {
         $hintObj.addClass('brackets-hints-with-type-details');
         $hintObj.data('completionItem', token);
     }
@@ -99,7 +99,6 @@ define(function (require, exports, module) {
             self.query = context.token.string.slice(0, context.pos.ch - context.token.start);
             if (msgObj) {
                 var res = msgObj.items || [];
-                console.log("results:", res);
                 // There is a bug in Php Language Server, Php Language Server does not provide superGlobals
                 // Variables as completion. so these variables are being explicity put in response objects
                 // below code should be removed if php server fix this bug.
@@ -135,14 +134,13 @@ define(function (require, exports, module) {
                     }
 
                     $fHint.data("token", element);
-                    formatTypeDataForToken($fHint, element);
+                    setStyleAndCacheToken($fHint, element);
                     hints.push($fHint);
                 });
             }
 
             $deferredHints.resolve({
                 "hints": hints,
-                "selectInitial": true,
                 "enableDescription": true
             });
         }).fail(function () {

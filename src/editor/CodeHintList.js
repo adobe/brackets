@@ -121,14 +121,6 @@ define(function (require, exports, module) {
                 .append("<ul class='dropdown-menu'></ul>");
 
         this._keydownHook = this._keydownHook.bind(this);
-
-        var self = this;
-        this.$hintMenu.find("ul.dropdown-menu")[0].onscroll = function () {
-            var ext = self.$hintMenu.find(".hint-selection-ext");
-            var highlight = self.$hintMenu.find("a.highlight");
-            ext.css("top", highlight.position().top);
-            ext.css("height", highlight[0].getBoundingClientRect().height);
-        };
     }
 
     /**
@@ -150,7 +142,6 @@ define(function (require, exports, module) {
         }
 
         this.selectedIndex = index;
-        var ext = this.$hintMenu.find("ul.dropdown-menu").parent().find(".hint-selection-ext");
 
         // Highlight the new selected item, if necessary
         if (this.selectedIndex !== -1) {
@@ -159,15 +150,10 @@ define(function (require, exports, module) {
 
             $item.find("a").addClass("highlight");
             ViewUtils.scrollElementIntoView($view, $item, false);
-            var highlight = $item.find("a.highlight");
-            ext.css("top", highlight.position().top);
-            ext.css("height", highlight[0].getBoundingClientRect().height);
 
             if (this.handleHighlight) {
                 this.handleHighlight($item.find("a"), this.$hintMenu.find("#codehint-desc"));
             }
-        } else {
-            ext.css("height", 0);
         }
     };
 
@@ -279,8 +265,9 @@ define(function (require, exports, module) {
 
             // attach to DOM
             $parent.append($ul);
-            $parent.find(".hint-selection-ext-track").remove();
-            $("<div class='hint-selection-ext-track'><div class='hint-selection-ext'></div></div>").appendTo($parent);
+            
+            $parent.find(".hint-list-offset").remove();
+            $("<div class='hint-list-offset'></div>").appendTo($parent);
 
             // If a a description field requested attach one
             if (this.enableDescription) {
@@ -288,7 +275,7 @@ define(function (require, exports, module) {
                 $parent.find("#codehint-desc").remove();
                 $parent.append("<div id='codehint-desc' class='dropdown-menu quiet-scrollbars'></div>");
                 $ul.addClass("withDesc");
-                $parent.find(".hint-selection-ext-track").addClass("withDesc");
+                $parent.find(".hint-list-offset").addClass("withDesc");
             }
             this._setSelectedIndex(selectInitial ? 0 : -1);
         }
@@ -331,11 +318,12 @@ define(function (require, exports, module) {
             availableWidth = menuWidth + Math.abs(rightOverhang);
         }
 
+        //Creating the offset element for hint description element
         var descOffset = this.$hintMenu.find("ul.dropdown-menu")[0].getBoundingClientRect().height;
         if (descOffset === 0) {
             descOffset = menuHeight - descOverhang;
         }
-        this.$hintMenu.find(".hint-selection-ext-track").css("height", descOffset - 1);
+        this.$hintMenu.find(".hint-list-offset").css("height", descOffset - 1);
 
         return {left: posLeft, top: posTop, width: availableWidth};
     };
@@ -433,7 +421,7 @@ define(function (require, exports, module) {
             if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 event.stopImmediatePropagation();
                 this.handleClose();
-
+                
                 return false;
             } else if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
@@ -546,7 +534,7 @@ define(function (require, exports, module) {
         if (this.hints.length) {
             var hintPos = this._calcHintListLocation();
             this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top,
-                "width": hintPos.width + "px"});
+                                "width": hintPos.width + "px"});
         }
     };
     /**
