@@ -26,5 +26,22 @@ function watchparameterhint() {
 $A11()
 fopen("",)
 watchparameterhint()
+    
 
+function watchReferences() {
+    echo "Hello World!";
+}
+
+watchReferences();
+
+watchReferences();
+
+
+function ReferencesInMultipleFile() {
+    echo "Hello World!";
+}
+
+ReferencesInMultipleFile();
+
+ReferencesInMultipleFile();
 ?>
