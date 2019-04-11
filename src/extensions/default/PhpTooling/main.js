@@ -30,12 +30,13 @@ define(function (require, exports, module) {
         EditorManager =  brackets.getModule("editor/EditorManager"),
         LanguageManager =  brackets.getModule("language/LanguageManager"),
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        QuickOpen = brackets.getModule("search/QuickOpen"),
         ParameterHintManager = brackets.getModule("features/ParameterHintsManager"),
         JumpToDefManager = brackets.getModule("features/JumpToDefManager"),
         CodeInspection = brackets.getModule("language/CodeInspection"),
         DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
         CodeHintsProvider = require("CodeHintsProvider").CodeHintsProvider,
-        PHPSymbolsProvider = require("SymbolsProvider").PHPSymbolsProvider,
+        SymbolsProvider = require("PHPSymbolsProvider").SymbolsProvider,
         DefaultEventHandlers = brackets.getModule("languageTools/DefaultEventHandlers"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
@@ -104,7 +105,7 @@ define(function (require, exports, module) {
         phProvider = new DefaultProviders.ParameterHintsProvider(_client),
         lProvider = new DefaultProviders.LintingProvider(_client),
         jdProvider = new DefaultProviders.JumpToDefProvider(_client);
-        symProvider = new PHPSymbolsProvider(_client);
+        symProvider = new SymbolsProvider(_client);
 
         JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
@@ -112,6 +113,15 @@ define(function (require, exports, module) {
         CodeInspection.register(["php"], {
             name: "",
             scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)
+        });
+        QuickOpen.addQuickOpenPlugin({
+            name: "PHP Symbols",
+            languageIds: ["php"],
+            search: symProvider.search.bind(symProvider),
+            match: symProvider.match,
+            itemFocus: symProvider.itemFocus,
+            itemSelect: symProvider.itemSelect,
+            resultsFormatter: symProvider.resultsFormatter
         });
 
         _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));

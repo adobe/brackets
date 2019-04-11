@@ -44,20 +44,46 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
         QuickSearchField    = require("search/QuickSearchField").QuickSearchField,
-        StringMatch         = require("utils/StringMatch");
+        StringMatch         = require("utils/StringMatch"),
+        ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler;
 
+    var _providerRegistrationHandler = new ProviderRegistrationHandler(),
+        _registerQuickOpenProvider = _providerRegistrationHandler.registerProvider.bind(_providerRegistrationHandler);
+
+    var SymbolKind = {
+        "1": "File",
+        "2": "Module",
+        "3": "Namespace",
+        "4": "Package",
+        "5": "Class",
+        "6": "Method",
+        "7": "Property",
+        "8": "Field",
+        "9": "Constructor",
+        "10": "Enum",
+        "11": "Interface",
+        "12": "Function",
+        "13": "Variable",
+        "14": "Constant",
+        "15": "String",
+        "16": "Number",
+        "17": "Boolean",
+        "18": "Array",
+        "19": "Object",
+        "20": "Key",
+        "21": "Null",
+        "22": "EnumMember",
+        "23": "Struct",
+        "24": "Event",
+        "25": "Operator",
+        "26": "TypeParameter"
+    };
 
     /**
      * The regular expression to check the cursor position
      * @const {RegExp}
      */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
-
-    /**
-     * List of plugins
-     * @type {Array.<QuickOpenPlugin>}
-     */
-    var plugins = [];
 
     /**
      * Current plugin
@@ -76,6 +102,17 @@ define(function (require, exports, module) {
      * @type {?QuickNavigateDialog}
      */
     var _curDialog;
+
+    function _getPluginsForCurrentContext() {
+        var curDoc = DocumentManager.getCurrentDocument();
+
+        if (curDoc) {
+            var languageId = curDoc.getLanguage().getId();
+            return _providerRegistrationHandler.getProvidersForLanguageId(languageId);
+        }
+
+        return _providerRegistrationHandler.getProvidersForLanguageId(); //plugins registered for all
+    }
 
     /**
      * Defines API for new QuickOpen plug-ins
@@ -132,18 +169,22 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        plugins.push(new QuickOpenPlugin(
-            pluginDef.name,
-            pluginDef.languageIds,
-            pluginDef.done,
-            pluginDef.search,
-            pluginDef.match,
-            pluginDef.itemFocus,
-            pluginDef.itemSelect,
-            pluginDef.resultsFormatter,
-            pluginDef.matcherOptions,
-            pluginDef.label
-        ));
+        var quickOpenProvider = new QuickOpenPlugin(
+                pluginDef.name,
+                pluginDef.languageIds,
+                pluginDef.done,
+                pluginDef.search,
+                pluginDef.match,
+                pluginDef.itemFocus,
+                pluginDef.itemSelect,
+                pluginDef.resultsFormatter,
+                pluginDef.matcherOptions,
+                pluginDef.label
+            ),
+            providerLanguageIds = pluginDef.languageIds.length ? pluginDef.languageIds : ["all"],
+            providerPriority = pluginDef.priority || 0;
+
+        _registerQuickOpenProvider(quickOpenProvider, providerLanguageIds, providerPriority);
     }
 
     /**
@@ -350,9 +391,10 @@ define(function (require, exports, module) {
         this.closePromise = modalBarClosePromise;
         this.isOpen = false;
 
-        var i;
+        var i,
+            plugins = _getPluginsForCurrentContext();
         for (i = 0; i < plugins.length; i++) {
-            var plugin = plugins[i];
+            var plugin = plugins[i].provider;
             if (plugin.done) {
                 plugin.done();
             }
@@ -455,17 +497,11 @@ define(function (require, exports, module) {
             return { error: null };
         }
 
-        // Try to invoke a search plugin
-        var curDoc = DocumentManager.getCurrentDocument(), languageId;
-        if (curDoc) {
-            languageId = curDoc.getLanguage().getId();
-        }
-
-        var i;
+        var i,
+            plugins = _getPluginsForCurrentContext();
         for (i = 0; i < plugins.length; i++) {
-            var plugin = plugins[i];
-            var languageIdMatch = plugin.languageIds.length === 0 || plugin.languageIds.indexOf(languageId) !== -1;
-            if (languageIdMatch && plugin.match(query)) {
+            var plugin = plugins[i].provider;
+            if(plugin.match(query)) {
                 currentPlugin = plugin;
 
                 // Look up the StringMatcher for this plugin.
@@ -737,13 +773,13 @@ define(function (require, exports, module) {
             beginSearch("@", getCurrentEditorSelectedText());
         }
     }
-    
+
     function doSymbolSearchInDocument() {
         if (DocumentManager.getCurrentDocument()) {
             beginSearch("~", getCurrentEditorSelectedText());
         }
     }
-    
+
     function doSymbolSearchInProject() {
         beginSearch("#", getCurrentEditorSelectedText());
     }
@@ -762,6 +798,7 @@ define(function (require, exports, module) {
     exports.beginSearch             = beginSearch;
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
+    exports.SymbolKind              = SymbolKind;
 
     // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
