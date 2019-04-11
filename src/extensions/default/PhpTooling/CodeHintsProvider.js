@@ -143,7 +143,8 @@ define(function (require, exports, module) {
             }
 
             $deferredHints.resolve({
-                "hints": hints
+                "hints": hints,
+                "selectInitial": true
             });
         }).fail(function () {
             $deferredHints.reject();
