@@ -48,6 +48,10 @@ define(function (require, exports, module) {
     function _getReferences(provider, hostEditor, pos) {
         var result = new $.Deferred();
 
+        if(!provider) {
+            return result.reject();
+        }
+
         provider.getReferences(hostEditor, pos)
             .done(function (rcvdObj) {
 
@@ -72,9 +76,8 @@ define(function (require, exports, module) {
             pos = editor ? editor.getCursorPos() : null,
             referencespromise,
             result = new $.Deferred(),
-            errorMsg,
-            referencesProvider,
-            defaultErrorMsg = "";
+            errorMsg = Strings.REFERENCES_NO_RESULTS,
+            referencesProvider;
 
         var language = editor.getLanguageForSelection(),
             enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
@@ -88,18 +91,17 @@ define(function (require, exports, module) {
 
         referencespromise = _getReferences(referencesProvider, editor, pos);
 
-        // Use default error message if none other provided
-        errorMsg = errorMsg || defaultErrorMsg;
-
         // If one of them will provide a widget, show it inline once ready
         if (referencespromise) {
             referencespromise.done(function () {
                 _resultsView.open();
             }).fail(function () {
+                _resultsView.close();
                 editor.displayErrorMessageAtCursor(errorMsg);
                 result.reject();
             });
         } else {
+            _resultsView.close();
             editor.displayErrorMessageAtCursor(errorMsg);
             result.reject();
         }

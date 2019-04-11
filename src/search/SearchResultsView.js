@@ -354,7 +354,7 @@ define(function (require, exports, module) {
             summary;
 
         if(this._searchResultsType) {
-            typeStr = (count.matches > 1) ? Strings.FIND_IN_FILES_REFERENCES : Strings.FIND_IN_FILES_REFERENCE;
+            typeStr = (count.matches > 1) ? Strings.REFERENCES_IN_FILES : Strings.REFERENCE_IN_FILES;
         }
 
         filesStr = StringUtils.format(

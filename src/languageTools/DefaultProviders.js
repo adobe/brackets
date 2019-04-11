@@ -422,7 +422,7 @@ define(function (require, exports, module) {
                 filePath: docPath,
                 cursorPos: pos
             }).done(function(msgObj){
-                    if(msgObj ) {
+                    if(msgObj && msgObj.length) {
                         var referenceModel = {};
                         referenceModel.results = {};
                         referenceModel.numFiles = 0;
