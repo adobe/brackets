@@ -118,10 +118,10 @@ define(function (require, exports, module) {
             name: "PHP Symbols",
             languageIds: ["php"],
             search: symProvider.search.bind(symProvider),
-            match: symProvider.match,
-            itemFocus: symProvider.itemFocus,
-            itemSelect: symProvider.itemSelect,
-            resultsFormatter: symProvider.resultsFormatter
+            match: symProvider.match.bind(symProvider),
+            itemFocus: symProvider.itemFocus.bind(symProvider),
+            itemSelect: symProvider.itemSelect.bind(symProvider),
+            resultsFormatter: symProvider.resultsFormatter.bind(symProvider)
         });
 
         _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));

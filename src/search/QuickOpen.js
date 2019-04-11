@@ -103,6 +103,11 @@ define(function (require, exports, module) {
      */
     var _curDialog;
 
+    /**
+     * Helper function to get the plugins based on the type of the current document.
+     * @private
+     * @returns {Array} Returns the plugings based on the languageId of the current document.
+     */
     function _getPluginsForCurrentContext() {
         var curDoc = DocumentManager.getCurrentDocument();
 
@@ -781,7 +786,9 @@ define(function (require, exports, module) {
     }
 
     function doSymbolSearchInProject() {
-        beginSearch("#", getCurrentEditorSelectedText());
+        if (DocumentManager.getCurrentDocument()) {
+            beginSearch("#", getCurrentEditorSelectedText());
+        }
     }
 
     // Listen for a change of project to invalidate our file list

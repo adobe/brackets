@@ -155,10 +155,10 @@ define(function (require, exports, module) {
 
         return retval;
     };
-    
+
     PHPSymbolsProvider.prototype.match = function (query) {
         return (query.startsWith("~") || query.startsWith("#"));
-    }
+    };
 
     PHPSymbolsProvider.prototype.itemFocus = function (selectedItem, query, explicit) {
         if (!selectedItem || (query.length < 2 && !explicit)) {
@@ -169,11 +169,11 @@ define(function (require, exports, module) {
             var range = selectedItem.symbolInfo.selectionRange;
             EditorManager.getCurrentFullEditor().setSelection(range.from, range.to, true);
         }
-    }
+    };
 
     PHPSymbolsProvider.prototype.itemSelect = function (selectedItem, query) {
         if (selectedItem.symbolInfo.isDocumentSymbolRequest) {
-            itemFocus(selectedItem, query, true);
+            this.itemFocus(selectedItem, query, true);
         } else {
             var fullPath = selectedItem.symbolInfo.fullPath,
                 range = selectedItem.symbolInfo.selectionRange;
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
                     });
             }
         }
-    }
+    };
 
     PHPSymbolsProvider.prototype.resultsFormatter = function (item, query) {
         var displayName = QuickOpen.highlightMatch(item);
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
             return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "<br /><span class='quick-open-path'>" + item.symbolInfo.scope + "</span><br /><br /><span class='quick-open-path'>" + item.symbolInfo.fullPath + "</span></li>";
         }
         return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "<br /><br /><span class='quick-open-path'>" + item.symbolInfo.fullPath + "</span></li>";
-    }
+    };
 
     exports.SymbolsProvider = PHPSymbolsProvider;
 });
