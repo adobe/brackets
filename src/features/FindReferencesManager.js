@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2019 - present Adobe. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         ),
         removeFindReferencesProvider = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
 
-    var SHOW_FIND_REFERENCES_CMD_ID   = "showrReferences",
+    var SHOW_FIND_REFERENCES_CMD_ID   = "showReferences",
         KeyboardPrefs = JSON.parse(require("text!features/keyboard.json"));
 
     var searchModel = new SearchModel(),
@@ -60,21 +60,18 @@ define(function (require, exports, module) {
                 searchModel.numMatches = rcvdObj.numMatches;
                 searchModel.allResultsAvailable = true;
                 searchModel.setQueryInfo({query: rcvdObj.queryInfo, caseSensitive: true, isRegExp: false});
-                //searchModel.fireChanged();
                 result.resolve();
             }).fail(function (){
                 result.reject();
             });
-
         return result.promise();
 
     }
 
     function _openReferencesPanel() {
-
         var editor = EditorManager.getActiveEditor(),
             pos = editor ? editor.getCursorPos() : null,
-            referencespromise,
+            referencesPromise,
             result = new $.Deferred(),
             errorMsg = Strings.REFERENCES_NO_RESULTS,
             referencesProvider;
@@ -89,11 +86,11 @@ define(function (require, exports, module) {
             }
         });
 
-        referencespromise = _getReferences(referencesProvider, editor, pos);
+        referencesPromise = _getReferences(referencesProvider, editor, pos);
 
         // If one of them will provide a widget, show it inline once ready
-        if (referencespromise) {
-            referencespromise.done(function () {
+        if (referencesPromise) {
+            referencesPromise.done(function () {
                 _resultsView.open();
             }).fail(function () {
                 _resultsView.close();
@@ -118,10 +115,8 @@ define(function (require, exports, module) {
     }
 
     AppInit.appReady(function () {
-
-        var model = searchModel;
         _resultsView = new SearchResultsView(
-            model,
+            searchModel,
             "reference-in-files-results",
             "reference-in-files.results",
             "reference"

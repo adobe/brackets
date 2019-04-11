@@ -118,7 +118,7 @@ define(function (require, exports, module) {
     /** @type {number} The ID we use for timeouts when handling model changes. */
     SearchResultsView.prototype._timeoutID = null;
 
-    /** @type {string} The ID we use to check id it is refrence serach or match search */
+    /** @type {string} The Id we use to check if it is reference search or match search */
     SearchResultsView.prototype._searchResultsType = null;
 
     /**
@@ -353,7 +353,7 @@ define(function (require, exports, module) {
             filesStr,
             summary;
 
-        if(this._searchResultsType) {
+        if(this._searchResultsType === "reference") {
             typeStr = (count.matches > 1) ? Strings.REFERENCES_IN_FILES : Strings.REFERENCE_IN_FILES;
         }
 
