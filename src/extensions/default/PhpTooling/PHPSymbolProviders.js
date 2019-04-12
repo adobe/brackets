@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     var EditorManager = brackets.getModule("editor/EditorManager"),
         QuickOpen = brackets.getModule("search/QuickOpen"),
         Commands = brackets.getModule("command/Commands"),
-        DocumentManager = brackets.getModule("document/DocumentManager"),
         CommandManager = brackets.getModule("command/CommandManager"),
         PathConverters = brackets.getModule("languageTools/PathConverters");
 
@@ -52,13 +51,6 @@ define(function (require, exports, module) {
     }
 
     function createList(list, isDocumentSymbolRequest) {
-        var doc = DocumentManager.getCurrentDocument();
-
-        //Should only function when a document is open
-        if (!doc) {
-            return [];
-        }
-
         var newlist = [];
         for (var i = 0; i < list.length; i++) {
             var symbolInfo = list[i],
