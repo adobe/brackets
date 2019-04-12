@@ -172,8 +172,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
-        menu.addMenuItem(Commands.NAVIGATE_FIND_DOCUMENT_SYMBOLS);
-        menu.addMenuItem(Commands.NAVIGATE_FIND_PROJECT_SYMBOLS);
+        menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT);
         menu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
         menu.addMenuDivider();

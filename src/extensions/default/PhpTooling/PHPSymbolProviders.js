@@ -113,20 +113,18 @@ define(function (require, exports, module) {
         return filteredList;
     }
 
-    function PHPSymbolsProvider(client) {
+    /**
+     * Provider for Document Symbols
+     */
+    function DocumentSymbolsProvider(client) {
         this.client = client;
     }
 
-    PHPSymbolsProvider.prototype.search = function (query, matcher) {
-        var queryText = query.slice(1);
-        if (query.startsWith("~")) {
-            return this.getDocumentSymbols(queryText, matcher);
-        } else if (query.startsWith("#")) {
-            return this.getWorkspaceSymbols(queryText, matcher);
-        }
+    DocumentSymbolsProvider.prototype.match = function (query) {
+        return query.startsWith("@");
     };
 
-    PHPSymbolsProvider.prototype.getDocumentSymbols = function (query, matcher) {
+    DocumentSymbolsProvider.prototype.search = function (query, matcher) {
         if (!this.client) {
             return $.Deferred().reject();
         }
@@ -139,6 +137,7 @@ define(function (require, exports, module) {
         var editor = EditorManager.getActiveEditor(),
             docPath = editor.document.file._path,
             retval = $.Deferred();
+        query = query.slice(1);
 
         this.client.requestSymbolsForDocument({
             filePath: docPath
@@ -150,7 +149,41 @@ define(function (require, exports, module) {
         return retval;
     };
 
-    PHPSymbolsProvider.prototype.getWorkspaceSymbols = function (query, matcher) {
+    DocumentSymbolsProvider.prototype.itemFocus = function (selectedItem, query, explicit) {
+        if (!selectedItem || (query.length < 2 && !explicit)) {
+            return;
+        }
+
+        var range = selectedItem.symbolInfo.selectionRange;
+        EditorManager.getCurrentFullEditor().setSelection(range.from, range.to, true);
+    };
+
+    DocumentSymbolsProvider.prototype.itemSelect = function (selectedItem, query) {
+        this.itemFocus(selectedItem, query, true);
+    };
+
+    DocumentSymbolsProvider.prototype.resultsFormatter = function (item, query) {
+        var displayName = QuickOpen.highlightMatch(item);
+        query = query.slice(1);
+
+        if (item.symbolInfo.scope) {
+            return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "<br /><span class='quick-open-path'>" + item.symbolInfo.scope + "</span></li>";
+        }
+        return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "</li>";
+    };
+
+    /**
+     * Provider for Project Symbols
+     */
+    function ProjectSymbolsProvider(client) {
+        this.client = client;
+    }
+
+    ProjectSymbolsProvider.prototype.match = function (query) {
+        return query.startsWith("#");
+    };
+
+    ProjectSymbolsProvider.prototype.search = function (query, matcher) {
         if (!this.client) {
             return $.Deferred().reject();
         }
@@ -161,6 +194,7 @@ define(function (require, exports, module) {
         }
 
         var retval = $.Deferred();
+        query = query.slice(1);
 
         this.client.requestSymbolsForWorkspace({
             query: query
@@ -172,52 +206,32 @@ define(function (require, exports, module) {
         return retval;
     };
 
-    PHPSymbolsProvider.prototype.match = function (query) {
-        return (query.startsWith("~") || query.startsWith("#"));
-    };
-
-    PHPSymbolsProvider.prototype.itemFocus = function (selectedItem, query, explicit) {
+    ProjectSymbolsProvider.prototype.itemFocus = function (selectedItem, query, explicit) {
         if (!selectedItem || (query.length < 2 && !explicit)) {
             return;
         }
+    };
 
-        if (selectedItem.symbolInfo.isDocumentSymbolRequest) {
-            var range = selectedItem.symbolInfo.selectionRange;
-            EditorManager.getCurrentFullEditor().setSelection(range.from, range.to, true);
+    ProjectSymbolsProvider.prototype.itemSelect = function (selectedItem, query) {
+        var fullPath = selectedItem.symbolInfo.fullPath,
+            range = selectedItem.symbolInfo.selectionRange;
+
+        if (fullPath) {
+            CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
+                fullPath: fullPath
+            })
+                .done(function () {
+                    if (range.from) {
+                        var editor = EditorManager.getCurrentFullEditor();
+                        editor.setCursorPos(range.from.line, range.from.ch, true);
+                    }
+                });
         }
     };
 
-    PHPSymbolsProvider.prototype.itemSelect = function (selectedItem, query) {
-        if (selectedItem.symbolInfo.isDocumentSymbolRequest) {
-            this.itemFocus(selectedItem, query, true);
-        } else {
-            var fullPath = selectedItem.symbolInfo.fullPath,
-                range = selectedItem.symbolInfo.selectionRange;
-
-            if (fullPath) {
-                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
-                    fullPath: fullPath
-                })
-                    .done(function () {
-                        if (range.from) {
-                            var editor = EditorManager.getCurrentFullEditor();
-                            editor.setCursorPos(range.from.line, range.from.ch, true);
-                        }
-                    });
-            }
-        }
-    };
-
-    PHPSymbolsProvider.prototype.resultsFormatter = function (item, query) {
+    ProjectSymbolsProvider.prototype.resultsFormatter = function (item, query) {
         var displayName = QuickOpen.highlightMatch(item);
         query = query.slice(1);
-
-        if (item.symbolInfo.isDocumentSymbolRequest) {
-            if (item.symbolInfo.scope) {
-                return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "<br /><span class='quick-open-path'>" + item.symbolInfo.scope + "</span></li>";
-            }
-            return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "</li>";
-        }
 
         if (item.symbolInfo.scope) {
             return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "<br /><span class='quick-open-path'>" + item.symbolInfo.scope + "</span><br /><br /><span class='quick-open-path'>" + item.symbolInfo.fullPath + "</span></li>";
@@ -225,5 +239,8 @@ define(function (require, exports, module) {
         return "<li>" + displayName + " (" + item.symbolInfo.type + ")" + "<br /><br /><span class='quick-open-path'>" + item.symbolInfo.fullPath + "</span></li>";
     };
 
-    exports.SymbolsProvider = PHPSymbolsProvider;
+    exports.SymbolProviders = {
+        DocumentSymbolsProvider: DocumentSymbolsProvider,
+        ProjectSymbolsProvider: ProjectSymbolsProvider
+    };
 });

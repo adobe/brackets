@@ -281,11 +281,8 @@
     "navigate.gotoDefinition":  [
         "Ctrl-T"
     ],
-    "navigate.findDocumentSymbols":  [
+    "navigate.gotoDefinitionInProject":  [
         "Ctrl-Shift-T"
-    ],
-    "navigate.findProjectSymbols":  [
-        "Ctrl-Shift-P"
     ],
     "navigate.jumptoDefinition":  [
         "Ctrl-J"

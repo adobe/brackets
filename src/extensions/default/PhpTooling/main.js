@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         CodeInspection = brackets.getModule("language/CodeInspection"),
         DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
         CodeHintsProvider = require("CodeHintsProvider").CodeHintsProvider,
-        SymbolsProvider = require("PHPSymbolsProvider").SymbolsProvider,
+        SymbolProviders = require("PHPSymbolProviders").SymbolProviders,
         DefaultEventHandlers = brackets.getModule("languageTools/DefaultEventHandlers"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
@@ -64,7 +64,8 @@ define(function (require, exports, module) {
         phProvider,
         lProvider,
         jdProvider,
-        symProvider;
+        dSymProvider,
+        pSymProvider;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -105,7 +106,8 @@ define(function (require, exports, module) {
         phProvider = new DefaultProviders.ParameterHintsProvider(_client),
         lProvider = new DefaultProviders.LintingProvider(_client),
         jdProvider = new DefaultProviders.JumpToDefProvider(_client);
-        symProvider = new SymbolsProvider(_client);
+        dSymProvider = new SymbolProviders.DocumentSymbolsProvider(_client);
+        pSymProvider = new SymbolProviders.ProjectSymbolsProvider(_client);
 
         JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
@@ -114,15 +116,30 @@ define(function (require, exports, module) {
             name: "",
             scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)
         });
+        //Attach plugin for Document Symbols
         QuickOpen.addQuickOpenPlugin({
-            name: "PHP Symbols",
+            name: "PHP Document Symbols",
+            label: Strings.CMD_FIND_DOCUMENT_SYMBOLS + "\u2026",
             languageIds: ["php"],
-            search: symProvider.search.bind(symProvider),
-            match: symProvider.match.bind(symProvider),
-            itemFocus: symProvider.itemFocus.bind(symProvider),
-            itemSelect: symProvider.itemSelect.bind(symProvider),
-            resultsFormatter: symProvider.resultsFormatter.bind(symProvider)
+            search: dSymProvider.search.bind(dSymProvider),
+            match: dSymProvider.match.bind(dSymProvider),
+            itemFocus: dSymProvider.itemFocus.bind(dSymProvider),
+            itemSelect: dSymProvider.itemSelect.bind(dSymProvider),
+            resultsFormatter: dSymProvider.resultsFormatter.bind(dSymProvider)
         });
+        CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(true);
+        //Attach plugin for Project Symbols
+        QuickOpen.addQuickOpenPlugin({
+            name: "PHP Project Symbols",
+            label: Strings.CMD_FIND_PROJECT_SYMBOLS + "\u2026",
+            languageIds: ["php"],
+            search: pSymProvider.search.bind(pSymProvider),
+            match: pSymProvider.match.bind(pSymProvider),
+            itemFocus: pSymProvider.itemFocus.bind(pSymProvider),
+            itemSelect: pSymProvider.itemSelect.bind(pSymProvider),
+            resultsFormatter: pSymProvider.resultsFormatter.bind(pSymProvider)
+        });
+        CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(true);
 
         _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
     }

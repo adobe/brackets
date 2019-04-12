@@ -654,11 +654,8 @@ define(function (require, exports, module) {
             case "@":
                 dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
                 break;
-            case "~":
-                dialogLabel = Strings.CMD_FIND_DOCUMENT_SYMBOLS + "\u2026";
-                break;
             case "#":
-                dialogLabel = Strings.CMD_FIND_PROJECT_SYMBOLS + "\u2026";
+                dialogLabel = Strings.CMD_GOTO_DEFINITION_PROJECT + "\u2026";
                 break;
             default:
                 dialogLabel = "";
@@ -779,16 +776,24 @@ define(function (require, exports, module) {
         }
     }
 
-    function doSymbolSearchInDocument() {
-        if (DocumentManager.getCurrentDocument()) {
-            beginSearch("~", getCurrentEditorSelectedText());
-        }
-    }
-
-    function doSymbolSearchInProject() {
+    function doDefinitionSearchInProject() {
         if (DocumentManager.getCurrentDocument()) {
             beginSearch("#", getCurrentEditorSelectedText());
         }
+    }
+
+    function canHandleTrigger(trigger, plugins) {
+        var retval = false;
+
+        plugins.some(function (plugin, index) {
+            var provider = plugin.provider;
+            if (provider.match(trigger)) {
+                retval = true;
+                return true;
+            }
+        });
+
+        return retval;
     }
 
     // Listen for a change of project to invalidate our file list
@@ -796,10 +801,33 @@ define(function (require, exports, module) {
         fileList = null;
     });
 
+    MainViewManager.on("currentFileChange", function (event, newFile, newPaneId, oldFile, oldPaneId) {
+        if (!newFile) {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(false);
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(false);
+            return;
+        }
+
+        var newFilePath = newFile.fullPath,
+            newLanguageId = LanguageManager.getLanguageForPath(newFilePath).getId();
+
+        var plugins = _providerRegistrationHandler.getProvidersForLanguageId(newLanguageId);
+        if (canHandleTrigger("@", plugins)) {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(true);
+        } else {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(false);
+        }
+
+        if (canHandleTrigger("#", plugins)) {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(true);
+        } else {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(false);
+        }
+    });
+
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
-    CommandManager.register(Strings.CMD_FIND_DOCUMENT_SYMBOLS,    Commands.NAVIGATE_FIND_DOCUMENT_SYMBOLS,  doSymbolSearchInDocument);
-    CommandManager.register(Strings.CMD_FIND_PROJECT_SYMBOLS,    Commands.NAVIGATE_FIND_PROJECT_SYMBOLS,  doSymbolSearchInProject);
+    CommandManager.register(Strings.CMD_GOTO_DEFINITION_PROJECT,    Commands.NAVIGATE_GOTO_DEFINITION_PROJECT,  doDefinitionSearchInProject);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
     exports.beginSearch             = beginSearch;
