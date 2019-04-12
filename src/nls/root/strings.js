@@ -889,6 +889,7 @@ define({
 
     //Strings for LanguageTools Preferences
     "LANGUAGE_TOOLS_PREFERENCES"                     : "Preferences for Language Tools",
+
     "FIND_ALL_REFERENCES"                            : "Find All References",
     "REFERENCES_IN_FILES"                            : "references",
     "REFERENCE_IN_FILES"                             : "reference",
