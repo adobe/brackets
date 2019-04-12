@@ -782,7 +782,7 @@ define(function (require, exports, module) {
         }
     }
 
-    function canHandleTrigger(trigger, plugins) {
+    function _canHandleTrigger(trigger, plugins) {
         var retval = false;
 
         plugins.some(function (plugin, index) {
@@ -794,6 +794,21 @@ define(function (require, exports, module) {
         });
 
         return retval;
+    }
+
+    function _setMenuItemStateForLanguage(languageId) {
+        var plugins = _providerRegistrationHandler.getProvidersForLanguageId(languageId);
+        if (_canHandleTrigger("@", plugins)) {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(true);
+        } else {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(false);
+        }
+
+        if (_canHandleTrigger("#", plugins)) {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(true);
+        } else {
+            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(false);
+        }
     }
 
     // Listen for a change of project to invalidate our file list
@@ -810,19 +825,29 @@ define(function (require, exports, module) {
 
         var newFilePath = newFile.fullPath,
             newLanguageId = LanguageManager.getLanguageForPath(newFilePath).getId();
+        _setMenuItemStateForLanguage(newLanguageId);
 
-        var plugins = _providerRegistrationHandler.getProvidersForLanguageId(newLanguageId);
-        if (canHandleTrigger("@", plugins)) {
-            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(true);
-        } else {
-            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(false);
+        DocumentManager.getDocumentForPath(newFilePath)
+            .done(function (newDoc) {
+                newDoc.on("languageChanged.quickFindDefinition", function () {
+                    var changedLanguageId = LanguageManager.getLanguageForPath(newDoc.file.fullPath).getId();
+                    _setMenuItemStateForLanguage(changedLanguageId);
+                });
+            }).fail(function (err) {
+                console.error(err);
+            });
+
+        if (!oldFile) {
+            return;
         }
 
-        if (canHandleTrigger("#", plugins)) {
-            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(true);
-        } else {
-            CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(false);
-        }
+        var oldFilePath = oldFile.fullPath;
+        DocumentManager.getDocumentForPath(oldFilePath)
+            .done(function (oldDoc) {
+                oldDoc.off("languageChanged.quickFindDefinition");
+            }).fail(function (err) {
+                console.error(err);
+            });
     });
 
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
