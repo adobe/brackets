@@ -888,5 +888,5 @@ define({
 	"OPEN_PREFERENNCES": "Ouvrir les préférences",
 
     //Strings for LanguageTools Preferences
-    "LANGUAGE_TOOLS_PREFERENCES"                       : "Preferences for Language Tools"
+	"LANGUAGE_TOOLS_PREFERENCES": "Preferences for Language Tools"
 });
