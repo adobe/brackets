@@ -888,5 +888,5 @@ define({
 	"OPEN_PREFERENNCES": "環境設定を開く",
 
     //Strings for LanguageTools Preferences
-    "LANGUAGE_TOOLS_PREFERENCES"                       : "Preferences for Language Tools"
+	"LANGUAGE_TOOLS_PREFERENCES": "Preferences for Language Tools"
 });
