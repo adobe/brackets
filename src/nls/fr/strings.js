@@ -885,8 +885,8 @@ define({
 	"PHP_SERVER_ERROR_TITLE": "Erreur",
 	"PHP_SERVER_MEMORY_LIMIT_INVALID": "La limite de mémoire que vous avez fournie n’est pas valide. Veuillez corriger la valeur indiquée dans les préférences PHP.",
 	"DESCRIPTION_PHP_TOOLING_CONFIGURATION": "Paramètres de configuration par défaut des outils PHP",
-	"OPEN_PREFERENNCES": "Ouvrir les préférences"
+	"OPEN_PREFERENNCES": "Ouvrir les préférences",
 
     //Strings for LanguageTools Preferences
-    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
+    "LANGUAGE_TOOLS_PREFERENCES"                       : "Preferences for Language Tools"
 });

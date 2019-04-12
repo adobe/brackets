@@ -885,8 +885,8 @@ define({
 	"PHP_SERVER_ERROR_TITLE": "エラー",
 	"PHP_SERVER_MEMORY_LIMIT_INVALID": "指定したメモリ制限は無効です。正しい値を設定するために、PHP の環境設定を確認してください。",
 	"DESCRIPTION_PHP_TOOLING_CONFIGURATION": "PHP ツールのデフォルト設定",
-	"OPEN_PREFERENNCES": "環境設定を開く"
+	"OPEN_PREFERENNCES": "環境設定を開く",
 
     //Strings for LanguageTools Preferences
-    LANGUAGE_TOOLS_PREFERENCES                       : "Preferences for Language Tools"
+    "LANGUAGE_TOOLS_PREFERENCES"                       : "Preferences for Language Tools"
 });
