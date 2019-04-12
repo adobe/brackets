@@ -437,8 +437,7 @@ define(function (require, exports, module) {
                         var referenceModel = {};
                         referenceModel.results = {};
                         referenceModel.numFiles = 0;
-                        var fulfilled = 0,
-                            queryInfo = "";
+                        var fulfilled = 0;
                         msgObj.forEach((element, i) => {
                             var filePath = PathConverters.uriToPath(element.uri);
                             DocumentManager.getDocumentForPath(filePath)
@@ -448,13 +447,14 @@ define(function (require, exports, module) {
                                     var match = {
                                         start: startRange,
                                         end: endRange,
+                                        highlightOffset: 0,
                                         line: doc.getLine(element.range.start.line)
                                     };
                                     if(!referenceModel.results[filePath]) {
                                         referenceModel.numFiles = referenceModel.numFiles + 1;
                                         referenceModel.results[filePath] = {"matches": []};
                                     }
-                                    if(!queryInfo) {
+                                    if(!referenceModel.queryInfo || pos.line === startRange.line) {
                                         referenceModel.queryInfo = doc.getRange(startRange, endRange);
                                     }
                                     referenceModel.results[filePath]["matches"].push(match);
