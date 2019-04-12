@@ -151,9 +151,10 @@ define(function (require, exports, module) {
                 });
             }
 
+            var token = self.query;
             $deferredHints.resolve({
                 "hints": hints,
-                "selectInitial": true
+                "selectInitial": token && /\S/.test(token) && isNaN(parseInt(token, 10)) // If the active token is blank then don't put default selection
             });
         }).fail(function () {
             $deferredHints.reject();
