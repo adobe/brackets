@@ -788,6 +788,7 @@ define(function (require, exports, module) {
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
+                    HealthLogger.fileSaved(docToSave);
                 })
                 .fail(function (err) {
                     if (err === FileSystemError.CONTENTS_MODIFIED) {
@@ -1186,6 +1187,7 @@ define(function (require, exports, module) {
         function doClose(file) {
             if (!promptOnly) {
                 MainViewManager._close(paneId, file);
+                HealthLogger.fileClosed(file);
             }
         }
 

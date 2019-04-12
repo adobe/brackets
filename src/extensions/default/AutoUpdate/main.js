@@ -483,6 +483,9 @@ define(function (require, exports, module) {
 
             //Initiate the auto update, with update params
             initiateAutoUpdate(updateParams);
+	    
+	    //Send a truthy value to ensure caller is informed about successful initialization of auto-update
+	    return true;
     }
 
 
