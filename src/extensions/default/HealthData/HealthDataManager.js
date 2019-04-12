@@ -211,20 +211,34 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    // Send Analytics data to Server
-    function sendAnalyticsDataToServer(eventParams) {
-        var result = new $.Deferred();
+    /**
+     * @param{Object} eventParams contails Event Data
+     * @param{String} healthDataUrl Optional if healthDataUrl is passed
+     * Analytics Data will be sent to health Data Server.
+     * return Promise Object which will be resolved when Data are succesfully sent to server
+     */
+    function sendAnalyticsDataToServer(eventParams, healthDataUrl) {
+        var result = new $.Deferred(),
+            url = healthDataUrl || brackets.config.analyticsDataServerURL;
 
-        var analyticsData = getAnalyticsData(eventParams);
-        $.ajax({
-            url: brackets.config.analyticsDataServerURL,
-            type: "POST",
-            data: JSON.stringify({events: [analyticsData]}),
-            headers: {
+        var analyticsData = getAnalyticsData(eventParams),
+            ajaxParams = {
+                url: url,
+                type: "POST",
+                data: JSON.stringify({events: [analyticsData]})
+            };
+
+        if (healthDataUrl) {
+            ajaxParams.dataType = "text";
+            ajaxParams.contentType = "text/plain";
+        } else {
+            ajaxParams.headers =  {
                 "Content-Type": "application/json",
                 "x-api-key": brackets.config.serviceKey
-            }
-        })
+            };
+        }
+
+        $.ajax(ajaxParams)
             .done(function () {
                 result.resolve();
             })
@@ -293,6 +307,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     *@param{String} eventName Name of Event for which sending Data is failed
+     *@param{boolean} sendFailed If true viewstate will be unset.
+     */
+    function handleSendFail(eventName, sendFailed) {
+        var options = {
+            location: {
+                scope: "default"
+            }
+        };
+        if (sendFailed) {
+            PreferencesManager.setViewState(eventName, 0, options);
+        }
+
+        return sendFailed ? false : true;
+    }
+
+    /**
      * Check if the Analytic Data is to be sent to the server.
      * If the user has enabled tracking, Analytic Data will be sent once per session
      * Send Analytic Data to the server if the Data associated with the given Event is not yet sent in this session.
@@ -306,7 +337,9 @@ define(function (require, exports, module) {
     function checkAnalyticsDataSend(event, Eventparams, forceSend) {
         var result         = new $.Deferred(),
             isHDTracking   = prefs.get("healthDataTracking"),
-            isEventDataAlreadySent;
+            isEventDataAlreadySent,
+            url = brackets.config.healthDataServerURL,
+            sendFailed = false;
 
         var options = {
             location: {
@@ -319,12 +352,18 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState(Eventparams.eventName, 1, options);
             if (!isEventDataAlreadySent || forceSend) {
                 sendAnalyticsDataToServer(Eventparams)
-                    .done(function () {
-                        PreferencesManager.setViewState(Eventparams.eventName, 1, options);
-                        result.resolve();
-                    }).fail(function () {
-                        PreferencesManager.setViewState(Eventparams.eventName, 0, options);
-                        result.reject();
+                    .always(function () {
+                        sendAnalyticsDataToServer(Eventparams, url)
+                            .done(function () {
+                                result.resolve();
+                            })
+                            .fail(function () {
+                                sendFailed = handleSendFail(Eventparams.eventName, sendFailed);
+                                result.reject();
+                            });
+                    })
+                    .fail(function () {
+                        sendFailed = handleSendFail(Eventparams.eventName, sendFailed);
                     });
             } else {
                 result.reject();
