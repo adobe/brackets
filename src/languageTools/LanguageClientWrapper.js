@@ -358,7 +358,15 @@ define(function (require, exports, module) {
     */
     //completion
     LanguageClientWrapper.prototype.requestHints = function (params) {
-        return this._request(ToolingInfo.FEATURES.CODE_HINTS, params);
+        return this._request(ToolingInfo.FEATURES.CODE_HINTS, params)
+            .then(function(response) {
+                if(response && response.items && response.items.length) {
+                    logAnalyticsData("CODE_HINTS");
+                }
+                return $.Deferred().resolve(response);
+            }, function(err) {
+                return $.Deferred().reject(err);
+            });
     };
 
     //completionItemResolve
@@ -368,12 +376,28 @@ define(function (require, exports, module) {
 
     //signatureHelp
     LanguageClientWrapper.prototype.requestParameterHints = function (params) {
-        return this._request(ToolingInfo.FEATURES.PARAMETER_HINTS, params);
+        return this._request(ToolingInfo.FEATURES.PARAMETER_HINTS, params)
+            .then(function(response) {
+                if (response && response.signatures && response.signatures.length) {
+                    logAnalyticsData("PARAM_HINTS");
+                }
+                return $.Deferred().resolve(response);
+            }, function(err) {
+                return $.Deferred().reject(err);
+            });
     };
 
     //gotoDefinition
     LanguageClientWrapper.prototype.gotoDefinition = function (params) {
-        return this._request(ToolingInfo.FEATURES.JUMP_TO_DEFINITION, params);
+        return this._request(ToolingInfo.FEATURES.JUMP_TO_DEFINITION, params)
+            .then(function(response) {
+                if(response && response.range) {
+                    logAnalyticsData("JUMP_TO_DEF");
+                }
+                return $.Deferred().resolve(response);
+            }, function(err) {
+                return $.Deferred().reject(err);
+            });
     };
 
     //gotoDeclaration
@@ -620,6 +644,23 @@ define(function (require, exports, module) {
     };
 
     exports.LanguageClientWrapper = LanguageClientWrapper;
+
+    function logAnalyticsData(typeStrKey) {
+        var editor =  require("editor/EditorManager").getActiveEditor(),
+            document = editor ? editor.document : null,
+            language = document ? document.language : null,
+            languageName = language ? language._name : "",
+            HealthLogger = require("utils/HealthLogger"),
+            typeStr = HealthLogger.commonStrings[typeStrKey] || "";
+
+         HealthLogger.sendAnalyticsData(
+            HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL + typeStr + languageName,
+            HealthLogger.commonStrings.USAGE,
+            HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL,
+            typeStr,
+            languageName.toLowerCase()
+          );
+    }
 
     //For unit testting
     exports.validateRequestParams = validateRequestParams;

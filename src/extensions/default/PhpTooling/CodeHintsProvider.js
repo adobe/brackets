@@ -98,11 +98,15 @@ define(function (require, exports, module) {
 
             self.query = context.token.string.slice(0, context.pos.ch - context.token.start);
             if (msgObj) {
-                var res = msgObj.items || [];
+                var res = msgObj.items || [],
+                    trimmedQuery = self.query.trim(),
+                    hasIgnoreCharacters = self.ignoreQuery.includes(implicitChar) || self.ignoreQuery.includes(trimmedQuery),
+                    isExplicitInvokation = implicitChar === null;
+
                 // There is a bug in Php Language Server, Php Language Server does not provide superGlobals
                 // Variables as completion. so these variables are being explicity put in response objects
                 // below code should be removed if php server fix this bug.
-                if(self.query) {
+                if((isExplicitInvokation || trimmedQuery) && !hasIgnoreCharacters) {
                     for(var key in phpSuperGlobalVariables) {
                         res.push({
                             label: key,
@@ -112,7 +116,12 @@ define(function (require, exports, module) {
                     }
                 }
 
-                var filteredHints = filterWithQueryAndMatcher(res, self.query);
+                var filteredHints = [];
+                if (hasIgnoreCharacters || (isExplicitInvokation && !trimmedQuery)) {
+                    filteredHints = filterWithQueryAndMatcher(res, "");
+                } else {
+                    filteredHints = filterWithQueryAndMatcher(res, self.query);
+                }
 
                 StringMatch.basicMatchSort(filteredHints);
                 filteredHints.forEach(function (element) {
@@ -139,9 +148,11 @@ define(function (require, exports, module) {
                 });
             }
 
+            var token = self.query;
             $deferredHints.resolve({
                 "hints": hints,
-                "enableDescription": true
+                "enableDescription": true,
+                "selectInitial": token && /\S/.test(token) && isNaN(parseInt(token, 10)) // If the active token is blank then don't put default selection
             });
         }).fail(function () {
             $deferredHints.reject();

@@ -46,6 +46,7 @@ define(function (require, exports, module) {
     function CodeHintsProvider(client) {
         this.client = client;
         this.query = "";
+        this.ignoreQuery = ["-", "->", ">", ":", "::", "(", "()", ")", "[", "[]", "]", "{", "{}", "}"];
     }
 
     function formatTypeDataForToken($hintObj, token) {
@@ -160,11 +161,12 @@ define(function (require, exports, module) {
             token = $hint.data("token"),
             txt = null,
             query = this.query,
+            shouldIgnoreQuery = this.ignoreQuery.includes(query),
+            inclusion = shouldIgnoreQuery ? "" : query,
             start = {
                 line: cursor.line,
-                ch: cursor.ch - query.length
+                ch: cursor.ch - inclusion.length
             },
-
             end = {
                 line: cursor.line,
                 ch: cursor.ch

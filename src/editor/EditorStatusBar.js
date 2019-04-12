@@ -465,6 +465,18 @@ define(function (require, exports, module) {
             var document = EditorManager.getActiveEditor().document,
                 fullPath = document.file.fullPath;
 
+            var fileType = (document.file instanceof InMemoryFile) ? "newFile" : "existingFile",
+                filelanguageName = lang ? lang._name : "";
+
+            HealthLogger.sendAnalyticsData(
+                HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_CHANGE
+                + filelanguageName + fileType,
+                HealthLogger.commonStrings.USAGE,
+                HealthLogger.commonStrings.LANGUAGE_CHANGE,
+                filelanguageName.toLowerCase(),
+                fileType
+            );
+
             if (lang === LANGUAGE_SET_AS_DEFAULT) {
                 // Set file's current language in preferences as a file extension override (only enabled if not default already)
                 var fileExtensionMap = PreferencesManager.get("language.fileExtensions");
