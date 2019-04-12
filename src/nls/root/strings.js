@@ -892,5 +892,5 @@ define({
     "FIND_ALL_REFERENCES"                            : "Find All References",
     "REFERENCES_IN_FILES"                            : "references",
     "REFERENCE_IN_FILES"                             : "reference",
-    "REFERENCES_NO_RESULTS"                          : "No references found"
+    "REFERENCES_NO_RESULTS"                          : "No References available for current cursor position"
 });
