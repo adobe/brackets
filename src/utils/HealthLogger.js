@@ -42,6 +42,7 @@ define(function (require, exports, module) {
 
     var commonStrings = { USAGE: "usage",
         FILE_OPEN: "fileOpen",
+        FILE_NEW: "newfile",
         FILE_SAVE: "fileSave",
         FILE_CLOSE: "fileClose",
         LANGUAGE_CHANGE: "languageChange",
