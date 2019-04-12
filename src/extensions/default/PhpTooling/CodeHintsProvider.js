@@ -159,8 +159,8 @@ define(function (require, exports, module) {
             token = $hintObj.data('completionItem'),
             $desc = $('<div>');
 
-        $hintDescContainer.empty();
         if(!token) {
+            $hintDescContainer.empty();
             return;
         }
 
@@ -177,6 +177,8 @@ define(function (require, exports, module) {
             $('<div></div>').html(token.documentation.trim()).appendTo($desc).addClass("desc-doc");
         }
 
+        //To ensure CSS reflow doesn't cause a flicker.
+        $hintDescContainer.empty();
         $hintDescContainer.append($desc);
     };
 
