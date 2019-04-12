@@ -367,10 +367,10 @@ define(function (require, exports, module) {
             // completes) since ModalBar has already resized the editor and done its own scroll adjustment before
             // this event fired - so anything we set here will override the pos that was (re)set by ModalBar.
             var editor = EditorManager.getCurrentFullEditor();
-            if (this._origSelections) {
+            if (editor && this._origSelections) {
                 editor.setSelections(this._origSelections);
             }
-            if (this._origScrollPos) {
+            if (editor && this._origScrollPos) {
                 editor.setScrollPos(this._origScrollPos.x, this._origScrollPos.y);
             }
         }
