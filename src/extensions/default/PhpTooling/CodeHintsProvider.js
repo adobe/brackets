@@ -177,15 +177,15 @@ define(function (require, exports, module) {
 
         if (token.detail) {
             if (token.detail.trim() !== '?') {
-                $('<div>' + token.detail.split('->').join(':').toString().trim() + '</div>').appendTo($desc).addClass("desc-detail");
+                $('<div>' + token.detail.split('->').join(':').toString().trim() + '</div>').appendTo($desc).addClass("codehint-desc-type-details");
             }
         } else {
             if (hintType[token.kind]) {
-                $('<div>' + hintType[token.kind] + '</div>').appendTo($desc).addClass("desc-detail");
+                $('<div>' + hintType[token.kind] + '</div>').appendTo($desc).addClass("codehint-desc-type-details");
             }
         }
         if (token.documentation) {
-            $('<div></div>').html(token.documentation.trim()).appendTo($desc).addClass("desc-doc");
+            $('<div></div>').html(token.documentation.trim()).appendTo($desc).addClass("codehint-desc-documentation");
         }
 
         //To ensure CSS reflow doesn't cause a flicker.
