@@ -689,6 +689,15 @@ define(function (require, exports, module) {
         var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
         MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
 
+        HealthLogger.sendAnalyticsData(
+            HealthLogger.commonStrings.USAGE +
+            HealthLogger.commonStrings.FILE_OPEN +
+            HealthLogger.commonStrings.FILE_NEW,
+            HealthLogger.commonStrings.USAGE,
+            HealthLogger.commonStrings.FILE_OPEN,
+            HealthLogger.commonStrings.FILE_NEW
+        );
+
         return new $.Deferred().resolve(doc).promise();
     }
 
@@ -968,6 +977,7 @@ define(function (require, exports, module) {
                     } else {
                         openNewFile();
                     }
+                    HealthLogger.fileSaved(doc);
                 })
                 .fail(function (error) {
                     _showSaveFileError(error, path)

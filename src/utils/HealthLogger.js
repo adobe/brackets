@@ -24,6 +24,7 @@
 /**
  *  Utilities functions related to Health Data logging
  */
+/*global Map*/
 define(function (require, exports, module) {
     "use strict";
 
@@ -36,10 +37,12 @@ define(function (require, exports, module) {
         EventDispatcher             = require("utils/EventDispatcher"),
 
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
-        logHealthData               = true;
+        logHealthData               = true,
+        analyticsEventMap           = new Map();
 
     var commonStrings = { USAGE: "usage",
         FILE_OPEN: "fileOpen",
+        FILE_NEW: "newfile",
         FILE_SAVE: "fileSave",
         FILE_CLOSE: "fileClose",
         LANGUAGE_CHANGE: "languageChange",
@@ -319,9 +322,10 @@ define(function (require, exports, module) {
      * needs to be logged- should be a js var compatible string
      */
     function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType) {
-        var isEventDataAlreadySent = PreferencesManager.getViewState(eventName),
+        var isEventDataAlreadySent = analyticsEventMap.get(eventName),
             isHDTracking   = PreferencesManager.getExtensionPrefs("healthData").get("healthDataTracking"),
             eventParams = {};
+
         if (isHDTracking && !isEventDataAlreadySent && eventName && eventCategory) {
             eventParams =  {
                 eventName: eventName,
@@ -363,4 +367,5 @@ define(function (require, exports, module) {
     // A new search context on search bar up-Gives an idea of number of times user did a discrete search
     exports.SEARCH_NEW                = "searchNew";
     exports.commonStrings = commonStrings;
+    exports.analyticsEventMap = analyticsEventMap;
 });
