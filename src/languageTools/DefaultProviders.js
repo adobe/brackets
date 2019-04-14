@@ -405,6 +405,48 @@ define(function (require, exports, module) {
         return this._results.get(filePath);
     };
 
+    function serverRespToSerachModelFormat(msgObj) {
+        var referenceModel = {},
+            result = $.Deferred();
+
+        if(!(msgObj && msgObj.length && msgObj.cursorPos)) {
+            return result.reject();
+        }
+        referenceModel.results = {};
+        referenceModel.numFiles = 0;
+        var fulfilled = 0;
+        msgObj.forEach((element, i) => {
+            var filePath = PathConverters.uriToPath(element.uri);
+            DocumentManager.getDocumentForPath(filePath)
+                .done(function(doc) {
+                    var startRange = {line: element.range.start.line, ch: element.range.start.character};
+                    var endRange = {line: element.range.end.line, ch: element.range.end.character};
+                    var match = {
+                        start: startRange,
+                        end: endRange,
+                        highlightOffset: 0,
+                        line: doc.getLine(element.range.start.line)
+                    };
+                    if(!referenceModel.results[filePath]) {
+                        referenceModel.numFiles = referenceModel.numFiles + 1;
+                        referenceModel.results[filePath] = {"matches": []};
+                    }
+                    if(!referenceModel.queryInfo || msgObj.cursorPos.line === startRange.line) {
+                        referenceModel.queryInfo = doc.getRange(startRange, endRange);
+                    }
+                    referenceModel.results[filePath]["matches"].push(match);
+                }).always(function() {
+                    fulfilled++;
+                    if(fulfilled === msgObj.length) {
+                        referenceModel.numMatches = msgObj.length;
+                        referenceModel.allResultsAvailable = true;
+                        result.resolve(referenceModel);
+                    }
+                });
+        });
+        return result.promise();
+    }
+
     function ReferencesProvider(client) {
         this.client = client;
     }
@@ -434,39 +476,10 @@ define(function (require, exports, module) {
                 cursorPos: pos
             }).done(function(msgObj){
                     if(msgObj && msgObj.length) {
-                        var referenceModel = {};
-                        referenceModel.results = {};
-                        referenceModel.numFiles = 0;
-                        var fulfilled = 0;
-                        msgObj.forEach((element, i) => {
-                            var filePath = PathConverters.uriToPath(element.uri);
-                            DocumentManager.getDocumentForPath(filePath)
-                                .done(function(doc) {
-                                    var startRange = {line: element.range.start.line, ch: element.range.start.character};
-                                    var endRange = {line: element.range.end.line, ch: element.range.end.character};
-                                    var match = {
-                                        start: startRange,
-                                        end: endRange,
-                                        highlightOffset: 0,
-                                        line: doc.getLine(element.range.start.line)
-                                    };
-                                    if(!referenceModel.results[filePath]) {
-                                        referenceModel.numFiles = referenceModel.numFiles + 1;
-                                        referenceModel.results[filePath] = {"matches": []};
-                                    }
-                                    if(!referenceModel.queryInfo || pos.line === startRange.line) {
-                                        referenceModel.queryInfo = doc.getRange(startRange, endRange);
-                                    }
-                                    referenceModel.results[filePath]["matches"].push(match);
-                                }).always(function() {
-                                    fulfilled++;
-                                    if(fulfilled === msgObj.length) {
-                                        referenceModel.numMatches = msgObj.length;
-                                        referenceModel.allResultsAvailable = true;
-                                        result.resolve(referenceModel);
-                                    }
-                                });
-                        });
+                        msgObj.cursorPos = pos;
+                        serverRespToSerachModelFormat(msgObj)
+                            .done(result.resolve)
+                            .fail(result.reject);
                     } else {
                         result.reject();
                     }
@@ -483,4 +496,5 @@ define(function (require, exports, module) {
     exports.JumpToDefProvider = JumpToDefProvider;
     exports.LintingProvider = LintingProvider;
     exports.ReferencesProvider = ReferencesProvider;
+    exports.serverRespToSerachModelFormat = serverRespToSerachModelFormat;
 });

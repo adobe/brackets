@@ -72,7 +72,7 @@ define(function (require, exports, module) {
      * @param {SearchModel} model The model that this view is showing.
      * @param {string} panelID The CSS ID to use for the panel.
      * @param {string} panelName The name to use for the panel, as passed to WorkspaceManager.createBottomPanel().
-     * @param {string} type type to indentify if it is reference search or string match serach
+     * @param {string} type type to identify if it is reference search or string match serach
      */
     function SearchResultsView(model, panelID, panelName, type) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});

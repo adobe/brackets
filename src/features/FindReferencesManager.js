@@ -26,8 +26,8 @@ define(function (require, exports, module) {
 
     var AppInit                     = require("utils/AppInit"),
         CommandManager              = require("command/CommandManager"),
+        Commands                    = require("command/Commands"),
         EditorManager               = require("editor/EditorManager"),
-        Menus                       = require("command/Menus"),
         ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler,
         SearchResultsView           = require("search/SearchResultsView").SearchResultsView,
         SearchModel                 = require("search/SearchModel").SearchModel,
@@ -38,9 +38,6 @@ define(function (require, exports, module) {
             _providerRegistrationHandler
         ),
         removeFindReferencesProvider = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
-
-    var SHOW_FIND_REFERENCES_CMD_ID   = "showReferences",
-        KeyboardPrefs = JSON.parse(require("text!features/keyboard.json"));
 
     var searchModel = new SearchModel(),
         _resultsView;
@@ -135,13 +132,8 @@ define(function (require, exports, module) {
                     _resultsView.showLastPage();
                 }
             });
-
-        CommandManager.register(Strings.FIND_ALL_REFERENCES, SHOW_FIND_REFERENCES_CMD_ID, _openReferencesPanel);
-        Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addMenuItem(
-            SHOW_FIND_REFERENCES_CMD_ID,
-            KeyboardPrefs.findAllReferences
-        );
     });
+    CommandManager.register(Strings.FIND_ALL_REFERENCES, Commands.CMD_FIND_ALL_REFERENCES, _openReferencesPanel);
 
     exports.registerFindReferencesProvider    = registerFindReferencesProvider;
     exports.removeFindReferencesProvider      = removeFindReferencesProvider;
