@@ -419,6 +419,7 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
+	"CMD_GOTO_DEFINITION_PROJECT": "Quick Find Definition in Project",
 	"CMD_GOTO_FIRST_PROBLEM": "Accéder au premier problème",
 	"CMD_TOGGLE_QUICK_EDIT": "Édition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
@@ -888,5 +889,7 @@ define({
 	"OPEN_PREFERENNCES": "Ouvrir les préférences",
 
     //Strings for LanguageTools Preferences
-	"LANGUAGE_TOOLS_PREFERENCES": "Preferences for Language Tools"
+	"LANGUAGE_TOOLS_PREFERENCES": "Preferences for Language Tools",
+	"CMD_FIND_DOCUMENT_SYMBOLS": "Find Document Symbols",
+	"CMD_FIND_PROJECT_SYMBOLS": "Find Project Symbols"
 });
