@@ -419,6 +419,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
+    "CMD_GOTO_DEFINITION_PROJECT"         : "Quick Find Definition in Project",
     "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Problem",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
@@ -893,5 +894,8 @@ define({
     "FIND_ALL_REFERENCES"                            : "Find All References",
     "REFERENCES_IN_FILES"                            : "references",
     "REFERENCE_IN_FILES"                             : "reference",
-    "REFERENCES_NO_RESULTS"                          : "No References available for current cursor position"
+    "REFERENCES_NO_RESULTS"                          : "No References available for current cursor position",
+
+    "CMD_FIND_DOCUMENT_SYMBOLS"                      : "Find Document Symbols",
+    "CMD_FIND_PROJECT_SYMBOLS"                       : "Find Project Symbols"
 });

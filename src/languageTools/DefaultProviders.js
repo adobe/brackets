@@ -405,7 +405,7 @@ define(function (require, exports, module) {
         return this._results.get(filePath);
     };
 
-    function serverRespToSerachModelFormat(msgObj) {
+    function serverRespToSearchModelFormat(msgObj) {
         var referenceModel = {},
             result = $.Deferred();
 
@@ -477,7 +477,7 @@ define(function (require, exports, module) {
             }).done(function(msgObj){
                     if(msgObj && msgObj.length) {
                         msgObj.cursorPos = pos;
-                        serverRespToSerachModelFormat(msgObj)
+                        serverRespToSearchModelFormat(msgObj)
                             .done(result.resolve)
                             .fail(result.reject);
                     } else {
@@ -496,5 +496,5 @@ define(function (require, exports, module) {
     exports.JumpToDefProvider = JumpToDefProvider;
     exports.LintingProvider = LintingProvider;
     exports.ReferencesProvider = ReferencesProvider;
-    exports.serverRespToSerachModelFormat = serverRespToSerachModelFormat;
+    exports.serverRespToSearchModelFormat = serverRespToSearchModelFormat;
 });

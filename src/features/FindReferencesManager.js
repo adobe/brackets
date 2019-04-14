@@ -88,14 +88,20 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (referencesPromise) {
             referencesPromise.done(function () {
-                _resultsView.open();
+                if(_resultsView) {
+                    _resultsView.open();
+                }
             }).fail(function () {
-                _resultsView.close();
+                if(_resultsView) {
+                    _resultsView.close();
+                }
                 editor.displayErrorMessageAtCursor(errorMsg);
                 result.reject();
             });
         } else {
-            _resultsView.close();
+            if(_resultsView) {
+                _resultsView.close();
+            }
             editor.displayErrorMessageAtCursor(errorMsg);
             result.reject();
         }
@@ -111,27 +117,29 @@ define(function (require, exports, module) {
         searchModel.clear();
     }
 
-    AppInit.appReady(function () {
+    AppInit.htmlReady(function () {
         _resultsView = new SearchResultsView(
             searchModel,
             "reference-in-files-results",
             "reference-in-files.results",
             "reference"
         );
-        _resultsView
-            .on("close", function () {
-                _clearSearch();
-            })
-            .on("getNextPage", function () {
-                if (searchModel.hasResults()) {
-                    _resultsView.showNextPage();
-                }
-            })
-            .on("getLastPage", function () {
-                if (searchModel.hasResults()) {
-                    _resultsView.showLastPage();
-                }
-            });
+        if(_resultsView) {
+            _resultsView
+                .on("close", function () {
+                    _clearSearch();
+                })
+                .on("getNextPage", function () {
+                    if (searchModel.hasResults()) {
+                        _resultsView.showNextPage();
+                    }
+                })
+                .on("getLastPage", function () {
+                    if (searchModel.hasResults()) {
+                        _resultsView.showLastPage();
+                    }
+                });
+        }
     });
     CommandManager.register(Strings.FIND_ALL_REFERENCES, Commands.CMD_FIND_ALL_REFERENCES, _openReferencesPanel);
 
