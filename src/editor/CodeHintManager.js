@@ -507,10 +507,21 @@ define(function (require, exports, module) {
 
             sessionEditor = editor;
             hintList = new CodeHintList(sessionEditor, insertHintOnTab, maxCodeHints);
-            hintList.onHighlight(function ($hint) {
-                // If the current hint provider listening for hint item highlight change
-                if (sessionProvider.onHighlight) {
-                    sessionProvider.onHighlight($hint);
+            hintList.onHighlight(function ($hint, $hintDescContainer) {
+                if (hintList.enableDescription && $hintDescContainer && $hintDescContainer.length) {
+                    // If the current hint provider listening for hint item highlight change
+                    if (sessionProvider.onHighlight) {
+                        sessionProvider.onHighlight($hint, $hintDescContainer);
+                    }
+
+                    // Update the hint description
+                    if (sessionProvider.updateHintDescription) {
+                        sessionProvider.updateHintDescription($hint, $hintDescContainer);
+                    }
+                } else {
+                    if (sessionProvider.onHighlight) {
+                        sessionProvider.onHighlight($hint);
+                    }
                 }
             });
             hintList.onSelect(function (hint) {

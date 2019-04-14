@@ -281,6 +281,9 @@
     "navigate.gotoDefinition":  [
         "Ctrl-T"
     ],
+    "navigate.gotoDefinitionInProject":  [
+        "Ctrl-Shift-T"
+    ],
     "navigate.jumptoDefinition":  [
         "Ctrl-J"
     ],
