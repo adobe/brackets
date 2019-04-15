@@ -890,6 +890,12 @@ define({
 
     //Strings for LanguageTools Preferences
 	"LANGUAGE_TOOLS_PREFERENCES": "Preferences for Language Tools",
+
+	"FIND_ALL_REFERENCES": "Find All References",
+	"REFERENCES_IN_FILES": "references",
+	"REFERENCE_IN_FILES": "参照",
+	"REFERENCES_NO_RESULTS": "No References available for current cursor position",
+
 	"CMD_FIND_DOCUMENT_SYMBOLS": "Find Document Symbols",
 	"CMD_FIND_PROJECT_SYMBOLS": "Find Project Symbols"
 });
