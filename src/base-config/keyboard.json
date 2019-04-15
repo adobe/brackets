@@ -163,7 +163,7 @@
         "Ctrl-Shift-F"
     ],
     "cmd.findAllReferences":  [
-        "Ctrl-M"
+        "Shift-F12"
     ],
     "cmd.replaceInFiles":  [
         {
