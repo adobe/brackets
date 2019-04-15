@@ -8,3 +8,5 @@ class testA
         'A1', 'A2'
     ];
 }
+
+ReferencesInMultipleFile();
