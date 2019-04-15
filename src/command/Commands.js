@@ -97,6 +97,7 @@ define(function (require, exports, module) {
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
     exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFilesUI.js             _showReplaceBar()
     exports.CMD_REPLACE_IN_SUBTREE      = "cmd.replaceInSubtree";       // FindInFilesUI.js             _showReplaceBarForSubtree()
+    exports.CMD_FIND_ALL_REFERENCES     = "cmd.findAllReferences";      // findReferencesManager.js     _openReferencesPanel()
 
     // VIEW
     exports.CMD_THEMES_OPEN_SETTINGS    = "view.themesOpenSetting";     // MenuCommands.js              Settings.open()

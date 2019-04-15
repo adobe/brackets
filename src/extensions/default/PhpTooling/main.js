@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         QuickOpen = brackets.getModule("search/QuickOpen"),
         ParameterHintManager = brackets.getModule("features/ParameterHintsManager"),
         JumpToDefManager = brackets.getModule("features/JumpToDefManager"),
+        FindReferencesManager = brackets.getModule("features/FindReferencesManager"),
         CodeInspection = brackets.getModule("language/CodeInspection"),
         DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
         CodeHintsProvider = require("CodeHintsProvider").CodeHintsProvider,
@@ -65,7 +66,8 @@ define(function (require, exports, module) {
         lProvider,
         jdProvider,
         dSymProvider,
-        pSymProvider;
+        pSymProvider,
+        refProvider;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -108,10 +110,12 @@ define(function (require, exports, module) {
         jdProvider = new DefaultProviders.JumpToDefProvider(_client);
         dSymProvider = new SymbolProviders.DocumentSymbolsProvider(_client);
         pSymProvider = new SymbolProviders.ProjectSymbolsProvider(_client);
+        refProvider = new DefaultProviders.ReferencesProvider(_client);
 
         JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
+        FindReferencesManager.registerFindReferencesProvider(refProvider, ["php"], 0);
         CodeInspection.register(["php"], {
             name: "",
             scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)

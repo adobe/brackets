@@ -398,6 +398,40 @@ define(function (require, exports, module) {
 
         }
 
+        function expectReferences(referencesExpected) {
+            var refPromise,
+                results = null,
+                complete = false;
+            runs(function () {
+                refPromise = (new DefaultProviders.ReferencesProvider(phpToolingExtension.getClient())).getReferences();
+                refPromise.done(function (resp) {
+                    complete = true;
+                    results = resp;
+                }).fail(function(){
+                    complete = true;
+                });
+            });
+
+            waitsFor(function () {
+                return complete;
+            }, "Expected Reference Promise did not resolve", 3000);
+
+            if(referencesExpected === null) {
+                expect(results).toBeNull();
+                return;
+            }
+
+            runs(function() {
+                expect(results.numFiles).toBe(referencesExpected.numFiles);
+                expect(results.numMatches).toBe(referencesExpected.numMatches);
+                expect(results.allResultsAvailable).toBe(referencesExpected.allResultsAvailable);
+                expect(results.results).not.toBeNull();
+                for(var key in results.keys) {
+                    expect(results.results.key).toBe(referencesExpected.results.key);
+                }
+            });
+        }
+
         /**
          * Check the presence of Error Prompt on Brackets Window
          */
@@ -530,6 +564,112 @@ define(function (require, exports, module) {
                     "string $mode",
                     "bool $use_include_path = null",
                     "resource $context = null"], 1);
+            });
+        });
+
+        it("should not show any references", function () {
+            var start = { line: 6, ch: 4 };
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                expectReferences(null);
+            });
+        });
+
+        it("should  show  reference present in single file", function () {
+            var start = { line: 22, ch: 18 },
+                results = {};
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                results[testFolder + "test/test2.php"] = {matches: [
+                    {
+                        start: {line: 27, ch: 0},
+                        end: {line: 27, ch: 18},
+                        line: "watchparameterhint()"
+                    }
+                ]
+                };
+                expectReferences({
+                    numFiles: 1,
+                    numMatches: 1,
+                    allResultsAvailable: true,
+                    queryInfo: "watchparameterhint",
+                    keys: [testFolder + "test/test2.php"],
+                    results: results
+                });
+            });
+        });
+
+        it("should  show  references present in single file", function () {
+            var start = { line: 34, ch: 8 },
+                results = {};
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                results[testFolder + "test/test2.php"] = {matches: [
+                    {
+                        start: {line: 34, ch: 0},
+                        end: {line: 34, ch: 17},
+                        line: "watchReferences();"
+                    },
+                    {
+                        start: {line: 36, ch: 0},
+                        end: {line: 36, ch: 17},
+                        line: "watchReferences();"
+                    }
+                ]
+                };
+                expectReferences({
+                    numFiles: 1,
+                    numMatches: 2,
+                    allResultsAvailable: true,
+                    queryInfo: "watchparameterhint",
+                    keys: [testFolder + "test/test2.php"],
+                    results: results
+                });
+            });
+        });
+
+        it("should  show  references present in multiple files", function () {
+            var start = { line: 39, ch: 21 },
+                results = {};
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                results[testFolder + "test/test2.php"] = {matches: [
+                    {
+                        start: {line: 34, ch: 0},
+                        end: {line: 34, ch: 26},
+                        line: "watchReferences();"
+                    },
+                    {
+                        start: {line: 36, ch: 0},
+                        end: {line: 36, ch: 26},
+                        line: "watchReferences();"
+                    }
+                ]
+                };
+                results[testFolder + "test/test3.php"] = {matches: [
+                    {
+                        start: {line: 11, ch: 0},
+                        end: {line: 11, ch: 26},
+                        line: "watchReferences();"
+                    }
+                ]
+                };
+                expectReferences({
+                    numFiles: 2,
+                    numMatches: 3,
+                    allResultsAvailable: true,
+                    queryInfo: "watchparameterhint",
+                    keys: [testFolder + "test/test2.php", testFolder + "test/test3.php"],
+                    results: results
+                });
             });
         });
 

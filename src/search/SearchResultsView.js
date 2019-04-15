@@ -72,14 +72,16 @@ define(function (require, exports, module) {
      * @param {SearchModel} model The model that this view is showing.
      * @param {string} panelID The CSS ID to use for the panel.
      * @param {string} panelName The name to use for the panel, as passed to WorkspaceManager.createBottomPanel().
+     * @param {string} type type to identify if it is reference search or string match serach
      */
-    function SearchResultsView(model, panelID, panelName) {
+    function SearchResultsView(model, panelID, panelName, type) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
 
         this._panel    = WorkspaceManager.createBottomPanel(panelName, $(panelHtml), 100);
         this._$summary = this._panel.$panel.find(".title");
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
+        this._searchResultsType = type;
     }
     EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);
 
@@ -115,6 +117,9 @@ define(function (require, exports, module) {
 
     /** @type {number} The ID we use for timeouts when handling model changes. */
     SearchResultsView.prototype._timeoutID = null;
+
+    /** @type {string} The Id we use to check if it is reference search or match search */
+    SearchResultsView.prototype._searchResultsType = null;
 
     /**
      * @private
@@ -344,8 +349,13 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._showSummary = function () {
         var count     = this._model.countFilesMatches(),
             lastIndex = this._getLastIndex(count.matches),
+            typeStr = (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
             filesStr,
             summary;
+
+        if(this._searchResultsType === "reference") {
+            typeStr = (count.matches > 1) ? Strings.REFERENCES_IN_FILES : Strings.REFERENCE_IN_FILES;
+        }
 
         filesStr = StringUtils.format(
             Strings.FIND_NUM_FILES,
@@ -358,7 +368,7 @@ define(function (require, exports, module) {
             Strings.FIND_TITLE_SUMMARY,
             this._model.exceedsMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
             String(count.matches),
-            (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+            typeStr,
             filesStr
         );
 
