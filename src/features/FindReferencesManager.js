@@ -28,6 +28,7 @@ define(function (require, exports, module) {
         CommandManager              = require("command/CommandManager"),
         Commands                    = require("command/Commands"),
         EditorManager               = require("editor/EditorManager"),
+        ProjectManager              = require("project/ProjectManager"),
         ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler,
         SearchResultsView           = require("search/SearchResultsView").SearchResultsView,
         SearchModel                 = require("search/SearchModel").SearchModel,
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
         searchModel.clear();
     }
 
-    AppInit.htmlReady(function () {
+    AppInit.appReady(function () {
         _resultsView = new SearchResultsView(
             searchModel,
             "reference-in-files-results",
@@ -141,6 +142,10 @@ define(function (require, exports, module) {
                 });
         }
     });
+
+    // Initialize: register listeners
+    ProjectManager.on("beforeProjectClose", function () { if (_resultsView) { _resultsView.close(); } });
+
     CommandManager.register(Strings.FIND_ALL_REFERENCES, Commands.CMD_FIND_ALL_REFERENCES, _openReferencesPanel);
 
     exports.registerFindReferencesProvider    = registerFindReferencesProvider;
