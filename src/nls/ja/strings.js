@@ -419,7 +419,7 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義をクイック検索",
-	"CMD_GOTO_DEFINITION_PROJECT": "Quick Find Definition in Project",
+	"CMD_GOTO_DEFINITION_PROJECT": "プロジェクトで定義をクイック検索",
 	"CMD_GOTO_FIRST_PROBLEM": "最初の問題に移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
@@ -889,13 +889,13 @@ define({
 	"OPEN_PREFERENNCES": "環境設定を開く",
 
     //Strings for LanguageTools Preferences
-	"LANGUAGE_TOOLS_PREFERENCES": "Preferences for Language Tools",
+	"LANGUAGE_TOOLS_PREFERENCES": "言語ツールの設定",
 
-	"FIND_ALL_REFERENCES": "Find All References",
-	"REFERENCES_IN_FILES": "references",
+	"FIND_ALL_REFERENCES": "すべての参照を検索",
+	"REFERENCES_IN_FILES": "参照",
 	"REFERENCE_IN_FILES": "参照",
-	"REFERENCES_NO_RESULTS": "No References available for current cursor position",
+	"REFERENCES_NO_RESULTS": "現在のカーソル位置で利用可能な参照はありません",
 
-	"CMD_FIND_DOCUMENT_SYMBOLS": "Find Document Symbols",
-	"CMD_FIND_PROJECT_SYMBOLS": "Find Project Symbols"
+	"CMD_FIND_DOCUMENT_SYMBOLS": "ドキュメント記号を検索",
+	"CMD_FIND_PROJECT_SYMBOLS": "プロジェクト記号を検索"
 });
