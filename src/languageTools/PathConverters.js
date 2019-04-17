@@ -36,7 +36,7 @@ define(function (require, exports, module) {
 
         let filePath = decodeURIComponent(url.pathname);
         if (brackets.platform === 'win') {
-            if (filePath && filePath.length > 1 && filePath[0] === '/' && filePath[1] !== '/') {
+            if (filePath && filePath.includes(":/") && filePath[0] === '/') {
                 filePath = filePath.substr(1);
             }
             return filePath;
