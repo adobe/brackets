@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     var _ = brackets.getModule("thirdparty/lodash");
 
     var EditorManager = require('editor/EditorManager'),
+        DocumentManager = require('document/DocumentManager'),
         ExtensionUtils = require("utils/ExtensionUtils"),
         CommandManager = require("command/CommandManager"),
         Commands = require("command/Commands"),
@@ -46,6 +47,7 @@ define(function (require, exports, module) {
     function CodeHintsProvider(client) {
         this.client = client;
         this.query = "";
+        this.ignoreQuery = ["-", "->", ">", ":", "::", "(", "()", ")", "[", "[]", "]", "{", "{}", "}"];
     }
 
     function formatTypeDataForToken($hintObj, token) {
@@ -160,11 +162,12 @@ define(function (require, exports, module) {
             token = $hint.data("token"),
             txt = null,
             query = this.query,
+            shouldIgnoreQuery = this.ignoreQuery.includes(query),
+            inclusion = shouldIgnoreQuery ? "" : query,
             start = {
                 line: cursor.line,
-                ch: cursor.ch - query.length
+                ch: cursor.ch - inclusion.length
             },
-
             end = {
                 line: cursor.line,
                 ch: cursor.ch
@@ -402,8 +405,96 @@ define(function (require, exports, module) {
         return this._results.get(filePath);
     };
 
+    function serverRespToSearchModelFormat(msgObj) {
+        var referenceModel = {},
+            result = $.Deferred();
+
+        if(!(msgObj && msgObj.length && msgObj.cursorPos)) {
+            return result.reject();
+        }
+        referenceModel.results = {};
+        referenceModel.numFiles = 0;
+        var fulfilled = 0;
+        msgObj.forEach((element, i) => {
+            var filePath = PathConverters.uriToPath(element.uri);
+            DocumentManager.getDocumentForPath(filePath)
+                .done(function(doc) {
+                    var startRange = {line: element.range.start.line, ch: element.range.start.character};
+                    var endRange = {line: element.range.end.line, ch: element.range.end.character};
+                    var match = {
+                        start: startRange,
+                        end: endRange,
+                        highlightOffset: 0,
+                        line: doc.getLine(element.range.start.line)
+                    };
+                    if(!referenceModel.results[filePath]) {
+                        referenceModel.numFiles = referenceModel.numFiles + 1;
+                        referenceModel.results[filePath] = {"matches": []};
+                    }
+                    if(!referenceModel.queryInfo || msgObj.cursorPos.line === startRange.line) {
+                        referenceModel.queryInfo = doc.getRange(startRange, endRange);
+                    }
+                    referenceModel.results[filePath]["matches"].push(match);
+                }).always(function() {
+                    fulfilled++;
+                    if(fulfilled === msgObj.length) {
+                        referenceModel.numMatches = msgObj.length;
+                        referenceModel.allResultsAvailable = true;
+                        result.resolve(referenceModel);
+                    }
+                });
+        });
+        return result.promise();
+    }
+
+    function ReferencesProvider(client) {
+        this.client = client;
+    }
+
+    ReferencesProvider.prototype.hasReferences = function() {
+        if (!this.client) {
+            return false;
+        }
+
+        var serverCapabilities = this.client.getServerCapabilities();
+        if (!serverCapabilities || !serverCapabilities.referencesProvider) {
+            return false;
+        }
+
+        return true;
+    };
+
+    ReferencesProvider.prototype.getReferences = function(hostEditor, curPos) {
+        var editor = hostEditor || EditorManager.getActiveEditor(),
+            pos = curPos || editor ? editor.getCursorPos() : null,
+            docPath = editor.document.file._path,
+            result = $.Deferred();
+
+        if (this.client) {
+            this.client.findReferences({
+                filePath: docPath,
+                cursorPos: pos
+            }).done(function(msgObj){
+                    if(msgObj && msgObj.length) {
+                        msgObj.cursorPos = pos;
+                        serverRespToSearchModelFormat(msgObj)
+                            .done(result.resolve)
+                            .fail(result.reject);
+                    } else {
+                        result.reject();
+                    }
+                }).fail(function(){
+                    result.reject();
+                });
+            return result.promise();
+        }
+        return result.reject();
+    };
+
     exports.CodeHintsProvider = CodeHintsProvider;
     exports.ParameterHintsProvider = ParameterHintsProvider;
     exports.JumpToDefProvider = JumpToDefProvider;
     exports.LintingProvider = LintingProvider;
+    exports.ReferencesProvider = ReferencesProvider;
+    exports.serverRespToSearchModelFormat = serverRespToSearchModelFormat;
 });

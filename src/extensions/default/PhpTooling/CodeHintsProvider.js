@@ -36,30 +36,27 @@ define(function (require, exports, module) {
             preferPrefixMatches: true
         });
 
-    var phpSuperGlobalVariables = JSON.parse(require("text!phpGlobals.json"));
+    var phpSuperGlobalVariables = JSON.parse(require("text!phpGlobals.json")),
+        hintType = {
+             "2": "Method",
+             "3": "Function",
+             "4": "Constructor",
+             "6": "Variable",
+             "7": "Class",
+             "8": "Interface",
+             "9": "Module",
+             "10": "Property",
+             "14": "Keyword",
+             "21": "Constant"
+        };
 
     function CodeHintsProvider(client) {
         this.defaultCodeHintProviders = new DefaultProviders.CodeHintsProvider(client);
     }
 
-    function formatTypeDataForToken($hintObj, token) {
+    function setStyleAndCacheToken($hintObj, token) {
         $hintObj.addClass('brackets-hints-with-type-details');
-        if (token.detail) {
-            if (token.detail.trim() !== '?') {
-                if (token.detail.length < 30) {
-                    $('<span>' + token.detail.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("brackets-hints-type-details");
-                }
-                $('<span>' + token.detail.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("hint-description");
-            }
-        } else {
-            if (token.keyword) {
-                $('<span>keyword</span>').appendTo($hintObj).addClass("brackets-hints-keyword");
-            }
-        }
-        if (token.documentation) {
-            $hintObj.attr('title', token.documentation);
-            $('<span></span>').text(token.documentation.trim()).appendTo($hintObj).addClass("hint-doc");
-        }
+        $hintObj.data('completionItem', token);
     }
 
     function filterWithQueryAndMatcher(hints, query) {
@@ -101,11 +98,15 @@ define(function (require, exports, module) {
 
             self.query = context.token.string.slice(0, context.pos.ch - context.token.start);
             if (msgObj) {
-                var res = msgObj.items || [];
+                var res = msgObj.items || [],
+                    trimmedQuery = self.query.trim(),
+                    hasIgnoreCharacters = self.ignoreQuery.includes(implicitChar) || self.ignoreQuery.includes(trimmedQuery),
+                    isExplicitInvokation = implicitChar === null;
+
                 // There is a bug in Php Language Server, Php Language Server does not provide superGlobals
                 // Variables as completion. so these variables are being explicity put in response objects
                 // below code should be removed if php server fix this bug.
-                if(self.query) {
+                if((isExplicitInvokation || trimmedQuery) && !hasIgnoreCharacters) {
                     for(var key in phpSuperGlobalVariables) {
                         res.push({
                             label: key,
@@ -115,7 +116,12 @@ define(function (require, exports, module) {
                     }
                 }
 
-                var filteredHints = filterWithQueryAndMatcher(res, self.query);
+                var filteredHints = [];
+                if (hasIgnoreCharacters || (isExplicitInvokation && !trimmedQuery)) {
+                    filteredHints = filterWithQueryAndMatcher(res, "");
+                } else {
+                    filteredHints = filterWithQueryAndMatcher(res, self.query);
+                }
 
                 StringMatch.basicMatchSort(filteredHints);
                 filteredHints.forEach(function (element) {
@@ -137,13 +143,16 @@ define(function (require, exports, module) {
                     }
 
                     $fHint.data("token", element);
-                    formatTypeDataForToken($fHint, element);
+                    setStyleAndCacheToken($fHint, element);
                     hints.push($fHint);
                 });
             }
 
+            var token = self.query;
             $deferredHints.resolve({
-                "hints": hints
+                "hints": hints,
+                "enableDescription": true,
+                "selectInitial": token && /\S/.test(token) && isNaN(parseInt(token, 10)) // If the active token is blank then don't put default selection
             });
         }).fail(function () {
             $deferredHints.reject();
@@ -154,6 +163,34 @@ define(function (require, exports, module) {
 
     CodeHintsProvider.prototype.insertHint = function ($hint) {
         return this.defaultCodeHintProviders.insertHint($hint);
+    };
+
+    CodeHintsProvider.prototype.updateHintDescription = function ($hint, $hintDescContainer) {
+        var $hintObj = $hint.find('.brackets-hints-with-type-details'),
+            token = $hintObj.data('completionItem'),
+            $desc = $('<div>');
+
+        if(!token) {
+            $hintDescContainer.empty();
+            return;
+        }
+
+        if (token.detail) {
+            if (token.detail.trim() !== '?') {
+                $('<div>' + token.detail.split('->').join(':').toString().trim() + '</div>').appendTo($desc).addClass("codehint-desc-type-details");
+            }
+        } else {
+            if (hintType[token.kind]) {
+                $('<div>' + hintType[token.kind] + '</div>').appendTo($desc).addClass("codehint-desc-type-details");
+            }
+        }
+        if (token.documentation) {
+            $('<div></div>').html(token.documentation.trim()).appendTo($desc).addClass("codehint-desc-documentation");
+        }
+
+        //To ensure CSS reflow doesn't cause a flicker.
+        $hintDescContainer.empty();
+        $hintDescContainer.append($desc);
     };
 
     exports.CodeHintsProvider = CodeHintsProvider;

@@ -155,6 +155,9 @@ define(function (require, exports, module) {
     require("search/FindInFilesUI");
     require("search/FindReplace");
 
+    //Load find References Feature Manager
+    require("features/FindReferencesManager");
+
     //Load common JS module
     require("JSUtils/Session");
     require("JSUtils/ScopeManager");

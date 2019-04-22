@@ -27,7 +27,8 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         Strings         = brackets.getModule("strings"),
         FileUtils       = brackets.getModule("file/FileUtils"),
-        StringUtils     = brackets.getModule("utils/StringUtils");
+        StringUtils     = brackets.getModule("utils/StringUtils"),
+        StringMatch     = brackets.getModule("utils/StringMatch");
 
     var extensionRequire,
         phpToolingExtension,
@@ -37,11 +38,13 @@ define(function (require, exports, module) {
         CodeInspection,
         DefaultProviders,
         CodeHintsProvider,
+        SymbolProviders,
         EditorManager,
         testEditor,
         testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/",
         testFile1 = "test1.php",
-        testFile2 =  "test2.php";
+        testFile2 =  "test2.php",
+        testFile4 =  "test4.php";
 
     describe("PhpTooling", function () {
 
@@ -59,8 +62,11 @@ define(function (require, exports, module) {
 
         afterLast(function () {
             waitsForDone(phpToolingExtension.getClient().stop(), "stoping php server");
+            testEditor       = null;
+            testWindow       = null;
+            brackets         = null;
+            EditorManager    = null;
             SpecRunnerUtils.closeTestWindow();
-            testWindow = null;
         });
 
 
@@ -71,6 +77,7 @@ define(function (require, exports, module) {
             CodeInspection.toggleEnabled(true);
             DefaultProviders = testWindow.brackets.getModule("languageTools/DefaultProviders");
             CodeHintsProvider = extensionRequire("CodeHintsProvider");
+            SymbolProviders = extensionRequire("PHPSymbolProviders").SymbolProviders;
         });
 
         /**
@@ -317,6 +324,56 @@ define(function (require, exports, module) {
         }
 
         /**
+         * Show the document/project symbols for a language type.
+         *
+         * @param   {SymbolProvider} provider        The symbol provider to use for the request.
+         * @param   {string}         query           The query string for the request.
+         * @param   {Array}          expectedSymbols Expected results for the request.
+         */
+        function expectSymbols(provider, query, expectedSymbols) {
+            var requestStatus = null;
+            var request,
+                matcher;
+
+            runs(function () {
+                matcher = new StringMatch.StringMatcher();
+                request = new provider(phpToolingExtension.getClient()).search(query, matcher);
+                request.done(function (status) {
+                    requestStatus = status;
+                });
+
+                waitsForDone(request, "Expected Symbols did not resolve", 3000);
+            });
+
+            if (expectedSymbols === []) {
+                expect(requestStatus).toBe([]);
+                return;
+            }
+
+            function matchSymbols(symbols) {
+                var n = symbols.length > 4 ? 4 : symbols.length,
+                    i;
+
+                for (i = 0; i < n; i++) {
+                    var symbolInfo = symbols[i].symbolInfo;
+                    expect(symbolInfo.label).toBe(expectedSymbols[i].label);
+                    expect(symbolInfo.type).toBe(expectedSymbols[i].type);
+                    expect(symbolInfo.scope).toBe(expectedSymbols[i].scope);
+
+                    if (expectedSymbols[i].fullPath === null) {
+                        expect(symbolInfo.fullPath).toBe(null);
+                    } else {
+                        expect(symbolInfo.fullPath.includes(expectedSymbols[i].fullPath)).toBe(true);
+                    }
+                }
+
+            }
+            runs(function() {
+                matchSymbols(requestStatus);
+            });
+        }
+
+        /**
          * Trigger a jump to definition, and verify that the editor jumped to
          * the expected location. The new location is the variable definition
          * or function definition of the variable or function at the current
@@ -339,6 +396,40 @@ define(function (require, exports, module) {
                 }
             });
 
+        }
+
+        function expectReferences(referencesExpected) {
+            var refPromise,
+                results = null,
+                complete = false;
+            runs(function () {
+                refPromise = (new DefaultProviders.ReferencesProvider(phpToolingExtension.getClient())).getReferences();
+                refPromise.done(function (resp) {
+                    complete = true;
+                    results = resp;
+                }).fail(function(){
+                    complete = true;
+                });
+            });
+
+            waitsFor(function () {
+                return complete;
+            }, "Expected Reference Promise did not resolve", 3000);
+
+            if(referencesExpected === null) {
+                expect(results).toBeNull();
+                return;
+            }
+
+            runs(function() {
+                expect(results.numFiles).toBe(referencesExpected.numFiles);
+                expect(results.numMatches).toBe(referencesExpected.numMatches);
+                expect(results.allResultsAvailable).toBe(referencesExpected.allResultsAvailable);
+                expect(results.results).not.toBeNull();
+                for(var key in results.keys) {
+                    expect(results.results.key).toBe(referencesExpected.results.key);
+                }
+            });
         }
 
         /**
@@ -476,6 +567,112 @@ define(function (require, exports, module) {
             });
         });
 
+        it("should not show any references", function () {
+            var start = { line: 6, ch: 4 };
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                expectReferences(null);
+            });
+        });
+
+        it("should  show  reference present in single file", function () {
+            var start = { line: 22, ch: 18 },
+                results = {};
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                results[testFolder + "test/test2.php"] = {matches: [
+                    {
+                        start: {line: 27, ch: 0},
+                        end: {line: 27, ch: 18},
+                        line: "watchparameterhint()"
+                    }
+                ]
+                };
+                expectReferences({
+                    numFiles: 1,
+                    numMatches: 1,
+                    allResultsAvailable: true,
+                    queryInfo: "watchparameterhint",
+                    keys: [testFolder + "test/test2.php"],
+                    results: results
+                });
+            });
+        });
+
+        it("should  show  references present in single file", function () {
+            var start = { line: 34, ch: 8 },
+                results = {};
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                results[testFolder + "test/test2.php"] = {matches: [
+                    {
+                        start: {line: 34, ch: 0},
+                        end: {line: 34, ch: 17},
+                        line: "watchReferences();"
+                    },
+                    {
+                        start: {line: 36, ch: 0},
+                        end: {line: 36, ch: 17},
+                        line: "watchReferences();"
+                    }
+                ]
+                };
+                expectReferences({
+                    numFiles: 1,
+                    numMatches: 2,
+                    allResultsAvailable: true,
+                    queryInfo: "watchparameterhint",
+                    keys: [testFolder + "test/test2.php"],
+                    results: results
+                });
+            });
+        });
+
+        it("should  show  references present in multiple files", function () {
+            var start = { line: 39, ch: 21 },
+                results = {};
+
+            runs(function () {
+                testEditor = EditorManager.getActiveEditor();
+                testEditor.setCursorPos(start);
+                results[testFolder + "test/test2.php"] = {matches: [
+                    {
+                        start: {line: 34, ch: 0},
+                        end: {line: 34, ch: 26},
+                        line: "watchReferences();"
+                    },
+                    {
+                        start: {line: 36, ch: 0},
+                        end: {line: 36, ch: 26},
+                        line: "watchReferences();"
+                    }
+                ]
+                };
+                results[testFolder + "test/test3.php"] = {matches: [
+                    {
+                        start: {line: 11, ch: 0},
+                        end: {line: 11, ch: 26},
+                        line: "watchReferences();"
+                    }
+                ]
+                };
+                expectReferences({
+                    numFiles: 2,
+                    numMatches: 3,
+                    allResultsAvailable: true,
+                    queryInfo: "watchparameterhint",
+                    keys: [testFolder + "test/test2.php", testFolder + "test/test3.php"],
+                    results: results
+                });
+            });
+        });
+
         it("should jump to earlier defined variable", function () {
             var start = { line: 4, ch: 2 };
 
@@ -493,6 +690,73 @@ define(function (require, exports, module) {
                 testEditor = EditorManager.getActiveEditor();
                 testEditor.setCursorPos(start);
                 editorJumped({line: 4, ch: 0, file: "test3.php"});
+            });
+        });
+
+        it("should fetch document symbols for a given file", function () {
+            waitsForDone(SpecRunnerUtils.openProjectFiles([testFile4]), "open test file: " + testFile4);
+            runs(function () {
+                var provider = SymbolProviders.DocumentSymbolsProvider,
+                    query = "@",
+                    expectedSymbols = [
+                        {
+                            "label": "constantValue",
+                            "fullPath": null,
+                            "type": "Constant",
+                            "scope": "MyClass"
+                        },
+                        {
+                            "label": "MyClass",
+                            "fullPath": null,
+                            "type": "Class",
+                            "scope": ""
+                        },
+                        {
+                            "label": "publicFunction",
+                            "fullPath": null,
+                            "type": "Method",
+                            "scope": "MyClass"
+                        },
+                        {
+                            "label": "publicValue",
+                            "fullPath": null,
+                            "type": "Property",
+                            "scope": "MyClass"
+                        }
+                    ];
+                expectSymbols(provider, query, expectedSymbols);
+            });
+        });
+
+        it("should fetch no document symbols for a given file", function () {
+            waitsForDone(SpecRunnerUtils.openProjectFiles([testFile1]), "open test file: " + testFile1);
+            runs(function () {
+                var provider = SymbolProviders.DocumentSymbolsProvider,
+                    query = "@",
+                    expectedSymbols = [];
+                expectSymbols(provider, query, expectedSymbols);
+            });
+        });
+
+        it("should fetch project symbols for a given file", function () {
+            runs(function () {
+                var provider = SymbolProviders.ProjectSymbolsProvider,
+                    query = "#as",
+                    expectedSymbols = [
+                        {
+                            "label": "MyClass",
+                            "fullPath": "test4.php",
+                            "type": "Class",
+                            "scope": ""
+                        },
+                        {
+                            "label": "TestCase",
+                            "fullPath": "test2.php",
+                            "type": "Class",
+                            "scope": "test"
+                        }
+                    ];
+                expectSymbols(provider, query, expectedSymbols);
             });
         });
     });

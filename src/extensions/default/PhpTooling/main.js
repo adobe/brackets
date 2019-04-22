@@ -30,11 +30,14 @@ define(function (require, exports, module) {
         EditorManager =  brackets.getModule("editor/EditorManager"),
         LanguageManager =  brackets.getModule("language/LanguageManager"),
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        QuickOpen = brackets.getModule("search/QuickOpen"),
         ParameterHintManager = brackets.getModule("features/ParameterHintsManager"),
         JumpToDefManager = brackets.getModule("features/JumpToDefManager"),
+        FindReferencesManager = brackets.getModule("features/FindReferencesManager"),
         CodeInspection = brackets.getModule("language/CodeInspection"),
         DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
         CodeHintsProvider = require("CodeHintsProvider").CodeHintsProvider,
+        SymbolProviders = require("PHPSymbolProviders").SymbolProviders,
         DefaultEventHandlers = brackets.getModule("languageTools/DefaultEventHandlers"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
@@ -61,7 +64,10 @@ define(function (require, exports, module) {
         chProvider,
         phProvider,
         lProvider,
-        jdProvider;
+        jdProvider,
+        dSymProvider,
+        pSymProvider,
+        refProvider;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -102,14 +108,43 @@ define(function (require, exports, module) {
         phProvider = new DefaultProviders.ParameterHintsProvider(_client),
         lProvider = new DefaultProviders.LintingProvider(_client),
         jdProvider = new DefaultProviders.JumpToDefProvider(_client);
+        dSymProvider = new SymbolProviders.DocumentSymbolsProvider(_client);
+        pSymProvider = new SymbolProviders.ProjectSymbolsProvider(_client);
+        refProvider = new DefaultProviders.ReferencesProvider(_client);
 
         JumpToDefManager.registerJumpToDefProvider(jdProvider, ["php"], 0);
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
+        FindReferencesManager.registerFindReferencesProvider(refProvider, ["php"], 0);
+        FindReferencesManager.setMenuItemStateForLanguage();
         CodeInspection.register(["php"], {
             name: "",
             scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)
         });
+        //Attach plugin for Document Symbols
+        QuickOpen.addQuickOpenPlugin({
+            name: "PHP Document Symbols",
+            label: Strings.CMD_FIND_DOCUMENT_SYMBOLS + "\u2026",
+            languageIds: ["php"],
+            search: dSymProvider.search.bind(dSymProvider),
+            match: dSymProvider.match.bind(dSymProvider),
+            itemFocus: dSymProvider.itemFocus.bind(dSymProvider),
+            itemSelect: dSymProvider.itemSelect.bind(dSymProvider),
+            resultsFormatter: dSymProvider.resultsFormatter.bind(dSymProvider)
+        });
+        CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(true);
+        //Attach plugin for Project Symbols
+        QuickOpen.addQuickOpenPlugin({
+            name: "PHP Project Symbols",
+            label: Strings.CMD_FIND_PROJECT_SYMBOLS + "\u2026",
+            languageIds: ["php"],
+            search: pSymProvider.search.bind(pSymProvider),
+            match: pSymProvider.match.bind(pSymProvider),
+            itemFocus: pSymProvider.itemFocus.bind(pSymProvider),
+            itemSelect: pSymProvider.itemSelect.bind(pSymProvider),
+            resultsFormatter: pSymProvider.resultsFormatter.bind(pSymProvider)
+        });
+        CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(true);
 
         _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
     }
