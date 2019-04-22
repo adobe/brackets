@@ -28,7 +28,7 @@ define(function (require, exports, module) {
         CommandManager              = require("command/CommandManager"),
         MainViewManager             = require("view/MainViewManager"),
         LanguageManager             = require("language/LanguageManager"),
-        DocumentManager     = require("document/DocumentManager"),
+        DocumentManager             = require("document/DocumentManager"),
         Commands                    = require("command/Commands"),
         EditorManager               = require("editor/EditorManager"),
         ProjectManager              = require("project/ProjectManager"),
@@ -206,5 +206,5 @@ define(function (require, exports, module) {
 
     exports.registerFindReferencesProvider    = registerFindReferencesProvider;
     exports.removeFindReferencesProvider      = removeFindReferencesProvider;
-    exports.setMenuItemStateForLanguage      = setMenuItemStateForLanguage;
+    exports.setMenuItemStateForLanguage       = setMenuItemStateForLanguage;
 });
