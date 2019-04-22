@@ -116,6 +116,7 @@ define(function (require, exports, module) {
         CodeHintManager.registerHintProvider(chProvider, ["php"], 0);
         ParameterHintManager.registerHintProvider(phProvider, ["php"], 0);
         FindReferencesManager.registerFindReferencesProvider(refProvider, ["php"], 0);
+        FindReferencesManager.setMenuItemStateForLanguage();
         CodeInspection.register(["php"], {
             name: "",
             scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)

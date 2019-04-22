@@ -26,8 +26,12 @@ define(function (require, exports, module) {
 
     var AppInit                     = require("utils/AppInit"),
         CommandManager              = require("command/CommandManager"),
+        MainViewManager             = require("view/MainViewManager"),
+        LanguageManager             = require("language/LanguageManager"),
+        DocumentManager             = require("document/DocumentManager"),
         Commands                    = require("command/Commands"),
         EditorManager               = require("editor/EditorManager"),
+        ProjectManager              = require("project/ProjectManager"),
         ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler,
         SearchResultsView           = require("search/SearchResultsView").SearchResultsView,
         SearchModel                 = require("search/SearchModel").SearchModel,
@@ -117,6 +121,58 @@ define(function (require, exports, module) {
         searchModel.clear();
     }
 
+    function setMenuItemStateForLanguage(languageId) {
+        CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
+        if (!languageId) {
+            var editor = EditorManager.getActiveEditor();
+            if (editor) {
+                languageId = LanguageManager.getLanguageForPath(editor.document.file._path).getId();
+            }
+        }
+        var enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(languageId),
+            referencesProvider;
+
+        enabledProviders.some(function (item, index) {
+            if (item.provider.hasReferences()) {
+                referencesProvider = item.provider;
+                return true;
+            }
+        });
+        if (referencesProvider) {
+            CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(true);
+        }
+
+    }
+
+    MainViewManager.on("currentFileChange", function (event, newFile, newPaneId, oldFile, oldPaneId) {
+        if (!newFile) {
+            CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
+            return;
+        }
+
+        var newFilePath = newFile.fullPath,
+            newLanguageId = LanguageManager.getLanguageForPath(newFilePath).getId();
+        setMenuItemStateForLanguage(newLanguageId);
+
+        DocumentManager.getDocumentForPath(newFilePath)
+            .done(function (newDoc) {
+                newDoc.on("languageChanged.reference-in-files", function () {
+                    var changedLanguageId = LanguageManager.getLanguageForPath(newDoc.file.fullPath).getId();
+                    setMenuItemStateForLanguage(changedLanguageId);
+                });
+            });
+
+        if (!oldFile) {
+            return;
+        }
+
+        var oldFilePath = oldFile.fullPath;
+        DocumentManager.getDocumentForPath(oldFilePath)
+            .done(function (oldDoc) {
+                oldDoc.off("languageChanged.reference-in-files");
+            });
+    });
+
     AppInit.htmlReady(function () {
         _resultsView = new SearchResultsView(
             searchModel,
@@ -141,8 +197,14 @@ define(function (require, exports, module) {
                 });
         }
     });
+
+    // Initialize: register listeners
+    ProjectManager.on("beforeProjectClose", function () { if (_resultsView) { _resultsView.close(); } });
+
     CommandManager.register(Strings.FIND_ALL_REFERENCES, Commands.CMD_FIND_ALL_REFERENCES, _openReferencesPanel);
+    CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
 
     exports.registerFindReferencesProvider    = registerFindReferencesProvider;
     exports.removeFindReferencesProvider      = removeFindReferencesProvider;
+    exports.setMenuItemStateForLanguage       = setMenuItemStateForLanguage;
 });
