@@ -20,14 +20,24 @@
 }
 
 #notification-bar #content-container {
-    padding: 10px 7px;
+    padding: 5px 10px;
     float: left;
     width: 100%;
 }
 
-#notification-bar #close-icon {
+#notification-bar #close-icon-container {
+    height: auto;
+    position: absolute;
+    float: right;
+    text-align: center;
+    width: auto;
+	min-width: 66px;
+	right: 20px;
+    top: 10px;
+}
+
+#notification-bar #close-icon-container #close-icon {
     display: block;
-    color: white;
     font-size: 18px;
     line-height: 18px;
     text-decoration: none;
@@ -39,19 +49,7 @@
 	float: right;
 }
 
-#notification-bar #close-icon:hover {
-    background-color: rgba(255, 255, 255 ,0.16);
-    border-radius: 50%;
+.dark #notification-bar #close-icon-container #close-icon {
+    color: #ccc;
 }
 
-#notification-bar #close-icon:focus {
-    background-color: rgba(255, 255, 255 ,0.16);
-    border-radius: 50%;
-    border: 1px solid #C3E3FF;
-    outline: 0;
-}
-
-#notification-bar #close-icon:focus:active {
-    background-color: rgba(255, 255, 255 ,0.32);
-    border: none;
-}

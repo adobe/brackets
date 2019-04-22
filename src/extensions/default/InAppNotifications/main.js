@@ -88,8 +88,7 @@ define(function (require, exports, module) {
                 default:
                     locale = "en";
                 }
-                //return brackets.config.notification_info_url.replace("<locale>", locale);
-                return "file://./users/swamitra/Desktop/notifications/<locale>.json".replace("<locale>", locale);
+                return brackets.config.notification_info_url.replace("<locale>", locale);
             }
         }
         // PRERELEASE_END
@@ -120,9 +119,6 @@ define(function (require, exports, module) {
         if ((new Date()).getTime() > lastInfoURLFetchTime + ONE_DAY) {
             fetchData = true;
         }
-
-        // For dev testing, to be removed
-        fetchData = true;
 
         if (fetchData) {
             var lookupPromise = new $.Deferred(),
@@ -263,7 +259,9 @@ define(function (require, exports, module) {
     function _checkExtensions(filters) {
         var allExtensions = ExtensionManager.extensions,
             allExtnsMatched = true,
-            userExtensionKeys = Object.keys(allExtensions).filter(function(k) { return allExtensions[k].installInfo.locationType === 'user'; });
+            userExtensionKeys = Object.keys(allExtensions).filter(function(k) {
+                return allExtensions[k].installInfo.locationType === 'user';
+            });
 
         if (!filters.extensions) {
             allExtnsMatched = userExtensionKeys.size === 0;
@@ -325,6 +323,12 @@ define(function (require, exports, module) {
     function showNotification(msgObj) {
         var $htmlContent = $(msgObj.html),
             $notificationBarElement = $(NotificationBarHtml);
+
+        // Remove any SCRIPT tag to avoid secuirity issues
+        $notificationBarElement.find('script').remove();
+
+        // Remove any STYLE tag to avoid styling impact on Brackets DOM
+        $notificationBarElement.find('style').remove();
 
         cleanNotificationBar(); //Remove an already existing notification bar, if any
         $notificationBarElement.prependTo(".content");
