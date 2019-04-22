@@ -122,9 +122,10 @@ define(function (require, exports, module) {
     }
 
     function setMenuItemStateForLanguage(languageId) {
-        if(!languageId) {
+        CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
+        if (!languageId) {
             var editor = EditorManager.getActiveEditor();
-            if(editor) {
+            if (editor) {
                 languageId = LanguageManager.getLanguageForPath(editor.document.file._path).getId();
             }
         }
@@ -137,8 +138,7 @@ define(function (require, exports, module) {
                 return true;
             }
         });
-        CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
-        if(referencesProvider) {
+        if (referencesProvider) {
             CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(true);
         }
 
@@ -173,7 +173,7 @@ define(function (require, exports, module) {
             });
     });
 
-    AppInit.appReady(function () {
+    AppInit.htmlReady(function () {
         _resultsView = new SearchResultsView(
             searchModel,
             "reference-in-files-results",
