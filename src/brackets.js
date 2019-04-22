@@ -141,7 +141,6 @@ define(function (require, exports, module) {
     //load language features
     require("features/ParameterHintsManager");
     require("features/JumpToDefManager");
-    require("features/FindReferencesManager");
 
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -155,6 +154,9 @@ define(function (require, exports, module) {
     require("help/HelpCommandHandlers");
     require("search/FindInFilesUI");
     require("search/FindReplace");
+
+    //Load find References Feature Manager
+    require("features/FindReferencesManager");
 
     //Load common JS module
     require("JSUtils/Session");
