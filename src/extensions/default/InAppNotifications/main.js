@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2019 - present Adobe. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,13 +29,9 @@ define(function (require, exports, module) {
     "use strict";
 
     var AppInit              = brackets.getModule("utils/AppInit"),
-        Dialogs              = brackets.getModule("widgets/Dialogs"),
-        DefaultDialogs       = brackets.getModule("widgets/DefaultDialogs"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         ExtensionManager     = brackets.getModule("extensibility/ExtensionManager"),
-        Strings              = brackets.getModule("strings"),
-        Mustache             = brackets.getModule("thirdparty/mustache/mustache"),
         HealthLogger         = brackets.getModule("utils/HealthLogger"),
         NotificationBarHtml  = require("text!htmlContent/notificationContainer.html");
 
@@ -44,9 +40,6 @@ define(function (require, exports, module) {
     // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
 
-    // duration of two minutes in milliseconds
-    var TWO_MINUTES = 1000 * 60 * 2;
-
     // Init default last notification number
     PreferencesManager.stateManager.definePreference("lastHandledNotificationNumber", "number", 0);
 
@@ -54,54 +47,28 @@ define(function (require, exports, module) {
     PreferencesManager.stateManager.definePreference("lastNotificationURLFetchTime", "number", 0);
 
     /**
-     * Construct a new version update url with the given locale.
+     * Constructs notification info URL for XHR
      *
-     * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
-     * @param {boolean=} removeCountryPartOfLocale - optional, remove existing country information from locale 'en-gb' => 'en'
-     * return {string} the new version update url
+     * @param {string=} localeParam - optional locale, defaults to 'brackets.getLocale()' when omitted.
+     * @returns {string} the new notification info url
      */
-    function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
+    function _getVersionInfoUrl(localeParam) {
 
-        locale = locale || brackets.getLocale();
+        var locale = localeParam || brackets.getLocale();
 
-        if (removeCountryPartOfLocale) {
+        if (locale.length > 2) {
             locale = locale.substring(0, 2);
         }
 
-        // PRERELEASE_BEGIN
-        // The following code is needed for supporting notifications in prerelease,
-        {
-            if (locale) {
-                if(locale.length > 2) {
-                    locale = locale.substring(0, 2);
-                }
-                switch(locale)  {
-                case "de":
-                    break;
-                case "es":
-                    break;
-                case "fr":
-                    break;
-                case "ja":
-                    break;
-                case "en":
-                default:
-                    locale = "en";
-                }
-                return brackets.config.notification_info_url.replace("<locale>", locale);
-            }
-        }
-        // PRERELEASE_END
-
-        return brackets.config.notification_info_url + '?locale=' + locale;
+        return brackets.config.notification_info_url.replace("<locale>", locale);
     }
 
     /**
      * Get a data structure that has information for all Brackets targeted notifications.
      *
-     * _versionInfoUrl is used for unit testing.
+     * _notificationInfoUrl is used for unit testing.
      */
-    function _getNotificationInformation(_versionInfoUrl) {
+    function _getNotificationInformation(_notificationInfoUrl) {
         // Last time the versionInfoURL was fetched
         var lastInfoURLFetchTime = PreferencesManager.getViewState("lastNotificationURLFetchTime");
 
@@ -116,56 +83,38 @@ define(function (require, exports, module) {
         }
 
         // If more than 24 hours have passed since our last fetch, fetch again
-        if ((new Date()).getTime() > lastInfoURLFetchTime + ONE_DAY) {
+        if (Date.now() > lastInfoURLFetchTime + ONE_DAY) {
             fetchData = true;
         }
 
         if (fetchData) {
             var lookupPromise = new $.Deferred(),
-                localVersionInfoUrl;
+                localNotificationInfoUrl;
 
             // If the current locale isn't "en" or "en-US", check whether we actually have a
-            //   locale-specific notification target, and fall back to "en" if not.
-            // Note: we check for both "en" and "en-US" to watch for the general case or
-            //    country-specific English locale.  The former appears default on Mac, while
-            //    the latter appears default on Windows.
+            // locale-specific notification target, and fall back to "en" if not.
             var locale = brackets.getLocale().toLowerCase();
             if (locale !== "en" && locale !== "en-us") {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
+                localNotificationInfoUrl = _notificationInfoUrl || _getVersionInfoUrl();
+                // Check if we can reach a locale specific notifications source
                 $.ajax({
-                    url: localVersionInfoUrl,
+                    url: localNotificationInfoUrl,
                     cache: false,
                     type: "HEAD"
                 }).fail(function (jqXHR, status, error) {
-                    // get rid of any country information from locale and try again
-                    var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
-                    if (tmpUrl !== localVersionInfoUrl) {
-                        $.ajax({
-                            url: tmpUrl,
-                            cache: false,
-                            type: "HEAD"
-                        }).fail(function (jqXHR, status, error) {
-                            localVersionInfoUrl = _getVersionInfoUrl("en");
-                        }).done(function (jqXHR, status, error) {
-                            localVersionInfoUrl = tmpUrl;
-                        }).always(function (jqXHR, status, error) {
-                            lookupPromise.resolve();
-                        });
-                    } else {
-                        localVersionInfoUrl = _getVersionInfoUrl("en");
-                        lookupPromise.resolve();
-                    }
-                }).done(function (jqXHR, status, error) {
+                    // Fallback to "en" locale
+                    localNotificationInfoUrl = _getVersionInfoUrl("en");
+                }).always(function (jqXHR, status, error) {
                     lookupPromise.resolve();
                 });
             } else {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
+                localNotificationInfoUrl = _notificationInfoUrl || _getVersionInfoUrl("en");
                 lookupPromise.resolve();
             }
 
             lookupPromise.done(function () {
                 $.ajax({
-                    url: localVersionInfoUrl,
+                    url: localNotificationInfoUrl,
                     dataType: "json",
                     cache: false
                 }).done(function (notificationInfo, textStatus, jqXHR) {
@@ -205,9 +154,8 @@ define(function (require, exports, module) {
      *
      * @return {$.Promise} jQuery Promise object that is resolved or rejected after the notification check is complete.
      */
-    function checkForNotification() {
+    function checkForNotification(versionInfoUrl) {
         var result = new $.Deferred();
-        var versionInfoUrl;
 
         _getNotificationInformation(versionInfoUrl)
             .done(function (notificationInfo) {
@@ -229,6 +177,8 @@ define(function (require, exports, module) {
                             // Break, we have acted on one notification already
                             return false;
                         }
+                        // Continue, we haven't yet got a notification to act on
+                        return true;
                     });
                 }
                 result.resolve();
@@ -331,17 +281,17 @@ define(function (require, exports, module) {
             $notificationBarElement = $(NotificationBarHtml);
 
         // Remove any SCRIPT tag to avoid secuirity issues
-        $notificationBarElement.find('script').remove();
+        $htmlContent.find('script').remove();
 
         // Remove any STYLE tag to avoid styling impact on Brackets DOM
-        $notificationBarElement.find('style').remove();
+        $htmlContent.find('style').remove();
 
         cleanNotificationBar(); //Remove an already existing notification bar, if any
         $notificationBarElement.prependTo(".content");
 
         var $notificationBar = $('#notification-bar'),
-            $notificationContent = $notificationBar.find('#content-container'),
-            $closeIcon = $notificationBar.find('#close-icon');
+            $notificationContent = $notificationBar.find('.content-container'),
+            $closeIcon = $notificationBar.find('.close-icon');
 
         $notificationContent.append($htmlContent);
         HealthLogger.sendAnalyticsData("notification", msgObj.sequence, "shown");
@@ -369,4 +319,6 @@ define(function (require, exports, module) {
         checkForNotification();
     });
 
+    // For unit tests only
+    exports.checkForNotification = checkForNotification;
 });

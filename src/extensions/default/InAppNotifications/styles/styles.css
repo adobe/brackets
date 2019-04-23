@@ -10,7 +10,7 @@
     left: 0px;
     bottom: 25px;
     outline: none;
-	overflow: hidden;
+    overflow: hidden;
     color: rgb(51, 51, 51);
     background: rgb(223, 226, 226);
 }
@@ -20,13 +20,13 @@
     background: #2c2c2c;
 }
 
-#notification-bar #content-container {
+#notification-bar .content-container {
     padding: 5px 10px;
     float: left;
     width: 100%;
 }
 
-#notification-bar #close-icon-container {
+#notification-bar .close-icon-container {
     height: auto;
     position: absolute;
     float: right;
@@ -37,7 +37,7 @@
     top: 10px;
 }
 
-#notification-bar #close-icon-container #close-icon {
+#notification-bar .close-icon-container .close-icon {
     display: block;
     font-size: 18px;
     line-height: 18px;
@@ -50,7 +50,7 @@
 	float: right;
 }
 
-.dark #notification-bar #close-icon-container #close-icon {
+.dark #notification-bar .close-icon-container .close-icon {
     color: #ccc;
 }
 
