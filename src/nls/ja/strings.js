@@ -880,7 +880,7 @@ define({
 
     ///String for Php Tooling Extensions
 	"PHP_VERSION_INVALID": "PHP バージョンを解析する際のエラーです。“php –version” コマンドの出力を確認してください。",
-	"PHP_UNSUPPORTED_VERSION": "コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールを有効化するために、PHP7 ランタイムをインストールします。検出されたバージョン: {0}",
+	"PHP_UNSUPPORTED_VERSION": "コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールを有効化するために、PHP7 ランタイムをインストールしてください。",
 	"PHP_EXECUTABLE_NOT_FOUND": "PHP ランタイムが見つかりません。PHP7 ランタイムをインストールして、PHP の環境設定で適切に “executablePath” を更新してください。これにより、コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールが有効になります。",
 	"PHP_PROCESS_SPAWN_ERROR": "PHP プロセスを起動中に、エラーコード {0} が発生しました。",
 	"PHP_SERVER_ERROR_TITLE": "エラー",
