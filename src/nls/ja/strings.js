@@ -419,6 +419,7 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義をクイック検索",
+	"CMD_GOTO_DEFINITION_PROJECT": "プロジェクトで定義をクイック検索",
 	"CMD_GOTO_FIRST_PROBLEM": "最初の問題に移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
@@ -879,7 +880,7 @@ define({
 
     ///String for Php Tooling Extensions
 	"PHP_VERSION_INVALID": "PHP バージョンを解析する際のエラーです。“php –version” コマンドの出力を確認してください。",
-	"PHP_UNSUPPORTED_VERSION": "コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールを有効化するために、PHP7 ランタイムをインストールします。検出されたバージョン: {0}",
+	"PHP_UNSUPPORTED_VERSION": "コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールを有効化するために、PHP7 ランタイムをインストールしてください。検出されたバージョン: {0}",
 	"PHP_EXECUTABLE_NOT_FOUND": "PHP ランタイムが見つかりません。PHP7 ランタイムをインストールして、PHP の環境設定で適切に “executablePath” を更新してください。これにより、コードヒント、パラメーターヒント、定義にジャンプなどの PHP 関連のツールが有効になります。",
 	"PHP_PROCESS_SPAWN_ERROR": "PHP プロセスを起動中に、エラーコード {0} が発生しました。",
 	"PHP_SERVER_ERROR_TITLE": "エラー",
@@ -888,5 +889,13 @@ define({
 	"OPEN_PREFERENNCES": "環境設定を開く",
 
     //Strings for LanguageTools Preferences
-	"LANGUAGE_TOOLS_PREFERENCES": "Preferences for Language Tools"
+	"LANGUAGE_TOOLS_PREFERENCES": "言語ツールの設定",
+
+	"FIND_ALL_REFERENCES": "すべての参照を検索",
+	"REFERENCES_IN_FILES": "参照",
+	"REFERENCE_IN_FILES": "参照",
+	"REFERENCES_NO_RESULTS": "現在のカーソル位置で利用可能な参照はありません",
+
+	"CMD_FIND_DOCUMENT_SYMBOLS": "ドキュメント記号を検索",
+	"CMD_FIND_PROJECT_SYMBOLS": "プロジェクト記号を検索"
 });
