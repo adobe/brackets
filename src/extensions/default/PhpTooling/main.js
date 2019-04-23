@@ -176,10 +176,18 @@ define(function (require, exports, module) {
     }
 
     function showErrorPopUp(err) {
+        if(!err) {
+            return;
+        }
+        var localizedErrStr = "";
         if (typeof (err) === "string") {
-            err = Strings[err];
+            localizedErrStr = Strings[err];
         } else {
-            err = StringUtils.format(Strings[err[0]], err[1]);
+            localizedErrStr = StringUtils.format(Strings[err[0]], err[1]);
+        }
+        if(!localizedErrStr) {
+            console.error("Php Tooling Error: " + err);
+            return;
         }
         var Buttons = [
             { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
@@ -190,7 +198,7 @@ define(function (require, exports, module) {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.PHP_SERVER_ERROR_TITLE,
-            err,
+            localizedErrStr,
             Buttons
         ).done(function (id) {
             if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
