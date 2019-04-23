@@ -214,16 +214,22 @@ define(function (require, exports, module) {
                 // Get all available notifications
                 var notifications = notificationInfo.notifications;
                 if (notifications && notifications.length > 0) {
-                    // Only show the notification overlay if the user hasn't been
-                    // alerted of this notification
-                    if (_checkNotificationValidity(notifications[0])) {
-                        if (notifications[0].silent) {
-                            // silent notifications, to gather user validity based on filters
-                            HealthLogger.sendAnalyticsData("notification", notifications[0].sequence, "handled");
-                        } else {
-                            showNotification(notifications[0]);
+                    // Iterate through notifications and act only on the most recent
+                    // applicable notification
+                    notifications.every(function(notificationObj) {
+                        // Only show the notification overlay if the user hasn't been
+                        // alerted of this notification
+                        if (_checkNotificationValidity(notificationObj)) {
+                            if (notificationObj.silent) {
+                                // silent notifications, to gather user validity based on filters
+                                HealthLogger.sendAnalyticsData("notification", notificationObj.sequence, "handled");
+                            } else {
+                                showNotification(notificationObj);
+                            }
+                            // Break, we have acted on one notification already
+                            return false;
                         }
-                    }
+                    });
                 }
                 result.resolve();
             })

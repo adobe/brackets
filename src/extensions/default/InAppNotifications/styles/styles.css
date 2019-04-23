@@ -4,6 +4,7 @@
     box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.53);
     padding: 5px 0px;
     width: 100%;
+    min-height: 39px;
     position: absolute;
     z-index: 16;
     left: 0px;
