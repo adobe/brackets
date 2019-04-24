@@ -24,11 +24,12 @@ define(function (require, exports, module) {
     "use strict";
 
     var LanguageTools = brackets.getModule("languageTools/LanguageTools"),
+        ClientLoader = brackets.getModule("languageTools/ClientLoader"),
         AppInit = brackets.getModule("utils/AppInit"),
         ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
         ProjectManager = brackets.getModule("project/ProjectManager"),
-        EditorManager =  brackets.getModule("editor/EditorManager"),
-        LanguageManager =  brackets.getModule("language/LanguageManager"),
+        EditorManager = brackets.getModule("editor/EditorManager"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         QuickOpen = brackets.getModule("search/QuickOpen"),
         ParameterHintManager = brackets.getModule("features/ParameterHintsManager"),
@@ -39,13 +40,13 @@ define(function (require, exports, module) {
         CodeHintsProvider = require("CodeHintsProvider").CodeHintsProvider,
         SymbolProviders = require("PHPSymbolProviders").SymbolProviders,
         DefaultEventHandlers = brackets.getModule("languageTools/DefaultEventHandlers"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        Strings             = brackets.getModule("strings"),
-        Dialogs             = brackets.getModule("widgets/Dialogs"),
-        DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
-        Commands               = brackets.getModule("command/Commands"),
-        CommandManager         = brackets.getModule("command/CommandManager"),
-        StringUtils             = brackets.getModule("utils/StringUtils");
+        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
+        Strings = brackets.getModule("strings"),
+        Dialogs = brackets.getModule("widgets/Dialogs"),
+        DefaultDialogs = brackets.getModule("widgets/DefaultDialogs"),
+        Commands = brackets.getModule("command/Commands"),
+        CommandManager = brackets.getModule("command/CommandManager"),
+        StringUtils = brackets.getModule("utils/StringUtils");
 
     var clientFilePath = ExtensionUtils.getModulePath(module, "client.js"),
         clientName = "PhpClient",
@@ -57,7 +58,7 @@ define(function (require, exports, module) {
             memoryLimit: "4095M",
             validateOnType: "false"
         },
-        DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView",
+        DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW = "debug.openPrefsInSplitView",
         phpServerRunning = false,
         serverCapabilities,
         currentRootPath,
@@ -79,8 +80,8 @@ define(function (require, exports, module) {
         if (lProvider && newPhpConfig["validateOnType"] !== phpConfig["validateOnType"]) {
             lProvider._validateOnType = !(newPhpConfig["validateOnType"] === "false");
         }
-        if ((newPhpConfig["executablePath"] !== phpConfig["executablePath"])
-                || (newPhpConfig["enablePhpTooling"] !== phpConfig["enablePhpTooling"])) {
+        if ((newPhpConfig["executablePath"] !== phpConfig["executablePath"]) ||
+            (newPhpConfig["enablePhpTooling"] !== phpConfig["enablePhpTooling"])) {
             phpConfig = newPhpConfig;
             runPhpServer();
             return;
@@ -90,7 +91,7 @@ define(function (require, exports, module) {
 
     var handleProjectOpen = function (event, directory) {
         lProvider.clearExistingResults();
-        if(serverCapabilities["workspace"] && serverCapabilities["workspace"]["workspaceFolders"]) {
+        if (serverCapabilities["workspace"] && serverCapabilities["workspace"]["workspaceFolders"]) {
             _client.notifyProjectRootsChanged({
                 foldersAdded: [directory.fullPath],
                 foldersRemoved: [currentRootPath]
@@ -105,9 +106,9 @@ define(function (require, exports, module) {
 
     function registerToolingProviders() {
         chProvider = new CodeHintsProvider(_client),
-        phProvider = new DefaultProviders.ParameterHintsProvider(_client),
-        lProvider = new DefaultProviders.LintingProvider(_client),
-        jdProvider = new DefaultProviders.JumpToDefProvider(_client);
+            phProvider = new DefaultProviders.ParameterHintsProvider(_client),
+            lProvider = new DefaultProviders.LintingProvider(_client),
+            jdProvider = new DefaultProviders.JumpToDefProvider(_client);
         dSymProvider = new SymbolProviders.DocumentSymbolsProvider(_client);
         pSymProvider = new SymbolProviders.ProjectSymbolsProvider(_client);
         refProvider = new DefaultProviders.ReferencesProvider(_client);
@@ -176,7 +177,7 @@ define(function (require, exports, module) {
     }
 
     function showErrorPopUp(err) {
-        if(!err) {
+        if (!err) {
             return;
         }
         var localizedErrStr = "";
@@ -185,15 +186,21 @@ define(function (require, exports, module) {
         } else {
             localizedErrStr = StringUtils.format(Strings[err[0]], err[1]);
         }
-        if(!localizedErrStr) {
+        if (!localizedErrStr) {
             console.error("Php Tooling Error: " + err);
             return;
         }
         var Buttons = [
-            { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
-                text: Strings.CANCEL },
-            { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_DOWNLOAD,
-                text: Strings.OPEN_PREFERENNCES}
+            {
+                className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                id: Dialogs.DIALOG_BTN_CANCEL,
+                text: Strings.CANCEL
+            },
+            {
+                className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                id: Dialogs.DIALOG_BTN_DOWNLOAD,
+                text: Strings.OPEN_PREFERENNCES
+            }
         ];
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
@@ -239,7 +246,13 @@ define(function (require, exports, module) {
                         serverCapabilities = result.capabilities;
                         handlePostPhpServerStart();
                     });
-                }).fail(showErrorPopUp);
+                }).fail(function (err) {
+                    showErrorPopUp(err);
+                    //Retry on next active editor change
+                    EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
+                    LanguageManager.on("languageModified.php", languageModifiedHandler);
+                    activeEditorChangeHandler(null, EditorManager.getActiveEditor());
+                });
         }
     }
 
@@ -262,15 +275,28 @@ define(function (require, exports, module) {
         }
     }
 
+    function initiateService() {
+        if (!phpServerRunning) {
+            LanguageTools.initiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
+                _client = client;
+                //Attach only once
+                EditorManager.off("activeEditorChange.php");
+                EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
+                //Attach only once
+                LanguageManager.off("languageModified.php");
+                LanguageManager.on("languageModified.php", languageModifiedHandler);
+                activeEditorChangeHandler(null, EditorManager.getActiveEditor());
+            });
+        }
+    }
+
     AppInit.appReady(function () {
-        LanguageTools.initiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
-            _client = client;
-            EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
-            LanguageManager.on("languageModified.php", languageModifiedHandler);
-            activeEditorChangeHandler(null, EditorManager.getActiveEditor());
-        });
+        initiateService();
+        ClientLoader.on("clientsReloaded", initiateService);
     });
 
     //Only for Unit testing
-    exports.getClient = function() { return _client; };
+    exports.getClient = function () {
+        return _client;
+    };
 });

@@ -29,8 +29,10 @@ define(function (require, exports, module) {
     var ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json")),
         NodeDomain = require("utils/NodeDomain"),
         FileUtils = require("file/FileUtils"),
+        EventDispatcher = require("utils/EventDispatcher"),
         BracketsToNodeInterface = require("languageTools/BracketsToNodeInterface").BracketsToNodeInterface;
 
+    EventDispatcher.makeEventDispatcher(exports);
     //Register paths required for Language Client and also register default brackets capabilities.
     var _bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
     // The native directory path ends with either "test" or "src".
@@ -39,21 +41,13 @@ define(function (require, exports, module) {
     var _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath = "node/RegisterLanguageClientInfo",
         _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath),
-        //Init node with Information required by Language Client
-        clientInfoLoadedPromise = clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo),
+        clientInfoDomain = null,
+        clientInfoLoadedPromise = null,
         //Clients that have to be loaded once the LanguageClient info is successfully loaded on the
         //node side.
-        pendingClientsToBeLoaded = [];
-
-    //Attach success and failure function for the clientInfoLoadedPromise
-    clientInfoLoadedPromise.then(function () {
-        pendingClientsToBeLoaded.forEach(function (pendingClient) {
-            pendingClient.load();
-        });
-    }, function () {
-        console.log("Failed to Initialize LanguageClient Module Information.");
-    });
+        pendingClientsToBeLoaded = [],
+        //list of the client which have to be loaded
+        clientMap = {};
 
     function syncPrefsWithDomain(languageToolsPrefs) {
         if (clientInfoDomain) {
@@ -110,8 +104,9 @@ define(function (require, exports, module) {
     function initiateLanguageClient(clientName, clientFilePath) {
         var result = $.Deferred();
 
+        clientMap[clientName] = clientFilePath;
         //Only load clients after the LanguageClient Info has been initialized
-        if (clientInfoLoadedPromise.state() === "pending") {
+        if (!clientInfoLoadedPromise || clientInfoLoadedPromise.state() === "pending") {
             var pendingClient = {
                 load: _clientLoader.bind(null, clientName, clientFilePath, result)
             };
@@ -122,6 +117,34 @@ define(function (require, exports, module) {
 
         return result;
     }
+
+    function sendLanguageClientInfo() {
+        //Init node with Information required by Language Client
+        clientInfoLoadedPromise = clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
+
+        //Attach success and failure function for the clientInfoLoadedPromise
+        clientInfoLoadedPromise.then(function () {
+            if (Array.isArray(pendingClientsToBeLoaded)) {
+                pendingClientsToBeLoaded.forEach(function (pendingClient) {
+                    pendingClient.load();
+                });
+            } else {
+                //the node process might have restarted, so try loading all the clients again
+//                console.log("Reloading clients due to Node process crash...");
+//                var clients = Object.keys(clientMap);
+//                clients.forEach(function (client) {
+//                    var clientPromise = $.Deferred();
+//                    _clientLoader(client, clientMap[client], clientPromise);
+//                });
+                exports.trigger("clientsReloaded");
+            }
+            pendingClientsToBeLoaded = null;
+        }, function () {
+            console.error("Failed to Initialize LanguageClient Module Information.");
+        });
+    }
+    clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
+    clientInfoDomain.on("requestLanguageClientInfo", sendLanguageClientInfo);
 
     exports.initiateLanguageClient = initiateLanguageClient;
     exports.syncPrefsWithDomain = syncPrefsWithDomain;
