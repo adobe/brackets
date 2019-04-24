@@ -276,18 +276,18 @@ define(function (require, exports, module) {
     }
 
     function initiateService() {
-        if (!phpServerRunning) {
-            LanguageTools.initiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
-                _client = client;
-                //Attach only once
-                EditorManager.off("activeEditorChange.php");
-                EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
-                //Attach only once
-                LanguageManager.off("languageModified.php");
-                LanguageManager.on("languageModified.php", languageModifiedHandler);
-                activeEditorChangeHandler(null, EditorManager.getActiveEditor());
-            });
-        }
+        console.log("Php tooling: Starting the service");
+        phpServerRunning = false;
+        LanguageTools.initiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
+            _client = client;
+            //Attach only once
+            EditorManager.off("activeEditorChange.php");
+            EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
+            //Attach only once
+            LanguageManager.off("languageModified.php");
+            LanguageManager.on("languageModified.php", languageModifiedHandler);
+            activeEditorChangeHandler(null, EditorManager.getActiveEditor());
+        });
     }
 
     AppInit.appReady(function () {
