@@ -285,18 +285,18 @@ function init(domainManager) {
         ],
         []
     );
-    
+
     domainManager.registerEvent(
         domainName,
         "requestLanguageClientInfo",
-        []
+        [] //no parameters
     );
-    
+
     function requestInfo() {
         domainManager.emitEvent(domainName, "requestLanguageClientInfo", []);
     }
     //Allow the handler enough time to get registered on Brackets side.
-    setTimeout(requestInfo, 500); 
+    setTimeout(requestInfo, 250);
 }
 
 exports.init = init;

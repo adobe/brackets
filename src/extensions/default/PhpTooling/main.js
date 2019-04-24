@@ -62,13 +62,14 @@ define(function (require, exports, module) {
         phpServerRunning = false,
         serverCapabilities,
         currentRootPath,
-        chProvider,
-        phProvider,
-        lProvider,
-        jdProvider,
-        dSymProvider,
-        pSymProvider,
-        refProvider;
+        chProvider = null,
+        phProvider = null,
+        lProvider = null,
+        jdProvider = null,
+        dSymProvider = null,
+        pSymProvider = null,
+        refProvider = null,
+        providersRegistered = false;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -104,11 +105,22 @@ define(function (require, exports, module) {
         }
     };
 
+    function resetClientInProviders() {
+        var logErr = "PhpTooling: Can't reset client for : ";
+        chProvider ? chProvider.setClient(_client) : console.log(logErr, "CodeHintsProvider");
+        phProvider ? phProvider.setClient(_client) : console.log(logErr, "ParameterHintsProvider");
+        lProvider ? lProvider.setClient(_client) : console.log(logErr, "LintingProvider");
+        jdProvider ? jdProvider.setClient(_client) : console.log(logErr, "JumpToDefProvider");
+        dSymProvider ? dSymProvider.setClient(_client) : console.log(logErr, "DocumentSymbolsProvider");
+        pSymProvider ? pSymProvider.setClient(_client) : console.log(logErr, "ProjectSymbolsProvider");
+        refProvider ? refProvider.setClient(_client) : console.log(logErr, "FindReferencesProvider");
+    }
+
     function registerToolingProviders() {
         chProvider = new CodeHintsProvider(_client),
-            phProvider = new DefaultProviders.ParameterHintsProvider(_client),
-            lProvider = new DefaultProviders.LintingProvider(_client),
-            jdProvider = new DefaultProviders.JumpToDefProvider(_client);
+        phProvider = new DefaultProviders.ParameterHintsProvider(_client),
+        lProvider = new DefaultProviders.LintingProvider(_client),
+        jdProvider = new DefaultProviders.JumpToDefProvider(_client);
         dSymProvider = new SymbolProviders.DocumentSymbolsProvider(_client);
         pSymProvider = new SymbolProviders.ProjectSymbolsProvider(_client);
         refProvider = new DefaultProviders.ReferencesProvider(_client);
@@ -148,6 +160,8 @@ define(function (require, exports, module) {
         CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(true);
 
         _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
+
+        providersRegistered = true;
     }
 
     function addEventHandlers() {
@@ -221,7 +235,13 @@ define(function (require, exports, module) {
     function handlePostPhpServerStart() {
         if (!phpServerRunning) {
             phpServerRunning = true;
-            registerToolingProviders();
+
+            if (providersRegistered) {
+                resetClientInProviders();
+            } else {
+                registerToolingProviders();
+            }
+
             addEventHandlers();
             EditorManager.off("activeEditorChange.php");
             LanguageManager.off("languageModified.php");
@@ -275,8 +295,13 @@ define(function (require, exports, module) {
         }
     }
 
-    function initiateService() {
-        console.log("Php tooling: Starting the service");
+    function initiateService(onAppReady) {
+        if (onAppReady) {
+            console.log("Php tooling: Starting the service");
+        } else {
+            console.log("Php tooling: Something went wrong. Restarting the service");
+        }
+
         phpServerRunning = false;
         LanguageTools.initiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
             _client = client;
@@ -291,8 +316,8 @@ define(function (require, exports, module) {
     }
 
     AppInit.appReady(function () {
-        initiateService();
-        ClientLoader.on("clientsReloaded", initiateService);
+        initiateService(true);
+        ClientLoader.on("languageClientModuleInitialized", initiateService);
     });
 
     //Only for Unit testing

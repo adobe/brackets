@@ -45,9 +45,7 @@ define(function (require, exports, module) {
         clientInfoLoadedPromise = null,
         //Clients that have to be loaded once the LanguageClient info is successfully loaded on the
         //node side.
-        pendingClientsToBeLoaded = [],
-        //list of the client which have to be loaded
-        clientMap = {};
+        pendingClientsToBeLoaded = [];
 
     function syncPrefsWithDomain(languageToolsPrefs) {
         if (clientInfoDomain) {
@@ -104,7 +102,6 @@ define(function (require, exports, module) {
     function initiateLanguageClient(clientName, clientFilePath) {
         var result = $.Deferred();
 
-        clientMap[clientName] = clientFilePath;
         //Only load clients after the LanguageClient Info has been initialized
         if (!clientInfoLoadedPromise || clientInfoLoadedPromise.state() === "pending") {
             var pendingClient = {
@@ -129,14 +126,7 @@ define(function (require, exports, module) {
                     pendingClient.load();
                 });
             } else {
-                //the node process might have restarted, so try loading all the clients again
-//                console.log("Reloading clients due to Node process crash...");
-//                var clients = Object.keys(clientMap);
-//                clients.forEach(function (client) {
-//                    var clientPromise = $.Deferred();
-//                    _clientLoader(client, clientMap[client], clientPromise);
-//                });
-                exports.trigger("clientsReloaded");
+                exports.trigger("languageClientModuleInitialized");
             }
             pendingClientsToBeLoaded = null;
         }, function () {
