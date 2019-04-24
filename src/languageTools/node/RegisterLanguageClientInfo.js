@@ -229,7 +229,11 @@ function syncPreferences(prefs) {
     global.LanguageClientInfo.preferences = prefs || global.LanguageClientInfo.preferences || {};
 }
 
-function initialize(bracketsSourcePath, toolingInfo) {
+function initialize(bracketsSourcePath, toolingInfo, resolve) {
+    if (!bracketsSourcePath || !toolingInfo) {
+        resolve(true, null); //resolve with err param
+    }
+    
     var normalizedBracketsSourcePath = bracketsSourcePath.split(BACKWARD_SLASH).join(FORWARD_SLASH),
         bracketsSourcePathArray = normalizedBracketsSourcePath.split(FORWARD_SLASH),
         languageClientAbsolutePath = bracketsSourcePathArray.concat(LANGUAGE_CLIENT_RELATIVE_PATH_ARRAY).join(FORWARD_SLASH);
@@ -239,6 +243,8 @@ function initialize(bracketsSourcePath, toolingInfo) {
     global.LanguageClientInfo.defaultBracketsCapabilities = defaultBracketsCapabilities;
     global.LanguageClientInfo.toolingInfo = toolingInfo;
     global.LanguageClientInfo.preferences = {};
+    
+    resolve(null, true); //resolve with boolean denoting success
 }
 
 function init(domainManager) {
@@ -253,7 +259,7 @@ function init(domainManager) {
         domainName,
         "initialize",
         initialize,
-        false,
+        true,
         "Initialize node environment for Language Client Module",
         [
             {
@@ -285,18 +291,6 @@ function init(domainManager) {
         ],
         []
     );
-
-    domainManager.registerEvent(
-        domainName,
-        "requestLanguageClientInfo",
-        [] //no parameters
-    );
-
-    function requestInfo() {
-        domainManager.emitEvent(domainName, "requestLanguageClientInfo", []);
-    }
-    //Allow the handler enough time to get registered on Brackets side.
-    setTimeout(requestInfo, 500);
 }
 
 exports.init = init;

@@ -115,12 +115,27 @@ define(function (require, exports, module) {
         return result;
     }
 
+    /**
+     * This function passes Brackets's native directory path as well as the tooling commands
+     * required by the LanguageClient node module. This information is then maintained in memory
+     * in the node process server for succesfully loading and functioning of all language clients
+     * since it is a direct dependency.
+     */
     function sendLanguageClientInfo() {
         //Init node with Information required by Language Client
         clientInfoLoadedPromise = clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
 
+        function logInitializationError() {
+            console.error("Failed to Initialize LanguageClient Module Information.");
+        }
+
         //Attach success and failure function for the clientInfoLoadedPromise
-        clientInfoLoadedPromise.then(function () {
+        clientInfoLoadedPromise.then(function (success) {
+            if (!success) {
+                logInitializationError();
+                return;
+            }
+
             if (Array.isArray(pendingClientsToBeLoaded)) {
                 pendingClientsToBeLoaded.forEach(function (pendingClient) {
                     pendingClient.load();
@@ -130,11 +145,34 @@ define(function (require, exports, module) {
             }
             pendingClientsToBeLoaded = null;
         }, function () {
-            console.error("Failed to Initialize LanguageClient Module Information.");
+            logInitializationError();
         });
     }
-    clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
-    clientInfoDomain.on("requestLanguageClientInfo", sendLanguageClientInfo);
+
+    /**
+     * This function starts a domain which initializes the LanguageClient node module
+     * required by the Language Server Protocol framework in Brackets. All the LSP clients
+     * can only be successfully initiated once this domain has been successfully loaded and
+     * the LanguageClient info initialized. Refer to sendLanguageClientInfo for more.
+     */
+    function initDomainAndHandleNodeCrash() {
+        clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
+        //Initialize LanguageClientInfo once the domain has successfully loaded.
+        clientInfoDomain.promise().done(function () {
+            sendLanguageClientInfo();
+            //This is to handle the node failure. If the node process dies, we get an on close
+            //event on the websocket connection object. Brackets then spawns another process and
+            //restablishes the connection. Once the connection is restablished we send reinitialize
+            //the LanguageClient info.
+            clientInfoDomain.connection.on("close", function (event, reconnectedPromise) {
+                reconnectedPromise.done(sendLanguageClientInfo);
+            });
+        }).fail(function (err) {
+            console.error("ClientInfo domain could not be loaded: ", err);
+        });
+    }
+    initDomainAndHandleNodeCrash();
+
 
     exports.initiateLanguageClient = initiateLanguageClient;
     exports.syncPrefsWithDomain = syncPrefsWithDomain;
