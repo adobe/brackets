@@ -652,9 +652,9 @@ define({
 	"HEALTH_DATA_NOTIFICATION": "Health Report Preferences",
 	"HEALTH_FIRST_POPUP_TITLE": "{APP_NAME} の正常性レポート",
 	"HEALTH_DATA_DO_TRACK": "{APP_NAME} の使用方法に関する偽名情報を共有します",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>偽名</strong>の統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<br><br><strong>ヘルプ／正常性レポート</strong>から、お客様のデータの確認またはデータの非共有の選択をすることができます。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポートに関する詳細情報</a>",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "In order to improve {APP_NAME}, we periodically send limited, <strong>pseudonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Project-Health-Data'>Learn more about {APP_NAME} Health Report</a>",
 	"HEALTH_DATA_PREVIEW": "{APP_NAME} の正常性レポート",
-	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>偽名</strong>の統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>についての詳細およびレポートがお客様のプライバシーを保護した上でどのように {APP_NAME} コミュニティに役立つかをご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em> </p>",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>In order to improve {APP_NAME}, we periodically send limited, <strong>pseudonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Project-Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
