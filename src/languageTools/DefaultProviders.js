@@ -109,49 +109,51 @@ define(function (require, exports, module) {
             $deferredHints = $.Deferred(),
             self = this;
 
-        this.client.requestHints({
-            filePath: docPath,
-            cursorPos: pos
-        }).done(function (msgObj) {
-            var context = TokenUtils.getInitialContext(editor._codeMirror, pos),
-                hints = [];
+        setTimeout(function(){
+            self.client.requestHints({
+                filePath: docPath,
+                cursorPos: pos
+            }).done(function (msgObj) {
+                var context = TokenUtils.getInitialContext(editor._codeMirror, pos),
+                    hints = [];
 
-            self.query = context.token.string.slice(0, context.pos.ch - context.token.start);
-            if (msgObj) {
-                var res = msgObj.items,
-                    filteredHints = filterWithQueryAndMatcher(res, self.query);
+                self.query = context.token.string.slice(0, context.pos.ch - context.token.start);
+                if (msgObj) {
+                    var res = msgObj.items,
+                        filteredHints = filterWithQueryAndMatcher(res, self.query);
 
-                StringMatch.basicMatchSort(filteredHints);
-                filteredHints.forEach(function (element) {
-                    var $fHint = $("<span>")
-                        .addClass("brackets-hints");
+                    StringMatch.basicMatchSort(filteredHints);
+                    filteredHints.forEach(function (element) {
+                        var $fHint = $("<span>")
+                            .addClass("brackets-hints");
 
-                    if (element.stringRanges) {
-                        element.stringRanges.forEach(function (item) {
-                            if (item.matched) {
-                                $fHint.append($("<span>")
-                                    .append(_.escape(item.text))
-                                    .addClass("matched-hint"));
-                            } else {
-                                $fHint.append(_.escape(item.text));
-                            }
-                        });
-                    } else {
-                        $fHint.text(element.label);
-                    }
+                        if (element.stringRanges) {
+                            element.stringRanges.forEach(function (item) {
+                                if (item.matched) {
+                                    $fHint.append($("<span>")
+                                        .append(_.escape(item.text))
+                                        .addClass("matched-hint"));
+                                } else {
+                                    $fHint.append(_.escape(item.text));
+                                }
+                            });
+                        } else {
+                            $fHint.text(element.label);
+                        }
 
-                    $fHint.data("token", element);
-                    formatTypeDataForToken($fHint, element);
-                    hints.push($fHint);
+                        $fHint.data("token", element);
+                        formatTypeDataForToken($fHint, element);
+                        hints.push($fHint);
+                    });
+                }
+
+                $deferredHints.resolve({
+                    "hints": hints
                 });
-            }
-
-            $deferredHints.resolve({
-                "hints": hints
+            }).fail(function () {
+                $deferredHints.reject();
             });
-        }).fail(function () {
-            $deferredHints.reject();
-        });
+        }, 0);
 
         return $deferredHints;
     };
@@ -218,46 +220,48 @@ define(function (require, exports, module) {
         var editor = EditorManager.getActiveEditor(),
             pos = editor.getCursorPos(),
             docPath = editor.document.file._path,
-            $deferredHints = $.Deferred();
+            $deferredHints = $.Deferred(),
+            client = this.client;
 
-        this.client.requestParameterHints({
-            filePath: docPath,
-            cursorPos: pos
-        }).done(function (msgObj) {
-            let paramList = [];
-            let label;
-            let activeParameter;
-            if (msgObj) {
-                let res;
-                res = msgObj.signatures;
-                activeParameter = msgObj.activeParameter;
-                if (res && res.length) {
-                    res.forEach(function (element) {
-                        label = element.documentation;
-                        let param = element.parameters;
-                        param.forEach(ele => {
-                            paramList.push({
-                                label: ele.label,
-                                documentation: ele.documentation
+        setTimeout(function(){
+            client.requestParameterHints({
+                filePath: docPath,
+                cursorPos: pos
+            }).done(function (msgObj) {
+                let paramList = [];
+                let label;
+                let activeParameter;
+                if (msgObj) {
+                    let res;
+                    res = msgObj.signatures;
+                    activeParameter = msgObj.activeParameter;
+                    if (res && res.length) {
+                        res.forEach(function (element) {
+                            label = element.documentation;
+                            let param = element.parameters;
+                            param.forEach(ele => {
+                                paramList.push({
+                                    label: ele.label,
+                                    documentation: ele.documentation
+                                });
                             });
                         });
-                    });
 
-                    $deferredHints.resolve({
-                        parameters: paramList,
-                        currentIndex: activeParameter,
-                        functionDocumentation: label
-                    });
+                        $deferredHints.resolve({
+                            parameters: paramList,
+                            currentIndex: activeParameter,
+                            functionDocumentation: label
+                        });
+                    } else {
+                        $deferredHints.reject();
+                    }
                 } else {
                     $deferredHints.reject();
                 }
-            } else {
+            }).fail(function () {
                 $deferredHints.reject();
-            }
-        }).fail(function () {
-            $deferredHints.reject();
-        });
-
+            });
+        }, 0);
         return $deferredHints;
     };
 

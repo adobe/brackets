@@ -87,11 +87,13 @@ define(function (require, exports, module) {
             pos = editor.getCursorPos(),
             docPath = editor.document.file._path,
             $deferredHints = $.Deferred(),
-            self = this.defaultCodeHintProviders;
+            self = this.defaultCodeHintProviders,
+            client = this.defaultCodeHintProviders.client;
 
-        this.defaultCodeHintProviders.client.requestHints({
-            filePath: docPath,
-            cursorPos: pos
+        setTimeout(function(){
+            client.requestHints({
+                filePath: docPath,
+                cursorPos: pos
         }).done(function (msgObj) {
             var context = TokenUtils.getInitialContext(editor._codeMirror, pos),
                 hints = [];
@@ -157,6 +159,7 @@ define(function (require, exports, module) {
         }).fail(function () {
             $deferredHints.reject();
         });
+        }, 0);
 
         return $deferredHints;
     };
