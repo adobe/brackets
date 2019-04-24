@@ -109,11 +109,12 @@ define(function (require, exports, module) {
         var logErr = "PhpTooling: Can't reset client for : ";
         chProvider ? chProvider.setClient(_client) : console.log(logErr, "CodeHintsProvider");
         phProvider ? phProvider.setClient(_client) : console.log(logErr, "ParameterHintsProvider");
-        lProvider ? lProvider.setClient(_client) : console.log(logErr, "LintingProvider");
         jdProvider ? jdProvider.setClient(_client) : console.log(logErr, "JumpToDefProvider");
         dSymProvider ? dSymProvider.setClient(_client) : console.log(logErr, "DocumentSymbolsProvider");
         pSymProvider ? pSymProvider.setClient(_client) : console.log(logErr, "ProjectSymbolsProvider");
         refProvider ? refProvider.setClient(_client) : console.log(logErr, "FindReferencesProvider");
+        lProvider ? lProvider.setClient(_client) : console.log(logErr, "LintingProvider");
+        _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
     }
 
     function registerToolingProviders() {
@@ -266,13 +267,7 @@ define(function (require, exports, module) {
                         serverCapabilities = result.capabilities;
                         handlePostPhpServerStart();
                     });
-                }).fail(function (err) {
-                    showErrorPopUp(err);
-                    //Retry on next active editor change
-                    EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
-                    LanguageManager.on("languageModified.php", languageModifiedHandler);
-                    activeEditorChangeHandler(null, EditorManager.getActiveEditor());
-                });
+                }).fail(showErrorPopUp);
         }
     }
 

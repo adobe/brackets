@@ -296,7 +296,7 @@ function init(domainManager) {
         domainManager.emitEvent(domainName, "requestLanguageClientInfo", []);
     }
     //Allow the handler enough time to get registered on Brackets side.
-    setTimeout(requestInfo, 250);
+    setTimeout(requestInfo, 500);
 }
 
 exports.init = init;
