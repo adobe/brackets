@@ -24,6 +24,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var LanguageTools = brackets.getModule("languageTools/LanguageTools"),
+        ClientLoader = brackets.getModule("languageTools/ClientLoader"),
         AppInit = brackets.getModule("utils/AppInit"),
         ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
         ProjectManager = brackets.getModule("project/ProjectManager"),
@@ -61,13 +62,14 @@ define(function (require, exports, module) {
         phpServerRunning = false,
         serverCapabilities,
         currentRootPath,
-        chProvider,
-        phProvider,
-        lProvider,
-        jdProvider,
-        dSymProvider,
-        pSymProvider,
-        refProvider;
+        chProvider = null,
+        phProvider = null,
+        lProvider = null,
+        jdProvider = null,
+        dSymProvider = null,
+        pSymProvider = null,
+        refProvider = null,
+        providersRegistered = false;
 
     PreferencesManager.definePreference("php", "object", phpConfig, {
         description: Strings.DESCRIPTION_PHP_TOOLING_CONFIGURATION
@@ -102,6 +104,18 @@ define(function (require, exports, module) {
             }).done(handlePostPhpServerStart);
         }
     };
+
+    function resetClientInProviders() {
+        var logErr = "PhpTooling: Can't reset client for : ";
+        chProvider ? chProvider.setClient(_client) : console.log(logErr, "CodeHintsProvider");
+        phProvider ? phProvider.setClient(_client) : console.log(logErr, "ParameterHintsProvider");
+        jdProvider ? jdProvider.setClient(_client) : console.log(logErr, "JumpToDefProvider");
+        dSymProvider ? dSymProvider.setClient(_client) : console.log(logErr, "DocumentSymbolsProvider");
+        pSymProvider ? pSymProvider.setClient(_client) : console.log(logErr, "ProjectSymbolsProvider");
+        refProvider ? refProvider.setClient(_client) : console.log(logErr, "FindReferencesProvider");
+        lProvider ? lProvider.setClient(_client) : console.log(logErr, "LintingProvider");
+        _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
+    }
 
     function registerToolingProviders() {
         chProvider = new CodeHintsProvider(_client),
@@ -147,6 +161,8 @@ define(function (require, exports, module) {
         CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION_PROJECT).setEnabled(true);
 
         _client.addOnCodeInspection(lProvider.setInspectionResults.bind(lProvider));
+
+        providersRegistered = true;
     }
 
     function addEventHandlers() {
@@ -214,7 +230,13 @@ define(function (require, exports, module) {
     function handlePostPhpServerStart() {
         if (!phpServerRunning) {
             phpServerRunning = true;
-            registerToolingProviders();
+
+            if (providersRegistered) {
+                resetClientInProviders();
+            } else {
+                registerToolingProviders();
+            }
+
             addEventHandlers();
             EditorManager.off("activeEditorChange.php");
             LanguageManager.off("languageModified.php");
@@ -262,13 +284,29 @@ define(function (require, exports, module) {
         }
     }
 
-    AppInit.appReady(function () {
+    function initiateService(evt, onAppReady) {
+        if (onAppReady) {
+            console.log("Php tooling: Starting the service");
+        } else {
+            console.log("Php tooling: Something went wrong. Restarting the service");
+        }
+
+        phpServerRunning = false;
         LanguageTools.initiateToolingService(clientName, clientFilePath, ['php']).done(function (client) {
             _client = client;
+            //Attach only once
+            EditorManager.off("activeEditorChange.php");
             EditorManager.on("activeEditorChange.php", activeEditorChangeHandler);
+            //Attach only once
+            LanguageManager.off("languageModified.php");
             LanguageManager.on("languageModified.php", languageModifiedHandler);
             activeEditorChangeHandler(null, EditorManager.getActiveEditor());
         });
+    }
+
+    AppInit.appReady(function () {
+        initiateService(null, true);
+        ClientLoader.on("languageClientModuleInitialized", initiateService);
     });
 
     //Only for Unit testing

@@ -54,6 +54,10 @@ define(function (require, exports, module) {
         this.defaultCodeHintProviders = new DefaultProviders.CodeHintsProvider(client);
     }
 
+    CodeHintsProvider.prototype.setClient = function (client) {
+        this.defaultCodeHintProviders.setClient(client);
+    };
+
     function setStyleAndCacheToken($hintObj, token) {
         $hintObj.addClass('brackets-hints-with-type-details');
         $hintObj.data('completionItem', token);

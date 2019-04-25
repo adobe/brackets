@@ -23,7 +23,7 @@
 
 /*global Map*/
 /* eslint-disable indent */
-/* eslint max-len: ["error", { "code": 200 }]*/
+/* eslint max-len: ["error", { "code": 200 }], no-invalid-this: 0*/
 define(function (require, exports, module) {
     "use strict";
 
@@ -44,11 +44,19 @@ define(function (require, exports, module) {
 
     ExtensionUtils.loadStyleSheet(module, "styles/default_provider_style.css");
 
+    function setClient(client) {
+        if (client) {
+            this.client = client;
+        }
+    }
+
     function CodeHintsProvider(client) {
         this.client = client;
         this.query = "";
         this.ignoreQuery = ["-", "->", ">", ":", "::", "(", "()", ")", "[", "[]", "]", "{", "{}", "}"];
     }
+
+    CodeHintsProvider.prototype.setClient = setClient;
 
     function formatTypeDataForToken($hintObj, token) {
         $hintObj.addClass('brackets-hints-with-type-details');
@@ -197,6 +205,8 @@ define(function (require, exports, module) {
         this.client = client;
     }
 
+    ParameterHintsProvider.prototype.setClient = setClient;
+
     ParameterHintsProvider.prototype.hasParameterHints = function (editor, implicitChar) {
         if (!this.client) {
             return false;
@@ -273,6 +283,8 @@ define(function (require, exports, module) {
         this.client = client;
     }
 
+    JumpToDefProvider.prototype.setClient = setClient;
+
     JumpToDefProvider.prototype.canJumpToDef = function (editor, implicitChar) {
         if (!this.client) {
             return false;
@@ -341,6 +353,8 @@ define(function (require, exports, module) {
         this._promiseMap = new Map();
         this._validateOnType = false;
     }
+
+    LintingProvider.prototype.setClient = setClient;
 
     LintingProvider.prototype.clearExistingResults = function (filePath) {
         var filePathProvided = !!filePath;
@@ -450,6 +464,8 @@ define(function (require, exports, module) {
     function ReferencesProvider(client) {
         this.client = client;
     }
+
+    ReferencesProvider.prototype.setClient = setClient;
 
     ReferencesProvider.prototype.hasReferences = function() {
         if (!this.client) {
