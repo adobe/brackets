@@ -266,16 +266,12 @@ define(function (require, exports, module) {
             // attach to DOM
             $parent.append($ul);
 
-//            $parent.find(".hint-list-offset").remove();
-//            $("<div class='hint-list-offset'></div>").appendTo($parent);
-
             // If a a description field requested attach one
             if (this.enableDescription) {
                 // Remove the desc element first to ensure DOM order
                 $parent.find("#codehint-desc").remove();
                 $parent.append("<div id='codehint-desc' class='dropdown-menu quiet-scrollbars'></div>");
                 $ul.addClass("withDesc");
-                //$parent.find(".hint-list-offset").addClass("withDesc");
             }
             this._setSelectedIndex(selectInitial ? 0 : -1);
         }
