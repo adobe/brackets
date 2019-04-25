@@ -889,7 +889,7 @@ define({
 	"OPEN_PREFERENNCES": "Ouvrir les préférences",
 
     //Strings for LanguageTools Preferences
-	"LANGUAGE_TOOLS_PREFERENCES": "Préférences pour Language Tools",
+	"LANGUAGE_TOOLS_PREFERENCES": "Préférences pour les outils linguistiques",
 
 	"FIND_ALL_REFERENCES": "Rechercher toutes les références",
 	"REFERENCES_IN_FILES": "références",
