@@ -22,7 +22,7 @@
  */
 
 /*jslint regexp: true */
-
+/*eslint no-invalid-this: 0, max-len: 0*/
 define(function (require, exports, module) {
     "use strict";
 
@@ -33,6 +33,12 @@ define(function (require, exports, module) {
         PathConverters = brackets.getModule("languageTools/PathConverters");
 
     var SymbolKind = QuickOpen.SymbolKind;
+
+    function setClient(client) {
+        if (client) {
+            this.client = client;
+        }
+    }
 
     function convertRangePosToEditorPos(rangePos) {
         return {
@@ -112,6 +118,8 @@ define(function (require, exports, module) {
         this.client = client;
     }
 
+    DocumentSymbolsProvider.prototype.setClient = setClient;
+
     DocumentSymbolsProvider.prototype.match = function (query) {
         return query.startsWith("@");
     };
@@ -170,6 +178,8 @@ define(function (require, exports, module) {
     function ProjectSymbolsProvider(client) {
         this.client = client;
     }
+
+    ProjectSymbolsProvider.prototype.setClient = setClient;
 
     ProjectSymbolsProvider.prototype.match = function (query) {
         return query.startsWith("#");
