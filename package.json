@@ -1,7 +1,7 @@
 {
     "name": "Brackets",
-    "version": "1.13.0-0",
-    "apiVersion": "1.13.0",
+    "version": "1.14.0-0",
+    "apiVersion": "1.14.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
@@ -64,7 +64,7 @@
     "scripts": {
         "prepush": "npm run eslint",
         "postinstall": "grunt install",
-        "test": "grunt test cla-check-pull",
+        "test": "grunt test",
         "eslint": "grunt eslint"
     },
     "licenses": [

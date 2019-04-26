@@ -97,6 +97,7 @@ define(function (require, exports, module) {
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
     exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFilesUI.js             _showReplaceBar()
     exports.CMD_REPLACE_IN_SUBTREE      = "cmd.replaceInSubtree";       // FindInFilesUI.js             _showReplaceBarForSubtree()
+    exports.CMD_FIND_ALL_REFERENCES     = "cmd.findAllReferences";      // findReferencesManager.js     _openReferencesPanel()
 
     // VIEW
     exports.CMD_THEMES_OPEN_SETTINGS    = "view.themesOpenSetting";     // MenuCommands.js              Settings.open()
@@ -123,8 +124,9 @@ define(function (require, exports, module) {
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";    // DocumentCommandHandlers.js   handleShowInTree()
     exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";          // DocumentCommandHandlers.js   handleShowInOS()
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";         // QuickOpen.js                 doFileSearch()
-    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";  // EditorManager.js             _doJumpToDef()
+    exports.NAVIGATE_JUMPTO_DEFINITION  = "navigate.jumptoDefinition";  // JumpToDefManager.js             _doJumpToDef()
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";    // QuickOpen.js                 doDefinitionSearch()
+    exports.NAVIGATE_GOTO_DEFINITION_PROJECT = "navigate.gotoDefinitionInProject";    // QuickOpen.js                 doDefinitionSearchInProject()
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";          // QuickOpen.js                 doGotoLine()
     exports.NAVIGATE_GOTO_FIRST_PROBLEM = "navigate.gotoFirstProblem";  // CodeInspection.js            handleGotoFirstProblem()
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";   // EditorManager.js             _toggleInlineWidget()

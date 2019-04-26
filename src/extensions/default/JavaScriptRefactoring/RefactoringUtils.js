@@ -467,7 +467,14 @@ define(function (require, exports, module) {
      * @return {Object} - Ast of current opened doc
      */
     RefactoringSession.prototype.createAstOfCurrentDoc = function () {
-        return AcornLoose.parse_dammit(this.document.getText());
+        var ast,
+            text = this.document.getText();
+        try {
+            ast = Acorn.parse(text);
+        } catch(e) {
+            ast = Acorn.parse_dammit(text);
+        }
+        return ast;
     };
 
     /**

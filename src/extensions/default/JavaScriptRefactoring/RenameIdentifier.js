@@ -29,7 +29,8 @@ define(function (require, exports, module) {
         Session              = brackets.getModule("JSUtils/Session"),
         MessageIds           = brackets.getModule("JSUtils/MessageIds"),
         TokenUtils           = brackets.getModule("utils/TokenUtils"),
-        Strings              = brackets.getModule("strings");
+        Strings              = brackets.getModule("strings"),
+        ProjectManager      = brackets.getModule("project/ProjectManager");
 
     var session             = null,  // object that encapsulates the current session state
         keywords = ["define", "alert", "exports", "require", "module", "arguments"];
@@ -97,8 +98,22 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         function isInSameFile(obj, refsResp) {
+            var projectRoot = ProjectManager.getProjectRoot(),
+                projectDir,
+                fileName = "";
+            if (projectRoot) {
+                projectDir = projectRoot.fullPath;
+            }
+
+            // get the relative path of File as Tern can also return
+            // references with file name as a relative path wrt projectRoot
+            // so refernce file name will be compared with both relative and absolute path to check if it is same file
+            if (projectDir && refsResp && refsResp.file && refsResp.file.indexOf(projectDir) === 0) {
+                fileName = refsResp.file.slice(projectDir.length);
+            }
             // In case of unsaved files, After renameing once Tern is returning filename without forward slash
-            return (obj && (obj.file === refsResp.file || obj.file === refsResp.file.slice(1, refsResp.file.length)));
+            return (obj && (obj.file === refsResp.file || obj.file === fileName
+                            || obj.file === refsResp.file.slice(1, refsResp.file.length)));
         }
 
         /**
@@ -127,13 +142,23 @@ define(function (require, exports, module) {
                 }
             }
 
-            if (type === "local") {
-                editor.setSelections(refs);
-            } else {
-                editor.setSelections(refs.filter(function(element) {
+            var currentPosition = editor.posFromIndex(refsResp.offset),
+                refsArray = refs;
+            if (type !== "local") {
+                refsArray = refs.filter(function (element) {
                     return isInSameFile(element, refsResp);
-                }));
+                });
             }
+
+            // Finding the Primary Reference in Array
+            var primaryRef = refsArray.find(function (element) {
+                return ((element.start.line === currentPosition.line || element.end.line === currentPosition.line)
+                        && currentPosition.ch <= element.end.ch && currentPosition.ch >= element.start.ch);
+            });
+            // Setting the primary flag of Primary Refence to true
+            primaryRef.primary = true;
+
+            editor.setSelections(refsArray);
         }
 
         /**

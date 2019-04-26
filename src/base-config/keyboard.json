@@ -162,6 +162,9 @@
     "cmd.findInFiles":  [
         "Ctrl-Shift-F"
     ],
+    "cmd.findAllReferences":  [
+        "Shift-F12"
+    ],
     "cmd.replaceInFiles":  [
         {
             "key": "Ctrl-Shift-H"
@@ -280,6 +283,9 @@
     ],
     "navigate.gotoDefinition":  [
         "Ctrl-T"
+    ],
+    "navigate.gotoDefinitionInProject":  [
+        "Ctrl-Shift-T"
     ],
     "navigate.jumptoDefinition":  [
         "Ctrl-J"

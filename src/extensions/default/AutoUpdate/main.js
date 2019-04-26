@@ -223,6 +223,7 @@ define(function (require, exports, module) {
 
         if (downloadCompleted && updateInitiatedInPrevSession) {
             var isNewVersion = checkIfVersionUpdated();
+            updateJsonHandler.reset();
             if (isNewVersion) {
                 // We get here if the update was successful
                 UpdateInfoBar.showUpdateBar({
@@ -280,19 +281,14 @@ define(function (require, exports, module) {
 
      /**
      * Initializes the state of parsed content from updateHelper.json
+     * returns Promise Object Which is resolved when parsing is success
+     * and rejected if parsing is failed.
      */
     function initState() {
+        var result = $.Deferred();
         updateJsonHandler.parse()
             .done(function() {
-            checkIfAnotherSessionInProgress()
-                .done(function (inProgress) {
-                    if (!inProgress) {
-                        checkUpdateStatus();
-                    }
-                })
-                .fail(function () {
-                    checkUpdateStatus();
-                });
+                result.resolve();
             })
             .fail(function (code) {
                 var logMsg;
@@ -311,7 +307,9 @@ define(function (require, exports, module) {
                     break;
                 }
                 console.log(logMsg);
+                result.reject();
             });
+        return result.promise();
     }
 
 
@@ -321,38 +319,15 @@ define(function (require, exports, module) {
      */
     function setupAutoUpdate() {
         updateJsonHandler = new StateHandler(updateJsonPath);
+        updateDomain.on('data', receiveMessageFromNode);
 
         updateDomain.exec('initNode', {
             messageIds: MessageIds,
             updateDir: updateDir,
             requester: domainID
         });
-
-        updateDomain.on('data', receiveMessageFromNode);
-        initState();
     }
 
-
-     /**
-     * Generates the extension for installer file, based on platform
-     * @returns {string} - OS - current OS }
-     */
-    function getPlatformInfo() {
-        var OS = "";
-
-        if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
-            OS = "WIN";
-        } else if (/Mac/.test(window.navigator.userAgent)) {
-            OS = "OSX";
-        } else if (/Linux|X11/.test(window.navigator.userAgent)) {
-            OS = "LINUX32";
-            if (/x86_64/.test(window.navigator.appVersion + window.navigator.userAgent)) {
-                OS = "LINUX64";
-            }
-        }
-
-        return OS;
-    }
 
     /**
      * Initializes the state for AutoUpdate process
@@ -470,7 +445,7 @@ define(function (require, exports, module) {
                 console.warn("AutoUpdate : updates information not available.");
                 return;
             }
-            var OS = getPlatformInfo(),
+            var OS = brackets.getPlatformInfo(),
                 checksum,
                 downloadURL,
                 installerName,
@@ -490,12 +465,12 @@ define(function (require, exports, module) {
 
             } else {
                 // Update not present for current platform
-                return;
+                return false;
             }
 
             if (!checksum || !downloadURL || !installerName) {
                 console.warn("AutoUpdate : asset information incorrect for the update");
-                return;
+                return false;
             }
 
             var updateParams = {
@@ -508,6 +483,9 @@ define(function (require, exports, module) {
 
             //Initiate the auto update, with update params
             initiateAutoUpdate(updateParams);
+	    
+	    //Send a truthy value to ensure caller is informed about successful initialization of auto-update
+	    return true;
     }
 
 
@@ -594,11 +572,17 @@ define(function (require, exports, module) {
     /**
      * Enables/disables the state of "Auto Update In Progress" in UpdateHandler.json
      */
-    function setAutoUpdateInProgressFlag(flag) {
-        updateJsonHandler.parse()
-            .done(function() {
-                setUpdateStateInJSON("autoUpdateInProgress", flag);
-        });
+    function nodeDomainInitialized(reset) {
+        initState()
+            .done(function () {
+                var inProgress = updateJsonHandler.get(updateProgressKey);
+                if (inProgress && reset) {
+                    setUpdateStateInJSON(updateProgressKey, !reset)
+                        .always(checkUpdateStatus);
+                 } else if (!inProgress) {
+                    checkUpdateStatus();
+                }
+            });
     }
 
 
@@ -636,7 +620,6 @@ define(function (require, exports, module) {
         enableCheckForUpdateEntry(true);
         console.error(message);
 
-        setUpdateStateInJSON("autoUpdateInProgress", false);
     }
 
     /**
@@ -1124,7 +1107,7 @@ define(function (require, exports, module) {
 
         ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
     }
-    functionMap["brackets.setAutoUpdateInProgress"]     = setAutoUpdateInProgressFlag;
+    functionMap["brackets.nodeDomainInitialized"]     = nodeDomainInitialized;
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
 });
