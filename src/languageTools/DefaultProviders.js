@@ -218,10 +218,9 @@ define(function (require, exports, module) {
         var editor = EditorManager.getActiveEditor(),
             pos = editor.getCursorPos(),
             docPath = editor.document.file._path,
-            $deferredHints = $.Deferred(),
-            client = this.client;
+            $deferredHints = $.Deferred();
 
-        client.requestParameterHints({
+        this.client.requestParameterHints({
             filePath: docPath,
             cursorPos: pos
         }).done(function (msgObj) {
@@ -258,6 +257,7 @@ define(function (require, exports, module) {
         }).fail(function () {
             $deferredHints.reject();
         });
+
         return $deferredHints;
     };
 
