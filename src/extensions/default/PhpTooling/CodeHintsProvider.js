@@ -91,9 +91,15 @@ define(function (require, exports, module) {
             pos = editor.getCursorPos(),
             docPath = editor.document.file._path,
             $deferredHints = $.Deferred(),
-            self = this.defaultCodeHintProviders;
+            self = this.defaultCodeHintProviders,
+            client = this.defaultCodeHintProviders.client;
 
-        this.defaultCodeHintProviders.client.requestHints({
+        //Make sure the document is in sync with the server
+        client.notifyTextDocumentChanged({
+            filePath: docPath,
+            fileContent: editor.document.getText()
+        });
+        client.requestHints({
             filePath: docPath,
             cursorPos: pos
         }).done(function (msgObj) {

@@ -1,0 +1,56 @@
+#notification-bar {
+    display: block;
+    background-color: #105F9C;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.53);
+    padding: 5px 0px;
+    width: 100%;
+    min-height: 39px;
+    position: absolute;
+    z-index: 16;
+    left: 0px;
+    bottom: 25px;
+    outline: none;
+    overflow: hidden;
+    color: rgb(51, 51, 51);
+    background: rgb(223, 226, 226);
+}
+
+.dark #notification-bar {
+    color: #ccc;
+    background: #2c2c2c;
+}
+
+#notification-bar .content-container {
+    padding: 5px 10px;
+    float: left;
+    width: 100%;
+}
+
+#notification-bar .close-icon-container {
+    height: auto;
+    position: absolute;
+    float: right;
+    text-align: center;
+    width: auto;
+	min-width: 66px;
+	right: 20px;
+    top: 10px;
+}
+
+#notification-bar .close-icon-container .close-icon {
+    display: block;
+    font-size: 18px;
+    line-height: 18px;
+    text-decoration: none;
+    width: 18px;
+    height: 18px;
+    background-color: transparent;
+    border: none;
+    padding: 0px; /*This is needed to center the icon*/
+	float: right;
+}
+
+.dark #notification-bar .close-icon-container .close-icon {
+    color: #ccc;
+}
+
