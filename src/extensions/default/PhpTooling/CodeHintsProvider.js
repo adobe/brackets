@@ -90,10 +90,14 @@ define(function (require, exports, module) {
             self = this.defaultCodeHintProviders,
             client = this.defaultCodeHintProviders.client;
 
-        setTimeout(function(){
-            client.requestHints({
-                filePath: docPath,
-                cursorPos: pos
+        //Make sure the document is in sync with the server
+        client.notifyTextDocumentChanged({
+            filePath: docPath,
+            fileContent: editor.document.getText()
+        });
+        client.requestHints({
+            filePath: docPath,
+            cursorPos: pos
         }).done(function (msgObj) {
             var context = TokenUtils.getInitialContext(editor._codeMirror, pos),
                 hints = [];
@@ -159,7 +163,6 @@ define(function (require, exports, module) {
         }).fail(function () {
             $deferredHints.reject();
         });
-        }, 0);
 
         return $deferredHints;
     };
