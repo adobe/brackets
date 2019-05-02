@@ -26,8 +26,8 @@
         "update_info_url": "https://s3.amazonaws.com/files.brackets.io/updates/prerelease/<locale>.json"
     },
     "name": "Brackets",
-    "version": "1.14.0-0",
-    "apiVersion": "1.14.0",
+    "version": "1.15.0-0",
+    "apiVersion": "1.15.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
