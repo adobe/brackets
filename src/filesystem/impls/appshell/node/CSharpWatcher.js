@@ -120,7 +120,7 @@ function watchPath(path, ignored, _watcherMap) {
             // fspath.resolve will normalize slashes to windows format
             fspath.resolve(path)
         ];
-        var handle = cp.spawn(fspath.resolve(__dirname, "win32", "CodeHelper.exe"), args);
+        var handle = cp.spawn(fspath.resolve(__dirname, 'win' + process.arch.slice(-2), "CodeHelper.exe"), args);
 
         // Events over stdout
         handle.stdout.on("data", function (buffer) {
