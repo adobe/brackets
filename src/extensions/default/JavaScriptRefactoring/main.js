@@ -168,7 +168,6 @@ define(function (require, exports, module) {
             Menus.getMenu(menuLocation).addMenuItem(REFACTORCREATEGETSET);
             
             $("#editor-holder").on("contextmenu", function (e) {
-                console.log("here");
                 var editor = EditorManager.getActiveEditor();
         
                 // Logging should be done only when the context is javascript
