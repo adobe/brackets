@@ -215,7 +215,6 @@ define(function (require, exports, module) {
     function _checkExtensions(filters) {
         //if no property called extensions then it's a universal notification
         if (filters.extensions === undefined) {
-            console.log("undefined");
             return true;
         }
 
@@ -226,12 +225,10 @@ define(function (require, exports, module) {
             });
 
         if (!filters.extensions) {
-            console.log("null");
             //if property called extensions exists but has a falsy value
             //then number of user extensions must be zero
             allExtnsMatched = userExtensionKeys.length === 0;
         } else if (filters.extensions.length === 0) {
-            console.log('[]');
             //if property called extensions exists but is an empty array
             //then number of user extensions must greater than zero
             allExtnsMatched = userExtensionKeys.length > 0;
