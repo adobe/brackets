@@ -166,6 +166,31 @@ define(function (require, exports, module) {
             CommandManager.register(Strings.CMD_REFACTORING_GETTERS_SETTERS, REFACTORCREATEGETSET, _.partial(_handleRefactor, REFACTORCREATEGETSET));
             subMenu.addMenuItem(REFACTORCREATEGETSET);
             Menus.getMenu(menuLocation).addMenuItem(REFACTORCREATEGETSET);
+            
+            $("#editor-holder").on("contextmenu", function (e) {
+                console.log("here");
+                var editor = EditorManager.getActiveEditor();
+        
+                // Logging should be done only when the context is javascript
+                if (!editor || editor.getModeForSelection() !== "javascript") {
+                    CommandManager.get(REFACTOR_RENAME).setEnabled(false);
+                    CommandManager.get(EXTRACTTO_VARIABLE).setEnabled(false);
+                    CommandManager.get(EXTRACTTO_FUNCTION).setEnabled(false);
+                    CommandManager.get(REFACTORWRAPINTRYCATCH).setEnabled(false);
+                    CommandManager.get(REFACTORWRAPINCONDITION).setEnabled(false);
+                    CommandManager.get(REFACTORCONVERTTOARROWFN).setEnabled(false);
+                    CommandManager.get(REFACTORCREATEGETSET).setEnabled(false);
+                    return;
+                }
+
+                CommandManager.get(REFACTOR_RENAME).setEnabled(true);
+                CommandManager.get(EXTRACTTO_VARIABLE).setEnabled(true);
+                CommandManager.get(EXTRACTTO_FUNCTION).setEnabled(true);
+                CommandManager.get(REFACTORWRAPINTRYCATCH).setEnabled(true);
+                CommandManager.get(REFACTORWRAPINCONDITION).setEnabled(true);
+                CommandManager.get(REFACTORCONVERTTOARROWFN).setEnabled(true);
+                CommandManager.get(REFACTORCREATEGETSET).setEnabled(true);
+            });
         }
     });
 });
