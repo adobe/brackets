@@ -512,7 +512,7 @@ define({
     "INVALID_PACKAGE_JSON"                 : "Die package.json-Datei ist ungültig (Fehler: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Die package.json-Datei hat keinen definierten Paketnamen.",
     "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
-    "MISSING_PACKAGE_VERSION"              : "Die package.json-Datein hat keine definierte Paketversion.",
+    "MISSING_PACKAGE_VERSION"              : "Die package.json-Datei hat keine definierte Paketversion.",
     "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
     "INVALID_BRACKETS_VERSION"             : "Die {APP_NAME}-Kompatibilitäts-Zeichenkette ({0}) ist ungültig.",
     "DISALLOWED_WORDS"                     : "Die Wörter ({1}) sind im Feld {0} nicht erlaubt.",
