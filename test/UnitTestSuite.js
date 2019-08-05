@@ -61,6 +61,7 @@ define(function (require, exports, module) {
     require("spec/JSONUtils-test");
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
+    require("spec/LanguageTools-test");
     require("spec/LiveDevelopment-test");
     require("spec/LiveDevelopmentMultiBrowser-test");
     require("spec/LowLevelFileIO-test");

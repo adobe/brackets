@@ -4,5 +4,6 @@
     "serviceKey"              : "brackets-service",
     "environment"             : "production",
     "update_info_url"         : "https://s3.amazonaws.com/files.brackets.io/updates/prerelease/<locale>.json",
+    "notification_info_url"   : "https://s3.amazonaws.com/files.brackets.io/notifications/prerelease/<locale>.json",
     "buildtype"               : "prerelease"
 }

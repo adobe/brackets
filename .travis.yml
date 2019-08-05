@@ -2,6 +2,8 @@ language: node_js
 sudo: false # use container-based Travis infrastructure
 node_js:
   - "6"
+before_install:
+  - phpenv global 7.0 #switch to php7, since that's what php-Tooling extension requires
 before_script:
   - npm install -g grunt-cli
   - npm install -g jasmine-node

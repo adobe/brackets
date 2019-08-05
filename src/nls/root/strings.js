@@ -419,6 +419,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
+    "CMD_GOTO_DEFINITION_PROJECT"         : "Quick Find Definition in Project",
     "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Problem",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
@@ -650,10 +651,10 @@ define({
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Health Report Preferences",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} Health Report",
-    "HEALTH_DATA_DO_TRACK"                      : "Share anonymous information on how I use {APP_NAME}",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a>",
+    "HEALTH_DATA_DO_TRACK"                      : "Share pseudonymous information on how I use {APP_NAME}",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve {APP_NAME}, we periodically send limited, <strong>pseudonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Project-Health-Data'>Learn more about {APP_NAME} Health Report</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} Health Report",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>In order to improve {APP_NAME}, we periodically send limited, <strong>pseudonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Project-Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
@@ -872,8 +873,29 @@ define({
     "DESCRIPTION_AUTO_UPDATE"                        : "Enable/disable Brackets Auto-update",
     "AUTOUPDATE_ERROR"                               : "Error!",
     "AUTOUPDATE_IN_PROGRESS"                         : "An update is already in progress.",
-    
+
     "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
-    "CMD_FIND_RELATED_FILES"                         : "Find Related Files"
+    "CMD_FIND_RELATED_FILES"                         : "Find Related Files",
+
+    ///String for Php Tooling Extensions
+    "PHP_VERSION_INVALID"                            : "Error parsing PHP version. Please check the output of the “php –version” command.",
+    "PHP_UNSUPPORTED_VERSION"                        : "Install PHP7 runtime for enabling PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more. Version found: {0}",
+    "PHP_EXECUTABLE_NOT_FOUND"                       : "PHP runtime not found. Install the PHP7 runtime and update “executablePath” in PHP Preferences appropriately. This enables PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more.",
+    "PHP_PROCESS_SPAWN_ERROR"                        : "Error code {0} encountered while starting the PHP process.",
+    "PHP_SERVER_ERROR_TITLE"                         : "Error",
+    "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "The memory limit you provided is invalid. Review the PHP preferences to set the correct value.",
+    "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings",
+    "OPEN_PREFERENNCES"                              : "Open Preferences",
+
+    //Strings for LanguageTools Preferences
+    "LANGUAGE_TOOLS_PREFERENCES"                     : "Preferences for Language Tools",
+
+    "FIND_ALL_REFERENCES"                            : "Find All References",
+    "REFERENCES_IN_FILES"                            : "references",
+    "REFERENCE_IN_FILES"                             : "reference",
+    "REFERENCES_NO_RESULTS"                          : "No References available for current cursor position",
+
+    "CMD_FIND_DOCUMENT_SYMBOLS"                      : "Find Document Symbols",
+    "CMD_FIND_PROJECT_SYMBOLS"                       : "Find Project Symbols"
 });

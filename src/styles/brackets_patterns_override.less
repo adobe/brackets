@@ -584,6 +584,47 @@ a:focus {
     transition: right 167ms, left 167ms;
 }
 
+#codehint-desc {
+	background: @bc-codehint-desc;
+	position: absolute;
+	width: 100%;
+	box-sizing: border-box;
+	float: left;
+	border-radius: 1px !important;
+	border-top-left-radius: 0px !important;
+	border-top-right-radius: 0px !important;
+	overflow-x: hidden;
+	min-height: 30px;
+	max-height: 120px !important;
+    
+    .dark & {
+		background: @dark-bc-codehint-desc;
+	}
+}
+
+.codehint-desc-type-details {
+	padding: 5px 15px 5px 15px;
+	color: @bc-codehint-desc-type-details;
+	font-weight: bold;
+	font-size: 1.2em;
+    line-height: inherit;
+    
+    .dark & {
+		color: @dark-bc-codehint-desc-type-details;
+	}
+}
+
+.codehint-desc-documentation {
+	padding: 5px 15px 5px 15px;
+	color: @bc-codehint-desc-documentation;
+	font-size: 1.1em;
+	white-space: pre-wrap;
+    
+    .dark & {
+		color: @dark-bc-codehint-desc-documentation;
+	}
+}
+
 #context-menu-bar {
     margin: 0;
 }
