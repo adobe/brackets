@@ -77,10 +77,10 @@ define({
     "ERROR_LOADING_KEYMAP"              : "El archivo de atajos de teclado no está codificado como UTF-8 y no puede ser cargado.",
     "ERROR_RESTRICTED_COMMANDS"         : "No puedes reasignar atajos de teclado a los siguientes comandos: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "No puedes reasignar los siguientes atajos de teclado: {0}",
-    "ERROR_MULTIPLE_SHORTCUTS"          : "Estas reasignando múltiples atajos de teclado a los siguientes comandos: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Estás reasignando múltiples atajos de teclado a los siguientes comandos: {0}",
     "ERROR_DUPLICATE_SHORTCUTS"         : "Hay múltiples apariciones de los siguientes atajos de teclado: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Los siguientes atajos de teclado son inválidos: {0}",
-    "ERROR_NONEXISTENT_COMMANDS"        : "Estas asignando atajos de teclado a commandos inexistentes: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Estás asignando atajos de teclado a comandos inexistentes: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
@@ -529,7 +529,7 @@ define({
     "EXTENSION_INSTALLED"                  : "Instalada",
     "EXTENSION_TRANSLATED_USER_LANG"       : "Traducida a {0} idiomas, incluyendo el tuyo",
     "EXTENSION_TRANSLATED_GENERAL"         : "Traducida a {0} idiomas",
-    "EXTENSION_TRANSLATED_LANGS"           : "Esta extension fue traducida a los siguientes idiomas: {0}",
+    "EXTENSION_TRANSLATED_LANGS"           : "Esta extensión fue traducida a los siguientes idiomas: {0}",
     "EXTENSION_UPDATE_INSTALLED"           : "La actualización de esta extensión se ha descargado y se instalará luego de recargar {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
@@ -594,12 +594,12 @@ define({
 
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Acceso directo a {APP_NAME} por línea de comandos",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Ocurrió un error al instalar el acceso directo por línea de comandos. Por favor probá <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>estas sugerencias de solución de problemas</a>.<br><br>Razón: {0}",
-    "ERROR_CLTOOLS_RMFAILED"                    : "No se pudó eliminar el enlace simbólico existente <code>/usr/local/bin/brackets</code>.",
-    "ERROR_CLTOOLS_MKDIRFAILED"                 : "No se pudó crear el directorio <code>/usr/local/bin</code>.",
-    "ERROR_CLTOOLS_LNFAILED"                    : "No se pudó crear elenlace simbólico <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_RMFAILED"                    : "No se pudo eliminar el enlace simbólico existente <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "No se pudo crear el directorio <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "No se pudo crear el enlace simbólico <code>/usr/local/bin/brackets</code>.",
     "ERROR_CLTOOLS_SERVFAILED"                  : "Error interno.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "El acceso directo por línea de comandos no es compatible con este sistema operativo.",
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "¡Éxito! Ahora puedes abrir fácilmente {APP_NAME} desde la línea de comandos: <code>brackets myFile.txt</code> para abrir un archivo o <code>brackets myFolder</code> para cambiar de proyecto.<br><br><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Aprende más</a> acerca de como usar {APP_NAME} desde la línea de comandos.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "¡Éxito! Ahora puedes abrir fácilmente {APP_NAME} desde la línea de comandos: <code>brackets myFile.txt</code> para abrir un archivo o <code>brackets myFolder</code> para cambiar de proyecto.<br><br><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Aprende más</a> acerca de cómo usar {APP_NAME} desde la línea de comandos.",
 
     "LANGUAGE_TITLE"                            : "Cambiar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
@@ -619,7 +619,7 @@ define({
     "INLINE_TIMING_EDITOR_TIME"                 : "Tiempo",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresión",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Mueven el punto seleccionado<br><kbd class='text'>Shift</kbd> Mueve de a diez unidades<br><kbd class='text'>Tab</kbd> Cambia el punto seleccionado",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementa o disminuya los pasos<br><kbd>←</kbd><kbd>→</kbd> 'Start' o 'End'",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementa o disminuye los pasos<br><kbd>←</kbd><kbd>→</kbd> 'Start' o 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "El valor viejo <code>{0}</code> no es válido, por lo tanto, fue modificado a <code>{1}</code>. El documento será actualizado luego de la primer edición.",
 
     // extensions/default/InlineColorEditor
@@ -665,7 +665,7 @@ define({
     "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Un vector de etiquetas que no deben cerrarse automáticamente",
     "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Cerrar cuando \">\" de la etiqueta de apertura es tipeado",
     "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "Cerrar cuando \"/\" de la etiqueta de clausura es tipeado",
-    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Un vector de etiquetas que cuando se cierran generan una linea en blanco entre las etiquetas",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Un vector de etiquetas que cuando se cierran generan una línea en blanco entre las etiquetas",
     "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "true para siempre generar marcadores plegables cuando cambia el nivel de indentación",
     "DESCRIPTION_CODE_FOLDING_ENABLED"               : "true para habilitar el colapsado del código",
     "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "true para hacer marcadores de sección plegables visible sólo cuando se mueve el cursor sobre el espacio a la izquierda del código",
@@ -702,7 +702,7 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "true para permitir \"for ... in\" sin filtrar",
     "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "Establece un ancho para el tab",
     "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "La cantidad máxima de advertencias reportadas",
-    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "La cantidad máxima de caracters por línea",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "La cantidad máxima de caracteres por línea",
     "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "true para permitir constructores sin mayúsculas",
     "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "true si las variables/funciones globales de Node.js deben estar predefinidas",
     "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "true para permitir el guión bajo delante de los identificadores",
@@ -726,7 +726,7 @@ define({
     "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "true para habilitar la Vista previa dinámica experimental",
     "DESCRIPTION_USE_PREFERED_ONLY"                  : "true para ejecutar solo los proveedores especificados en linting.prefer",
     "DESCRIPTION_MAX_CODE_HINTS"                     : "Máxima cantidad de sugerencias de código mostradas",
-    "DESCRIPTION_PATH"                               : "Preferencias especificas para una ruta de archivo",
+    "DESCRIPTION_PATH"                               : "Preferencias específicas para una ruta de archivo",
     "DESCRIPTION_PROXY"                              : "La URL del servidor proxy utilizada para la instalación de extensiones",
     "DESCRIPTION_SCROLL_PAST_END"                    : "true permitir el desplazamiento más allá del final del documento",
     "DESCRIPTION_SHOW_CODE_HINTS"                    : "false para deshabilitar todas las sugerencias de código",
@@ -743,7 +743,7 @@ define({
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true para generar color en mayúsculas en el editor de colores",
     "DESCRIPTION_WORD_WRAP"                          : "Ajustar líneas que sobrepasen el ancho de la ventana",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Una lista de los archivos que se ha detectado que causan que Tern no funcione correctamente",
-    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "La cantidad de veces después de la cual Tern dejara de intentar entender los archivos",
+    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "La cantidad de veces después de la cual Tern dejará de intentar entender los archivos",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true para mostrar errores en la barra de estado",
     "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "true para habilitar la Vista rápida",
     "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "true para mostrar vistas previas de imágenes para URLs sin extensión",
@@ -757,7 +757,7 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "Sólo para Mac: \"subpixel-antialiased\" para habilitar sub-pixel antialiasing o \"antialiased\" para antialiasing en escala de grises",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false para deshabilitar la apertura del archivo de preferencias en la vista dividida",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false para abrir el archivo de preferencias en el panel de la izquierda/arriba",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Éste es un archivo únicamente de lectura con las preferencias soportadas\n * por {APP_NAME}.\n * Podes usar este archivo como referencia para modificar tu archivo de\n * preferencias \"brackets.json\" abierto en el otro panel.\n * Para más información sobre como usar las preferencias dentro de\n * {APP_NAME}, podes consultar la página web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Éste es un archivo únicamente de lectura con las preferencias soportadas\n * por {APP_NAME}.\n * Podes usar este archivo como referencia para modificar tu archivo de\n * preferencias \"brackets.json\" abierto en el otro panel.\n * Para más información sobre cómo usar las preferencias dentro de\n * {APP_NAME}, puedes consultar la página web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Por defecto"
 });
 
