@@ -28,7 +28,7 @@ ECHO Example: setup_for_hacking.bat "c:\Program Files (x86)\Brackets"
 GOTO Exit
 
 :XPNotSupported
-ECHO Sorry, this script doesn't run in Windows XP.
+ECHO Sorry, this script is not supported on XP.
 ECHO To enable hacking, use the junction tool (http://technet.microsoft.com/en-us/sysinternals/bb896768)
 ECHO as follows: junction.exe %1\dev "%root_path%"
 ECHO (in the folder containing Brackets.exe)
