@@ -6,7 +6,7 @@ Check the [Troubleshooting Page](https://github.com/adobe/brackets/wiki/Troubles
 issues with installing & launching Brackets, using Live Preview, etc.
 
 **For bugs** be sure to search existing issues first. Include steps to consistently reproduce the
-problem, actual vs. expected results, and your OS and Brackets version number.
+the problem, actual vs. expected results, and your OS and Brackets version number.
 Disable all extensions to verify the issue is a core Brackets bug.
 [Read more guidelines for filing good bugs...](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
 
@@ -42,7 +42,7 @@ There are many ways you can contribute to the Brackets project:
   (the [How to Use Brackets](https://github.com/adobe/brackets/wiki/How-to-Use-Brackets) intro page
   is one example).
 * **Try out some [Brackets extensions](https://github.com/adobe/brackets/wiki/Brackets-Extensions)**
-  and give feedback to their authors.
+  and give feedback to the authors.
 
 
 ## Where Do I Start?
@@ -63,7 +63,7 @@ Here are some ideas:
 
 Once you're ready to start coding, see the next section, [Contributing Code](#contributing-code).
 
-**I'm new to JavaScript. How can I contribute to Brackets?** Brackets is a lot more complicated
+**I'm new to JavaScript. How can I contribute to Brackets?** Brackets are a lot more complicated
 than the average website that uses JS. Better to start on some JS tutorials (like [Codecademy's](http://www.codecademy.com/tracks/javascript)
 or [MDN's](https://developer.mozilla.org/en-US/docs/JavaScript/Getting_Started)) and contribute
 in some of the other ways listed above. Testing is a great way to start thinking like a programmer
@@ -84,19 +84,17 @@ Before submitting any pull request, please make sure to:
 4. Sign the [Brackets Contributor License Agreement](http://dev.brackets.io/brackets-contributor-license-agreement.html)
    (we cannot merge before this).
 
-High quality code and a top-notch user experience are very important in Brackets, and we carefully
+High-quality code and top-notch user experience are very important in Brackets, and we carefully
 review pull requests to keep it that way. The better you follow the guidelines above, the more likely
 we are to accept your pull request - and the faster the code review will go.
 
  
 ## The Code Review Process
 
-Brackets committers are responsible for reviewing all pull requests, providing feedback, and
-ultimately merging good code into `master`. The review process ensures all code is high quality,
+Brackets committers are responsible for reviewing all pull requests, providing feedback, and ultimately merging good code into `master`. The review process ensures all code is high quality,
 maintainable, and well documented.
 
-Once you've opened a pull request, a committer will generally respond to it within a week with an
-initial set of comments (you don't need to ping anyone to find a reviewer). Some pull requests
+Once you've opened a pull request, a committer will generally respond to it within a week with an initial set of comments (you don't need to ping anyone to find a reviewer). Some pull requests
 raise larger questions about UI design, product scope or architecture. Those are tagged to indicate
 that review will take longer:
 
