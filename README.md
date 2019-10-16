@@ -24,6 +24,20 @@ You can see some
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
 on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets blog](http://blog.brackets.io/).
 
+Table of Contents
+=================
+* [How to install and run Brackets](#how-to-install-and-run-brackets)
+  * [Download](#download)
+  * [Usage](#usage)
+  * [Need help?](#need-help)
+* [Helping Brackets](#helping-brackets)
+  * [I found a bug!](#i-found-a-bug)
+  * [I have a new suggestion, but don't know how to program!](#i-have-a-new-suggestion-but-dont-know-how-to-program)
+  * [I want to help with the code!](#i-want-to-help-with-the-code)
+* [I want to keep track of how Brackets is doing!](#i-want-to-keep-track-of-how-brackets-is-doing)
+  * [What's Brackets working on next?](#whats-brackets-working-on-next)
+  * [Contact info](#contact-info)
+            
 How to install and run Brackets
 -------------------------------
 #### Download
