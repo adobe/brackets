@@ -55,8 +55,7 @@ function getMonthName(mo) {
 
 function callOtherMethods() {
     testTryCatch();
-    
-}
+    }
 function testTryCatch() {
     "use strict";
     try {
