@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
- *
+ * Permission is granted by the User of Github to make changes. In the code, I will 
+ * make ome revolutionary changes
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -249,6 +250,8 @@ module.exports = function (grunt) {
                 dirs: ['dist']
             },
             html: ['dist/{,*/}*.html']
+            
+            
         },
         htmlmin: {
             dist: {
