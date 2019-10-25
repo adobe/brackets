@@ -78,11 +78,11 @@ define(function (require, exports, module) {
 
         // Read file
         file.read(function (err, data, encoding, stat) {
-            if (!err) {
+            if (!err)
                 result.resolve(data, stat.mtime);
-            } else {
+            else
                 result.reject(err);
-            }
+            //no need of extra brackets
         });
 
         return result.promise();
@@ -102,16 +102,15 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             options = {};
 
-        if (allowBlindWrite) {
+        if (allowBlindWrite)
             options.blind = true;
-        }
 
         file.write(text, options, function (err) {
-            if (!err) {
+            if (!err)
                 result.resolve();
-            } else {
+            else 
                 result.reject(err);
-            }
+            
         });
 
         return result.promise();
@@ -143,11 +142,11 @@ define(function (require, exports, module) {
         var hasCRLF = /\r\n/.test(subset);
         var hasLF = /[^\r]\n/.test(subset);
 
-        if ((hasCRLF && hasLF) || (!hasCRLF && !hasLF)) {
+        if ((hasCRLF && hasLF) || (!hasCRLF && !hasLF))
             return null;
-        } else {
+         else
             return hasCRLF ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
-        }
+        
     }
 
     /**
@@ -157,9 +156,9 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function translateLineEndings(text, lineEndings) {
-        if (lineEndings !== LINE_ENDINGS_CRLF && lineEndings !== LINE_ENDINGS_LF) {
+        if (lineEndings !== LINE_ENDINGS_CRLF && lineEndings !== LINE_ENDINGS_LF) 
             lineEndings = getPlatformLineEndings();
-        }
+        
 
         var eolStr = (lineEndings === LINE_ENDINGS_CRLF ? "\r\n" : "\n");
         var findAnyEol = /\r\n|\r|\n/g;
@@ -176,27 +175,27 @@ define(function (require, exports, module) {
         // displayed with a generic "(error N)" message.
         var result;
 
-        if (name === FileSystemError.NOT_FOUND) {
+        if (name === FileSystemError.NOT_FOUND) 
             result = Strings.NOT_FOUND_ERR;
-        } else if (name === FileSystemError.NOT_READABLE) {
+         else if (name === FileSystemError.NOT_READABLE)
             result = Strings.NOT_READABLE_ERR;
-        } else if (name === FileSystemError.NOT_WRITABLE) {
+         else if (name === FileSystemError.NOT_WRITABLE) 
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
-        } else if (name === FileSystemError.CONTENTS_MODIFIED) {
+         else if (name === FileSystemError.CONTENTS_MODIFIED) 
             result = Strings.CONTENTS_MODIFIED_ERR;
-        } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
+         else if (name === FileSystemError.UNSUPPORTED_ENCODING) 
             result = Strings.UNSUPPORTED_ENCODING_ERR;
-        } else if (name === FileSystemError.EXCEEDS_MAX_FILE_SIZE) {
+         else if (name === FileSystemError.EXCEEDS_MAX_FILE_SIZE) 
             result = StringUtils.format(Strings.EXCEEDS_MAX_FILE_SIZE, MAX_FILE_SIZE_MB);
-        } else if (name === FileSystemError.ENCODE_FILE_FAILED) {
+         else if (name === FileSystemError.ENCODE_FILE_FAILED) 
             result = Strings.ENCODE_FILE_FAILED_ERR;
-        } else if (name === FileSystemError.DECODE_FILE_FAILED) {
+         else if (name === FileSystemError.DECODE_FILE_FAILED) 
             result = Strings.DECODE_FILE_FAILED_ERR;
-        } else if (name === FileSystemError.UNSUPPORTED_UTF16_ENCODING) {
+         else if (name === FileSystemError.UNSUPPORTED_UTF16_ENCODING) 
             result = Strings.UNSUPPORTED_UTF16_ENCODING_ERR;
-        } else {
+         else 
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
-        }
+        
 
         return result;
     }
@@ -239,9 +238,8 @@ define(function (require, exports, module) {
      */
     function convertToNativePath(path) {
         path = unescape(path);
-        if (path.indexOf(":") !== -1 && path[0] === "/") {
+        if (path.indexOf(":") !== -1 && path[0] === "/")
             return path.substr(1);
-        }
 
         return path;
     }
@@ -256,9 +254,9 @@ define(function (require, exports, module) {
      * @return {string} A Unix-style path.
      */
     function convertWindowsPathToUnixPath(path) {
-        if (brackets.platform === "win") {
+        if (brackets.platform === "win") 
             path = path.replace(/\\/g, "/");
-        }
+        
         return path;
     }
 
@@ -271,11 +269,11 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function stripTrailingSlash(path) {
-        if (path && path[path.length - 1] === "/") {
+        if (path && path[path.length - 1] === "/") 
             return path.slice(0, -1);
-        } else {
+         else 
             return path;
-        }
+        
     }
 
     /**
@@ -286,11 +284,11 @@ define(function (require, exports, module) {
      */
     function getBaseName(fullPath) {
         var lastSlash = fullPath.lastIndexOf("/");
-        if (lastSlash === fullPath.length - 1) {  // directory: exclude trailing "/" too
+        if (lastSlash === fullPath.length - 1)   // directory: exclude trailing "/" too
             return fullPath.slice(fullPath.lastIndexOf("/", fullPath.length - 2) + 1, -1);
-        } else {
+         else 
             return fullPath.slice(lastSlash + 1);
-        }
+        
     }
 
     /**
