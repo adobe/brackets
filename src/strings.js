@@ -53,14 +53,14 @@ define(function (require, exports, module) {
     additionalGlobals.VERSION_PATCH = parsedVersion[3];
 
     var isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
-    if (isDevBuild) {
+    if (isDevBuild)
         additionalGlobals.BUILD_TYPE = strings.DEVELOPMENT_BUILD;
-    } else {
-        if (brackets.config.buildtype === 'production') {
+    else {
+        //check production
+        if (brackets.config.buildtype === 'production') 
             additionalGlobals.BUILD_TYPE = strings.RELEASE_BUILD;
-        } else {
+        else
             additionalGlobals.BUILD_TYPE = strings.PRERELEASE_BUILD;
-        }
     }
 
     // Insert application strings
@@ -81,3 +81,4 @@ define(function (require, exports, module) {
     module.exports = strings;
 
 });
+
