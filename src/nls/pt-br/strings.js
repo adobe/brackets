@@ -765,6 +765,17 @@ define({
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "falso (false) para desabilitar a abertura do arquivo de preferências em tela dividida",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "falso (false) para desabilitar a abertura do arquivo de preferências no topo do painel lateral esquerdo",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Isso é um arquivo de somente leitura contendo as preferências suportadas\n * pelo {APP_NAME}.\n * Utilize este arquivo como referência para ajustar e modificar suas preferências no\n * arquivo \"brackets.json\" aberto em outro painel.\n * Para saber mais sobre como usar as preferências do\n * {APP_NAME}, pode consultar a página web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Padrão"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Padrão",
+    
+    //Strings for LanguageTools Preferences
+    "LANGUAGE_TOOLS_PREFERENCES"                     : "Preferências para as Ferramentas de Linguagem",
+
+    "FIND_ALL_REFERENCES"                            : "Encontrar todas as referências",
+    "REFERENCES_IN_FILES"                            : "Referências",
+    "REFERENCE_IN_FILES"                             : "Referência",
+    "REFERENCES_NO_RESULTS"                          : "Nenhuma referência disponível para a atual posição do cursor",
+
+    "CMD_FIND_DOCUMENT_SYMBOLS"                      : "Encontrar Símbolos dos Documentos",
+    "CMD_FIND_PROJECT_SYMBOLS"                       : "Encontrar Símbolos dos Projetos"
 });
 /* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
