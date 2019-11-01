@@ -767,4 +767,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Isso é um arquivo de somente leitura contendo as preferências suportadas\n * pelo {APP_NAME}.\n * Utilize este arquivo como referência para ajustar e modificar suas preferências no\n * arquivo \"brackets.json\" aberto em outro painel.\n * Para saber mais sobre como usar as preferências do\n * {APP_NAME}, pode consultar a página web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Padrão"
 });
-/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
+/* Last translated for 1cb4979af57bb3fd1335f8715190eb265019c60b */
