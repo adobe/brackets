@@ -7,7 +7,8 @@ and JavaScript that's *built* in HTML, CSS and JavaScript.
 What makes Brackets different from other web code editors?
 
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
-environment with lots of panels and icons, the Quick Edit UI in Brackets puts context-specific code and tools inline.
+environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
+context-specific code and tools inline.
 * **Brackets is in sync with your browser.** With Live Preview, Brackets
 works directly with your browser to push code edits instantly and jump
 back and forth between your real source code and the browser view.
@@ -41,7 +42,7 @@ Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Note
 for a list of new features and known issues in each build.
 
 In addition to the core features built into Brackets, there is a large and growing
-the community of developers building extensions that add all sorts of useful functionality.
+community of developers building extensions that add all sorts of useful functionality.
 See the [Brackets Extension Registry](https://registry.brackets.io/)
 for a list of available extensions. For installation instructions,
 see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
@@ -83,7 +84,8 @@ taking our pull requests, implementing feature requests and fixing bugs! See
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on how we're using CodeMirror.
 
-Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop application in a thin native shell, so that it can access your local files.
+Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
+application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 The native shell for Brackets lives in a separate repo, 
 [adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
