@@ -261,7 +261,7 @@ define(function (require, exports, module) {
             if (remote_debugging_port && remote_debugging_port > 0) {
                 var InfoBar = require('widgets/InfoBar');
                 InfoBar.showUpdateBar({
-                    type: "error",
+                    type: "warning",
                     title: `${Strings.REMOTE_DEBUGGING_ENABLED} ${remote_debugging_port}`,
                     description: ""
                 });
