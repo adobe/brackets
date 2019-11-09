@@ -1642,7 +1642,8 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             result.resolve();
         } else {
-            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
+            brackets.app.getRemoteDebuggingPort(function (err, port){
+            if (port && port > 0) {
             Inspector.getDebuggableWindows("127.0.0.1", port)
                 .fail(result.reject)
                 .done(function (response) {
@@ -1664,6 +1665,8 @@ define(function (require, exports, module) {
                     // In case of an error
                     _socket.onerror = result.reject;
                 });
+            }
+            });
         }
 
         return result.promise();
