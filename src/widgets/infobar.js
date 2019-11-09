@@ -27,14 +27,15 @@ define(function (require, exports, module) {
     var MainViewManager     = require("view/MainViewManager"),
         Mustache            = require("thirdparty/mustache/mustache"),
         EventDispatcher     = require("utils/EventDispatcher"),
-        UpdateBarHtml       = require("text!htmlContent/infoBar-template.html"),
+        InfoBarHtml       = require("text!htmlContent/infobar-template.html"),
         _                  =  require("thirdparty/lodash");
+
+    //addLinkedStyleSheet('styles/infobar-styles.css');
 
     EventDispatcher.makeEventDispatcher(exports);
 
     // Key handlers for buttons in UI
-    var SPACE_KEY = 32, // keycode for space key
-        ESC_KEY   = 27; // keycode for escape key
+    var ESC_KEY   = 27; // keycode for escape key
 
     /**
      * Generates the json to be used by Mustache for rendering
@@ -50,43 +51,42 @@ define(function (require, exports, module) {
         msgJsonObj.description = msgObj.description;
         return msgJsonObj;
     }
-
     /**
-     * Removes and cleans up the update bar from DOM
+     * Removes and cleans up the info bar from DOM
      */
-    function cleanUpdateBar() {
-        var $updateBar = $('#update-bar');
-        if ($updateBar.length > 0) {
-            $updateBar.remove();
+    function cleanInfoBar() {
+        var $infoBar = $('#info-bar-template');
+        if ($infoBar.length > 0) {
+            $infoBar.remove();
         }
-        $(window.document).off("keydown.AutoUpdate");
-        $(window).off('resize.AutoUpdateBar');
+        $(window.document).off("keydown.AutoInfo");
+        $(window).off('resize.AutoInfoBar');
     }
 
     /**
-     * Displays the Update Bar UI
+     * Displays the Info Bar UI
      * @param   {object} msgObj - json object containing message info to be displayed
      *
      */
-    function showUpdateBar(msgObj) {
+    function showInfoBar(msgObj) {
         var jsonToMustache = generateJsonForMustache(msgObj),
-            $updateBarElement = $(Mustache.render(UpdateBarHtml, jsonToMustache));
+            $infoBarElement = $(Mustache.render(InfoBarHtml, jsonToMustache));
 
-        cleanUpdateBar(); //Remove an already existing update bar, if any
-        $updateBarElement.prependTo(".content");
+        cleanInfoBar(); //Remove an already existing info bar, if any
+        $infoBarElement.prependTo(".content");
 
-        var $updateBar = $('#update-bar'),
-            $updateContent = $updateBar.find('#update-content'),
-            $contentContainer = $updateBar.find('#content-container'),
-            $iconContainer = $updateBar.find('#icon-container'),
-            $closeIconContainer = $updateBar.find('#close-icon-container'),
-            $heading = $updateBar.find('#heading'),
-            $description = $updateBar.find('#description'),
-            $closeIcon = $updateBar.find('#close-icon');
+        var $infoBar = $('#info-bar-template'),
+            $infoContent = $infoBar.find('#info-content'),
+            $contentContainer = $infoBar.find('#content-container'),
+            $iconContainer = $infoBar.find('#icon-container'),
+            $closeIconContainer = $infoBar.find('#close-icon-container'),
+            $heading = $infoBar.find('#heading'),
+            $description = $infoBar.find('#description'),
+            $closeIcon = $infoBar.find('#close-icon');
 
-        if ($updateContent.length > 0) {
-            if ($updateContent[0].scrollWidth > $updateContent.innerWidth()) {
-            //Text has over-flown, show the update content as tooltip message
+        if ($infoContent.length > 0) {
+            if ($infoContent[0].scrollWidth > $infoContent.innerWidth()) {
+            //Text has over-flown, show the info content as tooltip message
                 if ($contentContainer.length > 0 &&
                         $heading.length > 0 &&
                         $description.length > 0) {
@@ -97,8 +97,8 @@ define(function (require, exports, module) {
         // Content Container Width between Icon Container and Button Container or Close Icon Container
         // will be assigned when window will be rezied.
         var resizeContentContainer = function () {
-            if($updateContent.length > 0 && $contentContainer.length > 0 && $updateBar.length > 0) {
-                var newWidth = $updateBar.outerWidth() - 38;
+            if($infoContent.length > 0 && $contentContainer.length > 0 && $infoBar.length > 0) {
+                var newWidth = $infoBar.outerWidth() - 38;
                 if($iconContainer.length > 0) {
                     newWidth = newWidth - $iconContainer.outerWidth();
                 }
@@ -113,25 +113,25 @@ define(function (require, exports, module) {
         };
 
         resizeContentContainer();
-        $(window).on('resize.AutoUpdateBar', _.debounce(resizeContentContainer, 150));
+        $(window).on('resize.AutoInfoBar', _.debounce(resizeContentContainer, 150));
 
-        //Event handlers on the Update Bar
+        //Event handlers on the Info Bar
         // Click and key handlers on Close button
         if ($closeIcon.length > 0) {
             $closeIcon.click(function () {
-                cleanUpdateBar();
+                cleanInfoBar();
                 MainViewManager.focusActivePane();
             });
         }
-        $(window.document).on("keydown.AutoUpdate", function (event) {
+        $(window.document).on("keydown.AutoInfo", function (event) {
             var code = event.which;
             if (code === ESC_KEY) {
-                // Keyboard input of Esc key on Update Bar dismisses and removes the bar
-                cleanUpdateBar();
+                // Keyboard input of Esc key on Info Bar dismisses and removes the bar
+                cleanInfoBar();
                 MainViewManager.focusActivePane();
                 event.stopImmediatePropagation();
             }
         });
     }
-    exports.showUpdateBar = showUpdateBar;
+    exports.showInfoBar = showInfoBar;
 });

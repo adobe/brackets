@@ -1,9 +1,9 @@
-<div id="update-bar" {{#type}}class={{{type}}}{{/type}} tabindex="0">
+<div id="info-bar-template" {{#type}}class={{{type}}}{{/type}} tabindex="0">
     <div id="icon-container">
-        <svg id="update-icon"> </svg>
+        <svg id="info-icon"> </svg>
     </div>
     <div id="content-container">
-        <p id="update-content"><span id="heading">{{title}}</span>&nbsp;&nbsp;<span id="description">{{{description}}}</span></p>
+        <p id="info-content"><span id="heading">{{title}}</span>&nbsp;&nbsp;<span id="description">{{{description}}}</span></p>
     </div>
     {{^buttons}}
     <div id="close-icon-container">

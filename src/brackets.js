@@ -259,8 +259,8 @@ define(function (require, exports, module) {
 
         brackets.app.getRemoteDebuggingPort(function (err, remote_debugging_port){
             if (remote_debugging_port && remote_debugging_port > 0) {
-                var InfoBar = require('widgets/InfoBar');
-                InfoBar.showUpdateBar({
+                var InfoBar = require('widgets/infobar');
+                InfoBar.showInfoBar({
                     type: "warning",
                     title: `${Strings.REMOTE_DEBUGGING_ENABLED} ${remote_debugging_port}`,
                     description: ""
