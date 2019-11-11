@@ -1642,28 +1642,31 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             result.resolve();
         } else {
-            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
-            Inspector.getDebuggableWindows("127.0.0.1", port)
-                .fail(result.reject)
-                .done(function (response) {
-                    var page = response[0];
-                    if (!page || !page.webSocketDebuggerUrl) {
-                        result.reject();
-                        return;
-                    }
-                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
-                    // Disable the cache
-                    _socket.onopen = function _onConnect() {
-                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
-                    };
-                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                    _socket.onmessage = function _onMessage(e) {
-                        _socket.close();
-                        result.resolve();
-                    };
-                    // In case of an error
-                    _socket.onerror = result.reject;
-                });
+            brackets.app.getRemoteDebuggingPort(function (err, port){
+                if (port && port > 0) {
+                    Inspector.getDebuggableWindows("127.0.0.1", port)
+                        .fail(result.reject)
+                        .done(function (response) {
+                            var page = response[0];
+                            if (!page || !page.webSocketDebuggerUrl) {
+                                result.reject();
+                                return;
+                            }
+                            var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                            // Disable the cache
+                            _socket.onopen = function _onConnect() {
+                                _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                            };
+                            // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                            _socket.onmessage = function _onMessage(e) {
+                                _socket.close();
+                                result.resolve();
+                            };
+                            // In case of an error
+                            _socket.onerror = result.reject;
+                        });
+                }
+            });
         }
 
         return result.promise();

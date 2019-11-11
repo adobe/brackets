@@ -1,0 +1,13 @@
+<div id="info-bar-template" {{#type}}class={{{type}}}{{/type}} tabindex="0">
+    <div id="icon-container">
+        <svg id="info-icon"> </svg>
+    </div>
+    <div id="content-container">
+        <p id="info-content"><span id="heading">{{title}}</span>&nbsp;&nbsp;<span id="description">{{{description}}}</span></p>
+    </div>
+    {{^buttons}}
+    <div id="close-icon-container">
+        <button type="button" id="close-icon" tabIndex="0">&times;</button>
+    </div>
+    {{/buttons}}
+</div>
