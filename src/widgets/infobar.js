@@ -27,10 +27,8 @@ define(function (require, exports, module) {
     var MainViewManager     = require("view/MainViewManager"),
         Mustache            = require("thirdparty/mustache/mustache"),
         EventDispatcher     = require("utils/EventDispatcher"),
-        InfoBarHtml       = require("text!htmlContent/infobar-template.html"),
-        _                  =  require("thirdparty/lodash");
-
-    //addLinkedStyleSheet('styles/infobar-styles.css');
+        InfoBarHtml         = require("text!htmlContent/infobar-template.html"),
+        _                   =  require("thirdparty/lodash");
 
     EventDispatcher.makeEventDispatcher(exports);
 
@@ -59,8 +57,8 @@ define(function (require, exports, module) {
         if ($infoBar.length > 0) {
             $infoBar.remove();
         }
-        $(window.document).off("keydown.AutoInfo");
-        $(window).off('resize.AutoInfoBar');
+        $(window.document).off("keydown.InfoBarTemplateDoc");
+        $(window).off('resize.InfoBarTemplate');
     }
 
     /**
@@ -113,7 +111,7 @@ define(function (require, exports, module) {
         };
 
         resizeContentContainer();
-        $(window).on('resize.AutoInfoBar', _.debounce(resizeContentContainer, 150));
+        $(window).on('resize.InfoBarTemplate', _.debounce(resizeContentContainer, 150));
 
         //Event handlers on the Info Bar
         // Click and key handlers on Close button
@@ -123,7 +121,7 @@ define(function (require, exports, module) {
                 MainViewManager.focusActivePane();
             });
         }
-        $(window.document).on("keydown.AutoInfo", function (event) {
+        $(window.document).on("keydown.InfoBarTemplateDoc", function (event) {
             var code = event.which;
             if (code === ESC_KEY) {
                 // Keyboard input of Esc key on Info Bar dismisses and removes the bar
