@@ -900,5 +900,5 @@ define({
     "CMD_FIND_PROJECT_SYMBOLS"                       : "Find Project Symbols",
 
    // Remote debugging enabled
-    "REMOTE_DEBUGGING_ENABLED"                       : "Remote Debugging Enabled on Port:"
+    "REMOTE_DEBUGGING_ENABLED"                       : "Remote debugging enabled on localhost:"
 });
