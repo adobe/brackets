@@ -262,7 +262,7 @@ define(function (require, exports, module) {
                 var InfoBar = require('widgets/infobar');
                 InfoBar.showInfoBar({
                     type: "warning",
-                    title: `${Strings.REMOTE_DEBUGGING_ENABLED} ${remote_debugging_port}`,
+                    title: `${Strings.REMOTE_DEBUGGING_ENABLED}${remote_debugging_port}`,
                     description: ""
                 });
             }
