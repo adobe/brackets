@@ -778,4 +778,4 @@ define({
     "CMD_FIND_DOCUMENT_SYMBOLS"                      : "Encontrar Símbolos dos Documentos",
     "CMD_FIND_PROJECT_SYMBOLS"                       : "Encontrar Símbolos dos Projetos"
 });
-/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
+/* Last translated for 1cb4979af57bb3fd1335f8715190eb265019c60b */
