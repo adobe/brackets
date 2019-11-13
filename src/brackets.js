@@ -257,6 +257,16 @@ define(function (require, exports, module) {
             );
         }
 
+        brackets.app.getRemoteDebuggingPort(function (err, remote_debugging_port){
+            if (remote_debugging_port && remote_debugging_port > 0) {
+                var InfoBar = require('widgets/infobar');
+                InfoBar.showInfoBar({
+                    type: "warning",
+                    title: `${Strings.REMOTE_DEBUGGING_ENABLED}${remote_debugging_port}`,
+                    description: ""
+                });
+            }
+        });
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
         // using the "Always" scroll bar setting.
