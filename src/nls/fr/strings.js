@@ -897,5 +897,8 @@ define({
 	"REFERENCES_NO_RESULTS": "Références non disponibles pour la position actuelle du curseur",
 
 	"CMD_FIND_DOCUMENT_SYMBOLS": "Rechercher des symboles de document",
-	"CMD_FIND_PROJECT_SYMBOLS": "Rechercher des symboles de projet"
+	"CMD_FIND_PROJECT_SYMBOLS": "Rechercher des symboles de projet",
+
+   // Remote debugging enabled
+	"REMOTE_DEBUGGING_ENABLED": "Remote debugging enabled on localhost:"
 });

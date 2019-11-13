@@ -897,5 +897,8 @@ define({
 	"REFERENCES_NO_RESULTS": "現在のカーソル位置で利用可能な参照はありません",
 
 	"CMD_FIND_DOCUMENT_SYMBOLS": "ドキュメント記号を検索",
-	"CMD_FIND_PROJECT_SYMBOLS": "プロジェクト記号を検索"
+	"CMD_FIND_PROJECT_SYMBOLS": "プロジェクト記号を検索",
+
+   // Remote debugging enabled
+	"REMOTE_DEBUGGING_ENABLED": "Remote debugging enabled on localhost:"
 });
