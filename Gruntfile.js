@@ -50,6 +50,16 @@ module.exports = function (grunt) {
                         'src/styles/brackets.css'
                     ]
                 }]
+            },
+            node_modules_test_dir : {
+                files: [{
+                    dot: true,
+                    src: [
+                        'dist/node_modules/npm/test/fixtures',
+                        'dist/node_modules/npm/node_modules/tar/test',
+                        'dist/node_modules/npm/node_modules/npm-registry-client/test'
+                    ]
+                }]
             }
         },
         copy: {
@@ -412,7 +422,8 @@ module.exports = function (grunt) {
         'npm-install',
         'cleanempty',
         'usemin',
-        'build-config'
+        'build-config',
+        'clean:node_modules_test_dir'
     ]);
 
     // task: build
@@ -430,3 +441,4 @@ module.exports = function (grunt) {
     // Default task.
     grunt.registerTask('default', ['test']);
 };
+
