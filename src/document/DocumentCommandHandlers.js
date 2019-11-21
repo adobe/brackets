@@ -1643,7 +1643,7 @@ define(function (require, exports, module) {
             result.resolve();
         } else {
             brackets.app.getRemoteDebuggingPort(function (err, port){
-                if (port && port > 0) {
+                if ((!err) && port && port > 0) {
                     Inspector.getDebuggableWindows("127.0.0.1", port)
                         .fail(result.reject)
                         .done(function (response) {
