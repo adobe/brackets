@@ -900,8 +900,8 @@ define({
 	"CMD_FIND_PROJECT_SYMBOLS": "プロジェクト記号を検索",
 
    // Remote debugging enabled
-	"REMOTE_DEBUGGING_ENABLED": "Remote debugging enabled on localhost:",
+	"REMOTE_DEBUGGING_ENABLED": "次のローカルホストでリモートデバッグが有効になりました。",
 
    // Remote debugging port argument is invalid
-	"REMOTE_DEBUGGING_PORT_INVALID": "Cannot enable remote debugging on port {0}. Port numbers should be between {1} and {2}."
+	"REMOTE_DEBUGGING_PORT_INVALID": "ポート {0} でリモートデバッグを有効にできません。ポート番号は、{1} から {2} の間で指定してください。"
 });
