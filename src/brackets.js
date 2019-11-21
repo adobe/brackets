@@ -258,11 +258,18 @@ define(function (require, exports, module) {
         }
 
         brackets.app.getRemoteDebuggingPort(function (err, remote_debugging_port){
-            if (remote_debugging_port && remote_debugging_port > 0) {
-                var InfoBar = require('widgets/infobar');
+            var InfoBar = require('widgets/infobar'),
+                StringUtils = require("utils/StringUtils");
+            if ((!err) && remote_debugging_port && remote_debugging_port > 0) {
                 InfoBar.showInfoBar({
                     type: "warning",
                     title: `${Strings.REMOTE_DEBUGGING_ENABLED}${remote_debugging_port}`,
+                    description: ""
+                });
+            } else if (err) {
+                InfoBar.showInfoBar({
+                    type: "error",
+                    title: StringUtils.format(Strings.REMOTE_DEBUGGING_PORT_INVALID, err, 1024, 65534),
                     description: ""
                 });
             }
