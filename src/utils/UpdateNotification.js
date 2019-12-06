@@ -115,7 +115,7 @@ define(function (require, exports, module) {
             locale = locale.substring(0, 2);
         }
 
-        return brackets.config.update_info_url + '?locale=' + locale;
+        return brackets.config.update_info_url.replace('<locale>', locale || 'en');
     }
 
     /**
