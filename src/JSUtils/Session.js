@@ -394,6 +394,43 @@ define(function (require, exports, module) {
                     lex.prev.info === "call")));
         }
 
+        /**
+         * Convert a column number based on a line with spaces
+         * to a character position in a string with (possibly) tabs.
+         * For example:
+         * In the line `<tab><tab>function ()` with tab size 4 and col = 8,
+         * col 8 is referring to the `f` of `function`, because it is based on a line with spaces.
+         * The character position this function will output, is 2, referring to the same `f`.
+         *
+         * @param {Number} col - column number in a line with spaces
+         * @param {String} lineText - a line of text in the editor
+         * @param {Number} tabSize - tab size in the editor
+         * @return {Number} character position in the line of text
+         */
+        function columnToCharPos(col, lineText, tabSize) {
+            var spaces,
+                addedChars = 0,
+                posInLineWithSpaces = 0,
+                tabPos = 0;
+            
+            // Check for tabs in the text part before `col`
+            while (lineText.indexOf("\t") > -1 && posInLineWithSpaces < col) {
+                // Calculate number of spaces to the next tab stop
+                tabPos = lineText.indexOf("\t");
+                posInLineWithSpaces += tabPos;
+                spaces = tabSize - posInLineWithSpaces % tabSize;
+                posInLineWithSpaces += spaces;
+                
+                // The tab itself is 1 character, 
+                // so when for eaxample the tab was 4 spaces, we added 4 - 1 = 3 characters
+                addedChars += spaces - 1;
+                
+                // Process rest of the line
+                lineText = lineText.substring(tabPos + 1);
+            }
+            return col - addedChars;
+        }
+         
         if (token) {
             // if this token is part of a function call, then the tokens lexical info
             // will be annotated with "call".
@@ -427,9 +464,17 @@ define(function (require, exports, module) {
                 var col = lexical.info === "call" ? lexical.column : lexical.prev.column,
                     line,
                     e,
-                    found;
+                    found,
+                    lineText,
+                    charPos,
+                    tabSize = this.editor._codeMirror.options.tabSize;
+                
                 for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
-                    if (this.getLine(line).charAt(col) === "(") {
+                    // Column is based on a line with spaces.
+                    // We have to convert it to a character position when tabs are used, otherwise our check will fail.
+                    lineText = this.getLine(line);
+                    charPos = columnToCharPos(col, lineText, tabSize);
+                    if (lineText.charAt(charPos) === "(") {
                         found = true;
                         break;
                     }
@@ -437,7 +482,7 @@ define(function (require, exports, module) {
 
                 if (found) {
                     inFunctionCall = true;
-                    functionCallPos = {line: line, ch: col};
+                    functionCallPos = {line: line, ch: charPos};
                 }
             }
         }
