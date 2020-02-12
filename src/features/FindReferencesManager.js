@@ -121,6 +121,16 @@ define(function (require, exports, module) {
         searchModel.clear();
     }
 
+    /**
+     * @public
+     * Closes the references panel
+     */
+    function closeReferencesPanel() {
+        if (_resultsView) {
+            _resultsView.close();
+        }
+    }
+    
     function setMenuItemStateForLanguage(languageId) {
         CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
         if (!languageId) {
@@ -207,4 +217,5 @@ define(function (require, exports, module) {
     exports.registerFindReferencesProvider    = registerFindReferencesProvider;
     exports.removeFindReferencesProvider      = removeFindReferencesProvider;
     exports.setMenuItemStateForLanguage       = setMenuItemStateForLanguage;
+    exports.closeReferencesPanel              = closeReferencesPanel;
 });
