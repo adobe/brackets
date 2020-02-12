@@ -139,7 +139,7 @@
     "image-orientation":           {"values": []},
     "image-resolution":            {"values": ["from-image", "snap"]},
     "isolation":                   {"values": ["auto", "isolate"]},
-    "justify-content":             {"values": ["center", "flex-end", "flex-start", "space-around", "space-between"]},
+    "justify-content":             {"values": ["center", "flex-end", "flex-start", "space-around", "space-between", "space-evenly"]},
     "left":                        {"values": ["auto", "inherit"]},
     "letter-spacing":              {"values": ["normal", "inherit"]},
     "line-height":                 {"values": ["normal", "inherit"]},
@@ -189,6 +189,12 @@
     "region-fragment":             {"values": ["auto", "break"]},
     "resize":                      {"values": ["both", "horizontal", "none", "vertical", "inherit"]},
     "right":                       {"values": ["auto", "inherit"]},
+    "speak-header":         	   {"values": ["once", "always", "inherit"]},
+    "speak-numeral":    	       {"values": ["digits", "continuous", "inherit"]},
+    "speak-punctuation":	       {"values": ["code", "none", "inherit"]},
+    "speak":	                   {"values": ["normal", "none", "spell-out", "inherit"]},
+    "speech-rate":                 {"values": ["x-slow", "slow", "medium", "fast", "x-fast", "faster", "slower", "inherit"]},
+    "stress":	                   {"values": ["inherit"]},
     "scroll-behavior":             {"values": ["auto", "smooth"]},
     "src":                         {"values": [ "url()"]},
     "shape-image-threshold":       {"values": []},
@@ -238,3 +244,4 @@
     "word-wrap":                   {"values": ["break-word", "normal"]},
     "z-index":                     {"values": ["auto", "inherit"]}
 }
+
