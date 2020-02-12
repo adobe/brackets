@@ -1665,6 +1665,8 @@ define(function (require, exports, module) {
                             // In case of an error
                             _socket.onerror = result.reject;
                         });
+                } else {
+                    result.reject();
                 }
             });
         }
