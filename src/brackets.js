@@ -371,6 +371,18 @@ define(function (require, exports, module) {
             });
         });
 
+        // Check If Adobe XD Application is installed on User Machine
+        if(brackets.platform !== "linux") {
+            AppInit.appReady(function () {
+                brackets.app.IsXDAppInstalled(function (err, isInstalled) {
+                    if(err) {
+                        isInstalled = false;
+                    }
+                    PreferencesManager.setViewState("IsXDAppInstalled", isInstalled);
+                });
+            });
+        }
+
         // Check for updates
         if (!brackets.inBrowser && !params.get("skipUpdateCheck")) {
             AppInit.appReady(function () {
