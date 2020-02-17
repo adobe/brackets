@@ -591,5 +591,5 @@ define(function (require, exports, module) {
     exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
     exports.encodeFilePath                 = encodeFilePath;
     exports.canBracketsOpenFileWithGivenExtensions = canBracketsOpenFileWithGivenExtensions;
-    exports.addExtensionToNotSupportedList = addExtensionToNotSupportedList
+    exports.addExtensionToNotSupportedList = addExtensionToNotSupportedList;
 });
