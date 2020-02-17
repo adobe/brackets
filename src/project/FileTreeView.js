@@ -555,7 +555,8 @@ define(function (require, exports, module) {
                     });
                 }
             } else {
-                this.props.actions.setSelected(this.myPath(), this.myPath().endsWith(".xd"));
+                this.props.actions.setSelected(this.myPath(),
+                    !FileUtils.canBracketsOpenFileWithGivenExtensions(FileUtils.getFileExtension(this.myPath())));
             }
             e.stopPropagation();
             e.preventDefault();
@@ -566,13 +567,13 @@ define(function (require, exports, module) {
          * set (via the `selectInWorkingSet` action.)
          */
         handleDoubleClick: function () {
-            if(this.myPath().endsWith(".xd") && PreferencesManager.getViewState("IsXDAppInstalled")) {
-                brackets.app.OpenDocumentWithXDApp(this.myPath(), function () {});
-                return;
-            }
             if (!this.props.entry.get("rename")) {
                 if (this.state.clickTimer !== null) {
                     this.clearTimer();
+                }
+                if("xd" === FileUtils.getFileExtension(this.myPath()).toLowerCase() && PreferencesManager.getViewState("OpenXDFileInXDApp")) {
+                    brackets.app.OpenDocumentWithXDApp(this.myPath(), function () {});
+                    return;
                 }
                 this.props.actions.selectInWorkingSet(this.myPath());
             }

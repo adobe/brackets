@@ -903,5 +903,9 @@ define({
     "REMOTE_DEBUGGING_ENABLED"                       : "Remote debugging enabled on localhost:",
 
    // Remote debugging port argument is invalid
-    "REMOTE_DEBUGGING_PORT_INVALID"                  : "Cannot enable remote debugging on port {0}. Port numbers should be between {1} and {2}."
+    "REMOTE_DEBUGGING_PORT_INVALID"                  : "Cannot enable remote debugging on port {0}. Port numbers should be between {1} and {2}.",
+
+    //Associate .xd FIle to Adobe XD App
+    "ASSOCIATE_XD_FILE_TO_XD_APP_TITLE"              : "Adobe XD",
+    "ASSOCIATE_XD_FILE_TO_XD_APP_MSG"                : "Would you like to open .xd file in Adobe XD Application?"
 });

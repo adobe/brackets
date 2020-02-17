@@ -89,7 +89,7 @@ define(function (require, exports, module) {
     require("project/WorkingSetSort");
     require("search/QuickOpen");
     require("search/QuickOpenHelper");
-    require("file/FileUtils");
+    var FileUtils = require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
     require("LiveDevelopment/main");
@@ -378,7 +378,31 @@ define(function (require, exports, module) {
                     if(err) {
                         isInstalled = false;
                     }
-                    PreferencesManager.setViewState("IsXDAppInstalled", isInstalled);
+                    if(!isInstalled) {
+                        PreferencesManager.setViewState("OpenXDFileInXDApp", false);
+                    }
+                    else if(!PreferencesManager.getViewState("XDFileDialogShown")) {
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_INFO,
+                            Strings.ASSOCIATE_XD_FILE_TO_XD_APP_TITLE,
+                            Strings.ASSOCIATE_XD_FILE_TO_XD_APP_MSG,
+                            [
+                                { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
+                                    text: Strings.BUTTON_NO },
+                                { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK,
+                                    text: Strings.BUTTON_YES}
+                            ]
+                        ).done(function (id) {
+                            if (id === Dialogs.DIALOG_BTN_OK) {
+                                PreferencesManager.setViewState("OpenXDFileInXDApp", true);
+                                FileUtils.addExtensionToNotSupportedList("xd");
+                            }
+                        });
+                        PreferencesManager.setViewState("XDFileDialogShown", true);
+                    }
+                    else if(PreferencesManager.getViewState("OpenXDFileInXDApp")){
+                        FileUtils.addExtensionToNotSupportedList("xd");
+                    }
                 });
             });
         }
