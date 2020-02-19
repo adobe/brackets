@@ -89,7 +89,7 @@ define(function (require, exports, module) {
     require("project/WorkingSetSort");
     require("search/QuickOpen");
     require("search/QuickOpenHelper");
-    var FileUtils = require("file/FileUtils");
+    require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
     require("LiveDevelopment/main");
@@ -101,6 +101,7 @@ define(function (require, exports, module) {
     require("language/XMLUtils");
     require("language/JSONUtils");
     require("widgets/InlineMenu");
+    var HealthLogger = require("utils/HealthLogger");
 
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
@@ -374,14 +375,13 @@ define(function (require, exports, module) {
         // Check If Adobe XD Application is installed on User Machine
         if(brackets.platform !== "linux") {
             AppInit.appReady(function () {
-                brackets.app.IsXDAppInstalled(function (err, isInstalled) {
-                    if(err) {
-                        isInstalled = false;
-                    }
-                    if(!isInstalled) {
-                        PreferencesManager.setViewState("OpenXDFileInXDApp", false);
-                    }
-                    else if(!PreferencesManager.getViewState("XDFileDialogShown")) {
+                if(!PreferencesManager.getViewState("XDFileDialogShown")) {
+                    brackets.app.IsXDAppInstalled(function (err, isInstalled) {
+
+                        if(err || !isInstalled) {
+                            return;
+                        }
+
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_INFO,
                             Strings.ASSOCIATE_XD_FILE_TO_XD_APP_TITLE,
@@ -393,17 +393,21 @@ define(function (require, exports, module) {
                                     text: Strings.BUTTON_YES}
                             ]
                         ).done(function (id) {
-                            if (id === Dialogs.DIALOG_BTN_OK) {
-                                PreferencesManager.setViewState("OpenXDFileInXDApp", true);
-                                FileUtils.addExtensionToNotSupportedList("xd");
-                            }
+                            PreferencesManager.definePreference("externalEditor.xd", "boolean", true, {
+                                description: Strings.DESCRIPTION_EXTERNAL_EDITOR_XD
+                            });
+                            PreferencesManager.set('externalEditor.xd', id === Dialogs.DIALOG_BTN_OK);
+                            HealthLogger.sendAnalyticsData(
+                                "AddExternalEditor_XD",
+                                "usage",
+                                "externalEditors",
+                                "AddExternalEditor_XD",
+                                id === Dialogs.DIALOG_BTN_OK ? "OptIn" :"OptOut"
+                            );
                         });
                         PreferencesManager.setViewState("XDFileDialogShown", true);
-                    }
-                    else if(PreferencesManager.getViewState("OpenXDFileInXDApp")){
-                        FileUtils.addExtensionToNotSupportedList("xd");
-                    }
-                });
+                    });
+                }
             });
         }
 

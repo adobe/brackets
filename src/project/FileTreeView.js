@@ -556,7 +556,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 this.props.actions.setSelected(this.myPath(),
-                    !FileUtils.canBracketsOpenFileWithGivenExtensions(FileUtils.getFileExtension(this.myPath())));
+                    PreferencesManager.get("externalEditor." + FileUtils.getFileExtension(this.myPath())));
             }
             e.stopPropagation();
             e.preventDefault();
@@ -571,8 +571,22 @@ define(function (require, exports, module) {
                 if (this.state.clickTimer !== null) {
                     this.clearTimer();
                 }
-                if("xd" === FileUtils.getFileExtension(this.myPath()).toLowerCase() && PreferencesManager.getViewState("OpenXDFileInXDApp")) {
-                    brackets.app.OpenDocumentWithXDApp(this.myPath(), function () {});
+                var path = this.myPath();
+                if("xd" === FileUtils.getFileExtension(path).toLowerCase() && PreferencesManager.get("externalEditor.xd")) {
+                    brackets.app.OpenDocumentWithXDApp(path, function (err) {
+                        if(!err) {
+                            return;
+                        }
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_OPENING_FILE_TITLE,
+                            StringUtils.format(
+                                Strings.ERROR_OPENING_FILE,
+                                StringUtils.breakableUrl(path),
+                                FileUtils.getFileErrorString(err)
+                            )
+                        );
+                    });
                     return;
                 }
                 this.props.actions.selectInWorkingSet(this.myPath());
