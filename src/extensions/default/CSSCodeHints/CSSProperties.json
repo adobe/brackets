@@ -141,7 +141,7 @@
     "isolation":                   {"values": ["auto", "isolate"]},
     "justify-content":             {"values": ["center", "flex-end", "flex-start", "space-around", "space-between"]},
     "justify-items":               {"values": ["auto", "normal", "stretch", "center", "start", "end", "flex-start", "flex-end", "self-start", "self-end", "left", "right", "baseline", "first", "last", "safe", "unsafe", "legacy", "inherit", "initial"]},
-    "justity-self":                {"values": ["auto", "normal", "stretch", "center", "start", "end", "flex-start", "flex-end", "self-start", "self-end", "left", "right", "baseline", "first", "last", "safe", "unsafe", "inherit", "initial"]},
+    "justify-self":                {"values": ["auto", "normal", "stretch", "center", "start", "end", "flex-start", "flex-end", "self-start", "self-end", "left", "right", "baseline", "first", "last", "safe", "unsafe", "inherit", "initial"]},
     "left":                        {"values": ["auto", "inherit"]},
     "letter-spacing":              {"values": ["normal", "inherit"]},
     "line-height":                 {"values": ["normal", "inherit"]},
