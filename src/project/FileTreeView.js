@@ -40,7 +40,11 @@ define(function (require, exports, module) {
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent"),
-        PreferencesManager  = require("preferences/PreferencesManager");
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
+        StringUtils         = require("utils/StringUtils"),
+        Strings             = require("strings");
 
     var DOM = Preact.DOM;
 
