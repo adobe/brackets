@@ -879,9 +879,9 @@ define({
     "CMD_FIND_RELATED_FILES"                         : "Buscar ficheiros relacionados"
 
     ///String for Php Tooling Extensions
-    "PHP_VERSION_INVALID"                            : "Erro analizando a versión de PHP. Verifica a saída do comando 'php –version'.",
+    "PHP_VERSION_INVALID"                            : "Erro analizando a versión de PHP. Verifica a saída do comando \"php –version\".",
     "PHP_UNSUPPORTED_VERSION"                        : "Instala o motor de PHP7 para habilitar as ferramentas para PHP como consellos de código, consellos para párametros, ir á definición e outros. Versión actual: {0}",
-    "PHP_EXECUTABLE_NOT_FOUND"                       : "Sen motor de PHP. Instala o motor de PHP7 e modifica 'executablePath' nos axustes. Isto habilita as ferramentas para PHP como consellos de código, consellos para párametros, ir á definición e outros.",
+    "PHP_EXECUTABLE_NOT_FOUND"                       : "Sen motor de PHP. Instala o motor de PHP7 e modifica \"executablePath\" nos axustes. Isto habilita as ferramentas para PHP como consellos de código, consellos para párametros, ir á definición e outros.",
     "PHP_PROCESS_SPAWN_ERROR"                        : "Atopouse un error {0} durante o inicio do proceso PHP.",
     "PHP_SERVER_ERROR_TITLE"                         : "Erro",
     "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "O límite de memoria fornecida non é válido. Verifica os axustes de PHP para definir un valor correcto.",
