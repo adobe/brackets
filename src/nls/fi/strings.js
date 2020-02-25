@@ -63,11 +63,11 @@ define({
     "ERROR_RELOADING_FILE"              : "Tapahtui virhe yritettäessä päivittää tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Virhe tallennettaessa tiedostoa",
     "ERROR_SAVING_FILE"                 : "Tapahtui virhe yritettäessä tallentaa tiedostoa <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Virhe nimettäessä {0}a uudelleen",
-    "ERROR_RENAMING_FILE"               : "Tapahtui virhe yritettäessä nimetä uudelleen {2}a <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Virhe nimettäessä tiedostoa {0} uudelleen",
+    "ERROR_RENAMING_FILE"               : "Tapahtui virhe yritettäessä nimetä uudelleen tiedostoa {2} <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_NOT_IN_PROJECT"     : "Tiedosto tai hakemisto ei kuulu avoinna olevaan projektiin. Valitettavasti vain projektin tiedostoja voi nimetä uudelleen tällä hetkellä.",
-    "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa {0}a",
-    "ERROR_DELETING_FILE"               : "Tapahtui virhe yritettäessä poistaa {2}a <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa tiedostoa {0}",
+    "ERROR_DELETING_FILE"               : "Tapahtui virhe yritettäessä poistaa tiedostoa {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Virheellinen {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} ei voi käyttää mitään järjestelmän varaamia sanoja, päättyä pisteeseen (.) tai käyttää mitään seuraavista merkeistä: <code class='emphasized'>{1}</code>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Tiedosto tai hakemisto nimellä <span class='dialog-filename'>{0}</span> on jo olemassa.",
@@ -136,8 +136,8 @@ define({
     "CONFIRM_FOLDER_DELETE"             : "Haluatko varmasti poistaa kansion <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Poistettu tiedosto",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä {APP_NAME}in ulkopuolella.<br /><br />Haluatko tallentaa tiedoston ja korvata kyseiset muutokset?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä {APP_NAME}in ulkopuolella, mutta sillä on tallentamattomia muutoksia myös {APP_NAME}issa.<br /><br />Kumman version haluat säilyttää?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> on poistettu levyltä {APP_NAME}in ulkopuolella, mutta sillä on tallentamattomia muutoksia {APP_NAME}issa.<br /><br />Haluatko säilyttää muutoksesi?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä sovelluksen {APP_NAME} ulkopuolella, mutta sillä on tallentamattomia muutoksia myös sovelluksessa {APP_NAME}.<br /><br />Kumman version haluat säilyttää?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> on poistettu levyltä sovelluksen {APP_NAME} ulkopuolella, mutta sillä on tallentamattomia muutoksia sovelluksessa {APP_NAME}.<br /><br />Haluatko säilyttää muutoksesi?",
 
     // Generic dialog/button labels
     "DONE"                              : "Valmis",
@@ -667,7 +667,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Näytä parametrivihje",
     "NO_ARGUMENTS"                              : "<ei parametreja>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript-tiedoston päättelyongelma",
-    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} kohtasi vaikeuksia tiedoston <span class='dialog-filename'>{0}</span> käsittelyssä.<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeitä, määrittelyyn siirtymistä tai pikamuokkausta varten. Avaa projektin tiedosto <code>.brackets.json</code> ja muokkaa kohtaa <code>jscodehints.detectedExclusions</code>, niin saat tiedoston takaisin käyttöön.<br><br>Tämä on todennäköisesti {APP_NAME}in bugi. Jos voit luovuttaa kopion tästä tiedostosta, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>ilmoita virheestä</a> ja laita mukaan linkki kyseiseen tiedostoon, kiitos!",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} kohtasi vaikeuksia tiedoston <span class='dialog-filename'>{0}</span> käsittelyssä.<br><br>Tätä tiedostoa ei enää käsitellä koodivihjeitä, määrittelyyn siirtymistä tai pikamuokkausta varten. Avaa projektin tiedosto <code>.brackets.json</code> ja muokkaa kohtaa <code>jscodehints.detectedExclusions</code>, niin saat tiedoston takaisin käyttöön.<br><br>Tämä on todennäköisesti sovelluksen {APP_NAME} bugi. Jos voit luovuttaa kopion tästä tiedostosta, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>ilmoita virheestä</a> ja laita mukaan linkki kyseiseen tiedostoon, kiitos!",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
