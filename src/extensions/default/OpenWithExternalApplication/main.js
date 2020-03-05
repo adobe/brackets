@@ -37,34 +37,36 @@ define(function (require, exports, module) {
      * @private
      * @type {string} fullPath of the OpenWithExternalEditor Domain implementation
      */
-    var _domainPath = ExtensionUtils.getModulePath(module, "node/OpenWithExternalEditorDomain");
+    var _domainPath = ExtensionUtils.getModulePath(module, "node/OpenWithExternalApplicationDomain");
 
     /**
      * @private
      * @type {NodeDomain}
      */
-    var _nodeDomain = new NodeDomain("OpenWithExternalEditor", _domainPath);
+    var _nodeDomain = new NodeDomain("OpenWithExternalApplication", _domainPath);
 
-    var extensionToExternalEditorMap = {};
+    var extensionToExtApplicationMap = {};
 
-    function _openInExternalEdior(event, path) {
+    function _openWithExternalApplication(event, path) {
         _nodeDomain.exec("open", {
             path: path,
-            app: extensionToExternalEditorMap[FileUtils.getFileExtension(path).toLowerCase()]
+            app: extensionToExtApplicationMap[FileUtils.getFileExtension(path).toLowerCase()]
         });
     }
 
-    PreferencesManager.definePreference("externalEditor", "object", {}, {
-        description: Strings.DESCRIPTION_EXTERNAL_EDITOR
+    PreferencesManager.definePreference("externalApplications", "object", {}, {
+        description: Strings.DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE
     });
 
-    PreferencesManager.on("change", "externalEditor", function () {
-        extensionToExternalEditorMap = PreferencesManager.get("externalEditor");
+    PreferencesManager.on("change", "externalApplications", function () {
+        extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
+        FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
     });
 
-    FileViewController.on("openInExternalEditor", _openInExternalEdior);
+    FileViewController.on("openWithExternalApplication", _openWithExternalApplication);
 
     AppInit.appReady(function () {
-        FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExternalEditorMap));
+        extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
+        FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
     });
 });

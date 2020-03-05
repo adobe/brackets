@@ -229,8 +229,8 @@ define(function (require, exports, module) {
     /**
      * Opens the specified document with its associated external editor,
      */
-    function openInExternalEditor(fullPath) {
-        exports.trigger("openInExternalEditor", fullPath);
+    function openWithExternalApplication(fullPath) {
+        exports.trigger("openWithExternalApplication", fullPath);
     }
 
     /**
@@ -282,5 +282,5 @@ define(function (require, exports, module) {
     exports.setFileViewFocus = setFileViewFocus;
     exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
-    exports.openInExternalEditor = openInExternalEditor;
+    exports.openWithExternalApplication = openWithExternalApplication;
 });

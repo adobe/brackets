@@ -281,10 +281,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * See `FileViewController.openInExternalEditor`
+     * See `FileViewController.openWithExternalApplication`
      */
-    ActionCreator.prototype.openInExternalEditor = function (path) {
-        FileViewController.openInExternalEditor(path);
+    ActionCreator.prototype.openWithExternalApplication = function (path) {
+        FileViewController.openWithExternalApplication(path);
     };
 
 

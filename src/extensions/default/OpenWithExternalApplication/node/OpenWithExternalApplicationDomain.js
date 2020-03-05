@@ -34,7 +34,7 @@ var _domainManager;
  *
  * @param {Object} params Object to use
  */
-function _OpenWithExternalEditor(params) {
+function _openWithExternalApplication(params) {
     var application =  "default" === params.app ? "": params.app;
     open(params.path, application);
 }
@@ -47,15 +47,15 @@ function _OpenWithExternalEditor(params) {
 function init(domainManager) {
     _domainManager = domainManager;
 
-    if (!domainManager.hasDomain("OpenWithExternalEditor")) {
-        domainManager.registerDomain("OpenWithExternalEditor", {major: 0, minor: 1});
+    if (!domainManager.hasDomain("OpenWithExternalApplication")) {
+        domainManager.registerDomain("OpenWithExternalApplication", {major: 0, minor: 1});
     }
     _domainManager.registerCommand(
-        "OpenWithExternalEditor",
+        "OpenWithExternalApplication",
         "open",
-        _OpenWithExternalEditor,
+        _openWithExternalApplication,
         true,
-        "open document with External Editor.",
+        "open document with External Application.",
         [{
             name: "params",
             type: "object",

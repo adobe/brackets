@@ -1,5 +1,5 @@
 {
-  "name": "brackets-open-external_editor",
+  "name": "brackets-open-external_application",
   "dependencies": {
     "open": "0.0.5"
   }

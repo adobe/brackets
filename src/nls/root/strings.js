@@ -906,5 +906,5 @@ define({
     "REMOTE_DEBUGGING_PORT_INVALID"                  : "Cannot enable remote debugging on port {0}. Port numbers should be between {1} and {2}.",
     
     //Associate File Type to External App
-    "DESCRIPTION_EXTERNAL_EDITOR"                    : "Add File type association to external App here"
+    "DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE"     : "Add File type association to external App here"
 });

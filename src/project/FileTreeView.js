@@ -576,7 +576,7 @@ define(function (require, exports, module) {
                 if (FileUtils.shouldOpenInExternalApplication(
                         FileUtils.getFileExtension(this.myPath()).toLowerCase()
                       )) {
-                    this.props.actions.openInExternalEditor(this.myPath());
+                    this.props.actions.openWithExternalApplication(this.myPath());
                     return;
                 }
                 this.props.actions.selectInWorkingSet(this.myPath());

@@ -537,7 +537,7 @@ define(function (require, exports, module) {
      *
      */
     function shouldOpenInExternalApplication(ext) {
-        return !extListToBeOpenedInExtApp.includes(ext);
+        return extListToBeOpenedInExtApp.includes(ext);
     }
 
     /**
@@ -547,7 +547,7 @@ define(function (require, exports, module) {
     function addExtensionToExternalAppList(ext) {
 
         if(typeof ext !== 'string') {
-            extListToBeOpenedInExtApp.concat(ext);
+            extListToBeOpenedInExtApp = ext;
         } else {
             extListToBeOpenedInExtApp.push(ext);
         }
