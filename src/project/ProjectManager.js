@@ -281,6 +281,14 @@ define(function (require, exports, module) {
     };
 
     /**
+     * See `FileViewController.openInExternalEditor`
+     */
+    ActionCreator.prototype.openInExternalEditor = function (path) {
+        FileViewController.openInExternalEditor(path);
+    };
+
+
+    /**
      * See `ProjectModel.setContext`
      */
     ActionCreator.prototype.setContext = function (path) {
