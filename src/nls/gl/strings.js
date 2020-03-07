@@ -161,7 +161,7 @@ define({
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX"                  : "{0} de {1}",
     "FIND_NO_RESULTS"                   : "Sen resultados",
-    "FIND_QUERY_PLACEHOLDER"            : "Atopado\u2026",
+    "FIND_QUERY_PLACEHOLDER"            : "Procurar\u2026",
     "FIND_HISTORY_MAX_COUNT"            : "Número máximo de elementos no historial de buscas",
     "REPLACE_PLACEHOLDER"               : "Substituír por\u2026",
     "BUTTON_REPLACE_ALL"                : "Substituír todo",
@@ -175,7 +175,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Sensíbel ás maiúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Substituír sen volta atrás",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Debido a que máis de {0} arquivos precisan ser cambiados, {APP_NAME} modificará arquivos non abertos.<br />Non poderás desfacer estes cambios.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Xa que máis de {0} ficheiros precisan ser cambiados, {APP_NAME} modificará ficheiros non abertos.<br />Non poderás desfacer estes trocos.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Substituír sen volta atrás",
 
     "OPEN_FILE"                         : "Abrir ficheiro",
@@ -377,15 +377,15 @@ define({
     "CMD_SHOW_CODE_HINTS"                 : "Amosar suxestións de código",
 
     // Search menu commands
-    "FIND_MENU"                           : "Buscar",
-    "CMD_FIND"                            : "Buscar",
-    "CMD_FIND_NEXT"                       : "Buscar seguinte",
-    "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
-    "CMD_FIND_ALL_AND_SELECT"             : "Buscar todo e seleccionar",
+    "FIND_MENU"                           : "Procurar",
+    "CMD_FIND"                            : "Procurar",
+    "CMD_FIND_NEXT"                       : "Procurar seguinte",
+    "CMD_FIND_PREVIOUS"                   : "Procurar anterior",
+    "CMD_FIND_ALL_AND_SELECT"             : "Procurar todo e seleccionar",
     "CMD_ADD_NEXT_MATCH"                  : "Engadir a seguinte coincidencia á selección",
     "CMD_SKIP_CURRENT_MATCH"              : "Omitir e engadir a seguinte coincidencia",
-    "CMD_FIND_IN_FILES"                   : "Buscar en ficheiros",
-    "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
+    "CMD_FIND_IN_FILES"                   : "Procurar en ficheiros",
+    "CMD_FIND_IN_SUBTREE"                 : "Procurar en\u2026",
     "CMD_REPLACE"                         : "Substituír",
     "CMD_REPLACE_IN_FILES"                : "Substituír en ficheiros",
     "CMD_REPLACE_IN_SUBTREE"              : "Substituír en\u2026",
@@ -414,7 +414,7 @@ define({
     "CMD_THEMES"                          : "Temas\u2026",
     "CMD_TOGGLE_SEARCH_AUTOHIDE"          : "Pechar automaticamente Buscar",
 
-    // Navigate menu Commands
+    // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir á liña",
@@ -470,7 +470,7 @@ define({
     "ABOUT_TEXT_LINE3"                     : "Os avisos, termos e condicións pertencentes a software de terceiros atópanse en <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> e inclúense aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Podes atopar a documentación e código fonte en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Feito con \u2764 e JavaScript por:",
-    "ABOUT_TEXT_LINE6"                     : "Moita xente (pero agora mesmo temos problemas para cargar eses datos).",
+    "ABOUT_TEXT_LINE6"                     : "Moita xente (pero agora mesmo temos problemas para cargar os datos).",
     "ABOUT_TEXT_MDN_DOCS"                  : "O contido de MDN Docs e o logo de MDN están dispoñíbeis baixo unha Licencia de Recoñecemento de Creative Commons, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Hai unha nova versión do {APP_NAME} dispoñible! Fai clic aquí para máis detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización dispoñíbel",
@@ -624,7 +624,7 @@ define({
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Recargar sen extensións",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nova xanela do {APP_NAME}",
     "CMD_LAUNCH_SCRIPT_MAC"                     : "Instalar atallo dende a liña de ordes",
-    "CMD_SWITCH_LANGUAGE"                       : "Trocar a lingua",
+    "CMD_SWITCH_LANGUAGE"                       : "Trocar idioma do {APP_NAME}",
     "CMD_RUN_UNIT_TESTS"                        : "Executar probas",
     "CMD_SHOW_PERF_DATA"                        : "Amosar información de rendemento",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Activar depuración de Node",
@@ -642,11 +642,11 @@ define({
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "O atallo por liña de ordes non é compatíbel con este sistema operativo.",
     "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Parabéns! Xa podes abrir dun xeito doado o {APP_NAME} dende a liña de ordes: <code>brackets ficheiro.txt</code> para abrir un ficheiro ou <code>brackets cartafol</code> para trocar de proxecto.<br><br><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Saber máis</a> sobre como empregar o {APP_NAME} dende a liña de ordes.",
 
-    "LANGUAGE_TITLE"                            : "Trocar lingua",
-    "LANGUAGE_MESSAGE"                          : "Lingua:",
+    "LANGUAGE_TITLE"                            : "Trocar Idioma",
+    "LANGUAGE_MESSAGE"                          : "Idioma:",
     "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancelar",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "Lingua predeterminada",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma do sistema",
 
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Preferencias do informe de estatísticas",
@@ -695,7 +695,7 @@ define({
     "CMD_REFACTORING_TRY_CATCH"                 : "Axustar no 'Try Catch'",
     "CMD_REFACTORING_CONDITION"                 : "Axustar á Condición",
     "CMD_REFACTORING_GETTERS_SETTERS"           : "Crear Getters/Setters",
-    "CMD_REFACTORING_ARROW_FUNCTION"            : "Converter Convert to Arrow Function",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
     "DESCRIPTION_CODE_REFACTORING"              : "Activar/desactivar a refactorización de código JavaScript",
     "ERROR_TRY_CATCH"                           : "Seleccionar código válido para axustar a un bloque Try-catch",
     "ERROR_WRAP_IN_CONDITION"                   : "Seleccionar código válido para axustar a un bloque condicional",
@@ -876,12 +876,12 @@ define({
 
     "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
-    "CMD_FIND_RELATED_FILES"                         : "Buscar ficheiros relacionados"
+    "CMD_FIND_RELATED_FILES"                         : "Buscar ficheiros relacionados",
 
     ///String for Php Tooling Extensions
-    "PHP_VERSION_INVALID"                            : "Erro analizando a versión de PHP. Verifica a saída do comando \"php –version\".",
+    "PHP_VERSION_INVALID"                            : "Erro analizando a versión de PHP. Verifica a saída do comando “php –version”.",
     "PHP_UNSUPPORTED_VERSION"                        : "Instala o motor de PHP7 para habilitar as ferramentas para PHP como consellos de código, consellos para párametros, ir á definición e outros. Versión actual: {0}",
-    "PHP_EXECUTABLE_NOT_FOUND"                       : "Sen motor de PHP. Instala o motor de PHP7 e modifica \"executablePath\" nos axustes. Isto habilita as ferramentas para PHP como consellos de código, consellos para párametros, ir á definición e outros.",
+    "PHP_EXECUTABLE_NOT_FOUND"                       : "Sen motor de PHP. Instala o motor de PHP7 e modifica “executablePath” nos axustes. Isto habilita as ferramentas para PHP como consellos de código, consellos para párametros, ir á definición e outros.",
     "PHP_PROCESS_SPAWN_ERROR"                        : "Atopouse un error {0} durante o inicio do proceso PHP.",
     "PHP_SERVER_ERROR_TITLE"                         : "Erro",
     "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "O límite de memoria fornecida non é válido. Verifica os axustes de PHP para definir un valor correcto.",
@@ -899,10 +899,10 @@ define({
     "CMD_FIND_DOCUMENT_SYMBOLS"                      : "Atopar símbolos no documento",
     "CMD_FIND_PROJECT_SYMBOLS"                       : "Atopar símbolos no proxecto",
 
-   // Remote debugging enabled
+    // Remote debugging enabled
     "REMOTE_DEBUGGING_ENABLED"                       : "Depuración remota habilitada no localhost:",
 
-   // Remote debugging port argument is invalid
+    // Remote debugging port argument is invalid
     "REMOTE_DEBUGGING_PORT_INVALID"                  : "Non é posíbel activar a depuración remota no porto {0}. Os portos teñen de estar entre o {1} e {2}."
 });
 
