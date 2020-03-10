@@ -291,7 +291,7 @@
             "jsz", "lib", "mpeg", "mpg", "mp4", "msi", "node", "o", "obj", "odc",
             "odb", "odf", "odg", "odp", "ods", "odt", "otf", "pak", "pdb", "pdf",
             "pdi", "ppt", "pptx", "psd", "rar", "sdf", "so", "sqlite", "suo", "svgz",
-            "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
+            "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip", "xd"
         ],
         "isBinary": true
     },
