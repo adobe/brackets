@@ -29,9 +29,11 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         Strings              = brackets.getModule("strings"),
         FileViewController   = brackets.getModule("project/FileViewController"),
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         NodeDomain           = brackets.getModule("utils/NodeDomain"),
-        FileUtils            = brackets.getModule("file/FileUtils");
+        FileUtils            = brackets.getModule("file/FileUtils"),
+        GraphicsFile         = require("GraphicsFile");
 
     /**
      * @private
@@ -46,6 +48,8 @@ define(function (require, exports, module) {
     var _nodeDomain = new NodeDomain("OpenWithExternalApplication", _domainPath);
 
     var extensionToExtApplicationMap = {};
+
+    var graphicsFileTypes = [".jpg", ".jpeg", ".png", ".svg", ".xd", ".psd", ".ai"];
 
     function _openWithExternalApplication(event, path) {
         _nodeDomain.exec("open", {
@@ -66,6 +70,8 @@ define(function (require, exports, module) {
     FileViewController.on("openWithExternalApplication", _openWithExternalApplication);
 
     AppInit.appReady(function () {
+        
+        GraphicsFile.init(_nodeDomain);
         extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
         FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
     });

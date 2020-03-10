@@ -25,7 +25,9 @@
 /*jslint node: true */
 "use strict";
 
-var open     = require("open");
+var open     = require("open"),
+    Glob     = require("glob").Glob,
+    path     = require('path');
 
 var _domainManager;
 
@@ -39,6 +41,39 @@ function _openWithExternalApplication(params) {
     open(params.path, application);
 }
 
+/**
+ * @private
+ *
+ * @param {Object} params Object to use
+ */
+function _checkFileTypesInFolder(params) {
+
+    var extList = params.extensions,
+        dirPath = path.normalize(params.folder),
+
+        pattern = dirPath + "/**/*.+(" + extList.replace(",", "|") + ")";
+        //pattern = dirPath + "/**/*.jpg";
+
+    var mg = new Glob(pattern, function (err, matches) {
+
+        var respObj = {
+            id: params.reqId,
+            present: matches.length > 0 ? true : false
+        }
+        _domainManager.emitEvent('OpenWithExternalApplication', 'checkFileTypesInFolderResponse', [respObj]);
+    });
+
+    mg.on("match", function() {
+        //mg.abort();
+        var respObj = {
+            id: params.reqId,
+            present: true
+        }
+        //_domainManager.emitEvent('OpenWithExternalApplication', 'checkFileTypesInFolderResponse', [respObj]);
+    });
+
+}
+
 
 /**
  * Initializes the OpenWithExternalEditor domain with its commands.
@@ -50,6 +85,7 @@ function init(domainManager) {
     if (!domainManager.hasDomain("OpenWithExternalApplication")) {
         domainManager.registerDomain("OpenWithExternalApplication", {major: 0, minor: 1});
     }
+
     _domainManager.registerCommand(
         "OpenWithExternalApplication",
         "open",
@@ -62,6 +98,32 @@ function init(domainManager) {
             description: "Params Object having document and App Path."
         }],
         []
+    );
+
+    _domainManager.registerCommand(
+        "OpenWithExternalApplication",
+        "checkFileTypesInFolder",
+        _checkFileTypesInFolder,
+        true,
+        "looks for File Types in a folder.",
+        [{
+            name: "params",
+            type: "object",
+            description: "Params Object having File Extensions and Folder Path."
+        }],
+        []
+    );
+
+    _domainManager.registerEvent(
+        "OpenWithExternalApplication",
+        "checkFileTypesInFolderResponse",
+        [
+            {
+                name: "msgObj",
+                type: "object",
+                description: "json object containing message info to pass to brackets"
+            }
+        ]
     );
 }
 
