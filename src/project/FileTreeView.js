@@ -555,10 +555,16 @@ define(function (require, exports, module) {
                     });
                 }
             } else {
-                this.props.actions.setSelected(this.myPath(),
-                      FileUtils.shouldOpenInExternalApplication(
-                        FileUtils.getFileExtension(this.myPath()).toLowerCase()
-                      ));
+                var language = LanguageManager.getLanguageForPath(this.myPath()),
+                    doNotOpen = false;
+                if (language && language.isBinary() && "image" !== language.getId() &&
+                        FileUtils.shouldOpenInExternalApplication(
+                            FileUtils.getFileExtension(this.myPath()).toLowerCase()
+                        )
+                    ) {
+                    doNotOpen = true;
+                }
+                this.props.actions.setSelected(this.myPath(), doNotOpen);
             }
             e.stopPropagation();
             e.preventDefault();
