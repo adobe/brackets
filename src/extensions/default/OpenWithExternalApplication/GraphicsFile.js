@@ -36,7 +36,6 @@ define(function (require, exports, module) {
         _initialized = false;
 
     var _graphicsFileTypes = ["jpg", "jpeg", "png", "svg", "xd", "psd", "ai"];
-    //var _graphicsFileTypes = [ "psd"];
 
     var _nodeDomain;
 
@@ -104,12 +103,29 @@ define(function (require, exports, module) {
             }
 
             brackets.app.getSystemDefaultApp(_graphicsFileTypes.join(), function (err, out) {
+
+                if(err) {
+                    return;
+                }
                 var associateApp = out.split(','),
                     fileTypeToAppMap = {};
 
                 associateApp.forEach(function(item) {
-                    fileTypeToAppMap[item.split(':')[0]] = item.split(':')[1];
+                    fileTypeToAppMap[item.split('##')[0]] = item.split('##')[1];
                 });
+
+                var prefs = PreferencesManager.get('externalApplications');
+
+                for (var key in fileTypeToAppMap) {
+                    if (fileTypeToAppMap.hasOwnProperty(key)) {
+                        if(key && !prefs[key]) {
+                            prefs[key] = "default";
+                        }
+                    }
+                }
+
+                PreferencesManager.set('externalApplications', prefs);
+
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_INFO,
                     Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE,
