@@ -53,7 +53,7 @@ define(function (require, exports, module) {
             if(response.id !== _requestID) {
                 return;
             }
-            _graphicsFilePresentInProject(response.present)
+            _graphicsFilePresentInProject(response.present);
         });
 
         ProjectManager.on("projectOpen", function () {
@@ -99,15 +99,16 @@ define(function (require, exports, module) {
             ]
         ).done(function (id) {
             
-            if(id !== Dialogs.DIALOG_BTN_OK)
+            if(id !== Dialogs.DIALOG_BTN_OK) {
                 return;
+            }
 
             brackets.app.getSystemDefaultApp(_graphicsFileTypes.join(), function (err, out) {
                 var associateApp = out.split(','),
                     fileTypeToAppMap = {};
 
                 associateApp.forEach(function(item) {
-                    fileTypeToAppMap[item.split(':')[0]] = item.split(':')[1]
+                    fileTypeToAppMap[item.split(':')[0]] = item.split(':')[1];
                 });
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_INFO,
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
                             text: Strings.BUTTON_YES
                         }
                     ]
-                )
+                );
             });
         });
         PreferencesManager.setViewState("AssociateGraphicsFileDialogShown", true);

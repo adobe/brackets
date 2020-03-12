@@ -58,7 +58,7 @@ function _checkFileTypesInFolder(params) {
         var respObj = {
             id: params.reqId,
             present: matches.length > 0 ? true : false
-        }
+        };
         _domainManager.emitEvent('OpenWithExternalApplication', 'checkFileTypesInFolderResponse', [respObj]);
     });
 
@@ -67,7 +67,7 @@ function _checkFileTypesInFolder(params) {
         var respObj = {
             id: params.reqId,
             present: true
-        }
+        };
         _domainManager.emitEvent('OpenWithExternalApplication', 'checkFileTypesInFolderResponse', [respObj]);
     });
 
