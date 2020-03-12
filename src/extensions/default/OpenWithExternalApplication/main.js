@@ -29,7 +29,6 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         Strings              = brackets.getModule("strings"),
         FileViewController   = brackets.getModule("project/FileViewController"),
-        ProjectManager       = brackets.getModule("project/ProjectManager"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         NodeDomain           = brackets.getModule("utils/NodeDomain"),
         FileUtils            = brackets.getModule("file/FileUtils"),
