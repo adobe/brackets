@@ -49,8 +49,6 @@ define(function (require, exports, module) {
 
     var extensionToExtApplicationMap = {};
 
-    var graphicsFileTypes = [".jpg", ".jpeg", ".png", ".svg", ".xd", ".psd", ".ai"];
-
     function _openWithExternalApplication(event, path) {
         _nodeDomain.exec("open", {
             path: path,
