@@ -27,13 +27,16 @@ define(function (require, exports, module) {
 
     var PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         Strings              = brackets.getModule("strings"),
-        ProjectManager       = brackets.getModule("project/ProjectManager");
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
+        Dialogs              = brackets.getModule("widgets/Dialogs"),
+        DefaultDialogs       = brackets.getModule("widgets/DefaultDialogs");
 
 
     var _requestID = 0,
         _initialized = false;
 
     var _graphicsFileTypes = ["jpg", "jpeg", "png", "svg", "xd", "psd", "ai"];
+    //var _graphicsFileTypes = [ "psd"];
 
     var _nodeDomain;
 
@@ -64,6 +67,10 @@ define(function (require, exports, module) {
 
     function _checkForGraphicsFileInPrjct() {
 
+        if(PreferencesManager.getViewState("AssociateGraphicsFileDialogShown")) {
+            return;
+        }
+
         _nodeDomain.exec("checkFileTypesInFolder", {
             extensions: _graphicsFileTypes.join(),
             folder: ProjectManager.getProjectRoot().fullPath,
@@ -74,7 +81,50 @@ define(function (require, exports, module) {
 
     function _graphicsFilePresentInProject(isPresent) {
 
-        console.log("Graphics File present in project", isPresent);
+        if(!isPresent) {
+            return;
+        }
+
+        Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_INFO,
+            Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE,
+            Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG,
+            [
+                { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
+                    text: Strings.BUTTON_NO
+                },
+                { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK,
+                    text: Strings.BUTTON_YES
+                }
+            ]
+        ).done(function (id) {
+            
+            if(id !== Dialogs.DIALOG_BTN_OK)
+                return;
+
+            brackets.app.getSystemDefaultApp(_graphicsFileTypes.join(), function (err, out) {
+                var associateApp = out.split(','),
+                    fileTypeToAppMap = {};
+
+                associateApp.forEach(function(item) {
+                    fileTypeToAppMap[item.split(':')[0]] = item.split(':')[1]
+                });
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_INFO,
+                    Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE,
+                    out,
+                    [
+                        { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
+                            text: Strings.BUTTON_NO
+                        },
+                        { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK,
+                            text: Strings.BUTTON_YES
+                        }
+                    ]
+                )
+            });
+        });
+        PreferencesManager.setViewState("AssociateGraphicsFileDialogShown", true);
 
     }
 

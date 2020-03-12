@@ -51,10 +51,9 @@ function _checkFileTypesInFolder(params) {
     var extList = params.extensions,
         dirPath = path.normalize(params.folder),
 
-        pattern = dirPath + "/**/*.+(" + extList.replace(",", "|") + ")";
-        //pattern = dirPath + "/**/*.jpg";
+        pattern = dirPath + "/**/*.+(" + extList.replace(/,/g, "|") + ")";
 
-    var mg = new Glob(pattern, function (err, matches) {
+    var globMgr = new Glob(pattern, function (err, matches) {
 
         var respObj = {
             id: params.reqId,
@@ -63,13 +62,13 @@ function _checkFileTypesInFolder(params) {
         _domainManager.emitEvent('OpenWithExternalApplication', 'checkFileTypesInFolderResponse', [respObj]);
     });
 
-    mg.on("match", function() {
-        //mg.abort();
+    globMgr.on("match", function() {
+        globMgr.abort();
         var respObj = {
             id: params.reqId,
             present: true
         }
-        //_domainManager.emitEvent('OpenWithExternalApplication', 'checkFileTypesInFolderResponse', [respObj]);
+        _domainManager.emitEvent('OpenWithExternalApplication', 'checkFileTypesInFolderResponse', [respObj]);
     });
 
 }
