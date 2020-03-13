@@ -546,9 +546,9 @@ define(function (require, exports, module) {
      */
     function addExtensionToExternalAppList(ext) {
 
-        if(typeof ext !== 'string') {
+        if(Array.isArray(ext)) {
             extListToBeOpenedInExtApp = ext;
-        } else {
+        } else if (typeof ext === 'string'){
             extListToBeOpenedInExtApp.push(ext);
         }
     }
