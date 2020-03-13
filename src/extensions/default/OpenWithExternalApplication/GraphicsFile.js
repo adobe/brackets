@@ -119,7 +119,11 @@ define(function (require, exports, module) {
                 for (var key in fileTypeToAppMap) {
                     if (fileTypeToAppMap.hasOwnProperty(key)) {
                         if(key && !prefs[key]) {
-                            prefs[key] = "default";
+                            prefs[key] = fileTypeToAppMap[key];
+                            if(brackets.platform === "win" && !fileTypeToAppMap[key].endsWith('.exe') &&
+                                !fileTypeToAppMap[key].endsWith('.EXE')) {
+                                prefs[key] = "default";
+                            }
                         }
                     }
                 }
