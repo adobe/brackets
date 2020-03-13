@@ -227,6 +227,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Opens the specified document with its associated external editor,
+     */
+    function openWithExternalApplication(fullPath) {
+        exports.trigger("openWithExternalApplication", fullPath);
+    }
+
+    /**
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the WorkingSetView
      * @deprecated use FileViewController.openFileAndAddToWorkingSet() instead
@@ -275,4 +282,5 @@ define(function (require, exports, module) {
     exports.setFileViewFocus = setFileViewFocus;
     exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
+    exports.openWithExternalApplication = openWithExternalApplication;
 });
