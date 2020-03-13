@@ -281,6 +281,14 @@ define(function (require, exports, module) {
     };
 
     /**
+     * See `FileViewController.openWithExternalApplication`
+     */
+    ActionCreator.prototype.openWithExternalApplication = function (path) {
+        FileViewController.openWithExternalApplication(path);
+    };
+
+
+    /**
      * See `ProjectModel.setContext`
      */
     ActionCreator.prototype.setContext = function (path) {

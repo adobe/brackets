@@ -59,6 +59,11 @@ define(function (require, exports, module) {
      */
     var MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 
+    /**
+     * @const {List} list of File Extensions which will be opened in external Application
+     */
+    var extListToBeOpenedInExtApp = [];
+
 
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
@@ -526,6 +531,28 @@ define(function (require, exports, module) {
         return pathArray.join("/");
     }
 
+    /**
+     * @param {string} ext extension string a file
+     * @return {string} returns true If file to be opened in External Application.
+     *
+     */
+    function shouldOpenInExternalApplication(ext) {
+        return extListToBeOpenedInExtApp.includes(ext);
+    }
+
+    /**
+     * @param {string} ext File Extensions to be added in External App List
+     *
+     */
+    function addExtensionToExternalAppList(ext) {
+
+        if(Array.isArray(ext)) {
+            extListToBeOpenedInExtApp = ext;
+        } else if (typeof ext === 'string'){
+            extListToBeOpenedInExtApp.push(ext);
+        }
+    }
+
     // Asynchronously load DocumentCommandHandlers
     // This avoids a temporary circular dependency created
     // by relocating showFileOpenError() until deprecation is over
@@ -568,4 +595,6 @@ define(function (require, exports, module) {
     exports.comparePaths                   = comparePaths;
     exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
     exports.encodeFilePath                 = encodeFilePath;
+    exports.shouldOpenInExternalApplication = shouldOpenInExternalApplication;
+    exports.addExtensionToExternalAppList = addExtensionToExternalAppList;
 });
