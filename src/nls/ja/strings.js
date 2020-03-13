@@ -903,5 +903,8 @@ define({
 	"REMOTE_DEBUGGING_ENABLED": "次のローカルホストでリモートデバッグが有効になりました。localhost:",
 
    // Remote debugging port argument is invalid
-	"REMOTE_DEBUGGING_PORT_INVALID": "ポート {0} でリモートデバッグを有効にできません。ポート番号は、{1} から {2} の間で指定してください。"
+	"REMOTE_DEBUGGING_PORT_INVALID": "ポート {0} でリモートデバッグを有効にできません。ポート番号は、{1} から {2} の間で指定してください。",
+    
+    //Associate File Type to External App
+	"DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE": "Add File type association to external App here"
 });
