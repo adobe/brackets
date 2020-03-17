@@ -137,15 +137,16 @@ define(function (require, exports, module) {
                     }
 
                     if (filetype === "xd") {
-                        if (app.toLowerCase() !== "adobe xd" && app !== "adobe.cc.xd") {
+                        if (app.toLowerCase() !== "adobe xd" && app.toLowerCase() !== "adobe.cc.xd") {
                             return;
                         }
+                        
                         app = "Adobe XD";
                     }
                     fileTypeToAppMap[filetype] = app;
 
-                    if (brackets.platform === "win" && !app.toLowerCase().endsWith('.exe')) {
-                        app = app.substring(app.lastIndexOf('//') + 2, app.length - 4);
+                    if (brackets.platform === "win" && app.toLowerCase().endsWith('.exe')) {
+                        app = app.substring(app.lastIndexOf('\\') + 1, app.length - 4);
                     }
                     if (AppToFileTypeMap[app]) {
                         AppToFileTypeMap[app].push(filetype);
