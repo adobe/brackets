@@ -31,7 +31,8 @@ define(function (require, exports, module) {
         FileViewController   = brackets.getModule("project/FileViewController"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         NodeDomain           = brackets.getModule("utils/NodeDomain"),
-        FileUtils            = brackets.getModule("file/FileUtils");
+        FileUtils            = brackets.getModule("file/FileUtils"),
+        GraphicsFile         = require("GraphicsFile");
 
     /**
      * @private
@@ -66,6 +67,8 @@ define(function (require, exports, module) {
     FileViewController.on("openWithExternalApplication", _openWithExternalApplication);
 
     AppInit.appReady(function () {
+        
+        GraphicsFile.init(_nodeDomain);
         extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
         FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
     });
