@@ -48,9 +48,16 @@ define(function (require, exports, module) {
 
     var extensionToExtApplicationMap = {};
 
+    function convertUnixPathToWindowsPath(path) {
+        if (brackets.platform === "win" && path && path[1] === ":" && path[2] === "/") {
+           path = path.replace(RegExp('/','g'), '\\');
+        }
+        return path;
+    }
+
     function _openWithExternalApplication(event, path) {
         _nodeDomain.exec("open", {
-            path: path,
+            path: convertUnixPathToWindowsPath(path),
             app: extensionToExtApplicationMap[FileUtils.getFileExtension(path).toLowerCase()]
         });
     }
