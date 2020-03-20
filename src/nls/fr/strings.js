@@ -906,11 +906,11 @@ define({
 	"REMOTE_DEBUGGING_PORT_INVALID": "Impossible d’activer le débogage à distance sur le port {0}. Les numéros de port doivent être compris entre {1} et {2}.",
     
     //Associate File Type to External App
-	"DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE": "Mappings for file extension to external applications. Syntax: \"<file_type>\": \"<default|applicationName|ApplicationPath>\", Use \"default\" to open files in system default application for the file type.",
+	"DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE": "Mappages d’extension de fichier avec des applications externes. Syntaxe : \"<type_fichier>\": \"<default|NomApplication|CheminApplication>\", Utiliser « default » pour ouvrir les fichiers dans l’application par défaut du système pour le type de fichier.",
 
-	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE": "Open Graphic Files in External Editors.",
-	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG": "Your current folder has graphic file types which are not supported by {APP_NAME}.<br/>You can now associate specific file types with external editors. Once associated, you can open graphic files like .xd, .psd, .jpg, .png, .ai, .svg in their default applications by double clicking on the files in File Tree.<br/><br/>Please click on ‘Ok’ button to associate the graphic file types with their respective default applications.",
-	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG": "Following file types have been successfully associated with default applications.<br/>{0} You have the option to change your preference on whether you delete/add new file type associations in brackets.json by going to “Debug->Open Preferences File” menu."
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE": "Ouvrez les fichiers graphiques dans des éditeurs externes.",
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG": "Votre dossier actuel comporte des types de fichier graphique non pris en charge par {APP_NAME}.<br/>Vous pouvez à présent associer des types de fichiers spécifiques avec des éditeurs externes. Une fois l’association établie, vous pouvez ouvrir des fichiers graphiques tels que .xd, .psd, .jpg, .png, .ai et .svg, dans leur application par défaut en double-cliquant sur ces fichiers dans l’arborescence de fichiers.<br/><br/>Cliquez sur le bouton OK pour associer les types de fichier graphique avec leur application par défaut respective.",
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG": "Les types de fichiers suivants ont été associés à des applications par défaut.<br/>{0} Vous pouvez modifier votre préférence concernant l’éventuel(le) suppression/ajout d’associations de type de fichier dans brackets.json via le menu Déboguer->Ouvrir le fichier des préférences."
 
 
 });

@@ -906,11 +906,11 @@ define({
 	"REMOTE_DEBUGGING_PORT_INVALID": "ポート {0} でリモートデバッグを有効にできません。ポート番号は、{1} から {2} の間で指定してください。",
     
     //Associate File Type to External App
-	"DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE": "Mappings for file extension to external applications. Syntax: \"<file_type>\": \"<default|applicationName|ApplicationPath>\", Use \"default\" to open files in system default application for the file type.",
+	"DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE": "ファイル拡張子の外部アプリケーションへのマッピング。構文: \"<file_type>\": \"<default|applicationName|ApplicationPath>\"。「default」を指定すると、そのファイルタイプに対してシステムでデフォルトに設定されているアプリケーションを使用してファイルが開きます。",
 
-	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE": "Open Graphic Files in External Editors.",
-	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG": "Your current folder has graphic file types which are not supported by {APP_NAME}.<br/>You can now associate specific file types with external editors. Once associated, you can open graphic files like .xd, .psd, .jpg, .png, .ai, .svg in their default applications by double clicking on the files in File Tree.<br/><br/>Please click on ‘Ok’ button to associate the graphic file types with their respective default applications.",
-	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG": "Following file types have been successfully associated with default applications.<br/>{0} You have the option to change your preference on whether you delete/add new file type associations in brackets.json by going to “Debug->Open Preferences File” menu."
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE": "外部エディターでグラフィックファイルを開きます。",
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG": "現在のフォルダーには、{APP_NAME}でサポートされていないタイプのグラフィックファイルがあります。<br/>ここで、特定のファイルタイプを外部エディターに関連付けることができます。関連付けが完了すると、xd、.psd、.jpg、.png、.ai、.svgなどのグラフィックファイルをファイルツリーでダブルクリックすることで、デフォルトのアプリケーションで開くことができます。<br/><br/>「OK」ボタンをクリックして、グラフィックファイルタイプをそれぞれのデフォルトアプリケーションに関連付けてください。",
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG": "次のファイルタイプが、デフォルトのアプリケーションに関連付けられました。<br/>{0} この設定は、brackets.json でファイルタイプの関連付けを削除し、新しい関連付けを追加するか、デバッグ／環境設定ファイルを開くメニューにアクセスして変更できます。"
 
 
 });
