@@ -49,7 +49,8 @@ define(function (require, exports, module) {
     var extensionToExtApplicationMap = {};
 
     function convertUnixPathToWindowsPath(path) {
-        if (brackets.platform === "win" && path && path[1] === ":" && path[2] === "/") {
+        if (brackets.platform === "win"
+        && path && ((path[1] === ":" && path[2] === "/") || (path[0] === "/" && path[1] === "/"))) {
            path = path.replace(RegExp('/','g'), '\\');
         }
         return path;
