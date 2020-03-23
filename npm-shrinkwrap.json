@@ -1946,9 +1946,9 @@
       "dev": true
     },
     "lodash": {
-      "version": "4.17.4",
-      "from": "lodash@4.17.4",
-      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.4.tgz"
+      "version": "4.17.15",
+      "from": "lodash@4.17.15",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.15.tgz"
     },
     "longest": {
       "version": "1.0.1",
