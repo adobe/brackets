@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         NodeDomain           = brackets.getModule("utils/NodeDomain"),
         FileUtils            = brackets.getModule("file/FileUtils"),
+        FileSystem           = brackets.getModule("filesystem/FileSystem"),
         GraphicsFile         = require("GraphicsFile");
 
     /**
@@ -49,8 +50,7 @@ define(function (require, exports, module) {
     var extensionToExtApplicationMap = {};
 
     function convertUnixPathToWindowsPath(path) {
-        if (brackets.platform === "win"
-        && path && ((path[1] === ":" && path[2] === "/") || (path[0] === "/" && path[1] === "/"))) {
+        if (brackets.platform === "win" && path && FileSystem.isAbsolutePath(path)) {
            path = path.replace(RegExp('/','g'), '\\');
         }
         return path;
