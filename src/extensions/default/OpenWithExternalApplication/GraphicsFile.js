@@ -72,6 +72,13 @@ define(function (require, exports, module) {
             return;
         }
 
+        var userUuid = PreferencesManager.getViewState("UUID"),
+            olderUuid = PreferencesManager.getViewState("OlderUUID");
+
+        if(!(userUuid || olderUuid)) {
+            return;
+        }
+
         _nodeDomain.exec("checkFileTypesInFolder", {
             extensions: _graphicsFileTypes.join(),
             folder: ProjectManager.getProjectRoot().fullPath,
