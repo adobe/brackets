@@ -247,7 +247,7 @@ define(function (require, exports, module) {
                 verifyHints(hintList, "spaceUnits");
             });
 
-            it("should NOT hint for blacklisted parent keys", function () {
+            it("should NOT hint for blocklisted parent keys", function () {
                 // Between " and txt"
                 testEditor.setCursorPos({line: 4, ch: 9});
                 expectNoHints(PrefsCodeHints.hintProvider);

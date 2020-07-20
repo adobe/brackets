@@ -10839,7 +10839,7 @@ define('document/TextRange',['require','exports','module'],function (require, ex
  * destroy() an Editor that's going away so it can release its Document ref.
  *
  * For now, there's a distinction between the "master" Editor for a Document - which secretly acts
- * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
+ * as the Document's internal model of the text state - and the multitude of "subordinate" secondary Editors
  * which, via Document, sync their changes to and from that master.
  *
  * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
@@ -11056,7 +11056,7 @@ define('editor/Editor',['require','exports','module','editor/EditorManager','edi
      *
      * @param {!Document} document  
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
-     *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
+     *          Editor for the Document. If false, this Editor will attach to the Document as a "subordinate"/
      *          secondary editor.
      * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
@@ -16178,7 +16178,7 @@ define('editor/EditorManager',['require','exports','module','file/FileUtils','co
      * file extension. The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
-     *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
+     *          Editor for the Document. If false, the Editor will attach to the Document as a "subordinate."
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
@@ -49093,7 +49093,7 @@ define('document/TextRange',['require','exports','module'],function (require, ex
  * destroy() an Editor that's going away so it can release its Document ref.
  *
  * For now, there's a distinction between the "master" Editor for a Document - which secretly acts
- * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
+ * as the Document's internal model of the text state - and the multitude of "subordinate" secondary Editors
  * which, via Document, sync their changes to and from that master.
  *
  * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
@@ -49310,7 +49310,7 @@ define('editor/Editor',['require','exports','module','editor/EditorManager','edi
      *
      * @param {!Document} document  
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
-     *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
+     *          Editor for the Document. If false, this Editor will attach to the Document as a "subordinate"/
      *          secondary editor.
      * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
@@ -54432,7 +54432,7 @@ define('editor/EditorManager',['require','exports','module','file/FileUtils','co
      * file extension. The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
-     *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
+     *          Editor for the Document. If false, the Editor will attach to the Document as a "subordinate."
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.

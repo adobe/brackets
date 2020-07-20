@@ -175,7 +175,7 @@ define(function (require, exports, module) {
      * @private
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
-     *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
+     *          Editor for the Document. If false, the Editor will attach to the Document as a "subordinate."
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.

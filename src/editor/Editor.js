@@ -29,7 +29,7 @@
  * destroy() an Editor that's going away so it can release its Document ref.
  *
  * For now, there's a distinction between the "master" Editor for a Document - which secretly acts
- * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
+ * as the Document's internal model of the text state - and the multitude of "subordinate" secondary Editors
  * which, via Document, sync their changes to and from that master.
  *
  * For now, direct access to the underlying CodeMirror object is still possible via `_codeMirror` --
@@ -313,7 +313,7 @@ define(function (require, exports, module) {
      *
      * @param {!Document} document
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
-     *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
+     *          Editor for the Document. If false, this Editor will attach to the Document as a "subordinate"/
      *          secondary editor.
      * @param {!jQueryObject|DomNode} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document

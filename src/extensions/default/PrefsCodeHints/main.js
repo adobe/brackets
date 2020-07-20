@@ -58,7 +58,7 @@ define(function (require, exports, module) {
     };
 
     // List of parent keys for which no key hints will be provided.
-    var parentKeyBlacklist = [
+    var parentKeyBlocklist = [
         "language.fileExtensions",
         "language.fileNames",
         "path"
@@ -197,9 +197,9 @@ define(function (require, exports, module) {
             this.ctxInfo = JSONUtils.getContextInfo(this.editor, this.editor.getCursorPos(), true);
 
             if (this.ctxInfo && this.ctxInfo.tokenType) {
-                // Disallow hints for blacklisted keys.
+                // Disallow hints for blocklisted keys.
                 if (this.ctxInfo.tokenType === JSONUtils.TOKEN_KEY &&
-                        parentKeyBlacklist.indexOf(this.ctxInfo.parentKeyName) !== -1) {
+                        parentKeyBlocklist.indexOf(this.ctxInfo.parentKeyName) !== -1) {
                     return false;
                 }
                 return true;
