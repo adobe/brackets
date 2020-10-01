@@ -150,12 +150,8 @@ define(function (require, exports, module) {
             a2 = a.toLowerCase();
             b2 = b.toLowerCase();
         }
-
-        if (a2 === b2) {
-            return 0;
-        } else {
-            return (a2 > b2) ? 1 : -1;
-        }
+       
+        return (a2 === b2) ? 0 : ((a2 > b2) ? 1 : -1);
     }
 
     /**
@@ -183,25 +179,13 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function prettyPrintBytes(bytes, precision) {
-        var kilobyte = 1024,
-            megabyte = kilobyte * 1024,
-            gigabyte = megabyte * 1024,
-            terabyte = gigabyte * 1024,
-            returnVal = bytes;
+        if (bytes === 0) return '0 B';
 
-        if ((bytes >= 0) && (bytes < kilobyte)) {
-            returnVal = bytes + " B";
-        } else if (bytes < megabyte) {
-            returnVal = (bytes / kilobyte).toFixed(precision) + " KB";
-        } else if (bytes < gigabyte) {
-            returnVal = (bytes / megabyte).toFixed(precision) + " MB";
-        } else if (bytes < terabyte) {
-            returnVal = (bytes / gigabyte).toFixed(precision) + " GB";
-        } else if (bytes >= terabyte) {
-            return (bytes / terabyte).toFixed(precision) + " TB";
-        }
+        var k = 1024;
+        var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
-        return returnVal;
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(precision)) + ' ' + sizes[i];
     }
 
     /**
