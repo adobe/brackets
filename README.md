@@ -9,7 +9,7 @@ What makes Brackets different from other web code editors?
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
 environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
 context-specific code and tools inline.
-* **Brackets is in sync with your browser.** With Live Preview, Brackets
+* **Brackets are in sync with your browser.** With Live Preview, Brackets
 works directly with your browser to push code edits instantly and jump
 back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
@@ -28,14 +28,14 @@ How to install and run Brackets
 -------------------------------
 #### Download
 
-Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
+Installers for the latest stable build for Mac, Windows, and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
 
 #### Usage
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
 You can choose a different folder to edit using *File > Open Folder*.
 
-Most of Brackets should be pretty self-explanatory, but for information on how
+Most of the Brackets should be pretty self-explanatory, but for information on how
 to use its unique features, like Quick Edit and Live Preview, please read
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets). 
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
@@ -80,12 +80,11 @@ then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/codemirror/CodeMirror)&mdash;thanks to Marijn for
-taking our pull requests, implementing feature requests and fixing bugs! See 
+taking our pull requests, implementing feature requests, and fixing bugs! See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on how we're using CodeMirror.
 
-Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
-application in a thin native shell, so that it can access your local files.
+Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 The native shell for Brackets lives in a separate repo, 
 [adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
