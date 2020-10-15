@@ -38,7 +38,7 @@ define({
     "UNSUPPORTED_ENCODING_ERR"          : "Formato de codificación descoñecido",
     "ENCODE_FILE_FAILED_ERR"            : "{APP_NAME} non puido codificar o contido do ficheiro.",
     "DECODE_FILE_FAILED_ERR"            : "{APP_NAME} non puido descodificar o contido do ficheiro.",
-    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} actualmente só soporta ficheiros codificados como UTF-8.",
+    "UNSUPPORTED_UTF16_ENCODING_ERR"    : "{APP_NAME} actualmente só soporta ficheiros codificados como UTF-8.",
     "FILE_EXISTS_ERR"                   : "O ficheiro xa existe.",
     "FILE"                              : "ficheiro",
     "FILE_TITLE"                        : "Ficheiro",
@@ -95,7 +95,7 @@ define({
     "ERROR_PROJ_PREFS_CORRUPT"          : "O ficheiro de preferencias para o proxecto non ten o formato JSON válido. O ficheiro abrirase para que poidas corrixir o formato. Terás que cargar de novo o proxecto para que os trocos teñan efecto.",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Vaia... semella que {APP_NAME} aínda non funciona en navegadores.",
+    "ERROR_IN_BROWSER_TITLE"            : "Vaia! semella que {APP_NAME} aínda non funciona en navegadores.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} está desenvolvido en HTML, pero polo de agora funciona coma unha aplicación de escritorio para que poidas editar ficheiros en local. Por favor, utiliza a aplicación do repositorio <b>github.com/adobe/brackets-shell</b> para executar {APP_NAME}.",
 
     // ProjectManager max files error string
@@ -138,9 +138,9 @@ define({
     "CONFIRM_FILE_DELETE"               : "Tes a certeza de querer eliminar o ficheiro <span class='dialog-filename'>{0}</span>?",
     "CONFIRM_FOLDER_DELETE"             : "Tes a certeza de querer eliminar o cartafol <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Ficheiro eliminado",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> foi modificado no disco.<br /><br />Queres gardar o ficheiro e sobrescribir eses trocos?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> foi modificado, pero tamén ten trocos no {APP_NAME}.<br /><br />Que versión queres conservar?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> foi eliminado, pero ten trocos sen gardar no {APP_NAME}.<br /><br />Queres conservar os teus trocos?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> foi modificado fora do {APP_NAME}<br /><br />Queres gardar o ficheiro e sobrescribir eses trocos?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> foi modificado fora do {APP_NAME} pero tamén ten trocos sen gardar no {APP_NAME}.<br /><br />Que versión queres conservar?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> foi eliminado fora do {APP_NAME}, pero tamén ten trocos sen gardar no {APP_NAME}.<br /><br />Queres conservar os teus trocos?",
     
     // Window unload warning messages
     "WINDOW_UNLOAD_WARNING"                      : "Tes a certeza de querer saír do Brackets e navegar a un URL diferente?",
@@ -165,13 +165,13 @@ define({
     "FIND_HISTORY_MAX_COUNT"            : "Número máximo de elementos no historial de buscas",
     "REPLACE_PLACEHOLDER"               : "Substituír por\u2026",
     "BUTTON_REPLACE_ALL"                : "Substituír todo",
-    "BUTTON_REPLACE_ALL"                : "Todo\u2026",
+    "BUTTON_REPLACE_BATCH"              : "Todo\u2026",
     "BUTTON_REPLACE_ALL_IN_FILES"       : "Substituír\u2026",
     "BUTTON_REPLACE"                    : "Substituír",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Seguinte coincidencia",
-    "BUTTON_PREV_HINT"                  : "Anterior coincidencia",
+    "BUTTON_PREV_HINT"                  : "Coincidencia anterior",
     "BUTTON_CASESENSITIVE_HINT"         : "Sensíbel ás maiúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Substituír sen volta atrás",
@@ -203,7 +203,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "coincidencias",
     "FIND_IN_FILES_MORE_THAN"           : "Máis de ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",  // We should use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd clic para expandir/contraer todo",
     "FIND_IN_FILES_INDEXING"            : "Indexando para busca instantánea\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Substituír Erros",
@@ -225,7 +225,7 @@ define({
     "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} máis",
     "FILTER_COUNTING_FILES"             : "Contando ficheiros\u2026",
     "FILTER_FILE_COUNT"                 : "Permite {0} de {1} ficheiros {2}",
-    "FILTER_FILE_COUNT_ALL"             : "Permite tódolos {0} ficheiros {1}",
+    "FILTER_FILE_COUNT_ALL"             : "Permite os {0} ficheiros {1}",
 
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "A Edición Rápida non está dispoñíbel para a posición actual do cursor",
@@ -304,13 +304,13 @@ define({
     "STATUSBAR_ENCODING_TOOLTIP"            : "Seleccionar a codificación",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
-    "SINGLE_ERROR"                          : "1 problema de {0}",
-    "MULTIPLE_ERRORS"                       : "{1} problemas de {0}",
-    "NO_ERRORS"                             : "Non se atoparon problemas de {0} - Bo traballo!",
-    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Non se atoparon problemas - Bo traballo!",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "Erros/alertas: {0}",
+    "SINGLE_ERROR"                          : "1 erro/alerta de {0}",
+    "MULTIPLE_ERRORS"                       : "{1} erros/alertas de {0}",
+    "NO_ERRORS"                             : "Sen erros/alertas de {0} - Bo traballo!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Sen erros/alertas - Bo traballo!",
     "LINT_DISABLED"                         : "A inspección de código está desactivada",
-    "NO_LINT_AVAILABLE"                     : "Non hai inspección de código dispoñible para {0}",
+    "NO_LINT_AVAILABLE"                     : "Non hai inspección de código dispoñíbel para {0}",
     "NOTHING_TO_LINT"                       : "Non hai nada para inspeccionar",
     "LINTER_TIMED_OUT"                      : "{0} esgotou o tempo despois de agardar {1} ms",
     "LINTER_FAILED"                         : "{0} rematou con erro: {1}",
@@ -549,8 +549,8 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Xestor de extensións",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Non foi posíbel acceder ao rexistro de extensións. Por favor, téntao de novo máis tarde.",
-    "INSTALL_EXTENSION_DRAG"               : "Arrastra o .zip aquí ou",
-    "INSTALL_EXTENSION_DROP"               : "Solta o .zip para instalar",
+    "INSTALL_EXTENSION_DRAG"               : "Arrastrar o .zip aquí ou",
+    "INSTALL_EXTENSION_DROP"               : "Soltar o .zip para instalar",
     "INSTALL_EXTENSION_DROP_ERROR"         : "A Instalación/Actualizacións foi cancelada polos seguintes erros:",
     "INSTALL_FROM_URL"                     : "Instalar dende URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Validando\u2026",
@@ -573,9 +573,9 @@ define({
     "EXTENSION_MORE_INFO_LINK"             : "Máis",
     "BROWSE_EXTENSIONS"                    : "Explorar extensións",
     "EXTENSION_MANAGER_REMOVE"             : "Eliminar extensión",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Non se puido eliminar unha ou máis extensións: {{0}}. {APP_NAME} recargarase igualmente.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Non se puido eliminar unha ou máis extensións: {0}. {APP_NAME} recargarase igualmente.",
     "EXTENSION_MANAGER_UPDATE"             : "Actualizar extensión",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Non se puido actualizar unha ou máis extensións: {{0}}. {APP_NAME} recargarase igualmente.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Non se puido actualizar unha ou máis extensións: {0}. {APP_NAME} recargarase igualmente.",
     "EXTENSION_MANAGER_DISABLE"            : "Desactivar extensións",
     "EXTENSION_MANAGER_DISABLE_ERROR"      : "Non foi posíbel desactivar unha ou máis extensións: {0}. {APP_NAME} continuará a se recargar.",
     "MARKED_FOR_REMOVAL"                   : "Marcada para eliminar",
@@ -592,9 +592,9 @@ define({
     "DISABLE_AND_RELOAD"                   : "Desactivar extensións e recargar",
     "PROCESSING_EXTENSIONS"                : "Procesando os trocos nas extensións\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Non se puido eliminar a extensión {{0}} porque non está instalada.",
-    "NO_EXTENSIONS"                        : "Aínda non hai ningunha extensión instalada.<br />Fai clic na lapela \"Dispoñíbeis\" para comenzar.",
+    "NO_EXTENSIONS"                        : "Aínda non hai ningunha extensión instalada.<br />Fai clic na lapela \"Dispoñíbeis\" para comezar.",
     "NO_EXTENSION_MATCHES"                 : "Non hai extensións que coincidan coa túa busca.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Estas extensións poden provir de diferentes autores a {APP_NAME}. As extensións non son revisadas e teñen todos os privilexios locais. Ten coidado cando instales extensións dunha fonte descoñecida.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Estas extensións poden provir de diferentes autores de {APP_NAME}. As extensións non son revisadas e teñen todos os privilexios locais. Ten coidado cando instales extensións dunha fonte descoñecida.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
     "EXTENSIONS_DEFAULT_TITLE"             : "Predefinida",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dispoñíbeis",
@@ -631,7 +631,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Amosar estado de Node na Consola",
     "CMD_RESTART_NODE"                          : "Reiniciar Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Amosar erros na barra de estado",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Ver o código do Brackets",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Ver o código do {APP_NAME}",
 
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Atallo ao {APP_NAME} dende a liña de ordes",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Produciuse un erro ao instalar o atallo dende a liña de ordes. Por favor, proba <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>estas suxestión á solución de problemas</a>.<br><br>Razón: {0}",
@@ -678,7 +678,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Amosar suxestións de parámetros",
     "NO_ARGUMENTS"                              : "<sen parámetros>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferencia cun ficheiro JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets atopouse con problemas procesando:<br><br>{0}<br><br>Este ficheiro non volverá a ser procesado para as suxestións de código e saltar á definición. Para activalo de novo, abre <code>.brackets.json</code> no seu proxecto e elimina o ficheiro de jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} atopou problemas verificando: <span class='dialog-filename'>{0}</span>.<br><br>Este ficheiro non volverá ser verificado para as suxestións de código. Salta á definición ou edición rápida. Para activalo de novo, abre <code>.brackets.json</code> no teu proxecto e edita <code>jscodehints.detectedExclusions</code>.<br><br>É posíbel que sexa un erro do {APP_NAME}, se podes enviar unha copia deste ficheiro, por favor <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>reportao</a> xunto cunha ligazón ao ficheiro aquí nomeado.",
 
     // extensions/default/JavascriptRefactoring
     "CMD_REFACTOR"                              : "Refactorizar",
@@ -695,7 +695,7 @@ define({
     "CMD_REFACTORING_TRY_CATCH"                 : "Axustar no 'Try Catch'",
     "CMD_REFACTORING_CONDITION"                 : "Axustar á Condición",
     "CMD_REFACTORING_GETTERS_SETTERS"           : "Crear Getters/Setters",
-    "CMD_REFACTORING_ARROW_FUNCTION"            : "Convert to Arrow Function",
+    "CMD_REFACTORING_ARROW_FUNCTION"            : "Converter a Arrow Function",
     "DESCRIPTION_CODE_REFACTORING"              : "Activar/desactivar a refactorización de código JavaScript",
     "ERROR_TRY_CATCH"                           : "Seleccionar código válido para axustar a un bloque Try-catch",
     "ERROR_WRAP_IN_CONDITION"                   : "Seleccionar código válido para axustar a un bloque condicional",
@@ -718,9 +718,9 @@ define({
     "DOCS_MORE_LINK"                            : "Máis",
 
     // extensions/default/CodeFolding
-    "COLLAPSE_ALL"                  : "Colapsar todo",
+    "COLLAPSE_ALL"                  : "Contraer todo",
     "EXPAND_ALL"                    : "Expandir todo",
-    "COLLAPSE_CURRENT"              : "Colapsar actual",
+    "COLLAPSE_CURRENT"              : "Contraer actual",
     "EXPAND_CURRENT"                : "Expandir actual",
 
     // extensions/default/NavigationAndHistory
@@ -819,7 +819,7 @@ define({
     "DESCRIPTION_USE_TAB_CHAR"                       : "true para empregar tabulacións no canto de espazos",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true para xerar cor en maiúsculas no editor de cores",
     "DESCRIPTION_WORD_WRAP"                          : "Axustar as liñas que superan o largo do viewport",
-    "DESCRIPTION_WORD_WRAP"                          : "Axustar as liñas que sobrepasen o longo da xanela",
+    "DESCRIPTION_SEARCH_AUTOHIDE"                    : "Pechar a procura axiña que o editor teña o foco",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Unha listaxe dos ficheiros detectados e que provocan que o Tern non funcione correctamente",
     "DESCRIPTION_INFERENCE_TIMEOUT"                  : "A cantidade de veces despois da que o Tern deixará de tentar entender os ficheiros",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true para amosar erros na barra de estado",
@@ -871,8 +871,8 @@ define({
     "RESTART_BUTTON"                                 : "Reiniciar",
     "LATER_BUTTON"                                   : "Máis tarde",
     "DESCRIPTION_AUTO_UPDATE"                        : "Activar/Desactivar actualización automática do Brackets",
-    "AUTOUPDATE_ERROR"                               : "Erro!",
-    "AUTOUPDATE_IN_PROGRESS"                         : "Hai unha actualización en progreso.",
+    "AUTOUPDATE_ERROR"                               : "Produciuse un erro!",
+    "AUTOUPDATE_IN_PROGRESS"                         : "Xa hai unha actualización en progreso.",
 
     "NUMBER_WITH_PERCENTAGE"                         : "{0}%",
     // Strings for Related Files
@@ -899,11 +899,18 @@ define({
     "CMD_FIND_DOCUMENT_SYMBOLS"                      : "Atopar símbolos no documento",
     "CMD_FIND_PROJECT_SYMBOLS"                       : "Atopar símbolos no proxecto",
 
-    // Remote debugging enabled
+   // Remote debugging enabled
     "REMOTE_DEBUGGING_ENABLED"                       : "Depuración remota habilitada no localhost:",
 
-    // Remote debugging port argument is invalid
-    "REMOTE_DEBUGGING_PORT_INVALID"                  : "Non é posíbel activar a depuración remota no porto {0}. Os portos teñen de estar entre o {1} e {2}."
+   // Remote debugging port argument is invalid
+    "REMOTE_DEBUGGING_PORT_INVALID"                  : "Non é posíbel activar a depuración remota no porto {0}. Os portos teñen de estar entre o {1} e {2}.",
+    
+    //Associate File Type to External App
+    "DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE"     : "Mapeo de extensións de ficheiros a aplicacións. Sintaxe: \"<file_type>\": \"<default|applicationName|ApplicationPath>\", Usa \"default\" para abrir o ficheiro na aplicación predefinida para esa extensión.",
+
+    "ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE"   : "Abrir ficheiros gráficos en editores externos.",
+    "ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG"     : "O cartafol actual ten ficheiros gráficos que non están soportados por {APP_NAME}.<br/>Agora podes asociar ficheiros especificos con editores externos, unha vez asociados, poderás abrir ficheiros gráficos como os .xd, .psd, .jpg, .png, .ai, .svg nas súas aplicacións predefinidas ao facer duplo clic no ficheiros no explorador.<br/><br/>Por favor, preme no botón ‘Aceptar’ para asociar os tipos de ficheiros gráficos coas súas respectivas aplicacións predefinidas.",
+    "ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG" : "Os seguintes tipos de ficheiro asociaronse ás súas aplicacións predefinidas con éxito.<br/>{0} tes a opción de trocar as túas preferencias ou tamén eliminar/engadir novas asociacións no brackets.json no menú “{APP_NAME}->Preferencias”."
 });
 
 /* Last translated for a4e9a06605cfca5dff5ab5dbacfb1d97c604b6f0 */
