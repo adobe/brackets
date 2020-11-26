@@ -105,7 +105,7 @@
     "font-size":                   {"values": []},
     "font-size-adjust":            {"values": ["auto", "none"]},
     "font-stretch":                {"values": ["condensed", "expanded", "extra-condensed", "extra-expanded", "normal", "semi-condensed", "semi-expanded", "ultra-condensed", "ultra-expanded"]},
-    "font-style":                  {"values": ["italic", "normal", "oblique"]},
+    "font-style":                  {"values": ["inherit", "initial", "italic", "normal", "oblique"]},
     "font-synthesis":              {"values": ["none", "style", "weight"]},
     "font-variant":                {"values": ["normal", "small-caps", "inherit"]},
     "font-variant-alternates":     {"values": ["normal"]},
