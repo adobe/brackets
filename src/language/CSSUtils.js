@@ -297,9 +297,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Gets all of the space/comma seperated tokens before the the current cursor position.
+     * Gets all of the space/comma separated tokens before the the current cursor position.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
-     * @return {?Array.<string>} An array of all the space/comma seperated tokens before the
+     * @return {?Array.<string>} An array of all the space/comma separated tokens before the
      *    current cursor position
      */
     function _getPrecedingPropValues(ctx) {
@@ -341,10 +341,10 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Gets all of the space/comma seperated tokens after the the current cursor position.
+     * Gets all of the space/comma separated tokens after the the current cursor position.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @param {string} currentValue The token string at the current cursor position
-     * @return {?Array.<string>} An array of all the space/comma seperated tokens after the
+     * @return {?Array.<string>} An array of all the space/comma separated tokens after the
      *    current cursor position
      */
     function _getSucceedingPropValues(ctx, currentValue) {
