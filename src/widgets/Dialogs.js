@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         DIALOG_BTN_CLASS_LEFT       = "left";
 
     /**
-     * The z-index used for the dialogs. Each new dialog increase this number by 2
+     * The z-index used for the dialogs. Each new dialog increases this number by 2
      * @type {number}
      */
     var zIndex = 1050;
