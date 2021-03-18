@@ -62,7 +62,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var AnimationUtils     = require("utils/AnimationUtils"),
+    let AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
         CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
         LanguageManager    = require("language/LanguageManager"),
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
 
     /** Editor preferences */
 
-    var CLOSE_BRACKETS      = "closeBrackets",
+    let CLOSE_BRACKETS      = "closeBrackets",
         CLOSE_TAGS          = "closeTags",
         DRAG_DROP           = "dragDropText",
         HIGHLIGHT_MATCHES   = "highlightMatches",
@@ -109,22 +109,22 @@ define(function (require, exports, module) {
       * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
       * @type {Array.<{name: string, priority: number, languageIds: Array}}
       */
-    var registeredGutters = [];
+    let registeredGutters = [];
 
-    var cmOptions         = {};
+    let cmOptions         = {};
 
     /**
      * Constants
      * @type {number}
      */
-    var MIN_SPACE_UNITS         =  1,
+    let MIN_SPACE_UNITS         =  1,
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
         MAX_SPACE_UNITS         = 10,
         MAX_TAB_SIZE            = 10;
 
-    var LINE_NUMBER_GUTTER = "CodeMirror-linenumbers",
+    let LINE_NUMBER_GUTTER = "CodeMirror-linenumbers",
         LINE_NUMBER_GUTTER_PRIORITY     = 100,
         CODE_FOLDING_GUTTER_PRIORITY    = 1000;
 
