@@ -182,6 +182,8 @@
     "page-break-inside":           {"values": ["auto", "avoid", "inherit"]},
     "perspective":                 {"values": ["none"]},
     "perspective-origin":          {"values": ["bottom", "center", "left", "right", "top"]},
+    "place-content":               {"values": ["center", "start", "end", "left", "top", "right", "first", "last", "flex-start", "flex-end", "baseline", "space-between", "space-evenly", "space-around", "stretch"]},
+    "place-items":                 {"values": ["center", "start", "end", "left", "top", "right", "first", "last", "flex-start", "flex-end", "baseline", "space-between", "space-evenly", "space-around", "stretch", "normal", "auto", "self-start", "self-end"]},    
     "pointer-events":              {"values": ["all", "auto", "fill", "inherit", "none", "painted", "stroke", "visible", "visibleFill", "visiblePainted", "visibleStroke"]},
     "position":                    {"values": ["absolute", "fixed", "relative", "static", "sticky", "inherit"]},
     "quotes":                      {"values": ["none", "inherit"]},
