@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var TOKEN_KEY   = 1,
         TOKEN_VALUE = 2;
 
-    // Whitelist for allowed value types.
+    // Allow-list for allowed value types.
     var valueTokenTypes = ["atom", "string", "number", "variable"];
 
     // Reg-ex to match colon, comma, opening bracket of an array and white-space.

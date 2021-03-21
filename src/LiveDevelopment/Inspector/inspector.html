@@ -386,7 +386,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Debugger.setVariableValue'>Debugger.setVariableValue</a>: Changes value of variable in a callframe or a closure. Either callframe or function must be specified. Object-based scopes are not supported and must be mutated manually.</li>
 <li><a href='#Debugger.getStepInPositions'>Debugger.getStepInPositions</a>: Lists all positions where step-in is possible for a current statement in a specified call frame</li>
 <li><a href='#Debugger.getBacktrace'>Debugger.getBacktrace</a>: Returns call stack including variables changed since VM was paused. VM must be paused.</li>
-<li><a href='#Debugger.skipStackFrames'>Debugger.skipStackFrames</a>: Makes backend skip steps in the sources with names matching given pattern. VM will try leave blacklisted scripts by performing 'step in' several times, finally resorting to 'step out' if unsuccessful.</li>
+<li><a href='#Debugger.skipStackFrames'>Debugger.skipStackFrames</a>: Makes backend skip steps in the sources with names matching given pattern. VM will try leave blocklisted scripts by performing 'step in' several times, finally resorting to 'step out' if unsuccessful.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -3883,7 +3883,7 @@ function onAddDatabase(res) {
 <li><a href='#Debugger.setVariableValue'>Debugger.setVariableValue</a>: Changes value of variable in a callframe or a closure. Either callframe or function must be specified. Object-based scopes are not supported and must be mutated manually.</li>
 <li><a href='#Debugger.getStepInPositions'>Debugger.getStepInPositions</a>: Lists all positions where step-in is possible for a current statement in a specified call frame</li>
 <li><a href='#Debugger.getBacktrace'>Debugger.getBacktrace</a>: Returns call stack including variables changed since VM was paused. VM must be paused.</li>
-<li><a href='#Debugger.skipStackFrames'>Debugger.skipStackFrames</a>: Makes backend skip steps in the sources with names matching given pattern. VM will try leave blacklisted scripts by performing 'step in' several times, finally resorting to 'step out' if unsuccessful.</li>
+<li><a href='#Debugger.skipStackFrames'>Debugger.skipStackFrames</a>: Makes backend skip steps in the sources with names matching given pattern. VM will try leave blocklisted scripts by performing 'step in' several times, finally resorting to 'step out' if unsuccessful.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -4453,7 +4453,7 @@ Debugger.getBacktrace(function callback(res) {
 </div>
 <div id='Debugger_skipStackFrames' class='command'>
 <h3>Debugger.skipStackFrames <span class='label label-success'>Command</span></h3>
-<p>Makes backend skip steps in the sources with names matching given pattern. VM will try leave blacklisted scripts by performing 'step in' several times, finally resorting to 'step out' if unsuccessful.</p>
+<p>Makes backend skip steps in the sources with names matching given pattern. VM will try leave blocklisted scripts by performing 'step in' several times, finally resorting to 'step out' if unsuccessful.</p>
 <dl>
 <dt>script (optional)</dt>
 <dd>String <span class='text'>Regular expression defining the scripts to ignore while stepping.</span></dd>
