@@ -29,7 +29,7 @@ ECHO Example: setup_server_smokes.bat "c:\wamp\www"
 GOTO Exit
 
 :XPNotSupported
-ECHO Sorry, this script doesn't run in Windows XP.
+ECHO Sorry, this script is not supported on Windows XP.
 ECHO To enable hacking, use the junction tool (http://technet.microsoft.com/en-us/sysinternals/bb896768)
 ECHO as follows: junction.exe %1\server-tests %server_tests_path%
 ECHO (in the server root folder)
