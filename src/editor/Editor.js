@@ -98,6 +98,7 @@ define(function (require, exports, module) {
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
+        ALWAYS_SHOW_FULL_FILE_PATH  = "alwaysShowFullFilePath",
         AUTO_HIDE_SEARCH    = "autoHideSearch",
         INDENT_LINE_COMMENT   = "indentLineComment",
         INDENT_LINE_COMMENT = "indentLineComment",
@@ -230,7 +231,9 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-  
+    PreferencesManager.definePreference(ALWAYS_SHOW_FULL_FILE_PATH,          "boolean", false, {
+        description: Strings.DESCRIPTION_ALWAYS_SHOW_FULL_FILE_PATH
+    });
     PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
         description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
@@ -431,6 +434,7 @@ define(function (require, exports, module) {
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
             lineWrapping                : currentOptions[WORD_WRAP],
+            alwaysShowFullFilePath      : currentOptions[ALWAYS_SHOW_FULL_FILE_PATH],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
@@ -2713,6 +2717,27 @@ define(function (require, exports, module) {
      */
     Editor.getWordWrap = function (fullPath) {
         return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
+    };
+
+    /**
+     * Sets always show full file path option.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
+     */
+    Editor.setAlwaysShowFullFilePath = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(ALWAYS_SHOW_FULL_FILE_PATH, value, options);
+    };
+
+    /**
+     * Returns true if always show full file path is enabled
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getAlwaysShowFullFilePath = function (fullPath) {
+        return PreferencesManager.get(ALWAYS_SHOW_FULL_FILE_PATH, _buildPreferencesContext(fullPath));
     };
 
     /**
