@@ -725,7 +725,7 @@ define({
     "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Korosta vain, kun valinta on kokonainen ilmaus",
     "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "true: lisää parhaillaan valittu koodivihje, kun painetaan sarkainnäppäintä",
     "DESCRIPTION_NO_HINTS_ON_DOT"                    : "true: älä näytä JS-koodivihjeitä automaattisesti, kun . kirjoitetaan",
-    "DESCRIPTION_JSLINT_OPTIONS"                     : "Objekti, joka sisältää JSLintin oletusasetukset",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Olio, joka sisältää JSLintin oletusasetukset",
     "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "true: salli sijoituslausekkeet",
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "true: salli bittioperaattorit",
     "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "true, jos tavalliset selaimen globaalit pitää määritellä ennalta",
