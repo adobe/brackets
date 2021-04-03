@@ -139,7 +139,7 @@
     "image-orientation":           {"values": []},
     "image-resolution":            {"values": ["from-image", "snap"]},
     "isolation":                   {"values": ["auto", "isolate"]},
-    "justify-content":             {"values": ["center", "flex-end", "flex-start", "space-around", "space-between"]},
+    "justify-content":             {"values": ["center", "flex-end", "flex-start", "space-around", "space-between", "space-evenly"]},
     "justify-items":               {"values": ["auto", "normal", "stretch", "center", "start", "end", "flex-start", "flex-end", "self-start", "self-end", "left", "right", "baseline", "first", "last", "safe", "unsafe", "legacy", "inherit", "initial"]},
     "justify-self":                {"values": ["auto", "normal", "stretch", "center", "start", "end", "flex-start", "flex-end", "self-start", "self-end", "left", "right", "baseline", "first", "last", "safe", "unsafe", "inherit", "initial"]},
     "left":                        {"values": ["auto", "inherit"]},
