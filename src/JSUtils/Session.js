@@ -427,9 +427,14 @@ define(function (require, exports, module) {
                 var col = lexical.info === "call" ? lexical.column : lexical.prev.column,
                     line,
                     e,
-                    found;
+                    found,
+                    charPos;
+                
                 for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
-                    if (this.getLine(line).charAt(col) === "(") {
+                    // Column is based on a line with spaces.
+                    // We have to convert it to a character position when tabs are used, otherwise our check will fail.
+                    charPos = this.editor.getCharIndexForColumn(line, col);
+                    if (this.getLine(line).charAt(charPos) === "(") {
                         found = true;
                         break;
                     }
@@ -437,7 +442,7 @@ define(function (require, exports, module) {
 
                 if (found) {
                     inFunctionCall = true;
-                    functionCallPos = {line: line, ch: col};
+                    functionCallPos = {line: line, ch: charPos};
                 }
             }
         }
