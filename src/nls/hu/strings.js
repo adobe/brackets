@@ -36,7 +36,7 @@ define({
     "FILE_EXISTS_ERR"                   : "A fájl vagy a könyvtár már létezik.",
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "Hiba a projekt betöltése közben",
+    "ERROR_LOADING_PROJECT"             : "Hiba történt a projekt betöltése közben",
     "OPEN_DIALOG_ERROR"                 : "Hiba történt a \"fájl megnyitása\" ablak megjelenítésekor. (hiba {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Hiba történt a <span class='dialog-filename'>{0}</span> könyvtár megnyitása közben. (hiba {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Hiba történt a könyvtár tartalmának beolvasása közben. <span class='dialog-filename'>{0}</span>. (hiba {1})",
@@ -58,25 +58,25 @@ define({
     "ERROR_CREATING_FILE"               : "Hiba történt a fájl létrehozása közben: <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Oops! A {APP_NAME} még nem fut böngészőben.",
+    "ERROR_IN_BROWSER_TITLE"            : "Úgy néz ki, hogy a {APP_NAME} még nem fut böngészőben.",
     "ERROR_IN_BROWSER"                  : "A {APP_NAME} HTML-ben épült, de jelenleg asztali alkalmazásként fut, ezért helyi fájlokat is tudsz vele szerkeszteni. Kérlek használd az alkalmazás \"burkot\" a {APP_NAME} futtatásához: <b>github.com/adobe/brackets-shell</b>.",
 
     // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE"             : "Hiba a fájlok Indexszelése közben",
-    "ERROR_MAX_FILES"                   : "A maximális fájlszám indexelésre került. Folyamatok amelyek a fájlokat az indexben keresik esélyes hogy nem fognak rendesen működni.",
+    "ERROR_MAX_FILES_TITLE"             : "Hiba történt a fájlok indexelése közben",
+    "ERROR_MAX_FILES"                   : "A maximális fájlszám indexelésre került. Azok a folyamatok amelyek a fájlokat az indexben keresik esélyes hogy nem fognak rendesen működni.",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Hiba a böngésző megnyitása közben",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Hiba történt a böngésző megnyitása közben",
     "ERROR_CANT_FIND_CHROME"            : "A Google Chrome böngésző nem található. Bizonyosodj meg hogy telepítve van.",
-    "ERROR_LAUNCHING_BROWSER"           : "Hiba a böngésző megnyitása közben: (hiba {0})",
+    "ERROR_LAUNCHING_BROWSER"           : "Hiba történt a böngésző megnyitása közben: (hiba {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Élő Előnézet hiba",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Csatlakozás a Böngészőhöz",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Csatlakozás a böngészőhöz",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Az Élő Előnézet használatához muszály újraindítani a Chrome-ot a megfelelő beállításokkal.<br /><br />Szeretnéd most újraindítani a Chrome-ot ezekkel a beállításokkal?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Nem lehet betölteni az Élő Fejlesztő oldalt",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Nyiss meg egy HTML fájlt az Élő Előnézet indításához.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Az Élő Előnézet használatához szerver-oldali fájlokkal meg kell adni az alap URL-t a projekthez.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Hiba a HTTP szerver indításakor az Élő Fejlesztéshez. Kérlek próbáld újra később.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Hiba történt a HTTP szerver indításakor az Élő Fejlesztéshez. Kérlek próbáld újra később.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Üdv az Élő Előnézetben!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Az Élő Előnézet összeköti a {APP_NAME}-et a böngésződdel. Megnyitja a HTML fájl előnézetét a Böngészőben, majd rögtön frissül amikor szerkeszted a kódodat.<br /><br />Ebben a kezdetleges {APP_NAME} verzióban, az Élő Előnézet csak a <strong>Google Chrome</strong>-ban működik és élőben változik<strong>CSS fájlok</strong> szerkesztésekor. A HTML vagy JavaScript változások automatikusan frissülnek mentéskor.<br /><br />(Ezt az üzenetet csak egyszer fogod látni.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "További információért lásd: <a href='{0}' title='{0}'>Élő Előnézet csatlakozási hibák kiküszöbölése</a>.",
@@ -87,10 +87,10 @@ define({
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Élő Előnézet lecsatlakozása",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Élő Előnézet: Kattints a lecsatlakozáshoz (Mentsd el a fájlt a frissítéshez)",
 
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Az Élő Előnézet lecsatlakozott mert a bongésző fejlesztő eszközei meg lettek nyitva",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Az Élő Előnézet lecsatlakozott mert az oldal be lett zárva a böngészőben",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Az Élő Előnézet lecsatlakozott mert a böngésző olyan oldalra lépett amely nem része a jelenlegi projektnek",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Az Élő Előnézet lecsatlakozott ismeretlen ok miatt ({0})",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Az Élő Előnézet lecsatlakozott, mert a böngésző fejlesztő eszközei meg lettek nyitva",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Az Élő Előnézet lecsatlakozott, mert az oldal be lett zárva a böngészőben",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Az Élő Előnézet lecsatlakozott, mert a böngésző olyan oldalra lépett amely nem része a jelenlegi projektnek",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Az Élő Előnézet lecsatlakozott, ismeretlen ok miatt ({0})",
 
     "SAVE_CLOSE_TITLE"                  : "Változtatások mentése",
     "SAVE_CLOSE_MESSAGE"                : "El szeretnéd menteni a változtatásokat itt: <span class='dialog-filename'>{0}</span>?",
@@ -142,10 +142,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Sor {0}, Oszlop {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Kattints hogy átváltsd a behúzást space-re",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Kattints hogy átváltsd a behúzást tabokra",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Kattints hogy átváltsd a behúzás space-ek számát",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Kattints hogy átváltsd a tab szélességét",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Kattints, hogy átváltsd a behúzást space-re",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Kattints, hogy átváltsd a behúzást tabokra",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Kattints, hogy átváltsd a behúzás space-ek számát",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Kattints, hogy átváltsd a tab szélességét",
     "STATUSBAR_SPACES"                      : "Szóközök",
     "STATUSBAR_TAB_SIZE"                    : "Tab Mérete",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Sor",
@@ -204,39 +204,39 @@ define({
     "CMD_LINE_DOWN"                       : "Sor Mozgatása le",
     "CMD_OPEN_LINE_ABOVE"                 : "Sor Nyitása Felül",
     "CMD_OPEN_LINE_BELOW"                 : "Sor Nyitása Alul",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Zárójelek Automatikus Bezárása",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Zárójelek automatikus bezárása",
     "CMD_SHOW_CODE_HINTS"                 : "Kód Súgó megjelenítése",
 
     // View menu commands
     "VIEW_MENU"                           : "Nézet",
     "CMD_HIDE_SIDEBAR"                    : "Oldalsáv Elrejtése",
     "CMD_SHOW_SIDEBAR"                    : "Oldalsáv Mutatása",
-    "CMD_INCREASE_FONT_SIZE"              : "Font Méretének Nagyítása",
-    "CMD_DECREASE_FONT_SIZE"              : "Font Méretének Kicsinyítése",
-    "CMD_RESTORE_FONT_SIZE"               : "Font Méretének Visszaállítása",
+    "CMD_INCREASE_FONT_SIZE"              : "Betűméret növelése",
+    "CMD_DECREASE_FONT_SIZE"              : "Betűméret csökkentése",
+    "CMD_RESTORE_FONT_SIZE"               : "Betűméret csökkentése",
     "CMD_SCROLL_LINE_UP"                  : "Sor Lapozása Felfele",
     "CMD_SCROLL_LINE_DOWN"                : "Sor Lapozása Lefele",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Sorok száma",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Aktív sor megjelölése",
     "CMD_TOGGLE_WORD_WRAP"                : "Sortörés",
-    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
-    "CMD_WORKINGSET_SORT_BY_NAME"         : "Rendezés Név Szerint",
-    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Rendezés Típus Szerint",
-    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatikus Rendezés",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Rendezés hozzáadás szerint",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Rendezés név szerint",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Rendezés típus szerint",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatikus rendezés",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigálás",
     "CMD_QUICK_OPEN"                      : "Gyors megnyitás",
-    "CMD_GOTO_LINE"                       : "Ugrás Sorhoz",
-    "CMD_GOTO_DEFINITION"                 : "Gyors Definíció keresés",
-    "CMD_TOGGLE_QUICK_EDIT"               : "Gyors Szerkesztés",
-    "CMD_TOGGLE_QUICK_DOCS"               : "Gyors Dokumentáció",
-    "CMD_QUICK_EDIT_PREV_MATCH"           : "Előző Találat",
-    "CMD_QUICK_EDIT_NEXT_MATCH"           : "Következő Találat",
-    "CMD_NEXT_DOC"                        : "Következő Dokumentum",
-    "CMD_PREV_DOC"                        : "Előző Dokumentum",
-    "CMD_SHOW_IN_TREE"                    : "Megjelenítés a Fastruktúrában",
-    "CMD_SHOW_IN_OS"                      : "Megjelenítés Intézőben",
+    "CMD_GOTO_LINE"                       : "Ugrás sorhoz",
+    "CMD_GOTO_DEFINITION"                 : "Gyors definíció keresés",
+    "CMD_TOGGLE_QUICK_EDIT"               : "Gyors szerkesztés",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Gyors dokumentáció",
+    "CMD_QUICK_EDIT_PREV_MATCH"           : "Előző találat",
+    "CMD_QUICK_EDIT_NEXT_MATCH"           : "Következő találat",
+    "CMD_NEXT_DOC"                        : "Következő dokumentum",
+    "CMD_PREV_DOC"                        : "Előző dokumentum",
+    "CMD_SHOW_IN_TREE"                    : "Megjelenítés a fastruktúrában",
+    "CMD_SHOW_IN_OS"                      : "Megjelenítés az intézőben",
 
     // Help menu commands
     "HELP_MENU"                           : "Súgó",
@@ -257,20 +257,20 @@ define({
     "RELOAD_FROM_DISK"                     : "Újratöltés a lemezről",
     "KEEP_CHANGES_IN_EDITOR"               : "Változtatások megtartása a szerkesztőben",
     "CLOSE_DONT_SAVE"                      : "Bezárás (Ne Mentse)",
-    "RELAUNCH_CHROME"                      : "Chrome Újraindítása",
+    "RELAUNCH_CHROME"                      : "Chrome újraindítása",
     "ABOUT"                                : "Rólunk",
     "CLOSE"                                : "Bezárás",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Harmadik féltől származó szoftverekre vonatkozó közlemények, felhasználási feltételek megtalálhatók a következő linken <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a>.",
-    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a 'https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentáció és forráskód: <a 'https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Készítve \u2764 és JavaScript-el a következők által:",
     "ABOUT_TEXT_LINE6"                     : "Sok ember (de ezt az adatot nem tudjuk megjeleníteni jelenleg).",
     "ABOUT_TEXT_MDN_DOCS"                  : "A MDN Dokumentáció és a  MDN grafikai logó a Creative Commons Attribution license alatt vannak licencelve, <a href='{MDN_DOCS_LICENSE}'>CC-BY-SA 2.5 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Új {APP_NAME} verzió elérhető! Kattints ide a részletekért.",
     "UPDATE_AVAILABLE_TITLE"               : "Új verzió elérhető",
-    "UPDATE_MESSAGE"                       : "Hé, új {APP_NAME} verzió elérhető. Íme néhány kulcsfontosságú frissítés:",
+    "UPDATE_MESSAGE"                       : "Hahó, új {APP_NAME} verzió elérhető. Íme néhány kulcsfontosságú frissítés:",
     "GET_IT_NOW"                           : "Szerezd meg most!",
-    "PROJECT_SETTINGS_TITLE"               : "Projekt Beállítások a következőhöz: {0}",
+    "PROJECT_SETTINGS_TITLE"               : "Projekt beállítások a következőhöz: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Élő Előnézet alap URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "Helyi szerver használatához, írd be a címet pl.: http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "A {0} protokol nem támogatott az Élő Előnézetben&mdash;kérlek használj http:-t vagy https:-t.",
@@ -290,9 +290,9 @@ define({
     "INSTALLING_FROM"                      : "Bővítmény telepítése: {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Sikeres telepítés!",
     "INSTALL_FAILED"                       : "Sikertelen telepítés.",
-    "CANCELING_INSTALL"                    : "Telepítés lemondása\u2026",
-    "CANCELING_HUNG"                       : "A Telepítés lemondása sokáig tart. Lehetséges hogy belső hiba történt.",
-    "INSTALL_CANCELED"                     : "Telepítés lemondva.",
+    "CANCELING_INSTALL"                    : "Telepítés megszakítása\u2026",
+    "CANCELING_HUNG"                       : "A telepítés megszakítása sokáig tart. Lehetséges hogy belső hiba történt.",
+    "INSTALL_CANCELED"                     : "Telepítés megszakítva.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "A letöltött tartalom nem érvényes ZIP fájl.",
     "INVALID_PACKAGE_JSON"                 : "A package.json fájl nem érvényes (hiba: {0}).",
@@ -302,7 +302,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "A csomagverzió ({0}) nem érvényes.",
     "INVALID_BRACKETS_VERSION"             : "A {APP_NAME} kompatibilitási sor ({0}) nem érvényes.",
     "DISALLOWED_WORDS"                     : "A ({1}) szavak nem engedélyezettek a {0} mezőben.",
-    "API_NOT_COMPATIBLE"                   : "A Bővítmény nem kompatibilis a jelenlegi {APP_NAME} verzióval. A letiltott bővítmények közé lett telepítve.",
+    "API_NOT_COMPATIBLE"                   : "A bővítmény nem kompatibilis a jelenlegi {APP_NAME} verzióval. A letiltott bővítmények közé lett telepítve.",
     "MISSING_MAIN"                         : "A csomag nem tartalmaz main.js fájlt.",
     "EXTENSION_ALREADY_INSTALLED"          : "A csomag telepítésével felülíródik egy előzőleg telepített bővítmény. Folytatod?",
     "EXTENSION_SAME_VERSION"               : "A csomag verziója megegyezik a jelenleg telepítettével. Felülírod?",
@@ -312,7 +312,7 @@ define({
     "BAD_HTTP_STATUS"                      : "A fájl nem található a szerveren (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Nem lehet ideiglenes fájlba menteni a letöltést.",
     "ERROR_LOADING"                        : "A bővítmény hibába ütközött indításkor.",
-    "MALFORMED_URL"                        : "Az URL helytelen. Nézd meg hogy jól írtad be.",
+    "MALFORMED_URL"                        : "Az URL helytelen. Nézd meg, hogy jól írtad be.",
     "UNSUPPORTED_PROTOCOL"                 : "Az URL muszáj http vagy https URL legyen.",
     "UNKNOWN_ERROR"                        : "Ismeretlen belső hiba.",
     // For NOT_FOUND_ERR, see generic strings above
@@ -332,7 +332,7 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Keresés",
     "EXTENSION_MORE_INFO_LINK"             : "Több",
     "BROWSE_EXTENSIONS"                    : "Bővítmények tallózása",
-    "EXTENSION_MANAGER_REMOVE"             : "Bővítmény Eltávolítása",
+    "EXTENSION_MANAGER_REMOVE"             : "Bővítmény eltávolítása",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Nem lehet eltávolítani egy vagy több bővítményt: {0}. A {APP_NAME} ki fog lépni.",
     "EXTENSION_MANAGER_UPDATE"             : "Bővítmény frissítése",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Nem lehet frissíteni egy vagy több bővítményt: {0}. A {APP_NAME} ki fog lépni.",
@@ -348,7 +348,7 @@ define({
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixelek",
+    "UNIT_PIXELS"                          : "pixel",
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Hibakeresés",
@@ -378,7 +378,7 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1}-szer használva)",
 
     // extensions/default/JavaScriptCodeHints
-    "CMD_JUMPTO_DEFINITION"                     : "Ugrás a Definícióhoz",
+    "CMD_JUMPTO_DEFINITION"                     : "Ugrás a definícióhoz",
 
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Gyors Nézet rámutatáskor",
