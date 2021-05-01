@@ -868,7 +868,7 @@ define({
 	"INSTALLER_NOT_FOUND": "Programme d’installation non trouvé.",
 	"DOWNLOAD_ERROR": "Erreur lors du téléchargement.",
 	"NETWORK_SLOW_OR_DISCONNECTED": "Le réseau est déconnecté ou trop lent.",
-	"RESTART_BUTTON": "Recommencer",
+	"RESTART_BUTTON": "Relancer",
 	"LATER_BUTTON": "Plus tard",
 	"DESCRIPTION_AUTO_UPDATE": "Activer/désactiver la mise à jour automatique de Brackets",
 	"AUTOUPDATE_ERROR": "Erreur !",
