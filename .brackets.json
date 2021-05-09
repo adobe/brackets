@@ -1,5 +1,6 @@
 {
-    "jslint.options": {
+    "jslint.options": 
+    {
         "vars": true,
         "plusplus": true,
         "browser": false,
@@ -8,7 +9,8 @@
         "indent": 4,
         "maxerr": 50,
         "es5": true,
-        "predef": [
+        "predef": 
+        [
             "brackets",
 
             "require",
@@ -25,14 +27,19 @@
             "WebSocket"
         ]
     },
+    
     "defaultExtension": "js",
-    "language": {
-        "javascript": {
+    "language":
+    {
+        "javascript":
+        {
             "linting.prefer": ["ESLint", "JSLint"],
             "linting.usePreferredOnly": true
         }
     },
-    "path": {
+    
+    "path":
+    {
         "src/thirdparty/CodeMirror/**/*.js": {
             "spaceUnits": 2,
             "linting.enabled": false
@@ -42,6 +49,7 @@
             "linting.enabled": false
         }
     },
+    
     "spaceUnits": 4,
     "useTabChar": false
 }
