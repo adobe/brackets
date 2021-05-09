@@ -33,7 +33,7 @@ How to install and run Brackets
 -------------------------------
 #### Download
 
-Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
+Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded from here](http://brackets.io/).
 
 #### Usage
 
@@ -92,7 +92,7 @@ for info on how we're using CodeMirror.
 Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
-The native shell for Brackets lives in a separate repo, 
+The native shell for Brackets lives in a separate repository, 
 [adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
 
 
