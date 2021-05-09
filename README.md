@@ -31,7 +31,7 @@ on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube
 
 How to install and run Brackets
 -------------------------------
-#### Download
+####Download
 
 Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
 
