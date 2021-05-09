@@ -9,7 +9,7 @@ Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?b
 Brackets is a modern open-source code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
 
-What makes Brackets different from other web code editors?
+**What makes Brackets different from other web code editors?**
 
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
 environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
