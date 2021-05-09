@@ -107,7 +107,7 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
   (starting from "Development") list the features that we're currently working on.
   "Ready" shows what we'll be working on next.
 * Watch our [GitHub activity stream](https://github.com/adobe/brackets/pulse).
-* Watch our [Waffle Kanban board](https://waffle.io/adobe/brackets): Work items in [![Stories in Ready](https://badge.waffle.io/adobe/brackets.svg?label=ready&title=Ready)](http://waffle.io/adobe/brackets) are next. The entire development process is outlined in the [Developer Guide](https://github.com/adobe/brackets/wiki/Brackets-Developers-Guide).
+* The entire development process is outlined in the [Developer Guide](https://github.com/adobe/brackets/wiki/Brackets-Developers-Guide).
 
 #### Contact info
 
