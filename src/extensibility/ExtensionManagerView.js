@@ -44,6 +44,13 @@ define(function (require, exports, module) {
      * Create a detached link element, so that we can use it later to extract url details like 'protocol'
      */
     var _tmpLink = window.document.createElement('a');
+    
+    /**
+     * Specifies the amount of extensions shown initially in a tab/search, if there are more extensions
+     * a "Load more" button is shown. This const also specifies how many more items a click of this
+     * button shows.
+     */
+    var ITEMS_PER_PAGE = 40;
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
@@ -72,12 +79,13 @@ define(function (require, exports, module) {
         this._$infoMessage = $("<div class='info-message'/>")
             .appendTo(this.$el).html(this.model.infoMessage);
         this._$table = $("<table class='table'/>").appendTo(this.$el);
+        this._$loadMoreButton = $("<button class='btn load-more'>Load more</button>").appendTo(this.$el);
         $(".sort-extensions").val(PreferencesManager.get("extensions.sort"));
 
         this.model.initialize().done(function () {
             self._setupEventHandlers();
         }).always(function () {
-            self._render();
+            self._render(0);
             result.resolve();
         });
 
@@ -108,6 +116,15 @@ define(function (require, exports, module) {
      * The root of the table inside the view.
      */
     ExtensionManagerView.prototype._$table = null;
+    
+    /**
+     * @private
+     * @type {jQueryObject}
+     * "Load more" button, which is shown when the amount of extensions exceeds ITEMS_PER_PAGE.
+     */
+    ExtensionManagerView.prototype._$loadMoreButton = null;
+    
+    ExtensionManagerView.prototype._itemsShown = 0;
 
     /**
      * @private
@@ -157,7 +174,7 @@ define(function (require, exports, module) {
         // Listen for model data and filter changes.
         this.model
             .on("filter", function () {
-                self._render();
+                self._render(0);
             })
             .on("change", function (e, id) {
                 var extensions = self.model.extensions,
@@ -212,6 +229,10 @@ define(function (require, exports, module) {
             })
             .on("click", "button.enable", function (e) {
                 ExtensionManager.enable($(e.target).attr("data-extension-id"));
+            });
+        this._$loadMoreButton
+            .on("click", function () {
+                self._render(self._itemsShown);
             });
     };
 
@@ -378,6 +399,7 @@ define(function (require, exports, module) {
             this._$emptyMessage.html(this.model.message);
             this._$infoMessage.css("display", "none");
             this._$table.css("display", "none");
+            this._$loadMoreButton.css("display", "none");
 
             return true;
         } else {
@@ -394,20 +416,31 @@ define(function (require, exports, module) {
      * Renders the extension entry table based on the model's current filter set. Will create
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
-    ExtensionManagerView.prototype._render = function () {
+    ExtensionManagerView.prototype._render = function (startIndex) {
         var self = this;
 
-        this._$table.empty();
-        this._updateMessage();
+        if (startIndex === 0) {
+            this._$table.empty();
+            this._updateMessage();
+            this._itemsShown = 0;
+        }
 
-        this.model.filterSet.forEach(function (id) {
+        this.model.filterSet.slice(startIndex, startIndex + ITEMS_PER_PAGE).forEach(function (id) {
             var $item = self._itemViews[id];
             if (!$item) {
                 $item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
                 self._itemViews[id] = $item;
             }
             $item.appendTo(self._$table);
+            self._itemsShown++;
         });
+        
+        if (this._itemsShown >= this.model.filterSet.length) {
+            // We are already showing all items, therefore hide the "Load more" button
+            this._$loadMoreButton.css("display", "none");
+        } else {
+            this._$loadMoreButton.css("display", "");
+        }
 
         this.trigger("render");
     };
