@@ -12,13 +12,11 @@ and JavaScript that's *built* in HTML, CSS and JavaScript.
 What makes Brackets different from other web code editors?
 
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
-environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
-context-specific code and tools inline.
+environment with lots of panels and icons, the Quick Edit UI in Brackets puts context-specific code and tools inline.
 * **Brackets is in sync with your browser.** With Live Preview, Brackets
 works directly with your browser to push code edits instantly and jump
 back and forth between your real source code and the browser view.
-* **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
-and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) the best code editor for the web.
+* **Do it yourself.** Because Brackets is open source and built with HTML, CSS, and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) the best code editor for the web.
 
 Brackets may have reached version 1, but we're not stopping there. We have many feature ideas on our
 [trello board](http://bit.ly/BracketsTrelloBoard) that we're anxious to add and other
@@ -33,7 +31,7 @@ How to install and run Brackets
 -------------------------------
 #### Download
 
-Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
+Installers for the latest stable build for Mac, Windows, and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
 
 #### Usage
 
@@ -46,8 +44,7 @@ to use its unique features, like Quick Edit and Live Preview, please read
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.
 
-In addition to the core features built into Brackets, there is a large and growing
-community of developers building extensions that add all sorts of useful functionality.
+In addition to the core features built into Brackets, there is a large and growing community of developers building extensions that add all sorts of useful functionality.
 See the [Brackets Extension Registry](https://registry.brackets.io/)
 for a list of available extensions. For installation instructions,
 see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions).
@@ -79,7 +76,7 @@ move it to the feature backlog for you.
 
 #### I want to help with the code!
 
-Awesome! _There are lots of ways you can help._ First read 
+Awesome! _There are lots of ways you can help._ First, read 
 [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md), 
 then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
 
@@ -89,8 +86,7 @@ taking our pull requests, implementing feature requests and fixing bugs! See
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on how we're using CodeMirror.
 
-Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
-application in a thin native shell, so that it can access your local files.
+Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 The native shell for Brackets lives in a separate repo, 
 [adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
