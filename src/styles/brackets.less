@@ -155,9 +155,9 @@ a, img {
     box-sizing: border-box;
     color: @bc-text;
     font-family: @sansFontFamily;
-    font-size: 11px;
-    line-height: 25px;
-    height: 26px;
+    font-size: 1vmax;
+    line-height: @side-bar-small;
+    height: @side-bar-small;
     overflow: hidden;
     .dark & {
         background: @dark-bc-bg-status-bar;
@@ -801,7 +801,7 @@ a, img {
 
 .working-set-header {
     position: relative;
-    height: 19px;
+    height: @side-bar-big;
     padding: 10px 0 9px 12px;
     background: @bc-sidebar-bg;
     color: @project-panel-text-2;
@@ -811,6 +811,8 @@ a, img {
     > span {
         background: @bc-sidebar-bg;
         position: relative;
+        line-height: @side-bar-big;
+        font-size: @side-bar-small; //Top Header Text
         z-index: 9;
     }
 
@@ -892,7 +894,7 @@ a, img {
 #project-files-header {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 0 9px 12px;
-    font-size: 13px;
+    font-size: @side-bar-small;
     color: @project-panel-text-2;
     overflow: hidden;
 
@@ -918,8 +920,8 @@ a, img {
 
     li {
         position: relative; // so that children can be positioned absolute
-        line-height: 18px;
-        padding: 0 0 0 8px;
+        line-height: @side-bar-big; //Top Selected Line
+        padding: 0 0 0 1vmax;
         min-height: 18px;
         vertical-align: baseline;
         white-space: nowrap;
@@ -933,15 +935,16 @@ a, img {
         }
     }
 
+
     a {
         color: @bc-text-alt;
 
-        font-size: 13px;
+        font-size: @side-bar-small; //Top Selected Text
         text-decoration: none;
 
         display: block;
-        height: 16px;
-        line-height: 15px;
+        height: @side-bar-small;
+        line-height: @side-bar-small;
         margin-left: 18px;
         padding: 3px 0 3px 0;
 
@@ -968,7 +971,7 @@ a, img {
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
     box-sizing: border-box;
-    height: 23px;
+    height: @side-bar-medium; //Selection Line
     width: 100%;
     position: absolute;
 }
@@ -1092,15 +1095,15 @@ a, img {
 */
 .unicode-icon-container {
     display: inline-block;
-    width: 16px;
-    height: 16px;
-    font-size: 20px;
-    line-height: 15px;
+    width: @side-bar-small;
+    height: @side-bar-small;
+    font-size: @side-bar-small;
+    line-height: @side-bar-small;
     text-align: center;
 }
 
 .file-status-icon {
-    margin: 0 0 0 8px;
+    margin: 0 0 0 0.5vmax;
     position: absolute;
     left: 0;
     top: 0;
@@ -1113,12 +1116,12 @@ a, img {
 
     &.dirty:before {
         content: "\2022";
-        line-height: 1em;
+        line-height: @side-bar-medium;
     }
 
     &.can-close:before {
         content: "\00D7";
-        line-height: 1.1em;
+        line-height: @side-bar-medium;
     }
 
     &.can-close:hover:before {
@@ -1697,7 +1700,7 @@ a, img {
         border-bottom-right-radius: 3px;
         border-left: none;
         border-right: 1px solid @bc-btn-border;
-        
+
         .dark & {
             border-right-color: @dark-bc-btn-border;
         }
@@ -2088,7 +2091,7 @@ textarea.exclusions-editor {
 #status-indicators #status-inspection {
     border: none;
     cursor: default;
-    width: 13px;
+    width: @side-bar-small;
 
     &.inspection-errors {
         cursor: pointer;
@@ -2096,7 +2099,8 @@ textarea.exclusions-editor {
 }
 
 .inspection-disabled {
-    background: url(images/topcoat-inactive-15.svg) 9px 5px no-repeat;
+    background: url(images/topcoat-inactive-15.svg) 9px 0 no-repeat;
+    background-size: contain;
 }
 
 .inspection-errors {

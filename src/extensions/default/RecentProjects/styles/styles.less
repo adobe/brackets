@@ -10,11 +10,14 @@
 @dark-bc-text-thin:             #fff;
 @dark-bc-text-thin-quiet:       #bbb;
 
+@import "../../../../styles/brackets_variables.less";
+
 .dropdown-arrow {
     display: inline-block;
-    width: 7px;
-    height: 5px;
+    width: @side-bar-small;
+    height: @side-bar-small;
     margin-left: 4px;
+    background-size: contain;
     background-image: url("down-arrow.svg");
     background-repeat: no-repeat;
     position: relative;
@@ -44,8 +47,10 @@
     }
 }
 
+
 #project-dropdown-toggle {
     display: inline-block;
+    line-height: @side-bar-big; //GEtting started dropdown
     /* adjust margins to keep position #project-title position stable after extension is loaded */
     margin: -3px 5px -2px -6px;
     overflow: hidden;
