@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
 #  
@@ -22,7 +23,6 @@
 #
 
 
-#!/bin/bash
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo $BASEDIR
