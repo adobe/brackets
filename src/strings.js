@@ -27,6 +27,7 @@
  * The i18n plugin will dynamically load the strings for the right locale and populate
  * the exports variable. See src\nls\strings.js for the master file of English strings.
  */
+//sus visit
 define(function (require, exports, module) {
     "use strict";
 
