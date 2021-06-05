@@ -307,6 +307,7 @@ define({
     "CMD_SUPPORT"                         : "Υποστήριξη {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_SUGGEST"                         : "Πρότεινε Feature",
+    "CMD_REPORT"                          : "Αναφορά σφάλματος",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Αρχική σελίδα",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Προβολή Φακέλου Επεκτάσεων",
     "CMD_TWITTER"                         : "{TWITTER_NAME} στο Twitter",

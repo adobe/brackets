@@ -408,6 +408,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Cum să folosești {APP_NAME}",
     "CMD_SUPPORT"                         : "Suport {APP_NAME}",
     "CMD_SUGGEST"                         : "Sugerează o funcționalitate",
+    "CMD_REPORT"                          : "Raportați o eroare",
     "CMD_RELEASE_NOTES"                   : "Notele ediției",
     "CMD_GET_INVOLVED"                    : "Participă la proiect",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Deschide dosarul cu extensii",

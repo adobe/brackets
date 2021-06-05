@@ -370,6 +370,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Sådan bruger du {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} support",
     "CMD_SUGGEST"                         : "Foreslå en funktion",
+    "CMD_REPORT"                          : "Rapportér en fejl",
     "CMD_RELEASE_NOTES"                   : "Udgivelsesnoter",
     "CMD_GET_INVOLVED"                    : "Bliv involveret",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Vis udvidelsesmappe",

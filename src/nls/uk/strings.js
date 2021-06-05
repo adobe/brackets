@@ -408,6 +408,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"                   : "Як використовувати {APP_NAME}",
     "CMD_SUPPORT"                               : "Підтримка {APP_NAME}",
     "CMD_SUGGEST"                               : "Запропонувати ідею",
+    "CMD_REPORT"                                : "Повідомити про помилку",
     "CMD_RELEASE_NOTES"                         : "Примітки до випуску",
     "CMD_GET_INVOLVED"                          : "Прийняти участь в розробці",
     "CMD_SHOW_EXTENSIONS_FOLDER"                : "Показати теку розширень",

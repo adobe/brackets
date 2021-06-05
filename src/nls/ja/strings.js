@@ -444,6 +444,7 @@ define({
 	"CMD_HOW_TO_USE_BRACKETS": "{APP_NAME} の使用方法",
 	"CMD_SUPPORT": "{APP_NAME} サポート",
 	"CMD_SUGGEST": "機能改善の提案",
+	"CMD_REPORT": "エラーを報告する",
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",

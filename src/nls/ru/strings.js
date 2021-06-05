@@ -368,6 +368,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Как использовать {APP_NAME}",
     "CMD_SUPPORT"                         : "Поддержка {APP_NAME}",
     "CMD_SUGGEST"                         : "Предложить улучшение",
+    "CMD_REPORT"                          : "Сообщить об ошибке",
     "CMD_RELEASE_NOTES"                   : "Примечания к выпуску",
     "CMD_GET_INVOLVED"                    : "Принять участие в проекте",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать директорию расширений",

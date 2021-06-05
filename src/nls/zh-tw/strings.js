@@ -418,6 +418,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "如何使用 {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} 支援",
     "CMD_SUGGEST"                         : "功能建議",
+    "CMD_REPORT"                          : "報告錯誤",
     "CMD_RELEASE_NOTES"                   : "版本資訊",
     "CMD_GET_INVOLVED"                    : "參與",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "顯示擴充功能資料夾",

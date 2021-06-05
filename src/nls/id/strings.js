@@ -413,6 +413,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Bagaimana Menggunakan {APP_NAME}",
     "CMD_SUPPORT"                         : "Bantuan {APP_NAME}",
     "CMD_SUGGEST"                         : "Sarankan Fitur",
+    "CMD_REPORT"                          : "Laporkan kesalahan",
     "CMD_RELEASE_NOTES"                   : "Catatan Rilis",
     "CMD_GET_INVOLVED"                    : "Ikut Terlibat",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Tampilkan Folder Ekstensi",

@@ -408,6 +408,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Корисничко упутство за {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} подршка",
     "CMD_SUGGEST"                         : "Предложи нову функционалност",
+    "CMD_REPORT"                          : "Пријави грешку",
     "CMD_RELEASE_NOTES"                   : "Белешке о тренутној верзији",
     "CMD_GET_INVOLVED"                    : "Прикључи се развоју апликације",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Прикажи директоријум са екстензијама",

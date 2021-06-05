@@ -420,6 +420,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Como usar o {APP_NAME}",
     "CMD_SUPPORT"                         : "Ajuda do {APP_NAME}",
     "CMD_SUGGEST"                         : "Sugira um recurso",
+    "CMD_REPORT"                          : "Reportar um erro",
     "CMD_RELEASE_NOTES"                   : "Notas da versão",
     "CMD_GET_INVOLVED"                    : "Envolva-se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",

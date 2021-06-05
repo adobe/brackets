@@ -423,6 +423,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Kā lietot {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} palīdzība",
     "CMD_SUGGEST"                         : "Ieteikt funkciju",
+    "CMD_REPORT"                          : "Ziņot par kļūdu",
     "CMD_RELEASE_NOTES"                   : "Informācija par laidienu",
     "CMD_GET_INVOLVED"                    : "Iesaistīties",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Parādīt paplašinājumu mapi",

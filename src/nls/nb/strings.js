@@ -348,6 +348,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Hvordan bruke {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} support",
     "CMD_SUGGEST"                         : "Foreslå en funksjonalitet",
+    "CMD_REPORT"                          : "Rapporter en feil",
     "CMD_RELEASE_NOTES"                   : "Utgivelsesnotat",
     "CMD_GET_INVOLVED"                    : "Bli involvert",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Vis utvidelser",

@@ -207,6 +207,9 @@ define(function (require, exports, module) {
         if (brackets.config.suggest_feature_url) {
             menu.addMenuItem(Commands.HELP_SUGGEST);
         }
+        if (brackets.config.report_bug_url) {
+            menu.addMenuItem(Commands.HELP_REPORT);
+        }
         if (brackets.config.release_notes_url) {
             menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
         }

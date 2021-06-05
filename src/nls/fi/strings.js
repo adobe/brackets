@@ -435,6 +435,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Kuinka käyttää {APP_NAME}iä",
     "CMD_SUPPORT"                         : "{APP_NAME}-tuki",
     "CMD_SUGGEST"                         : "Ehdota ominaisuutta",
+    "CMD_REPORT"                          : "Ilmoita virheestä",
     "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
     "CMD_GET_INVOLVED"                    : "Lähde mukaan",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennuskansio",

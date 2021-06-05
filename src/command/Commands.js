@@ -140,6 +140,7 @@ define(function (require, exports, module) {
     exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";      // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_SUPPORT                = "help.support";               // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_SUGGEST                = "help.suggest";               // HelpCommandHandlers.js       _handleLinkMenuItem()
+    exports.HELP_REPORT                 = "help.report";                // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_RELEASE_NOTES          = "help.releaseNotes";          // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_GET_INVOLVED           = "help.getInvolved";           // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()

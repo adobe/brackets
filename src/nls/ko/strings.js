@@ -422,6 +422,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "{APP_NAME} 사용법",
     "CMD_SUPPORT"                         : "{APP_NAME} 지원",
     "CMD_SUGGEST"                         : "기능 제안",
+    "CMD_REPORT"                          : "오류보고",
     "CMD_RELEASE_NOTES"                   : "릴리즈 노트",
     "CMD_GET_INVOLVED"                    : "프로젝트 참여",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "확장 기능 폴더 열기",

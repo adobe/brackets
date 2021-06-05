@@ -409,6 +409,7 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "چگونگی استفاده از {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} پشتیبانی",
     "CMD_SUGGEST"                         : "پیشنهاد یک امکان جدید",
+    "CMD_REPORT"                          : "گزارش خطا",
     "CMD_RELEASE_NOTES"                   : "نکات انتشار",
     "CMD_GET_INVOLVED"                    : "درگیرش شوید",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "نمایش پوشه افزونه ها",
