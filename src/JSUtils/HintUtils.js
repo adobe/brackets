@@ -26,9 +26,9 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Acorn                       = require("node_modules/acorn/dist/acorn");
+    let Acorn                       = require("node_modules/acorn/dist/acorn");
 
-    var LANGUAGE_ID                 = "javascript",
+    let LANGUAGE_ID                 = "javascript",
         JSX_LANGUAGE_ID             = "jsx",
         HTML_LANGUAGE_ID            = "html",
         PHP_LANGUAGE_ID             = "php",
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
      * @return {boolean} - could key be a valid identifier?
      */
     function maybeIdentifier(key) {
-        var result = false,
+        let result = false,
             i;
 
         for (i = 0; i < key.length; i++) {
@@ -122,7 +122,7 @@ define(function (require, exports, module) {
      * @return {string} - the qualified event name
      */
     function eventName(name) {
-        var EVENT_TAG = "brackets-js-hints";
+        let EVENT_TAG = "brackets-js-hints";
         return name + "." + EVENT_TAG;
     }
 
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
         return SUPPORTED_LANGUAGES.indexOf(languageId) !== -1;
     }
 
-    var KEYWORD_NAMES   = [
+    let KEYWORD_NAMES   = [
         "break", "case", "catch", "class", "const", "continue", "debugger",
         "default", "delete", "do", "else", "export", "extends", "finally",
         "for", "function", "if", "import", "in", "instanceof", "let", "new",
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
         }),
         KEYWORDS        = annotateKeywords(KEYWORD_TOKENS);
 
-    var LITERAL_NAMES   = [
+    let LITERAL_NAMES   = [
         "true", "false", "null"
     ],
         LITERAL_TOKENS  = LITERAL_NAMES.map(function (t) {
