@@ -21,7 +21,7 @@
         "chokidar": "1.6.1",
         "decompress-zip": "0.3.0",
         "fs-extra": "2.0.0",
-        "lodash": "4.17.15",
+        "lodash": "4.17.21",
         "npm": "3.10.10",
         "opn": "4.0.2",
         "request": "2.79.0",
