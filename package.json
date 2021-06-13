@@ -27,7 +27,7 @@
         "request": "2.79.0",
         "semver": "5.3.0",
         "temp": "0.8.3",
-        "ws": "~0.4.31"
+        "ws": "~5.2.3"
     },
     "devDependencies": {
         "glob": "7.1.1",
