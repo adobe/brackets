@@ -69,63 +69,82 @@ define(function (require, exports, module) {
                         oneTimeHealthData.bracketsTheme = bracketsTheme;
                     })
                     .always(function () {
-                        var userUuid  = PreferencesManager.getViewState("UUID");
-                        var olderUuid = PreferencesManager.getViewState("OlderUUID");
-
-                        if (userUuid && olderUuid) {
-                            oneTimeHealthData.uuid      = userUuid;
-                            oneTimeHealthData.olderuuid = olderUuid;
-                            return result.resolve(oneTimeHealthData);
-                        } else {
-
-                            // So we are going to get the Machine hash in either of the cases.
-                            if (appshell.app.getMachineHash) {
-                                appshell.app.getMachineHash(function (err, macHash) {
-
-                                    var generatedUuid;
-                                    if (err) {
-                                        generatedUuid = uuid.v4();
-                                    } else {
-                                        generatedUuid = macHash;
-                                    }
-
-                                    if (!userUuid) {
-                                        // Could be a new user. In this case
-                                        // both will remain the same.
-                                        userUuid = olderUuid = generatedUuid;
-                                    } else {
-                                        // For existing user, we will still cache
-                                        // the older uuid, so that we can improve
-                                        // our reporting in terms of figuring out
-                                        // the new users accurately.
-                                        olderUuid = userUuid;
-                                        userUuid  = generatedUuid;
-                                    }
-
-                                    PreferencesManager.setViewState("UUID", userUuid);
-                                    PreferencesManager.setViewState("OlderUUID", olderUuid);
-
-                                    oneTimeHealthData.uuid      = userUuid;
-                                    oneTimeHealthData.olderuuid = olderUuid;
-                                    return result.resolve(oneTimeHealthData);
-                                });
-                            } else {
-                                // Probably running on older shell, in which case we will
-                                // assign the same uuid to olderuuid.
-                                if (!userUuid) {
-                                    oneTimeHealthData.uuid = oneTimeHealthData.olderuuid = uuid.v4();
-                                } else {
-                                    oneTimeHealthData.olderuuid = userUuid;
-                                }
-
-                                PreferencesManager.setViewState("UUID",      oneTimeHealthData.uuid);
-                                PreferencesManager.setViewState("OlderUUID", oneTimeHealthData.olderuuid);
-                                return result.resolve(oneTimeHealthData);
-                            }
-                        }
+                        getSetUserID().done(function (userGuids) {
+                            oneTimeHealthData.uuid  = userGuids.userUuid;
+                            oneTimeHealthData.olderuuid = userGuids.olderUuid;
+                            result.resolve(oneTimeHealthData);
+                        });
                     });
 
             });
+        return result.promise();
+    }
+
+     /**
+     * will check uuid and older uuid exists or not
+     * set if not present
+     */
+
+    function getSetUserID() {
+
+        var result = new $.Deferred(),
+            userUuid = PreferencesManager.getViewState("UUID"),
+            olderUuid = PreferencesManager.getViewState("OlderUUID"),
+            userGuids = {};
+
+
+        if (userUuid && olderUuid) {
+            userGuids.userUuid      = userUuid;
+            userGuids.olderUuid = olderUuid;
+
+            result.resolve(userGuids);
+        } else {
+
+            // So we are going to get the Machine hash in either of the cases.
+            if (appshell.app.getMachineHash) {
+                appshell.app.getMachineHash(function (err, macHash) {
+
+                    var generatedUuid;
+                    if (err) {
+                        generatedUuid = uuid.v4();
+                    } else {
+                        generatedUuid = macHash;
+                    }
+
+                    if (!userUuid) {
+                        // Could be a new user. In this case
+                        // both will remain the same.
+                        userUuid = olderUuid = generatedUuid;
+                    } else {
+                        // For existing user, we will still cache
+                        // the older uuid, so that we can improve
+                        // our reporting in terms of figuring out
+                        // the new users accurately.
+                        olderUuid = userUuid;
+                        userUuid  = generatedUuid;
+                    }
+
+                    PreferencesManager.setViewState("UUID", userUuid);
+                    PreferencesManager.setViewState("OlderUUID", olderUuid);
+
+                    userGuids.uuid      = userUuid;
+                    userGuids.olderuuid = olderUuid;
+                    result.resolve(userGuids);
+                });
+            } else {
+                // Probably running on older shell, in which case we will
+                // assign the same uuid to olderuuid.
+                if (!userUuid) {
+                    userGuids.uuid = userGuids.olderuuid = uuid.v4();
+                } else {
+                    userGuids.olderuuid = userUuid;
+                }
+
+                PreferencesManager.setViewState("UUID",      userGuids.uuid);
+                PreferencesManager.setViewState("OlderUUID", userGuids.olderuuid);
+                result.resolve(userGuids);
+            }
+        }
         return result.promise();
     }
 
@@ -134,48 +153,56 @@ define(function (require, exports, module) {
      * will return complete Analyics Data in Json Format
      */
     function getAnalyticsData(eventParams) {
-        var userUuid = PreferencesManager.getViewState("UUID"),
-            olderUuid = PreferencesManager.getViewState("OlderUUID");
 
-        //Create default Values
-        var defaultEventParams = {
-            eventCategory: "pingData",
-            eventSubCategory: "",
-            eventType: "",
-            eventSubType: ""
-        };
-        //Override with default values if not present
-        if (!eventParams) {
-            eventParams = defaultEventParams;
-        } else {
-            var e;
-            for (e in defaultEventParams) {
-                if (defaultEventParams.hasOwnProperty(e) && !eventParams[e]) {
-                    eventParams[e] = defaultEventParams[e];
+        var result = new $.Deferred();
+
+        getSetUserID().done(function (userGuids) {
+            var userUuid  = userGuids.userUuid,
+                olderUuid = userGuids.olderUuid;
+
+            //Create default Values
+            var defaultEventParams = {
+                eventCategory: "pingData",
+                eventSubCategory: "",
+                eventType: "",
+                eventSubType: ""
+            };
+            //Override with default values if not present
+            if (!eventParams) {
+                eventParams = defaultEventParams;
+            } else {
+                var e;
+                for (e in defaultEventParams) {
+                    if (defaultEventParams.hasOwnProperty(e) && !eventParams[e]) {
+                        eventParams[e] = defaultEventParams[e];
+                    }
                 }
             }
-        }
 
-        return {
-            project: brackets.config.serviceKey,
-            environment: brackets.config.environment,
-            time: new Date().toISOString(),
-            ingesttype: "dunamis",
-            data: {
-                "event.guid": uuid.v4(),
-                "event.user_guid": olderUuid || userUuid,
-                "event.dts_end": new Date().toISOString(),
-                "event.category": eventParams.eventCategory,
-                "event.subcategory": eventParams.eventSubCategory,
-                "event.type": eventParams.eventType,
-                "event.subtype": eventParams.eventSubType,
-                "event.user_agent": window.navigator.userAgent || "",
-                "event.language": brackets.app.language,
-                "source.name": brackets.metadata.version,
-                "source.platform": brackets.platform,
-                "source.version": brackets.metadata.version
-            }
-        };
+            var ingestData = {
+                project: brackets.config.serviceKey,
+                environment: brackets.config.environment,
+                time: new Date().toISOString(),
+                ingesttype: "dunamis",
+                data: {
+                    "event.guid": uuid.v4(),
+                    "event.user_guid": olderUuid || userUuid,
+                    "event.dts_end": new Date().toISOString(),
+                    "event.category": eventParams.eventCategory,
+                    "event.subcategory": eventParams.eventSubCategory,
+                    "event.type": eventParams.eventType,
+                    "event.subtype": eventParams.eventSubType,
+                    "event.user_agent": window.navigator.userAgent || "",
+                    "event.language": brackets.app.language,
+                    "source.name": brackets.metadata.version,
+                    "source.platform": brackets.platform,
+                    "source.version": brackets.metadata.version
+                }
+            };
+
+            result.resolve(ingestData);
+        });
+        return result.promise();
     }
 
     /**
@@ -215,24 +242,24 @@ define(function (require, exports, module) {
     function sendAnalyticsDataToServer(eventParams) {
         var result = new $.Deferred();
 
-        var analyticsData = getAnalyticsData(eventParams);
-        $.ajax({
-            url: brackets.config.analyticsDataServerURL,
-            type: "POST",
-            data: JSON.stringify({events: [analyticsData]}),
-            headers: {
-                "Content-Type": "application/json",
-                "x-api-key": brackets.config.serviceKey
-            }
-        })
-            .done(function () {
-                result.resolve();
+        getAnalyticsData(eventParams).done(function (ingestData) {
+            $.ajax({
+                url: brackets.config.analyticsDataServerURL,
+                type: "POST",
+                data: JSON.stringify({events: [ingestData]}),
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": brackets.config.serviceKey
+                }
             })
-            .fail(function (jqXHR, status, errorThrown) {
-                console.error("Error in sending Adobe Analytics Data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
-                result.reject();
-            });
-
+                .done(function () {
+                    result.resolve();
+                })
+                .fail(function (jqXHR, status, errorThrown) {
+                    console.error("Error in sending Adobe Analytics Data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
+                    result.reject();
+                });
+        });
         return result.promise();
     }
 

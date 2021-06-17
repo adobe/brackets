@@ -42,36 +42,36 @@ define(function (require, exports, module) {
      * Show the dialog for previewing the Health Data that will be sent.
      */
     function previewHealthData() {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            content;
 
         HealthDataManager.getHealthData().done(function (healthDataObject) {
-            var combinedHealthAnalyticsData = HealthDataManager.getAnalyticsData(),
-                content;
-            combinedHealthAnalyticsData = [healthDataObject, combinedHealthAnalyticsData ];
-            content = JSON.stringify(combinedHealthAnalyticsData, null, 4);
-            content = _.escape(content);
-            content = content.replace(/ /g, "&nbsp;");
-            content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
+            HealthDataManager.getAnalyticsData().done(function (ingestData) {
 
-            var hdPref   = prefs.get("healthDataTracking"),
-                template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
-                $template = $(template);
+                var combinedHealthAnalyticsData = [healthDataObject, ingestData ];
+                content = JSON.stringify(combinedHealthAnalyticsData, null, 4);
+                content = _.escape(content);
+                content = content.replace(/ /g, "&nbsp;");
+                content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
 
-            Dialogs.addLinkTooltips($template);
+                var hdPref   = prefs.get("healthDataTracking"),
+                    template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
+                    $template = $(template);
 
-            Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
+                Dialogs.addLinkTooltips($template);
 
-                if (id === "save") {
-                    var newHDPref = $template.find("[data-target]:checkbox").is(":checked");
-                    if (hdPref !== newHDPref) {
-                        prefs.set("healthDataTracking", newHDPref);
+                Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
+
+                    if (id === "save") {
+                        var newHDPref = $template.find("[data-target]:checkbox").is(":checked");
+                        if (hdPref !== newHDPref) {
+                            prefs.set("healthDataTracking", newHDPref);
+                        }
                     }
-                }
+                });
+                result.resolve();
             });
-
-            return result.resolve();
         });
-
         return result.promise();
     }
 
