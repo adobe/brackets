@@ -338,15 +338,24 @@ define(function (require, exports, module) {
         var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length),
             delta   = fsUnits === "px" ? 1 : 0.1,
             fsOld   = parseFloat(fsStyle.substring(0, fsStyle.length - 2)),
-            fsNew   = fsOld + (delta * adjustment),
-            fsStr   = fsNew + fsUnits;
+            fsNew   = fsOld + (delta * adjustment);
+            
 
-        // Don't let the font size get too small or too large. The minimum font size is 1px or 0.1em
-        // and the maximum font size is 72px or 7.2em depending on the unit used
-        if (fsNew < MIN_FONT_SIZE * delta || fsNew > MAX_FONT_SIZE * delta) {
+        //The minimum font size is 1px or 0.1em and the maximum font size is 72px or 7.2em depending on the unit used
+
+        //If the goal is to decrement but the current font size is more than the maximum font size
+        if(adjustment < 0 && fsNew > MAX_FONT_SIZE * delta){ 
+            fsNew = MAX_FONT_SIZE * delta; //The new font size is set to the maximum font size
+        }
+        //If the goal is to increment but the current font size is less than the minimum font size
+        else if(adjustment > 0 && fsNew < MIN_FONT_SIZE * delta){ 
+            fsNew = MIN_FONT_SIZE * delta; //The new font size is set to the minimum font size
+        }
+        else if (fsNew < MIN_FONT_SIZE * delta || fsNew > MAX_FONT_SIZE * delta) { //Don't let the font size get too small or too large.
             return false;
         }
 
+        var fsStr   = fsNew + fsUnits;
         setFontSize(fsStr);
         return true;
     }
