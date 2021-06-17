@@ -765,6 +765,7 @@ define({
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "falso (false) para desabilitar a abertura do arquivo de preferências em tela dividida",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "falso (false) para desabilitar a abertura do arquivo de preferências no topo do painel lateral esquerdo",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Isso é um arquivo de somente leitura contendo as preferências suportadas\n * pelo {APP_NAME}.\n * Utilize este arquivo como referência para ajustar e modificar suas preferências no\n * arquivo \"brackets.json\" aberto em outro painel.\n * Para saber mais sobre como usar as preferências do\n * {APP_NAME}, pode consultar a página web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Padrão"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Padrão",
+    "DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT"     : "falso (false) para desabilitar o inspetor reverso do live preview",
 });
-/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
+/* Last translated for e1dfbb8ab283dfe10c784dfba1c4869e5eec7266 */
