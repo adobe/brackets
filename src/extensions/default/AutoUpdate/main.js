@@ -535,11 +535,9 @@ define(function (require, exports, module) {
         updateDomain = new NodeDomain("AutoUpdate", _domainPath);
     }
 
-
     /**
      * Overriding the appReady for Auto update
      */
-
     AppInit.appReady(function () {
 
         // Auto Update is supported on Win and Mac, as of now
@@ -1013,6 +1011,7 @@ define(function (require, exports, module) {
                 });
 
                 setUpdateStateInJSON("autoUpdateInProgress", false);
+
             }
         }
     }
@@ -1110,4 +1109,30 @@ define(function (require, exports, module) {
     functionMap["brackets.nodeDomainInitialized"]     = nodeDomainInitialized;
     functionMap["brackets.registerBracketsFunctions"] = registerBracketsFunctions;
 
+    /**
+     * Sets the update state in updateHelper.json in Appdata
+     * @param   {string} key   - Jsonkey
+     * returns {String} Value of the key in Json
+     */
+    function getUpdateStateInJSON(key) {
+        var value = null;
+        if(updateJsonHandler) {
+            value = updateJsonHandler.get(key);
+        }
+        return value;
+    }
+
+   /**
+    * Initializes the test environment for Auto Update
+    */
+    function initTestEnv() {
+        exports.getUpdateStateInJSON = getUpdateStateInJSON;
+        exports._updateProcessHandler = _updateProcessHandler;
+        exports.checkUpdateStatus = checkUpdateStatus;
+        exports.setUpdateStateInJson = setUpdateStateInJSON;
+        exports.getPlatformInfo      = getPlatformInfo;
+    }
+
+    //For Unit Testing
+    exports.initTestEnv          = initTestEnv;
 });
