@@ -1508,7 +1508,7 @@ input[type="color"],
     color: @bc-text-thin;
     font-size: (@baseFontSize + 1px);
     font-weight: normal;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: subpixel-antialiased;
     box-shadow: inset 0 1px 0 @bc-shadow-small;
     border-radius: @bc-border-radius;
     .transition(~"border linear 180ms, box-shadow linear 180ms");
@@ -1523,7 +1523,7 @@ input[type="color"],
     &::-webkit-input-placeholder {
         color: @bc-text-thin-quiet;
         font-weight: normal;
-        -webkit-font-smoothing: antialiased;
+        -webkit-font-smoothing: subpixel-antialiased;
 
         .dark & {
             color: @dark-bc-text-thin-quiet;
@@ -1650,7 +1650,7 @@ input[type="color"],
     border: 1px solid @bc-btn-border;
     border-radius: @bc-border-radius;
     box-shadow: inset 0 1px @bc-highlight-hard;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: subpixel-antialiased;
     text-shadow: none;
     margin: 3px 0 3px 3px;
 
