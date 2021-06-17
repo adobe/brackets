@@ -1,10 +1,15 @@
 language: node_js
 sudo: false # use container-based Travis infrastructure
+dist: trusty
 node_js:
   - "6"
+  - "lts/*"
+  - "node"
+cache:
+  directories:
+    - node_modules
 before_script:
-  - npm install -g grunt-cli
-  - npm install -g jasmine-node
+  - npm install -g grunt-cli jasmine-node
 notifications:
   webhooks:
     urls:
