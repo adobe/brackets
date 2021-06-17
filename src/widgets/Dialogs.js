@@ -68,7 +68,7 @@ define(function (require, exports, module) {
      */
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
-        $dlg.modal("hide");
+        $dlg.modal("hide");  // triggers "hidden" event, excuting the listener we added below
     }
 
     /**
@@ -80,6 +80,11 @@ define(function (require, exports, module) {
      * @param {boolean} autoDismiss Whether to autodismiss the dialog on a button click.
      */
     function _processButton($dlg, buttonId, autoDismiss) {
+        if (!$dlg.data("modal").isShown) {
+            // Dialog is already playing its hide animation - don't process any more dismissal actions
+            return;
+        }
+        
         if (autoDismiss) {
             _dismissDialog($dlg, buttonId);
         } else {
@@ -356,7 +361,7 @@ define(function (require, exports, module) {
         });
 
         // Click handler for buttons
-        $dlg.one("click", ".dialog-button", function (e) {
+        $dlg.on("click", ".dialog-button", function (e) {
             _processButton($dlg, $(this).attr("data-button-id"), autoDismiss);
         });
 
