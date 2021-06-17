@@ -826,9 +826,130 @@ define(function (require, exports, module) {
 
                     $("#find-in-files-results .first-page").click();
                     expectPageDisplay(expectedPages[0]);
+
                 });
             });
+            
+            it("should close the view when double clicking toolbar", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
 
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+
+                runs(function () {
+                    var $searchResults = $("#find-in-files-results");
+                    
+                    $("#find-in-files-results .toolbar").dblclick();
+                    expect($searchResults.is(":visible")).toBeFalsy();
+                });
+            });
+            
+            it("should keep the view open when double clicking the next page button", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+                
+                runs(function () {
+                    var $searchResults = $("#find-in-files-results");
+                    $("#find-in-files-results .first-page").dblclick();
+                    expect($searchResults.is(":visible")).toBeTruthy();
+                });
+            });
+            
+            it("should keep the view open when double clicking the first-page button", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+
+                runs(function () {
+                    var $searchResults = $("#find-in-files-results");
+                    
+                    $("#find-in-files-results .first-page").dblclick();
+                    expect($searchResults.is(":visible")).toBeTruthy();
+                });
+            });
+            
+            it("should keep the view open when double clicking the last-page button", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+
+                runs(function () {
+                    var $searchResults = $("#find-in-files-results");
+                    
+                    $("#find-in-files-results .last-page").dblclick();
+                    expect($searchResults.is(":visible")).toBeTruthy();
+                });
+            });
+            
+            it("should keep the view open when double clicking the prev-page button", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+
+                runs(function () {
+                    var $searchResults = $("#find-in-files-results");
+                    
+                    $("#find-in-files-results .prev-page").dblclick();
+                    expect($searchResults.is(":visible")).toBeTruthy();
+                });
+            });
+            
+            it("should keep the view open when double clicking the first-page button", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+
+                runs(function () {
+                    var $searchResults = $("#find-in-files-results");
+                    
+                    $("#find-in-files-results .first-page").dblclick();
+                    expect($searchResults.is(":visible")).toBeTruthy();
+                });
+            });
+            
+            it("should close the view when double clicking on the title div", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+
+                runs(function () {
+                    var $searchResults = $("#find-in-files-results");
+                    
+                    $("#find-in-files-results .title").dblclick();
+                    expect($searchResults.is(":visible")).toBeFalsy();
+                });
+            });
+            
+            
+            
             it("should jump to last page, then page backward, displaying correct contents at each step", function () {
                 openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
 

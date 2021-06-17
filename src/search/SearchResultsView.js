@@ -156,6 +156,17 @@ define(function (require, exports, module) {
         var self = this;
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
+            // MiddleClick on the toolbar closes the panel
+            .on('click', ".toolbar",function(e) {
+                if( e.which === 2 ) {
+                    self.close();
+                }
+            })          
+            // Keep the doubleClick event to propagate when clicking 
+            // buttons rapidly (which closes the panel)
+            .on("dblclick.searchResults", ".pagination-col", function(e){
+                e.stopPropagation();
+            })
             .on("dblclick.searchResults", ".toolbar", function() {
                 self.close();
             })
@@ -194,7 +205,6 @@ define(function (require, exports, module) {
             // Add the click event listener directly on the table parent
             .on("click.searchResults .table-container", function (e) {
                 var $row = $(e.target).closest("tr");
-
                 if ($row.length) {
                     if (self._$selectedRow) {
                         self._$selectedRow.removeClass("selected");
