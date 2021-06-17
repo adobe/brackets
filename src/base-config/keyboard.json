@@ -194,7 +194,7 @@
     ],
     "cmd.findAllAndSelect": [
         {
-            "key": "Alt-F3"
+            "key": "Ctrl-Alt-A"
         },
         {
             "key": "Cmd-Ctrl-G",
