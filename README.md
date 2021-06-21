@@ -33,7 +33,7 @@ How to install and run Brackets
 -------------------------------
 #### Download
 
-Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
+Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded from here](http://brackets.io/).
 
 #### Usage
 
@@ -67,7 +67,8 @@ If you found a repeatable bug, and [troubleshooting](https://github.com/adobe/br
 tips didn't help, then be sure to [search existing issues](https://github.com/adobe/brackets/issues) first.
 Include steps to consistently reproduce the problem, actual vs. expected results, screenshots, and your OS and
 Brackets version number. Disable all extensions to verify the issue is a core Brackets bug.
-[Read more guidelines for filing good bugs.](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue)
+[Read more guidelines for filing good bugs.](https://github.com/adobe/brackets/wiki/How-to-
+rt-an-Issue)
 
 
 #### I have a new suggestion, but don't know how to program!
@@ -81,7 +82,7 @@ move it to the feature backlog for you.
 
 Awesome! _There are lots of ways you can help._ First read 
 [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md), 
-then learn how to [pull the repo and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
+then learn how to [pull the repository and hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/codemirror/CodeMirror)&mdash;thanks to Marijn for
@@ -92,7 +93,7 @@ for info on how we're using CodeMirror.
 Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
-The native shell for Brackets lives in a separate repo, 
+The native shell for Brackets lives in a separate repository, 
 [adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
 
 
