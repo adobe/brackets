@@ -1012,8 +1012,10 @@ define(function (require, exports, module) {
             defaultName = FileUtils.getBaseName(origPath);
             var file = FileSystem.getFileForPath(origPath);
             if (file instanceof InMemoryFile) {
-                var language = LanguageManager.getLanguageForPath(origPath);
-                if (language) {
+                var language = LanguageManager.getLanguageForPath(origPath),
+                    hasExtension = (FileUtils.getFileExtension(origPath).length > 0);
+
+                if (language && !hasExtension) {
                     var fileExtensions = language.getFileExtensions();
                     if (fileExtensions && fileExtensions.length > 0) {
                         defaultName += "." + fileExtensions[0];
