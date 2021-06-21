@@ -114,4 +114,4 @@ for details. Committers are expected to take a leading role in the project by ma
 code contributions, reviewing pull requests, and providing feedback and suggestions on the
 direction of the project.
 
-Even if you're not a committer, you're still welcome to give feedback on any pull request!
+Even if you're not a committer, you're still welcome to give feedback on any pull request! :) 
