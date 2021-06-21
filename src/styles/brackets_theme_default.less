@@ -103,6 +103,16 @@
 @activeline-number-bg: #dee5e6;
 @activeline-number-bg-inline: #d7dede;
 
+/* background color of the line that has the cursor in the inactive pane */
+@activeline-bg-unfocused: #f1f1f1;
+@activeline-number-unfocused: rgba(0, 0, 0, 0.7);
+@activeline-number-bg-unfocused: rgba(222, 229, 230, 0.7);
+@activeline-number-bg-inline-unfocused: rgba(215, 222, 222, 0.5);
+
+/* same for dark theme */
+@activeline-bg-unfocused-dark: rgba(255, 255, 255, 0.04);
+@activeline-number-bg-unfocused-dark: rgba(0, 0, 0, 0.4);
+
 /* custom scrollbar colors */
 @win-scrollbar-track: rgb(240, 240, 240);
 @win-scrollbar-thumb: rgb(206, 206, 206);
@@ -159,6 +169,17 @@
 
 .dark {
     .inline-widget {
+        
+    .CodeMirror .CodeMirror-activeline-background {
+        background-color: @activeline-bg-unfocused-dark;
+    }
+    
+    .CodeMirror .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background-color: @activeline-number-bg-unfocused-dark;
+        }
+    }
+        
         color: @dark-bc-text;
         background-color: @dark-bc-bg-inline-widget;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -245,6 +266,31 @@
 
         .inline-editor-message {
             color: @dark-bc-text-thin-quiet;
+        }
+    }
+    
+    .CodeMirror .CodeMirror-activeline-background {
+        background-color: @activeline-bg-unfocused-dark;
+    }
+    
+    .CodeMirror .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background-color: @activeline-number-bg-unfocused-dark;
+        }
+    }
+    
+    /* For nested editor */
+    .CodeMirror {
+        .CodeMirror .CodeMirror-activeline-background {
+            /* Only way I found to override the normal style*/
+            background-color: @activeline-bg-unfocused-dark!important;
+        }
+
+        .CodeMirror .CodeMirror-activeline {
+            .CodeMirror-gutter-elt {
+            /* Only way I found to override the normal style*/
+                background-color: @activeline-number-bg-unfocused-dark!important;
+            }
         }
     }
 }
