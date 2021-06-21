@@ -115,3 +115,6 @@ code contributions, reviewing pull requests, and providing feedback and suggesti
 direction of the project.
 
 Even if you're not a committer, you're still welcome to give feedback on any pull request!
+
+## Test contributor for hactoberfest
+Dimitri Klopstein
