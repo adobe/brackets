@@ -6,7 +6,7 @@ Phoenix is a modern open-source code editor for the web.
 * Require widows for builds in the port window
 * Have brackets installed in windows
 * use nodejs version for windows greater than node v6.10
-* run `npm install`
+* run `npm install --force`
 * run tools/setup_for_hacking.bat
 * click on brackets to open the debug builds
 
