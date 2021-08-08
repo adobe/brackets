@@ -10,6 +10,3 @@
 [submodule "src/thirdparty/i18n"]
 	path = src/thirdparty/i18n
 	url = https://github.com/requirejs/i18n.git
-[submodule "src/extensions/default/JSLint/thirdparty/jslint"]
-	path = src/extensions/default/JSLint/thirdparty/jslint
-	url = https://github.com/peterflynn/JSLint.git
