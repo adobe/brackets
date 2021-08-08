@@ -48,6 +48,7 @@ module.exports = function (grunt) {
         exec('npm install' + envFlag, { cwd: './' + where }, function (err, stdout, stderr) {
             if (err) {
                 grunt.log.error(stderr);
+                console.log("Error running npm install" + envFlag + " in " + where);
             } else {
                 grunt.log.writeln(stdout || "finished npm install in " + where);
             }
