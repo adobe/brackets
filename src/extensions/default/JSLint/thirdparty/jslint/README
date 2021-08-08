@@ -1,0 +1,45 @@
+JSLint, The JavaScript Code Quality Tool
+
+Douglas Crockford
+douglas@crockford.com
+
+2013-04-05
+
+jslint.js contains the fully commented global JSLINT function.
+
+jslint.html runs the JSLINT function in a web page. The page also depends
+on adsafe.js [www.ADsafe.org] and json2.js [www.JSON.org] (which are not
+included in this project) and intercept.js and init_ui.js (which are). The
+js files should all be minified, and all except init_ui.js are concatenated
+together to form web_jslint.js.
+
+adsafe.js       https://github.com/douglascrockford/ADsafe
+json2.js        https://github.com/douglascrockford/JSON-js
+
+intercept.js augments ADsafe, giving widgets access to the clock, cookies,
+and the JSLINT function.
+
+init_ui.js hooks the HTML ui components to ADsafe.
+
+lint.html describes JSLint's usage. Please read it.
+
+Please direct questions and comments to
+https://plus.google.com/communities/104441363299760713736.
+
+JSLint can be run anywhere that JavaScript (or Java) can run. See for example
+https://github.com/douglascrockford/JSLint/wiki/JSLINT
+
+The place to express yourself in programming is in the quality of your ideas,
+and the efficiency of execution. The role of style is the same as in
+literature. A great writer doesn't express himself by putting the spaces
+before his commas instead of after, or by putting extra spaces inside his
+parentheses. A great writer will slavishly conform to some rules of style,
+and that in no way constrains his power to express himself creatively.
+See for example William Strunk's The Elements of Style
+[http://www.crockford.com/wrrrld/style.html].
+
+This applies to programming as well. Conforming to a consistent style
+improves readability, and frees you to express yourself in ways that matter.
+JSLint here plays the part of a stern but benevolent editor, helping you to
+get the style right so that you can focus your creative energy where it is
+most needed.

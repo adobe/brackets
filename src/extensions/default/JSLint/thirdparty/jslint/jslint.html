@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSLint, The JavaScript Code Quality Tool</title>
+<link rel="icon" type="image/gif" href="http://www.JSLint.com/favicon.gif">
+<style>
+body {
+    background-color: #EFEADF;
+    margin: 0;
+    padding: 0;
+}
+div#JSLINT_ fieldset {
+    background-color: #E3D8CB;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.35),
+          inset 0 0 10px rgba(169, 84, 84, 0.75);
+    clear: both;
+    margin: 1.5%;
+    padding: 0;
+    width: 97%;
+}
+div#JSLINT_ fieldset h1 {
+    background-color: slategray;
+    color: white;
+    font-family: sans-serif;
+    font-size: 100%;
+    font-style: normal;
+    margin: 0pt;
+    padding: 0.35em;
+    text-align: center;
+}
+div#JSLINT_ button {
+    background-color: lightsteelblue;
+    color: black;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-size: 100%;
+    font-style: normal;
+    margin: 0pt;
+    padding: 0.35em;
+    text-align: center;
+}
+div#JSLINT_ button:hover {
+    background-color: cornflowerblue;
+}
+
+div#JSLINT_ button:active {
+    color: white;
+}
+button#JSLINT_BUTTON {
+    border-radius: 16pt;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.35);
+    width: 50%;
+}
+
+div#JSLINT_ fieldset>button {
+    float: right;
+    border: 0;
+    border-left: 1pt solid gray;
+    padding-left: 2em;
+    padding-right: 2em;
+}
+
+div#JSLINT_ address {
+    color: dimgray;
+    display: block;
+    float: right;
+    font-family: serif;
+    font-size: 90%;
+    margin-left: 1em;
+}
+div#JSLINT_ dl {
+    background-color: #F3E8DB;
+    font-family: monospace;
+    margin-left: 1em;
+    margin-right: 1em;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-right: 1em;
+}
+div#JSLINT_ dt {
+    display: block;
+    font-family: serif;
+    font-size: 80%;
+    font-style: italic;
+    margin-left: 2em;
+}
+div#JSLINT_ dd {
+    display: block;
+    font-family: monospace;
+    margin-left: 4em;
+    overflow-x: hidden;
+}
+div#JSLINT_ textarea {
+    background-color: white;
+    border: solid 1px #E7DECC;
+    clear: both;
+    font-family: monospace;
+    margin: 2%;
+    width: 95%;
+    padding-left: 0.5em;
+}
+div#JSLINT_ textarea[readonly] {
+    background-color: #F3E8DB;
+}
+div#JSLINT_ label {
+    font-family: sans-serif;
+    font-size: 90%;
+    padding-left: 0.25em;
+}
+div#JSLINT_ fieldset#JSLINT_ERRORS>h1 {
+    background-color: indianred;
+}
+div#JSLINT_ fieldset#JSLINT_ERRORS>div {
+    padding-bottom: 1em;
+    padding-top: 1em;
+}
+div#JSLINT_ fieldset#JSLINT_ERRORS cite {
+    background-color: #F3E8DB;
+    display: block;
+    font-family: serif;
+    font-style: normal;
+    margin-left: 1em;
+    margin-right: 1em;
+    overflow-x: hidden;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+div#JSLINT_ fieldset#JSLINT_ERRORS pre {
+    margin-left: 1em;
+    overflow: hidden;
+}
+div#JSLINT_ fieldset#JSLINT_ERRORS dl address {
+    display: inline;
+    float: none;
+    font-size: 80%;
+    margin: 0;
+}
+div#JSLINT_ fieldset#JSLINT_REPORT>div {
+    padding-bottom: 1em;
+}
+
+div#JSLINT_ fieldset#JSLINT_OPTIONS>div {
+    float: left;
+    padding: 1em;
+}
+
+div#JSLINT_ fieldset#JSLINT_OPTIONS input[type="text"] {
+    padding-right: 0.5em;
+    text-align: right;
+    width: 4em;
+}
+
+div#JSLINT_ dl.level0 {
+    background-color: white;
+    padding-left: 0;
+}
+
+div#JSLINT_ dl.level1 {
+    background-color: #ffff80;  /* yellow */
+    padding-left: 2em;
+}
+
+div#JSLINT_ dl.level2 {
+    background-color: #cdfacd;  /* green */
+    padding-left: 4em;
+}
+
+div#JSLINT_ dl.level3 {
+    background-color: #d8d8ff;  /* blue */
+    padding-left: 6em;
+}
+
+div#JSLINT_ dl.level4 {
+    background-color: #e7c7ff;  /* purple */
+    padding-left: 8em;
+}
+
+div#JSLINT_ dl.level5 {
+    background-color: #ffcdcd;  /* red */
+    padding-left: 10em;
+}
+
+div#JSLINT_ dl.level6 {
+    background-color: #ffe390;  /* orange */
+    padding-left: 12em;
+}
+
+div#JSLINT_ dl.level7 {
+    background-color: #cdcdcd;  /* gray */
+    padding-left: 14em;
+}
+
+div#JSLINT_ dl.level8 {
+    padding-left: 16em;
+}
+
+.tristate {
+    font-family: sans-serif;
+    font-size: 75%;
+}
+.tristate [title] {
+    height: 2em;
+    line-height: 2em;
+    padding: 0.25em;
+}
+.tristate button, .tristate var {
+    cursor: pointer;
+    display: inline-block;
+    height: 2em;
+    vertical-align: middle;
+}
+.tristate button {
+    border-color: #B7C3D0 #547598 #547598 #B7C3D0;
+    border-radius: 5px 0px 0px 5px;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.37);
+    width: 2em;
+}
+.tristate var {
+    background-color: transparent;
+    border: 1pt solid silver;
+    border-radius: 0 3px 3px 0;
+    color: gray;
+    font-family: serif;
+    padding-left: 0.5em;
+    width: 3.5em;
+}
+.tristate var.true {
+    background-color: white;
+    border-color: #9D968C #C5BFB3 #C5BFB3 #6F6A61;
+    box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.2);
+    color: black;
+}
+.tristate var.false {
+    background-color: silver;
+    border-color: #9D968C #C5BFB3 #C5BFB3 #6F6A61;
+    box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.2);
+    color: black;
+}
+
+</style>
+</head>
+<body>
+  <div style="background: url(title.png) no-repeat scroll 0 0;
+    background-color: #C8BEAC; height: 3in; left: 0; position: absolute;
+    top: 0; width: 100%; z-index: -1;">
+  </div><div style="float: left; height: 0.75in; width: 5in;">&nbsp;</div>
+  <script src="web_jslint.js">
+  // json2.js+jslint.js+adsafe.js+intercept.js
+  </script>
+<div id="JSLINT_">
+  <div style="background-color: #C8BEAC; float:right; margin: 1em; padding-left: 1em; padding-right: 1em;">
+    <a href="http://www.JSLint.com/lint.html">Read the instructions.</a><br>
+    <a href="#JSLINT_OPTIONS">Set the options.</a><br>
+    <a href="http://www.amazon.com/exec/obidos/ASIN/0596517742/wrrrldwideweb"
+      target="_blank">Enjoy&nbsp;<i>The Good Parts</i>.</a><br>
+    <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RDLHY5MSG3LZW">Donate.</a>
+  </div>
+    <div style="background-color: #C8BEAC; float: right; font-family: sans-serif;
+    margin: 1em; padding-left: 1em; padding-right: 1em;">
+      The&nbsp;<a href="http://javascript.crockford.com/">JavaScript</a>&nbsp;Code Quality Tool<br>
+      <br><div id=JSLINT_EDITION></div>
+    </div>
+    <fieldset id=JSLINT_SOURCE><button>clear</button><h1>Source</h1>
+        <textarea rows="24" placeholder="// Paste quality code here"></textarea>
+    </fieldset>
+    <center><button id=JSLINT_BUTTON>JSLint</button></center>
+    <fieldset id=JSLINT_ERRORS style="display: none;"><button>clear</button><h1>Errors</h1><div></div>
+    </fieldset>
+    <fieldset id=JSLINT_REPORT style="display: none;"><button>clear</button><h1>Function
+        Report</h1><div></div>
+    </fieldset>
+    <fieldset id=JSLINT_PROPERTIES style="display: none;"><button>select</button><h1>Properties
+        Directive</h1><textarea rows="8" readonly=true ></textarea>
+    </fieldset>
+    <fieldset id=JSLINT_OPTIONS><button>clear options</button><h1>Options</h1>
+        <div class=tristate>Assume...
+          <div title=browser><button></button><var></var> a browser</div>
+          <div title=couch><button></button><var></var> CouchDB</div>
+          <div title=devel><button></button><var></var> console,alert,&nbsp;...</div>
+          <div title=node><button></button><var></var> Node.js</div>
+          <div title=rhino><button></button><var></var> Rhino</div>
+          <br>
+          <div title=passfail><button></button><var></var> Stop on first error</div>
+        </div>
+        <div class=tristate>Tolerate...
+          <div title=ass><button></button><var></var> assignment expressions</div>
+          <div title=bitwise><button></button><var></var> bitwise operators</div>
+          <div title=closure><button></button><var></var> Google Closure</div>
+          <div title=continue><button></button><var></var> continue</div>
+          <div title=debug><button></button><var></var> debugger statements</div>
+          <div title=eqeq><button></button><var></var> ==&nbsp;and&nbsp;!=</div>
+        </div>
+        <div class=tristate>Tolerate...
+          <div title=evil><button></button><var></var> eval </div>
+          <div title=forin><button></button><var></var> <a href="http://yuiblog.com/blog/2006/09/26/for-in-intrigue/">unfiltered</a> for  in </div>
+          <div title=newcap><button></button><var></var> uncapitalized constructors</div>
+          <div title=nomen><button></button><var></var> dangling _ in identifiers</div>
+          <div title=plusplus><button></button><var></var> ++&nbsp;and&nbsp;-- </div>
+          <div title=regexp><button></button><var></var> .&nbsp;and&nbsp;[^ ... ]&nbsp;in&nbsp;/RegExp/</div>
+          <div title=unparam><button></button><var></var> unused parameters</div>
+        </div>
+        <div class=tristate>Tolerate...
+          <div title=sloppy><button></button><var></var> missing&nbsp;'use strict'&nbsp;pragma</div>
+          <div title=stupid><button></button><var></var> stupidity</div>
+          <div title=sub><button></button><var></var> inefficient subscripting</div>
+          <div title=todo><button></button><var></var> TODO comments</div>
+          <div title=vars><button></button><var></var> many var statements per function</div>
+          <div title=white><button></button><var></var> messy white space</div>
+        </div>
+        <div>
+            <input id=JSLINT_INDENT type=text title=indent value="" autocomplete=off>
+            <label for=JSLINT_INDENT title=indent>Indentation
+            </label>
+            <br>
+            <input id=JSLINT_MAXLEN type=text title=maxlen value="" autocomplete=off>
+            <label for=JSLINT_MAXLEN title=maxlen>Maximum line length
+            </label>
+            <br>
+            <input id=JSLINT_MAXERR type=text title=maxerr value="" autocomplete=off>
+            <label for=JSLINT_MAXERR title=maxerr>Maximum number of errors
+            </label>
+        </div>
+        <textarea id=JSLINT_PREDEF title=predef placeholder="predefine global variables here"></textarea>
+    </fieldset>
+    <fieldset id=JSLINT_JSLINT><button>select</button><h1>JSLint Directive</h1>
+        <textarea rows=2 readonly=true placeholder="Computed /*jslint */ directive"></textarea>
+    </fieldset>
+    <script>
+    ADSAFE.id("JSLINT_");
+    </script>
+
+    <script src="init_ui.js"></script>
+
+    <script>
+    ADSAFE.go("JSLINT_", function (dom, lib) {
+        'use strict';
+        lib.init_ui(dom);
+    });
+    </script>
+</div>
+<center>
+<p> Copyright 2002&nbsp;<a href="http://www.JSLint.com/lint.html">Douglas
+  Crockford.</a>&nbsp;<a target="_blank" href="http://www.crockford.com/">All
+  Rights Reserved Wrrrldwide and Beyond!</a> <br>
+  <a href="http://javascript.crockford.com/code.html" target="_blank">Code
+  Conventions for the JavaScript Programming Language.</a><br>
+  <a href="https://plus.google.com/communities/104441363299760713736" target="_blank">Join
+  the JSLint Community.</a> </p>
+<a href="http://www.JSLint.com/"><img src="jslintpill.gif" width="36" height="17" border="0"></a>
+<a href="https://github.com/douglascrockford/JSLint"><img src="github.gif" width="39" height="16" border="0"></a>
+<a href="http://www.ADsafe.org/"><img src="adsafepill.gif" width="36" height="17" border="0"></a>
+<a href="http://www.JSON.org/"><img src="jsonpill.gif" width="36" height="17" border="0"></a>
+<a href="http://www.1and1.com/?k_id=10219574"><img src="1and1pill.gif" width="36" height="17" border="0"></a>
+</center></body>
+</html>

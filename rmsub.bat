@@ -7,5 +7,5 @@ git config -f .gitmodules --remove-section submodule.%submodulename%
 
 git rm --cached %submodulename%
 
-rmdir -R %submodulename%
-rmdir -R .git/modules/%submodulename%
+@REM rmdir -R %submodulename%
+@REM rmdir -R .git/modules/%submodulename%
