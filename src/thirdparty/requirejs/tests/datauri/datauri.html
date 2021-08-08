@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: data: uri Tests</title>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script>
+    requirejs.config({
+        paths: {
+            'foo': 'data:text/javascript,define([], function() { return { name: "foo" }})'
+        }
+    });
+    require(['foo'], function(foo) {
+        doh.register(
+            "datauri",
+            [
+                function datauri(t){
+                    t.is('foo', foo.name);
+                }
+            ]
+        );
+
+        doh.run();
+    });
+    </script>
+</head>
+<body>
+    <h1>require.js: data: uri Tests</h1>
+    <p>Check console for messages</p>
+    <p><a href="https://github.com/jrburke/requirejs/issues/845">Make sure data: uris work.</a></p>
+</body>
+</html>

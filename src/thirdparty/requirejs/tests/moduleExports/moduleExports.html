@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: module.exports assignment Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    require({
+            baseUrl: "./"
+        },
+        ["adder"],
+        function(adder) {
+            doh.register(
+                "moduleExports",
+                [
+                    function moduleExports(t){
+                        t.is("adder", adder.name);
+                        t.is(true, adder.isEqual);
+                    }
+                ]
+            );
+            doh.run();
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: module.exports assignment Test</h1>
+    <p>Make sure a nested, named define call works in IE.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: data-main index Test</title>
+    <script type="text/javascript" src="../../doh/runner.js"></script>
+    <script type="text/javascript" src="../../doh/_browserRunner.js"></script>
+    <script>
+    	var require = {
+            baseUrl: "./"
+        };
+    </script>
+    <script type="text/javascript" data-main="index.js" src="../../../require.js"></script>
+</head>
+<body>
+    <h1>require.js: data-main index Test</h1>
+
+    <p>Confirm that a data-main="index.js" with an inline config with a baseUrl
+    works with a built script that has "index" as the top level define call. More info:
+    <a href="https://github.com/jrburke/requirejs/issues/303">303</a>.
+
+    <p>Check console for messages</p>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Script noload Test</title>
+    <script src="../common.js"></script>
+    <script>
+
+    var readyRegExp = /complete|loaded/;
+
+    function onTestScriptLoad(evt) {
+        var node = evt.target || evt.srcElement;
+        if (evt.type === "load" || readyRegExp.test(node.readyState)) {
+            log(node.getAttribute("data-name") + " loaded");
+
+            //Clean up binding.
+            if (node.removeEventListener) {
+                node.removeEventListener("load", onTestScriptLoad, false);
+            } else {
+                //Probably IE.
+                node.detachEvent("onreadystatechange", onTestScriptLoad);
+            }
+        }
+    }
+
+    function onTestError(evt) {
+        var node = evt.target || evt.srcElement,
+            name = node.getAttribute("data-name");
+
+        if (typeof console !== "undefined" && console.log) {
+            console.log(name + ' has error event: ', evt);
+        }
+
+        log(name + " onerror triggered");
+
+        //Clean up binding.
+        if (node.removeEventListener) {
+            node.removeEventListener("error", onTestError, false);
+        } else {
+            //Probably IE.
+            node.detachEvent("onerror", onTestError);
+        }
+    }
+
+    function attachScript(url, name) {
+        var node = document.createElement("script");
+        node.src = url;
+        node.type = "text/javascript";
+        node.charset = "utf-8";
+        node.setAttribute("data-name", name);
+
+        //Set up load listener.
+        if (node.addEventListener) {
+            node.addEventListener("load", onTestScriptLoad, false);
+            node.addEventListener("error", onTestError, false);
+        } else {
+            //Probably IE.
+            node.attachEvent("onreadystatechange", onTestScriptLoad);
+            node.attachEvent("onerror", onTestError);
+        }
+
+        document.getElementsByTagName("head")[0].appendChild(node);
+    }
+
+    //Main logic
+    attachScript('404.js', '404');
+
+    var url505 = location.protocol + '//' + location.hostname + ':9320/505.js';
+    attachScript(url505, '505');
+
+    var noServerUrl = location.protocol + '//' + location.hostname + ':9321/noserver.js';
+    attachScript(noServerUrl, 'no server');
+    </script>
+</head>
+<body>
+    <h1>Script noload Test</h1>
+
+    <p>Test if HTTP 404 or 500 calls or down hosts for a script trigger a scripts error handler.</p>
+
+    <p>For this test to receive 500 responses, nodejs needs to run server.js in this directory.</p>
+
+    <p>Output below should be "404 onerror triggered", "500 onerror triggered" and "no server onerror triggered".
+    They may be in a different order, but that is OK.</p>
+
+
+</body>
+</html>

@@ -1,0 +1,3 @@
+define("lamp", {
+    color: "blue"
+});

@@ -1,0 +1,56 @@
+<div id="directory" class="section">
+<h1>Contributing to RequireJS</h1>
+
+<ul class="index mono">
+<li class="hbox"><a href="#whycla">Why a CLA?</a><span class="spacer boxFlex"></span><span class="sect">&sect; 1</span></li>
+<li class="hbox"><a href="#codestyle">Code style</a><span class="spacer boxFlex"></span><span class="sect">&sect; 2</span></li>
+</ul>
+
+<span class="note">Note: <a href="http://github.com/jrburke/requirejs">The source for RequireJS is available on GitHub</a></span>
+
+<p>For something that is bigger than a one or two line fix:</p>
+
+<ol style="color:#222;">
+<li><a href="http://help.github.com/forking/">Create your own fork of the code</a></li>
+<li>Do the changes in your fork</li>
+<li>If you like the change and think the project could use it:
+<ol style="color:#222;list-style-type:disc;">
+<li>Be sure you have followed <a href="#codestyle">the code style for the project</a>.</li>
+<li>Sign a <a href="http://www.dojofoundation.org/about/cla/">Contributor License Agreement, CLA, with the Dojo Foundation</a> and send it to them.</li>
+<li>Send a pull request indicating that you have a CLA on file.</li>
+</ol></li>
+</ol>
+
+<p>For one or two line fixes, you can use the <a href="http://github.com/jrburke/requirejs/issues">RequireJS GitHub Issues page</a> to indicate the problem. You can also do the full fork/pull request as mentioned above, but a CLA is not needed for one or two line fixes.</p>
+
+<p>For discussions on code changes/additions/requests use the <a href="http://groups.google.com/group/requirejs">RequireJS Group</a>.</p>
+</div>
+
+<div class="section">
+<h2><a name="whycla">Why a CLA?</a><span class="sectionMark">&sect; 1</span></h2>
+
+<p>CLAs are common with open source projects, with the Apache projects probably being the most well known. The goal is to allow RequireJS to be used in as many projects as possible, and for some companies, using only CLA-approved code is the best option.</p>
+
+<p>You still own the copyright on your contribution, the CLA just gives the most flexibility for licensing, and assures the lineage of the intellectual property. You should only submit patches for your own intellectual property, and not the intellectual property of others.</p>
+
+<p>Additional reading that may be helpful:</p>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Contributor_License_Agreement">Wikipedia on CLAs</a></li>
+</ul>
+</div>
+
+<div class="section">
+<h2><a name="codestyle">Code Style</a><span class="sectionMark">&sect; 2</span></h2>
+
+<p><a href="http://jslint.com/">JSLint</a> is used for checking code style. It is also useful for avoiding some errors. The default settings on JSLint should be fine to use, in particular, 4 spaces for indentation, do not use tabs.</p>
+
+<p>camelCase should be used for all variables and file names. Avoid the use of underscores as word separators. This extends to things like CSS class names, IDs in test HTML documents, everything.</p>
+
+<p>Some exceptions to JSLint can be indicated at the top of each JS file, but they should be avoided when possible. Two common exceptions you may see in the source:</p>
+
+<ul>
+<li><strong>nomen: false</strong>, allow underscore at the beginning of some property/variable/function names.</li>
+<li><strong>plusplus: false</strong>, but only to allow for loops with an incrementing ++ value. Other uses of ++ should be avoided.</li>
+</ul>
+</div>

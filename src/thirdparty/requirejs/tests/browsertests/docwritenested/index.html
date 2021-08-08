@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nested doc.write Test</title>
+    <script type="text/javascript">
+    function loadScript(url) {
+        url += "?stamp=" + (new Date()).getTime();
+        document.write('<script src="' + url + '"></' + 'script>');
+    }
+    loadScript("one.js");
+    </script>
+</head>
+<body>
+    <h1>Nested doc.write Test</h1>
+
+    <p>This test checks how the browser treats document.write calls that are nested.</p>
+    <ol>
+        <li>a script for one.js is written via document.write()</li>
+        <li>when one.js loads it asks for two.js to be written via document.write()</li>
+        <li>one.js then immediately accesses something defined in two.js</li>
+    </ol>
+    
+    <p>The expectation is that the access to the variable defined by two.js in one.js
+    will fail.</p>
+
+    <p>Check the console for output</p>
+</body>
+</html>

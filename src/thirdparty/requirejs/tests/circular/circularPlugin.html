@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Circular Dependency under Plugin Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript" src="circularPlugin-tests.js"></script>
+</head>
+<body>
+    <h1>require.js: Circular Dependency under Plugin  Test</h1>
+
+    <p>Tests if a plugin that depends on a module with a circular dependency,
+    does the plugin get stuck as unresolved? In particular, can cycles be
+    broken when a plugin resource depedency is not loaded = true.</p>
+
+    <p>Check console for messages</p>
+</body>
+</html>

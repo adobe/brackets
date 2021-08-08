@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: JSONP Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    require({
+            baseUrl: "./",
+            paths: {
+                require: "../../require"
+            }
+        },
+        ["require", "lamp", "https://api.github.com/users/jrburke?callback=define"],
+        function (require, lamp, user) {
+            doh.register(
+                "jsonp",
+                [
+                    function jsonp(t){
+                        t.is("James Burke", user.data.name);
+                        t.is('blue', lamp.color);
+                    }
+                ]
+            );
+            doh.run();
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: JSONP Test</h1>
+    <p>Test for usage of a JSONP URL as a dependency.</p>
+    <strong>REQUIRES access to internet/Twitter to run the test. Otherwise it will fail.</strong>
+    <p>Check console for messages</p>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Nested Define Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    require({
+            baseUrl: "./"
+        },
+        ["require", "one"],
+        function(require, one) {
+
+            define("two", function () {
+                return {
+                    name: "two"
+                };
+            });
+
+            define("three", {
+                name: "three"
+            });
+
+            setTimeout(function () {
+                require(["four"], function (four) {
+                    doh.register(
+                        "nestedDefine",
+                        [
+                            function nestedDefine(t){
+                                t.is("one", one.name);
+                                t.is("four", four.name);
+                                t.is("two", four.twoName);
+                                t.is("three", four.threeName);
+                            }
+                        ]
+                    );
+                    doh.run();
+                });
+            }, 15);
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: Nested Define Test</h1>
+    <p>Make sure a nested, named define call works in IE.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

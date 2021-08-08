@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Text onError Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    require({
+        baseUrl: "./",
+        paths: {
+            text: "../../../text/text"
+        }
+    });
+
+    var master = new doh.Deferred();
+    doh.register(
+        "textOnError",
+        [
+            {
+                name: "textOnError",
+                timeout: 2000,
+                runTest: function () {
+                    return master;
+                }
+            }
+        ]
+    );
+    doh.run();
+
+    require(
+        ["text!doesnotexist.html"],
+        function(doesNotExist) {
+            doh.is(false, true, "This should not fire");
+            master.callback(false);
+
+        }, function (err) {
+            doh.is(404, err.xhr.status);
+            master.callback(true);
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: Text Test</h1>
+    <p>Test for text! plugin triggering an error.
+    <p>Check console for messages</p>
+</body>
+</html>

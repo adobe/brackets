@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Skip data-main Test</title>
+    <script type="text/javascript" src="../../doh/runner.js"></script>
+    <script type="text/javascript" src="../../doh/_browserRunner.js"></script>
+    <script>
+    	var require = {
+            skipDataMain: true
+        };
+    </script>
+    <script type="text/javascript" data-main="index" src="../../../require.js"></script>
+    <script>
+        require(['a'], function(a) {
+            //Give a chance for any index.js to get loaded in a failure case
+            setTimeout(function() {
+                doh.register(
+                    "skipDataMain",
+                    [
+                        function skipDataMain(t){
+                            t.is("a", a.name);
+                            t.is(true, !a.modified);
+                        }
+                    ]
+                );
+                doh.run();
+            }, 300);
+        });
+    </script>
+</head>
+<body>
+    <h1>require.js: Skip data-main Test</h1>
+
+    <p>Skip data-main option test. More info:
+    <a href="https://github.com/jrburke/requirejs/issues/903">903</a>.
+
+    <p>Check console for messages</p>
+</body>
+</html>

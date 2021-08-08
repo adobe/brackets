@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Text Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    require({
+        baseUrl: "./",
+        paths: {
+            text: "../../../text/text"
+        } //, priority: ['widgetlayer']
+    });
+    require(
+        ["require", "widget", "local", "text!resources/sample.html!strip"],
+        function(require, widget, local, sampleText) {
+            doh.register(
+                "text",
+                [
+                    function text(t){
+                        t.is("<span>Hello World!</span>", sampleText);
+                        t.is('<div data-type="widget"><h1>This is a widget!</h1><p>I am in a widget</p></div>', widget.template);
+                        t.is('subwidget', widget.subWidgetName);
+                        t.is('<div data-type="subwidget"><h1>This is a subwidget</h1></div>', widget.subWidgetTemplate);
+                        t.is('<span>This! is template2</span>', widget.subWidgetTemplate2);
+                        t.is('<h1>Local</h1>', local.localHtml);
+                    },
+
+                    function textLocalXhr(t){
+                        var text = require('text');
+                        t.is(true, text.useXhr('./some/thing.html', 'http', 'some.domain.com'));
+                        t.is(false, text.useXhr('https://some.domain.com/some/thing.html', 'http', 'some.domain.com'));
+                        t.is(false, text.useXhr('http://domain.com/some/thing.html', 'http', 'some.domain.com'));
+                        t.is(true, text.useXhr('//some.domain.com/some/thing.html', 'http', 'some.domain.com'));
+                        t.is(true, text.useXhr('https://some.domain.com:444/some/thing.html', 'https', 'some.domain.com', '444'));
+                        t.is(false, text.useXhr('https://some.domain.com/some/thing.html', 'https', 'some.domain.com', '444'));
+                        t.is(true, text.useXhr('http://localhost/some/thing.html', 'http', 'localhost'));
+                    }
+                ]
+            );
+            doh.run();
+
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: Text Test</h1>
+    <p>Test for usage of text! require plugin.
+    <p>Check console for messages</p>
+</body>
+</html>

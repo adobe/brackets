@@ -1,0 +1,3 @@
+define('person', [], {
+        name: 'person'
+});

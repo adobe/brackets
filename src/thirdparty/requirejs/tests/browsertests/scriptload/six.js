@@ -1,0 +1,1 @@
+log("six.js script");

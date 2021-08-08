@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: #414: Multi-cycle Bundle Test</title>
+    <script type="text/javascript" src="../../../require.js"></script>
+    <script type="text/javascript" src="../../doh/runner.js"></script>
+    <script type="text/javascript" src="../../doh/_browserRunner.js"></script>
+    <script type="text/javascript" src="414-tests.js"></script>
+</head>
+<body>
+    <h1>#414: Multi-cycle Bundle Test</h1>
+
+    <p>A set of modules have multiple cycles in them, but the require() that
+        uses the top module in that bundle should get a fully constructed
+        module set.<a href="https://github.com/jrburke/requirejs/issues/414">More info</a>.</p>
+
+    <p>Check console for messages</p>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Relative Module Name Outside baseUrl Test</title>
+    <script type="text/javascript" src="../../../../require.js"></script>
+    <script type="text/javascript" src="../../../doh/runner.js"></script>
+    <script type="text/javascript" src="../../../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+
+
+require(['../b/1'], function(b1) {
+    doh.register(
+        "relativeOutsideBaseUrl",
+        [
+            function relativeOutsideBaseUrl(t){
+                t.is("b1", b1.name);
+                t.is("two", b1.two.name);
+                t.is("b3", b1.two.b3.name);
+            }
+        ]
+    );
+
+    doh.run();
+});
+
+    </script>
+</head>
+<body>
+    <h1>require.js: Relative Module Name Outside baseUrl Test</h1>
+    <p>From <a href="https://github.com/jrburke/requirejs/issues/158">Issue #158</a></p>
+    <p>Check console for messages</p>
+</body>
+</html>

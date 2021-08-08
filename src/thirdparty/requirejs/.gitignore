@@ -1,0 +1,8 @@
+.DS_Store
+docs/jquery-require-sample/webapp-build/
+docs/jquery-require-sample/dist
+dist/dist-site/
+dist/dist-build/
+shrinktest.sh
+tests/layers/allplugins-require.js
+tests/packages/optimizing/built/

@@ -1,0 +1,350 @@
+<div id="directory" class="section">
+<h1>Plugins</h1>
+
+<ul class="index mono">
+    <li class="hbox"><a href="#intro">Intro</a><span class="spacer boxFlex"></span><span class="sect">&sect; 1</span></li>
+    <li class="hbox"><a href="#names">Plugin Names</a><span class="spacer boxFlex"></span><span class="sect">&sect; 2</span></li>
+    <li class="hbox"><a href="#api">API</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3</span></li>
+    <ul>
+        <li class="hbox"><a href="#apiload">load</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3.1</span></li>
+        <li class="hbox"><a href="#apinormalize">normalize</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3.2</span></li>
+        <li class="hbox"><a href="#apiwrite">write</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3.3</span></li>
+        <li class="hbox"><a href="#apionlayerend">onLayerEnd</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3.4</span></li>
+        <li class="hbox"><a href="#apiwritefile">writeFile</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3.5</span></li>
+        <li class="hbox"><a href="#apipluginbuilder">pluginBuilder</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3.6</span></li>
+    </ul>
+</ul>
+</div>
+
+<div class="section">
+<h2 id="intro">
+Intro
+<span class="sectionMark">&sect; 1</span>
+</h2>
+
+<p>RequireJS allows you to write loader plugins that can load different types of resources as dependencies, and even include the dependencies in optimized builds.</p>
+
+<p>Examples of existing loader plugins are the <a href="api.html#text">text!</a> and <a href="api.html#i18n">i18n!</a> plugins. The text! plugin handles loading text, and the i18n plugin handles loading a JavaScript object that is made up from objects from a few different modules. The object contains localized strings.</p>
+
+<p>The RequireJS wiki has a longer <a href="https://github.com/jrburke/requirejs/wiki/Plugins">list of plugins</a>.</p>
+
+</div>
+
+<div class="section">
+<h2 id="names">
+Plugin Names
+<span class="sectionMark">&sect; 2</span>
+</h2>
+
+<p>Loader plugins are just another module, but they implement a specific API. Loader plugins can also participate in the optimizer optimizations, allowing the resources they load to be inlined in an optimized build.</p>
+
+<p><b>Note</b>: the plugin and its dependencies should be able to run in non-browser environments like Node and Rhino. If they cannot, you should use an alternate <a href="#apipluginbuilder">plugin builder</a> module that can run in those environments
+so that they can participate in optimization builds.</p>
+
+<p>You can reference your plugin by putting its module name before a ! in the dependency. For instance, if you create a plugin with the name "foo.js", you would use it like so:</p>
+
+<pre><code>
+require(['foo!something/for/foo'], function (something) {
+    //something is a reference to the resource
+    //'something/for/foo' that was loaded by foo.js.
+});
+</code></pre>
+
+<p>So, the plugin's module name comes before the ! separator. The part after the ! separator is called the <b>resource name</b>. The resource name may look like a normal module name. The plugin's module name can be any valid module name, so for instance, you could use a relative indicator:</p>
+
+<pre><code>
+require(['./foo!something/for/foo'], function (something) {
+});
+</code></pre>
+
+<p>Or, if it was inside a package or directory, say bar/foo.js:</p>
+
+<pre><code>
+require(['bar/foo!something/for/foo'], function (something) {
+});
+</code></pre>
+
+</div>
+
+<div class="section">
+<h2 id="api">
+API
+<span class="sectionMark">&sect; 3</span>
+</h2>
+
+<p>RequireJS will load the plugin module first, then pass the rest of the dependency name to a load() method on the plugin. There are also some methods to help with module name normalization and for making use of the plugin as part of the <a href="optimization.html">optimizer</a>.</p>
+
+<p>The complete Plugin API:</p>
+
+<ul>
+    <li><b><a href="#apiload">load</a></b>: A function that is called to load a resource. This is the only mandatory API method that needs to be implemented for the plugin to be useful.</li>
+    <li><b><a href="#apinormalize">normalize</a></b>: A function to normalize the resource name. This is useful in providing optimal caching and optimization, but only needed if the resource name is not a module name.</li>
+    <li><b><a href="#apiwrite">write</a></b>: used by the optimizer to indicate when the plugin should write out a representation of the the resource in the optimized file.</li>
+    <li><b><a href="#apipluginbuilder">pluginBuilder</a></b>: A module name string for a module that should be used in the optimizer to do optimization work. That module is used instead of the plugin module when the optimizer runs.</li>
+</ul>
+
+<h3>
+<a name="apiload">load: function (name, parentRequire, onload, config)</a>
+<span class="sectionMark">&sect; 3.1</span>
+</h3>
+
+<p>load is a function, and it will be called with the following arguments:</p>
+
+<ul>
+    <li><b>name</b>: String. The name of the resource to load. This is the part after the ! separator in the name. So, if a module asks for 'foo!something/for/foo', the foo module's load function will receive 'something/for/foo' as the name.</li>
+    <li><b>parentRequire</b>: Function. A local "require" function to use to load other modules. This require function has some utilities on it:
+    <ul>
+        <li><b>parentRequire.toUrl(moduleResource)</b>:where moduleResource is a module name plus an extension. For instance "view/templates/main.html". It will return a full path to the resource, obeying any RequireJS configuration.</li>
+        <li><b>parentRequire.defined(moduleName)</b>: Returns true if the module has already been loaded and defined. Used to be called require.isDefined before RequireJS 0.25.0.</li>
+        <li><b>parentRequire.specified(moduleName)</b>: Returns true if the module has already been requested or is in the process of loading and should be available at some point.</li>
+    </ul></li>
+    <li><b>onload</b>: Function. A function to call with the value for name. This tells the loader that the plugin is done loading the resource. <b>onload.error()</b> can be called, passing an error object to it, if the plugin detects an error condition that means the resource will fail to load correctly.</li>
+    <li><b>config</b>: Object. A configuration object. This is a way for the optimizer and the web app to pass configuration information to the plugin. The i18n! plugin uses this to get the current current locale, if the web app wants to force a specific locale. The optimizer will set an <b>isBuild</b> property in the config to true if this plugin (or pluginBuilder) is being called as part of an optimizer build.</li>
+</ul>
+
+<p>An example plugin that does not do anything interesting, just does a normal require to load a JS module:</p>
+
+<pre><code>
+define({
+    load: function (name, req, onload, config) {
+        //req has the same API as require().
+        req([name], function (value) {
+            onload(value);
+        });
+    }
+});
+</code></pre>
+
+<p>Some plugins may need to evaluate some JavaScript that was retrieved as text, and use that
+evaluated JavaScript as the value for the resource. There is a function off the onload() argument, <strong>onload.fromText()</strong>, that can be used to evaluate the JavaScript. eval() is used by RequireJS to evaluate that JavaScript, and RequireJS will do the right work for any anonymous define() call in the evaluated text, and use that define() module as the value for the resource.</p>
+
+<p>Arguments for onload.fromText() (RequireJS 2.1.0 and later):</p>
+
+<ul>
+    <li><b>text</b>: String. The string of JavaScript to evaluate.</li>
+</ul>
+
+<p>An example plugin's load function that uses onload.fromText():</p>
+
+<pre><code>
+define({
+    load: function (name, req, onload, config) {
+        var url = req.toUrl(name + '.customFileExtension'),
+            text;
+
+        //Use a method to load the text (provide elsewhere)
+        //by the plugin
+        fetchText(url, function (text) {
+            //Transform the text as appropriate for
+            //the plugin by using a transform()
+            //method provided elsewhere in the plugin.
+            text = transform(text);
+
+            //Have RequireJS execute the JavaScript within
+            //the correct environment/context, and trigger the load
+            //call for this resource.
+            onload.fromText(text);
+        });
+    }
+});
+</code></pre>
+
+<p>Before RequireJS 2.1.0, onload.fromText accepted a moduleName as the first
+    argument: <code>onload.fromText(moduleName, text)</code>, and the loader
+    plugin had to manually call <code>require([moduleName], onload)</code>
+    after the onload.fromText() call.</p>
+
+<p><b id="loadBuildInfo">Build considerations</b>: The optimizer traces
+dependencies <b>synchronously</b> to simplify the optimization logic. This is
+different from how require.js in the browser works, and it means that only
+plugins that can satisfy their dependencies synchronously should participate
+in the optimization steps that allow inlining of loader plugin values. Otherwise,
+the plugin should just call load() immediately if <code>config.isBuild</code>
+is true:</p>
+
+<pre><code>
+define({
+    load: function (name, req, onload, config) {
+        if (config.isBuild) {
+            //Indicate that the optimizer should not wait
+            //for this resource any more and complete optimization.
+            //This resource will be resolved dynamically during
+            //run time in the web browser.
+            onload();
+        } else {
+            //Do something else that can be async.
+        }
+    }
+});
+</code></pre>
+
+<p>Some plugins may do an async operation in the browser, but opt to complete
+the resource load synchronously when run in Node/Rhino. This is what the text
+plugin does. If you just want to run AMD modules and load plugin
+dependencies using <a href="http://github.com/jrburke/amdefine">amdefine</a> in Node, those also need to complete
+synchronously to match Node's synchronous module system.</p>
+
+<h3>
+<a name="apinormalize">normalize: function (name, normalize)</a>
+<span class="sectionMark">&sect; 3.2</span>
+</h3>
+
+<p><b>normalize</b> is called to normalize the name used to identify a resource. Some resources could use relative paths, and need to be normalized to the full path. normalize is called with the following arguments:</p>
+
+<ul>
+    <li><b>name</b>: String. The resource name to normalize.</li>
+    <li><b>normalize</b>: Function. A function that can be called to normalize a regular module name.</li>
+</ul>
+
+<p>An example: suppose there is an <b>index!</b> plugin that will load a module name given an index. This is a contrived example, just to illustrate the concept. A module may reference an index! resource like so:</p>
+
+<pre><code>
+define(['index!2?./a:./b:./c'], function (indexResource) {
+    //indexResource will be the module that corresponds to './c'.
+});
+</code></pre>
+
+<p>In this case, the normalized names the './a', './b', and './c' will be determined relative to the module asking for this resource. Since RequireJS does not know how to inspect the 'index!2?./a:./b:./c' to normalize the names for './a', './b', and './c', it needs to ask the plugin. This is the purpose of the normalize call.</p>
+
+<p>By properly normalizing the resource name, it allows the loader to cache the value effectively, and to properly build an optimized build layer in the optimizer.</p>
+
+<p>The <b>index!</b> plugin could be written like so:</p>
+
+<pre><code>
+(function () {
+
+    //Helper function to parse the 'N?value:value:value'
+    //format used in the resource name.
+    function parse(name) {
+        var parts = name.split('?'),
+            index = parseInt(parts[0], 10),
+            choices = parts[1].split(':'),
+            choice = choices[index];
+
+        return {
+            index: index,
+            choices: choices,
+            choice: choice
+        };
+    }
+
+    //Main module definition.
+    define({
+        normalize: function (name, normalize) {
+            var parsed = parse(name),
+                choices = parsed.choices;
+
+            //Normalize each path choice.
+            for (i = 0; i < choices.length; i++) {
+                //Call the normalize() method passed in
+                //to this function to normalize each
+                //module name.
+                choices[i] = normalize(choices[i]);
+            }
+
+            return parsed.index + '?' + choices.join(':');
+        },
+
+        load: function (name, req, onload, config) {
+            req([parse(name).choice], function (value) {
+                onload(value);
+            });
+        }
+    });
+
+}());
+</code></pre>
+
+<p>You do not need to implement normalize if the resource name is just a regular module name. For instance, the text! plugin does not implement normalize because the dependency names look like 'text!./some/path.html'.</p>
+
+<p>If a plugin does not implement normalize, then the loader will try to normalize the resource name using the normal module name rules.</p>
+
+<h3>
+<a name="apiwrite">write: function (pluginName, moduleName, write)</a>
+<span class="sectionMark">&sect; 3.3</span>
+</h3>
+
+<p><b>write</b> is only used by the optimizer, and it only needs to be implemented if the plugin can output something that would belong in an optimized layer. It is called with the following arguments:</p>
+
+<ul>
+    <li><b>pluginName</b>: String. The <b>normalized</b> name for the plugin. Most plugins will not be authored with a name (they will be anonymous plugins) so it is useful to know the normalized name for the plugin module for use in the optimized file.</li>
+    <li><b>moduleName</b>: String. The <b>normalized</b> resource name.</li>
+    <li><b>write</b>: Function. A function to be called with a string of output to write to the optimized file. This function also contains a property function, <b>write.asModule(moduleName, text)</b>. asModule can be used to write out a module that may have an anonymous define call in there that needs name insertion or/and contains implicit require("") dependencies that need to be pulled out for the optimized file. asModule is useful for text transform plugins, like a CoffeeScript plugin.</li>
+</ul>
+
+<p>The text! plugin implements write, to write out a string value for the text file that it loaded. A snippet from that file:</p>
+
+<pre><code>
+write: function (pluginName, moduleName, write) {
+    //The text plugin keeps a map of strings it fetched
+    //during the build process, in a buildMap object.
+    if (moduleName in buildMap) {
+        //jsEscape is an internal method for the text plugin
+        //that is used to make the string safe
+        //for embedding in a JS string.
+        var text = jsEscape(buildMap[moduleName]);
+        write("define('" + pluginName + "!" + moduleName  +
+              "', function () { return '" + text + "';});\n");
+    }
+}
+</code></pre>
+
+<h3>
+<a name="apionlayerend">onLayerEnd: function (write, data)</a>
+<span class="sectionMark">&sect; 3.4</span>
+</h3>
+
+<p><b>onLayerEnd</b> is only used by the optimizer, and is only supported in 2.1.0 or later of the optimizer. It is called after the modules for the layer have been written to the layer. It is useful to use if you need some code that should go at the end of the layer, or if the plugin needs to reset some internal state.</p>
+
+<p>One example: a plugin that needs to write out some utility functions at the beginning of a layer, as part of the first <a href="#apiwrite">write</a> call, and the plugin needs to know when to reset the internal state to know when to write out the utilities for the next layer. If the plugin implements onLayerEnd, it can get notified when to reset its internal state.</p>
+
+<p>onLayerEnd is called with the following arguments:</p>
+
+<ul>
+    <li><b>write</b>: Function. A function to be called with a string of output to write to the optimized layer. <b>Modules should not be written out</b> in this call. They will not be normalized correctly for coexistence with other define() calls already in the file. It is useful only for writing out non-define() code.</li>
+    <li><b>data</b>: Object. Information about the layer. Only has two properties:
+    <ul>
+     <li><b>name</b>: the module name of the layer. May be undefined.</li>
+     <li><b>path</b>: the file path of the layer. May be undefined, particularly if the output is just to a string that is consumed by another script.</li>
+     </li>
+</ul>
+
+
+<h3>
+<a name="apiwritefile">writeFile: function (pluginName, name, parentRequire, write)</a>
+<span class="sectionMark">&sect; 3.5</span>
+</h3>
+
+<p><b>writeFile</b> is only used by the optimizer, and it only needs to be implemented if the plugin needs to write out an alternate version of a dependency that is handled by the plugin. It is a bit expensive to scan all modules in a project to look for all plugin dependencies, so this writeFile method will only be called if <b>optimizeAllPluginResources: true</b> is in the build profile for the RequireJS optimizer. writeFile is called with the following arguments:</p>
+
+<ul>
+    <li><b>pluginName</b>: String. The <b>normalized</b> name for the plugin. Most plugins will not be authored with a name (they will be anonymous plugins) so it is useful to know the normalized name for the plugin module for use in the optimized file.</li>
+    <li><b>name</b>: String. The <b>normalized</b> resource name.</li>
+    <li><b>parentRequire</b>: Function. A local "require" function. The main use of this in writeFile is for calling parentRequire.toUrl() to generate file paths that are inside the build directory.</li>
+    <li><b>write</b>: Function. A function to be called with two arguments:
+        <ul>
+            <li><b>fileName</b>: String. The name of the file to write. You can use parentRequire.toUrl() with a relative path to generate a file name that will be inside the build output directory.</li>
+            <li><b>text</b>: String. The contents of the file. Must be UTF-8 encoded.</li>
+        </ul>
+        This function also contains a property function, <b>write.asModule(moduleName, fileName, text)</b>. asModule can be used to write out a module that may have an anonymous define call in there that needs name insertion or/and contains implicit require("") dependencies that need to be pulled out for the optimized file.</li>
+</ul>
+
+<p>See the <a href="https://github.com/requirejs/text">text! plugin</a> for an example of writeFile.</p>
+
+<h3>
+<a name="apipluginbuilder">pluginBuilder</a>
+<span class="sectionMark">&sect; 3.6</span>
+</h3>
+
+<p><b>pluginBuilder</b> can be a string that points to another module to use instead of the current plugin when the plugin is used as part of an optimizer build.</p>
+
+<p>A plugin could have very specific logic that depends on a certain environment, like the browser. However, when run inside the optimizer, the environment is very different, and the plugin may have a <b>write</b> plugin API implementation that it does not want to deliver as part of the normal plugin that is loaded in the browser. In those cases, specifying a pluginBuilder is useful.</p>
+
+<p>Some notes about using a pluginBuilder:</p>
+
+<ul>
+    <li>Do not use named modules for the plugin or the pluginBuilder. The pluginBuilder text contents are used instead of the contents of the plugin file, but that will only work if the files do not call define() with a name.</li>
+    <li>Plugins and pluginBuilders that run as part of the build process have a very limited environment. Right now the optimizer runs on top of Rhino, but it may in the future run also on Node. Be careful of the environment assumptions if you want the plugin to run as part of the optimizer.</li>
+</ul>
+
+</div>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<h1>require.js: Simple Test, no head tag</h1>
+<p>Check console for messages</p>
+
+<script type="text/javascript">
+var require = {
+    baseUrl: "./"
+};
+</script>
+<script type="text/javascript" src="../require.js"></script>
+<script type="text/javascript" src="doh/runner.js"></script>
+<script type="text/javascript" src="doh/_browserRunner.js"></script>
+<script type="text/javascript">
+require(["require", "simple", "dimple", "func"],
+    function(require, simple, dimple, func) {
+        doh.register(
+            "simple-nohead", 
+            [
+                function colors(t){
+                    t.is("blue", simple.color);
+                    t.is("dimple-blue", dimple.color);
+                    t.is("You called a function", func());
+                }
+            ]
+        );
+        doh.run();
+    }
+);
+</script>

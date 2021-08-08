@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Dependency Overlap Test</title>
+    <script type="text/javascript" src="doh/runner.js"></script>
+    <script type="text/javascript" src="doh/_browserRunner.js"></script>
+    <script type="text/javascript" data-main="depoverlap" src="../require.js"></script>
+</head>
+<body>
+    <h1>require.js: Dependency Overlap Test</h1>
+    <p>uno requires dos and tres, but tres also requires dos. Make sure
+    dos is only added once, and that all are defined correctly.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

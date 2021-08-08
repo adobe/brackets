@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>requirejs: Cycle: Dupe Dependencies Test</title>
+    <script type="text/javascript" src="../../doh/runner.js"></script>
+    <script type="text/javascript" src="../../doh/_browserRunner.js"></script>
+    <script src="../../../require.js"></script>
+    <script>
+        require(['func'], function(func) {
+            doh.register(
+                'circularDupe',
+                [
+                    function circularDupe(t){
+                        t.is('hello world suffix', func('world'));
+                    }
+                ]
+            );
+            doh.run();
+        });
+    </script>
+</head>
+<body>
+    <h1>requirejs: Cycle: Dupe Dependencies Test</h1>
+    <p>Handles a cycle where part of the cycle ends up with the cycle dependency
+        twice in the dependency array.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

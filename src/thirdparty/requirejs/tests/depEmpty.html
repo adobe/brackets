@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Empty Dependency Test</title>
+    <script type="text/javascript" src="doh/runner.js"></script>
+    <script type="text/javascript" src="doh/_browserRunner.js"></script>
+    <script type="text/javascript" src="../require.js"></script>
+    <script>
+    var noneOk = false,
+        emptyOk = false;
+
+    define('none', function (require, exports, module) {
+        noneOk = arguments.length === 3;
+    });
+
+    define('empty', [], function () {
+        emptyOk = arguments.length === 0;
+    });
+
+    require(['none', 'empty'], function (none, empty) {
+        doh.register(
+            "depEmpty",
+            [
+                function depEmpty(t){
+                    t.is(true, noneOk, 'none has three args');
+                    t.is(true, emptyOk, 'empty has no args');
+                }
+            ]
+        );
+        doh.run();
+    });
+    </script>
+</head>
+<body>
+    <h1>require.js: Empty Dependency Test</h1>
+    <p>If empty array passed, then do not pass any args to factory function.
+        <a href="https://github.com/jrburke/requirejs/issues/669">More info.</a></p>
+    <p>Check console for messages</p>
+</body>
+</html>

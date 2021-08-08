@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>jQuery+RequireJS Sample Page</title>
+        <script type="text/javascript" src="../doh/runner.js"></script>
+        <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+        <script data-main="scripts/dynamicApp.js" src="../../require.js"></script>
+        <script>
+            var master = new doh.Deferred(),
+                masterCount = 0;
+
+            function readyFired() {
+                masterCount += 1;
+                if (masterCount === 3) {
+                    master.callback(true);
+                }
+            }
+
+            doh.register(
+                "jqueryDynamic",
+                [
+                    {
+                        name: "jqueryDynamic",
+                        timeout: 3000,
+                        runTest: function() {
+                            return master;
+                        }
+                    }
+                ]
+            );
+            doh.run();
+        </script>
+    </head>
+    <body>
+        <h1>jQuery+RequireJS Test Page</h1>
+        <p>Tests loading of jquery plugins with require.</p>
+    </body>
+</html>

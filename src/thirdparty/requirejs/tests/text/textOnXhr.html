@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Text onXhr Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    var fired = false;
+
+    require({
+        baseUrl: "./",
+        paths: {
+            text: "../../../text/text"
+        },
+        config: {
+            text: {
+                onXhr: function (xhr, url) {
+                    doh.is(true, !!xhr);
+                    doh.is(true, url.indexOf('plain.txt') !== -1);
+                    fired = true;
+                    if (/\.txt$/.test(url) && xhr.overrideMimeType) {
+                        xhr.overrideMimeType('text/plain; charset=utf8');
+                    }
+                }
+            }
+        }
+    });
+
+    require(
+        ["text!plain.txt"],
+        function(plainText) {
+            doh.register(
+                "textonXhr",
+                [
+                    function textOnXhr(t){
+                        t.is(true, plainText.indexOf('hello world') === 0);
+                        t.is(true, fired);
+                    }
+                ]
+            );
+            doh.run();
+
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: Text onXhr Test</h1>
+    <p>Test onXhr for the text plugin.
+    <p>Check console for messages</p>
+</body>
+</html>

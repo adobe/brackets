@@ -1,0 +1,6 @@
+//Note the use of window instead of var a = {},
+//since the var will be created in the scope of the eval call,
+//which is not global.
+window.a = {
+    name: 'a'
+};

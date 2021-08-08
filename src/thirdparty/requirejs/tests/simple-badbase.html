@@ -1,0 +1,55 @@
+<html>
+<head>
+    <title>require.js: Simple Bad Base Test</title>
+    <base href="http://some.example.com/path/" />
+    <script type="text/javascript" src="http://127.0.0.1/requirejs/requirejs/require.js"></script>
+    <script type="text/javascript" src="http://127.0.0.1/requirejs/requirejs/tests/doh/runner.js"></script>
+    <script type="text/javascript" src="http://127.0.0.1/requirejs/requirejs/tests/doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+        require({
+                baseUrl: "http://127.0.0.1/requirejs/requirejs/tests/"
+            },
+            ["require", "simple", "dimple", "func"],
+            function(require, simple, dimple, func) {
+                doh.register(
+                    "simple",
+                    [
+                        function colors(t){
+                            t.is("blue", simple.color);
+                            t.is("dimple-blue", dimple.color);
+                            t.is("You called a function", func());
+                        }
+                    ]
+                );
+                doh.run();
+            }
+        );
+    </script>
+    <script type="text/javascript">
+        //This test is only in the HTML since it uses an URL for a require
+        //argument. It will not work well in say, the Rhino tests.
+        var path = location.href.replace(/simple-badbase\.html$/, "foo"),
+            index = path.indexOf(":"),
+            noProtocolPath = path.substring(index + 1, path.length).replace(/foo/, "bar");
+
+        require([path, noProtocolPath], function() {
+            doh.register(
+                        "fooBar",
+                        [
+                            function fooBar(t){
+                                t.is("foo", foo.name);
+                                t.is("bar", bar.name);
+                            }
+                        ]
+                    );
+            doh.run();
+
+        });
+    </script>
+</head>
+<body>
+    <h1>require.js: Simple Test</h1>
+    <p>You may need to change the IP address used for this test for it to work correctly.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

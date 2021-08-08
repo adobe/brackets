@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>jQuery+RequireJS Sample Page</title>
+        <script src="../../require.js"></script>
+        <script src="scripts/jquery-1.7.1.js"></script>
+        <script type="text/javascript" src="../doh/runner.js"></script>
+        <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+        <script>
+            require({
+                    baseUrl: "./scripts/"
+                },
+                ["app"],
+                function() {
+                    doh.register(
+                        "jqueryPlugins",
+                        [
+                            function jqueryPlugins(t){
+                                t.is("alpha", $().alpha());
+                                t.is("beta", $().beta());
+                            }
+                        ]
+                    );
+                    doh.run();
+                }
+            );
+        </script>
+    </head>
+    <body>
+        <h1>jQuery+RequireJS Test Page</h1>
+        <p>Tests loading of jquery plugins with require.</p>
+    </body>
+</html>

@@ -1,0 +1,12 @@
+DOH may be run standalone by issuing a command like the following:
+
+java -jar ../shrinksafe/js.jar runner.js testModule=tests.colors
+
+where the testModule argument is optional and shrinksafe/js.jar is just a
+convenient copy of the Rhino JavaScript engine -- the custom patch is not
+required.
+
+Optional arguments include:
+ * dojoUrl - specifies the location of dojo.js
+ * testUrl - specifies a Javascript file to load with initialization code
+ * testModule - specifies a test module in the dojo package namespace

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Script onerror Test</title>
+    <script src="../common.js"></script>
+    <script>
+
+    var readyRegExp = /complete|loaded/;
+  
+    function onTestScriptLoad(evt) {
+        var node = evt.target || evt.srcElement;
+        if (evt.type === "load" || readyRegExp.test(node.readyState)) {
+            log(node.getAttribute("data-name") + " loaded");
+      
+            //Clean up binding.
+            if (node.removeEventListener) {
+                node.removeEventListener("load", onTestScriptLoad, false);
+            } else {
+                //Probably IE.
+                node.detachEvent("onreadystatechange", onTestScriptLoad);
+            }
+        }
+    }
+
+    function onTestError(evt) {
+        var node = evt.target || evt.srcElement;
+        log(node.getAttribute("data-name") + " onerror triggered");
+
+        //Clean up binding.
+        if (node.removeEventListener) {
+            node.removeEventListener("error", onTestError, false);
+        } else {
+            //Probably IE.
+            node.detachEvent("onerror", onTestError);
+        }
+    }
+
+    function attachScript(url, name) {
+        var node = document.createElement("script");
+        node.src = url;
+        node.type = "text/javascript";
+        node.charset = "utf-8";
+        node.setAttribute("data-name", name);
+
+        //Set up load listener.
+        if (node.addEventListener) {
+            node.addEventListener("load", onTestScriptLoad, false);
+            node.addEventListener("error", onTestError, false);
+        } else {
+            //Probably IE.
+            node.attachEvent("onreadystatechange", onTestScriptLoad);
+            node.attachEvent("onerror", onTestError);
+        }
+  
+        document.getElementsByTagName("head")[0].appendChild(node);
+    }
+
+    </script>
+</head>
+<body>
+    <h1>Script onerror Test</h1>
+
+    <p>Test different script loading scenarios to see if an error callback is
+    given on the script tag.</p>
+
+    <p>Press the button and check console for output. There should be a log
+    message for each button.</p>
+
+    <button onclick="attachScript('ok.js', 'ok');">OK</button>
+    <button onclick="attachScript('parseError.js', 'parseError');">Parse Error</button>
+    <button onclick="attachScript('scriptError.js', 'scriptError');">Script Error</button>
+    <button onclick="attachScript('404.js', '404');">404 Script</button>
+</body>
+</html>

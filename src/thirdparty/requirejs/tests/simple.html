@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Simple Test</title>
+    <script type="text/javascript" src="../require.js"></script>
+    <script type="text/javascript" src="doh/runner.js"></script>
+    <script type="text/javascript" src="doh/_browserRunner.js"></script>
+    <script>moreSimpleTests = true</script>
+    <script type="text/javascript" src="simple-tests.js"></script>
+    <script type="text/javascript">
+        //This test is only in the HTML since it uses an URL for a require
+        //argument. It will not work well in say, the Rhino tests.
+        var path = location.href.replace(/simple\.html$/, "foo"),
+            index = path.indexOf(":"),
+            noProtocolPath = path.substring(index + 1, path.length).replace(/foo/, "bar");
+
+        require([path, noProtocolPath], function() {
+            doh.register(
+                        "fooBar",
+                        [
+                            function fooBar(t){
+                                t.is("foo", foo.name);
+                                t.is("bar", bar.name);
+                            }
+                        ]
+                    );
+            doh.run();
+
+        });
+    </script>
+</head>
+<body>
+    <h1>require.js: Simple Test</h1>
+    <p>Check console for messages</p>
+</body>
+</html>

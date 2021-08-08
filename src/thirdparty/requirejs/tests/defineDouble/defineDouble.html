@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Define Double Test</title>
+    <script src="../doh/runner.js"></script>
+    <script src="../doh/_browserRunner.js"></script>
+    <script src="../../require.js"></script>
+    <script>
+        var aCount = 0,
+            bCount = 0;
+
+        define('a', function () {
+            aCount += 1;
+        });
+        define('a', function () {
+            aCount += 1;
+        });
+
+        define('b', function() {
+            bCount += 1;
+        });
+
+        require(['b'], function() {
+
+            define('b', function() {
+                bCount += 1;
+            });
+
+            require(['a', 'b'], function () {
+                doh.register(
+                    'defineDouble',
+                    [
+                        function defineDouble(t){
+                            t.is(1, aCount);
+                            t.is(1, bCount);
+                        }
+                    ]
+                );
+                doh.run();
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>require.js: Define Double Test</h1>
+    <p>Make sure a double define only uses the first one.
+        <a href="https://github.com/jrburke/requirejs/issues/540">More info</a></p>
+    <p>Check console for messages</p>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Path Array Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+        var master = new doh.Deferred(),
+            threwError = false;
+
+        requirejs.onError = function (err) {
+            threwError = true;
+            throw err;
+        };
+
+        requirejs({
+            waitSeconds: 2,
+            enforceDefine: true,
+            paths: {
+                'dep': [
+                    'fake1',
+                    'fake2',
+                    'real'
+                ]
+            }
+        }, ['dep'], function (dep) {
+            doh.is("real", dep.name);
+            doh.is(false, threwError);
+            master.callback(true);
+        });
+
+        doh.register(
+            "pathArray",
+            [
+                {
+                    name: "pathArray",
+                    timeout: 10000,
+                    runTest: function () {
+                        return master;
+                    }
+                }
+            ]
+        );
+        doh.run();
+    </script>
+</head>
+<body>
+    <h1>require.js: Path Array Test</h1>
+
+    <p>Using an array for a path value to get retries. See
+    <a href="https://github.com/jrburke/requirejs/issues/257">257</a></p>
+
+    <p>Check console for messages</p>
+</body>
+</html>
