@@ -1,8 +1,0 @@
-{
-  "name": "brackets-auto-update",
-  "dependencies": {
-    "request": "^2.83.0",
-    "request-progress": "^3.0.0",
-    "fs-extra": "^5.0.0"
-  }
-}
