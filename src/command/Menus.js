@@ -988,7 +988,7 @@ define(function (require, exports, module) {
             var shortcutKey = keyBinding.displayKey || keyBinding.key;
             brackets.app.setMenuItemShortcut(this._command.getID(), shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
                 if (err) {
-                    console.error("Error setting menu item shortcut: " + err);
+                    console.error("Error setting menu item shortcut key " + shortcutKey + " : " + err );
                 }
             });
         } else {
