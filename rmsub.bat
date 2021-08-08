@@ -1,5 +1,5 @@
 @echo off
-set submodulename=src/thirdparty/mustache
+set submodulename=src/thirdparty/i18n
 echo removing %submodulename%
 
 git config -f .git/config --remove-section submodule.%submodulename%
