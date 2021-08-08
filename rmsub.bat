@@ -1,5 +1,5 @@
 @echo off
-set submodulename=src/extensions/default/JSLint/thirdparty/jslint
+set submodulename=src/thirdparty/mustache
 echo removing %submodulename%
 
 git config -f .git/config --remove-section submodule.%submodulename%
