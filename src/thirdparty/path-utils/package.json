@@ -1,0 +1,27 @@
+{
+  "name": "jblas-path-utils",
+  "version": "0.0.2",
+  "description": "Utilities for Parsing Paths and URLs",
+  "main": "path-utils.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "start tests/parse.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jblas/path-utils.git"
+  },
+  "keywords": [
+    "path",
+    "url",
+    "util"
+  ],
+  "author": "jblas",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/jblas/path-utils/issues"
+  },
+  "homepage": "https://github.com/jblas/path-utils#readme"
+}
