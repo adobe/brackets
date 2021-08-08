@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: After Load</title>
+    <script type="text/javascript" src="doh/runner.js"></script>
+    <script type="text/javascript" src="doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    var d, s, head;
+
+    function goRequire() {
+        //Need a hack to trigger require.pageLoaded() for pre Firefox 3.6 browsers.
+        var ff = parseFloat(navigator.userAgent.split("Firefox/")[1]) || null;
+        if (ff && ff < 3.6) {
+            require.pageLoaded();
+        }
+
+        require({
+                paths: {
+                    domReady: "../../domReady/domReady"
+                }
+            },
+            ["require", "simple", "domReady"],
+            function (require, simple, domReady) {
+                domReady(function() {
+                    doh.is("blue", simple.color);
+
+                    //Now test another script getting loaded will see
+                    //document.readyState === "complete".
+                    var s = document.createElement("script");
+                    s.src = "afterloadreadystate.js";
+                    s.charset = "utf-8";
+                    head.appendChild(s);
+                });
+            }
+        );
+    }
+
+    function loadRequire() {
+        var readyRegExp = /complete|loaded/;
+        function onScriptLoad(evt) {
+            var node = evt.target || evt.srcElement;
+            if (evt.type === "load" || readyRegExp.test(node.readyState)) {
+                //Clean up script binding, otherwise, Opera in particular
+                //may trigger it again.
+                if (node.removeEventListener) {
+                    node.removeEventListener("load", onScriptLoad, false);
+                } else {
+                    //Probably IE.
+                    node.detachEvent("onreadystatechange", onScriptLoad);
+                }
+                goRequire();
+            }
+        };
+
+        //Create script tag for require.js
+        s = document.createElement("script");
+        s.src = "../require.js";
+        s.charset = "utf-8";
+
+        //Set up load listener.
+        if (s.addEventListener) {
+            s.addEventListener("load", onScriptLoad, false);
+        } else {
+            //Probably IE.
+            s.attachEvent("onreadystatechange", onScriptLoad);
+        }
+
+        head = (document.getElementsByTagName("head")[0] ||
+                document.getElementsByTagName("html")[0]);
+        head.appendChild(s);
+    }
+
+    doh.register(
+        "afterload",
+        [
+            {
+                name: "afterload",
+                timeout: 5000,
+                runTest: function() {
+                    d = new doh.Deferred();
+                    return d;
+                }
+            }
+        ]
+    );
+    doh.run();
+
+    </script>
+</head>
+<body onload="loadRequire()">
+    <h1>require.js: After Load Test</h1>
+    <p>Tests adding require after the page loads, and tests that require.js patches
+    up document.readyState for Firefox less than 3.6.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

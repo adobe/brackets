@@ -1,0 +1,1 @@
+require(['sub/a']);

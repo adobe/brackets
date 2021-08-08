@@ -1,0 +1,189 @@
+<div id="directory" class="section">
+<h1>RequireJS in Node</h1>
+
+    <ul class="index mono">
+        <li class="hbox">
+            <a href="#1">Doesn't Node already have a module loader?</a><span class="spacer boxFlex"></span><span class="sect">&sect; 1</span>
+        </li>
+        <li class="hbox">
+            <a href="#2">Can I use server modules written in the CommonJS module format?</a><span class="spacer boxFlex"></span><span class="sect">&sect; 2</span>
+        </li>
+        <li class="hbox">
+            <a href="#3">How do I use it?</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3</span>
+        </li>
+    </ul>
+
+</div>
+
+<div class="section">
+<h2>
+<a name="1">Doesn't Node already have a module loader?</a>
+<span class="sectionMark">&sect; 1</span>
+</h2>
+
+<p>Yes <a href="http://nodejs.org">Node</a> does. That loader uses the CommonJS module format. The CommonJS module format is <a href="why.html">non-optimal for the browser</a>, and I do not agree with <a href="http://tagneto.blogspot.com/2010/03/commonjs-module-trade-offs.html">some of the trade-offs made in the CommonJS module format</a>. By using RequireJS on the server, you can use one format for all your modules, whether they are running server side or in the browser. That way you can preserve the speed benefits and easy debugging you get with RequireJS in the browser, and not have to worry about extra translation costs for moving between two formats.</p>
+
+<p>If you want to use define() for your modules but still run them in Node without needing to run RequireJS on the server, see <a href="#nodeModules">the section below</a> about using <a href="https://github.com/jrburke/amdefine">amdefine</a>.</p>
+
+</div>
+
+<div class="section">
+<h2>
+<a name="2">Can I use Node modules already written in the CommonJS module format?</a>
+<span class="sectionMark">&sect; 2</span></h2>
+
+<p>Yes! The Node adapter for RequireJS, called r.js, will use Node's implementation of require and Node's search paths if the module is not found with the configuration used by RequireJS, so you can continue to use your existing Node-based modules without having to do changes to them.</p>
+
+<p>RequireJS will use its <a href="api.html#config">Configuration Options</a> first to find modules. If RequireJS cannot find the module with its configuration, it is assumed to be a module that uses Node's type of modules and configuration. So, only configure module locations with RequireJS if they use the RequireJS API. For modules that expect Node's APIs and configuration/paths, just install them with a Node package manager, like <a href="http://npmjs.org/">npm</a>, and do not configure their locations with RequireJS.</p>
+
+<p><strong>Best practice</strong>: Use npm to install Node-only packages/modules into the projects <strong>node_modules</strong> directory, but do not configure RequireJS to look inside the node_modules directory. Also avoid using relative module IDs to reference modules that are Node-only modules. So, <strong>do not</strong> do something like <strong>require("./node_modules/foo/foo")</strong>.</p>
+
+<p>Finally, RequireJS in Node can only load modules that are on the local disk -- fetching modules across http, for instance, is not supported at this time.</p>
+
+</div>
+
+<div class="section">
+<h2>
+<a name="3">How do I use it?</a>
+<span class="sectionMark">&sect; 3</span>
+</h2>
+
+<p>There are two ways to get the Node adapter:</p>
+
+<h3 id="npm">npm</h3>
+<p>Use <a href="http://npmjs.org">npm</a> to install it:</p>
+
+<pre><code>npm install requirejs
+</code></pre>
+
+<p>This option will install the latest release.</p>
+
+<h3 id="rjs">Download r.js</h3>
+
+<p>If you prefer to not use npm, you can get r.js directly:</p>
+
+<ul>
+    <li>Download r.js from the <a href="download.html#rjs">the download page</a> and place it in your project.</li>
+    <li>Get the source from the <a href="https://github.com/jrburke/r.js">r.js repo</a> and either generate the r.js via "node dist.js", or grab a snapshot from the <strong>dist</strong> directory.</li>
+</ul>
+
+<h3 id="usage">Usage<h3>
+
+<p>These instructions assume an npm installation of 'requirejs'. If you are using the r.js file directly, replace  require('requirejs') with require('./path/to/r.js'). Basic usage is:</p>
+
+<ul>
+    <li>require('requirejs')</li>
+    <li>Pass the main js file's "require" function in the configuration to requirejs.</li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>var requirejs = require('requirejs');
+
+requirejs.config({
+    //Pass the top-level main.js/index.js require
+    //function to requirejs so that node modules
+    //are loaded relative to the top-level JS file.
+    nodeRequire: require
+});
+
+requirejs(['foo', 'bar'],
+function   (foo,   bar) {
+    //foo and bar are loaded according to requirejs
+    //config, but if not found, then node's require
+    //is used to load the module.
+});
+</code></pre>
+
+<p>Be sure to read the <a href="#2">notes in section 2</a> about configuring RequireJS so that it can load node-only modules installed via npm.</p>
+
+<p>To see a more complete example that loads a module via RequireJS but uses Node-native modules for other things, see the <a href="https://github.com/jrburke/r.js/tree/master/tests/node/embedded">embedded test</a> in the r.js repo.</p>
+
+<p><strong>Note:</strong> <code>requirejs([], function() {})</code> will call the function callback asynchronously in RequireJS 2.1+ (for earlier versions it was synchronously called). However, when running in Node, module loading will be loaded using sync IO calls, and loader plugins should resolve calls to their load method synchronously. This allows sync uses of the requirejs module in node to work via requirejs('stringValue') calls:
+
+<pre><code>//Retrieves the module value for 'a' synchronously
+var a = requirejs('a')</code></pre>
+
+<h3 id="nodeModules">Building node modules with AMD or RequireJS</h3>
+
+<p>If you want to code a module so that it works with RequireJS and in Node, without requiring users of your library in Node to use RequireJS, then you can use the <a href="https://github.com/jrburke/amdefine">amdefine</a> package to do this:</p>
+
+<pre><code>if (typeof define !== 'function') {
+    var define = require('amdefine')(module);
+}
+
+define(function(require) {
+    var dep = require('dependency');
+
+    //The value returned from the function is
+    //used as the module export visible to Node.
+    return function () {};
+});
+</code></pre>
+
+<p>The RequireJS optimizer, as of version 1.0.3, will strip out the use of 'amdefine' above, so it is safe to use this module for your web-based projects too. Just be sure to use <strong>the exact 'amdefine' if() test and contents as shown above</strong>. Differences in spaces/line breaks are allowed. See the <a href="https://github.com/jrburke/amdefine">amdefine project</a> for more information.</p>
+
+<p>If you want to use RequireJS directly to code your module, and then export a module value to node so that it can be used in other Node programs without requiring that app to use RequireJS, you can use the approach listed in the next example.</p>
+
+<p>It is best to set the baseUrl specifically to the directory containing the module, so that it works properly when nested inside a node_modules heirarchy. Use the synchronous <code>requirejs('moduleId')</code> to fetch the module using the config and rules in requirejs, then use Node's module.exports to export your module value:</p>
+
+<pre><code>var requirejs = require('requirejs');
+
+requirejs.config({
+    //Use node's special variable __dirname to
+    //get the directory containing this file.
+    //Useful if building a library that will
+    //be used in node but does not require the
+    //use of node outside
+    baseUrl: __dirname,
+
+    //Pass the top-level main.js/index.js require
+    //function to requirejs so that node modules
+    //are loaded relative to the top-level JS file.
+    nodeRequire: require
+});
+
+//foo and bar are loaded according to requirejs
+//config, and if found, assumed to be an AMD module.
+//If they are not found via the requirejs config,
+//then node's require is used to load the module,
+//and if found, the module is assumed to be a
+//node-formatted module. Note: this synchronous
+//style of loading a module only works in Node.
+var foo = requirejs('foo');
+var bar = requirejs('bar');
+
+//Now export a value visible to Node.
+module.exports = function () {};
+</code></pre>
+
+<h3 id="optimizer">Using the optimizer as a node module</h3>
+
+<p>The node module also exposes the RequireJS Optimizer as an <strong>optimize</strong> method for using the <a href="optimization.html">RequireJS optimizer</a> via a function call instead of a command line tool:</p>
+
+<pre><code>var requirejs = require('requirejs');
+
+var config = {
+    baseUrl: '../appDir/scripts',
+    name: 'main',
+    out: '../build/main-built.js'
+};
+
+requirejs.optimize(config, function (buildResponse) {
+    //buildResponse is just a text output of the modules
+    //included. Load the built file for the contents.
+    //Use config.out to get the optimized file contents.
+    var contents = fs.readFileSync(config.out, 'utf8');
+}, function(err) {
+    //optimization err callback
+});
+</code></pre>
+
+<p>This allows you to build other optimization workflows, like <a href="https://github.com/jrburke/r.js/tree/master/build/tests/http">a web builder</a> that can be used if you prefer to always develop with the "one script file included before the &lt;/body&gt; tag" approach. The optimizer running in Node if fairly fast, but for larger projects that do not want to regenerate the build for every browser request, but just if you modify a script that is part of the build. You could use Node's fs.watchFile() to watch files and then trigger the build when a file changes.</p>
+
+<h3 id="feedback">Feedback</h3>
+
+<p>If you find you have a problem, and want to report it, use the <a href="http://github.com/jrburke/r.js/issues">r.js GitHub Issues page</a>.</p>
+
+<p>If you want to discuss the RequireJS-Node integration, you can use the <a href="http://groups.google.com/group/requirejs">RequireJS Group</a>.</p>
+</div>

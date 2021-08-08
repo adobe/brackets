@@ -1,0 +1,28 @@
+<div id="directory" class="section">
+    <h1>RequireJS History</h1>
+</div>
+
+<div class="section">
+<p><a href="https://github.com/jrburke">I</a> worked a lot on the Dojo Loader. The normal dojo loader used to use synchronous XMLHttpRequest (XHR) calls. However, the XHR loader couldn't load Dojo modules from other domains because of the same-origin restrictions. So I created the xdomain loader that required a build step to inject function wrappers similar to what RequireJS uses, but more complex, due to i18n bundle loading and dojo.requireIf behavior. Because of the more complex i18n and requireIf requirements and the existence of many dojo modules already out in the world, I did not feel like the Dojo community would consider writing modules with function wrappers manually.</p>
+
+<p>However, the sync XHR loader has other issues, like making debugging harder. In 2009, David Mark suggested that Dojo use document.write() to load modules before the page loads to help with that issue, but it meant required dependencies would not load until after the current module executes. This can cause errors if the module references a dependency as part of the module's definition. So a function wrapper was needed. The Dojo community seemed more amenable to considering a function wrapper, particularly since we are considering a Dojo 2.0 that can break some APIs. I fleshed out some of the details for RequireJS (then called RunJS) on the dojo-contributors list, and Mike Wilson originally pushed for a more generic loader that could load plain files as well as allow for different contexts.</p>
+
+<p>YUI 3's use() function is also very similar to require, and use()'s API (but not code) also informed RequireJS' structure. I believe RequireJS is more generic, since YUI seems to use labels for their modules that do not directly correspond to file paths. I also liked explicitly passing the dependent modules as arguments to the function definition, since it allowed linting tools like JSLint to be more effective.</p>
+
+<p>I originally wanted something that would work with CommonJS modules, but those modules seemed to be structured assuming a synchronous module loader, which is possible in server-side JavaScript environments. However, I was mostly concerned with something that worked well in the browser, and that meant needing a function wrapper so we could use script tags. Using synchronous XHR is not very friendly for new developers or people who want ease of debugging across browsers. It can also be slower than plain script tag loading. Some environments, like Adobe AIR do not allow eval() and most developers are taught that eval() is evil and should be avoided.</p>
+
+<p>I created the seeds of RequireJS as RunJS. As I tried to get more in sync with CommonJS modules to allow more code reuse, I proposed <a href="http://wiki.commonjs.org/wiki/Modules/Transport/C">CommonJS Transport/C proposal</a>. The transport format allows mapping traditional CommonJS modules to a format that works best in the browser. I then converted the RunJS code to RequireJS to match the API in the Transport/C proposal.</p>
+
+<p>In the process of implementing the transport format, it became clearer that CommonJS modules allowed an imperative require() usage, which is awkward on the web. Many cases would not work in a web context, and a better solution was to allow for a callback-based require for those cases. However, some of the participants on the CommonJS list wanted to keep the imperative use even in a callback-style require, which made that API more wordy than it should have been.</p>
+
+<p>There was some tuning of the Transport/C proposal, and Kris Zyp figured out how to get anonymous modules to work within that format. At that point, Kris felt like it could function as a module API proposal instead of just a transport format, and he created a proposal on the CommonJS wiki for an Asynchronous Module Definition (AMD) API. During the discussion of that API, Tom Robinson suggested the use of Function.prototype.toString() to scan a factory function for dependencies, although Tom did not care for the AMD API in general. The toString() scanning was incorporated in the AMD API as a simplified CommonJS wrapping, since not all JS environments supported usable toString() values.</p>
+
+<p>Some participants on the CommonJS list that felt the AMD API proposal was not in line with the original CommonJS module goals since it did not keep the full imperative require() style in CommonJS modules. They also felt that proposal was sprung on the list and implemented and evangelized improperly, although from my perspective it was marked as a proposal, and there were other people talking about their implementations of other CommonJS proposals.</p>
+
+<p>There was enough break down in communication that it made it difficult to continue discussing AMD on the CommonJS list. However, there were enough of us web developers that still saw value in it, and there was still some API work to be done around loader plugins and callback-require that the amd-implement email list and amdjs Github group were formed to continue those discussions.</p>
+
+<p>Through the amd-implement list, the callback-require and loader plugin APIs got more definition and a set of unit tests. More AMD implementations were made. Dojo was already in a code conversion process to use AMD, and other people like MooTools and EmbedJS picked it up. AMD loaders gained traction in the jQuery community among those that wanted modular JS loading capabilities.</p>
+
+<p>AMD has a healthy ecosystem around it now. I continue to help push AMD forward by providing a solid implementation in RequireJS, and making sure it fits well with the web.</p>
+
+</div>

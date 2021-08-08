@@ -1,0 +1,55 @@
+<div id="directory" class="section">
+<h1>FAQ: RequireJS Optimizations</h1>
+<ul class="index mono">
+<li class="hbox"><a href="#usage">How do I use the Optimization Tool?</a><span class="spacer boxFlex"></span><span class="sect">&sect; 1</span></li>
+<li class="hbox"><a href="#wrap">How can I provide a library to others that does not depend on RequireJS?</a><span class="spacer boxFlex"></span><span class="sect">&sect; 2</span></li>
+<li class="hbox"><a href="#namespace">How can I namespace my code to play well in other people's pages?</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3</span></li>
+</ul>
+</div>
+
+<div class="section">
+<h2><a name="usage">How do I use the Optimization Tool?</a><span class="sectionMark">&sect; 1</span></h2>
+
+<p>See the <a href="optimization.html">general optimization page</a> for basic set-up. Also see the <a href="jquery.html">jQuery doc page</a> for a good way to set up your project, even if you are not using jQuery.</p>
+</div>
+
+
+<div class="section">
+<h2><a name="wrap">How can I provide a library to others that does not depend on RequireJS?</a><span class="sectionMark">&sect; 2</span></h2>
+
+<p>If you are building a library for use on web pages that may not use RequireJS or an AMD loader, you can use the optimizer to combine
+all your modules into one file, then wrap them in a function and use an AMD API shim. This allows you to ship code that does not ship with all
+of RequireJS, and allows you to export any kind of API that works on a plain web page without an AMD loader.</p>
+
+<p><a href="https://github.com/jrburke/almond">almond</a> is an AMD API shim that is very small, so it can be used in place of require.js
+when all of your modules are built into one file using the RequireJS optimizer. The
+<a href="https://github.com/jrburke/r.js/blob/master/build/example.build.js#L429">wrap</a> build config option will put a function
+wrapper around the code, or you can provide your own wrapper if you need to do extra logic.</p>
+
+<p>See the almond project for details on how to build with the API shim and with wrap.</p>
+
+<p>If you need to dynamically load code after a build, then using almond+wrap will not be sufficient as almond cannot dynamically
+load code. Instead, you may want to namespace your use of require/define. See next section.</p>
+</div>
+
+<div class="section">
+<h2><a name="namespace">How can I namespace my code to play well in other people's pages?</a><span class="sectionMark">&sect; 3</span></h2>
+
+<p>If you want to provide your code to web sites that may not use an AMD loader, and you need to dynamically load code,
+doing a simple <a href="#wrap">one file build with a wrapper</a> is not enough. You also may want isolate your loading needs from
+the page's AMD loader.</p>
+
+<p>There is a <a href="https://github.com/jrburke/r.js/blob/master/build/example.build.js#L276">namespace</a> build option that
+does the following:</p>
+
+<ul>
+    <li>Renames requirejs, require and define uses to have "namespace." in front of them.</li>
+    <li>If the file does an existence check for define, in the following form <code>typeof define === 'function' && define.amd</code>,
+    then it will prefix the define references with "namespace.".</li>
+    <li>If require.js is included in the built file, it will make sure it exposes the "namespace." versions of the API.</li>
+</ul>
+
+<p>Do not code your source with namespace.require()/namespace.define() calls, but rather use require()/define() as you
+normally would, then use the optimizer to do the renaming.</p>
+
+</div>

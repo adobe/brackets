@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Script Load Test</title>
+    <script type="text/javascript" src="../common.js"></script>
+    <script type="text/javascript">
+    //cache bust?
+    var noCache = location.href.indexOf("nocache") != -1;
+
+    log("noCache: " + noCache);
+
+    var readyRegExp = /complete|loaded/;
+  
+    var onTestScriptLoad = function(evt) {
+      var node = evt.target || evt.srcElement;
+      if (evt.type == "load" || readyRegExp.test(node.readyState)) {
+        log(node.getAttribute("data-name") + " loaded");
+  
+        //Clean up script binding.
+        if (node.removeEventListener) {
+          node.removeEventListener("load", onTestScriptLoad, false);
+        } else {
+          //Probably IE.
+          node.detachEvent("onreadystatechange", onTestScriptLoad);
+        }
+      }
+    }
+  
+    var attachScript = function(url, name, useDocWrite){
+      if (noCache) {
+        url += "?stamp=" + (new Date()).getTime();
+      }
+      if (useDocWrite) {
+          //TODO doc.write
+          document.write('<script type="text/javascript" charset="utf-8" data-name="'
+                         + name
+                         + '" src="'
+                         + url
+                         + '" onload="onTestScriptLoad(evt)" onreadytate="onTestScriptLoad(evt)">\<\/script>');
+      } else {
+        var node = document.createElement("script");
+        node.src = url;
+        node.type = "text/javascript";
+        node.charset = "utf-8";
+        node.setAttribute("data-name", name);
+    
+        //Set up load listener.
+        if (node.addEventListener) {
+          node.addEventListener("load", onTestScriptLoad, false);
+        } else {
+          //Probably IE.
+          node.attachEvent("onreadystatechange", onTestScriptLoad);
+        }
+  
+        document.getElementsByTagName("head")[0].appendChild(node);
+      }
+    }
+
+    var urls = [
+        "one.js",
+        "two.js",
+        "three.js",
+        "four.js",
+        "five.js",
+        "six.js",
+        "seven.js",
+        "eight.js",
+        "nine.js"
+    ]
+
+    var loadUrls = function(useDocWrite) {
+        for (var i = 0, url; url = urls[i]; i++) {
+            attachScript(url, url, useDocWrite);
+        }
+    }
+
+    //First test document.write calls
+    //xxx
+    
+    //Do appendChilds
+    loadUrls(false);
+
+    //Try script appends after page load.
+    log("----------------------");
+    setTimeout(loadUrls, 2000);
+    </script>
+</head>
+<body>
+    <h1>Script Load Test</h1>
+
+    <p>This test checks the order in which script onloads are called. Hopefully
+    only one script onload is fired at a time and it matches the just-evaluated
+    script tag. If this does not work, then it means require.js files *must* specify
+    a module name for a module definition call, instead of letting it be derived
+    from the file path.</p>
+    <p>Check the console for output</p>
+</body>
+</html>

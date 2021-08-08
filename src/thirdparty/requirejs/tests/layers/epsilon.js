@@ -1,0 +1,5 @@
+define("epsilon",
+    {
+        name: "epsilon"
+    }
+);

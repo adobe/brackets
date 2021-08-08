@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Script appendChild Before Page Load Test</title>
+    <script type="text/javascript">
+    var attachScript = function(url, name){
+        url += "?stamp=" + (new Date()).getTime();
+
+        var node = document.createElement("script");
+        node.src = url;
+        node.type = "text/javascript";
+        node.charset = "utf-8";
+        node.setAttribute("data-name", name);
+
+        document.getElementsByTagName("head")[0].appendChild(node);
+    }
+
+    var urls = [
+        "one.php",
+        "two.js"
+    ]
+
+    for (var i = 0, url; url = urls[i]; i++) {
+        attachScript(url, url);
+    }
+    </script>
+</head>
+<body>
+    <h1>Script Blocking Before Page Load Test</h1>
+    <p><b>This test requires PHP. Rename one.dphpd in this directory to
+    one.php before trying this test.</b></p>
+
+    <p>This test looks at scripts added via appendChild before the page loads.
+    Do the scripts execute in the order added to the DOM or the order in which
+    they are received from the network?</p>
+    
+    <p>Normally after page load, IE and WebKit
+    will evaluate scripts in network receive order, not in DOM order. This test
+    is checking the behavior before page load.</p>
+    
+    <p>Expected results:<br>
+    <b>ONE</b><br>
+    <b>TWO</b><br>
+    </p>
+
+    <p>>Actual results: see browser console. IE and WebKit will execute scripts
+    in network receive order, not in DOM order.</p>
+</body>
+</html>

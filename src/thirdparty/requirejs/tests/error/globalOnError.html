@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Global onError Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+        var master = new doh.Deferred(),
+            failed = false;
+
+        requirejs.onError = function (err) {
+            if (!failed) {
+                master.callback(true);
+            }
+        };
+
+        define('a', {name: 'a'});
+
+        require(['a'], function (a) {
+            a.whatever.fail = 'fail';
+        }, function (err) {
+            failed = true;
+        });
+
+        doh.register(
+            "globalOnError",
+            [
+                {
+                    name: "globalOnError",
+                    timeout: 1000,
+                    runTest: function () {
+                        return master;
+                    }
+                }
+            ]
+        );
+        doh.run();
+    </script>
+</head>
+<body>
+    <h1>require.js: Global onError Test</h1>
+    <p>If global onError function set up, favor using it even for require
+        callback errors.
+        <a href="https://github.com/jrburke/requirejs/issues/721">More info</a>.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

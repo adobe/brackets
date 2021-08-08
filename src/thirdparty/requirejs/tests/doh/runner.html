@@ -1,0 +1,315 @@
+<html>
+	<!--
+		NOTE: we are INTENTIONALLY in quirks mode. It makes it much easier to
+		get a "full screen" UI w/ straightforward CSS.
+	-->
+	<!--
+		// TODO: provide a UI for prompted tests
+	-->
+	<head>
+		<title>RequireJS Tests Via The Dojo Unit Test Harness, $Rev: 20149 $</title>
+
+		<script type="text/javascript">
+			// workaround for bug in Safari 3.  See #7189
+			if (/3[\.0-9]+ Safari/.test(navigator.appVersion))
+			{
+				window.console = {
+				    origConsole: window.console,
+				    log: function(s){
+						this.origConsole.log(s);
+					},
+					info: function(s){
+						this.origConsole.info(s);
+					},
+					error: function(s){
+						this.origConsole.error(s);
+					},
+					warn: function(s){
+						this.origConsole.warn(s);
+					}
+				};
+			}
+		</script>
+
+		<script type="text/javascript">
+			window.dojoUrl = "../../dojo/dojo.js";
+			window.testUrl = "";
+			window.testModule = "";
+
+			// parse out our test URL and our Dojo URL from the query string
+			var qstr = window.location.search.substr(1);
+			if(qstr.length){
+				var qparts = qstr.split("&");
+				for(var x=0; x<qparts.length; x++){
+					var tp = qparts[x].split("=");
+					if(tp[0] == "dojoUrl"){
+						window.dojoUrl = tp[1];
+					}
+					if(tp[0] == "testUrl"){
+						window.testUrl = tp[1];
+					}
+					if(tp[0] == "testModule"){
+						window.testModule = tp[1];
+					}
+					if(tp[0] == "registerModulePath"){
+						var modules = tp[1].split(";");
+						window.registerModulePath=[];
+						for (var i=0; i<modules.length;i++){
+							window.registerModulePath.push(modules[i].split(","));
+						}
+					}
+				}
+			}
+
+			//document.write("<scr"+"ipt type='text/javascript' djConfig='isDebug: true' src='"+dojoUrl+"'></scr"+"ipt>");
+		</script>
+		<script type="text/javascript" src="runner.js"></script>
+		<script type="text/javascript" src="_browserRunner.js"></script>
+
+		<script type="text/javascript">
+			if(testUrl.length){
+				document.write("<scr"+"ipt type='text/javascript' src='"+testUrl+".js'></scr"+"ipt>");
+			}
+		</script>
+		<style type="text/css">
+			/* @import "../../dojo/resources/dojo.css"; */
+			/*
+			body {
+				margin: 0px;
+				padding: 0px;
+				font-size: 13px;
+				color: #292929;
+				font-family: Myriad, Lucida Grande, Bitstream Vera Sans, Arial, Helvetica, sans-serif;
+				*font-size: small;
+				*font: x-small;
+			}
+
+			th, td {
+				font-size: 13px;
+				color: #292929;
+				font-family: Myriad, Lucida Grande, Bitstream Vera Sans, Arial, Helvetica, sans-serif;
+				font-weight: normal;
+			}
+
+			* body {
+				line-height: 1.25em;
+			}
+
+			table {
+				border-collapse: collapse;
+			}
+			*/
+
+			#testLayout {
+				position: relative;
+				left: 0px;
+				top: 0px;
+				width: 100%;
+				height: 100%;
+				border: 1px solid black;
+				border: 0px;
+			}
+
+			.tabBody {
+				margin: 0px;
+				padding: 0px;
+				/*
+				border: 1px solid black;
+				*/
+				background-color: #DEDEDE;
+				border: 0px;
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				overflow: auto;
+			}
+
+			#logBody {
+				padding-left: 5px;
+				padding-top: 5px;
+				font-family: Monaco, monospace;
+				font-size: 11px;
+				white-space: pre;
+			}
+
+			#progressOuter {
+				background:#e9e9e9 repeat-x 0 0;
+				height: 1em;
+				/*the following trick is necessary to prevent IE from wrapping the last piece of progress bar into a new line*/
+				_margin:1px;
+				_padding: -1px;
+
+				/*
+				border-color: #e8e8e8;
+				*/
+			}
+
+			#progressOuter .success, #progressOuter .failure{
+				float: left;
+				height: 1em;
+			}
+
+			#play, #pause {
+				font-family: Arial;
+				font-size: 1.4em;
+				border: 1px solid #DEDEDE;
+				cursor: pointer;
+				padding-right: 0.5em;
+			}
+
+			.header {
+				border: 1px solid #DEDEDE;
+			}
+
+			button.tab {
+				border-width: 1px 1px 0px 1px;
+				border-style: solid;
+				border-color: #DEDEDE;
+				margin-right: 5px;
+			}
+
+			#testListContainer {
+				/*
+				border: 1px solid black;
+				*/
+				position: relative;
+				height: 99%;
+				width: 100%;
+				overflow: auto;
+			}
+
+			#testList {
+				border-collapse: collapse;
+				position: absolute;
+				left: 0px;
+				width: 100%;
+			}
+
+			#testList td {
+				border-bottom: 1px solid #DEDEDE;
+				border-right : 1px solid #DEDEDE;
+				padding: 3px;
+			}
+
+			#testListHeader th {
+				border-bottom: 1px solid #DEDEDE;
+				border-right : 1px solid #DEDEDE;
+				padding: 3px;
+				font-weight: bolder;
+				font-style: italic;
+			}
+
+			#testList tfoot {
+				font-weight: bold;
+			}
+
+			#toggleButtons {
+				float: left;
+				background-color: #DEDEDE;
+			}
+
+			div.testGroupName {
+				position: absolute;
+			}
+
+			.inProgress {
+				background-color: #85afde;
+			}
+
+			.success {
+				background-color: #7cdea7;
+			}
+
+			.failure {
+				background-color: #de827b;
+			}
+		</style>
+	</head>
+	<body>
+		<table id="testLayout" cellpadding="0" cellspacing="0" style="margin: 0;">
+			<tr valign="top" height="40">
+				<td colspan="2" id="logoBar">
+					<h3 style="margin: 5px 5px 0px 5px; float: left;">RequireJS Tests Via D.O.H.: The Dojo Objective Harness</h3>
+					<img src="small_logo.png" height="40" style="margin: 0px 5px 0px 5px; float: right;">
+					<span style="margin: 10px 5px 0px 5px; float: right;">
+						<input type="checkbox" id="audio" name="audio">
+						<label for="audio">sounds?</label>
+					</span>
+				</td>
+			</tr>
+			<tr valign="top" height="10">
+				<td colspan="2"><div id="progressOuter" onclick="doh._jumpToSuite(arguments[0]);"></div></td>
+			</tr>
+			<tr valign="top" height="30">
+				<td width="30%" class="header">
+					<span id="toggleButtons" onclick="doh.togglePaused();">
+						<button id="play">&#9658;</button>
+						<button id="pause" style="display: none;">&#9553;</button>
+					</span>
+					<span id="runningStatus">
+						<span id="pausedMsg">Stopped</span>
+						<span id="playingMsg" style="display: none;">Tests Running</span>
+					</span>
+				</td>
+				<td width="*" class="header" valign="bottom">
+					<button class="tab" onclick="doh.showTestPage();">Test Page</button>
+					<button class="tab" onclick="doh.showLogPage();">Log</button>
+                    <button class="tab" onclick="doh.showPerfTestsPage();">Performance Tests Results</button>
+				</td>
+			</tr>
+			<tr valign="top" style="border: 0; padding: 0; margin: 0;">
+				<td height="100%" style="border: 0; padding: 0; margin: 0;">
+					<div id="testListContainer">
+						<table cellpadding="0" cellspacing="0" border="0"
+							width="100%" id="testList" style="margin: 0;" onclick="doh._jumpToLog(arguments[0]);">
+							<thead>
+								<tr id="testListHeader" style="border: 0; padding: 0; margin: 0;" >
+									<th>&nbsp;</th>
+									<th width="20">
+										<input type="checkbox" checked
+											onclick="doh.toggleRunAll();">
+									</th>
+									<th width="*" style="text-align: left;">test</th>
+									<th width="50">time</th>
+								</tr>
+							</thead>
+							<tbody valign="top">
+								<tr id="groupTemplate" style="display: none;">
+									<td style="font-family: Arial; width: 15px;">&#9658;</td>
+									<td>
+										<input type="checkbox" checked>
+									</td>
+									<td>group name</td>
+									<td>10ms</td>
+								</tr>
+								<tr id="testTemplate" style="display: none;">
+									<td>&nbsp;</td>
+									<td>&nbsp;</td>
+									<td style="padding-left: 20px;">test name</td>
+									<td>10ms</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</td>
+				<td>
+					<div style="position: relative; width: 99%; height: 100%; top: 0px; left: 0px;">
+						<div class="tabBody"
+							style="z-index: 1;">
+							<pre id="logBody"></pre>
+							<div id="perfTestsBody" style="background-color: white;"></div>
+						</div>
+						<iframe id="testBody" class="tabBody"
+							style="z-index: -1;"></iframe>
+						<!--
+							src="http://redesign.dojotoolkit.org"></iframe>
+						-->
+					</div>
+				</td>
+			</tr>
+		</table>
+		<span id="hiddenAudio"></span>
+	</body>
+</html>

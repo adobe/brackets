@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Function toString() Test</title>
+    <style type="text/css">
+        textarea {
+            width: 100%;
+            height: 20em;
+        }
+        label {
+            display: block;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function def(func) {
+            document.getElementById('output').value = func.toString();
+        }
+    
+        function convert() {
+            def(function (require, exports, module) {
+                //This is a comment
+                var bar = require('foo/bar'),
+                    baz = require('baz');
+            
+                //require('line');
+                var moduleId = module.id;
+                
+                /*
+                 This is a multi-line comment that contains
+                 as require('multiline')
+                */
+                exports.name = 'bamf';
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Function toString() Test</h1>
+    <p>This test shows how a function is converted to a string value via the Function.prototype.toString() method.
+    See the source of this file to see the source for of the function that is converted to a string.</p>
+
+    <form action="#" onsubmit="convert();return false;">
+        <input type="submit" name="toString" value="toString">
+        <label for="output">Output:</label>
+        <textarea id="output"></textarea>
+    </form>
+</body>
+</html>

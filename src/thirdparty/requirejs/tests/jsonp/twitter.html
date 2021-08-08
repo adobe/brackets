@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: JSONP Test: Twitter</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript">
+    require({
+            baseUrl: "./",
+            paths: {
+                require: "../../require"
+            }
+        },
+        ["http://search.twitter.com/trends/current.json?callback=define"],
+        function (trends) {
+            console.log(trends);
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: JSONP Test: Twitter</h1>
+    <p>Just a standalone .</p>
+    <strong>REQUIRES access to internet/Twitter to run. Otherwise it will fail.</strong>
+    <p>Check console for the current trends JSON return value.</p>
+</body>
+</html>

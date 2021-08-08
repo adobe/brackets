@@ -1,0 +1,4 @@
+window.legacy = {
+    name: 'legacy'
+};
+

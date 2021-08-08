@@ -3,9 +3,6 @@ Thumbs.db
 # ignore jenkins build info
 /build.prop
 
-# package-lock.json
-package-lock.json
-
 # ignore node_modules created by grunt, but not more deeply-nested node_modules
 /node_modules
 /npm-debug.log

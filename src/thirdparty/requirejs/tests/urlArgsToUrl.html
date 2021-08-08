@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: urlArgs + toUrl Test</title>
+    <script type="text/javascript" src="doh/runner.js"></script>
+    <script type="text/javascript" src="doh/_browserRunner.js"></script>
+    <script type="text/javascript" src="../require.js"></script>
+    <script>
+    require.config({
+        baseUrl: 'js',
+        urlArgs: 'v=1234'
+    });
+
+    doh.register(
+        'urlArgsToUrl',
+        [
+            function urlArgsToUrl(t){
+                t.is('js/view.html?v=1234', require.toUrl('view.html'));
+                t.is('js/view?v=1234', require.toUrl('view'));
+            }
+        ]
+    );
+    doh.run();
+</script>
+</head>
+<body>
+    <h1>require.js: urlArgs + toUrl Test</h1>
+    <p>Makes sure urlArgs are applied correctly with the fixes for
+        <a href="https://github.com/jrburke/requirejs/issues/515">515</a> and
+        <a href="https://github.com/jrburke/requirejs/issues/614">614</a> are done.</p>
+    <p>Check console for messages.</p>
+</body>
+</html>

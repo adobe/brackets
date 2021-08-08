@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Script Load Interactive Test: attachEvent</title>
+    <script src="../common.js"></script>
+    <script>
+    /*jslint plusplus: false, strict: false */
+    /*global log: false, dumpLogs: false */
+    //cache bust?
+    var noCache = location.href.indexOf("nocache") !== -1;
+
+    log("noCache: " + noCache);
+
+    var readyRegExp = /complete|loaded/,
+        useInteractive = false,
+        loadedScripts = [],
+        callCount = 0,
+        currentlyAddingScript,
+        waitingFunc, loadUrls,
+        urls = [
+            "one.js",
+            "two.js",
+            "three.js",
+            "four.js",
+            "five.js",
+            "six.js",
+            "seven.js",
+            "eight.js",
+            "nine.js"
+        ];
+
+    function report() {
+        var i, module;
+        for (i = 0; i < loadedScripts.length; i++) {
+            module = loadedScripts[i];
+            log("module " + module.name + " === " + module.obj.name);
+        }
+        callCount += 1;
+        //dumpLogs();
+        if (callCount === 1) {
+            log("-------Trying cache hits now--------");
+            loadedScripts = [];
+            setTimeout(loadUrls, 500);
+        }
+    }
+
+    function finishScript(script, func) {
+        if (!script) {
+            return;
+        }
+
+        loadedScripts.push({
+            name: script.getAttribute('data-name').replace(/\.js$/, ''),
+            obj: func()
+        });
+
+        if (loadedScripts.length === 9) {
+            report();
+        }
+    }
+
+    function onTestScriptLoad(evt) {
+        var node = evt.target || evt.srcElement;
+        if (evt.type === "load" || readyRegExp.test(node.readyState)) {
+            if (!useInteractive) {
+                finishScript(node, waitingFunc);
+            }
+
+            //Clean up
+            if (node.detachEvent) {
+                //Probably IE.
+                node.detachEvent("onreadystatechange", onTestScriptLoad);
+            } else if (node.removeEventListener) {
+                node.removeEventListener("load", onTestScriptLoad, false);
+            }
+        }
+    }
+    function attachScript(url, name, useDocWrite) {
+        if (noCache) {
+            url += "?stamp=" + (new Date()).getTime();
+        }
+        var node = document.createElement("script");
+        node.src = url;
+        node.type = "text/javascript";
+        node.charset = "utf-8";
+        node.setAttribute("data-name", name);
+
+        //Set up load listener.
+        if (node.attachEvent) {
+            //Probably IE.
+            useInteractive = true;
+            node.attachEvent("onreadystatechange", onTestScriptLoad);
+        } else if (node.addEventListener) {
+            node.addEventListener("load", onTestScriptLoad, false);
+        }
+        currentlyAddingScript = node;
+
+        document.getElementsByTagName("head")[0].appendChild(node);
+        currentlyAddingScript = null;
+    }
+
+    loadUrls = function () {
+        for (var i = 0, url; (url = urls[i]); i++) {
+            attachScript(url, url);
+        }
+    };
+
+    function def(func) {
+        var scripts, i, script = currentlyAddingScript;
+        if (useInteractive) {
+            scripts = document.getElementsByTagName('script');
+            var states = [];
+            for (i = scripts.length - 1; i > -1; i--) {
+                states.push(i + scripts[i].readyState + scripts[i].src);
+                //log('script with name ' + scripts[i].getAttribute('data-name') + ' has readyState = ' + scripts[i].readyState + ' for func: ' + func);
+                if (scripts[i].readyState === 'interactive') {
+                    script = scripts[i];
+                    break;
+                }
+            }
+            if (!script) {
+                log("ERROR: No matching script interactive for " + func);
+                log("script readyStates are: " + states);
+            }
+            //log('calling finishScript for interactive dat-name: ' + script.getAttribute('data-name'));
+            finishScript(script, func);
+        } else {
+            waitingFunc = func;
+        }
+    }
+
+    //Do appendChilds
+    loadUrls();
+
+    </script>
+</head>
+<body>
+    <h1>Script Load Interactive Test: attachEvent</h1>
+
+    <p><b>This test difffers from scriptloadinteractive in that attachEvent is preferred over
+    addEventListener to work around an IE9 issue where its addEventListener behavior does not match
+    all other addEventListener browsers that fire the script onload event right after executing a
+    script (at least before executing any other script).</b></p>
+    <p>This test checks to see if a function call can be associated with a specific script tag.</p>
+    <p>For non-IE 6-8 browsers, the script onload event may not fire right after the the script
+    is evaluated. Kris Zyp found for IE though that in a function call that is called while the
+    script is executed, it could query the script nodes and the one that is in "interactive" mode
+    indicates the current script.</p>
+    <p>So this test tries to see to use interactive state if possible, and if that does not work,
+    falls back to using script onload to associate the scripts.</p>
+    <p>Check the console for output. Expected result, all scripts are matched up with their calls.</p>
+</body>
+</html>

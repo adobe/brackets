@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Path Tests</title>
+<script src="../path-utils.min.js"></script>
+</head>
+
+<body>
+
+<script>
+
+var testPaths = [
+	{
+		a: "",
+		b: "foo.html"
+	},
+	{
+		a: "/",
+		b: "foo.html"
+	},
+	{
+		a: "/file",
+		b: "foo.html"
+	},
+	{
+		a: "/dir/",
+		b: "foo.html"
+	},
+	{
+		a: "/",
+		b: "../foo.html"
+	},
+	{
+		a: "/file",
+		b: "../foo.html"
+	},
+	{
+		a: "/dir/",
+		b: "../foo.html"
+	},
+	{
+		a: "/a/b/",
+		b: "../foo.html"
+	},
+	{
+		a: "/a/b/",
+		b: "./.././foo.html"
+	},
+	{
+		a: "/a/b/",
+		b: "../../foo.html"
+	},
+	{
+		a: "/a/b/",
+		b: "../../../../../../../../foo.html"
+	},
+	{
+		a: "/a/b/",
+		b: "../../c/d/"
+	},
+	{
+		a: "/a/b/c/d/e/f/g/file.html",
+		b: "../../h/i/j/k/l/m/n/"
+	},
+	{
+		a: "/a/b/c/d/e/f/g/file.html",
+		b: "../../h/i/j/k/l/m/n/bar.html"
+	},
+	{
+		a: "/a/b/c/d/e/f/g/",
+		b: "../../h/i/j/k/l/m/n/"
+	},
+	{
+		a: "/a/b/c/d/e/f/g/",
+		b: "../../../../../../../h/i/j/k/l/m/n/bar.html"
+	},
+	{
+		a: "/a/b/c/d/e/f/g/",
+		b: "../../../../../../../h/i/j/k/l/m/n/"
+	},
+];
+
+</script>
+<h2>Make Absolute Tests</h2>
+<p>Use 'base' to turn 'relative' into an absolute path:</p>
+<pre>
+<script>
+
+for (var i = 0; i < testPaths.length; i++) {
+	var o = testPaths[i];
+	o.c = PathUtils.makePathAbsolute(o.b, o.a);
+	document.write("    <strong>base:</strong> " + o.a + "\n<strong>relative:</strong> " + o.b + "\n  <strong>result:</strong> " + o.c + "\n\n");
+}
+
+</script>
+</pre>
+
+<h2>Make Relative Tests</h2>
+<p>Make 'B' a path that is relative to 'A':</p>
+<pre>
+<script>
+document.write("\n");
+
+for (var i = 0; i < testPaths.length; i++) {
+	var o = testPaths[i];
+	document.write("    <strong>A:</strong> " + o.a + "\n    <strong>B:</strong> " + o.c + "\n<strong>result:</strong> " + PathUtils.makePathRelative(o.c, o.a) + "\n\n");
+}
+
+</script>
+</pre>
+
+</body>
+</html>

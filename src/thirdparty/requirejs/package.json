@@ -1,0 +1,6 @@
+{
+    "volo": {
+        "url": "https://raw.github.com/jrburke/requirejs/{version}/require.js"
+    },
+    "main": "require.js"
+}

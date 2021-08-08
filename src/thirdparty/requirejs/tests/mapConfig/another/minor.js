@@ -1,0 +1,4 @@
+define({
+    name: 'another/minor'
+});
+

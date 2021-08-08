@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>var define Test</title>
+    <script type="text/javascript" src="../common.js"></script>
+    <script type="text/javascript" src="define.js"></script>
+    <script type="text/javascript">
+
+    var attachScript = function(url, name){
+        var node = document.createElement("script");
+        node.src = url;
+        node.type = "text/javascript";
+        node.charset = "utf-8";
+        node.setAttribute("data-name", name);
+
+        document.getElementsByTagName("head")[0].appendChild(node);
+    }
+
+    var urls = [
+        "one.js",
+        "two.js",
+        "three.js",
+        "four.js"
+    ]
+
+    var loadUrls = function() {
+        for (var i = 0, url; url = urls[i]; i++) {
+            attachScript(url, url);
+        }
+    }
+
+    //Do appendChilds
+    loadUrls();
+    </script>
+</head>
+<body>
+    <h1>var define Test</h1>
+
+    <p>This test checks if doing a var define in a module file is hoisted
+    and if it causes any problems in a way that would shadow the real define.</p>
+
+    <p>Check the console for output</p>
+
+    <p>If you see "BAD DEFINE" in the output, then it means there is a problem,
+    and the real define was shadowed by something else.</p>
+</body>
+</html>

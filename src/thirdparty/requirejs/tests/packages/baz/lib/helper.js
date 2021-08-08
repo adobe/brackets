@@ -1,0 +1,3 @@
+define({
+    name: "baz/helper"
+});

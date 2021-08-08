@@ -1,0 +1,385 @@
+<div id="directory" class="section">
+<h1>Why AMD?</h1>
+
+<ul class="index mono">
+    <li class="hbox">
+        <a href="#purposes">Module Purposes</a><span class="spacer boxFlex"></span><span class="sect">&sect; 1</span>
+    </li>
+    <li class="hbox">
+        <a href="#today">The Web Today</a><span class="spacer boxFlex"></span><span class="sect">&sect; 2</span>
+    </li>
+    <li class="hbox">
+        <a href="#commonjs">CommonJS</a><span class="spacer boxFlex"></span><span class="sect">&sect; 3</span>
+    </li>
+    <li class="hbox">
+        <a href="#amd">AMD</a><span class="spacer boxFlex"></span><span class="sect">&sect; 4</span>
+    </li>
+    <li class="hbox">
+        <a href="#definition">Module Definition</a><span class="spacer boxFlex"></span><span class="sect">&sect; 5</span>
+    </li>
+    <li class="hbox">
+        <a href="#namedmodules">Named Modules</a><span class="spacer boxFlex"></span><span class="sect">&sect; 6</span>
+    </li>
+    <li class="hbox">
+        <a href="#sugar">Sugar</a><span class="spacer boxFlex"></span><span class="sect">&sect; 7</span>
+    </li>
+    <li class="hbox">
+        <a href="#commonjscompat">CommonJS Compatibility</a><span class="spacer boxFlex"></span><span class="sect">&sect; 8</span>
+    </li>
+    <li class="hbox">
+        <a href="#amdtoday">AMD Used Today</a><span class="spacer boxFlex"></span><span class="sect">&sect; 9</span>
+    </li>
+    <li class="hbox">
+        <a href="#youcando">What You Can Do</a><span class="spacer boxFlex"></span><span class="sect">&sect; 10</span>
+    </li>
+</ul>
+
+<p>This page talks about the design forces and use of the
+<a href="https://github.com/amdjs/amdjs-api/wiki/AMD">Asynchronous Module Definition (AMD) API</a> for JavaScript modules, the module API supported by RequireJS.
+There is a different page that talks about <a href="why.html">general approach to modules on the web</a>.</p>
+
+</div>
+
+
+<div class="section">
+<h2>
+<a href="#purposes" name="purposes">Module Purposes</a>
+<span class="sectionMark">&sect; 1</span>
+</h2>
+
+<p>What are JavaScript modules? What is their purpose?</p>
+
+<ul>
+<li><strong>Definition</strong>: how to encapsulate a piece of code into a useful unit, and how to register its capability/export a value for the module.</li>
+<li><strong>Dependency References</strong>: how to refer to other units of code.</li>
+</ul>
+
+</div>
+
+
+<div class="section">
+<h2>
+<a href="#today" name="today">The Web Today</a>
+<span class="sectionMark">&sect; 2</span>
+</h2>
+
+<pre><code>(function () {
+    var $ = this.jQuery;
+
+    this.myExample = function () {};
+}());
+</code></pre>
+
+<p>How are pieces of JavaScript code defined today?</p>
+
+<ul>
+    <li>Defined via an immediately executed factory function.</li>
+    <li>References to dependencies are done via global variable names that were loaded via an HTML script tag.</li>
+    <li>The dependencies are very weakly stated: the developer needs to know the right dependency order. For instance, The file containing Backbone cannot come before the jQuery tag.</li>
+    <li>It requires extra tooling to substitute a set of script tags into one tag for optimized deployment.</li>
+</ul>
+
+<p>This can be difficult to manage on large projects, particularly as scripts start to have many dependencies in a way that may overlap and nest. Hand-writing script tags is not very scalable, and it leaves out the capability to load scripts on demand.</p>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#commonjs" name="commonjs">CommonJS</a>
+<span class="sectionMark">&sect; 3</span>
+</h2>
+
+<pre><code>var $ = require('jquery');
+exports.myExample = function () {};
+</code></pre>
+
+<p>The original <a href="http://groups.google.com/group/commonjs">CommonJS (CJS) list</a> participants decided to work out a module format that worked with today's JavaScript language, but was not necessarily bound to the limitations of the browser JS environment. The hope was to use some stop-gap measures in the browser and hopefully influence the browser makers to build solutions that would enable their module format to work better natively. The stop-gap measures:</p>
+
+<ul>
+<li>Either use a server to translate CJS modules to something usable in the browser.</li>
+<li>Or use XMLHttpRequest (XHR) to load the text of modules and do text transforms/parsing in browser.</li>
+</ul>
+
+<p>The CJS module format only allowed one module per file, so a "transport format" would be used for bundling more than one module in a file for optimization/bundling purposes.</p>
+
+<p>With this approach, the CommonJS group was able to work out dependency references and how to deal with circular dependencies, and how to get some properties about the current module. However, they did not fully embrace some things in the browser environment that cannot change but still affect module design:</p>
+
+<ul>
+<li>network loading</li>
+<li>inherent asynchronicity</li>
+</ul>
+
+<p>It also meant they placed more of a burden on web developers to implement the format, and the stop-gap measures meant debugging was worse. eval-based debugging or debugging multiple files that are concatenated into one file have practical weaknesses. Those weaknesses may be addressed in browser tooling some day, but the end result: using CommonJS modules in the most common of JS environments, the browser, is non-optimal today.</p>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#amd" name="amd">AMD</a>
+<span class="sectionMark">&sect; 4</span>
+</h2>
+
+<pre><code>define(['jquery'] , function ($) {
+    return function () {};
+});
+</code></pre>
+
+<p>The AMD format comes from wanting a module format that was better than today's "write a bunch of script tags with implicit dependencies that you have to manually order" and something that was easy to use directly in the browser. Something with good debugging characteristics that did not require server-specific tooling to get started. It grew out of Dojo's real world experience with using XHR+eval and wanting to avoid its weaknesses for the future.</p>
+
+<p>It is an improvement over the web's current "globals and script tags" because:</p>
+
+<ul>
+<li>Uses the CommonJS practice of string IDs for dependencies. Clear declaration of dependencies and avoids the use of globals.</li>
+<li>IDs can be mapped to different paths. This allows swapping out implementation. This is great for creating mocks for unit testing. For the above code sample, the code just expects something that implements the jQuery API and behavior. It does not have to be jQuery.</li>
+<li>Encapsulates the module definition. Gives you the tools to avoid polluting the global namespace.</li>
+<li>Clear path to defining the module value. Either use "return value;" or the CommonJS "exports" idiom, which can be useful for circular dependencies.</li>
+</ul>
+
+<p>It is an improvement over CommonJS modules because:</p>
+
+<ul>
+<li>It works better in the browser, it has the least amount of gotchas. Other approaches have problems with debugging, cross-domain/CDN usage, file:// usage and the need for server-specific tooling.</li>
+<li>Defines a way to include multiple modules in one file. In CommonJS terms, the term for this is a "transport format", and that group has not agreed on a transport format.</li>
+<li>Allows setting a function as the return value. This is really useful for constructor functions. In CommonJS this is more awkward, always having to set a property on the exports object. Node supports module.exports = function () {}, but that is not part of a CommonJS spec.</li>
+</ul>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#definition" name="definition">Module Definition</a>
+<span class="sectionMark">&sect; 5</span>
+</h2>
+
+<p>Using JavaScript functions for encapsulation has been documented as the <a href="http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth">module pattern</a>:</p>
+
+<pre><code>(function () {
+   this.myGlobal = function () {};
+}());
+</code></pre>
+
+<p>That type of module relies on attaching properties to the global object to export the module value, and it is difficult to declare dependencies with this model. The dependencies are assumed to be immediately available when this function executes. This limits the loading strategies for the dependencies.</p>
+
+<p>AMD addresses these issues by:</p>
+
+<ul>
+<li>Register the factory function by calling define(), instead of immediately executing it.</li>
+<li>Pass dependencies as an array of string values, do not grab globals.</li>
+<li>Only execute the factory function once all the dependencies have been loaded and executed.</li>
+<li>Pass the dependent modules as arguments to the factory function.</li>
+</ul>
+
+<pre><code>//Calling define with a dependency array and a factory function
+define(['dep1', 'dep2'], function (dep1, dep2) {
+
+    //Define the module value by returning a value.
+    return function () {};
+});
+</code></pre>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#namedmodules" name="namedmodules">Named Modules</a>
+<span class="sectionMark">&sect; 6</span>
+</h2>
+
+<p>Notice that the above module does not declare a name for itself. This is what makes the module very portable. It allows a developer to place the module in a different path to give it a different ID/name. The AMD loader will give the module an ID based on how it is referenced by other scripts.</p>
+
+<p>However, tools that combine multiple modules together for performance need a way to give names to each module in the optimized file. For that, AMD allows a string as the first argument to define():</p>
+
+<pre><code>//Calling define with module ID, dependency array, and factory function
+define('myModule', ['dep1', 'dep2'], function (dep1, dep2) {
+
+    //Define the module value by returning a value.
+    return function () {};
+});
+</code></pre>
+
+<p>You should avoid naming modules yourself, and only place one module in a file while developing. However, for tooling and performance, a module solution needs a way to identify modules in built resources.</p>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#sugar" name="sugar">Sugar</a>
+<span class="sectionMark">&sect; 7</span>
+</h2>
+
+<p>The above AMD example works in all browsers. However, there is a risk of mismatched dependency names with named function arguments, and it can start to look a bit strange if your module has many dependencies:</p>
+
+<pre><code>define([ "require", "jquery", "blade/object", "blade/fn", "rdapi",
+         "oauth", "blade/jig", "blade/url", "dispatch", "accounts",
+         "storage", "services", "widgets/AccountPanel", "widgets/TabButton",
+         "widgets/AddAccount", "less", "osTheme", "jquery-ui-1.8.7.min",
+         "jquery.textOverflow"],
+function (require,   $,        object,         fn,         rdapi,
+          oauth,   jig,         url,         dispatch,   accounts,
+          storage,   services,   AccountPanel,           TabButton,
+          AddAccount,           less,   osTheme) {
+
+});
+</code></pre>
+
+<p>To make this easier, and to make it easy to do a simple wrapping around CommonJS modules, this form of define is supported, sometimes referred to as "simplified CommonJS wrapping":</p>
+
+<pre><code>define(function (require) {
+    var dependency1 = require('dependency1'),
+        dependency2 = require('dependency2');
+
+    return function () {};
+});
+</code></pre>
+
+<p>The AMD loader will parse out the require('') calls by using Function.prototype.toString(), then internally convert the above define call into this:</p>
+
+<pre><code>define(['require', 'dependency1', 'dependency2'], function (require) {
+    var dependency1 = require('dependency1'),
+        dependency2 = require('dependency2');
+
+    return function () {};
+});
+</code></pre>
+
+<p>This allows the loader to load dependency1 and dependency2 asynchronously, execute those dependencies, then execute this function.</p>
+
+<p>Not all browsers give a usable Function.prototype.toString() results. As of October 2011, the PS 3 and older Opera Mobile browsers do not. Those browsers are more likely to need an optimized build of the modules for network/device limitations, so just do a build with an optimizer that knows how to convert these files to the normalized dependency array form, like the <a href="optimization.html">RequireJS optimizer</a>.</p>
+
+<p>Since the number of browsers that cannot support this toString() scanning is very small, it is safe to use this sugared form for all your modules, particularly if you like to line up the dependency names with the variables that will hold their module values.</p>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#commonjscompat" name="commonjscompat">CommonJS Compatibility</a>
+<span class="sectionMark">&sect; 8</span>
+</h2>
+
+<p>Even though this sugared form is referred to as the "simplified CommonJS wrapping", it is not 100% compatible with CommonJS modules. However, the cases that are not supported would likely break in the browser anyway, since they generally assume synchronous loading of dependencies.</p>
+
+<p>Most CJS modules, around 95% based on my (thoroughly unscientific) personal experience, are perfectly compatible with the simplified CommonJS wrapping.</p>
+
+<p>The modules that break are ones that do a dynamic calculation of a dependency, anything that does not use a string literal for the require() call, and anything that does not look like a declarative require() call. So things like this fail:</p>
+
+<pre><code>//BAD
+var mod = require(someCondition ? 'a' : 'b');
+
+//BAD
+if (someCondition) {
+    var a = require('a');
+} else {
+    var a = require('a1');
+}
+</code></pre>
+
+<p>These cases are handled by the <a href="https://github.com/amdjs/amdjs-api/wiki/require">callback-require</a>, <code>require([moduleName], function (){})</code> normally present in AMD loaders.</p>
+
+<p>The AMD execution model is better aligned with how ECMAScript Harmony modules are being specified. The CommonJS modules that would not work in an AMD wrapper will also not work as a Harmony module. AMD's code execution behavior is more future compatible.</p>
+
+<h2>Verbosity vs. Usefulness</h2>
+
+<p>One of the criticisms of AMD, at least compared to CJS modules, is that it requires a level of indent and a function wrapping.</p>
+
+<p>But here is the plain truth: the perceived extra typing and a level of indent to use AMD does not matter. Here is where your time goes when coding:</p>
+
+<ul>
+<li>Thinking about the problem.</li>
+<li>Reading code.</li>
+</ul>
+
+<p>Your time coding is mostly spent thinking, not typing. While fewer words are generally preferable, there is a limit to that approach paying off, and the extra typing in AMD is not that much more.</p>
+
+<p>Most web developers use a function wrapper anyway, to avoid polluting the page with globals. Seeing a function wrapped around functionality is a very common sight and does not add to the reading cost of a module.</p>
+
+<p>There are also hidden costs with the CommonJS format:</p>
+
+<ul>
+    <li>the tooling dependency cost</li>
+    <li>edge cases that break in browsers, like cross domain access</li>
+    <li>worse debugging, a cost that continues to add up over time</li>
+</ul>
+
+<p>AMD modules require less tooling, there are fewer edge case issues, and better debugging support.</p>
+
+<p>What is important: being able to actually share code with others. AMD is the lowest energy pathway to that goal.</p>
+
+<p>Having a working, easy to debug module system that works in today's browsers means getting real world experience in making the best module system for JavaScript in the future.</p>
+
+<p>AMD and its related APIs, have helped show the following for any future JS module system:</p>
+
+<ul>
+<li><strong>Returning a function as the module value</strong>, particularly a constructor function, leads to better API design. Node has module.exports to allow this, but being able to use "return function (){}" is much cleaner. It means not having to get a handle on "module" to do module.exports, and it is a clearer code expression.</li>
+<li><strong>Dynamic code loading</strong> (done in AMD systems via <a href="https://github.com/amdjs/amdjs-api/wiki/require">require([], function (){}))</a> is a basic requirement. CJS talked about it, had some proposals, but it was not fully embraced. Node does not have any support for this need, instead relying on the synchronous behavior of require(''), which is not portable to the web.</li>
+<li><strong><a href="http://requirejs.org/docs/plugins.html">Loader plugins</a></strong> are incredibly useful. It helps avoid the nested brace indenting common in callback-based programming.</li>
+<li><strong>Selectively mapping one module</strong> to load from another location makes it easy to provide mock objects for testing.</li>
+<li>There should only be at most <strong>one IO action for each module</strong>, and it should be straightforward. Web browsers are not tolerant of multiple IO lookups to find a module. This argues against the multiple path lookups that Node does now, and avoiding the use of a package.json "main" property. Just use module names that map easily to one location based on the project's location, using a reasonable default convention that does not require verbose configuration, but allow for simple configuration when needed.</li>
+<li>It is best if there is an <strong>"opt-in" call</strong> that can be done so that older JS code can partcipate in the new system.</li>
+</ul>
+
+<p>If a JS module system cannot deliver on the above features, it is at a significant disadvantage when compared to AMD and its related APIs around <a href="https://github.com/amdjs/amdjs-api/wiki/require">callback-require</a>, <a href="https://github.com/amdjs/amdjs-api/wiki/Loader-Plugins">loader plugins</a>, and paths-based module IDs.</p>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#amdtoday" name="amdtoday">AMD Used Today</a>
+<span class="sectionMark">&sect; 9</span>
+</h2>
+
+<p>As of mid October 2011, AMD already has good adoption on the web:</p>
+
+<ul>
+<li><a href="http://jquery.com/">jQuery</a> 1.7</li>
+<li><a href="http://dojotoolkit.org/">Dojo</a> 1.7</li>
+<li><a href="http://uxebu.github.com/embedjs/">EmbedJS</a></li>
+<li><a href="http://enderjs.com/">Ender</a>-associated modules like <a href="https://github.com/ded/bonzo">bonzo</a>, <a href="https://github.com/ded/qwery">qwery</a>, <a href="https://github.com/fat/bean">bean</a> and <a href="https://github.com/ded/domready">domready</a></li>
+<li>Used by <a href="http://getfirebug.com/">Firebug</a> 1.8+</li>
+<li>The simplified CommonJS wrapper can be used in <a href="https://addons.mozilla.org/en-US/developers/docs/sdk/1.1/">Jetpack/Add-on SDK</a> for Firefox</li>
+<li>Used for parts of sites on <a href="http://www.bbc.co.uk/">the BBC</a> (observed by looking at the source, not an official recommendation of AMD/RequireJS)</li>
+</ul>
+
+</div>
+
+<div class="section">
+<h2>
+<a href="#youcando" name="youcando">What You Can Do</a>
+<span class="sectionMark">&sect; 10</span>
+</h2>
+
+<p id="doapp"><strong>If you write applications:</strong></p>
+
+<ul>
+<li>Give an AMD loader a try. You have some choices:
+<ul>
+<li><a href="http://requirejs.org">RequireJS</a></li>
+<li><a href="https://github.com/cujojs/curl">curl</a></li>
+<li><a href="https://github.com/zazl/lsjs">lsjs</a></li>
+<li><a href="http://dojotoolkit.org/">Dojo</a> 1.7+</li>
+</ul></li>
+<li>If you want to use AMD but still use the <strong>load one script at the bottom of the HTML page</strong> approach:
+<ul>
+<li>Use the <a href="http://requirejs.org/docs/optimization.html">RequireJS optimizer</a> either in command line mode or as an <a href="https://github.com/jrburke/r.js/blob/master/build/tests/http/httpBuild.js">HTTP service</a> with the <a href="https://github.com/jrburke/almond">almond AMD shim</a>.</li>
+</ul></li>
+</ul>
+
+<p id="dolib"><strong>If you are a script/library author</strong>:</p>
+
+<ul>
+<li><a href="https://github.com/umdjs/umd">Optionally call define()</a> if it is available. The nice thing is you can still code your library without relying on AMD, just participate if it is available. This allows consumers of your modules to:
+<ul>
+<li>avoid dumping global variables in the page</li>
+<li>use more options for code loading, delayed loading</li>
+<li>use existing AMD tooling to optimize their project</li>
+<li>participate in a workable module system for JS in the browser today.</li>
+</ul></li>
+</ul>
+
+<p id="doenv"><strong>If you write code loaders/engines/environments for JavaScript:</strong></p>
+
+<ul>
+<li>Implement <a href="https://github.com/amdjs/amdjs-api/wiki/AMD">the AMD API</a>. There is <a href="https://groups.google.com/group/amd-implement">a discussion list</a> and <a href="https://github.com/amdjs/amdjs-tests">compatibility tests</a>. By implementing AMD, you will reduce multi-module system boilerplate and help prove out a workable JavaScript module system on the web. This can be fed back into the ECMAScript process to build better native module support.</li>
+<li>Also support <a href="https://github.com/amdjs/amdjs-api/wiki/require">callback-require</a> and <a href="https://github.com/amdjs/amdjs-api/wiki/Loader-Plugins">loader plugins</a>. Loader plugins are a great way to reduce the nested callback syndrome that can be common in callback/async-style code.</li>
+</ul>
+
+</div>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Path Array Fail Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+        var master = new doh.Deferred(),
+            threwError = false,
+            counter = 0;
+
+        function done() {
+            counter += 1;
+            doh.is(1, counter, "done should only be called once");
+
+            if (counter === 1) {
+                //Set a timeout that expires after waitSeconds to be sure
+                //we are not called with a timeout error when enforceDefine
+                //is in play.
+                setTimeout(function () {
+                    master.callback(true);
+                }, 4500);
+            }
+        }
+
+        requirejs.onError = function (err) {
+            //console.log('onError: ' + err.requireModules[0] + ', type: ' + err.requireType);
+            doh.is(true, err.requireType !== 'timeout', 'no timeout error');
+            doh.is('dep', err.requireModules[0]);
+            done();
+        };
+
+        requirejs({
+            waitSeconds: 2,
+            enforceDefine: true,
+            paths: {
+                'dep': [
+                    'fake1',
+                    'fake2'
+                ]
+            }
+        }, ['dep'], function (dep) {
+            doh.is("real", "shouldNotExist");
+            done();
+        });
+
+        doh.register(
+            "pathArray",
+            [
+                {
+                    name: "pathArray",
+                    timeout: 10000,
+                    runTest: function () {
+                        return master;
+                    }
+                }
+            ]
+        );
+        doh.run();
+    </script>
+</head>
+<body>
+    <h1>require.js: Path Array Fail Test</h1>
+
+    <p>Using an array for a path value to get retries, but fail on all the
+    retries. For more info see
+    <a href="https://github.com/jrburke/requirejs/issues/257">257</a></p>
+
+    <p>Check console for messages</p>
+</body>
+</html>

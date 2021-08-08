@@ -1,0 +1,42 @@
+Release Notes
+-------------------
+
+After merge/release:
+
+
+Implementation notes
+--------
+* Cannot get rid of interactive stuff for IE because requirejs supports loading
+plain JS files that may not call define(). Since they do not call define, if
+they are loaded in between anon define call scripts, since onload on scripts
+do not fire immediately after script execution, the wrong names can be associated
+with scripts.
+
+
+- robust handling for anon modules loaded outside loader.
+- Just remove packages config altogether, suggest volojs for making adapter modules.
+  -> Allow 'module': '' and 'module/': '' config instead of packages config.
+
+Tests to write:
+- mapConfig test for packages.
+
+Next release
+--------------
+
+- ie 10, order plugin not working?
+
+https://github.com/jrburke/requirejs/issues/185
+
+- add pluginBuilder to the load api
+
+- require-cs circular ref: https://github.com/jrburke/require-cs/issues/13
+
+- make a decision matrix of when to use what. Mention lowercase names for file name convention.
+
+- paths entry for socket.io to remote domain/port, but then do a require.toUrl('socket.io') and it returns
+  a local path instead of the remote path?
+
+
+- has() source trimming, needs brace matching?
+
+- Update the coffeescript plugin to use the writeFile API?

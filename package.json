@@ -1,14 +1,14 @@
 {
-    "name": "Brackets",
-    "version": "1.15.0-0",
-    "apiVersion": "1.15.0",
-    "homepage": "http://brackets.io",
+    "name": "phoenix",
+    "version": "2.0.0-0",
+    "apiVersion": "2.0.0",
+    "homepage": "https://core.ai",
     "issues": {
-        "url": "http://github.com/adobe/brackets/issues"
+        "url": "https://github.com/aicore/phoenix/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/adobe/brackets.git",
+        "url": "https://github.com/aicore/phoenix.git",
         "branch": "",
         "SHA": ""
     },
@@ -70,7 +70,7 @@
     "licenses": [
         {
             "type": "MIT",
-            "url": "https://github.com/adobe/brackets/blob/master/LICENSE"
+            "url": "https://github.com/aicore/phoenix/blob/master/LICENSE"
         }
     ]
 }

@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Parse Tests</title>
+<script src="../path-utils.min.js"></script>
+</head>
+
+<body>
+
+<pre>
+<script>
+
+function entityEncode( str )
+{
+	return ( str || "" ).replace(/&/, "&amp;").replace(/</, "&lt;").replace(/>/, "&gt;");
+}
+
+function getMaxLength( arr )
+{
+	var i, max = 0;
+	for ( i = 0; i < arr.length; i++ ) {
+		max = Math.max( max, ( arr[ i ] || "" ).length );
+	}
+	return max;
+}
+
+function getSpaces( num )
+{
+	var i, result = "";
+	num = num < 1 ? 0 : num;
+	for ( i = 0; i < num; i++) {
+		result += " ";
+	}
+	return result;
+}
+
+var testUrls = [
+			"http://jblas:password@mycompany.com:8080/mail/inbox?msg=1234&type=unread#msg-content",
+			"//jblas:password@mycompany.com:8080/mail/inbox?msg=1234&type=unread#msg-content",
+			"//mycompany.com:8080/mail/inbox?msg=1234&type=unread#msg-content",
+			"/mail/inbox?msg=1234&type=unread#msg-content",
+			"mail/inbox?msg=1234&type=unread#msg-content",
+			"inbox?msg=1234&type=unread#msg-content",
+			"?msg=1234&type=unread#msg-content",
+			"#msg-content",
+			"http://mycompany.com/mail/inbox?msg=1234&type=unread#msg-content",
+			"//mycompany.com/mail/inbox?msg=1234&type=unread#msg-content",
+			"/mail/inbox?msg=1234&type=unread#msg-content",
+			"mail/inbox?msg=1234&type=unread#msg-content",
+			"inbox?msg=1234&type=unread#msg-content",
+			"http://jblas:password@123.456.78.9:8080/mail/inbox?msg=1234&type=unread#msg-content",
+			"//jblas:password@123.456.78.9:8080/mail/inbox?msg=1234&type=unread#msg-content",
+			"//123.456.78.9:8080/mail/inbox?msg=1234&type=unread#msg-content",
+			"http://mycompany.com/a/b.php?foo=1&bar=2",
+			"http://mycompany.com/b.php?foo=1&bar=2",
+			"http://mycompany.com/a/b.html",
+			"http://mycompany.com/b.html",
+			"a/file.html",
+			"/file.html",
+			"file.html",
+			"../file.html",
+			"a/b/../../file.html",
+			"http://mycompany.com/a/b-1.0-min.js?foo=1&bar=2"
+		],
+	props = PathUtils.parsedUrlPropNames,
+	maxLen = getMaxLength( props ),
+	obj;
+
+for ( var i = 0; i < testUrls.length; i++ ) {
+	document.write("<strong>Url:</strong> " + entityEncode( testUrls[ i ] ) + "\n\n");
+	obj = PathUtils.parseUrl( testUrls[ i ] );
+	for ( var j = 0; j < props.length; j++ ) {
+		document.write("\t<strong>" + getSpaces( maxLen - props[ j ].length ) +  props[ j ] + ":</strong> " + entityEncode( obj[ props[ j ] ] ) + "\n");
+	}
+	document.write("\n\n");
+}
+
+</script>
+</pre>
+</body>
+</html>

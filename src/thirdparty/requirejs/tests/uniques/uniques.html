@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Unique Dependency Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript">
+    require({
+            baseUrl: "./"
+        },
+        ["require", "one", "two", "three"],
+        function(require, one, two, three) {
+            doh.register(
+                "uniques",
+                [
+                    function uniques(t){
+                        t.is("one", one.name);
+                        t.is("three", one.threeName);
+                        t.is("three", one.threeName2);
+                        t.is("one", two.oneName);
+                        t.is("one", two.oneName2);
+                        t.is("two", two.name);
+                        t.is("three", two.threeName);
+                        t.is("three", three.name);
+                    }
+                ]
+            );
+            doh.run();
+        }
+    );
+    </script>
+</head>
+<body>
+    <h1>require.js: Unique Dependency Test</h1>
+    <p>Make sure if a dependency is listed more than once code still operates correctly.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

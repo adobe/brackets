@@ -1,0 +1,5 @@
+//A test for loading a file with a protocol URL via require()
+
+var foo = {
+    name: "foo"
+};

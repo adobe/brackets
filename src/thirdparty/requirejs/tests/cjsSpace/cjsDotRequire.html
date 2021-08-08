@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>require.js: Skipping false obj.require('') Test</title>
+    <script type="text/javascript" src="../../require.js"></script>
+    <script type="text/javascript" src="../doh/runner.js"></script>
+    <script type="text/javascript" src="../doh/_browserRunner.js"></script>
+    <script type="text/javascript" src="cjsDotRequire-tests.js"></script>
+</head>
+<body>
+    <h1>require.js: Skipping false obj.require('') Test</h1>
+    <p>Test for <a href="https://github.com/jrburke/requirejs/issues/344">Issue 344</a>.
+    Make sure modules that have obj.require() calls do not get found as dependencies.</p>
+    <p>Check console for messages</p>
+</body>
+</html>

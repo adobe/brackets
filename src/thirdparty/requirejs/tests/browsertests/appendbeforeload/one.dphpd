@@ -1,0 +1,5 @@
+<?php
+sleep(1);
+?>
+
+console.log("ONE");
