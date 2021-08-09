@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
 
-        // Earlier brackets object was initialized at 
+        // Earlier brackets object was initialized at
         // https://github.com/adobe/brackets-shell/blob/908ed1503995c1b5ae013473c4b181a9aa64fd22/appshell/appshell_extensions.js#L945.
         // With the newer versions of CEF, the initialization was crashing the render process, citing
         // JS eval error. So moved the brackets object initialization from appshell_extensions.js to here.
@@ -101,15 +101,7 @@ define(function (require, exports, module) {
         return OS;
     };
 
-    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
-
-    // Are we in a desktop shell with a native menu bar?
-    var hasNativeMenus = params.get("hasNativeMenus");
-    if (hasNativeMenus) {
-        global.brackets.nativeMenus = (hasNativeMenus === "true");
-    } else {
-        global.brackets.nativeMenus = (!global.brackets.inBrowser);
-    }
+    global.brackets.nativeMenus = false;
 
     // Locale-related APIs
     global.brackets.isLocaleDefault = function () {
@@ -154,6 +146,6 @@ define(function (require, exports, module) {
     global.brackets._getGlobalRequireJSConfig = function () {
         return global.require.s.contexts._.config;
     };
-    
+
     exports.global = global;
 });
