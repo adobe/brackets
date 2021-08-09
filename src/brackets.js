@@ -137,7 +137,7 @@ define(function (require, exports, module) {
             return PathUtils;
         }
     });
-    
+
     //load language features
     require("features/ParameterHintsManager");
     require("features/JumpToDefManager");
@@ -394,21 +394,18 @@ define(function (require, exports, module) {
             $("body").addClass("in-appshell");
         }
 
-        // Enable/Disable HTML Menus
-        if (brackets.nativeMenus) {
-            $("body").addClass("has-appshell-menus");
-        } else {
-            // (issue #5310) workaround for bootstrap dropdown: prevent the menu item to grab
-            // the focus -- override jquery focus implementation for top-level menu items
-            (function () {
-                var defaultFocus = $.fn.focus;
-                $.fn.focus = function () {
-                    if (!this.hasClass("dropdown-toggle")) {
-                        return defaultFocus.apply(this, arguments);
-                    }
-                };
-            }());
-        }
+        // Use HTML Menus
+        // (issue #5310) workaround for bootstrap dropdown: prevent the menu item to grab
+        // the focus -- override jquery focus implementation for top-level menu items
+        (function () {
+            var defaultFocus = $.fn.focus;
+            $.fn.focus = function () {
+                if (!this.hasClass("dropdown-toggle")) {
+                    return defaultFocus.apply(this, arguments);
+                }
+            };
+        }());
+
 
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, { shouldAddAA: (brackets.platform === "mac"), Strings: Strings }));

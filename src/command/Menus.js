@@ -193,19 +193,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Check whether a ContextMenu exists for the given id.
-     * @param {string} id
-     * @return {boolean}
-     */
-    function _isContextMenu(id) {
-        return !!getContextMenu(id);
-    }
-
-    function _isHTMLMenu(id) {
-        return (!brackets.nativeMenus || _isContextMenu(id));
-    }
-
-    /**
      * Retrieves the MenuItem object for the corresponding id.
      * @param {string} id
      * @return {MenuItem}
@@ -467,16 +454,7 @@ define(function (require, exports, module) {
         var menuItem = getMenuItem(menuItemID);
         removeMenuItemEventListeners(menuItem);
 
-        if (_isHTMLMenu(this.id)) {
-            // Targeting parent to get the menu item <a> and the <li> that contains it
-            $(_getHTMLMenuItem(menuItemID)).parent().remove();
-        } else {
-            brackets.app.removeMenuItem(commandID, function (err) {
-                if (err) {
-                    console.error("removeMenuItem() -- command not found: " + commandID + " (error: " + err + ")");
-                }
-            });
-        }
+        $(_getHTMLMenuItem(menuItemID)).parent().remove();
 
         delete menuItemMap[menuItemID];
     };
@@ -507,21 +485,13 @@ define(function (require, exports, module) {
             return;
         }
 
-        if (_isHTMLMenu(this.id)) {
-            // Targeting parent to get the menu divider <hr> and the <li> that contains it
-            $HTMLMenuItem = $(_getHTMLMenuItem(menuItemID)).parent();
-            if ($HTMLMenuItem) {
-                $HTMLMenuItem.remove();
-            } else {
-                console.error("removeMenuDivider(): HTML menu divider not found: %s", menuItemID);
-                return;
-            }
+        // Targeting parent to get the menu divider <hr> and the <li> that contains it
+        $HTMLMenuItem = $(_getHTMLMenuItem(menuItemID)).parent();
+        if ($HTMLMenuItem) {
+            $HTMLMenuItem.remove();
         } else {
-            brackets.app.removeMenuItem(menuItem.dividerId, function (err) {
-                if (err) {
-                    console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
-                }
-            });
+            console.error("removeMenuDivider(): HTML menu divider not found: %s", menuItemID);
+            return;
         }
 
         if (!menuItemMap[menuItemID]) {
@@ -602,69 +572,28 @@ define(function (require, exports, module) {
         menuItem = new MenuItem(id, command);
         menuItemMap[id] = menuItem;
 
-        // create MenuItem DOM
-        if (_isHTMLMenu(this.id)) {
-            if (name === DIVIDER) {
-                $menuItem = $("<li><hr class='divider' id='" + id + "' /></li>");
-            } else {
-                // Create the HTML Menu
-                $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
 
-                $menuItem.on("click", function () {
-                    menuItem._command.execute();
-                });
-
-                var self = this;
-                $menuItem.on("mouseenter", function () {
-                    self.closeSubMenu();
-                });
-            }
-
-            // Insert menu item
-            var $relativeElement = this._getRelativeMenuItem(relativeID, position);
-            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
-                          $menuItem, position, $relativeElement);
+        if (name === DIVIDER) {
+            $menuItem = $("<li><hr class='divider' id='" + id + "' /></li>");
         } else {
-            var bindings = KeyBindingManager.getKeyBindings(commandID),
-                binding,
-                bindingStr = "",
-                displayStr = "";
+            // Create the HTML Menu
+            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
 
-            if (bindings && bindings.length > 0) {
-                binding = bindings[bindings.length - 1];
-                bindingStr = binding.displayKey || binding.key;
-            }
-
-            if (bindingStr.length > 0) {
-                displayStr = KeyBindingManager.formatKeyDescriptor(bindingStr);
-            }
-
-            if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
-                if (!relativeID.hasOwnProperty("sectionMarker")) {
-                    console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
-                    return null;
-                }
-
-                // For sections, pass in the marker for that section.
-                relativeID = relativeID.sectionMarker;
-            }
-
-            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
-                switch (err) {
-                case NO_ERROR:
-                    break;
-                case ERR_INVALID_PARAMS:
-                    console.error("addMenuItem(): Invalid Parameters when adding the command " + commandID);
-                    break;
-                case ERR_NOT_FOUND:
-                    console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID + " not found in the Menu " + menuID);
-                    break;
-                default:
-                    console.error("addMenuItem(); Unknown Error (" + err + ") when adding the command " + commandID);
-                }
+            $menuItem.on("click", function () {
+                menuItem._command.execute();
             });
-            menuItem.isNative = true;
+
+            var self = this;
+            $menuItem.on("mouseenter", function () {
+                self.closeSubMenu();
+            });
         }
+
+        // Insert menu item
+        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+        _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+                      $menuItem, position, $relativeElement);
+
 
         // Initialize MenuItem state
         if (menuItem.isDivider) {
@@ -805,30 +734,27 @@ define(function (require, exports, module) {
         menu.parentMenuItem = menuItem;
 
         // create MenuItem DOM
-        if (_isHTMLMenu(this.id)) {
-            // Create the HTML MenuItem
-            var $menuItem = $("<li><a href='#' id='" + menuItemID + "'> "   +
-                             "<span class='menu-name'>" + name + "</span>" +
-                             "<span style='float: right'>&rtrif;</span>"   +
-                             "</a></li>");
+        // Create the HTML MenuItem
+        var $menuItem = $("<li><a href='#' id='" + menuItemID + "'> "   +
+                         "<span class='menu-name'>" + name + "</span>" +
+                         "<span style='float: right'>&rtrif;</span>"   +
+                         "</a></li>");
 
-            var self = this;
-            $menuItem.on("mouseenter", function(e) {
-                if (self.openSubMenu && self.openSubMenu.id === menu.id) {
-                    return;
-                }
-                self.closeSubMenu();
-                self.openSubMenu = menu;
-                menu.open();
-            });
+        var self = this;
+        $menuItem.on("mouseenter", function(e) {
+            if (self.openSubMenu && self.openSubMenu.id === menu.id) {
+                return;
+            }
+            self.closeSubMenu();
+            self.openSubMenu = menu;
+            menu.open();
+        });
 
-            // Insert menu item
-            var $relativeElement = this._getRelativeMenuItem(relativeID, position);
-            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
-            $menuItem, position, $relativeElement);
-        } else {
-            // TODO: add submenus for native menus
-        }
+        // Insert menu item
+        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+        _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+        $menuItem, position, $relativeElement);
+
         return menu;
     };
 
@@ -879,12 +805,8 @@ define(function (require, exports, module) {
             }
         });
 
-        if (_isHTMLMenu(this.id)) {
-            $(_getHTMLMenuItem(parentMenuItem.id)).parent().remove(); // remove the menu item
-            $(_getHTMLMenu(subMenuID)).remove(); // remove the menu
-        } else {
-            // TODO: remove submenus for native menus
-        }
+        $(_getHTMLMenuItem(parentMenuItem.id)).parent().remove(); // remove the menu item
+        $(_getHTMLMenu(subMenuID)).remove(); // remove the menu
 
 
         delete menuItemMap[parentMenuItem.id];
@@ -1060,32 +982,6 @@ define(function (require, exports, module) {
         menu = new Menu(id);
         menuMap[id] = menu;
 
-        if (!_isHTMLMenu(id)) {
-            brackets.app.addMenu(name, id, position, relativeID, function (err) {
-                switch (err) {
-                case NO_ERROR:
-                    // Make sure name is up to date
-                    brackets.app.setMenuTitle(id, name, function (err) {
-                        if (err) {
-                            console.error("setMenuTitle() -- error: " + err);
-                        }
-                    });
-                    break;
-                case ERR_UNKNOWN:
-                    console.error("addMenu(): Unknown Error when adding the menu " + id);
-                    break;
-                case ERR_INVALID_PARAMS:
-                    console.error("addMenu(): Invalid Parameters when adding the menu " + id);
-                    break;
-                case ERR_NOT_FOUND:
-                    console.error("addMenu(): Menu with command " + relativeID + " could not be found when adding the menu " + id);
-                    break;
-                default:
-                    console.error("addMenu(): Unknown Error (" + err + ") when adding the menu " + id);
-                }
-            });
-            return menu;
-        }
 
         var $toggle = $("<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + name + "</a>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
@@ -1138,15 +1034,7 @@ define(function (require, exports, module) {
             }
         });
 
-        if (_isHTMLMenu(id)) {
-            $(_getHTMLMenu(id)).remove();
-        } else {
-            brackets.app.removeMenu(id, function (err) {
-                if (err) {
-                    console.error("removeMenu() -- id not found: " + id + " (error: " + err + ")");
-                }
-            });
-        }
+        $(_getHTMLMenu(id)).remove();
 
         delete menuMap[id];
     }

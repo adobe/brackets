@@ -143,7 +143,7 @@ define(function (require, exports, module) {
      */
     var APP_QUIT_CANCELLED = "appQuitCancelled";
 
-    
+
     /**
      * JSLint workaround for circular dependency
      * @type {function}
@@ -161,38 +161,38 @@ define(function (require, exports, module) {
             currentlyViewedPath = currentlyViewedFile && currentlyViewedFile.fullPath,
             readOnlyString      = (currentlyViewedFile && currentlyViewedFile.readOnly) ? "[Read Only] - " : "";
 
-        if (!brackets.nativeMenus) {
-            if (currentlyViewedPath) {
-                _$title.text(_currentTitlePath);
-                _$title.attr("title", currentlyViewedPath);
-                if (currentDoc) {
-                    // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-                    _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
-                } else {
-                    // hide dirty dot if there is no document
-                    _$dirtydot.css("visibility", "hidden");
-                }
+
+        if (currentlyViewedPath) {
+            _$title.text(_currentTitlePath);
+            _$title.attr("title", currentlyViewedPath);
+            if (currentDoc) {
+                // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
             } else {
-                _$title.text("");
-                _$title.attr("title", "");
+                // hide dirty dot if there is no document
                 _$dirtydot.css("visibility", "hidden");
             }
-
-            // Set _$titleWrapper to a fixed width just large enough to accommodate _$title. This seems equivalent to what
-            // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-            // fixed width set on it (see the "#titlebar" CSS rule for details).
-            _$titleWrapper.css("width", "");
-            var newWidth = _$title.width();
-            _$titleWrapper.css("width", newWidth);
-
-            // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
-            // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
-            var newToolbarHeight = _$titleContainerToolbar.height();
-            if (_lastToolbarHeight !== newToolbarHeight) {
-                _lastToolbarHeight = newToolbarHeight;
-                WorkspaceManager.recomputeLayout();
-            }
+        } else {
+            _$title.text("");
+            _$title.attr("title", "");
+            _$dirtydot.css("visibility", "hidden");
         }
+
+        // Set _$titleWrapper to a fixed width just large enough to accommodate _$title. This seems equivalent to what
+        // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
+        // fixed width set on it (see the "#titlebar" CSS rule for details).
+        _$titleWrapper.css("width", "");
+        var newWidth = _$title.width();
+        _$titleWrapper.css("width", newWidth);
+
+        // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
+        // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
+        var newToolbarHeight = _$titleContainerToolbar.height();
+        if (_lastToolbarHeight !== newToolbarHeight) {
+            _lastToolbarHeight = newToolbarHeight;
+            WorkspaceManager.recomputeLayout();
+        }
+
 
         var projectRoot = ProjectManager.getProjectRoot();
         if (projectRoot) {
@@ -867,7 +867,7 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-    
+
     /**
      * Dispatches the app quit cancelled event
      */
@@ -1823,7 +1823,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.showFileOpenError = showFileOpenError;
     exports.APP_QUIT_CANCELLED = APP_QUIT_CANCELLED;
-    
+
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);

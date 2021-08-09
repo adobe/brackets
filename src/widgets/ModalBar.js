@@ -152,10 +152,10 @@ define(function (require, exports, module) {
 
         // Since the modal bar has now an absolute position relative to the editor holder,
         // when there are html menus we need to adjust the top position
-        if (!brackets.nativeMenus) {
-            var top = $("#titlebar").outerHeight();
-            this._$root.css("top", top + "px");
-        }
+
+        var top = $("#titlebar").outerHeight();
+        this._$root.css("top", top + "px");
+
 
         // Preserve scroll position of all visible views
         //  adjusting for the height of the modal bar so the code doesn't appear to shift if possible.
