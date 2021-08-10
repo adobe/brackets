@@ -52,7 +52,7 @@ define(function (require, exports, module) {
      * Takes all dashes and converts them to white spaces. Then takes all first letters
      * and capitalizes them.
      *
-     * @param {string} name is what needs to be procseed to generate a display name
+     * @param {string} name is what needs to be processed to generate a display name
      * @return {string} theme name properly formatted for display
      */
     function toDisplayName(name) {

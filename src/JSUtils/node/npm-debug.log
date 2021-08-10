@@ -1,0 +1,24 @@
+0 info it worked if it ends with ok
+1 verbose cli [
+1 verbose cli   'C:\\Program Files\\nodejs\\node.exe',
+1 verbose cli   'D:\\Projects\\brackets\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'install',
+1 verbose cli   '--production'
+1 verbose cli ]
+2 info using npm@3.10.10
+3 info using node@v16.1.0
+4 silly loadCurrentTree Starting
+5 silly install loadCurrentTree
+6 silly install readLocalPackageData
+7 verbose stack TypeError: cb.apply is not a function
+7 verbose stack     at D:\Projects\brackets\node_modules\npm\node_modules\graceful-fs\polyfills.js:267:18
+7 verbose stack     at FSReqCallback.oncomplete (node:fs:195:5)
+8 verbose cwd D:\Projects\brackets\src\JSUtils\node
+9 error Windows_NT 10.0.22000
+10 error argv "C:\\Program Files\\nodejs\\node.exe" "D:\\Projects\\brackets\\node_modules\\npm\\bin\\npm-cli.js" "install" "--production"
+11 error node v16.1.0
+12 error npm  v3.10.10
+13 error cb.apply is not a function
+14 error If you need help, you may report this error at:
+14 error     <https://github.com/npm/npm/issues>
+15 verbose exit [ 1, true ]
