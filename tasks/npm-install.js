@@ -29,7 +29,6 @@
 module.exports = function (grunt) {
 
     var _       = require("lodash"),
-        build   = require("./build")(grunt),
         common  = require("./lib/common")(grunt),
         exec    = require("child_process").exec,
         fs      = require("fs-extra"),
