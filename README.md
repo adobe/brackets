@@ -14,5 +14,7 @@ Phoenix is a modern open-source code editor for the web.
 Phoenix is based on the Brackets code editor by Adobe. Find out more
 on [Adobe Brackets here](https://github.com/adobe/brackets/).
 
+## License
+MIT 
 
 TODO: update readme
