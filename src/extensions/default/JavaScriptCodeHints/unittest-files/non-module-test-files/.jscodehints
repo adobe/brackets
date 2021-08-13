@@ -1,6 +1,0 @@
-{
-"excluded-directories" : ["/ex[\\w]*ed/"],
-"excluded-files" : ["require.js", "jquery*.js", "less*.min.js", "ember*.js", "d2?.js", "d3*"],
-"max-file-count": 100,
-"max-file-size": 524288
-}

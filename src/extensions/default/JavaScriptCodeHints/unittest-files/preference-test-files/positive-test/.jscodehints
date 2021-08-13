@@ -1,6 +1,0 @@
-{
-    "excluded-directories" : ["excluded-dir1", "/^excluded-dir2-[\\d]$/"],
-    "excluded-files" : ["file1?.js", "file2*.js", "file3.js", "/file4[x|y|z]?.js/"],
-    "max-file-count": 512,
-    "max-file-size": 100000
-}
