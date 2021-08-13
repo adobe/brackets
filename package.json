@@ -12,8 +12,6 @@
         "branch": "",
         "SHA": ""
     },
-    "defaultExtensions": {
-    },
     "dependencies": {
         "anymatch": "1.3.0",
         "async": "2.1.4",
