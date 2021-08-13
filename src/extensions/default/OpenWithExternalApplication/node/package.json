@@ -1,7 +1,0 @@
-{
-  "name": "brackets-open-external_application",
-  "dependencies": {
-    "open": "0.0.5",
-    "glob": "7.1.1"
-  }
-}
