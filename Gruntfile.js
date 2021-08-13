@@ -399,8 +399,7 @@ module.exports = function (grunt) {
     ]);
 
     // task: test
-    grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
-//    grunt.registerTask('test', ['eslint', 'jasmine', 'jasmine_node', 'nls-check']);
+    grunt.registerTask('test', ['eslint', 'jasmine']);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
@@ -429,12 +428,6 @@ module.exports = function (grunt) {
     // task: build
     grunt.registerTask('build', [
         'write-config:dist',
-        'build-common'
-    ]);
-
-    // task: build
-    grunt.registerTask('build-prerelease', [
-        'write-config:prerelease',
         'build-common'
     ]);
 
