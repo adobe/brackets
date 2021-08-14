@@ -81,25 +81,6 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerTask("npm-install-extensions", "Install node_modules for default extensions which have package.json defined", function () {
-        var _done = this.async();
-        glob("src/extensions/**/package.json", function (err, files) {
-            if (err) {
-                grunt.log.error(err);
-                return _done(false);
-            }
-            files = files.filter(function (path) {
-                return path.indexOf("node_modules") === -1;
-            });
-            var done = _.after(files.length, _done);
-            files.forEach(function (file) {
-                runNpmInstall(path.dirname(file), function (err) {
-                    return err ? _done(false) : done();
-                });
-            });
-        });
-    });
-
     grunt.registerTask("npm-install-test", "Install node_modules for tests", function () {
         var _done = this.async();
         var testDirs = [
@@ -127,7 +108,7 @@ module.exports = function (grunt) {
     grunt.registerTask(
         "npm-install-source",
         "Install node_modules for src folder and default extensions which have package.json defined",
-        ["npm-install-src", "copy:thirdparty", "npm-install-extensions", "npm-install-test"]
+        ["npm-install-src", "copy:thirdparty", "npm-install-test"]
     );
 
 };
