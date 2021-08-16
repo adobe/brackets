@@ -33,6 +33,7 @@
  * The virtual file system is rooted at /
  * Application support folder that stores app data is /app/
  * Local user storage space is mounted at path /local/
+ * Trash storage space is mounted at path /trash/
  *
  * This module should be functionally as light weight as possible with minimal deps as it is a shell component.
  * **/
@@ -40,6 +41,7 @@ Phoenix.VFS = {
     getRootDir: () => '/',
     getAppDir: () => '/app/',
     getLocalDir: () => '/local/',
+    getTrashDir: () => '/trash/',
     getDefaultProjectDir: () => '/local/default project/',
     ensureExistsDir : function (path, cb) {
         fs.mkdir(path, function(err) {
@@ -77,6 +79,7 @@ Phoenix.VFS = {
     vfs.ensureExistsDir(vfs.getRootDir(), errorCb);
     vfs.ensureExistsDir(vfs.getAppDir(), errorCb);
     vfs.ensureExistsDir(vfs.getLocalDir(), errorCb);
+    vfs.ensureExistsDir(vfs.getTrashDir(), errorCb);
 
     // Create Phoenix default project if it doesnt exist
     fs.stat(vfs.getDefaultProjectDir(), function (err){

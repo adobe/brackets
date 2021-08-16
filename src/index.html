@@ -1,79 +1,36 @@
-<!doctype html>
-
-<!--
-  Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
-
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
--->
-
-<html spellcheck="false">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <title></title>
-
-    <!-- CSS/LESS -->
-
-    <!-- NOTE: All scripts must be external for Chrome App support: http://developer.chrome.com/apps/app_csp.html -->
-
-    <!-- phoenix port show dev tools at startup -->
-    <script type="text/javascript">
-        //brackets.app.showDeveloperTools();
-
-    </script>
-    <!-- Import the phoenix browser virtual file system -->
-    <script src="thirdparty/filer/filer.min.js"></script>
-    <script src="phoenix/shell.js"></script>
-    <script src="phoenix/init_vfs.js"></script>
-    <!-- Warn about failed cross origin requests in Chrome -->
-    <script type="application/javascript" src="xorigin.js"></script>
-
-    <link rel="stylesheet" type="text/css" href="thirdparty/CodeMirror/lib/codemirror.css">
-    <!--(if target dev)><!-->
-    <link rel="stylesheet/less" type="text/css" href="styles/brackets.less">
-    <!--<!(endif)-->
-    <!--(if target dist)>
-    <link rel="stylesheet" type="text/css" href="styles/brackets.min.css">
-    <!--<!(endif)-->
-
-    <!-- JavaScript -->
-
-    <!-- Pre-load third party scripts that cannot be async loaded. -->
-    <!-- build:js thirdparty/thirdparty.min.js -->
-    <script src="thirdparty/less.min.js"></script>
-    <script src="thirdparty/jquery-2.1.3.min.js"></script>
-    <!-- endbuild -->
 </head>
 <body>
+<h1> Phoenix requires a web server!! </h1>
+<p>Phoenix needs a server hosting phoenix src contents in the url</p>
+<h3 id="url">url</h3>
+<p>Please start a web server at on the same address.</p>
+<h1>Phoenix will now try to load brackets from the local file system.</h1>
 
-    <!-- HTML content is dynamically loaded and rendered by brackets.js.
-         Any modules that depend on or modify HTML during load should
-         require the "utils/AppInit" module and install a callback for
-         "htmlReady" (e.g. AppInit.htmlReady(handler)) before touching the DOM.
-    -->
-
-    <!-- All other scripts are loaded through require. -->
-    <!-- build:js main.js -->
-    <script src="thirdparty/requirejs/require.js" data-main="main"></script>
-    <!-- endbuild -->
-
-    <!-- Verify that all dependencies are loaded. -->
-    <script src="dependencies.js"></script>
+<script type="text/javascript">
+    //if(window.brackets) brackets.app.showDeveloperTools();
+    console.log(window.location);
+    function loadDoc() {
+        const url = "http://127.0.0.1:5500/src/";
+        document.getElementById('url').textContent = url;
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            window.location.replace(url+"index-web.html");
+        }
+        xhttp.onerror = function() {
+            let hh = window.location.href;
+            newLoc = hh.substr(0,hh.lastIndexOf('/')) + '/index-web.html';
+            window.location.replace(newLoc);
+        }
+        xhttp.open("GET", url+"package.json");
+        xhttp.send();
+    }
+    loadDoc();
+</script>
 
 </body>
 </html>

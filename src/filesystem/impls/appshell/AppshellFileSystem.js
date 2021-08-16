@@ -361,6 +361,7 @@ define(function (require, exports, module) {
      * @param {function(?string, string=, FileSystemStats=)} callback
      */
     function readFile(path, options, callback) {
+        console.log('Reading file: ', path);
         var encoding = options.encoding || "utf8";
 
         // callback to be executed when the call to stat completes
@@ -409,6 +410,7 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
+        console.log('Write file: ', path);
         var encoding = options.encoding || "utf8",
             preserveBOM = options.preserveBOM;
 
@@ -468,6 +470,7 @@ define(function (require, exports, module) {
      * @param {function(string)=} callback
      */
     function unlink(path, callback) {
+        console.log('delete file: ', path);
         appshell.fs.unlink(path, function (err) {
             callback(_mapError(err));
         });
@@ -482,6 +485,7 @@ define(function (require, exports, module) {
      * @param {function(string)=} callback
      */
     function moveToTrash(path, callback) {
+        console.log('Trash file: ', path);
         appshell.fs.moveToTrash(path, function (err) {
             callback(_mapError(err));
         });
