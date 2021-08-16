@@ -23,5 +23,4 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"   : "pt-br/Primeiros Passos"
 });

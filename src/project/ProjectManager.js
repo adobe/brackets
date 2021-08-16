@@ -38,6 +38,9 @@
  * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
  *    ProjectManager.on("eventname", handler);
  */
+
+/*global fs, Phoenix*/
+
 define(function (require, exports, module) {
     "use strict";
 
@@ -70,7 +73,8 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView"),
-        ViewUtils           = require("utils/ViewUtils");
+        ViewUtils           = require("utils/ViewUtils"),
+        VFS = Phoenix.VFS;
 
     // Needed to ensure that menus are set up when we need them.
     // See #10115
@@ -429,7 +433,7 @@ define(function (require, exports, module) {
      * Singleton actionCreator that is used for dispatching changes to the ProjectModel.
      */
     var actionCreator = new ActionCreator(model);
-    
+
     /**
      * Returns the File or Directory corresponding to the item that was right-clicked on in the file tree menu.
      * @return {?(File|Directory)}
