@@ -23,5 +23,4 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"           : "da/Kom godt i gang"
 });
