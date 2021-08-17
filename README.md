@@ -1,6 +1,6 @@
 # Welcome to Phoenix!
 
-Phoenix is a modern open-source code editor for the web.
+Phoenix is a modern open-source and free code editor for the web, built for the browser. - under construction.
 
 ## Building Phoenix
 * Require widows for builds in the port window
@@ -11,8 +11,9 @@ Phoenix is a modern open-source code editor for the web.
 * click on brackets to open the debug builds
 
 ## Acknowledgements
-Phoenix is based on the Brackets code editor by Adobe. Find out more
-on [Adobe Brackets here](https://github.com/adobe/brackets/).
+* Phoenix is based on the Brackets code editor by Adobe. Find out more on [Adobe Brackets here](https://github.com/adobe/brackets/).
+* Inspired by previous work from the [Mozilla Thimble](https://github.com/mozilla/thimble.mozilla.org) project to port brackets to the web. https://github.com/mozilla/brackets
+
 
 ## License
 MIT 
