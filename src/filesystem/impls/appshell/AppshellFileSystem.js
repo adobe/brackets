@@ -615,5 +615,5 @@ define(function (require, exports, module) {
      *
      * @type {boolean}
      */
-    exports.normalizeUNCPaths = appshell.platform === "win";
+    exports.normalizeUNCPaths = brackets.platform === "win";
 });

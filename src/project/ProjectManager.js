@@ -73,8 +73,7 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView"),
-        ViewUtils           = require("utils/ViewUtils"),
-        VFS = Phoenix.VFS;
+        ViewUtils           = require("utils/ViewUtils");
 
     // Needed to ensure that menus are set up when we need them.
     // See #10115
