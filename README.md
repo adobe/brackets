@@ -13,6 +13,7 @@ Phoenix is a modern open-source and free code editor for the web, built for the 
 ## Acknowledgements
 * Phoenix is based on the Brackets code editor by Adobe. Find out more on [Adobe Brackets here](https://github.com/adobe/brackets/).
 * Inspired by previous work from the [Mozilla Thimble](https://github.com/mozilla/thimble.mozilla.org) project to port brackets to the web. https://github.com/mozilla/brackets
+* In browser server based on [nohost](https://github.com/humphd/nohost) by https://github.com/humphd/
 
 
 ## License
