@@ -37,57 +37,53 @@
  *
  * This module should be functionally as light weight as possible with minimal deps as it is a shell component.
  * **/
-Phoenix.VFS = {
-    getRootDir: () => '/fs/',
-    getAppDir: () => '/fs/app/',
-    getLocalDir: () => '/fs/local/',
-    getTrashDir: () => '/fs/trash/',
-    getDefaultProjectDir: () => '/fs/local/default project/',
-    ensureExistsDir: function (path, cb) {
-        fs.mkdir(path, function(err) {
-            if (err && err.code !== 'EEXIST') {
-                cb(err);
-            }
-            cb();
-        });
-    },
-    fs: window.Filer.fs,
-    path: window.Filer.path
+
+function _setupVFS(Phoenix, fsLib, pathLib){
+    Phoenix.VFS = {
+        getRootDir: () => '/fs/',
+        getAppSupportDir: () => '/fs/app/',
+        getLocalDir: () => '/fs/local/',
+        getTrashDir: () => '/fs/trash/',
+        getDefaultProjectDir: () => '/fs/local/default project/',
+        ensureExistsDir: function (path, cb) {
+            fs.mkdir(path, function(err) {
+                if (err && err.code !== 'EEXIST') {
+                    cb(err);
+                }
+                cb();
+            });
+        },
+        fs: fsLib,
+        path: pathLib
+    };
+    Phoenix.fs = fsLib;
+    Phoenix.path = pathLib;
+
+    return Phoenix.VFS;
+}
+
+const _FS_ERROR_MESSAGE = 'Oops. Phoenix could not be started due to missing file system library.';
+
+const alertError = function (message, err){
+    window.alert(message);
+    throw new Error(err || message);
 };
 
-(function () {
-    // init vfs
-    let vfs = Phoenix.VFS;
-    let FS_ERROR_MESSAGE = 'Oops. Phoenix could not be started due to missing file system library.';
-
-    let alertError = function (message, err){
-        window.alert(message);
-        throw new Error(err || message);
-    };
-
-    if(!window.fs){
-        alertError(FS_ERROR_MESSAGE);
+const errorCb = function (err){
+    if(err) {
+        alertError(_FS_ERROR_MESSAGE, err);
     }
+};
 
-    let errorCb = function (err){
-        if(err) {
-            alertError(FS_ERROR_MESSAGE, err);
-        }
-    };
-
+const _createAppDirs = function (vfs) {
     // Create phoenix app dirs
     vfs.ensureExistsDir(vfs.getRootDir(), errorCb);
-    vfs.ensureExistsDir(vfs.getAppDir(), errorCb);
+    vfs.ensureExistsDir(vfs.getAppSupportDir(), errorCb);
     vfs.ensureExistsDir(vfs.getLocalDir(), errorCb);
     vfs.ensureExistsDir(vfs.getTrashDir(), errorCb);
+};
 
-    // Create Phoenix default project if it doesnt exist
-    fs.stat(vfs.getDefaultProjectDir(), function (err){
-        if (err && err.code === 'ENOENT') {
-            let projectDir = vfs.getDefaultProjectDir();
-            let indexFile = vfs.path.normalize(`${projectDir}/index.html`);
-            vfs.ensureExistsDir(vfs.getDefaultProjectDir(), errorCb);
-            let html = `<!DOCTYPE html>
+const _SAMPLE_HTML = `<!DOCTYPE html>
 <html>
     <head>
         <title>Page Title</title>
@@ -98,8 +94,29 @@ Phoenix.VFS = {
         <p>This is a paragraph.</p>
     </body>
 </html>`;
-            fs.writeFile(indexFile, html, 'utf8', errorCb);
+
+const _createDefaultProject = function (vfs) {
+    // Create phoenix app dirs
+    // Create Phoenix default project if it doesnt exist
+    vfs.fs.stat(vfs.getDefaultProjectDir(), function (err){
+        if (err && err.code === 'ENOENT') {
+            let projectDir = vfs.getDefaultProjectDir();
+            let indexFile = vfs.path.normalize(`${projectDir}/index.html`);
+            vfs.ensureExistsDir(vfs.getDefaultProjectDir(), errorCb);
+
+            fs.writeFile(indexFile, _SAMPLE_HTML, 'utf8', errorCb);
         }
     });
-}());
+};
+
+
+export default function init(Phoenix, FilerLib) {
+    if(!FilerLib || !Phoenix){
+        alertError(_FS_ERROR_MESSAGE);
+    }
+
+    const vfs = _setupVFS(Phoenix, FilerLib.fs, FilerLib.path);
+    _createAppDirs(vfs);
+    _createDefaultProject(vfs);
+}
 
