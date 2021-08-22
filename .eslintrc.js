@@ -90,5 +90,11 @@ module.exports = {
           "blockBindings": true,
           "classes": true
         }
-    }
+    },
+    "overrides":[{
+        "files": ["src/phoenix/init_vfs.js"],
+        "parserOptions": {
+            "sourceType": "module"
+        }
+    }]
 };

@@ -38,11 +38,11 @@
  * This module should be functionally as light weight as possible with minimal deps as it is a shell component.
  * **/
 Phoenix.VFS = {
-    getRootDir: () => '/',
-    getAppDir: () => '/app/',
-    getLocalDir: () => '/local/',
-    getTrashDir: () => '/trash/',
-    getDefaultProjectDir: () => '/local/default project/',
+    getRootDir: () => '/fs/',
+    getAppDir: () => '/fs/app/',
+    getLocalDir: () => '/fs/local/',
+    getTrashDir: () => '/fs/trash/',
+    getDefaultProjectDir: () => '/fs/local/default project/',
     ensureExistsDir : function (path, cb) {
         fs.mkdir(path, function(err) {
             if (err && err.code !== 'EEXIST') {

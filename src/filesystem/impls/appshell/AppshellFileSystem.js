@@ -21,7 +21,7 @@
  *
  */
 
-/*global appshell */
+/*global appshell, window, define, console*/
 
 define(function (require, exports, module) {
     "use strict";
