@@ -42,7 +42,7 @@
 /*global fs, Phoenix*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     require("utils/Global");
 
@@ -505,9 +505,9 @@ define(function (require, exports, module) {
      * Creates a context object for doing project view state lookups.
      */
     function _getProjectViewStateContext() {
-        return { location : { scope: "user",
-                             layer: "project",
-                             layerID: model.projectRoot.fullPath } };
+        return { location: { scope: "user",
+            layer: "project",
+            layerID: model.projectRoot.fullPath } };
     }
 
     /**
@@ -733,9 +733,9 @@ define(function (require, exports, module) {
     function updateWelcomeProjectPath(path) {
         if (isWelcomeProjectPath(path)) {
             return _getWelcomeProjectPath();
-        } else {
-            return path;
         }
+        return path;
+
     }
 
     /**
@@ -942,8 +942,8 @@ define(function (require, exports, module) {
         }
 
         startLoad.done(function () {
-            var context = { location : { scope: "user",
-                                         layer: "project" } };
+            var context = { location: { scope: "user",
+                layer: "project" } };
 
             // Clear project path map
             if (!isUpdating) {
@@ -1166,9 +1166,9 @@ define(function (require, exports, module) {
             var id = LanguageManager.getLanguageForPath(file.fullPath).getId();
             if (typeof languageId === "string") {
                 return (id === languageId);
-            } else {
-                return (languageId.indexOf(id) !== -1);
             }
+            return (languageId.indexOf(id) !== -1);
+
         };
     }
 
@@ -1359,28 +1359,28 @@ define(function (require, exports, module) {
                 window.setTimeout(function () {
                     if (isMoved) {
                         switch (errorInfo.type) {
-                            case FileSystemError.ALREADY_EXISTS:
-                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
-                                break;
-                            case ProjectModel.ERROR_NOT_IN_PROJECT:
-                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.ERROR_MOVING_NOT_IN_PROJECT, errorInfo.fullPath);
-                                break;
-                            default:
-                                _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        case FileSystemError.ALREADY_EXISTS:
+                            _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                            break;
+                        case ProjectModel.ERROR_NOT_IN_PROJECT:
+                            _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, Strings.ERROR_MOVING_NOT_IN_PROJECT, errorInfo.fullPath);
+                            break;
+                        default:
+                            _showErrorDialog(ERR_TYPE_MOVE, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
                         }
                     } else {
                         switch (errorInfo.type) {
-                            case ProjectModel.ERROR_INVALID_FILENAME:
-                                _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
-                                break;
-                            case FileSystemError.ALREADY_EXISTS:
-                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
-                                break;
-                            case ProjectModel.ERROR_NOT_IN_PROJECT:
-                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
-                                break;
-                            default:
-                                _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        case ProjectModel.ERROR_INVALID_FILENAME:
+                            _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
+                            break;
+                        case FileSystemError.ALREADY_EXISTS:
+                            _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                            break;
+                        case ProjectModel.ERROR_NOT_IN_PROJECT:
+                            _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
+                            break;
+                        default:
+                            _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
                         }
                     }
                 }, 10);

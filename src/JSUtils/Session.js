@@ -24,7 +24,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var StringMatch     = require("utils/StringMatch"),
         TokenUtils      = require("utils/TokenUtils"),
@@ -131,9 +131,9 @@ define(function (require, exports, module) {
 
         if (cursor) {
             return TokenUtils.getTokenAt(cm, cursor);
-        } else {
-            return TokenUtils.getTokenAt(cm, this.getCursor());
         }
+        return TokenUtils.getTokenAt(cm, this.getCursor());
+
     };
 
     /**
@@ -166,12 +166,12 @@ define(function (require, exports, module) {
 
         if (cursor.ch < line.length) {
             return {
-                ch  : cursor.ch + 1,
+                ch: cursor.ch + 1,
                 line: cursor.line
             };
-        } else {
-            return null;
         }
+        return null;
+
     };
 
     /**
@@ -289,14 +289,14 @@ define(function (require, exports, module) {
         } else if (token.string === "(") {
             this._getPreviousToken(cursor);
             return this.getContext(cursor, --depth);
-        } else {
-            if (depth > 0 || token.string === ".") {
-                this._getPreviousToken(cursor);
-                return this.getContext(cursor, depth);
-            } else {
-                return token.string;
-            }
         }
+        if (depth > 0 || token.string === ".") {
+            this._getPreviousToken(cursor);
+            return this.getContext(cursor, depth);
+        }
+        return token.string;
+
+
     };
 
     /**
@@ -310,14 +310,14 @@ define(function (require, exports, module) {
         // If the cursor is right after the dot, then the current token will be "."
         if (token && token.string === ".") {
             return cursor;
-        } else {
+        }
             // If something has been typed like 'foo.b' then we have to look back 2 tokens
             // to get past the 'b' token
-            token = this._getPreviousToken(cursor);
-            if (token && token.string === ".") {
-                return cursor;
-            }
+        token = this._getPreviousToken(cursor);
+        if (token && token.string === ".") {
+            return cursor;
         }
+
         return undefined;
     };
 
@@ -779,10 +779,10 @@ define(function (require, exports, module) {
             });
 
             return text;
-        } else {
-            // Javascript file, just return the text
-            return this.editor.document.getText();
         }
+            // Javascript file, just return the text
+        return this.editor.document.getText();
+
     };
 
     /**

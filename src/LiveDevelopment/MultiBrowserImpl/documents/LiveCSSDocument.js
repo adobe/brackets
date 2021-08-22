@@ -42,7 +42,7 @@
  *      2nd argument to the listener will be this LiveCSSDocument.
  */
 define(function LiveCSSDocumentModule(require, exports, module) {
-    "use strict";
+
 
     var _               = require("thirdparty/lodash"),
         CSSUtils        = require("language/CSSUtils"),

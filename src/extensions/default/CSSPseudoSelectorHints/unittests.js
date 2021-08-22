@@ -24,7 +24,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils             = brackets.getModule("spec/SpecRunnerUtils"),
         CSSPseudoSelectorCodeHints  = require("main"),
@@ -41,7 +41,7 @@ define(function (require, exports, module) {
                              "} \n" +
                              ".selector4::f { \n" +
                              "} \n";
-                             
+
 
         var testDocument, testEditor;
 
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
             expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
             expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
-        
+
         function verifyFirstEntry(hintList, expectedFirstHint) {
             expect(hintList[0]).toBe(expectedFirstHint);
         }
@@ -117,11 +117,11 @@ define(function (require, exports, module) {
             expect(hintList.length).toBe(values.length);
             expect(hintList.sort().toString()).toBe(values.sort().toString());
         }
-        
+
         var modesToTest = ['css', 'scss', 'less'],
             modeCounter;
-        
-        
+
+
         var selectMode = function () {
             return modesToTest[modeCounter];
         };
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                 testEditor = null;
                 testDocument = null;
             });
-            
+
             var testAllHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 11 });    // after :
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
@@ -153,16 +153,16 @@ define(function (require, exports, module) {
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "not(selectors)");  // filtered on "n"
                     verifyListsAreIdentical(hintList, ["not(selectors)",
-                                                       "nth-child(n)",
-                                                       "nth-last-child(n)",
-                                                       "nth-last-of-type(n)",
-                                                       "nth-of-type(n)"]);
+                        "nth-child(n)",
+                        "nth-last-child(n)",
+                        "nth-last-of-type(n)",
+                        "nth-of-type(n)"]);
                 },
                 testNoHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 10 });    // after {
                     expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, 'a')).toBe(false);
                 };
-            
+
             for (modeCounter in modesToTest) {
                 it("should list all Pseudo selectors right after :", testAllHints);
                 it("should list filtered pseudo selectors right after :n", testFilteredHints);
@@ -185,7 +185,7 @@ define(function (require, exports, module) {
                 testEditor = null;
                 testDocument = null;
             });
-            
+
             var testAllHints = function () {
                     testEditor.setCursorPos({ line: 2, ch: 12 });    // after ::
                     var hintList = expectHints(CSSPseudoSelectorCodeHints.pseudoSelectorHints);
@@ -199,13 +199,13 @@ define(function (require, exports, module) {
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "first-letter");  // filtered on "f"
                     verifyListsAreIdentical(hintList, ["first-letter",
-                                                       "first-line"]);
+                        "first-line"]);
                 },
                 testNoHints = function () {
                     testEditor.setCursorPos({ line: 2, ch: 10 });    // after ::f
                     expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, 'c')).toBe(false);
                 };
-            
+
             for (modeCounter in modesToTest) {
                 it("should list all Pseudo selectors right after :", testAllHints);
                 it("should list filtered pseudo selectors right after ::f", testFilteredHints);

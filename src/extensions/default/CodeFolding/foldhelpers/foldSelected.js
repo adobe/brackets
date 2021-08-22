@@ -5,7 +5,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     /**
      * This helper returns the start and end range representing the current selection in the editor.

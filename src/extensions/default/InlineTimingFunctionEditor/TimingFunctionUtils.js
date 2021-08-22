@@ -27,7 +27,7 @@
  *  Utilities functions related to color matching
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Strings         = brackets.getModule("strings"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
@@ -72,7 +72,7 @@ define(function (require, exports, module) {
 
         return {
             isNumber: isNum,
-            value:    val
+            value: val
         };
     }
 
@@ -326,9 +326,9 @@ define(function (require, exports, module) {
             match = _getValidBezierParams(match);
             if (match && _validateCubicBezierParams(match)) {
                 return _tagMatch(match, BEZIER);
-            } else { // this should not happen!
-                window.console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
-            }
+            }  // this should not happen!
+            window.console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
+
         }
 
         // Next look for the ease functions (which are special cases of cubic-bezier())
@@ -395,9 +395,9 @@ define(function (require, exports, module) {
             match = _getValidStepsParams(match);
             if (match && _validateStepsParams(match)) {
                 return _tagMatch(match, STEP);
-            } else { // this should not happen!
-                window.console.log("brackets-steps: TimingFunctionUtils._getValidStepsParams created invalid code");
-            }
+            }  // this should not happen!
+            window.console.log("brackets-steps: TimingFunctionUtils._getValidStepsParams created invalid code");
+
         }
 
         // Next look for the step functions (which are special cases of steps())

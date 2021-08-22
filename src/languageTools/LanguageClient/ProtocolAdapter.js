@@ -25,7 +25,7 @@
 /*eslint-env es6, node*/
 /*eslint max-len: ["error", { "code": 200 }]*/
 /*eslint no-fallthrough: 0*/
-"use strict";
+
 
 var protocol = require("vscode-languageserver-protocol"),
     Utils = require("./Utils"),

@@ -42,7 +42,7 @@
  * via user action. This triggers panelCollapsed/panelExpanded events - see makeResizable().
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var DIRECTION_VERTICAL = "vert";
     var DIRECTION_HORIZONTAL = "horz";
@@ -213,31 +213,31 @@ define(function (require, exports, module) {
                     // calling the function as a getter
                     if (direction === DIRECTION_HORIZONTAL) {
                         return this.width();
-                    } else {
-                        return this.height();
                     }
+                    return this.height();
+
                 } else if (!usePercentages) {
                     if (direction === DIRECTION_HORIZONTAL) {
                         return this.width(newSize);
-                    } else {
-                        return this.height(newSize);
                     }
-                } else {
-                    // calling the function as a setter
-                    var parentSize = parentSizeFunction.apply($parent),
-                        percentage,
-                        prop;
+                    return this.height(newSize);
 
-                    if (direction === DIRECTION_HORIZONTAL) {
-                        prop = "width";
-                    } else {
-                        prop = "height";
-                    }
-                    percentage = newSize / parentSize;
-                    this.css(prop, (percentage * 100) + "%");
-
-                    return this; // chainable
                 }
+                    // calling the function as a setter
+                var parentSize = parentSizeFunction.apply($parent),
+                    percentage,
+                    prop;
+
+                if (direction === DIRECTION_HORIZONTAL) {
+                    prop = "width";
+                } else {
+                    prop = "height";
+                }
+                percentage = newSize / parentSize;
+                this.css(prop, (percentage * 100) + "%");
+
+                return this; // chainable
+
             },
 
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",

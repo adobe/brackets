@@ -24,7 +24,7 @@
 /**
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var EventDispatcher = require("utils/EventDispatcher");
 
@@ -138,32 +138,32 @@ define(function (require, exports, module) {
         // Normal case: update the range end points if any content was added before them. Note that
         // we don't rely on line handles for this since we want to gracefully handle cases where the
         // start or end line was deleted during a change.
-        } else {
-            var numAdded = change.text.length - (change.to.line - change.from.line + 1);
-            var result = {hasChanged: false, hasContentChanged: false};
+        }
+        var numAdded = change.text.length - (change.to.line - change.from.line + 1);
+        var result = {hasChanged: false, hasContentChanged: false};
 
             // This logic is so simple because we've already excluded all cases where the change
             // crosses the range boundaries
-            if (numAdded !== 0) {
-                if (change.to.line < this.startLine) {
-                    this.startLine += numAdded;
-                    result.hasChanged = true;
-                }
-                if (change.to.line <= this.endLine) {
-                    this.endLine += numAdded;
-                    result.hasChanged = true;
-                }
+        if (numAdded !== 0) {
+            if (change.to.line < this.startLine) {
+                this.startLine += numAdded;
+                result.hasChanged = true;
             }
-            if (change.from.line >= this.startLine && change.from.line <= this.endLine) {
+            if (change.to.line <= this.endLine) {
+                this.endLine += numAdded;
+                result.hasChanged = true;
+            }
+        }
+        if (change.from.line >= this.startLine && change.from.line <= this.endLine) {
                 // Since we know the change doesn't cross the range boundary, as long as the
                 // start of the change is within the range, we know the content changed.
-                result.hasContentChanged = true;
-            }
+            result.hasContentChanged = true;
+        }
 
             // console.log("Now " + this);
 
-            return result;
-        }
+        return result;
+
     };
 
     /**

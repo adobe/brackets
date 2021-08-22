@@ -23,5 +23,5 @@
 
 define({
     // product-specific strings
-    "APP_NAME"                             : "Заграде"
+    "APP_NAME": "Заграде"
 });

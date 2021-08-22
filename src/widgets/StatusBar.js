@@ -28,7 +28,7 @@
  * assume it's only used for this one purpose, and all the APIs are on a singleton).
  */
 define(function (require, exports, module) {
-    'use strict';
+
 
     var AppInit          = require("utils/AppInit"),
         StatusBarHTML    = require("text!widgets/StatusBar.html"),

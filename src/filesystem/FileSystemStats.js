@@ -25,7 +25,7 @@
  * The FileSystemStats represents a particular FileSystemEntry's stats.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     /**
      * @constructor

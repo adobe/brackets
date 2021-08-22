@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var EventDispatcher = require("utils/EventDispatcher");
 
@@ -535,10 +535,10 @@ define(function (require, exports, module) {
                     var id = self._getNextCommandID();
                     self._pendingCommandDeferreds[id] = deferred;
                     self._send({id: id,
-                               domain: domainName,
-                               command: commandSpec.name,
-                               parameters: parameters
-                               });
+                        domain: domainName,
+                        command: commandSpec.name,
+                        parameters: parameters
+                    });
                     return deferred;
                 };
             }

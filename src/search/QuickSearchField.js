@@ -35,7 +35,7 @@
  *      input.no-results
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var KeyEvent = require("utils/KeyEvent");
 
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
 
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
-        
+
         // For search History this value is set to null
         this._firstHighlightIndex = options.firstHighlightIndex;
 

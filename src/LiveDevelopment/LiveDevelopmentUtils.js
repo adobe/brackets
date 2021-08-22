@@ -25,7 +25,7 @@
  * Set of utilities for working with files and text content.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var LanguageManager = require("language/LanguageManager"),
         ProjectManager  = require("project/ProjectManager");

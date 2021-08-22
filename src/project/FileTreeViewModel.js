@@ -31,7 +31,7 @@
  * change event when they're done whereas the functions do not do this.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Immutable           = require("thirdparty/immutable"),
         _                   = require("thirdparty/lodash"),
@@ -541,9 +541,9 @@ define(function (require, exports, module) {
         treeData = treeData.updateIn(objectPath, function (directory) {
             if (open) {
                 return directory.set("open", true);
-            } else {
-                return directory.delete("open");
             }
+            return directory.delete("open");
+
         });
 
         if (open && (directory.get("children") === null || directory.get("notFullyLoaded"))) {

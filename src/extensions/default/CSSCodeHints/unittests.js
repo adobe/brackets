@@ -24,7 +24,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         testContentCSS  = require("text!unittest-files/regions.css"),
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
                              " bordborder: \n" +
                              " color\n" +
                              "} \n";
-                             
+
         var defaultHTMLContent = "<html> \n" +
                                  "<head> \n" +
                                  "</head> \n" +
@@ -210,10 +210,10 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"
                 verifyListsAreIdentical(hintList, ["border-color",
-                                                   "border-left-color",
-                                                   "border-top-color",
-                                                   "border-bottom-color",
-                                                   "border-right-color"]);
+                    "border-left-color",
+                    "border-top-color",
+                    "border-bottom-color",
+                    "border-right-color"]);
             });
 
             it("should list prop-name hints at end of property-value finished by ;", function () {
@@ -422,18 +422,18 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 10, ch: 5 });    // inside style, after colo
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyListsAreIdentical(hintList, ["color",
-                                                   "border-color",
-                                                   "background-color",
-                                                   "border-left-color",
-                                                   "border-top-color",
-                                                   "outline-color",
-                                                   "border-bottom-color",
-                                                   "border-right-color",
-                                                   "text-decoration-color",
-                                                   "text-emphasis-color",
-                                                   "column-count",
-                                                   "column-rule-color",
-                                                   "background-blend-mode"]);
+                    "border-color",
+                    "background-color",
+                    "border-left-color",
+                    "border-top-color",
+                    "outline-color",
+                    "border-bottom-color",
+                    "border-right-color",
+                    "text-decoration-color",
+                    "text-emphasis-color",
+                    "column-count",
+                    "column-rule-color",
+                    "background-blend-mode"]);
             });
 
             it("should NOT list prop-name hints between closed styletag and new opening styletag", function () {
@@ -452,7 +452,7 @@ define(function (require, exports, module) {
             });
 
         });
-        
+
         describe("CSS Hint provider in style attribute value context for html mode", function () {
 
             beforeEach(function () {
@@ -467,7 +467,7 @@ define(function (require, exports, module) {
                 testEditor = null;
                 testDocument = null;
             });
-            
+
             it("should list all prop-name hints right after the open quote for style value context", function () {
                 testEditor.setCursorPos({ line: 4, ch: 12 });    // after "='"
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
@@ -514,10 +514,10 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"
                 verifyListsAreIdentical(hintList, ["border-color",
-                                                   "border-left-color",
-                                                   "border-top-color",
-                                                   "border-bottom-color",
-                                                   "border-right-color"]);
+                    "border-left-color",
+                    "border-top-color",
+                    "border-bottom-color",
+                    "border-right-color"]);
             });
 
             it("should list prop-name hints at end of property-value finished by ; for style value context", function () {
@@ -535,7 +535,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 10, ch: 20 });    // after "'"
                 expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
-            
+
         });
 
 

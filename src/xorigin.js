@@ -25,7 +25,7 @@
  * Function to test whether a given error represents an illegal cross origin access
  */
 (function () {
-    "use strict";
+
 
     var testCrossOriginError;
 

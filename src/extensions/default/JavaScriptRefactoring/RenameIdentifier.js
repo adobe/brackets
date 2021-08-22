@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var EditorManager        = brackets.getModule("editor/EditorManager"),
         ScopeManager         = brackets.getModule("JSUtils/ScopeManager"),
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
                 var isInTextRange  = !refs.find(function(item) {
                     return (item.start.line < inlineWidget._startLine || item.end.line > inlineWidget._endLine);
                 });
-                
+
                 if (!isInTextRange) {
                     editor.displayErrorMessageAtCursor(Strings.ERROR_RENAME_QUICKEDIT);
                     return;

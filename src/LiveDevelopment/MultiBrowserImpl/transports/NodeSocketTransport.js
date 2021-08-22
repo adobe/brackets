@@ -27,7 +27,7 @@
 // the browser for the other end of the transport.
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileUtils       = require("file/FileUtils"),
         EventDispatcher = require("utils/EventDispatcher"),

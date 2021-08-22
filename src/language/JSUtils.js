@@ -25,7 +25,7 @@
  * Set of utilities for simple parsing of JS text.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _          = require("thirdparty/lodash"),
         Acorn      = require("thirdparty/acorn/dist/acorn"),
@@ -62,15 +62,15 @@ define(function (require, exports, module) {
             resultNode,
             memberPrefix,
             match;
-   
+
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
-        
+
         try {
             AST = Acorn.parse(text, {locations: true});
         } catch (e) {
             AST = AcornLoose.parse_dammit(text, {locations: true});
         }
-        
+
         function _addResult(node, offset, prefix) {
             memberPrefix = prefix ? prefix + " - " : "";
             resultNode = node.id || node.key || node;
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
                 }
             );
         }
-        
+
         ASTWalker.simple(AST, {
             /*
                 function <functionName> () {}
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                     /*
                         class <className> () {
                             <methodName> () {
-                            
+
                             }
                         }
                     */
@@ -118,10 +118,10 @@ define(function (require, exports, module) {
                 });
             },
             /*
-                var <functionName> = function () {} 
-                
-                or 
-                
+                var <functionName> = function () {}
+
+                or
+
                 var <functionName> = () => {}
             */
             VariableDeclarator: function (node) {
@@ -262,10 +262,10 @@ define(function (require, exports, module) {
             }
 
             rangeResults.push({
-                document:   doc,
-                name:       functionName,
-                lineStart:  funcEntry.lineStart,
-                lineEnd:    funcEntry.lineEnd
+                document: doc,
+                name: functionName,
+                lineStart: funcEntry.lineStart,
+                lineEnd: funcEntry.lineEnd
             });
         });
     }

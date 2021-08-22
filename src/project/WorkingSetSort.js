@@ -25,7 +25,7 @@
  * Manages the workingSetList sort methods.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -64,9 +64,9 @@ define(function (require, exports, module) {
      * @type {object.<string: string>} oldname: newname
      */
     var _sortPrefConversionMap = {
-        "view.sortWorkingSetByAdded" : "cmd.sortWorkingSetByAdded",
-        "view.sortWorkingSetByName"  : "cmd.sortWorkingSetByName",
-        "view.sortWorkingSetByType"  : "cmd.sortWorkingSetByType"
+        "view.sortWorkingSetByAdded": "cmd.sortWorkingSetByAdded",
+        "view.sortWorkingSetByName": "cmd.sortWorkingSetByName",
+        "view.sortWorkingSetByType": "cmd.sortWorkingSetByType"
     };
 
     /**

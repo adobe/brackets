@@ -27,7 +27,7 @@
 // protocol handler so that the transport can be changed separately.
 
 (function (global) {
-    "use strict";
+
 
     var WebSocketTransport = {
         /**

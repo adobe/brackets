@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var AppInit             = brackets.getModule("utils/AppInit"),
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         } else if (token.type === "variable-3") {
             slicedToken = cursorText.substr(0, token.start).slice(-3);
         }
-        
+
         if (!slicedToken) {
             //We get here when in SCSS mode and the cursor is right after ':'
             //Test the previous token first
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
      */
     function PseudoSelectorHints() {
     }
-    
+
     function _validatePseudoContext(token) {
         return token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR;
     }
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
 
         // validate and keep the context in scope so that it can be used while getting description
         this.context = _getPseudoContext(token, lineTillCursor, ctx);
-        
+
         // If we are not able to find context, don't proceed
         if (this.context === -1) {
             return null;
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
         // Register code hint providers
         var pseudoSelectorHints = new PseudoSelectorHints();
         CodeHintManager.registerHintProvider(pseudoSelectorHints, ["css", "scss", "less"], 0);
-        
+
         // For test
         exports.pseudoSelectorHints = pseudoSelectorHints;
     });

@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var KeyBindingManager = require("command/KeyBindingManager"),
@@ -417,7 +417,7 @@ define(function (require, exports, module) {
             if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 event.stopImmediatePropagation();
                 this.handleClose();
-                
+
                 return false;
             } else if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
@@ -530,7 +530,7 @@ define(function (require, exports, module) {
         if (this.hints.length) {
             var hintPos = this._calcHintListLocation();
             this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top,
-                                "width": hintPos.width + "px"});
+                "width": hintPos.width + "px"});
         }
     };
     /**

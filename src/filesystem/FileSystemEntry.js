@@ -60,7 +60,7 @@
  * callback should always be a nullable error string from FileSystemError.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
@@ -207,12 +207,12 @@ define(function (require, exports, module) {
             if (watchedRoot.status === WatchedRoot.ACTIVE ||
                     (relaxed && watchedRoot.status === WatchedRoot.STARTING)) {
                 return filterResult;
-            } else {
-                // We had a watched root, but it's no longer active, so it must now be invalid.
-                this._watchedRoot = undefined;
-                this._watchedRootFilterResult = false;
-                this._clearCachedData();
             }
+                // We had a watched root, but it's no longer active, so it must now be invalid.
+            this._watchedRoot = undefined;
+            this._watchedRootFilterResult = false;
+            this._clearCachedData();
+
         }
         return false;
     };
@@ -503,7 +503,7 @@ define(function (require, exports, module) {
             var nextOptions = {
                 maxDepth: maxDepth,
                 maxEntriesCounter: maxEntriesCounter,
-                sortList : sortList
+                sortList: sortList
             };
 
             //sort entries if required

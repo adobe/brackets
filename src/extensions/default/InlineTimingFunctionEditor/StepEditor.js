@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var KeyEvent    = brackets.getModule("utils/KeyEvent"),
         Strings     = brackets.getModule("strings"),
@@ -162,15 +162,15 @@ define(function (require, exports, module) {
                 p = [];
 
             var defaultSettings = {
-                bgColor:        "transparent",
-                borderColor:    "#bbb",
-                stepColor:      "#2893ef",
-                dashColor:      "#b8b8b8",
-                borderWidth:    0.00667,
-                stepLineWidth:  0.02,
-                dashLineWidth:  0.008,
+                bgColor: "transparent",
+                borderColor: "#bbb",
+                stepColor: "#2893ef",
+                dashColor: "#b8b8b8",
+                borderWidth: 0.00667,
+                stepLineWidth: 0.02,
+                dashLineWidth: 0.008,
                 pointLineWidth: 0.008,
-                pointRadius:    0.015
+                pointRadius: 0.015
             };
 
             this.settings = settings || {};
@@ -372,18 +372,18 @@ define(function (require, exports, module) {
         if (match[0].match(/^steps/)) {
             // steps()
             return {
-                count:  parseInt(match[1], 10),
+                count: parseInt(match[1], 10),
                 timing: match[2] || "end"
             };
-        } else {
-            // handle special cases of steps functions
-            switch (match[0]) {
-            case "step-start":
-                return { count: 1, timing: "start" };
-            case "step-end":
-                return { count: 1, timing: "end" };
-            }
         }
+            // handle special cases of steps functions
+        switch (match[0]) {
+        case "step-start":
+            return { count: 1, timing: "start" };
+        case "step-end":
+            return { count: 1, timing: "end" };
+        }
+
 
         window.console.log("step timing function: _getStepParams() passed invalid RegExp match array");
         return { count: 1, timing: "end" };
@@ -399,10 +399,10 @@ define(function (require, exports, module) {
             canvasOffset = $canvas.offset();
 
         return {
-            left:    canvasOffset.left,
-            top:     canvasOffset.top,
-            width:   $canvas.width(),
-            height:  $canvas.height()
+            left: canvasOffset.left,
+            top: canvasOffset.top,
+            width: $canvas.width(),
+            height: $canvas.height()
         };
     };
 

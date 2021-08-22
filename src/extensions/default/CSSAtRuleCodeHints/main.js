@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var AppInit         = brackets.getModule("utils/AppInit"),
@@ -57,10 +57,10 @@ define(function (require, exports, module) {
                 || (token.type === "variable-2" && (cmState.context.type === "top" || cmState.context.type === "block"))) {
             this.filter = token.string;
             return true;
-        } else {
-            this.filter = null;
-            return false;
         }
+        this.filter = null;
+        return false;
+
     };
 
     AtRuleHints.prototype.getHints = function (implicitChar) {
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
 
         this.filter = token.string;
         this.token = token;
-        
+
         if (!this.filter) {
             return null;
         }
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
         // Register code hint providers
         var restrictedBlockHints = new AtRuleHints();
         CodeHintManager.registerHintProvider(restrictedBlockHints, ["css", "less", "scss"], 0);
-        
+
         // For unit testing
         exports.restrictedBlockHints = restrictedBlockHints;
     });

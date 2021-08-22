@@ -26,7 +26,7 @@
  * to be essentially private implementation that can be overridden for tests.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var PreferencesBase = require("./PreferencesBase"),
         Async           = require("utils/Async"),

@@ -26,7 +26,7 @@
  *
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Dialogs                = require("widgets/Dialogs"),
         ProjectManager         = require("project/ProjectManager"),
@@ -89,10 +89,10 @@ define(function (require, exports, module) {
         title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
 
         var templateVars = {
-            title        : title,
-            baseUrl      : baseUrl,
-            errorMessage : errorMessage,
-            Strings      : Strings
+            title: title,
+            baseUrl: baseUrl,
+            errorMessage: errorMessage,
+            Strings: Strings
         };
 
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));

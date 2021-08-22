@@ -28,7 +28,7 @@
  *  - Handle matches that span multiple lines
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit           = require("utils/AppInit"),
         CommandManager    = require("command/CommandManager"),
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
      * @type {Function}
      */
     var _finishReplaceBatch;
-    
+
     /**
      * Does a search in the given scope with the given filter. Shows the result list once the search is complete.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
@@ -329,9 +329,9 @@ define(function (require, exports, module) {
                         message,
                         [
                             {
-                                className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                                id        : Dialogs.DIALOG_BTN_OK,
-                                text      : Strings.BUTTON_REPLACE_WITHOUT_UNDO
+                                className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id: Dialogs.DIALOG_BTN_OK,
+                                text: Strings.BUTTON_REPLACE_WITHOUT_UNDO
                             }
                         ]
                     );
@@ -352,14 +352,14 @@ define(function (require, exports, module) {
                 StringUtils.format(Strings.REPLACE_WITHOUT_UNDO_WARNING, MAX_IN_MEMORY),
                 [
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                        id        : Dialogs.DIALOG_BTN_CANCEL,
-                        text      : Strings.CANCEL
+                        className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id: Dialogs.DIALOG_BTN_CANCEL,
+                        text: Strings.CANCEL
                     },
                     {
-                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id        : Dialogs.DIALOG_BTN_OK,
-                        text      : Strings.BUTTON_REPLACE_WITHOUT_UNDO
+                        className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id: Dialogs.DIALOG_BTN_OK,
+                        text: Strings.BUTTON_REPLACE_WITHOUT_UNDO
                     }
                 ]
             )
@@ -457,7 +457,7 @@ define(function (require, exports, module) {
     function closeResultsPanel() {
         _resultsView.close();
         _closeFindBar();
-	}
+    }
 
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {

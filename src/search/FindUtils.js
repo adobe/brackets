@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
@@ -84,15 +84,15 @@ define(function (require, exports, module) {
                     // slice the first dollar (but leave any others to get unescaped below) and return the
                     // whole match
                     return dollars.substr(1) + (match[0] || "");
-                } else {
+                }
                     // now we're sure index is an integer, so we can parse it
-                    var parsedIndex = parseInt(index, 10);
-                    if (parsedIndex !== 0) { // handle $n or $nn, but don't handle $0 or $00
+                var parsedIndex = parseInt(index, 10);
+                if (parsedIndex !== 0) { // handle $n or $nn, but don't handle $0 or $00
                         // slice the first dollar (but leave any others to get unescaped below) and return the
                         // the corresponding match
-                        return dollars.substr(1) + (match[parsedIndex] || "");
-                    }
+                    return dollars.substr(1) + (match[parsedIndex] || "");
                 }
+
             }
             // this code gets called if the dollar signs escape themselves or if $0/$00 (not handled) was present
             return whole; // return everything to get handled below
@@ -198,9 +198,9 @@ define(function (require, exports, module) {
             });
         } else if (doc) {
             return _doReplaceInDocument(doc, matchInfo, replaceText, options.isRegexp);
-        } else {
-            return _doReplaceOnDisk(fullPath, matchInfo, replaceText, options.isRegexp);
         }
+        return _doReplaceOnDisk(fullPath, matchInfo, replaceText, options.isRegexp);
+
     }
 
     /**
@@ -291,9 +291,9 @@ define(function (require, exports, module) {
                     ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
                 )
             );
-        } else {
-            return Strings.FIND_IN_FILES_NO_SCOPE;
         }
+        return Strings.FIND_IN_FILES_NO_SCOPE;
+
     }
 
     /**
@@ -430,9 +430,9 @@ define(function (require, exports, module) {
     function isNodeSearchInProgress() {
         if (nodeSearchCount === 0) {
             return false;
-        } else {
-            return true;
         }
+        return true;
+
     }
 
 
@@ -512,8 +512,8 @@ define(function (require, exports, module) {
      */
     function getHealthReport() {
         return {
-            prefNodeSearchDisabled : _prefNodeSearchDisabled(),
-            prefInstantSearchDisabled : _prefInstantSearchDisabled()
+            prefNodeSearchDisabled: _prefNodeSearchDisabled(),
+            prefInstantSearchDisabled: _prefInstantSearchDisabled()
         };
     }
 

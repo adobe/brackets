@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Async           = require("utils/Async"),
         FileSystemError = require("filesystem/FileSystemError");

@@ -23,14 +23,14 @@
 
 require.config({
     paths: {
-        "text" : "lib/text",
-        "i18n" : "lib/i18n"
+        "text": "lib/text",
+        "i18n": "lib/i18n"
     },
     locale: brackets.getLocale()
 });
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Brackets modules
     var CommandManager      = brackets.getModule("command/CommandManager"),

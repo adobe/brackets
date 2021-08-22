@@ -21,7 +21,7 @@
  *
  */
 
-/** 
+/**
  * This transport provides a WebSocket connection between Brackets and a live browser preview.
  * This is just a thin wrapper around the Node extension (WebSocketTransportDomain) that actually
  * provides the WebSocket server and handles the communication. We also rely on an injected script in
@@ -29,7 +29,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileUtils           = require("file/FileUtils"),
         NodeDomain          = require("utils/NodeDomain"),
@@ -52,15 +52,15 @@ define(function (require, exports, module) {
             editor.setCursorPos(position.line, position.ch, true);
         }
     });
-    
+
     function createWebSocketServer(port) {
         WebSocketTransportDomain.exec("start", parseInt(port, 10));
     }
-    
+
     function closeWebSocketServer() {
         WebSocketTransportDomain.exec("close");
     }
-    
+
     exports.createWebSocketServer = createWebSocketServer;
     exports.closeWebSocketServer  = closeWebSocketServer;
 });

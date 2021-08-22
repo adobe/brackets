@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                   = require("thirdparty/lodash"),
         LanguageManager     = require("language/LanguageManager");
@@ -364,10 +364,10 @@ define(function (require, exports, module) {
 
         // scroll minimum amount
         var elementRect = {
-                top:    elementOffset.top,
-                left:   elementOffset.left,
+                top: elementOffset.top,
+                left: elementOffset.left,
                 height: $element.height(),
-                width:  $element.width()
+                width: $element.width()
             },
             clip = getElementClipSize($view, elementRect);
 

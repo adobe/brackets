@@ -25,7 +25,7 @@
  * Manages parts of the status bar related to the current editor's state.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var _                    = require("thirdparty/lodash"),
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         DocumentManager      = require("document/DocumentManager"),
         StringUtils          = require("utils/StringUtils"),
         HealthLogger         = require("utils/HealthLogger");
-    
+
     var SupportedEncodingsText = require("text!supported-encodings.json"),
         SupportedEncodings = JSON.parse(SupportedEncodingsText);
 
@@ -351,7 +351,7 @@ define(function (require, exports, module) {
             // Store the preferred encoding in the state
             var projectRoot = ProjectManager.getProjectRoot(),
                 context = {
-                    location : {
+                    location: {
                         scope: "user",
                         layer: "project",
                         layerID: projectRoot.fullPath
@@ -525,7 +525,7 @@ define(function (require, exports, module) {
     function _checkFileExistance(filePath, index, encoding) {
         var deferred = new $.Deferred(),
             fileEntry = FileSystem.getFileForPath(filePath);
-    
+
         fileEntry.exists(function (err, exists) {
             if (!err && exists) {
                 deferred.resolve();
@@ -541,7 +541,7 @@ define(function (require, exports, module) {
     ProjectManager.on("projectOpen", function () {
         var projectRoot = ProjectManager.getProjectRoot(),
             context = {
-                location : {
+                location: {
                     scope: "user",
                     layer: "project",
                     layerID: projectRoot.fullPath

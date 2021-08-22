@@ -25,7 +25,7 @@
  * This is a collection of utility functions for gathering performance data.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _            = require("thirdparty/lodash"),
         StringUtils  = require("utils/StringUtils");
@@ -331,9 +331,9 @@ define(function (require, exports, module) {
             });
             sd = Math.round(Math.sqrt(variationSum / entry.length));
             return min + "(" + avg + ")" + max + "[" + sd + "]";
-        } else {
-            return entry.join(", ");
         }
+        return entry.join(", ");
+
     }
 
     /**
@@ -367,8 +367,8 @@ define(function (require, exports, module) {
      */
     function getHealthReport() {
         var healthReport = {
-            projectLoadTimes : "",
-            fileOpenTimes : ""
+            projectLoadTimes: "",
+            fileOpenTimes: ""
         };
 
         _.forEach(perfData, function (entry, testName) {

@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
         BezierCurveEditor    = require("BezierCurveEditor").BezierCurveEditor,
@@ -138,14 +138,14 @@ define(function (require, exports, module) {
         if (end.ch === undefined) {
             // We were unable to resync the end bookmark.
             return null;
-        } else {
-            return {
-                start: start,
-                end:   end,
-                match: matches,
-                originalLength: originalLength
-            };
         }
+        return {
+            start: start,
+            end: end,
+            match: matches,
+            originalLength: originalLength
+        };
+
     };
 
     /**

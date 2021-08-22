@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var CodeMirror = require("thirdparty/CodeMirror/lib/codemirror"),
         TokenUtils = require("utils/TokenUtils");
@@ -187,15 +187,15 @@ define(function (require, exports, module) {
      */
     function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned, quoteChar, hasEndQuote) {
         return { tagName: tagName || "",
-                 attr:
-                    { name: attrName || "",
-                      value: attrValue || "",
-                      valueAssigned: valueAssigned || false,
-                      quoteChar: quoteChar || "",
-                      hasEndQuote: hasEndQuote || false },
-                 position:
-                    { tokenType: tokenType || "",
-                      offset: offset || 0 } };
+            attr:
+            { name: attrName || "",
+                value: attrValue || "",
+                valueAssigned: valueAssigned || false,
+                quoteChar: quoteChar || "",
+                hasEndQuote: hasEndQuote || false },
+            position:
+            { tokenType: tokenType || "",
+                offset: offset || 0 } };
     }
 
     /**
@@ -226,8 +226,8 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
         }
-        
-        //Skip all the 'string' tokens backwards. Required to reach to the first line 
+
+        //Skip all the 'string' tokens backwards. Required to reach to the first line
         //of multiline HTML attribute value.
         while (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx)) {
             if (ctx.token.type !== "string") {

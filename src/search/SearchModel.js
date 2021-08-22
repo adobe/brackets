@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileUtils       = require("file/FileUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
@@ -138,9 +138,9 @@ define(function (require, exports, module) {
             this.queryInfo = queryInfo;
             this.queryExpr = parsedQuery.queryExpr;
             return true;
-        } else {
-            return false;
         }
+        return false;
+
     };
 
     /**

@@ -23,7 +23,7 @@
 
 /*eslint-env node */
 /*jslint node: true */
-"use strict";
+
 
 var WebSocketServer = require("ws").Server,
     _ = require("lodash");

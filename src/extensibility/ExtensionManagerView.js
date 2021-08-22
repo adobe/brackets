@@ -24,7 +24,7 @@
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Strings                   = require("strings"),
         EventDispatcher           = require("utils/EventDispatcher"),
@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         PathUtils                 = require("thirdparty/path-utils/path-utils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
         PreferencesManager        = require("preferences/PreferencesManager");
-        
+
 
     /**
      * Create a detached link element, so that we can use it later to extract url details like 'protocol'
@@ -380,13 +380,13 @@ define(function (require, exports, module) {
             this._$table.css("display", "none");
 
             return true;
-        } else {
-            this._$emptyMessage.css("display", "none");
-            this._$infoMessage.css("display", this.model.infoMessage ? "block" : "none");
-            this._$table.css("display", "");
-
-            return false;
         }
+        this._$emptyMessage.css("display", "none");
+        this._$infoMessage.css("display", this.model.infoMessage ? "block" : "none");
+        this._$table.css("display", "");
+
+        return false;
+
     };
 
     /**

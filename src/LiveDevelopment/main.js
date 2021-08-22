@@ -32,7 +32,7 @@
  *  "Highlight": toggle source highlighting
  */
 define(function main(require, exports, module) {
-    "use strict";
+
 
     var DocumentManager     = require("document/DocumentManager"),
         Commands            = require("command/Commands"),
@@ -56,9 +56,9 @@ define(function main(require, exports, module) {
         autoconnect: false, // go live automatically after startup?
         highlight: true, // enable highlighting?
         highlightConfig: { // the highlight configuration for the Inspector
-            borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
+            borderColor: {r: 255, g: 229, b: 153, a: 0.66},
             contentColor: {r: 111, g: 168, b: 220, a: 0.55},
-            marginColor:  {r: 246, g: 178, b: 107, a: 0.66},
+            marginColor: {r: 246, g: 178, b: 107, a: 0.66},
             paddingColor: {r: 147, g: 196, b: 125, a: 0.66},
             showInfo: true
         }
@@ -103,7 +103,7 @@ define(function main(require, exports, module) {
     }, {
         description: Strings.DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS
     });
-    
+
     /** Toggles or sets the preference **/
     function _togglePref(key, value) {
         var val,
@@ -379,13 +379,13 @@ define(function main(require, exports, module) {
                     _setImplementation(prefs.get(PREF_MULTIBROWSER));
                 }
             });
-        
+
         remoteHighlightPref
             .on("change", function () {
                 config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
-                       
+
                 if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
-                    LiveDevImpl.agents.remote.call("updateConfig",JSON.stringify(config));
+                    LiveDevImpl.agents.remote.call("updateConfig", JSON.stringify(config));
                 }
             });
 

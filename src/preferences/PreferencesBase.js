@@ -56,7 +56,7 @@
  * those nested preferences will take precedence over the main preferences in the Scope.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileUtils       = require("file/FileUtils"),
         FileSystem      = require("filesystem/FileSystem"),
@@ -340,9 +340,9 @@ define(function (require, exports, module) {
             if (this._dirty) {
                 self._dirty = false;
                 return this.storage.save(this.data);
-            } else {
-                return (new $.Deferred()).resolve().promise();
             }
+            return (new $.Deferred()).resolve().promise();
+
         },
 
         /**
@@ -372,12 +372,12 @@ define(function (require, exports, module) {
                     var wasSet = layer.set(this.data[layer.key], id, value, context, location.layerID);
                     this._dirty = this._dirty || wasSet;
                     return wasSet;
-                } else {
-                    return false;
                 }
-            } else {
-                return this._performSet(id, value);
+                return false;
+
             }
+            return this._performSet(id, value);
+
         },
 
         /**
@@ -771,12 +771,12 @@ define(function (require, exports, module) {
             if (!_.isEmpty(context)) {
                 if (data[context.language]) {
                     return _.keys(data[context.language]);
-                } else {
-                    return [];
                 }
-            } else {
-                return _.union.apply(null, _.map(_.values(data), _.keys));
+                return [];
+
             }
+            return _.union.apply(null, _.map(_.values(data), _.keys));
+
         },
 
         /**
@@ -968,9 +968,9 @@ define(function (require, exports, module) {
                 var glob = _findMatchingGlob(data, relativeFilename);
                 if (glob) {
                     return _.keys(data[glob]);
-                } else {
-                    return [];
                 }
+                return [];
+
             }
             return _.union.apply(null, _.map(_.values(data), _.keys));
         },
@@ -1786,9 +1786,9 @@ define(function (require, exports, module) {
             Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
                     return scope.save();
-                } else {
-                    return (new $.Deferred()).resolve().promise();
                 }
+                return (new $.Deferred()).resolve().promise();
+
             }.bind(this))
                 .then(function () {
                     this._saveInProgress = false;

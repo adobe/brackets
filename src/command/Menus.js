@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -44,12 +44,12 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var AppMenuBar = {
-        FILE_MENU       : "file-menu",
-        EDIT_MENU       : "edit-menu",
-        FIND_MENU       : "find-menu",
-        VIEW_MENU       : "view-menu",
-        NAVIGATE_MENU   : "navigate-menu",
-        HELP_MENU       : "help-menu"
+        FILE_MENU: "file-menu",
+        EDIT_MENU: "edit-menu",
+        FIND_MENU: "find-menu",
+        VIEW_MENU: "view-menu",
+        NAVIGATE_MENU: "navigate-menu",
+        HELP_MENU: "help-menu"
     };
 
     /**
@@ -57,12 +57,12 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var ContextMenuIds = {
-        EDITOR_MENU:                    "editor-context-menu",
-        INLINE_EDITOR_MENU:             "inline-editor-context-menu",
-        PROJECT_MENU:                   "project-context-menu",
-        WORKING_SET_CONTEXT_MENU:       "workingset-context-menu",
-        WORKING_SET_CONFIG_MENU:        "workingset-configuration-menu",
-        SPLITVIEW_MENU:                 "splitview-menu"
+        EDITOR_MENU: "editor-context-menu",
+        INLINE_EDITOR_MENU: "inline-editor-context-menu",
+        PROJECT_MENU: "project-context-menu",
+        WORKING_SET_CONTEXT_MENU: "workingset-context-menu",
+        WORKING_SET_CONFIG_MENU: "workingset-configuration-menu",
+        SPLITVIEW_MENU: "splitview-menu"
     };
 
     /**
@@ -78,32 +78,32 @@ define(function (require, exports, module) {
      */
     var MenuSection = {
         // Menu Section                     Command ID to mark the section
-        FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
-        FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
-        FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
-        FILE_EXTENSION_MANAGER:             {sectionMarker: Commands.FILE_EXTENSION_MANAGER},
+        FILE_OPEN_CLOSE_COMMANDS: {sectionMarker: Commands.FILE_NEW},
+        FILE_SAVE_COMMANDS: {sectionMarker: Commands.FILE_SAVE},
+        FILE_LIVE: {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
+        FILE_EXTENSION_MANAGER: {sectionMarker: Commands.FILE_EXTENSION_MANAGER},
 
-        EDIT_UNDO_REDO_COMMANDS:            {sectionMarker: Commands.EDIT_UNDO},
-        EDIT_TEXT_COMMANDS:                 {sectionMarker: Commands.EDIT_CUT},
-        EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
-        EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
-        EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
-        EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
-        EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
+        EDIT_UNDO_REDO_COMMANDS: {sectionMarker: Commands.EDIT_UNDO},
+        EDIT_TEXT_COMMANDS: {sectionMarker: Commands.EDIT_CUT},
+        EDIT_SELECTION_COMMANDS: {sectionMarker: Commands.EDIT_SELECT_ALL},
+        EDIT_MODIFY_SELECTION: {sectionMarker: Commands.EDIT_INDENT},
+        EDIT_COMMENT_SELECTION: {sectionMarker: Commands.EDIT_LINE_COMMENT},
+        EDIT_CODE_HINTS_COMMANDS: {sectionMarker: Commands.SHOW_CODE_HINTS},
+        EDIT_TOGGLE_OPTIONS: {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
 
-        FIND_FIND_COMMANDS:                 {sectionMarker: Commands.CMD_FIND},
-        FIND_FIND_IN_COMMANDS:              {sectionMarker: Commands.CMD_FIND_IN_FILES},
-        FIND_REPLACE_COMMANDS:              {sectionMarker: Commands.CMD_REPLACE},
+        FIND_FIND_COMMANDS: {sectionMarker: Commands.CMD_FIND},
+        FIND_FIND_IN_COMMANDS: {sectionMarker: Commands.CMD_FIND_IN_FILES},
+        FIND_REPLACE_COMMANDS: {sectionMarker: Commands.CMD_REPLACE},
 
-        VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
-        VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
-        VIEW_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},
+        VIEW_HIDESHOW_COMMANDS: {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
+        VIEW_FONTSIZE_COMMANDS: {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
+        VIEW_TOGGLE_OPTIONS: {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},
 
-        NAVIGATE_GOTO_COMMANDS:             {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
-        NAVIGATE_DOCUMENTS_COMMANDS:        {sectionMarker: Commands.NAVIGATE_NEXT_DOC},
-        NAVIGATE_OS_COMMANDS:               {sectionMarker: Commands.NAVIGATE_SHOW_IN_FILE_TREE},
-        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT},
-        NAVIGATE_QUICK_DOCS_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_DOCS}
+        NAVIGATE_GOTO_COMMANDS: {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
+        NAVIGATE_DOCUMENTS_COMMANDS: {sectionMarker: Commands.NAVIGATE_NEXT_DOC},
+        NAVIGATE_OS_COMMANDS: {sectionMarker: Commands.NAVIGATE_SHOW_IN_FILE_TREE},
+        NAVIGATE_QUICK_EDIT_COMMANDS: {sectionMarker: Commands.TOGGLE_QUICK_EDIT},
+        NAVIGATE_QUICK_DOCS_COMMANDS: {sectionMarker: Commands.TOGGLE_QUICK_DOCS}
     };
 
 
@@ -1132,12 +1132,12 @@ define(function (require, exports, module) {
             posLeft = $parentMenuItem.offset().left + $parentMenuItem.outerWidth();
 
             var elementRect = {
-                top:    posTop,
-                left:   posLeft,
-                height: $menuWindow.height() + 25,
-                width:  $menuWindow.width()
-            },
-            clip = ViewUtils.getElementClipSize($window, elementRect);
+                    top: posTop,
+                    left: posLeft,
+                    height: $menuWindow.height() + 25,
+                    width: $menuWindow.width()
+                },
+                clip = ViewUtils.getElementClipSize($window, elementRect);
 
             if (clip.bottom > 0) {
                 posTop = Math.max(0, posTop + $parentMenuItem.height() - $menuWindow.height());
@@ -1159,12 +1159,12 @@ define(function (require, exports, module) {
             posLeft = mouseOrLocation.pageX;
 
             var elementRect = {
-                top:    posTop,
-                left:   posLeft,
-                height: $menuWindow.height() + 25,
-                width:  $menuWindow.width()
-            },
-            clip = ViewUtils.getElementClipSize($window, elementRect);
+                    top: posTop,
+                    left: posLeft,
+                    height: $menuWindow.height() + 25,
+                    width: $menuWindow.width()
+                },
+                clip = ViewUtils.getElementClipSize($window, elementRect);
 
             if (clip.bottom > 0) {
                 posTop = Math.max(0, posTop - clip.bottom);

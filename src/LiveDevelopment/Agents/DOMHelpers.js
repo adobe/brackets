@@ -27,7 +27,7 @@
  * DOMHelpers is a collection of functions used by the DOMAgent exports `eachNode(src, callback)`
  */
 define(function DOMHelpersModule(require, exports, module) {
-    "use strict";
+
 
     /** Test if the given character is a quote character
      * {char} source character

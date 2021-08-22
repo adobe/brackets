@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var NodeConnection = require("utils/NodeConnection"),
         EventDispatcher = require("utils/EventDispatcher");
@@ -164,17 +164,17 @@ define(function (require, exports, module) {
     NodeDomain.prototype.promise = function () {
         if (this._connectionPromise) {
             return this._connectionPromise;
-        } else {
-            var deferred = new $.Deferred();
-
-            if (this.ready()) {
-                deferred.resolve();
-            } else {
-                deferred.reject();
-            }
-
-            return deferred.promise();
         }
+        var deferred = new $.Deferred();
+
+        if (this.ready()) {
+            deferred.resolve();
+        } else {
+            deferred.reject();
+        }
+
+        return deferred.promise();
+
     };
 
     /**

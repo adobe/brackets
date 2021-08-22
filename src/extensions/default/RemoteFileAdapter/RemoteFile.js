@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileSystemError = brackets.getModule("filesystem/FileSystemError"),
         FileSystemStats = brackets.getModule("filesystem/FileSystemStats");
@@ -44,15 +44,15 @@ define(function (require, exports, module) {
             hash: uri
         });
     }
-    
+
     function _getFileName(filePath) {
         var fileName = filePath.split('/').pop();
-        
+
         if (!fileName.trim()) {
             fileName = filePath.trim().slice(0, -1);
             fileName = fileName.split('/').pop();
         }
-        
+
         return fileName;
     }
 

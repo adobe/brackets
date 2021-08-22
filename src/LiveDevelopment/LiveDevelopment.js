@@ -61,7 +61,7 @@
  * - "detached_replaced_with_devtools" (The developer tools were opened in the browser)
  */
 define(function LiveDevelopment(require, exports, module) {
-    "use strict";
+
 
     require("utils/Global");
 
@@ -115,15 +115,15 @@ define(function LiveDevelopment(require, exports, module) {
     var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
 
     var agents = {
-        "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
-        "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
-        "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
-        "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
-        "css"       : CSSAgent,
-        "script"    : require("LiveDevelopment/Agents/ScriptAgent"),
-        "highlight" : require("LiveDevelopment/Agents/HighlightAgent"),
-        "goto"      : require("LiveDevelopment/Agents/GotoAgent"),
-        "edit"      : require("LiveDevelopment/Agents/EditAgent")
+        "console": require("LiveDevelopment/Agents/ConsoleAgent"),
+        "remote": require("LiveDevelopment/Agents/RemoteAgent"),
+        "network": require("LiveDevelopment/Agents/NetworkAgent"),
+        "dom": require("LiveDevelopment/Agents/DOMAgent"),
+        "css": CSSAgent,
+        "script": require("LiveDevelopment/Agents/ScriptAgent"),
+        "highlight": require("LiveDevelopment/Agents/HighlightAgent"),
+        "goto": require("LiveDevelopment/Agents/GotoAgent"),
+        "edit": require("LiveDevelopment/Agents/EditAgent")
     };
 
     // construct path to launch.html
@@ -147,11 +147,11 @@ define(function LiveDevelopment(require, exports, module) {
     // This object is used as a set (thus all properties have the value 'true').
     // Property names should match property names in the 'agents' object.
     var _enabledAgentNames = {
-        "console"   : true,
-        "remote"    : true,
-        "network"   : true,
-        "css"       : true,
-        "highlight" : true
+        "console": true,
+        "remote": true,
+        "network": true,
+        "css": true,
+        "highlight": true
     };
 
     /**
@@ -198,11 +198,11 @@ define(function LiveDevelopment(require, exports, module) {
      * Handles of registered servers
      */
     var _regServers = [];
-    
+
     PreferencesManager.definePreference("livedev.wsPort", "number", 8125, {
         description: Strings.DESCRIPTION_LIVEDEV_WEBSOCKET_PORT
     });
-    
+
     PreferencesManager.definePreference("livedev.enableReverseInspect", "boolean", true, {
         description: Strings.DESCRIPTION_LIVEDEV_ENABLE_REVERSE_INSPECT
     });
@@ -863,12 +863,12 @@ define(function LiveDevelopment(require, exports, module) {
         WebSocketTransport.closeWebSocketServer();
         if (_closeDeferred) {
             return _closeDeferred;
-        } else {
-            _closeDeferred = new $.Deferred();
-            _closeDeferred.always(function () {
-                _closeDeferred = null;
-            });
         }
+        _closeDeferred = new $.Deferred();
+        _closeDeferred.always(function () {
+            _closeDeferred = null;
+        });
+
 
         var promise = _closeDeferred.promise();
 
@@ -1157,13 +1157,13 @@ define(function LiveDevelopment(require, exports, module) {
                     [
                         {
                             className: Dialogs.DIALOG_BTN_CLASS_LEFT,
-                            id:        Dialogs.DIALOG_BTN_CANCEL,
-                            text:      Strings.CANCEL
+                            id: Dialogs.DIALOG_BTN_CANCEL,
+                            text: Strings.CANCEL
                         },
                         {
                             className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                            id:        Dialogs.DIALOG_BTN_OK,
-                            text:      Strings.RELAUNCH_CHROME
+                            id: Dialogs.DIALOG_BTN_OK,
+                            text: Strings.RELAUNCH_CHROME
                         }
                     ]
                 );
@@ -1344,12 +1344,12 @@ define(function LiveDevelopment(require, exports, module) {
             // Return existing promise if it is still pending
             if (_isPromisePending(_openDeferred)) {
                 return _openDeferred;
-            } else {
-                _openDeferred = new $.Deferred();
-                _openDeferred.always(function () {
-                    _openDeferred = null;
-                });
             }
+            _openDeferred = new $.Deferred();
+            _openDeferred.always(function () {
+                _openDeferred = null;
+            });
+
         }
         // Send analytics data when Live Preview is opened
         HealthLogger.sendAnalyticsData(
@@ -1383,7 +1383,7 @@ define(function LiveDevelopment(require, exports, module) {
                 .done(function () {
                     var reverseInspectPref = PreferencesManager.get("livedev.enableReverseInspect"),
                         wsPort             = PreferencesManager.get("livedev.wsPort");
-                        
+
                     if (wsPort && reverseInspectPref) {
                         WebSocketTransport.createWebSocketServer(wsPort);
                     }

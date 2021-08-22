@@ -24,7 +24,7 @@
 /*global appshell, window, define, console*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileUtils           = require("file/FileUtils"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
@@ -456,10 +456,10 @@ define(function (require, exports, module) {
                         _finishWrite(false);
                     });
                     return;
-                } else {
-                    callback(FileSystemError.CONTENTS_MODIFIED);
-                    return;
                 }
+                callback(FileSystemError.CONTENTS_MODIFIED);
+                return;
+
             }
 
             _finishWrite(false);

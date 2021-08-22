@@ -26,7 +26,7 @@
  * `wasURLRequested(url)` to query whether a resource was loaded.
  */
 define(function NetworkAgent(require, exports, module) {
-    "use strict";
+
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 

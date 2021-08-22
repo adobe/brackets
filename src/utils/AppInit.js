@@ -34,7 +34,7 @@
  * loading.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     /*
      * Fires when the base htmlContent/main-view.html is loaded
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, boolean>}
      * @private
      */
-    var _status      = { HTML_READY : false, APP_READY : false, EXTENSIONS_LOADED: false };
+    var _status      = { HTML_READY: false, APP_READY: false, EXTENSIONS_LOADED: false };
 
     /*
      * Map of callbacks to states

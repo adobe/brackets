@@ -26,7 +26,7 @@
 /*eslint-env es6*/
 /*eslint no-console: 0*/
 /*eslint strict: ["error", "global"]*/
-"use strict";
+
 
 /** Setup phoenix shell components
  *

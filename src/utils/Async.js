@@ -25,7 +25,7 @@
  * Utilities for working with Deferred, Promise, and other asynchronous processes.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Further ideas for Async utilities...
     //  - Utilities for blocking UI until a Promise completes?

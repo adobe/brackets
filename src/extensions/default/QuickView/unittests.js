@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, runs, waitsForDone */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils    = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils          = brackets.getModule("file/FileUtils"),
@@ -361,9 +361,9 @@ define(function (require, exports, module) {
                 var left = (useOffset ? object.offset().left : parseInt(object.css("left"), 10)),
                     top = (useOffset ? object.offset().top : parseInt(object.css("top"), 10));
                 return {
-                    left:   left,
-                    top:    top,
-                    right:  left + object.outerWidth(),
+                    left: left,
+                    top: top,
+                    right: left + object.outerWidth(),
                     bottom: top + object.outerHeight()
                 };
             }

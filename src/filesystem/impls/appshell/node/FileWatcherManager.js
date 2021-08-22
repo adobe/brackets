@@ -24,7 +24,7 @@
 /*eslint-env node */
 /*jslint node: true */
 
-"use strict";
+
 
 var _watcherMap = {};
 var _domainManager = null;

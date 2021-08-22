@@ -34,7 +34,7 @@
  *      $("#sidebar").on("panelExpanded", ...);
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit         = require("utils/AppInit"),
         ProjectManager  = require("project/ProjectManager"),

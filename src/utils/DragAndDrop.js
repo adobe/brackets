@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Async           = require("utils/Async"),
         CommandManager  = require("command/CommandManager"),
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
         // No valid entries found
         return false;
     }
-    
+
     /**
      * Determines if the event contains a type list that has a URI-list.
      * If it does and contains an empty file list, then what is being dropped is a URL.
@@ -71,14 +71,14 @@ define(function (require, exports, module) {
      */
     function stopURIListPropagation(files, event) {
         var types = event.dataTransfer.types;
-            
+
         if ((!files || !files.length) && types) { // We only want to check if a string of text was dragged into the editor
             types.forEach(function (value) {
                 //Dragging text externally (dragging text from another file): types has "text/plain" and "text/html"
                 //Dragging text internally (dragging text to another line): types has just "text/plain"
                 //Dragging a file: types has "Files"
                 //Dragging a url: types has "text/plain" and "text/uri-list" <-what we are interested in
-                if (value === "text/uri-list") { 
+                if (value === "text/uri-list") {
                     event.stopPropagation();
                     event.preventDefault();
                     return;
@@ -144,9 +144,9 @@ define(function (require, exports, module) {
                 function errorToString(err) {
                     if (err === ERR_MULTIPLE_ITEMS_WITH_DIR) {
                         return Strings.ERROR_MIXED_DRAGDROP;
-                    } else {
-                        return FileUtils.getFileErrorString(err);
                     }
+                    return FileUtils.getFileErrorString(err);
+
                 }
 
                 if (errorFiles.length > 0) {

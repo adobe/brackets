@@ -31,7 +31,7 @@
  *      is a string containing the new font size after applying the change.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Commands            = require("command/Commands"),
         EventDispatcher     = require("utils/EventDispatcher"),
@@ -48,8 +48,8 @@ define(function (require, exports, module) {
         FontRuleTemplate    = require("text!view/fontrules/font-based-rules.less");
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
-    
-    
+
+
     /**
      * Font sizes should be validated by this regexp
      */
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
-    
+
     /**
      * @private
      * Removes style property from the DOM
@@ -122,7 +122,7 @@ define(function (require, exports, module) {
     function _removeDynamicProperty(propertyID) {
         $("#" + propertyID).remove();
     }
-    
+
     /**
      * @private
      * Add the style property to the DOM
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
         _removeDynamicProperty(propertyID);
         $("head").append($style);
     }
-    
+
     /**
      * @private
      * Removes the styles used to update the font size
@@ -323,14 +323,14 @@ define(function (require, exports, module) {
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur
      */
-     function _adjustFontSize(adjustment) {
+    function _adjustFontSize(adjustment) {
         var fsStyle    = prefs.get("fontSize");
         var validFontSizeRegExp = new RegExp(validFontSizeRegExpStr);
-        
+
         // Make sure that the font size is expressed in terms we can
         // handle (px or em). If not, simply bail.
-        
-         if (fsStyle.search(validFontSizeRegExp) === -1) {
+
+        if (fsStyle.search(validFontSizeRegExp) === -1) {
             return false;
         }
 
@@ -571,4 +571,4 @@ define(function (require, exports, module) {
     exports.getFontFamily   = getFontFamily;
     exports.setFontFamily   = setFontFamily;
     exports.validFontSizeRegExp = validFontSizeRegExpStr;
-}); 
+});

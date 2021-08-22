@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var AppInit             = brackets.getModule("utils/AppInit"),
@@ -98,13 +98,13 @@ define(function (require, exports, module) {
                 }
             }
             return false;
-        } else {
-            if (implicitChar === "<") {
-                this.exclusion = this.tagInfo.tagName;
-                return true;
-            }
-            return false;
         }
+        if (implicitChar === "<") {
+            this.exclusion = this.tagInfo.tagName;
+            return true;
+        }
+        return false;
+
     };
 
     /**
@@ -352,16 +352,16 @@ define(function (require, exports, module) {
             }
 
             return query !== null;
-        } else {
-            if (implicitChar === " " || implicitChar === "'" ||
-                    implicitChar === "\"" || implicitChar === "=") {
-                if (tokenType === HTMLUtils.ATTR_NAME) {
-                    this.exclusion = this.tagInfo.attr.name;
-                }
-                return true;
-            }
-            return false;
         }
+        if (implicitChar === " " || implicitChar === "'" ||
+                    implicitChar === "\"" || implicitChar === "=") {
+            if (tokenType === HTMLUtils.ATTR_NAME) {
+                this.exclusion = this.tagInfo.attr.name;
+            }
+            return true;
+        }
+        return false;
+
     };
 
     /**
@@ -455,9 +455,9 @@ define(function (require, exports, module) {
                     }]);
                 });
                 return deferred;
-            } else {
-                return null;
             }
+            return null;
+
         }
 
 

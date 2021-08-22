@@ -24,7 +24,7 @@
 /*eslint-env node */
 /*jslint node: true */
 
-"use strict";
+
 
 var os = require("os");
 var watcherManager = require("./FileWatcherManager");

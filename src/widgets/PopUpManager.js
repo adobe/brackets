@@ -25,7 +25,7 @@
  * Utilities for managing pop-ups.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit         = require("utils/AppInit"),
         EventDispatcher = require("utils/EventDispatcher"),

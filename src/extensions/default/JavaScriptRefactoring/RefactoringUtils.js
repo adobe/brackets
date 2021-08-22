@@ -25,7 +25,7 @@
  * Utilities functions related to refactoring
  */
 define(function (require, exports, module) {
-    'use strict';
+
 
     var Acorn         = brackets.getModule("thirdparty/acorn/dist/acorn"),
         ASTWalker     = brackets.getModule("thirdparty/acorn/dist/walk"),
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     function getExpression(ast, start, end, fileText) {
         var expn = findSurroundExpression(ast, {start: start, end: end});
         if (!expn) {
-             return false;
+            return false;
         }
 
         // Class Expression also includes the trailing semicolon
@@ -71,8 +71,7 @@ define(function (require, exports, module) {
         if (expn.type === "ClassExpression" && expn.start === start && expn.end - end <= 1) {
             expn.end = end;
             return expn;
-        }
-        else if (expn.start === start && expn.end === end) {
+        }        else if (expn.start === start && expn.end === end) {
             return expn;
         }
 
@@ -126,7 +125,7 @@ define(function (require, exports, module) {
         });
 
         if (notStatement) {
-             return false;
+            return false;
         }
 
         var startStatement = findSurroundASTNode(ast, {start: start}, ["Statement"]);
@@ -296,8 +295,7 @@ define(function (require, exports, module) {
             // Do not allow sequence expressions
             if (surroundExpn.type === "SequenceExpression") {
                 start = surroundExpn.start - 1;
-            }
-            else if (surroundExpn.type === "FunctionExpression") { // Do not allow method definition expressions
+            }            else if (surroundExpn.type === "FunctionExpression") { // Do not allow method definition expressions
                 var methodDefinitionNode = findSurroundASTNode(ast, surroundExpn, ["MethodDefinition"]);
                 if (methodDefinitionNode && isEqual(methodDefinitionNode.value, surroundExpn)) {
                     start = surroundExpn.start - 1;
@@ -323,9 +321,9 @@ define(function (require, exports, module) {
         var foundNode = ASTWalker.findNodeAround(ast, expn.start, function (nodeType, node) {
             if (expn.end) {
                 return types.includes(nodeType) && node.end >= expn.end;
-            } else {
-                return types.includes(nodeType);
             }
+            return types.includes(nodeType);
+
         });
         return foundNode && _.clone(foundNode.node);
     }
@@ -423,8 +421,8 @@ define(function (require, exports, module) {
     /**
      * Note - To use these state defined in Refactoring Session,
      * Please reinitialize this RefactoringSession after performing any of the below operations
-     * (i.e. replaceRange, setSelection or indentLine) 
-     * 
+     * (i.e. replaceRange, setSelection or indentLine)
+     *
      * RefactoringSession objects encapsulate state associated with a refactoring session
      * and This will help finding information around documents, selection,
      * position, ast, and queries around AST nodes

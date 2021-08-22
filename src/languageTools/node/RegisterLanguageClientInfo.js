@@ -24,7 +24,7 @@
 /*global exports*/
 /*eslint-env es6, node*/
 /*eslint max-len: ["error", { "code": 200 }]*/
-"use strict";
+
 
 var domainName = "LanguageClientInfo",
     LANGUAGE_CLIENT_RELATIVE_PATH_ARRAY = ["languageTools", "LanguageClient", "LanguageClient"],
@@ -233,7 +233,7 @@ function initialize(bracketsSourcePath, toolingInfo, resolve) {
     if (!bracketsSourcePath || !toolingInfo) {
         resolve(true, null); //resolve with err param
     }
-    
+
     var normalizedBracketsSourcePath = bracketsSourcePath.split(BACKWARD_SLASH).join(FORWARD_SLASH),
         bracketsSourcePathArray = normalizedBracketsSourcePath.split(FORWARD_SLASH),
         languageClientAbsolutePath = bracketsSourcePathArray.concat(LANGUAGE_CLIENT_RELATIVE_PATH_ARRAY).join(FORWARD_SLASH);
@@ -243,7 +243,7 @@ function initialize(bracketsSourcePath, toolingInfo, resolve) {
     global.LanguageClientInfo.defaultBracketsCapabilities = defaultBracketsCapabilities;
     global.LanguageClientInfo.toolingInfo = toolingInfo;
     global.LanguageClientInfo.preferences = {};
-    
+
     resolve(null, true); //resolve with boolean denoting success
 }
 

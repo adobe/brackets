@@ -33,7 +33,7 @@
  *
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -108,12 +108,12 @@ define(function (require, exports, module) {
             // if offset is NOT over the total then offset is in the last line
             if (offset <= total) {
                 return line - 1;
-            } else {
-                return undefined;
             }
-        } else {
-            return textOrLines.substr(0, offset).split("\n").length - 1;
+            return undefined;
+
         }
+        return textOrLines.substr(0, offset).split("\n").length - 1;
+
     }
 
     /**
@@ -153,9 +153,9 @@ define(function (require, exports, module) {
 
         if (a2 === b2) {
             return 0;
-        } else {
-            return (a2 > b2) ? 1 : -1;
         }
+        return (a2 > b2) ? 1 : -1;
+
     }
 
     /**

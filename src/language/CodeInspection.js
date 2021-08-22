@@ -33,7 +33,7 @@
  * (e.g. a full-project compiler).
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -431,9 +431,9 @@ define(function (require, exports, module) {
 
                         if (inspectionResult.result.errors.length) {
                             allErrors.push({
-                                isExpanded:   isExpanded,
+                                isExpanded: isExpanded,
                                 providerName: provider.name,
-                                results:      inspectionResult.result.errors
+                                results: inspectionResult.result.errors
                             });
 
                             providersReportingProblems.push(provider);

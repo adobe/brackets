@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, waits, runs, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Modules from the SpecRunner window
     var KeyEvent           = brackets.getModule("utils/KeyEvent"),
@@ -635,158 +635,158 @@ define(function (require, exports, module) {
 
                 it("should set saturation on mousedown", function () {
                     testMousedown({
-                        item:      "$selection",
-                        clickAt:   [0.25, 0], // x: saturation, y: 1.0 - value
-                        param:     "s",
-                        expected:  0.25,
+                        item: "$selection",
+                        clickAt: [0.25, 0], // x: saturation, y: 1.0 - value
+                        param: "s",
+                        expected: 0.25,
                         tolerance: 0.1
                     });
                 });
                 it("should set saturation on drag", function () {
                     testDrag({
-                        item:      "$selection",
-                        clickAt:   [0.25, 0], // x: saturation, y: 1.0 - value
-                        dragTo:    [0.75, 0],
-                        param:     "s",
-                        expected:  0.75,
+                        item: "$selection",
+                        clickAt: [0.25, 0], // x: saturation, y: 1.0 - value
+                        dragTo: [0.75, 0],
+                        param: "s",
+                        expected: 0.75,
                         tolerance: 0.1
                     });
                 });
                 it("should clip saturation to min value", function () {
                     testDrag({
-                        item:      "$selection",
-                        clickAt:   [0.25, 0], // x: saturation, y: 1.0 - value
-                        dragTo:    [-0.25, 0],
-                        param:     "s",
-                        expected:  0,
+                        item: "$selection",
+                        clickAt: [0.25, 0], // x: saturation, y: 1.0 - value
+                        dragTo: [-0.25, 0],
+                        param: "s",
+                        expected: 0,
                         tolerance: 0.1
                     });
                 });
                 it("should clip saturation to max value", function () {
                     testDrag({
-                        item:      "$selection",
-                        clickAt:   [0.25, 0], // x: saturation, y: 1.0 - value
-                        dragTo:    [1.25, 0],
-                        param:     "s",
-                        expected:  1,
+                        item: "$selection",
+                        clickAt: [0.25, 0], // x: saturation, y: 1.0 - value
+                        dragTo: [1.25, 0],
+                        param: "s",
+                        expected: 1,
                         tolerance: 0.1
                     });
                 });
                 it("should set value on mousedown", function () {
                     testMousedown({
-                        item:      "$selection",
-                        clickAt:   [1.0, 0.75], // x: saturation, y: 1.0 - value
-                        param:     "v",
-                        expected:  0.25,
+                        item: "$selection",
+                        clickAt: [1.0, 0.75], // x: saturation, y: 1.0 - value
+                        param: "v",
+                        expected: 0.25,
                         tolerance: 0.1
                     });
                 });
                 it("should set value on drag", function () {
                     testDrag({
-                        item:      "$selection",
-                        clickAt:   [1.0, 0.75], // x: saturation, y: 1.0 - value
-                        dragTo:    [1.0, 0.25],
-                        param:     "v",
-                        expected:  0.75,
+                        item: "$selection",
+                        clickAt: [1.0, 0.75], // x: saturation, y: 1.0 - value
+                        dragTo: [1.0, 0.25],
+                        param: "v",
+                        expected: 0.75,
                         tolerance: 0.1
                     });
                 });
                 it("should clip value to min value", function () {
                     testDrag({
-                        item:      "$selection",
-                        clickAt:   [1.0, 0.75], // x: saturation, y: 1.0 - value
-                        dragTo:    [1.0, 1.25],
-                        param:     "v",
-                        expected:  0,
+                        item: "$selection",
+                        clickAt: [1.0, 0.75], // x: saturation, y: 1.0 - value
+                        dragTo: [1.0, 1.25],
+                        param: "v",
+                        expected: 0,
                         tolerance: 0.1
                     });
                 });
                 it("should clip value to max value", function () {
                     testDrag({
-                        item:      "$selection",
-                        clickAt:   [1.0, 0.75],
-                        dragTo:    [1.0, -0.25],
-                        param:     "v",
-                        expected:  1,
+                        item: "$selection",
+                        clickAt: [1.0, 0.75],
+                        dragTo: [1.0, -0.25],
+                        param: "v",
+                        expected: 1,
                         tolerance: 0.1
                     });
                 });
                 it("should set hue on mousedown", function () {
                     testMousedown({
-                        item:      "$hueSlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
-                        param:     "h",
-                        expected:  90,
+                        item: "$hueSlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
+                        param: "h",
+                        expected: 90,
                         tolerance: 1
                     });
                 });
                 it("should set hue on drag", function () {
                     testDrag({
-                        item:      "$hueSlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
-                        dragTo:    [0, 0.25],
-                        param:     "h",
-                        expected:  270,
+                        item: "$hueSlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
+                        dragTo: [0, 0.25],
+                        param: "h",
+                        expected: 270,
                         tolerance: 1
                     });
                 });
                 it("should clip hue to min value", function () {
                     testDrag({
-                        item:      "$hueSlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
-                        dragTo:    [0, 1.25],
-                        param:     "h",
-                        expected:  0,
+                        item: "$hueSlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
+                        dragTo: [0, 1.25],
+                        param: "h",
+                        expected: 0,
                         tolerance: 1
                     });
                 });
                 it("should clip hue to max value", function () {
                     testDrag({
-                        item:      "$hueSlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
-                        dragTo:    [0, -0.25],
-                        param:     "h",
-                        expected:  0,
+                        item: "$hueSlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - (hue / 360)
+                        dragTo: [0, -0.25],
+                        param: "h",
+                        expected: 0,
                         tolerance: 1
                     });
                 });
                 it("should set opacity on mousedown", function () {
                     testMousedown({
-                        item:      "$opacitySlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - opacity
-                        param:     "a",
-                        expected:  0.25,
+                        item: "$opacitySlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - opacity
+                        param: "a",
+                        expected: 0.25,
                         tolerance: 0.1
                     });
                 });
                 it("should set opacity on drag", function () {
                     testDrag({
-                        item:      "$opacitySlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - opacity
-                        dragTo:    [0, 0.25],
-                        param:     "a",
-                        expected:  0.75,
+                        item: "$opacitySlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - opacity
+                        dragTo: [0, 0.25],
+                        param: "a",
+                        expected: 0.75,
                         tolerance: 0.1
                     });
                 });
                 it("should clip opacity to min value", function () {
                     testDrag({
-                        item:      "$opacitySlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - opacity
-                        dragTo:    [0, 1.25],
-                        param:     "a",
-                        expected:  0,
+                        item: "$opacitySlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - opacity
+                        dragTo: [0, 1.25],
+                        param: "a",
+                        expected: 0,
                         tolerance: 0.1
                     });
                 });
                 it("should clip opacity to max value", function () {
                     // A increases going up, so a clientY at -0.25 of the item's height corresponds to >100%.
                     testDrag({
-                        item:      "$opacitySlider",
-                        clickAt:   [0, 0.75], // x: unused, y: 1.0 - opacity
-                        dragTo:    [0, -0.25],
-                        param:     "a",
-                        expected:  1,
+                        item: "$opacitySlider",
+                        clickAt: [0, 0.75], // x: unused, y: 1.0 - opacity
+                        dragTo: [0, -0.25],
+                        param: "a",
+                        expected: 1,
                         tolerance: 0.1
                     });
                 });
@@ -822,9 +822,9 @@ define(function (require, exports, module) {
                                 result = Number(result.substr(0, result.length - 1));
                             }
                             return result;
-                        } else {
-                            return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
                         }
+                        return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
+
                     }
 
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
@@ -867,321 +867,321 @@ define(function (require, exports, module) {
 
                 it("should increase saturation by 1.5% on right arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        param:     "s",
-                        delta:     0.015,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        param: "s",
+                        delta: 0.015,
                         tolerance: 0.01
                     });
                 });
                 it("should clip max saturation on right arrow", function () {
                     testKey({
-                        color:     "hsla(50, 100%, 50%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        param:     "s",
-                        delta:     0,
+                        color: "hsla(50, 100%, 50%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        param: "s",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should increase saturation by 7.5% on shift right arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        shift:     true,
-                        param:     "s",
-                        delta:     0.075,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        shift: true,
+                        param: "s",
+                        delta: 0.075,
                         tolerance: 0.01
                     });
                 });
                 it("should clip max saturation on shift right arrow", function () {
                     testKey({
-                        color:     "hsla(50, 100%, 50%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        shift:     true,
-                        param:     "s",
-                        delta:     0,
+                        color: "hsla(50, 100%, 50%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        shift: true,
+                        param: "s",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should decrease saturation by 1.5% on left arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        param:     "s",
-                        delta:     -0.015,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_LEFT,
+                        param: "s",
+                        delta: -0.015,
                         tolerance: 0.01
                     });
                 });
                 it("should clip min saturation on left arrow", function () {
                     testKey({
-                        color:     "hsla(50, 0%, 50%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        param:     "s",
-                        delta:     0,
+                        color: "hsla(50, 0%, 50%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_LEFT,
+                        param: "s",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should decrease saturation by 7.5% on shift left arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        shift:     true,
-                        param:     "s",
-                        delta:     -0.075,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_LEFT,
+                        shift: true,
+                        param: "s",
+                        delta: -0.075,
                         tolerance: 0.01
                     });
                 });
                 it("should clip min saturation on shift left arrow", function () {
                     testKey({
-                        color:     "hsla(50, 0%, 50%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        shift:     true,
-                        param:     "s",
-                        delta:     0,
+                        color: "hsla(50, 0%, 50%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_LEFT,
+                        shift: true,
+                        param: "s",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should increase value by 1.5% on up arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        param:     "v",
-                        delta:     0.015,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        param: "v",
+                        delta: 0.015,
                         tolerance: 0.01
                     });
                 });
                 it("should clip max value on up arrow", function () {
                     testKey({
-                        color:     "hsla(50, 25%, 100%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        param:     "v",
-                        delta:     0,
+                        color: "hsla(50, 25%, 100%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        param: "v",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should increase value by 7.5% on shift up arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "v",
-                        delta:     0.075,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "v",
+                        delta: 0.075,
                         tolerance: 0.01
                     });
                 });
                 it("should clip max value on shift up arrow", function () {
                     testKey({
-                        color:     "hsla(50, 25%, 100%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "v",
-                        delta:     0,
+                        color: "hsla(50, 25%, 100%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "v",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should decrease value by 1.5% on down arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        param:     "v",
-                        delta:     -0.015,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        param: "v",
+                        delta: -0.015,
                         tolerance: 0.01
                     });
                 });
                 it("should clip min value on down arrow", function () {
                     testKey({
-                        color:     "hsla(50, 25%, 0%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        param:     "v",
-                        delta:     0,
+                        color: "hsla(50, 25%, 0%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        param: "v",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should decrease value by 7.5% on shift down arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        shift:     true,
-                        param:     "v",
-                        delta:     -0.075,
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        shift: true,
+                        param: "v",
+                        delta: -0.075,
                         tolerance: 0.01
                     });
                 });
                 it("should clip min value on shift down arrow", function () {
                     testKey({
-                        color:     "hsla(50, 25%, 0%, 0.5)",
-                        item:      "$selectionBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        shift:     true,
-                        param:     "v",
-                        delta:     0,
+                        color: "hsla(50, 25%, 0%, 0.5)",
+                        item: "$selectionBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        shift: true,
+                        param: "v",
+                        delta: 0,
                         tolerance: 0.01
                     });
                 });
                 it("should increase hue by 3.6 on up arrow", function () {
                     testKey({
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        param:     "h",
-                        delta:     3.6,
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        param: "h",
+                        delta: 3.6,
                         tolerance: 1
                     });
                 });
                 it("should wrap around max hue on up arrow", function () {
                     testKey({
-                        color:     "hsla(359, 25%, 50%, 0.5)",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        param:     "h",
-                        delta:     -359 + 3.6,
+                        color: "hsla(359, 25%, 50%, 0.5)",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        param: "h",
+                        delta: -359 + 3.6,
                         tolerance: 1
                     });
                 });
                 it("should increase hue by 18 on shift up arrow", function () {
                     testKey({
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "h",
-                        delta:     18,
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "h",
+                        delta: 18,
                         tolerance: 1
                     });
                 });
                 it("should wrap around max hue on shift up arrow", function () {
                     testKey({
-                        color:     "hsla(359, 25%, 50%, 0.5)",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "h",
-                        delta:     -359 + 18,
+                        color: "hsla(359, 25%, 50%, 0.5)",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "h",
+                        delta: -359 + 18,
                         tolerance: 1
                     });
                 });
                 it("should decrease hue by 3.6 on down arrow", function () {
                     testKey({
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        param:     "h",
-                        delta:     -3.6,
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        param: "h",
+                        delta: -3.6,
                         tolerance: 1
                     });
                 });
                 it("should wrap around min hue on down arrow", function () {
                     testKey({
-                        color:     "hsla(0, 25%, 50%, 0.5)",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        param:     "h",
-                        delta:     360 - 3.6,
+                        color: "hsla(0, 25%, 50%, 0.5)",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        param: "h",
+                        delta: 360 - 3.6,
                         tolerance: 1
                     });
                 });
                 it("should decrease hue by 18 on shift down arrow", function () {
                     testKey({
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        shift:     true,
-                        param:     "h",
-                        delta:     -18,
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        shift: true,
+                        param: "h",
+                        delta: -18,
                         tolerance: 1
                     });
                 });
                 it("should wrap around min hue on shift down arrow", function () {
                     testKey({
-                        color:     "hsla(0, 25%, 50%, 0.5)",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        shift:     true,
-                        param:     "h",
-                        delta:     360 - 18,
+                        color: "hsla(0, 25%, 50%, 0.5)",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        shift: true,
+                        param: "h",
+                        delta: 360 - 18,
                         tolerance: 1
                     });
                 });
                 it("should increase opacity by 0.01 on up arrow", function () {
                     testKey({
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_UP,
-                        param:     "a",
-                        delta:     0.01,
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_UP,
+                        param: "a",
+                        delta: 0.01,
                         tolerance: 0.005
                     });
                 });
                 it("should clip max opacity on up arrow", function () {
                     testKey({
-                        color:     "hsla(90, 25%, 50%, 1.0)",
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_UP,
-                        param:     "a",
-                        delta:     0,
+                        color: "hsla(90, 25%, 50%, 1.0)",
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_UP,
+                        param: "a",
+                        delta: 0,
                         tolerance: 0.005
                     });
                 });
                 it("should increase opacity by 0.05 on shift up arrow", function () {
                     testKey({
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "a",
-                        delta:     0.05,
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "a",
+                        delta: 0.05,
                         tolerance: 0.005
                     });
                 });
                 it("should clip max opacity on shift up arrow", function () {
                     testKey({
-                        color:     "hsla(90, 25%, 50%, 1.0)",
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "a",
-                        delta:     0,
+                        color: "hsla(90, 25%, 50%, 1.0)",
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "a",
+                        delta: 0,
                         tolerance: 0.005
                     });
                 });
                 it("should decrease opacity by 0.01 on down arrow", function () {
                     testKey({
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        param:     "a",
-                        delta:     -0.01,
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        param: "a",
+                        delta: -0.01,
                         tolerance: 0.005
                     });
                 });
                 it("should clip min opacity on down arrow", function () {
                     testKey({
-                        color:     "hsla(90, 25%, 50%, 0)",
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        param:     "a",
-                        delta:     0,
+                        color: "hsla(90, 25%, 50%, 0)",
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        param: "a",
+                        delta: 0,
                         tolerance: 0.005
                     });
                 });
                 it("should decrease opacity by 0.05 on shift down arrow", function () {
                     testKey({
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        shift:     true,
-                        param:     "a",
-                        delta:     -0.05,
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        shift: true,
+                        param: "a",
+                        delta: -0.05,
                         tolerance: 0.005
                     });
                 });
                 it("should clip min opacity on shift down arrow", function () {
                     testKey({
-                        color:     "hsla(90, 25%, 50%, 0)",
-                        item:      "$opacitySelector",
-                        key:       KeyEvent.DOM_VK_DOWN,
-                        shift:     true,
-                        param:     "a",
-                        delta:     0,
+                        color: "hsla(90, 25%, 50%, 0)",
+                        item: "$opacitySelector",
+                        key: KeyEvent.DOM_VK_DOWN,
+                        shift: true,
+                        param: "a",
+                        delta: 0,
                         tolerance: 0.005
                     });
                 });
@@ -1189,120 +1189,120 @@ define(function (require, exports, module) {
                 // For #2138
                 it("should increase hue by 18 on shift up arrow even if saturation is 0", function () {
                     testKey({
-                        color:     "hsl(180, 0, 0)",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "h",
-                        delta:     18,
+                        color: "hsl(180, 0, 0)",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "h",
+                        delta: 18,
                         tolerance: 1,
-                        exact:     true
+                        exact: true
                     });
                 });
                 it("should increase hue by 18 on shift up arrow for a near-gray hex color", function () {
                     testKey({
-                        color:     "#5c5b56",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "h",
-                        delta:     18,
+                        color: "#5c5b56",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "h",
+                        delta: 18,
                         tolerance: 1,
-                        exact:     true
+                        exact: true
                     });
                 });
                 it("should not change value when hue changes", function () {
                     testKey({
-                        color:     "#8e8247",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_UP,
-                        shift:     true,
-                        param:     "v",
-                        delta:     0,
+                        color: "#8e8247",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_UP,
+                        shift: true,
+                        param: "v",
+                        delta: 0,
                         tolerance: 0.01,
-                        exact:     true
+                        exact: true
                     });
                 });
 
                 // For #2193 and #2229
                 it("should prevent default on the key event for an unhandled arrow key on non-text-field", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        expected:  true
+                        color: "#8e8247",
+                        item: "$hueBase",
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        expected: true
                     });
                 });
                 it("should prevent default on left arrow at the start of the text field", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [0, 0],
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        expected:  true
+                        key: KeyEvent.DOM_VK_LEFT,
+                        expected: true
                     });
                 });
                 it("should not prevent default on left arrow in the middle of the text field", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [3, 3],
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        expected:  false
+                        key: KeyEvent.DOM_VK_LEFT,
+                        expected: false
                     });
                 });
                 it("should not prevent default on left arrow at the end of the text field", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [7, 7],
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        expected:  false
+                        key: KeyEvent.DOM_VK_LEFT,
+                        expected: false
                     });
                 });
                 it("should not prevent default on left arrow with a range selection", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [0, 7],
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        expected:  false
+                        key: KeyEvent.DOM_VK_LEFT,
+                        expected: false
                     });
                 });
                 it("should not prevent default on right arrow at the start of the text field", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [0, 0],
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        expected:  false
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        expected: false
                     });
                 });
                 it("should not prevent default on right arrow in the middle of the text field", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [3, 3],
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        expected:  false
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        expected: false
                     });
                 });
                 it("should prevent default on right arrow at the end of the text field", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [7, 7],
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        expected:  true
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        expected: true
                     });
                 });
                 it("should not prevent default on right arrow with a range selection", function () {
                     testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
+                        color: "#8e8247",
+                        item: "$colorValue",
                         selection: [0, 7],
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        expected:  false
+                        key: KeyEvent.DOM_VK_RIGHT,
+                        expected: false
                     });
                 });
 

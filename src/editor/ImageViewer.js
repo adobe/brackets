@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var DocumentManager     = require("document/DocumentManager"),
         ImageViewTemplate   = require("text!htmlContent/image-view.html"),
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     function ImageView(file, $container) {
         this.file = file;
         this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: file.encodedPath || 'file:///' + FileUtils.encodeFilePath(file.fullPath),
-                                                         now: new Date().valueOf()}));
+            now: new Date().valueOf()}));
 
         $container.append(this.$el);
 
@@ -333,9 +333,9 @@ define(function (require, exports, module) {
                     offsetY < (imagePos.top + imgHeight)) {
                 // Remember image scale div coordinates before hiding it.
                 this._scaleDivInfo = {left: scaleDivPos.left,
-                                 top: scaleDivPos.top,
-                                 right: scaleDivRight,
-                                 bottom: scaleDivBottom};
+                    top: scaleDivPos.top,
+                    right: scaleDivRight,
+                    bottom: scaleDivBottom};
                 this.$imageScale.hide();
             }
         }
@@ -370,9 +370,9 @@ define(function (require, exports, module) {
         // $view is "position:absolute" so
         //  we have to update the height, width and position
         this.$el.css({top: pos.top + ((oHeight - iHeight) / 2),
-                        left: pos.left + ((oWidth - iWidth) / 2),
-                        width: iWidth,
-                        height: iHeight});
+            left: pos.left + ((oWidth - iWidth) / 2),
+            width: iWidth,
+            height: iHeight});
         this._updateScale();
     };
 

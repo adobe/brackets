@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
 
         return {
             selectorName: selectorName,
-            reason:       reason
+            reason: reason
         };
     }
 
@@ -259,9 +259,9 @@ define(function (require, exports, module) {
                 return 1;
             } else if (!aIsCSS && bIsCSS) {
                 return -1;
-            } else {
-                return FileUtils.comparePaths(a.fullPath, b.fullPath);
             }
+            return FileUtils.comparePaths(a.fullPath, b.fullPath);
+
         }
 
         /**

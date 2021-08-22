@@ -25,7 +25,7 @@
  * Utilities for dealing with animations in the UI.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _     = require("thirdparty/lodash"),
         Async = require("utils/Async");
@@ -39,10 +39,10 @@ define(function (require, exports, module) {
         var event, el = window.document.createElement("fakeelement");
 
         var transitions = {
-            "OTransition"     : "oTransitionEnd",
-            "MozTransition"   : "transitionend",
+            "OTransition": "oTransitionEnd",
+            "MozTransition": "transitionend",
             "WebkitTransition": "webkitTransitionEnd",
-            "transition"      : "transitionend"
+            "transition": "transitionend"
         };
 
         _.forEach(transitions, function (value, key) {

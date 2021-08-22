@@ -24,7 +24,7 @@
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     /**
      * @private

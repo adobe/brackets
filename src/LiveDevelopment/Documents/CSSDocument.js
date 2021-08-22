@@ -45,7 +45,7 @@
  *   The 2nd argument to the listener will be this CSSDocument.
  */
 define(function CSSDocumentModule(require, exports, module) {
-    "use strict";
+
 
     var _               = require("thirdparty/lodash"),
         EventDispatcher = require("utils/EventDispatcher"),

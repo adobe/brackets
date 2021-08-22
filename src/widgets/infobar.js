@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var MainViewManager     = require("view/MainViewManager"),
         Mustache            = require("thirdparty/mustache/mustache"),

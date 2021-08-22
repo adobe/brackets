@@ -24,7 +24,7 @@
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Dialogs                = require("widgets/Dialogs"),
         File                   = require("filesystem/File"),

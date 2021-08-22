@@ -378,7 +378,8 @@ module.exports = function (grunt) {
             src: '<%= meta.src %>',
             test: '<%= meta.test %>',
             options: {
-                quiet: true
+                quiet: true,
+                fix: true
             }
         },
         shell: {

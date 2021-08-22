@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var DeprecationWarning = require("utils/DeprecationWarning");
 
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";     // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
     exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
-    exports.TOGGLE_SEARCH_AUTOHIDE      = "view.toggleSearchAutoHide";  // EditorOptionHandlers.js      _getToggler() 
+    exports.TOGGLE_SEARCH_AUTOHIDE      = "view.toggleSearchAutoHide";  // EditorOptionHandlers.js      _getToggler()
 
     exports.CMD_OPEN                        = "cmd.open";
     exports.CMD_ADD_TO_WORKINGSET_AND_OPEN  = "cmd.addToWorkingSetAndOpen";          // DocumentCommandHandlers.js   handleOpenDocumentInNewPane()

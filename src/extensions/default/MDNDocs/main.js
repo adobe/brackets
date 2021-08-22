@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Core modules
     var _                    = brackets.getModule("thirdparty/lodash"),
@@ -170,9 +170,9 @@ define(function (require, exports, module) {
 
             return result.promise();
 
-        } else {
-            return null;
         }
+        return null;
+
     }
 
     // Register as inline docs provider

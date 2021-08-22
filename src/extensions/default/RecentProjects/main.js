@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
@@ -355,8 +355,8 @@ define(function (require, exports, module) {
         var recentProjects = getRecentProjects(),
             currentProject = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             templateVars   = {
-                projectList : [],
-                Strings     : Strings
+                projectList: [],
+                Strings: Strings
             };
 
         recentProjects.forEach(function (root) {

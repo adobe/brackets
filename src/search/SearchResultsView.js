@@ -25,7 +25,7 @@
  * Panel showing search results for a Find/Replace in Files operation.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var CommandManager        = require("command/CommandManager"),
         EventDispatcher       = require("utils/EventDispatcher"),
@@ -271,8 +271,8 @@ define(function (require, exports, module) {
             if (isChecked) {
                 if (!$fileCheckbox.is(":checked")) {
                     var $checkedSibilings = $siblingRows.filter(function (index) {
-                            return $(this).find(".check-one").is(":checked");
-                        });
+                        return $(this).find(".check-one").is(":checked");
+                    });
                     if ($checkedSibilings.length === $siblingRows.length) {
                         $fileCheckbox.prop("checked", true);
                         if (!$checkAll.is(":checked")) {
@@ -373,18 +373,18 @@ define(function (require, exports, module) {
         );
 
         this._$summary.html(Mustache.render(searchSummaryTemplate, {
-            query:       (this._model.queryInfo && this._model.queryInfo.query && this._model.queryInfo.query.toString()) || "",
+            query: (this._model.queryInfo && this._model.queryInfo.query && this._model.queryInfo.query.toString()) || "",
             replaceWith: this._model.replaceText,
-            titleLabel:  this._model.isReplace ? Strings.FIND_REPLACE_TITLE_LABEL : Strings.FIND_TITLE_LABEL,
-            scope:       this._model.scope ? "&nbsp;" + FindUtils.labelForScope(this._model.scope) + "&nbsp;" : "",
-            summary:     summary,
-            allChecked:  this._allChecked,
-            hasPages:    count.matches > RESULTS_PER_PAGE,
-            results:     StringUtils.format(Strings.FIND_IN_FILES_PAGING, this._currentStart + 1, lastIndex),
-            hasPrev:     this._currentStart > 0,
-            hasNext:     lastIndex < count.matches,
-            replace:     this._model.isReplace,
-            Strings:     Strings
+            titleLabel: this._model.isReplace ? Strings.FIND_REPLACE_TITLE_LABEL : Strings.FIND_TITLE_LABEL,
+            scope: this._model.scope ? "&nbsp;" + FindUtils.labelForScope(this._model.scope) + "&nbsp;" : "",
+            summary: summary,
+            allChecked: this._allChecked,
+            hasPages: count.matches > RESULTS_PER_PAGE,
+            results: StringUtils.format(Strings.FIND_IN_FILES_PAGING, this._currentStart + 1, lastIndex),
+            hasPrev: this._currentStart > 0,
+            hasNext: lastIndex < count.matches,
+            replace: this._model.isReplace,
+            Strings: Strings
         }));
     };
 
@@ -445,16 +445,16 @@ define(function (require, exports, module) {
                     multiLine = match.start.line !== match.end.line;
 
                     searchItems.push({
-                        fileIndex:   self._searchList.length,
-                        itemIndex:   searchItems.length,
-                        matchIndex:  i,
-                        line:        match.start.line + 1,
-                        pre:         match.line.substr(0, match.start.ch - match.highlightOffset),
-                        highlight:   match.line.substring(match.start.ch - match.highlightOffset, multiLine ? undefined : match.end.ch - match.highlightOffset),
-                        post:        multiLine ? "\u2026" : match.line.substr(match.end.ch - match.highlightOffset),
-                        start:       match.start,
-                        end:         match.end,
-                        isChecked:   match.isChecked,
+                        fileIndex: self._searchList.length,
+                        itemIndex: searchItems.length,
+                        matchIndex: i,
+                        line: match.start.line + 1,
+                        pre: match.line.substr(0, match.start.ch - match.highlightOffset),
+                        highlight: match.line.substring(match.start.ch - match.highlightOffset, multiLine ? undefined : match.end.ch - match.highlightOffset),
+                        post: multiLine ? "\u2026" : match.line.substr(match.end.ch - match.highlightOffset),
+                        start: match.start,
+                        end: match.end,
+                        isChecked: match.isChecked,
                         isCollapsed: item.collapsed
                     });
                     if (!match.isChecked) {
@@ -475,11 +475,11 @@ define(function (require, exports, module) {
                     );
 
                 self._searchList.push({
-                    fileIndex:   self._searchList.length,
-                    filename:    displayFileName,
-                    fullPath:    fullPath,
-                    isChecked:   allInFileChecked,
-                    items:       searchItems,
+                    fileIndex: self._searchList.length,
+                    filename: displayFileName,
+                    fullPath: fullPath,
+                    isChecked: allInFileChecked,
+                    items: searchItems,
                     isCollapsed: item.collapsed
                 });
             }
@@ -490,9 +490,9 @@ define(function (require, exports, module) {
         this._$table
             .empty()
             .append(Mustache.render(searchResultsTemplate, {
-                replace:       this._model.isReplace,
-                searchList:    this._searchList,
-                Strings:       Strings
+                replace: this._model.isReplace,
+                searchList: this._searchList,
+                Strings: Strings
             }));
 
         if (this._$selectedRow) {

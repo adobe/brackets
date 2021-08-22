@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var TokenUtils      = require("utils/TokenUtils");
 
@@ -271,9 +271,9 @@ define(function (require, exports, module) {
             // If we have a comma but no opening bracket, return null.
             if ((!keyName || !hasColon) || (hasComma && !hasBracket)) {
                 return null;
-            } else {
-                isArray = hasBracket;
             }
+            isArray = hasBracket;
+
 
             // Get parent key name.
             if (requireParent) {

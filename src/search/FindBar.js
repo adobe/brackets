@@ -25,7 +25,7 @@
  * UI for the Find/Replace and Find in Files modal bar.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                  = require("thirdparty/lodash"),
         Mustache           = require("thirdparty/mustache/mustache"),
@@ -188,9 +188,9 @@ define(function (require, exports, module) {
     FindBar.prototype.$ = function (selector) {
         if (this._modalBar) {
             return $(selector, this._modalBar.getRoot());
-        } else {
-            return $();
         }
+        return $();
+
     };
 
     // TODO: change IDs to classes
@@ -281,7 +281,7 @@ define(function (require, exports, module) {
             Mustache.render(_searchBarTemplate, templateVars),
             !!PreferencesManager.get('autoHideSearch')		// 2nd arg = auto-close on Esc/blur
         );
-        
+
         // Done this way because ModalBar.js seems to react unreliably when
         // modifying it to handle the escape key - the findbar wasn't getting
         // closed as it should, instead persisting in the background
@@ -293,7 +293,7 @@ define(function (require, exports, module) {
             }
         }
         window.document.body.addEventListener("keydown", _handleKeydown, true);
-        
+
         // When the ModalBar closes, clean ourselves up.
         this._modalBar.on("close", function (event) {
             window.document.body.removeEventListener("keydown", _handleKeydown, true);
@@ -529,9 +529,9 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.getQueryInfo = function () {
         return {
-            query:           this.$("#find-what").val() || "",
+            query: this.$("#find-what").val() || "",
             isCaseSensitive: this.$("#find-case-sensitive").is(".active"),
-            isRegexp:        this.$("#find-regexp").is(".active")
+            isRegexp: this.$("#find-regexp").is(".active")
         };
     };
 

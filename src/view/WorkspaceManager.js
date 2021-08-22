@@ -33,7 +33,7 @@
  *              The 3rd arg is a refreshHint flag for internal use (passed in to recomputeLayout)
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),

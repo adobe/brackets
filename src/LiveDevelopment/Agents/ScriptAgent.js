@@ -26,7 +26,7 @@
  * interfaces with the remote debugger.
  */
 define(function ScriptAgent(require, exports, module) {
-    "use strict";
+
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");

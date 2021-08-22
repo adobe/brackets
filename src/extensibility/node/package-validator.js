@@ -24,7 +24,7 @@
 /*eslint-env node */
 /*jslint node: true, regexp: true */
 
-"use strict";
+
 
 var DecompressZip               = require("decompress-zip"),
     semver                      = require("semver"),
@@ -103,22 +103,22 @@ function parsePersonString(obj) {
             return {
                 name: obj
             };
-        } else {
-            var result = {
-                name: parts[1]
-            };
-            if (parts[2]) {
-                result.email = parts[2];
-            }
-            if (parts[3]) {
-                result.url = parts[3];
-            }
-            return result;
         }
-    } else {
-        // obj is not a string, so return as is
-        return obj;
+        var result = {
+            name: parts[1]
+        };
+        if (parts[2]) {
+            result.email = parts[2];
+        }
+        if (parts[3]) {
+            result.url = parts[3];
+        }
+        return result;
+
     }
+        // obj is not a string, so return as is
+    return obj;
+
 }
 
 /**

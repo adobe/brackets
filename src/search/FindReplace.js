@@ -29,7 +29,7 @@
  * Originally based on the code in CodeMirror/lib/util/search.js.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),

@@ -25,7 +25,7 @@
  * Inline widget to display MDNDocs JSON data nicely formatted
  */
 define(function (require, exports, module) {
-    'use strict';
+
 
     // Load Brackets modules
     var Dialogs         = brackets.getModule("widgets/Dialogs"),
@@ -54,12 +54,12 @@ define(function (require, exports, module) {
         InlineWidget.call(this);
 
         var templateVars = {
-            propName            : PropName,
-            summary             : PropDetails.SUMMARY,
-            fullscreenSummary   : !(PropDetails.VALUES && PropDetails.VALUES.length),
-            propValues          : PropDetails.VALUES || [],
-            url                 : PropDetails.URL,
-            Strings             : Strings
+            propName: PropName,
+            summary: PropDetails.SUMMARY,
+            fullscreenSummary: !(PropDetails.VALUES && PropDetails.VALUES.length),
+            propValues: PropDetails.VALUES || [],
+            url: PropDetails.URL,
+            Strings: Strings
         };
 
         var html = Mustache.render(inlineEditorTemplate, templateVars);
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
     InlineDocsViewer.prototype._sizeEditorToContent = function () {
         this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.height() + 20, true);
     };
-    
+
     /**
      * Send analytics data for Quick Doc "readMore" action
      *

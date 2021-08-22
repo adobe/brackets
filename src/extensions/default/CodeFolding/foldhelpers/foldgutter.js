@@ -4,7 +4,7 @@
 // Modified by Patrick Oladimeji for Brackets
 
 define(function (require, exports, module) {
-    "use strict";
+
     var CodeMirror      = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         prefs           = require("Prefs");
 
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
      */
     function moveRange(range, numLines) {
         return {from: CodeMirror.Pos(range.from.line + numLines, range.from.ch),
-                to: CodeMirror.Pos(range.to.line + numLines, range.to.ch)};
+            to: CodeMirror.Pos(range.to.line + numLines, range.to.ch)};
     }
 
     /**
@@ -260,7 +260,7 @@ define(function (require, exports, module) {
       * @param {!Object} changeObj detailed information about the change that occurred in the document
       */
     function onChange(cm, changeObj) {
-        if (changeObj.origin === "setValue") {//text content has changed outside of brackets
+        if (changeObj.origin === "setValue") { //text content has changed outside of brackets
             var folds = cm.getValidFolds(cm._lineFolds);
             cm._lineFolds = folds;
             Object.keys(folds).forEach(function (line) {

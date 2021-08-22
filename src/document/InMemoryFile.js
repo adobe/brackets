@@ -34,7 +34,7 @@
  * return someInMemFile).
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var File            = require("filesystem/File"),
         FileSystemError = require("filesystem/FileSystemError");

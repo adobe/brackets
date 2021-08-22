@@ -25,7 +25,7 @@
  * Utilities for creating and managing standard modal dialogs.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     require("utils/Global");
 
@@ -267,9 +267,9 @@ define(function (require, exports, module) {
             maxHeight = $("body").height();
 
             $dlgs.css({
-                "max-width":  maxWidth,
+                "max-width": maxWidth,
                 "max-height": maxHeight,
-                "overflow":   "auto"
+                "overflow": "auto"
             });
         }
     }
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
 
             // Restore previous focus
             if (lastFocus) {
-                lastFocus.focus();    
+                lastFocus.focus();
             }
 
             //Remove wrapper
@@ -364,7 +364,7 @@ define(function (require, exports, module) {
         $dlg
             .modal({
                 backdrop: "static",
-                show:     true,
+                show: true,
                 selector: ".modal-inner-wrapper:last",
                 keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
             })
@@ -397,9 +397,9 @@ define(function (require, exports, module) {
     function showModalDialog(dlgClass, title, message, buttons, autoDismiss) {
         var templateVars = {
             dlgClass: dlgClass,
-            title:    title   || "",
-            message:  message || "",
-            buttons:  buttons || [{ className: DIALOG_BTN_CLASS_PRIMARY, id: DIALOG_BTN_OK, text: Strings.OK }]
+            title: title   || "",
+            message: message || "",
+            buttons: buttons || [{ className: DIALOG_BTN_CLASS_PRIMARY, id: DIALOG_BTN_OK, text: Strings.OK }]
         };
         var template = Mustache.render(DialogTemplate, templateVars);
 

@@ -25,9 +25,9 @@
  * @author Patrick Oladimeji
  * @date 10/24/13 9:35:26 AM
  */
- 
+
 define(function (require, exports, module) {
-    "use strict";
+
 
     var CodeMirror              = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         Strings                 = brackets.getModule("strings"),
@@ -117,19 +117,19 @@ define(function (require, exports, module) {
         }
 
         var saveFolds = prefs.getSetting("saveFoldStates");
-        
+
         if (!editor || !saveFolds) {
             if (editor) {
                 editor._codeMirror._lineFolds = editor._codeMirror._lineFolds || {};
             }
             return;
         }
-                
+
         var cm = editor._codeMirror;
         var viewState = ViewStateManager.getViewState(editor.document.file);
         var path = editor.document.file.fullPath;
         var folds = cm._lineFolds || prefs.getFolds(path) || {};
-        
+
         //separate out selection folds from non-selection folds
         var nonSelectionFolds = {}, selectionFolds = {}, range;
         Object.keys(folds).forEach(function (line) {
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
     }
 
     /**
-      * When a brand new editor is seen, initialise fold-gutter and restore line folds in it. 
+      * When a brand new editor is seen, initialise fold-gutter and restore line folds in it.
       * Save line folds in departing editor in case it's getting closed.
       * @param {object} event the event object
       * @param {Editor} current the current editor

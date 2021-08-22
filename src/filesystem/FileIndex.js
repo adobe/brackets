@@ -27,7 +27,7 @@
  * This module is *only* used by FileSystem, and should not be called directly.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileUtils = require("file/FileUtils");
 

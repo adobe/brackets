@@ -26,7 +26,7 @@
  * installed copy of Brackets.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileSystem  = require("filesystem/FileSystem"),
         FileUtils   = require("file/FileUtils");

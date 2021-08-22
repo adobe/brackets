@@ -33,7 +33,7 @@
  * by recalling the cached state.  Views determine what data is store in the view state and how to restore it.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 

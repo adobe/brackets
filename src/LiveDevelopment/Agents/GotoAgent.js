@@ -28,7 +28,7 @@
  * GotoAgent constructs and responds to the in-browser goto dialog.
  */
 define(function GotoAgent(require, exports, module) {
-    "use strict";
+
 
     require("utils/Global");
 

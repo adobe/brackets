@@ -27,7 +27,7 @@
  * Functions for working with extension packages
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit              = require("utils/AppInit"),
         FileSystem           = require("filesystem/FileSystem"),
@@ -87,9 +87,9 @@ define(function (require, exports, module) {
     function _extensionManagerCall(callback) {
         if (_nodeConnection.domains.extensionManager) {
             return callback(_nodeConnection.domains.extensionManager);
-        } else {
-            return new $.Deferred().reject("extensionManager domain is undefined").promise();
         }
+        return new $.Deferred().reject("extensionManager domain is undefined").promise();
+
     }
 
     /**
@@ -110,12 +110,12 @@ define(function (require, exports, module) {
     function validate(path, options) {
         return _extensionManagerCall(function (extensionManager) {
             var d = new $.Deferred();
-            
+
             // make sure proxy is attached to options before calling validate
             // so npm can use it in the domain
             options = options || {};
             options.proxy = PreferencesManager.get("proxy");
-            
+
             extensionManager.validate(path, options)
                 .done(function (result) {
                     d.resolve({
@@ -423,9 +423,9 @@ define(function (require, exports, module) {
         if (Array.isArray(error)) {
             error[0] = localize(error[0]);
             return StringUtils.format.apply(window, error);
-        } else {
-            return localize(error);
         }
+        return localize(error);
+
     }
 
     /**

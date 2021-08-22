@@ -25,7 +25,7 @@
 /*eslint no-console: 0*/
 /* eslint no-empty: ["error", { "allowEmptyCatch": true }] */
 (function () {
-    "use strict";
+
 
     var protocol = require("vscode-languageserver-protocol");
 

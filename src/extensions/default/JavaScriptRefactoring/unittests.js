@@ -25,7 +25,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var MainViewManager      = brackets.getModule("view/MainViewManager"),
         DocumentManager      = brackets.getModule("document/DocumentManager"),
@@ -78,14 +78,14 @@ define(function (require, exports, module) {
             waitsFor(function() {
                 return (testDoc.getText().length !== prevDocLength || (numberOfLines && testDoc.getText().split("\n").length !== numberOfLines));
             }, 3000);
-            runs(function() {callback();});
+            runs(function() { callback(); });
         }
 
         function _waitForRename(prevSelections, callback) {
             waitsFor(function() {
                 return testEditor.getSelections().length !== prevSelections;
             }, 3000);
-            runs(function() {callback();});
+            runs(function() { callback(); });
         }
 
         describe("Extract to variable", function () {
@@ -392,7 +392,7 @@ define(function (require, exports, module) {
                 var scopeMenu;
 
                 waitsForDone(result.then(function(inlineMenu) {
-                   scopeMenu = inlineMenu;
+                    scopeMenu = inlineMenu;
                 }), "Scope not displayed in extract to function", 3000);
 
                 runs(function() {
@@ -409,7 +409,7 @@ define(function (require, exports, module) {
                 var scopeMenu;
 
                 waitsForDone(result.then(function(inlineMenu) {
-                   scopeMenu = inlineMenu;
+                    scopeMenu = inlineMenu;
                 }), "Scope not displayed in extract to function", 3000);
 
                 runs(function() {
@@ -426,7 +426,7 @@ define(function (require, exports, module) {
                 var scopeMenu;
 
                 waitsForDone(result.then(function(inlineMenu) {
-                   scopeMenu = inlineMenu;
+                    scopeMenu = inlineMenu;
                 }), "Scope not displayed in extract to function", 3000);
 
                 runs(function() {
@@ -443,7 +443,7 @@ define(function (require, exports, module) {
                 var scopeMenu;
 
                 waitsForDone(result.then(function(inlineMenu) {
-                   scopeMenu = inlineMenu;
+                    scopeMenu = inlineMenu;
                 }), "Scope not displayed in extract to function", 3000);
 
                 runs(function() {
@@ -462,7 +462,7 @@ define(function (require, exports, module) {
                 var scopeMenu;
 
                 waitsForDone(result.then(function(inlineMenu) {
-                   scopeMenu = inlineMenu;
+                    scopeMenu = inlineMenu;
                 }), "Scope not displayed in extract to function", 3000);
 
                 runs(function() {
@@ -621,7 +621,7 @@ define(function (require, exports, module) {
 
                 _waitForRename(selections.length, function() {
                     var selections = testEditor.getSelections(),
-                        token1 = TokenUtils.getTokenAt(testEditor._codeMirror,{line: 132, ch: 14}, {line: 132, ch: 14}),
+                        token1 = TokenUtils.getTokenAt(testEditor._codeMirror, {line: 132, ch: 14}, {line: 132, ch: 14}),
                         token2 = TokenUtils.getTokenAt(testEditor._codeMirror, {line: 140, ch: 17}, {line: 140, ch: 17});
 
                     expect(selections[0].start.line).toEqual(132);
@@ -639,7 +639,7 @@ define(function (require, exports, module) {
 
                 _waitForRename(selections.length, function() {
                     var selections = testEditor.getSelections(),
-                        token1 = TokenUtils.getTokenAt(testEditor._codeMirror,{line: 149, ch: 6}, {line: 149, ch: 6}),
+                        token1 = TokenUtils.getTokenAt(testEditor._codeMirror, {line: 149, ch: 6}, {line: 149, ch: 6}),
                         token2 = TokenUtils.getTokenAt(testEditor._codeMirror, {line: 150, ch: 13}, {line: 150, ch: 13});
 
                     expect(selections[0].start.line).toEqual(165);

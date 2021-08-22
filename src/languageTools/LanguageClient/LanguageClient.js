@@ -25,7 +25,7 @@
 /*eslint no-console: 0*/
 /*eslint strict: ["error", "global"]*/
 /*eslint max-len: ["error", { "code": 200 }]*/
-"use strict";
+
 
 var ProtocolAdapter = require("./ProtocolAdapter"),
     ServerUtils = require("./ServerUtils"),

@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                           = require("thirdparty/lodash"),
         Mustache                    = require("thirdparty/mustache/mustache"),
@@ -84,14 +84,14 @@ define(function (require, exports, module) {
             Strings.CHANGE_AND_RELOAD_MESSAGE,
             [
                 {
-                    className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                    id        : Dialogs.DIALOG_BTN_CANCEL,
-                    text      : Strings.CANCEL
+                    className: Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                    id: Dialogs.DIALOG_BTN_CANCEL,
+                    text: Strings.CANCEL
                 },
                 {
-                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                    id        : Dialogs.DIALOG_BTN_OK,
-                    text      : buttonLabel
+                    className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id: Dialogs.DIALOG_BTN_OK,
+                    text: buttonLabel
                 }
             ],
             false
@@ -469,7 +469,7 @@ define(function (require, exports, module) {
                     $modalDlg.scrollTop(0);
                 }, 200);
             }).on("click", ".search-clear", clearSearch);
-            
+
             // Sort the extension list based on the current selected sorting criteria
             $dlg.on("change", ".sort-extensions", function (e) {
                 var sortBy = $(this).val();

@@ -22,13 +22,13 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
-    
+
+
     var EditorManager       = require("editor/EditorManager"),
         QuickOpen           = require("search/QuickOpen"),
         DocumentManager     = require("document/DocumentManager"),
         StringMatch         = require("utils/StringMatch");
-    
+
     /**
      * @param {string} query what the user is searching for
      * @param {boolean} returns true if this plug-in wants to provide results for this query
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
     function itemSelect(selectedItem, query) {
         itemFocus(selectedItem, query, true);
     }
-    
+
     exports.match      = match;
     exports.itemFocus  = itemFocus;
     exports.itemSelect = itemSelect;

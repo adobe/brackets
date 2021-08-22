@@ -26,7 +26,7 @@
  */
 /*global Map*/
 define(function (require, exports, module) {
-    "use strict";
+
 
     var PreferencesManager          = require("preferences/PreferencesManager"),
         LanguageManager             = require("language/LanguageManager"),
@@ -155,8 +155,8 @@ define(function (require, exports, module) {
             healthData = getStoredHealthData(),
             fileExtCountMap = [];
         healthData.fileStats = healthData.fileStats || {
-            openedFileExt     : {},
-            workingSetFileExt : {},
+            openedFileExt: {},
+            workingSetFileExt: {},
             openedFileEncoding: {}
         };
         if (language.getId() !== "unknown") {
@@ -281,8 +281,8 @@ define(function (require, exports, module) {
             FIFLog = {};
         }
         FIFLog["prj" + projectNameHash] = {
-            numFiles : numFiles,
-            cacheSize : cacheSize
+            numFiles: numFiles,
+            cacheSize: cacheSize
         };
         setHealthDataLog("ProjectDetails", FIFLog);
     }

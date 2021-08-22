@@ -25,7 +25,7 @@
 /*eslint indent: 0*/
 /*eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
-    "use strict";
+
 
     var ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json")),
         MESSAGE_FORMAT = {

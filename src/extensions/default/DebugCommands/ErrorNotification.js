@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _               = brackets.getModule("thirdparty/lodash"),
         AnimationUtils  = brackets.getModule("utils/AnimationUtils"),

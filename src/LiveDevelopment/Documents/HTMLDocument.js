@@ -38,7 +38,7 @@
  * editor.
  */
 define(function HTMLDocumentModule(require, exports, module) {
-    "use strict";
+
 
     var EditorManager       = require("editor/EditorManager"),
         EventDispatcher     = require("utils/EventDispatcher"),

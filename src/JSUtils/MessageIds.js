@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var TERN_ADD_FILES_MSG          = "AddFiles",
         TERN_UPDATE_FILE_MSG        = "UpdateFile",

@@ -31,7 +31,7 @@
  * the URL for the added/removed style sheet.
  */
 define(function CSSAgent(require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 

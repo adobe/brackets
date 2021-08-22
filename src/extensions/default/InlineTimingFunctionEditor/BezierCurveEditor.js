@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings"),
@@ -103,10 +103,10 @@ define(function (require, exports, module) {
 
             return [{
                 left: w * (this.bezier.coordinates[0]     * (1 - p[3] - p[1]) - p[3]) + "px",
-                top:  h * (1 - this.bezier.coordinates[1] * (1 - p[0] - p[2]) - p[0]) + "px"
+                top: h * (1 - this.bezier.coordinates[1] * (1 - p[0] - p[2]) - p[0]) + "px"
             }, {
                 left: w * (this.bezier.coordinates[2]     * (1 - p[3] - p[1]) - p[3]) + "px",
-                top:  h * (1 - this.bezier.coordinates[3] * (1 - p[0] - p[2]) - p[0]) + "px"
+                top: h * (1 - this.bezier.coordinates[3] * (1 - p[0] - p[2]) - p[0]) + "px"
             }];
         },
 
@@ -263,7 +263,7 @@ define(function (require, exports, module) {
 
         $P.css({
             left: x + "px",
-            top:  y + "px"
+            top: y + "px"
         });
         $P.get(0).focus();
 
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
         if (bezierEditor.dragElement) {
             $(bezierEditor.dragElement).css({
                 left: x + "px",
-                top:  y + "px"
+                top: y + "px"
             });
         }
 
@@ -620,21 +620,21 @@ define(function (require, exports, module) {
         if (match[0].match(/^cubic-bezier/)) {
             // cubic-bezier()
             return match.slice(1, 5);
-        } else {
-            // handle special cases of cubic-bezier calls
-            switch (match[0]) {
-            case "linear":
-                return [ "0", "0", "1", "1" ];
-            case "ease":
-                return [ ".25", ".1", ".25", "1" ];
-            case "ease-in":
-                return [ ".42", "0", "1", "1" ];
-            case "ease-out":
-                return [ "0", "0", ".58", "1" ];
-            case "ease-in-out":
-                return [ ".42", "0", ".58", "1" ];
-            }
         }
+            // handle special cases of cubic-bezier calls
+        switch (match[0]) {
+        case "linear":
+            return [ "0", "0", "1", "1" ];
+        case "ease":
+            return [ ".25", ".1", ".25", "1" ];
+        case "ease-in":
+            return [ ".42", "0", "1", "1" ];
+        case "ease-out":
+            return [ "0", "0", ".58", "1" ];
+        case "ease-in-out":
+            return [ ".42", "0", ".58", "1" ];
+        }
+
 
         window.console.log("brackets-cubic-bezier: getCubicBezierCoords() passed invalid RegExp match array");
         return [ "0", "0", "0", "0" ];
@@ -650,10 +650,10 @@ define(function (require, exports, module) {
             canvasOffset = $canvas.offset();
 
         return {
-            left:    canvasOffset.left,
-            top:     canvasOffset.top,
-            width:   $canvas.width(),
-            height:  $canvas.height()
+            left: canvasOffset.left,
+            top: canvasOffset.top,
+            width: $canvas.width(),
+            height: $canvas.height()
         };
     };
 
@@ -669,11 +669,11 @@ define(function (require, exports, module) {
 
             $(this.P1).css({
                 left: offsets[0].left,
-                top:  offsets[0].top
+                top: offsets[0].top
             });
             $(this.P2).css({
                 left: offsets[1].left,
-                top:  offsets[1].top
+                top: offsets[1].top
             });
 
             this.bezierCanvas.plot();

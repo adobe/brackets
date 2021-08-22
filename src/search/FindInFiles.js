@@ -25,7 +25,7 @@
  * The core search functionality used by Find in Files and single-file Replace Batch.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                     = require("thirdparty/lodash"),
         FileFilters           = require("search/FileFilters"),
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         _debouncedFileSystemChangeHandler,
         _fileNameChangeHandler,
         clearSearch;
-    
+
     /**
      * Waits for FS changes to stack up until processing them
      * (scripts like npm install can do a lot of movements on the disk)
@@ -174,8 +174,8 @@ define(function (require, exports, module) {
             }
 
             matches.push({
-                start:       {line: lineNum, ch: ch},
-                end:         {line: lineNum + numMatchedLines - 1, ch: endCh},
+                start: {line: lineNum, ch: ch},
+                end: {line: lineNum + numMatchedLines - 1, ch: endCh},
 
                 highlightOffset: highlightOffset,
 
@@ -186,11 +186,11 @@ define(function (require, exports, module) {
                 // doing everything in terms of line/ch offsets, though that will require re-splitting files when
                 // doing a replace) or properly update them.
                 startOffset: match.index,
-                endOffset:   match.index + totalMatchLength,
+                endOffset: match.index + totalMatchLength,
 
-                line:        line,
-                result:      match,
-                isChecked:   true
+                line: line,
+                result: match,
+                isChecked: true
             });
 
             // We have the max hits in just this 1 file. Stop searching this file.
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
                     } else {
                         // TODO: add unit test exercising timestamp logic in self case
                         resultInfo = {
-                            matches:   matches,
+                            matches: matches,
                             collapsed: false,
                             timestamp: doc.diskTimestamp
                         };
@@ -325,9 +325,9 @@ define(function (require, exports, module) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
                 return file.fullPath.indexOf(scope.fullPath) === 0;
-            } else {
-                return file.fullPath === scope.fullPath;
             }
+            return file.fullPath === scope.fullPath;
+
         }
         return true;
     }
@@ -357,9 +357,9 @@ define(function (require, exports, module) {
         // in-memory file might be an untitled document that doesn't show up in getAllFiles().
         if (scope && scope.isFile) {
             return new $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
-        } else {
-            return ProjectManager.getAllFiles(filter, true, true);
         }
+        return ProjectManager.getAllFiles(filter, true, true);
+
     }
 
     /**
@@ -506,9 +506,9 @@ define(function (require, exports, module) {
                     if (fileListResult.length) {
                         searchModel.allResultsAvailable = true;
                         return Async.doInParallel(fileListResult, _doSearchInOneFile);
-                    } else {
-                        return ZERO_FILES_TO_SEARCH;
                     }
+                    return ZERO_FILES_TO_SEARCH;
+
                 }
 
                 var searchDeferred = new $.Deferred();
@@ -571,9 +571,9 @@ define(function (require, exports, module) {
                             searchDeferred.reject();
                         });
                     return searchDeferred.promise();
-                } else {
-                    return ZERO_FILES_TO_SEARCH;
                 }
+                return ZERO_FILES_TO_SEARCH;
+
             })
             .then(function (zeroFilesToken) {
                 exports._searchDone = true; // for unit tests
@@ -581,9 +581,9 @@ define(function (require, exports, module) {
 
                 if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
                     return zeroFilesToken;
-                } else {
-                    return searchModel.results;
                 }
+                return searchModel.results;
+
             }, function (err) {
                 console.log("find in files failed: ", err);
                 PerfUtils.finalizeMeasurement(perfTimer);
@@ -858,12 +858,12 @@ define(function (require, exports, module) {
             }
         });
     };
-    
+
     /**
      * This stores file system events emitted by watchers that were not yet processed
      */
     var _cachedFileSystemEvents = [];
-    
+
     /**
      * Debounced function to process emitted file system events
      * for cases when there's a lot of fs events emitted in a very short period of time
@@ -886,7 +886,7 @@ define(function (require, exports, module) {
         });
         _cachedFileSystemEvents = [];
     }, FILE_SYSTEM_EVENT_DEBOUNCE_TIME);
-    
+
     /**
      * Wrapper function for _fileSystemChangeHandler which handles all incoming fs events
      * putting them to cache and executing a debounced function

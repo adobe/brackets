@@ -26,7 +26,7 @@
  * local console.
  */
 define(function ConsoleAgent(require, exports, module) {
-    "use strict";
+
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 

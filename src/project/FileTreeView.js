@@ -29,7 +29,7 @@
  * (in the Flux sense).
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Preact            = require("thirdparty/preact"),
         Classnames        = require("thirdparty/classnames"),
@@ -112,7 +112,7 @@ define(function (require, exports, module) {
      * @return {int} Width to use
      */
     function _measureText(text) {
-        var measuringElement = $("<span />", { css : { "position" : "absolute", "top" : "-200px", "left" : "-1000px", "visibility" : "hidden", "white-space": "pre" } }).appendTo("body");
+        var measuringElement = $("<span />", { css: { "position": "absolute", "top": "-200px", "left": "-1000px", "visibility": "hidden", "white-space": "pre" } }).appendTo("body");
         measuringElement.text("pW" + text);
         var width = measuringElement.width();
         measuringElement.remove();
@@ -687,9 +687,9 @@ define(function (require, exports, module) {
                 return -1;
             } else if (aIsFile && !bIsFile) {
                 return 1;
-            } else {
-                return FileUtils.compareFilenames(a, b);
             }
+            return FileUtils.compareFilenames(a, b);
+
         }
         return _dirsFirstCompare;
     }
@@ -706,9 +706,9 @@ define(function (require, exports, module) {
     function _sortDirectoryContents(contents, dirsFirst) {
         if (dirsFirst) {
             return contents.keySeq().sort(_buildDirsFirstComparator(contents));
-        } else {
-            return contents.keySeq().sort(FileUtils.compareFilenames);
         }
+        return contents.keySeq().sort(FileUtils.compareFilenames);
+
     }
 
     // Forward references to keep JSLint happy.
@@ -982,20 +982,20 @@ define(function (require, exports, module) {
                         platform: this.props.platform,
                         key: name
                     });
-                } else {
-                    return directoryNode({
-                        depth: this.props.depth,
-                        parentPath: this.props.parentPath,
-                        name: name,
-                        entry: entry,
-                        actions: this.props.actions,
-                        extensions: this.props.extensions,
-                        sortDirectoriesFirst: this.props.sortDirectoriesFirst,
-                        forceRender: this.props.forceRender,
-                        platform: this.props.platform,
-                        key: name
-                    });
                 }
+                return directoryNode({
+                    depth: this.props.depth,
+                    parentPath: this.props.parentPath,
+                    name: name,
+                    entry: entry,
+                    actions: this.props.actions,
+                    extensions: this.props.extensions,
+                    sortDirectoriesFirst: this.props.sortDirectoriesFirst,
+                    forceRender: this.props.forceRender,
+                    platform: this.props.platform,
+                    key: name
+                });
+
             }.bind(this)).toArray());
         }
     }));
@@ -1163,13 +1163,13 @@ define(function (require, exports, module) {
 
         render: function () {
             var selectionBackground = fileSelectionBox({
-                ref: "selectionBackground",
-                selectionViewInfo: this.props.selectionViewInfo,
-                className: "filetree-selection",
-                visible: this.props.selectionViewInfo.get("hasSelection"),
-                selectedClassName: ".selected-node",
-                forceUpdate: true
-            }),
+                    ref: "selectionBackground",
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    className: "filetree-selection",
+                    visible: this.props.selectionViewInfo.get("hasSelection"),
+                    selectedClassName: ".selected-node",
+                    forceUpdate: true
+                }),
                 contextBackground = fileSelectionBox({
                     ref: "contextBackground",
                     selectionViewInfo: this.props.selectionViewInfo,

@@ -29,7 +29,7 @@
  * to DOM nodes in the browser, so edits can be incrementally applied.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var EventDispatcher     = require("utils/EventDispatcher"),
         PerfUtils           = require("utils/PerfUtils"),

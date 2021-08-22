@@ -63,7 +63,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var StringUtils      = require("utils/StringUtils");
 

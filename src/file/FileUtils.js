@@ -28,7 +28,7 @@
  * Set of utilities for working with files and text content.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     require("utils/Global");
 
@@ -150,9 +150,9 @@ define(function (require, exports, module) {
 
         if ((hasCRLF && hasLF) || (!hasCRLF && !hasLF)) {
             return null;
-        } else {
-            return hasCRLF ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
         }
+        return hasCRLF ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
+
     }
 
     /**
@@ -278,9 +278,9 @@ define(function (require, exports, module) {
     function stripTrailingSlash(path) {
         if (path && path[path.length - 1] === "/") {
             return path.slice(0, -1);
-        } else {
-            return path;
         }
+        return path;
+
     }
 
     /**
@@ -293,9 +293,9 @@ define(function (require, exports, module) {
         var lastSlash = fullPath.lastIndexOf("/");
         if (lastSlash === fullPath.length - 1) {  // directory: exclude trailing "/" too
             return fullPath.slice(fullPath.lastIndexOf("/", fullPath.length - 2) + 1, -1);
-        } else {
-            return fullPath.slice(lastSlash + 1);
         }
+        return fullPath.slice(lastSlash + 1);
+
     }
 
     /**

@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Commands = require("command/Commands"),
         Strings = require("strings"),

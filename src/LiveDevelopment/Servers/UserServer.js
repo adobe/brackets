@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var BaseServer             = require("LiveDevelopment/Servers/BaseServer").BaseServer,
         LiveDevelopmentUtils   = require("LiveDevelopment/LiveDevelopmentUtils");

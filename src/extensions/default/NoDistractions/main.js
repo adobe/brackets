@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Menus               = brackets.getModule("command/Menus"),
         CommandManager      = brackets.getModule("command/CommandManager"),

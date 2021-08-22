@@ -28,7 +28,7 @@
  * Trigger "highlight" when a node should be highlighted
  */
 define(function HighlightAgent(require, exports, module) {
-    "use strict";
+
 
     var DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
         EventDispatcher = require("utils/EventDispatcher"),

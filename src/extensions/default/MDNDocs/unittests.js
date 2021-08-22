@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils");
 
@@ -101,18 +101,18 @@ define(function (require, exports, module) {
                     expect(Object.keys(json).length).toBeGreaterThan(0);
                 });
             });
-            
+
             it("should retrieve the HTML docs database", function () {
                 var json;
-                
+
                 runs(function () {
                     main._getDocs("html.json").done(function (result) {
                         json = result;
                     });
                 });
-                
+
                 waitsFor(function () { return json !== undefined; }, "read html.json database", 5000);
-                
+
                 runs(function () {
                     expect(Object.keys(json).length).toBeGreaterThan(0);
                 });
@@ -184,31 +184,31 @@ define(function (require, exports, module) {
             it("should open docs when the selection is on an HTML tag", function () {
                 queryInlineAtPos(testHTMLInfo, 1, true, "<body>");
             });
-            
+
             it("should not open docs when the selection is on an invalid HTML tag", function () {
                 queryInlineAtPos(testHTMLInfo, 2, false);
             });
-            
+
             it("should not open docs when the selection is not an HTML tag", function () {
                 /* Text */
                 queryInlineAtPos(testHTMLInfo, 3, false);
-                
+
                 /* Commented tag */
                 queryInlineAtPos(testHTMLInfo, 4, false);
             });
-            
+
             it("should open docs when the selection is on an HTML attribute", function () {
                 queryInlineAtPos(testHTMLInfo, 5, true, "<div>");
             });
-            
+
             it("should open docs for tag (fallback) when the selection is on an HTML attribute's value", function () {
                 queryInlineAtPos(testHTMLInfo, 6, true, "<div>");
             });
-            
+
             it("should open docs for tag (fallback) when the selection is on an invalid HTML attribute", function () {
                 queryInlineAtPos(testHTMLInfo, 7, true, "<div>");
             });
-            
+
             it("should not open docs when the selection is on an invalid HTML attribute on an invalid HTML tag", function () {
                 queryInlineAtPos(testHTMLInfo, 8, false);
             });

@@ -39,7 +39,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var EventDispatcher = require("utils/EventDispatcher");
 

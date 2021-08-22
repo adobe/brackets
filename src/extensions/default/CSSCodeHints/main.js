@@ -24,7 +24,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit             = brackets.getModule("utils/AppInit"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
@@ -77,10 +77,10 @@ define(function (require, exports, module) {
             });
 
             return text;
-        } else {
-            // css file, just return the text
-            return this.editor.document.getText();
         }
+            // css file, just return the text
+        return this.editor.document.getText();
+
     };
 
     /**
@@ -277,9 +277,9 @@ define(function (require, exports, module) {
             // to give other more specialized providers a chance to intervene.
             if (lastContext === CSSUtils.PROP_NAME) {
                 return true;
-            } else {
-                lastContext = CSSUtils.PROP_VALUE;
             }
+            lastContext = CSSUtils.PROP_VALUE;
+
 
             if (!properties[needle]) {
                 return null;
@@ -406,7 +406,7 @@ define(function (require, exports, module) {
                     hint += " ";
                     adjustCursor = true;
                     newCursor = { line: cursor.line,
-                                  ch: start.ch + hint.length - 1 };
+                        ch: start.ch + hint.length - 1 };
                     this.exclusion = null;
                 }
             } else {
@@ -424,7 +424,7 @@ define(function (require, exports, module) {
                 if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ":") {
                     adjustCursor = true;
                     newCursor = { line: cursor.line,
-                                  ch: cursor.ch + (hint.length - this.info.name.length) };
+                        ch: cursor.ch + (hint.length - this.info.name.length) };
                     // Adjust cursor to the position after any whitespace that follows the colon, if there is any.
                     if (TokenUtils.moveNextToken(ctx) && ctx.token.string.length > 0 && !/\S/.test(ctx.token.string)) {
                         newCursor.ch += ctx.token.string.length;
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
                 // and keep hints open
                 adjustCursor = true;
                 newCursor = { line: cursor.line,
-                              ch: start.ch + parenMatch.index + 1 };
+                    ch: start.ch + parenMatch.index + 1 };
                 keepHints = true;
             }
         }

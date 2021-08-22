@@ -25,7 +25,7 @@
  *  Utilities functions related to localization/i18n
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Strings = require("strings");
 

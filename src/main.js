@@ -27,19 +27,19 @@
  */
 require.config({
     paths: {
-        "text"              : "thirdparty/text/text",
-        "i18n"              : "thirdparty/i18n/i18n",
+        "text": "thirdparty/text/text",
+        "i18n": "thirdparty/i18n/i18n",
 
         // The file system implementation. Change this value to use different
         // implementations (e.g. cloud-based storage).
-        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem",
-        "preact-compat"     : "thirdparty/preact-compat/preact-compat.min",
-        "preact"            : "thirdparty/preact/preact"
+        "fileSystemImpl": "filesystem/impls/appshell/AppshellFileSystem",
+        "preact-compat": "thirdparty/preact-compat/preact-compat.min",
+        "preact": "thirdparty/preact/preact"
     },
     map: {
         "*": {
             "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
-            "thirdparty/preact"     : "preact-compat"
+            "thirdparty/preact": "preact-compat"
         }
     }
 });
@@ -66,7 +66,7 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
 }
 
 define(function (require) {
-    "use strict";
+
 
     // Load compatibility shims--these need to load early, be careful moving this
     require(["utils/Compatibility"], function () {
