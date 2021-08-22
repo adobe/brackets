@@ -23,7 +23,7 @@
 
 /*eslint-env node */
 /*jslint node: true */
-'use strict';
+
 
 module.exports = function (grunt) {
     // load dependencies
@@ -39,7 +39,7 @@ module.exports = function (grunt) {
 
     // Project configuration.
     grunt.initConfig({
-        pkg  : grunt.file.readJSON("package.json"),
+        pkg: grunt.file.readJSON("package.json"),
         clean: {
             dist: {
                 files: [{
@@ -51,7 +51,7 @@ module.exports = function (grunt) {
                     ]
                 }]
             },
-            node_modules_test_dir : {
+            node_modules_test_dir: {
                 files: [{
                     dot: true,
                     src: [
@@ -189,7 +189,7 @@ module.exports = function (grunt) {
                         cwd: 'src/node_modules/acorn',
                         src: [
                             'dist/{,*/}*'
-                          ]
+                        ]
                     }
                 ]
             }
@@ -281,8 +281,8 @@ module.exports = function (grunt) {
                 }]
             }
         },
-        meta : {
-            src   : [
+        meta: {
+            src: [
                 'src/**/*.js',
                 '!src/thirdparty/**',
                 '!src/widgets/bootstrap-*.js',
@@ -294,7 +294,7 @@ module.exports = function (grunt) {
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
-            test : [
+            test: [
                 'test/**/*.js',
                 '!test/perf/*-files/**/*.js',
                 '!test/spec/*-files/**/*.js',
@@ -310,7 +310,7 @@ module.exports = function (grunt) {
                 'tasks/**/*.js'
             ],
             /* specs that can run in phantom.js */
-            specs : [
+            specs: [
                 'test/spec/CommandManager-test.js',
                 //'test/spec/LanguageManager-test.js',
                 //'test/spec/PreferencesManager-test.js',
@@ -335,16 +335,16 @@ module.exports = function (grunt) {
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
-        jasmine : {
-            src : 'undefined.js', /* trick the default runner to run without importing src files */
-            options : {
-                junit : {
+        jasmine: {
+            src: 'undefined.js', /* trick the default runner to run without importing src files */
+            options: {
+                junit: {
                     path: 'test/results',
                     consolidate: true
                 },
-                specs : '<%= meta.specs %>',
+                specs: '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
-                vendor : [
+                vendor: [
                     // For reference to why this polyfill is needed see Issue #7951.
                     // The need for this should go away once the version of phantomjs gets upgraded to 2.0
                     'test/polyfills.js',
@@ -352,19 +352,19 @@ module.exports = function (grunt) {
                     'src/thirdparty/jquery-2.1.3.min.js',
                     'src/thirdparty/less.min.js'
                 ],
-                helpers : [
+                helpers: [
                     'test/spec/PhantomHelper.js'
                 ],
-                template : require('grunt-template-jasmine-requirejs'),
+                template: require('grunt-template-jasmine-requirejs'),
                 templateOptions: {
-                    requireConfig : {
+                    requireConfig: {
                         baseUrl: 'src',
                         paths: {
-                            'test' : '../test',
-                            'perf' : '../test/perf',
-                            'spec' : '../test/spec',
-                            'text' : 'thirdparty/text/text',
-                            'i18n' : 'thirdparty/i18n/i18n'
+                            'test': '../test',
+                            'perf': '../test/perf',
+                            'spec': '../test/spec',
+                            'text': 'thirdparty/text/text',
+                            'i18n': 'thirdparty/i18n/i18n'
                         }
                     }
                 }
@@ -374,9 +374,9 @@ module.exports = function (grunt) {
             projectRoot: 'src/extensibility/node/spec/'
         },
         eslint: {
-            grunt:  '<%= meta.grunt %>',
-            src:    '<%= meta.src %>',
-            test:   '<%= meta.test %>',
+            grunt: '<%= meta.grunt %>',
+            src: '<%= meta.src %>',
+            test: '<%= meta.test %>',
             options: {
                 quiet: true
             }

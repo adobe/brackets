@@ -23,7 +23,7 @@
 
 /*eslint-env node */
 /*jslint node: true */
-"use strict";
+
 
 module.exports = function (grunt) {
     var common      = {},
@@ -47,7 +47,7 @@ module.exports = function (grunt) {
 
         return _platform;
     }
-    
+
     function writeJSON(grunt, path, obj) {
         var content = JSON.stringify(obj, null, "    ");
         if (platform() === "win") {
