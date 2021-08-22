@@ -31,7 +31,7 @@
  * Remote events are dispatched as events on this object.
  */
 define(function RemoteAgent(require, exports, module) {
-    "use strict";
+
 
     var LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         EventDispatcher     = require("utils/EventDispatcher"),

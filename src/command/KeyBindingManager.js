@@ -28,7 +28,7 @@
  * Manages the mapping of keyboard inputs to commands.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     require("utils/Global");
 
@@ -93,18 +93,18 @@ define(function (require, exports, module) {
      * Maps key names to the corresponding unicode symols
      * @type {{key: string, displayKey: string}}
      */
-    var _displayKeyMap        = { "up":    "\u2191",
-                                  "down":  "\u2193",
-                                  "left":  "\u2190",
-                                  "right": "\u2192",
-                                  "-":     "\u2212" };
+    var _displayKeyMap        = { "up": "\u2191",
+        "down": "\u2193",
+        "left": "\u2190",
+        "right": "\u2192",
+        "-": "\u2212" };
 
     var _specialCommands      = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
-                                 Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
+            Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
         _reservedShortcuts    = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
         _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
         _keyNames             = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab",
-                                 "PageUp", "PageDown", "Home", "End", "Insert", "Delete"];
+            "PageUp", "PageDown", "Home", "End", "Insert", "Delete"];
 
     /**
      * @private
@@ -144,8 +144,8 @@ define(function (require, exports, module) {
      * @enum {number}
      */
     var CtrlDownStates = {
-        "NOT_YET_DETECTED"    : 0,
-        "DETECTED"            : 1,
+        "NOT_YET_DETECTED": 0,
+        "DETECTED": 1,
         "DETECTED_AND_IGNORED": 2   // For consecutive ctrl keydown events while a Ctrl key is being hold down
     };
 
@@ -762,19 +762,19 @@ define(function (require, exports, module) {
         }
 
         result = {
-            key                 : normalized,
-            displayKey          : normalizedDisplay,
-            explicitPlatform    : explicitPlatform
+            key: normalized,
+            displayKey: normalizedDisplay,
+            explicitPlatform: explicitPlatform
         };
 
         _commandMap[commandID].push(result);
 
         // 1-to-1 key binding to commandID
         _keyMap[normalized] = {
-            commandID           : commandID,
-            key                 : normalized,
-            displayKey          : normalizedDisplay,
-            explicitPlatform    : explicitPlatform
+            commandID: commandID,
+            key: normalized,
+            displayKey: normalizedDisplay,
+            explicitPlatform: explicitPlatform
         };
 
         if (!userBindings) {

@@ -1,6 +1,6 @@
 /* eslint-env node */
+/*global module,require,process,console,__dirname */
 
-"use strict";
 
 module.exports = function (grunt) {
 

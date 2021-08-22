@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Modules from the SpecRunner window
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
 
             var hints = expectHints(hintProvider);
             expect(hints).toEqual(["&amp;acirc; <span class='entity-display-character'>&acirc;</span>",
-                                   "&amp;acute; <span class='entity-display-character'>&acute;</span>"]);
+                "&amp;acute; <span class='entity-display-character'>&acute;</span>"]);
         });
 
         it("shouldn't show hints when inside an opening tag", function () {

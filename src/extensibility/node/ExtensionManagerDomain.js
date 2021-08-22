@@ -24,7 +24,7 @@
 /*eslint-env node */
 /*jslint node: true */
 
-"use strict";
+
 
 var semver   = require("semver"),
     path     = require("path"),
@@ -435,10 +435,10 @@ function _cmdAbortDownload(downloadId) {
     if (!pendingDownloads[downloadId]) {
         // This may mean the download already completed
         return false;
-    } else {
-        _endDownload(downloadId, Errors.CANCELED);
-        return true;
     }
+    _endDownload(downloadId, Errors.CANCELED);
+    return true;
+
 }
 
 /**

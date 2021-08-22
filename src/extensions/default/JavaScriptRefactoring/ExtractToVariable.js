@@ -22,7 +22,7 @@
 */
 
 define(function(require, exports, module) {
-    'use strict';
+
 
     var ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
@@ -88,7 +88,7 @@ define(function(require, exports, module) {
             selections = doc.doMultipleEdits(edits);
             selections.push({
                 start: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + 1},
-                end:   {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
+                end: {line: insertStartPos.line, ch: insertStartPos.ch + varType.length + varName.length + 1},
                 primary: true
             });
             session.editor.setSelections(selections);
@@ -157,7 +157,7 @@ define(function(require, exports, module) {
 
             // if expn already added, continue
             if (expns.find(checkExpnEquality)) {
-                 continue;
+                continue;
             }
 
             expns.push(expn);

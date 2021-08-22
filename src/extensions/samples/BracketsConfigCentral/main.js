@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Brackets modules
     var FileUtils                   = brackets.getModule("file/FileUtils"),

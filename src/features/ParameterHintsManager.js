@@ -23,7 +23,7 @@
 
 /* eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -317,12 +317,12 @@ define(function (require, exports, module) {
      */
     function installListeners(editor) {
         editor.on("keydown.ParameterHinting", function (event, editor, domEvent) {
-                if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    dismissHint(editor);
-                }
-            }).on("scroll.ParameterHinting", function () {
+            if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 dismissHint(editor);
-            })
+            }
+        }).on("scroll.ParameterHinting", function () {
+            dismissHint(editor);
+        })
             .on("editorChange.ParameterHinting", _handleChange)
             .on("keypress.ParameterHinting", _handleKeypressEvent);
     }

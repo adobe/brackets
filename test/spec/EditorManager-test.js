@@ -24,7 +24,7 @@
 /*global describe, it, spyOn, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var EditorManager    = require("editor/EditorManager"),
         ViewStateManager = require("view/ViewStateManager"),

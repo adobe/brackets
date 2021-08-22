@@ -24,7 +24,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     /**
      * Base class for live preview servers

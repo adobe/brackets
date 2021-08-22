@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, waitsForDone, waitsForFail, spyOn, runs */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var UpdateNotification, // Load from brackets.test
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
                 // always pretend to run with en locale
                 spyOn(testWindow.brackets, "getLocale").andReturn("en");
             });
-            
+
             it("should be able to parse the JSON returned by actual URL (all the other unit-tests use local files)", function () {
                 var updateInfo = {
                     _buildNumber: 1,

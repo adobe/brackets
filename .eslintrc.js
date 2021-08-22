@@ -1,3 +1,5 @@
+/*global module */
+
 module.exports = {
     "rules": {
         // the rules below should be sorted in a same way they are sorted on http://eslint.org/docs/rules page
@@ -83,7 +85,7 @@ module.exports = {
     },
     "parserOptions": {
         "ecmaVersion": 6,
-        "sourceType": "script",
+        "sourceType": "module",
         "ecmaFeatures": {
           "arrowFunctions": true,
           "binaryLiterals": true,
@@ -91,10 +93,4 @@ module.exports = {
           "classes": true
         }
     },
-    "overrides":[{
-        "files": ["src/phoenix/init_vfs.js"],
-        "parserOptions": {
-            "sourceType": "module"
-        }
-    }]
 };

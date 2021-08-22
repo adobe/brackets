@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit         = brackets.getModule("utils/AppInit"),
         FileSystem      = brackets.getModule("filesystem/FileSystem"),
@@ -38,9 +38,9 @@ define(function (require, exports, module) {
 
     var HTTP_PROTOCOL = "http:",
         HTTPS_PROTOCOL = "https:";
-    
+
     ExtensionUtils.loadStyleSheet(module, "styles.css");
-    
+
     function protocolClassProvider(data) {
         if (data.fullPath.startsWith("http://")) {
             return "http";
@@ -49,10 +49,10 @@ define(function (require, exports, module) {
         if (data.fullPath.startsWith("https://")) {
             return "https";
         }
-        
+
         return "";
     }
-    
+
     /**
      * Disable context menus which are not useful for remote file
      */
@@ -61,18 +61,18 @@ define(function (require, exports, module) {
             cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS],
             // Enable menu options when no file is present in active pane
             enable = !file || (file.constructor.name !== "RemoteFile");
-        
+
             // Enable or disable commands based on whether the file is a remoteFile or not.
-            cMenuItems.forEach(function (item) {
-                CommandManager.get(item).setEnabled(enable);
-            });
+        cMenuItems.forEach(function (item) {
+            CommandManager.get(item).setEnabled(enable);
+        });
     }
 
     AppInit.htmlReady(function () {
-        
+
         Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
         MainViewManager.on("currentFileChange", _setMenuItemsVisible);
-        
+
         var protocolAdapter = {
             priority: 0, // Default priority
             fileImpl: RemoteFile,
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
                 }
             }
         );
-        
+
         WorkingSetView.addClassProvider(protocolClassProvider);
     });
 

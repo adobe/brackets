@@ -32,7 +32,7 @@
  * the document.
  */
 define(function DOMAgent(require, exports, module) {
-    "use strict";
+
 
     var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         EventDispatcher = require("utils/EventDispatcher"),

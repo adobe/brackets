@@ -27,7 +27,7 @@
  * ExtensionUtils defines utility methods for implementing extensions.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Async              = require("utils/Async"),
         FileSystem         = require("filesystem/FileSystem"),
@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     function addLinkedStyleSheet(url, deferred) {
         var attributes = {
             type: "text/css",
-            rel:  "stylesheet",
+            rel: "stylesheet",
             href: url
         };
 

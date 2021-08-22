@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = brackets.getModule("thirdparty/lodash");
 
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
             return;
         }
         initializeRefactoringSession(editor);
-        
+
         var funcExprNode = RefactoringUtils.findSurroundASTNode(current.ast, {start: current.startIndex}, ["Function"]);
 
         if (!funcExprNode || funcExprNode.type !== "FunctionExpression" || funcExprNode.id) {
@@ -149,18 +149,18 @@ define(function (require, exports, module) {
             numberOfParams = funcExprNode.params.length,
             treatAsManyParam = false;
 
-            funcExprNode.params.forEach(function (item) {
-                if (item.type === "Identifier") {
-                    param.push(item.name);
-                } else if (item.type === "AssignmentPattern") {
-                    dontChangeParam = true;
-                }
-            });
+        funcExprNode.params.forEach(function (item) {
+            if (item.type === "Identifier") {
+                param.push(item.name);
+            } else if (item.type === "AssignmentPattern") {
+                dontChangeParam = true;
+            }
+        });
 
         //In case defaults params keep params as it is
         if (dontChangeParam) {
             if (numberOfParams >= 1) {
-                param.splice(0,param.length);
+                param.splice(0, param.length);
                 param.push(current.text.substr(funcExprNode.params[0].start, funcExprNode.params[numberOfParams-1].end - funcExprNode.params[0].start));
                 // In case default param, treat them as many paramater because to use
                 // one parameter template, That param should be an identifier
@@ -197,13 +197,13 @@ define(function (require, exports, module) {
 
             // If there is nothing in function body, then get the text b/w curly braces
             // In this case, We will update params only as per Arrow function expression
-            if (!bodyStatements) {
-                bodyStatements = funcExprNode.body;
-            }
-            params = {
-                "params": param.join(", "),
-                "statement": _.trimRight(current.text.substr(bodyStatements.start, bodyStatements.end - bodyStatements.start), ";")
-            };
+        if (!bodyStatements) {
+            bodyStatements = funcExprNode.body;
+        }
+        params = {
+            "params": param.join(", "),
+            "statement": _.trimRight(current.text.substr(bodyStatements.start, bodyStatements.end - bodyStatements.start), ";")
+        };
 
         if (isReturnStatement) {
             params.statement = params.statement.substr(7).trim();

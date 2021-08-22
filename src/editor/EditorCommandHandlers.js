@@ -25,7 +25,7 @@
  * Text-editing commands that apply to whichever Editor is currently focused
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var Commands           = require("command/Commands"),
@@ -205,9 +205,9 @@ define(function (require, exports, module) {
             // Comment out - prepend the first prefix to each line
             line = doc.getLine(startLine);
             var originalCursorPosition = line.search(/\S|$/);
-            
+
             var firstCharPosition, cursorPosition = originalCursorPosition;
-            
+
             for (i = startLine; i <= endLine; i++) {
                 //check if preference for indent line comment is available otherwise go back to default indentation
                 if (Editor.getIndentLineComment()) {
@@ -222,7 +222,7 @@ define(function (require, exports, module) {
                     } else {
                         cursorPosition = originalCursorPosition;
                     }
-                    
+
                     editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}});
                 } else {
                     editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
@@ -290,9 +290,9 @@ define(function (require, exports, module) {
             } else if (prefix === suffix && ctx.token.string.length === prefix.length) {
                 return !_isPrevTokenABlockComment(ctx, prefix, suffix, prefixExp, suffixExp, lineExp);
             // We can just now the result by checking if the string matches the prefix
-            } else {
-                return ctx.token.string.match(prefixExp);
             }
+            return ctx.token.string.match(prefixExp);
+
         }
         return false;
     }

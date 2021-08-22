@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit                     = require("utils/AppInit"),
         CommandManager              = require("command/CommandManager"),
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
             _resultsView.close();
         }
     }
-    
+
     function setMenuItemStateForLanguage(languageId) {
         CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
         if (!languageId) {

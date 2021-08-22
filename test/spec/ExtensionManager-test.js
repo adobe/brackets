@@ -26,7 +26,7 @@
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     require("thirdparty/jquery.mockjax.js");
 
@@ -740,7 +740,7 @@ define(function (require, exports, module) {
                     model._setSortedExtensionList(ExtensionManager.extensions, false);
                     expect(model.filterSet).toEqual(["item-6", "item-4", "item-3", "find-uniq1-in-name", "item-2", "item-5"]);
                 });
-                
+
                 it("should start with the full set sorted in reverse publish date order", function () {
                     PreferencesManager.set("extensions.sort", "publishedDate");
                     model._setSortedExtensionList(ExtensionManager.extensions, false);
@@ -838,7 +838,7 @@ define(function (require, exports, module) {
                 it("should start with the full set sorted in reverse publish date order", function () {
                     expect(model.filterSet).toEqual(["theme-1", "theme-2"]);
                 });
-                
+
                 it("should start with the full set sorted in reverse download count order", function () {
                     PreferencesManager.set("extensions.sort", "downloadCount");
                     model._setSortedExtensionList(ExtensionManager.extensions, true);

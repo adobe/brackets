@@ -26,7 +26,7 @@
  *
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),

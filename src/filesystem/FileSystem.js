@@ -87,7 +87,7 @@
  * worry about the underlying storage, which could be a local filesystem or a remote server.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
@@ -633,9 +633,9 @@ define(function (require, exports, module) {
 
         if (protocolAdapter && protocolAdapter.fileImpl) {
             return new protocolAdapter.fileImpl(protocol, path, this);
-        } else {
-            return this._getEntryForPath(File, path);
         }
+        return this._getEntryForPath(File, path);
+
     };
 
     /**

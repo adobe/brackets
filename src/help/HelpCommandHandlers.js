@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit                 = require("utils/AppInit"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
@@ -71,11 +71,11 @@ define(function (require, exports, module) {
 
     function _handleAboutDialog() {
         var templateVars = {
-            ABOUT_ICON          : brackets.config.about_icon,
-            APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-            BUILD_TIMESTAMP     : brackets.config.build_timestamp,
-            BUILD_INFO          : buildInfo || "",
-            Strings             : Strings
+            ABOUT_ICON: brackets.config.about_icon,
+            APP_NAME_ABOUT_BOX: brackets.config.app_name_about,
+            BUILD_TIMESTAMP: brackets.config.build_timestamp,
+            BUILD_INFO: buildInfo || "",
+            Strings: Strings
         };
 
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));

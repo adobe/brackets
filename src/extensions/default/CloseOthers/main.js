@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Menus               = brackets.getModule("command/Menus"),
         CommandManager      = brackets.getModule("command/CommandManager"),
@@ -112,9 +112,9 @@ define(function (require, exports, module) {
         // It's senseless to look prefs up for the current file, instead look them up for
         // the current project (or globally)
         return {
-            closeBelow  : prefs.get("below",  PreferencesManager.CURRENT_PROJECT),
-            closeOthers : prefs.get("others", PreferencesManager.CURRENT_PROJECT),
-            closeAbove  : prefs.get("above",  PreferencesManager.CURRENT_PROJECT)
+            closeBelow: prefs.get("below",  PreferencesManager.CURRENT_PROJECT),
+            closeOthers: prefs.get("others", PreferencesManager.CURRENT_PROJECT),
+            closeAbove: prefs.get("above",  PreferencesManager.CURRENT_PROJECT)
         };
     }
 

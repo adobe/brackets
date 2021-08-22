@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var EditorManager       = require("editor/EditorManager"),
         EventDispatcher     = require("utils/EventDispatcher"),
@@ -306,14 +306,14 @@ define(function (require, exports, module) {
             }
             return codeMirrorText;
 
-        } else {
-            // Optimized path that doesn't require creating master editor
-            if (useOriginalLineEndings) {
-                return this._text;
-            } else {
-                return Document.normalizeText(this._text);
-            }
         }
+            // Optimized path that doesn't require creating master editor
+        if (useOriginalLineEndings) {
+            return this._text;
+        }
+        return Document.normalizeText(this._text);
+
+
     };
 
     /** Normalizes line endings the same way CodeMirror would */
@@ -642,9 +642,9 @@ define(function (require, exports, module) {
                 return -1;
             } else if (!edit2) {
                 return 1;
-            } else {
-                return CodeMirror.cmpPos(edit2.start, edit1.start);
             }
+            return CodeMirror.cmpPos(edit2.start, edit1.start);
+
         });
 
         // Pull out the selections, in the same order as the edits.

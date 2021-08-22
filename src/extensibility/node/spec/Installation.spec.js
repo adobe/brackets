@@ -25,7 +25,7 @@
 /*jslint node: true */
 /*global expect, describe, it, beforeEach, afterEach */
 
-"use strict";
+
 
 var ExtensionsDomain = require("../ExtensionManagerDomain"),
     fs               = require("fs-extra"),
@@ -182,12 +182,12 @@ describe("Package Installation", function () {
     it("should fail for missing package", function (done) {
         ExtensionsDomain._cmdInstall(path.join(testFilesDirectory, "NOT A PACKAGE"),
                                      installDirectory, standardOptions, function (err, result) {
-                expect(err).toBeNull();
-                var errors = result.errors;
-                expect(errors.length).toEqual(1);
-                expect(errors[0][0]).toEqual("NOT_FOUND_ERR");
-                done();
-            });
+                                         expect(err).toBeNull();
+                                         var errors = result.errors;
+                                         expect(errors.length).toEqual(1);
+                                         expect(errors[0][0]).toEqual("NOT_FOUND_ERR");
+                                         done();
+                                     });
     });
 
     it("should not install by default if the same version is already installed", function (done) {
@@ -325,29 +325,29 @@ describe("Package Installation", function () {
             done();
         });
     });
-    
+
     it("should download npm dependencies when present", function (done) {
         ExtensionsDomain._cmdInstall(withNpmDependencies, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(0);
             expect(fs.existsSync(result.installedTo)).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "node_modules"))).toBe(true);
-            
+
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "lodash"))).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "lodash", "package.json"))).toBe(true);
             var packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "lodash", "package.json")));
-            expect(packageInfo.version.slice(0,2)).toBe("3.");
-            
+            expect(packageInfo.version.slice(0, 2)).toBe("3.");
+
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "moment"))).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "moment", "package.json"))).toBe(true);
             packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "moment", "package.json")));
-            expect(packageInfo.version.slice(0,4)).toBe("2.5.");
-            
+            expect(packageInfo.version.slice(0, 4)).toBe("2.5.");
+
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "underscore"))).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "underscore", "package.json"))).toBe(true);
             packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "underscore", "package.json")));
             expect(packageInfo.version).toBe("1.0.4");
-            
+
             done();
         });
     });

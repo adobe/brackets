@@ -40,7 +40,7 @@
  * LiveDevelopment/Servers/BaseServer base class.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _serverProviders   = [];
 

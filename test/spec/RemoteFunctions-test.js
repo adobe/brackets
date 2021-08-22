@@ -25,7 +25,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
@@ -261,14 +261,14 @@ define(function (require, exports, module) {
                     applyEdit(EMPTY_ELEMENT, {
                         parentID: 10,
                         type: "elementInsert",
-                        tag:  "span"
+                        tag: "span"
                     }, '<div data-brackets-id="10"><span data-brackets-id="1000"></span></div>');
 
                     /* firstChild */
                     applyEdit(ONE_CHILD_ELEMENT, {
                         parentID: 20,
                         type: "elementInsert",
-                        tag:  "span",
+                        tag: "span",
                         firstChild: true
                     }, '<div data-brackets-id="20"><span data-brackets-id="1000"></span><div data-brackets-id="21"></div></div>');
 
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
                     applyEdit(ONE_CHILD_ELEMENT, {
                         parentID: 20,
                         type: "elementInsert",
-                        tag:  "span",
+                        tag: "span",
                         lastChild: true,
                         attributes: []
                     }, '<div data-brackets-id="20"><div data-brackets-id="21"></div><span data-brackets-id="1000"></span></div>');
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                         parentID: 30,
                         beforeID: 32,
                         type: "elementInsert",
-                        tag:  "span"
+                        tag: "span"
                     }, '<div data-brackets-id="30"><div data-brackets-id="31"></div><span data-brackets-id="1000"></span><div data-brackets-id="32"></div></div>');
 
                     /* afterID */
@@ -294,7 +294,7 @@ define(function (require, exports, module) {
                         parentID: 60,
                         afterID: 61,
                         type: "elementInsert",
-                        tag:  "span"
+                        tag: "span"
                     }, '<div data-brackets-id="60"><em data-brackets-id="61">code</em><span data-brackets-id="1000"></span> the web</div>');
                 });
 
@@ -303,7 +303,7 @@ define(function (require, exports, module) {
                     applyEdit(EMPTY_ELEMENT, {
                         parentID: 10,
                         type: "elementInsert",
-                        tag:  "span",
+                        tag: "span",
                         attributes: { "class": "And: &amp;, em-dash: &mdash;, heart: &#10084;" },
                         _attributesExpected: { "class": "And: &, em-dash: —, heart: ❤" }
                     });
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
                     applyEdit(TABLE_EMPTY, {
                         parentID: 70,
                         type: "elementInsert",
-                        tag:  "tr",
+                        tag: "tr",
                         firstChild: true
                     }, '<table data-brackets-id="70"><tr data-brackets-id="1000"></tr></table>');
                 });
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
                     applyEdit(TABLE_IMPLICIT_TBODY, {
                         parentID: 80,
                         type: "elementInsert",
-                        tag:  "tr",
+                        tag: "tr",
                         lastChild: true,
                         _isImplicit: true
                     }, '<table data-brackets-id="80"><tbody><tr data-brackets-id="81"><td data-brackets-id="82">foo</td></tr><tr data-brackets-id="1000"></tr></tbody></table>');
@@ -359,7 +359,7 @@ define(function (require, exports, module) {
                     applyEdit(TABLE_EXPLICIT_TBODY, {
                         parentID: 91,
                         type: "elementInsert",
-                        tag:  "tr",
+                        tag: "tr",
                         lastChild: true
                     }, '<tbody data-brackets-id="91"><tr data-brackets-id="92"><td data-brackets-id="93">foo</td></tr><tr data-brackets-id="1000"></tr></tbody>');
                 });

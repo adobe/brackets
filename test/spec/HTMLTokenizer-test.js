@@ -25,7 +25,7 @@
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Tokenizer = require("language/HTMLTokenizer").Tokenizer;
 

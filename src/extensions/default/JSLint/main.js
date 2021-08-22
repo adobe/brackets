@@ -27,7 +27,7 @@
  * Provides JSLint results via the core linting extension point
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load JSLint, a non-module lib
     require("thirdparty/jslint/jslint");

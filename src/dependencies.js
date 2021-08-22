@@ -25,7 +25,7 @@
  * Check for missing dependencies
  */
 window.setTimeout(function () {
-    "use strict";
+
 
     var key, missingDeps = "";
     var deps = { "jQuery": window.$, "RequireJS": window.require };

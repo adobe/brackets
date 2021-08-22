@@ -57,7 +57,7 @@
  * - "detached_target_closed" (The tab or window was closed)
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Status Codes
     var STATUS_INACTIVE      = exports.STATUS_INACTIVE       =  0;

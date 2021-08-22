@@ -24,7 +24,7 @@
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
         MurmurHash3     = require("thirdparty/murmurhash3_gc"),
@@ -41,47 +41,47 @@ define(function (require, exports, module) {
      * This doesn't handle general content model violations.
      */
     var openImpliesClose = {
-        li      : { li: true },
-        dt      : { dd: true, dt: true },
-        dd      : { dd: true, dt: true },
-        address : { p: true },
-        article : { p: true },
-        aside   : { p: true },
-        blockquote : { p: true },
-        dir     : { p: true },
-        div     : { p: true },
-        dl      : { p: true },
+        li: { li: true },
+        dt: { dd: true, dt: true },
+        dd: { dd: true, dt: true },
+        address: { p: true },
+        article: { p: true },
+        aside: { p: true },
+        blockquote: { p: true },
+        dir: { p: true },
+        div: { p: true },
+        dl: { p: true },
         fieldset: { p: true },
-        footer  : { p: true },
-        form    : { p: true },
-        h1      : { p: true },
-        h2      : { p: true },
-        h3      : { p: true },
-        h4      : { p: true },
-        h5      : { p: true },
-        h6      : { p: true },
-        header  : { p: true },
-        hgroup  : { p: true },
-        hr      : { p: true },
-        main    : { p: true },
-        menu    : { p: true },
-        nav     : { p: true },
-        ol      : { p: true },
-        p       : { p: true },
-        pre     : { p: true },
-        section : { p: true },
-        table   : { p: true },
-        ul      : { p: true },
-        rt      : { rp: true, rt: true },
-        rp      : { rp: true, rt: true },
+        footer: { p: true },
+        form: { p: true },
+        h1: { p: true },
+        h2: { p: true },
+        h3: { p: true },
+        h4: { p: true },
+        h5: { p: true },
+        h6: { p: true },
+        header: { p: true },
+        hgroup: { p: true },
+        hr: { p: true },
+        main: { p: true },
+        menu: { p: true },
+        nav: { p: true },
+        ol: { p: true },
+        p: { p: true },
+        pre: { p: true },
+        section: { p: true },
+        table: { p: true },
+        ul: { p: true },
+        rt: { rp: true, rt: true },
+        rp: { rp: true, rt: true },
         optgroup: { optgroup: true, option: true },
-        option  : { option: true },
-        tbody   : { thead: true, tbody: true, tfoot: true },
-        tfoot   : { tbody: true },
-        tr      : { tr: true, th: true, td: true },
-        th      : { th: true, td: true },
-        td      : { thead: true, th: true, td: true },
-        body    : { head: true, link: true, script: true }
+        option: { option: true },
+        tbody: { thead: true, tbody: true, tfoot: true },
+        tfoot: { tbody: true },
+        tr: { tr: true, th: true, td: true },
+        th: { th: true, td: true },
+        td: { thead: true, th: true, td: true },
+        body: { head: true, link: true, script: true }
     };
 
     /**
@@ -451,16 +451,16 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(timerBuildPart);
                 this._logError(token);
                 return null;
-            } else {
+            }
                 // Manually compute the position of the end of the text (we can't rely on the
                 // tokenizer for this since it may not get to the very end)
                 // TODO: should probably make the tokenizer get to the end...
-                var lines = this.text.split("\n"),
-                    lastPos = {line: lines.length - 1, ch: lines[lines.length - 1].length};
-                while (stack.length) {
-                    closeTag(this.text.length, lastPos);
-                }
+            var lines = this.text.split("\n"),
+                lastPos = {line: lines.length - 1, ch: lines[lines.length - 1].length};
+            while (stack.length) {
+                closeTag(this.text.length, lastPos);
             }
+
         }
 
         var dom = lastClosedTag;

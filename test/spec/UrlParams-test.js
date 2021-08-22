@@ -24,7 +24,7 @@
 /*global describe, it, expect */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var UrlParams = require("utils/UrlParams").UrlParams;
 

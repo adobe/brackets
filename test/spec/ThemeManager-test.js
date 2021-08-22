@@ -24,7 +24,7 @@
 /*global describe, it, expect, waitsForDone */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var ThemeManager     = require("view/ThemeManager"),
         FileSystem       = require("filesystem/FileSystem"),

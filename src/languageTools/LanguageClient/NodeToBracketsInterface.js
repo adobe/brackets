@@ -26,7 +26,7 @@
 /*eslint max-len: ["error", { "code": 200 }]*/
 (function () {
 
-    "use strict";
+
 
     var EventEmitter = require("events"),
         bracketsEventHandler = new EventEmitter();

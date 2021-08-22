@@ -25,7 +25,7 @@
 /*global less */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                  = require("thirdparty/lodash"),
         EventDispatcher    = require("utils/EventDispatcher"),

@@ -22,7 +22,7 @@
  */
 
 /*eslint-env es6, node*/
-"use strict";
+
 
 var nodeURL = require("url"),
     path = require("path");

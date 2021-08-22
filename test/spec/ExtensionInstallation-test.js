@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, runs, waitsForDone */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         ExtensionLoader  = require("utils/ExtensionLoader"),

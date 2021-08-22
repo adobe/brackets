@@ -149,7 +149,7 @@
   *  state update it needs to do when its visiblity state changes.
   */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                   = require("thirdparty/lodash"),
         Mustache            = require("thirdparty/mustache/mustache"),
@@ -260,13 +260,13 @@ define(function (require, exports, module) {
             var otherPaneId = self.id === FIRST_PANE ? SECOND_PANE : FIRST_PANE;
             var otherPane = MainViewManager._getPane(otherPaneId);
             var sameDocInOtherView = otherPane.getViewForPath(currentFile.fullPath);
-            
+
             // If the same doc view is present in the destination, show the file instead of flipping it
             if (sameDocInOtherView) {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
-                                                            paneId: otherPaneId}).always(function () {
-                    _ensurePaneIsFocused(otherPaneId);
-                });
+                    paneId: otherPaneId}).always(function () {
+                        _ensurePaneIsFocused(otherPaneId);
+                    });
                 return;
             }
 
@@ -277,12 +277,12 @@ define(function (require, exports, module) {
 
             MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
-                                                            paneId: otherPaneId}).always(function () {
+                    paneId: otherPaneId}).always(function () {
                     // Trigger view list changes for both panes
-                    self.trigger("viewListChange");
-                    otherPane.trigger("viewListChange");
-                    _ensurePaneIsFocused(activePaneIdBeforeFlip);
-                });
+                        self.trigger("viewListChange");
+                        otherPane.trigger("viewListChange");
+                        _ensurePaneIsFocused(activePaneIdBeforeFlip);
+                    });
             });
         });
 
@@ -1361,13 +1361,13 @@ define(function (require, exports, module) {
                         });
                 }
                 return true;
-            } else {
-                // Nothing was removed so don't try to remove it again
-                return false;
             }
-        } else {
-            return this._doRemove(file, preventViewChange);
+                // Nothing was removed so don't try to remove it again
+            return false;
+
         }
+        return this._doRemove(file, preventViewChange);
+
     };
 
     /**
@@ -1552,7 +1552,7 @@ define(function (require, exports, module) {
                 result.push({
                     file: file.fullPath,
                     active: (file.fullPath === currentlyViewedPath),
-                    viewState:  ViewStateManager.getViewState(file)
+                    viewState: ViewStateManager.getViewState(file)
                 });
             }
         });

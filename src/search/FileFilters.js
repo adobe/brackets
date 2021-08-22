@@ -26,7 +26,7 @@
  * Includes both UI for selecting/editing filters, as well as the actual file-filtering implementation.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                  = require("thirdparty/lodash"),
         Mustache           = require("thirdparty/mustache/mustache"),
@@ -324,9 +324,9 @@ define(function (require, exports, module) {
         var lastFocus = window.document.activeElement;
 
         var templateVars = {
-                instruction: StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url),
-                Strings: Strings
-            };
+            instruction: StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url),
+            Strings: Strings
+        };
         var dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(EditFilterTemplate, templateVars)),
             $nameField = dialog.getElement().find(".exclusions-name"),
             $editField = dialog.getElement().find(".exclusions-editor"),
@@ -359,8 +359,7 @@ define(function (require, exports, module) {
                 } else {
                     $remainingField.removeClass("exclusions-name-characters-limit-reached");
                 }
-            }
-            else {
+            }            else {
                 $remainingField.hide();
             }
             updatePrimaryButton();
@@ -518,7 +517,7 @@ define(function (require, exports, module) {
 
             var condensedPatterns = _getCondensedForm(item.patterns),
                 templateVars = {
-                    "filter-name"    : _.escape(item.name || condensedPatterns),
+                    "filter-name": _.escape(item.name || condensedPatterns),
                     "filter-patterns": item.name ? " - " + _.escape(condensedPatterns) : ""
                 };
 

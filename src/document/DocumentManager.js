@@ -74,7 +74,7 @@
  * Document objects themselves also dispatch some events - see Document docs for details.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -333,36 +333,36 @@ define(function (require, exports, module) {
         if (doc) {
             // use existing document
             return new $.Deferred().resolve(doc).promise();
-        } else {
-            var result = new $.Deferred(),
-                promise = result.promise();
+        }
+        var result = new $.Deferred(),
+            promise = result.promise();
 
             // return null in case of untitled documents
-            if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                result.resolve(null);
-                return promise;
-            }
+        if (fullPath.indexOf(_untitledDocumentPath) === 0) {
+            result.resolve(null);
+            return promise;
+        }
 
-            var file            = fileObj || FileSystem.getFileForPath(fullPath),
-                pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
+        var file            = fileObj || FileSystem.getFileForPath(fullPath),
+            pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
 
-            if (pendingPromise) {
+        if (pendingPromise) {
                 // wait for the result of a previous request
-                return pendingPromise;
-            } else {
+            return pendingPromise;
+        }
                 // log this document's Promise as pending
-                getDocumentForPath._pendingDocumentPromises[file.id] = promise;
+        getDocumentForPath._pendingDocumentPromises[file.id] = promise;
 
                 // create a new document
-                var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+        var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
 
-                result.done(function () {
-                    PerfUtils.addMeasurement(perfTimerName);
-                }).fail(function () {
-                    PerfUtils.finalizeMeasurement(perfTimerName);
-                });
+        result.done(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        }).fail(function () {
+            PerfUtils.finalizeMeasurement(perfTimerName);
+        });
 
-                FileUtils.readAsText(file)
+        FileUtils.readAsText(file)
                     .always(function () {
                         // document is no longer pending
                         delete getDocumentForPath._pendingDocumentPromises[file.id];
@@ -379,9 +379,9 @@ define(function (require, exports, module) {
                         result.reject(fileError);
                     });
 
-                return promise;
-            }
-        }
+        return promise;
+
+
     }
 
     /**
@@ -502,7 +502,7 @@ define(function (require, exports, module) {
 
         var projectRoot = ProjectManager.getProjectRoot(),
             context = {
-                location : {
+                location: {
                     scope: "user",
                     layer: "project",
                     layerID: projectRoot.fullPath

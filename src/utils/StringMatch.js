@@ -24,7 +24,7 @@
 /*unittests: StringMatch */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -437,13 +437,13 @@ define(function (require, exports, module) {
 
         if (queryCounter === query.length || !matchList) {
             return null;
-        } else {
-            return {
-                remainder: remainder + query.substring(0, queryCounter),
-                originalRemainder: originalRemainder + originalQuery.substring(0, queryCounter),
-                matchList: matchList
-            };
         }
+        return {
+            remainder: remainder + query.substring(0, queryCounter),
+            originalRemainder: originalRemainder + originalQuery.substring(0, queryCounter),
+            matchList: matchList
+        };
+
     }
 
     /*

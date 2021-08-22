@@ -22,7 +22,7 @@
 */
 
 define(function(require, exports, module) {
-    'use strict';
+
 
     var ASTWalker           = brackets.getModule("thirdparty/acorn/dist/walk"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
@@ -67,27 +67,27 @@ define(function(require, exports, module) {
         ASTWalker.full(ast, function(node) {
             var value, name;
             switch (node.type) {
-                case "AssignmentExpression":
-                    value = node.left;
-                    break;
-                case "VariableDeclarator":
-                    inThisScope[node.id.name] = true;
-                    value = node.init && node.id;
-                    var variableDeclarationNode = RefactoringUtils.findSurroundASTNode(ast, node, ["VariableDeclaration"]);
-                    variableDeclarations[node.id.name] = variableDeclarationNode.kind;
-                    break;
-                case "ThisExpression":
-                    thisPointerUsed = true;
-                    break;
-                case "UpdateExpression":
-                    value = node.argument;
-                    break;
-                case "Identifier":
-                    identifiers[node.name] = true;
-                    break;
-                case "ReturnStatement":
-                    returnStatementUsed = true;
-                    break;
+            case "AssignmentExpression":
+                value = node.left;
+                break;
+            case "VariableDeclarator":
+                inThisScope[node.id.name] = true;
+                value = node.init && node.id;
+                var variableDeclarationNode = RefactoringUtils.findSurroundASTNode(ast, node, ["VariableDeclaration"]);
+                variableDeclarations[node.id.name] = variableDeclarationNode.kind;
+                break;
+            case "ThisExpression":
+                thisPointerUsed = true;
+                break;
+            case "UpdateExpression":
+                value = node.argument;
+                break;
+            case "Identifier":
+                identifiers[node.name] = true;
+                break;
+            case "ReturnStatement":
+                returnStatementUsed = true;
+                break;
             }
             if (value){
                 if (value.type === "MemberExpression") {
@@ -127,10 +127,10 @@ define(function(require, exports, module) {
         }, []);
 
         return {
-            passParams:           _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), passProps),
-            retParams:            _.intersection( _.keys(changedValues), _.keys(dependentValues), retProps),
-            thisPointerUsed:      thisPointerUsed,
-            returnStatementUsed:  returnStatementUsed,
+            passParams: _.intersection(_.difference(_.keys(identifiers), _.keys(inThisScope)), passProps),
+            retParams: _.intersection( _.keys(changedValues), _.keys(dependentValues), retProps),
+            thisPointerUsed: thisPointerUsed,
+            returnStatementUsed: returnStatementUsed,
             variableDeclarations: variableDeclarations
         };
     }
@@ -154,11 +154,11 @@ define(function(require, exports, module) {
 
         function appendVarDeclaration(identifier) {
             if (variableDeclarations.hasOwnProperty(identifier)) {
-                 return variableDeclarations[identifier] + " " + identifier;
+                return variableDeclarations[identifier] + " " + identifier;
             }
-            else {
-                 return identifier;
-            }
+
+            return identifier;
+
         }
 
         if (destScope.isClass) {
@@ -214,13 +214,13 @@ define(function(require, exports, module) {
         for (var i = 0; i < fnScopes.length; ++i) {
             if (fnScopes[i].id === destScope.id) {
                 if (fnScopes[i - 1]) {
-                     insertPos = session.editor.posFromIndex(fnScopes[i - 1].originNode.start);
+                    insertPos = session.editor.posFromIndex(fnScopes[i - 1].originNode.start);
                      // If the origin node of the destination scope is a function expression or a arrow function expression,
                      // get the surrounding statement to get the position
-                     if (fnScopes[i - 1].originNode.type === "FunctionExpression" || fnScopes[i - 1].originNode.type === "ArrowFunctionExpression") {
-                         var surroundStatement = RefactoringUtils.findSurroundASTNode(ast, { start: session.editor.indexFromPos(insertPos)}, ["Statement"]);
-                         insertPos = session.editor.posFromIndex(surroundStatement.start);
-                     }
+                    if (fnScopes[i - 1].originNode.type === "FunctionExpression" || fnScopes[i - 1].originNode.type === "ArrowFunctionExpression") {
+                        var surroundStatement = RefactoringUtils.findSurroundASTNode(ast, { start: session.editor.indexFromPos(insertPos)}, ["Statement"]);
+                        insertPos = session.editor.posFromIndex(surroundStatement.start);
+                    }
                 }
                 break;
             }
@@ -241,11 +241,11 @@ define(function(require, exports, module) {
             session.editor.setSelections([
                 {
                     start: session.editor.posFromIndex(session.editor.indexFromPos(start) + fnCall.indexOf(fnName)),
-                    end:   session.editor.posFromIndex(session.editor.indexFromPos(start) + fnCall.indexOf(fnName) + fnName.length)
+                    end: session.editor.posFromIndex(session.editor.indexFromPos(start) + fnCall.indexOf(fnName) + fnName.length)
                 },
                 {
                     start: session.editor.posFromIndex(session.editor.indexFromPos(insertPos) + fnDeclaration.indexOf(fnName)),
-                    end:   session.editor.posFromIndex(session.editor.indexFromPos(insertPos) + fnDeclaration.indexOf(fnName) + fnName.length)
+                    end: session.editor.posFromIndex(session.editor.indexFromPos(insertPos) + fnDeclaration.indexOf(fnName) + fnName.length)
                 }
             ]);
 

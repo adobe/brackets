@@ -5,7 +5,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
     var CodeMirror  = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         cols        = CodeMirror.countColumn,
         pos         = CodeMirror.Pos;
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
                 } else {
                     if (indent <= lineIndent) {
                         return {from: pos(start.line, lineText.length),
-                                to: pos(i - 1, cm.getLine(i - 1).length)};
+                            to: pos(i - 1, cm.getLine(i - 1).length)};
                     }
                 }
 

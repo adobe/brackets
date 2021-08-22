@@ -79,7 +79,7 @@
  * that stores all returned values as an object.
  */
 define(function Inspector(require, exports, module) {
-    "use strict";
+
 
     var Async           = require("utils/Async"),
         EventDispatcher = require("utils/EventDispatcher");

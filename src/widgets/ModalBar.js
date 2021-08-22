@@ -26,7 +26,7 @@
  * appears at the top of the editor area for operations like Find and Quick Open.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var MainViewManager  = require("view/MainViewManager"),
         EventDispatcher  = require("utils/EventDispatcher"),

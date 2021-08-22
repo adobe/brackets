@@ -23,5 +23,5 @@
 
 define({
     // Relative to the samples folder
-    "MDN_DOCS_LICENSE" : "http://creativecommons.org/licenses/by-sa/2.5/deed.id"
+    "MDN_DOCS_LICENSE": "http://creativecommons.org/licenses/by-sa/2.5/deed.id"
 });

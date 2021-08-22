@@ -25,7 +25,7 @@
 /*eslint max-len: ["error", { "code": 200 }]*/
 /*eslint-env es6*/
 define(function (require, exports, module) {
-    "use strict";
+
 
     var ClientLoader = require("languageTools/ClientLoader"),
         EditorManager = require("editor/EditorManager"),

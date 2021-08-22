@@ -23,7 +23,7 @@
 
 /*eslint-env node */
 /*jslint node: true */
-"use strict";
+
 
 module.exports = function (grunt) {
     var common          = require("./lib/common")(grunt),

@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*eslint-env node */
@@ -27,7 +27,7 @@
 
 
 
-"use strict";
+
 
 var config = {};
 var _domainManager;
@@ -41,7 +41,7 @@ var self = {
 
 var Tern = require("tern"),
     Infer = require("tern/lib/infer");
-    
+
 require("tern/plugin/requirejs");
 require("tern/plugin/doc_comment");
 require("tern/plugin/angular");
@@ -164,7 +164,7 @@ function initTernServer(env, files) {
         ternServer.reset();
         Infer.resetGuessing();
     }
-        
+
     ternServer = new Tern.Server(ternOptions);
 
     files.forEach(function (file) {
@@ -177,7 +177,7 @@ function initTernServer(env, files) {
  * Resets an existing tern server.
  */
 function resetTernServer() {
-    // If a server is already created just reset the analysis data 
+    // If a server is already created just reset the analysis data
     if (ternServer) {
         ternServer.reset();
         Infer.resetGuessing();
@@ -249,7 +249,7 @@ function buildRequest(fileInfo, query, offset) {
  * @param {{line: number, ch: number}} offset - the offset into the
  * file for cursor
  */
- function getRefs(fileInfo, offset) {
+function getRefs(fileInfo, offset) {
     var request = buildRequest(fileInfo, "refs", offset);
     try {
         ternServer.request(request, function (error, data) {
@@ -312,11 +312,9 @@ function getScopeData(fileInfo, offset) {
                     scope = JSON.parse(JSON.stringify(scope, function(key, value) {
                         if (["proto", "propertyOf", "onNewProp", "sourceFile", "maybeProps"].includes(key)) {
                             return undefined;
-                        }
-                        else if (key === "fnType") {
-                             return value.name || "FunctionExpression";
-                        }
-                        else if (key === "props") {
+                        }                        else if (key === "fnType") {
+                            return value.name || "FunctionExpression";
+                        }                        else if (key === "props") {
                             for (var key in value) {
                                 value[key] = value[key].propertyName;
                             }
@@ -431,10 +429,10 @@ function getTernProperties(fileInfo, offset, type) {
             }
             // Post a message back to the main thread with the completions
             self.postMessage({type: type,
-                              file: _getNormalizedFilename(fileInfo.name),
-                              offset: offset,
-                              properties: properties
-                });
+                file: _getNormalizedFilename(fileInfo.name),
+                offset: offset,
+                properties: properties
+            });
         });
     } catch (e) {
         _reportError(e, fileInfo.name);
@@ -477,7 +475,7 @@ function getTernHints(fileInfo, offset, isProperty) {
                     file: _getNormalizedFilename(fileInfo.name),
                     offset: offset,
                     completions: completions
-                    });
+                });
             } else {
                 // if there are no completions, then get all the properties
                 getTernProperties(fileInfo, offset, MessageIds.TERN_COMPLETIONS_MSG);
@@ -772,7 +770,7 @@ function handleFunctionType(fileInfo, offset) {
         offset: offset,
         fnType: fnType,
         error: error
-        });
+    });
 }
 
 /**
@@ -799,7 +797,7 @@ function handleUpdateFile(path, text) {
 
     self.postMessage({type: MessageIds.TERN_UPDATE_FILE_MSG,
         path: path
-        });
+    });
 
     // reset to get the best hints with the updated file.
     ternServer.reset();
@@ -821,7 +819,7 @@ function handlePrimePump(path) {
             // Post a message back to the main thread
             self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
                 path: _getNormalizedFilename(path)
-                });
+            });
         });
     } catch (e) {
         _reportError(e, path);
@@ -905,7 +903,7 @@ function setInterface(msgInterface) {
 function checkInterfaceAndReInit() {
     if (!MessageIds) {
         // WTF - Worse than failure
-        // We are here as node process got restarted 
+        // We are here as node process got restarted
         // Request for ReInitialization of interface and Tern Server
         self.postMessage({
             type: "RE_INIT_TERN"

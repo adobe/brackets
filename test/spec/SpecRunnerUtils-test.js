@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
                 expect(capturedEvent.keyCode).toEqual(82);
                 expect(capturedEvent.which).toEqual(82);
                 expect(capturedEvent.charCode).toEqual(82);
-            });            
+            });
 
             it("should create and dispatch a key event with modifiers to an element", function () {
                 var modifiers = {

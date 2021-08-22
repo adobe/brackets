@@ -25,7 +25,7 @@
  * Compatibility shims for running Brackets in various environments, browsers.
  */
 define(function () {
-    "use strict";
+
 
     // [IE10] String.prototype missing trimRight() and trimLeft()
     if (!String.prototype.trimRight) {

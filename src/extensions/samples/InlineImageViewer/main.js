@@ -24,7 +24,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Brackets modules
     var EditorManager           = brackets.getModule("editor/EditorManager"),
@@ -64,21 +64,21 @@ define(function (require, exports, module) {
             }
 
             return string;
-        } else {
+        }
 
             // Check for url(...);
-            var line = hostEditor._codeMirror.getLine(pos.line);
-            var match = /url\s*\(([^)]*)\)/.exec(line);
+        var line = hostEditor._codeMirror.getLine(pos.line);
+        var match = /url\s*\(([^)]*)\)/.exec(line);
 
-            if (match && match[1]) {
+        if (match && match[1]) {
                 // URLs are relative to the doc
-                var docPath = hostEditor.document.file.fullPath;
+            var docPath = hostEditor.document.file.fullPath;
 
-                docPath = docPath.substr(0, docPath.lastIndexOf("/"));
+            docPath = docPath.substr(0, docPath.lastIndexOf("/"));
 
-                return docPath + "/" + match[1];
-            }
+            return docPath + "/" + match[1];
         }
+
 
         return "";
     }

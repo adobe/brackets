@@ -24,7 +24,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = brackets.getModule("thirdparty/lodash");
 
@@ -147,16 +147,16 @@ define(function (require, exports, module) {
                 }
                 avg = Math.round(sum * 10 / entry.length) / 10; // tenth of a millisecond
                 return String(min) + "/" + String(avg) + "(" + entry.length + ")/" + String(max) + "/" + String(e);
-            } else {
-                return entry;
             }
+            return entry;
+
         };
 
         var perfData = PerfUtils.getData();
         _.forEach(perfData, function (value, testName) {
             templateVars.perfData.push({
                 testName: StringUtils.breakableUrl(testName),
-                value:    getValue(value)
+                value: getValue(value)
             });
         });
 
@@ -344,9 +344,9 @@ define(function (require, exports, module) {
 
         if (SUPPORTED_PREFERENCE_TYPES.indexOf(prefType) >= 0) {
             return true;
-        } else {
-            return false;
         }
+        return false;
+
     }
 
    /*
@@ -580,9 +580,9 @@ define(function (require, exports, module) {
         if (numKeys <= 0) {
             entireText += "}";
             return entireText;
-        } else {
-            entireText += "\n";
         }
+        entireText += "\n";
+
 
         // Now iterate through all the keys
         // and generate nested formatted objects.
@@ -729,20 +729,20 @@ define(function (require, exports, module) {
 
         if (!splitViewPrefOn) {
             return CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
-        } else {
-            file.exists(function (err, doesExist) {
-                if (doesExist) {
-                    _loadDefaultPrefs(fullPath, result);
-                } else {
-                    FileUtils.writeText(file, "", true)
+        }
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                _loadDefaultPrefs(fullPath, result);
+            } else {
+                FileUtils.writeText(file, "", true)
                         .done(function () {
                             _loadDefaultPrefs(fullPath, result);
                         }).fail(function () {
                             result.reject();
                         });
-                }
-            });
-        }
+            }
+        });
+
 
         return result.promise();
     }

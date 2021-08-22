@@ -26,7 +26,7 @@
 /*eslint no-fallthrough: 0*/
 /* eslint no-empty: ["error", { "allowEmptyCatch": true }] */
 (function () {
-    "use strict";
+
 
     var protocol = require("vscode-languageserver-protocol"),
         cp = require("child_process"),
@@ -54,37 +54,37 @@
 
     function addCommunicationArgs(communication, processArgs, isRuntime) {
         switch (communication) {
-            case CommunicationTypes.NodeIPC.type:
-                {
-                    if (isRuntime) {
-                        processArgs.options.stdio = [null, null, null, 'ipc'];
-                        processArgs.args.push(CommunicationTypes.NodeIPC.flag);
-                    } else {
-                        processArgs.args.push(CommunicationTypes.NodeIPC.flag);
-                    }
-                    break;
+        case CommunicationTypes.NodeIPC.type:
+            {
+                if (isRuntime) {
+                    processArgs.options.stdio = [null, null, null, 'ipc'];
+                    processArgs.args.push(CommunicationTypes.NodeIPC.flag);
+                } else {
+                    processArgs.args.push(CommunicationTypes.NodeIPC.flag);
                 }
-            case CommunicationTypes.StandardIO.type:
-                {
-                    processArgs.args.push(CommunicationTypes.StandardIO.flag);
-                    break;
-                }
-            case CommunicationTypes.Pipe.type:
-                {
-                    var pipeName = protocol.generateRandomPipeName(),
-                        pipeflag = CommunicationTypes.Pipe.flag + "=" + pipeName.toString();
+                break;
+            }
+        case CommunicationTypes.StandardIO.type:
+            {
+                processArgs.args.push(CommunicationTypes.StandardIO.flag);
+                break;
+            }
+        case CommunicationTypes.Pipe.type:
+            {
+                var pipeName = protocol.generateRandomPipeName(),
+                    pipeflag = CommunicationTypes.Pipe.flag + "=" + pipeName.toString();
 
-                    processArgs.args.push(pipeflag);
-                    processArgs.pipeName = pipeName;
-                    break;
+                processArgs.args.push(pipeflag);
+                processArgs.pipeName = pipeName;
+                break;
+            }
+        default:
+            {
+                if (communication && communication.type === CommunicationTypes.Socket.type) {
+                    var socketFlag = CommunicationTypes.Socket.flag + "=" + communication.port.toString();
+                    processArgs.args.push(socketFlag);
                 }
-            default:
-                {
-                    if (communication && communication.type === CommunicationTypes.Socket.type) {
-                        var socketFlag = CommunicationTypes.Socket.flag + "=" + communication.port.toString();
-                        processArgs.args.push(socketFlag);
-                    }
-                }
+            }
         }
 
         var clientProcessIdFlag = CLIENT_PROCESS_ID_FLAG + "=" + process.pid.toString();
@@ -105,66 +105,66 @@
         var retval = null;
 
         switch (type) {
-            case CommunicationTypes.NodeIPC.type:
-                {
-                    if (resp.process) {
-                        resp.process.stderr.on('data', function (data) {
-                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
-                                console.error('[Server logs @ stderr] "%s"', String(data));
-                            }
-                        });
+        case CommunicationTypes.NodeIPC.type:
+            {
+                if (resp.process) {
+                    resp.process.stderr.on('data', function (data) {
+                        if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                            console.error('[Server logs @ stderr] "%s"', String(data));
+                        }
+                    });
 
-                        resp.process.stdout.on('data', function (data) {
-                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
-                                console.info('[Server logs @ stdout] "%s"', String(data));
-                            }
-                        });
+                    resp.process.stdout.on('data', function (data) {
+                        if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                            console.info('[Server logs @ stdout] "%s"', String(data));
+                        }
+                    });
 
-                        retval = {
-                            reader: new protocol.IPCMessageReader(resp.process),
-                            writer: new protocol.IPCMessageWriter(resp.process)
-                        };
-                    }
-                    break;
+                    retval = {
+                        reader: new protocol.IPCMessageReader(resp.process),
+                        writer: new protocol.IPCMessageWriter(resp.process)
+                    };
                 }
-            case CommunicationTypes.StandardIO.type:
-                {
-                    if (resp.process) {
-                        resp.process.stderr.on('data', function (data) {
-                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
-                                console.error('[Server logs @ stderr] "%s"', String(data));
-                            }
-                        });
+                break;
+            }
+        case CommunicationTypes.StandardIO.type:
+            {
+                if (resp.process) {
+                    resp.process.stderr.on('data', function (data) {
+                        if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                            console.error('[Server logs @ stderr] "%s"', String(data));
+                        }
+                    });
 
-                        retval = {
-                            reader: new protocol.StreamMessageReader(resp.process.stdout),
-                            writer: new protocol.StreamMessageWriter(resp.process.stdin)
-                        };
-                    }
-                    break;
+                    retval = {
+                        reader: new protocol.StreamMessageReader(resp.process.stdout),
+                        writer: new protocol.StreamMessageWriter(resp.process.stdin)
+                    };
                 }
-            case CommunicationTypes.Pipe.type:
-            case CommunicationTypes.Socket.type:
-                {
-                    if (resp.reader && resp.writer && resp.process) {
-                        resp.process.stderr.on('data', function (data) {
-                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
-                                console.error('[Server logs @ stderr] "%s"', String(data));
-                            }
-                        });
+                break;
+            }
+        case CommunicationTypes.Pipe.type:
+        case CommunicationTypes.Socket.type:
+            {
+                if (resp.reader && resp.writer && resp.process) {
+                    resp.process.stderr.on('data', function (data) {
+                        if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                            console.error('[Server logs @ stderr] "%s"', String(data));
+                        }
+                    });
 
-                        resp.process.stdout.on('data', function (data) {
-                            if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
-                                console.info('[Server logs @ stdout] "%s"', String(data));
-                            }
-                        });
+                    resp.process.stdout.on('data', function (data) {
+                        if (global.LanguageClientInfo.preferences.showServerLogsInConsole) {
+                            console.info('[Server logs @ stdout] "%s"', String(data));
+                        }
+                    });
 
-                        retval = {
-                            reader: resp.reader,
-                            writer: resp.writer
-                        };
-                    }
+                    retval = {
+                        reader: resp.reader,
+                        writer: resp.writer
+                    };
                 }
+            }
         }
 
         return retval;
@@ -216,51 +216,51 @@
             var processFunc = isRuntime ? cp.spawn : cp.fork;
 
             switch (type) {
-                case CommunicationTypes.NodeIPC.type:
-                case CommunicationTypes.StandardIO.type:
-                    {
+            case CommunicationTypes.NodeIPC.type:
+            case CommunicationTypes.StandardIO.type:
+                {
+                    serverProcess = processFunc(processArgs.primaryArg, processArgs.args, processArgs.options);
+                    if (_isServerProcessValid(serverProcess)) {
+                        result = _createReaderAndWriteByCommunicationType({
+                            process: serverProcess
+                        }, type);
+
+                        resolve(result);
+                    } else {
+                        reject(null);
+                    }
+                    break;
+                }
+            case CommunicationTypes.Pipe.type:
+                {
+                    protocolTransport = protocol.createClientPipeTransport(processArgs.pipeName);
+                }
+            case CommunicationTypes.Socket.type:
+                {
+                    if (communication && communication.type === CommunicationTypes.Socket.type) {
+                        protocolTransport = protocol.createClientSocketTransport(communication.port);
+                    }
+
+                    if (!protocolTransport) {
+                        reject("Invalid Communications Object. Can't create connection with server");
+                        return;
+                    }
+
+                    protocolTransport.then(function (transportObj) {
                         serverProcess = processFunc(processArgs.primaryArg, processArgs.args, processArgs.options);
                         if (_isServerProcessValid(serverProcess)) {
-                            result = _createReaderAndWriteByCommunicationType({
-                                process: serverProcess
-                            }, type);
+                            transportObj.onConnected().then(function (protocolObj) {
+                                result = _createReaderAndWriteByCommunicationType({
+                                    process: serverProcess,
+                                    reader: protocolObj[0],
+                                    writer: protocolObj[1]
+                                }, type);
 
-                            resolve(result);
-                        } else {
-                            reject(null);
+                                resolve(result);
+                            }).catch(reject);
                         }
-                        break;
-                    }
-                case CommunicationTypes.Pipe.type:
-                    {
-                        protocolTransport = protocol.createClientPipeTransport(processArgs.pipeName);
-                    }
-                case CommunicationTypes.Socket.type:
-                    {
-                        if (communication && communication.type === CommunicationTypes.Socket.type) {
-                            protocolTransport = protocol.createClientSocketTransport(communication.port);
-                        }
-                        
-                        if (!protocolTransport) {
-                            reject("Invalid Communications Object. Can't create connection with server");
-                            return;
-                        }
-
-                        protocolTransport.then(function (transportObj) {
-                            serverProcess = processFunc(processArgs.primaryArg, processArgs.args, processArgs.options);
-                            if (_isServerProcessValid(serverProcess)) {
-                                transportObj.onConnected().then(function (protocolObj) {
-                                    result = _createReaderAndWriteByCommunicationType({
-                                        process: serverProcess,
-                                        reader: protocolObj[0],
-                                        writer: protocolObj[1]
-                                    }, type);
-
-                                    resolve(result);
-                                }).catch(reject);
-                            }
-                        }).catch(reject);
-                    }
+                    }).catch(reject);
+                }
             }
         });
     }

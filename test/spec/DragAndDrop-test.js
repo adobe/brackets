@@ -24,7 +24,7 @@
 /*global describe, beforeEach, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var DocumentManager,      // loaded from brackets.test

@@ -35,7 +35,7 @@
  *
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
@@ -248,10 +248,10 @@ define(function (require, exports, module) {
             posLeft      = toggleOffset.left,
             posTop       = toggleOffset.top + this.$button.outerHeight(),
             elementRect  = {
-                top:     posTop,
-                left:    posLeft,
-                height:  $dropdown.height(),
-                width:   $dropdown.width()
+                top: posTop,
+                left: posLeft,
+                height: $dropdown.height(),
+                width: $dropdown.width()
             },
             clip = ViewUtils.getElementClipSize($(window), elementRect);
 

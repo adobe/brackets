@@ -1,33 +1,33 @@
 /*
  * Copyright (c) 2017 - present Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
- 
+
 /**
- * Manages Editor navigation history to aid back/fwd movement between the edit positions 
- * in the active project context. The navigation history is purely in-memory and not 
+ * Manages Editor navigation history to aid back/fwd movement between the edit positions
+ * in the active project context. The navigation history is purely in-memory and not
  * persisted to file system when a project is being closed.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Strings                 = brackets.getModule("strings"),
         MainViewManager         = brackets.getModule("view/MainViewManager"),
@@ -42,24 +42,24 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         FileSystem              = brackets.getModule("filesystem/FileSystem");
-    
+
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-    
+
     // Command constants for navigation history
     var NAVIGATION_JUMP_BACK      = "navigation.jump.back",
         NAVIGATION_JUMP_FWD       = "navigation.jump.fwd";
-    
+
     // The latency time to capture an explicit cursor movement as a navigation frame
     var NAV_FRAME_CAPTURE_LATENCY = 2000,
         MAX_NAV_FRAMES_COUNT = 30;
-    
+
    /**
     * Contains list of most recently known cursor positions.
     * @private
     * @type {Array.<Object>}
     */
     var jumpBackwardStack = [];
-    
+
    /**
     * Contains list of most recently traversed cursor positions using NAVIGATION_JUMP_BACK command.
     * @private
@@ -72,7 +72,7 @@ define(function (require, exports, module) {
         jumpInProgress = false,
         commandJumpBack,
         commandJumpFwd;
-        
+
    /**
     * Function to check if there are any navigatable frame backward.
     * @private
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
         return (jumpForwardStack.length > 0 && jumpBackwardStack.length > 0)
             || (!jumpForwardStack.length && jumpBackwardStack.length > 1);
     }
-     
+
    /**
     * Function to enable/disable navigation command based on cursor positions availability.
     * @private
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
         commandJumpBack.setEnabled(_hasNavBackFrames());
         commandJumpFwd.setEnabled(jumpForwardStack.length > 0);
     }
-    
+
    /**
     * Function to check existence of a file entry, validity of markers
     * @private
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
 
         return deferred.promise();
     }
-        
+
    /**
     * Prototype to capture a navigation frame and it's various data/functional attributues
     */
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         this.bookMarkIds = [];
         this._createMarkers(selectionObj.ranges);
     }
-    
+
    /**
     * Lifecycle event handler of the editor for which this frame is captured
     */
@@ -151,10 +151,10 @@ define(function (require, exports, module) {
         this.cm = null;
         this.bookMarkIds = null;
     };
-    
+
     /**
     * Function to re-create CM TextMarkers for previously backed up ranges
-    * This logic is required to ensure that the captured navigation positions 
+    * This logic is required to ensure that the captured navigation positions
     * stay valid and contextual even when the actual document text mutates.
     * The mutations which are handled here :
     * -> Addition/Deletion of lines before the captured position
@@ -165,8 +165,8 @@ define(function (require, exports, module) {
         this.paneId = editor._paneId;
         this._createMarkers(this.selections);
     };
-    
-    
+
+
     /**
     * Function to validate an existing frame against a file '_hash' to detect
     * external change so that the frame can be discarded
@@ -174,10 +174,10 @@ define(function (require, exports, module) {
     NavigationFrame.prototype._validateFileHash = function (file) {
         return this.filePath === file._path ? this._hash === file._hash : true;
     };
-    
+
    /**
     * Function to create CM TextMarkers for the navigated positions/selections.
-    * This logic is required to ensure that the captured navigation positions 
+    * This logic is required to ensure that the captured navigation positions
     * stay valid and contextual even when the actual document text mutates.
     * The mutations which are handled here :
     * -> Addition/Deletion of lines before the captured position
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
             range = ranges[index];
             rangeStart = range.anchor || range.start;
             rangeEnd = range.head || range.end;
-            // 'markText' has to used for a non-zero length position, if current selection is 
+            // 'markText' has to used for a non-zero length position, if current selection is
             // of zero length use bookmark instead.
             if (rangeStart.line === rangeEnd.line && rangeStart.ch === rangeEnd.ch) {
                 bookMark = this.cm.setBookmark(rangeStart, rangeEnd);
@@ -205,20 +205,20 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
    /**
-    * Function to actually convert the CM markers to CM positions which can be used to 
+    * Function to actually convert the CM markers to CM positions which can be used to
     * set selections or cursor positions in Editor.
     */
     NavigationFrame.prototype._backupSelectionRanges = function () {
         if (!this.cm) {
             return;
         }
-        
+
         var marker,
             selection,
             index;
-        
+
         // Reset selections first.
         this.selections = [];
         var self = this;
@@ -241,7 +241,7 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
    /**
     * Function to clean up the markers in cm
     */
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
             return;
         }
         var self = this;
-        
+
         // clear only the markers we used to mark selections/cursors
         this.cm.getAllMarks().filter(function (entry) {
             if (entry.className === self.uId || self.bookMarkIds.indexOf(entry.id) !== -1) {
@@ -258,7 +258,7 @@ define(function (require, exports, module) {
             }
         });
     };
-    
+
     /**
     * Function to check if we have valid markers in cm for this frame
     */
@@ -274,14 +274,14 @@ define(function (require, exports, module) {
         var self = this;
         this._backupSelectionRanges();
         jumpInProgress = true;
-        
+
         // To ensure we don't reopen the same doc in the last known pane
         // rather bring it to the same pane where user has opened it
         var thisDoc = DocumentManager.getOpenDocumentForPath(this.filePath);
         if (thisDoc && thisDoc._masterEditor) {
             this.paneId = thisDoc._masterEditor._paneId;
         }
-        
+
         CommandManager.execute(Commands.FILE_OPEN, {fullPath: this.filePath, paneId: this.paneId}).done(function () {
             EditorManager.getCurrentFullEditor().setSelections(self.selections, true);
             _validateNavigationCmds();
@@ -289,8 +289,8 @@ define(function (require, exports, module) {
             jumpInProgress = false;
         });
     };
-    
-    
+
+
    /**
     * Function to capture a non-zero set of selections as a navigation frame.
     * The assumptions behind capturing a frame as a navigation frame are :
@@ -312,7 +312,7 @@ define(function (require, exports, module) {
             window.clearTimeout(captureTimer);
             captureTimer = null;
         }
-        
+
         // Ensure cursor activity has not happened because of arrow keys or edit
         if (selectionObj.origin !== "+move" && (!window.event || window.event.type !== "input")) {
             captureTimer = window.setTimeout(function () {
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
             activePosNotSynced = true;
         }
     }
-    
+
    /**
     * Command handler to navigate backward
     */
@@ -343,9 +343,9 @@ define(function (require, exports, module) {
                 jumpForwardStack.push(currentEditPos);
             }
         }
-        
+
         var navFrame = jumpBackwardStack.pop();
-        
+
         // Check if the poped frame is the current active frame or doesn't have any valid marker information
         // if true, jump again
         if (navFrame && navFrame === currentEditPos) {
@@ -354,7 +354,7 @@ define(function (require, exports, module) {
             CommandManager.execute(NAVIGATION_JUMP_BACK);
             return;
         }
-        
+
         if (navFrame) {
             // We will check for the file existence now, if it doesn't exist we will jump back again
             // but discard the popped frame as invalid.
@@ -369,17 +369,17 @@ define(function (require, exports, module) {
             });
         }
     }
-    
+
    /**
     * Command handler to navigate forward
     */
     function _navigateForward() {
         var navFrame = jumpForwardStack.pop();
-        
+
         if (!navFrame) {
             return;
         }
-        
+
         // Check if the poped frame is the current active frame or doesn't have any valid marker information
         // if true, jump again
         if (navFrame === currentEditPos) {
@@ -388,7 +388,7 @@ define(function (require, exports, module) {
             CommandManager.execute(NAVIGATION_JUMP_FWD);
             return;
         }
-        
+
         // We will check for the file existence now, if it doesn't exist we will jump back again
         // but discard the popped frame as invalid.
         _validateFrame(navFrame).done(function () {
@@ -401,9 +401,9 @@ define(function (require, exports, module) {
         }).always(function () {
             _validateNavigationCmds();
         });
-        
+
     }
-    
+
    /**
     * Function to initialize navigation menu items.
     * @private
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(NAVIGATION_JUMP_BACK, "", Menus.AFTER, Commands.NAVIGATE_PREV_DOC);
         menu.addMenuItem(NAVIGATION_JUMP_FWD, "", Menus.AFTER, NAVIGATION_JUMP_BACK);
     }
-    
+
    /**
     * Function to initialize navigation commands and it's keyboard shortcuts.
     * @private
@@ -429,7 +429,7 @@ define(function (require, exports, module) {
         KeyBindingManager.addBinding(NAVIGATION_JUMP_FWD, KeyboardPrefs[NAVIGATION_JUMP_FWD]);
         _initNavigationMenuItems();
     }
-    
+
    /**
     * Function to request a navigation frame creation explicitly.
     * @private
@@ -440,7 +440,7 @@ define(function (require, exports, module) {
             jumpBackwardStack.push(new NavigationFrame(editor, {ranges: editor._codeMirror.listSelections()}));
         }
     }
-    
+
     /**
     * Create snapshot of last known live markers.
     * @private
@@ -454,7 +454,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
     * Handle Editor destruction to create backup of live marker positions
     * @private
@@ -463,7 +463,7 @@ define(function (require, exports, module) {
         _backupLiveMarkers(jumpBackwardStack, editor);
         _backupLiveMarkers(jumpForwardStack, editor);
     }
-    
+
     /**
     * Removes all frames from backward navigation stack for the given file only if the file is changed on disk.
     * @private
@@ -473,7 +473,7 @@ define(function (require, exports, module) {
             return frame._validateFileHash(file);
         });
     }
-    
+
     /**
     * Removes all frames from forward navigation stack for the given file only if the file is changed on disk.
     * @private
@@ -483,9 +483,9 @@ define(function (require, exports, module) {
             return frame._validateFileHash(file);
         });
     }
-    
+
     /**
-    * Handles explicit content reset for a document caused by external changes 
+    * Handles explicit content reset for a document caused by external changes
     * @private
     */
     function _handleExternalChange(evt, doc) {
@@ -495,12 +495,12 @@ define(function (require, exports, module) {
             _validateNavigationCmds();
         }
     }
-    
+
     function _handleProjectOpen() {
         jumpBackwardStack = [];
         jumpForwardStack = [];
     }
-    
+
     /**
      * Required to make offline markers alive again to track document mutation
      * @private
@@ -514,7 +514,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
      * Handle Active Editor change to update navigation information
      * @private
@@ -525,7 +525,7 @@ define(function (require, exports, module) {
             _captureFrame(previous);
             _validateNavigationCmds();
         }
-        
+
         if (current && current._paneId) { // Handle only full editors
             activePosNotSynced = true;
             current.off("beforeSelectionChange", _recordJumpDef);
@@ -534,7 +534,7 @@ define(function (require, exports, module) {
             current.on("beforeDestroy", _handleEditorCleanup);
         }
     }
-    
+
     function _initHandlers() {
         EditorManager.on("activeEditorChange", _handleActiveEditorChange);
         ProjectManager.on("projectOpen", _handleProjectOpen);
@@ -557,6 +557,6 @@ define(function (require, exports, module) {
         _initNavigationCommands();
         _initHandlers();
     }
-    
+
     exports.init = init;
 });

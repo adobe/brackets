@@ -51,7 +51,7 @@
  * To add EventDispatcher methods to any object, call EventDispatcher.makeEventDispatcher(obj).
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -67,9 +67,9 @@ define(function (require, exports, module) {
         var dot = eventStr.indexOf(".");
         if (dot === -1) {
             return { eventName: eventStr };
-        } else {
-            return { eventName: eventStr.substring(0, dot), ns: eventStr.substring(dot) };
         }
+        return { eventName: eventStr.substring(0, dot), ns: eventStr.substring(dot) };
+
     }
 
 

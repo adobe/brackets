@@ -25,7 +25,7 @@
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileTreeView      = require("project/FileTreeView"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
@@ -235,8 +235,8 @@ define(function (require, exports, module) {
 
             it("should re-render as needed", function () {
                 var props = {
-                    name      : "afile.js",
-                    entry     : Immutable.Map(),
+                    name: "afile.js",
+                    entry: Immutable.Map(),
                     parentPath: "/foo/",
                     extensions: Immutable.Map()
                 };
@@ -333,12 +333,12 @@ define(function (require, exports, module) {
 
             it("should rerender as needed", function () {
                 var props = {
-                    name                : "thedir",
-                    parentPath          : "/foo/",
-                    entry               : Immutable.fromJS({
+                    name: "thedir",
+                    parentPath: "/foo/",
+                    entry: Immutable.fromJS({
                         children: null
                     }),
-                    extensions          : Immutable.Map(),
+                    extensions: Immutable.Map(),
                     sortDirectoriesFirst: false
                 };
 
@@ -481,10 +481,10 @@ define(function (require, exports, module) {
 
             it("should rerender contents as needed", function () {
                 var props = {
-                    parentPath          : "/foo/",
-                    contents            : Immutable.Map(),
+                    parentPath: "/foo/",
+                    contents: Immutable.Map(),
                     sortDirectoriesFirst: false,
-                    extensions          : Immutable.Map()
+                    extensions: Immutable.Map()
                 };
 
                 var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._directoryContents(props));
@@ -544,11 +544,11 @@ define(function (require, exports, module) {
 
             it("should rerender contents as needed", function () {
                 var props = {
-                    parentPath          : "/foo/",
-                    treeData            : Immutable.Map(),
-                    selectionViewInfo   : selectionViewInfo,
+                    parentPath: "/foo/",
+                    treeData: Immutable.Map(),
+                    selectionViewInfo: selectionViewInfo,
                     sortDirectoriesFirst: false,
-                    extensions          : Immutable.Map()
+                    extensions: Immutable.Map()
                 };
 
                 var rendered = PreactTestUtils.renderIntoDocument(FileTreeView._fileTreeView(props));

@@ -125,7 +125,7 @@
  *          file extension / filename mappings. 2nd arg is the modified Language.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
 
     // Dependencies
@@ -667,7 +667,7 @@ define(function (require, exports, module) {
 
             this._wasModified();
         } else if(!_fileExtensionToLanguageMap[extension]) {
-            
+
             // Language should be in the extension map but isn't
             _fileExtensionToLanguageMap[extension] = this;
             this._wasModified();
@@ -1086,7 +1086,7 @@ define(function (require, exports, module) {
                 }
             }
             if(!getLanguage(newMapping[name])) {
-                
+
                 // If the language doesn't exist, restore any overrides and remove it
                 // from the state.
                 if(overridden[name]) {

@@ -26,7 +26,7 @@
 /*eslint-env es6*/
 /*eslint no-console: 0*/
 /*eslint strict: ["error", "global"]*/
-"use strict";
+
 
 
 /** Setup virtual file system. This happens before any code of phoenix is loaded.
@@ -43,7 +43,7 @@ Phoenix.VFS = {
     getLocalDir: () => '/fs/local/',
     getTrashDir: () => '/fs/trash/',
     getDefaultProjectDir: () => '/fs/local/default project/',
-    ensureExistsDir : function (path, cb) {
+    ensureExistsDir: function (path, cb) {
         fs.mkdir(path, function(err) {
             if (err && err.code !== 'EEXIST') {
                 cb(err);

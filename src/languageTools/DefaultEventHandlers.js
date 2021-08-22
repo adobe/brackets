@@ -24,7 +24,7 @@
 /* eslint-disable indent */
 /* eslint no-console: 0*/
 define(function (require, exports, module) {
-    "use strict";
+
 
     var LanguageManager = require("language/LanguageManager"),
         ProjectManager = require("project/ProjectManager"),

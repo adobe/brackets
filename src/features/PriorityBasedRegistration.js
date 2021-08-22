@@ -23,7 +23,7 @@
 
 /* eslint-disable indent */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var PreferencesManager = require("preferences/PreferencesManager");
 

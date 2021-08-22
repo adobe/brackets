@@ -28,7 +28,7 @@
  * the exports variable. See src\nls\strings.js for the master file of English strings.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 

@@ -33,7 +33,7 @@
  * This module does not dispatch any events.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     /** Returns a 'context' object for getting/setting project-specific preferences */
     function _getPrefsContext() {
         var projectRoot = ProjectManager.getProjectRoot();  // note: null during unit tests!
-        return { location : { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
+        return { location: { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
     }
 
 
@@ -815,9 +815,9 @@ define(function (require, exports, module) {
         var focusedWidget = EditorManager.getFocusedInlineWidget();
         if (focusedWidget instanceof MultiRangeInlineEditor) {
             return focusedWidget;
-        } else {
-            return null;
         }
+        return null;
+
     }
 
     /**

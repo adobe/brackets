@@ -24,7 +24,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Brackets modules
     var ColorUtils          = brackets.getModule("utils/ColorUtils"),
@@ -129,10 +129,10 @@ define(function (require, exports, module) {
             top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
             left          = xpos - previewWidth / 2,
             elementRect = {
-                top:    top,
-                left:   left - POPOVER_HORZ_MARGIN,
+                top: top,
+                left: left - POPOVER_HORZ_MARGIN,
                 height: $previewContainer.outerHeight() + POINTER_HEIGHT,
-                width:  previewWidth + 2 * POPOVER_HORZ_MARGIN
+                width: previewWidth + 2 * POPOVER_HORZ_MARGIN
             },
             clip = ViewUtils.getElementClipSize($(editor.getRootElement()), elementRect);
 
@@ -246,8 +246,8 @@ define(function (require, exports, module) {
             }
 
             return {
-                match:      gradientMatch,
-                prefix:     prefix,
+                match: gradientMatch,
+                prefix: prefix,
                 colorValue: colorValue
             };
         }
@@ -262,12 +262,12 @@ define(function (require, exports, module) {
                     beforeIndex = match.index - 1;
                     if (beforeIndex >= 0 && line[beforeIndex] === "-") {
                         return true;
-                    } else {
-                        afterIndex = match.index + match[0].length;
-                        if (afterIndex < line.length && line[afterIndex] === "-") {
-                            return true;
-                        }
                     }
+                    afterIndex = match.index + match[0].length;
+                    if (afterIndex < line.length && line[afterIndex] === "-") {
+                        return true;
+                    }
+
                 }
 
                 return false;
@@ -325,10 +325,10 @@ define(function (require, exports, module) {
         function hasLengthInPixels(args) {
             return (args.length > 1 && args[1].indexOf("px") > 0);
         }
-        
+
         // Ensures that input is in usable hex format
         function ensureHexFormat(str) {
-            return (/^0x/).test(str) ? str.replace("0x","#") : str;
+            return (/^0x/).test(str) ? str.replace("0x", "#") : str;
         }
 
         // Normalizes px color stops to %
@@ -405,7 +405,7 @@ define(function (require, exports, module) {
                 }
             } else if (pos.ch <= match.index + match[0].length) {
                 // build the css for previewing the gradient from the regex result
-                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]); 
+                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
 
                 // normalize the arguments to something that we can display to the user
                 // NOTE: we need both the div and the popover's _previewCSS member

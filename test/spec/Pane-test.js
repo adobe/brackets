@@ -25,7 +25,7 @@
 /*global describe, it, expect, beforeEach, afterEach, jasmine, spyOn */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var Pane = require("view/Pane").Pane;
 
@@ -48,7 +48,7 @@ define(function (require, exports, module) {
                 file: {
                     fullPath: name
                 },
-                getFullPath : function () {
+                getFullPath: function () {
                     return this.file.fullPath;
                 },
                 getFile: function () {

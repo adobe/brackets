@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var NodeConnection = brackets.getModule("utils/NodeConnection");
 

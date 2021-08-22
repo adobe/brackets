@@ -27,7 +27,7 @@
  * Provides the data source for a project and manages the view model for the FileTreeView.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var InMemoryFile        = require("document/InMemoryFile"),
         EventDispatcher     = require("utils/EventDispatcher"),
@@ -456,7 +456,7 @@ define(function (require, exports, module) {
             var projectIndexTimer = PerfUtils.markStart("Creating project files cache: " +
                                                         this.projectRoot.fullPath),
                 options = {
-                    sortList : sort
+                    sortList: sort
                 };
 
             this.projectRoot.visit(allFilesVisitor, options, function (err) {
@@ -1123,10 +1123,10 @@ define(function (require, exports, module) {
         if (!nodesByDepth || nodesByDepth.length === 0) {
             // All paths are opened and fully rendered.
             return deferred.resolve().promise();
-        } else {
-            var self = this;
-            return Async.doSequentially(nodesByDepth, function (toOpenPaths) {
-                return Async.doInParallel(
+        }
+        var self = this;
+        return Async.doSequentially(nodesByDepth, function (toOpenPaths) {
+            return Async.doInParallel(
                     toOpenPaths,
                     function (path) {
                         return self._getDirectoryContents(path).then(function (contents) {
@@ -1137,8 +1137,8 @@ define(function (require, exports, module) {
                     },
                     false
                 );
-            });
-        }
+        });
+
     };
 
     /**

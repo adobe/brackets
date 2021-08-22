@@ -41,7 +41,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Brackets modules
     var EditorManager       = brackets.getModule("editor/EditorManager"),
@@ -138,14 +138,14 @@ define(function (require, exports, module) {
 
         if (!context.timingFunction) {
             return context.reason || null;
-        } else {
-            inlineTimingFunctionEditor = new InlineTimingFunctionEditor(context.timingFunction, context.start, context.end);
-            inlineTimingFunctionEditor.load(hostEditor);
-
-            result = new $.Deferred();
-            result.resolve(inlineTimingFunctionEditor);
-            return result.promise();
         }
+        inlineTimingFunctionEditor = new InlineTimingFunctionEditor(context.timingFunction, context.start, context.end);
+        inlineTimingFunctionEditor.load(hostEditor);
+
+        result = new $.Deferred();
+        result.resolve(inlineTimingFunctionEditor);
+        return result.promise();
+
     }
 
     /**

@@ -29,7 +29,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -63,21 +63,21 @@ define(function (require, exports, module) {
         documentChanges     = null,     // bounds of document changes
         preferences         = null,
         deferredPreferences = null;
-    
+
     var _bracketsPath       = FileUtils.getNativeBracketsDirectoryPath(),
         _modulePath         = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath           = "node/TernNodeDomain",
         _absoluteModulePath = [_bracketsPath, _modulePath].join("/"),
         _domainPath         = [_bracketsPath, _modulePath, _nodePath].join("/");
-    
-    
+
+
     var MAX_HINTS           = 30,  // how often to reset the tern server
         LARGE_LINE_CHANGE   = 100,
         LARGE_LINE_COUNT    = 10000,
         OFFSET_ZERO         = {line: 0, ch: 0};
 
     var config = {};
-    
+
     /**
      *  An array of library names that contain JavaScript builtins definitions.
      *
@@ -783,14 +783,14 @@ define(function (require, exports, module) {
             ),
             [
                 {
-                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                    id        : Dialogs.DIALOG_BTN_OK,
-                    text      : Strings.OK
+                    className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id: Dialogs.DIALOG_BTN_OK,
+                    text: Strings.OK
                 }
             ]
         );
     }
-    
+
     DocumentManager.on("dirtyFlagChange", function (event, changedDoc) {
         if (changedDoc.file.fullPath) {
             postMessage({
@@ -886,9 +886,9 @@ define(function (require, exports, module) {
             var path  = document.file.fullPath;
 
             _postMessageByPass({
-                type       : MessageIds.TERN_UPDATE_FILE_MSG,
-                path       : path,
-                text       : getTextFromDocument(document)
+                type: MessageIds.TERN_UPDATE_FILE_MSG,
+                path: path,
+                text: getTextFromDocument(document)
             });
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
@@ -898,7 +898,7 @@ define(function (require, exports, module) {
          * Handle a request from the tern node domain for text of a file
          *
          * @param {{file:string}} request - the request from the tern node domain.  Should be an Object containing the name
-         *      of the file tern wants the contents of 
+         *      of the file tern wants the contents of
          */
         function handleTernGetFile(request) {
 
@@ -992,9 +992,9 @@ define(function (require, exports, module) {
          */
         function primePump(path, isUntitledDoc) {
             _postMessageByPass({
-                type            : MessageIds.TERN_PRIME_PUMP_MSG,
-                path            : path,
-                isUntitledDoc   : isUntitledDoc
+                type: MessageIds.TERN_PRIME_PUMP_MSG,
+                path: path,
+                isUntitledDoc: isUntitledDoc
             });
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
@@ -1038,8 +1038,8 @@ define(function (require, exports, module) {
                 numAddedFiles += files.length;
                 ternPromise.done(function (ternModule) {
                     var msg = {
-                        type        : MessageIds.TERN_ADD_FILES_MSG,
-                        files       : files
+                        type: MessageIds.TERN_ADD_FILES_MSG,
+                        files: files
                     };
 
                     if (config.debug) {
@@ -1096,10 +1096,10 @@ define(function (require, exports, module) {
         function initTernModule() {
             var moduleDeferred = $.Deferred();
             ternPromise = moduleDeferred.promise();
-            
-            function prepareTern() {  
+
+            function prepareTern() {
                 _ternNodeDomain.exec("setInterface", {
-                    messageIds : MessageIds
+                    messageIds: MessageIds
                 });
 
                 _ternNodeDomain.exec("invokeTernCommand", {
@@ -1108,7 +1108,7 @@ define(function (require, exports, module) {
                 });
                 moduleDeferred.resolveWith(null, [_ternNodeDomain]);
             }
-            
+
             if (_ternNodeDomain) {
                 _ternNodeDomain.exec("resetTernServer");
                 moduleDeferred.resolveWith(null, [_ternNodeDomain]);
@@ -1149,7 +1149,7 @@ define(function (require, exports, module) {
                         // Ensure the request is because of a node restart
                         if (currentModule) {
                             prepareTern();
-                            // Mark the module with resetForced, then creation of TernModule will 
+                            // Mark the module with resetForced, then creation of TernModule will
                             // happen again as part of '_maybeReset' call
                             currentModule.resetForced = true;
                         }
@@ -1157,7 +1157,7 @@ define(function (require, exports, module) {
                         console.log("Tern Module: " + (response.log || response));
                     }
                 });
-            
+
                 _ternNodeDomain.promise().done(prepareTern);
             }
         }
@@ -1174,11 +1174,11 @@ define(function (require, exports, module) {
 
             ternPromise.done(function (ternModule) {
                 var msg = {
-                    type        : MessageIds.TERN_INIT_MSG,
-                    dir         : dir,
-                    files       : files,
-                    env         : ternEnvironment,
-                    timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
+                    type: MessageIds.TERN_INIT_MSG,
+                    dir: dir,
+                    files: files,
+                    env: ternEnvironment,
+                    timeout: PreferencesManager.get("jscodehints.inferenceTimeout")
                 };
                 _ternNodeDomain.exec("invokeTernCommand", msg);
             });
@@ -1234,11 +1234,11 @@ define(function (require, exports, module) {
                 isDocumentDirty = false;
                 return;
             }
-            
+
             if (previousDocument && previousDocument.isDirty) {
                 updateTernFile(previousDocument);
             }
-    
+
             isDocumentDirty = false;
             resolvedFiles = {};
             projectRoot = pr;
@@ -1330,7 +1330,7 @@ define(function (require, exports, module) {
          * Do some cleanup when a project is closed.
          *
          * We can clean up the node tern server we use to calculate hints now, since
-         * we know we will need to re-init it in any new project that is opened.  
+         * we know we will need to re-init it in any new project that is opened.
          */
         function resetModule() {
             function resetTernServer() {
@@ -1338,10 +1338,10 @@ define(function (require, exports, module) {
                     _ternNodeDomain.exec('resetTernServer');
                 }
             }
-            
+
             if (_ternNodeDomain) {
                 if (addFilesPromise) {
-                    // If we're in the middle of added files, don't reset 
+                    // If we're in the middle of added files, don't reset
                     // until we're done
                     addFilesPromise.done(resetTernServer).fail(resetTernServer);
                 } else {
@@ -1353,7 +1353,7 @@ define(function (require, exports, module) {
         function whenReady(func) {
             addFilesPromise.done(func);
         }
-        
+
         this.resetModule = resetModule;
         this.handleEditorChange = handleEditorChange;
         this.postMessage = postMessage;
@@ -1366,7 +1366,7 @@ define(function (require, exports, module) {
     var resettingDeferred = null;
 
     /**
-     * reset the tern module, if necessary.  
+     * reset the tern module, if necessary.
      *
      * During debugging, you can turn this automatic resetting behavior off
      * by running this in the console:
@@ -1378,7 +1378,7 @@ define(function (require, exports, module) {
      * @param {Session} session
      * @param {Document} document
      * @param {boolean} force true to force a reset regardless of how long since the last one
-     * @return {Promise} Promise resolved when the module is ready. 
+     * @return {Promise} Promise resolved when the module is ready.
      *                   The new (or current, if there was no reset) module is passed to the callback.
      */
     function _maybeReset(session, document, force) {
@@ -1544,7 +1544,7 @@ define(function (require, exports, module) {
         if (!currentModule) {
             currentModule = new TernModule();
         }
-        
+
         return currentModule.handleEditorChange(session, document, previousDocument);
     }
 
@@ -1576,7 +1576,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * 
+     *
      * Update the configuration in the tern node domain.
      */
     function _setConfig(configUpdate) {

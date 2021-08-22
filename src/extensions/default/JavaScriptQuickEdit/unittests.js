@@ -24,7 +24,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var CommandManager,         // loaded from brackets.test
         EditorManager,          // loaded from brackets.test
@@ -46,9 +46,9 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             infos = {},
             options = {
-                parseOffsets    : true,
-                infos           : infos,
-                removePrefix    : true
+                parseOffsets: true,
+                infos: infos,
+                removePrefix: true
             };
 
         SpecRunnerUtils.copyPath(testPath, tempPath, options).done(function () {

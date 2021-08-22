@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependencies.
     var TokenUtils  = require("utils/TokenUtils");

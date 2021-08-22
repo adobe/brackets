@@ -36,7 +36,7 @@
  * DocumentManager directly. DocumentManager, the tree UI, etc. then all listen to that model for changes.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var ProjectManager  = require("project/ProjectManager"),
@@ -311,13 +311,13 @@ define(function (require, exports, module) {
                 buttons = [
                     {
                         className: Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id:        Dialogs.DIALOG_BTN_DONTSAVE,
-                        text:      Strings.RELOAD_FROM_DISK
+                        id: Dialogs.DIALOG_BTN_DONTSAVE,
+                        text: Strings.RELOAD_FROM_DISK
                     },
                     {
                         className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id:        Dialogs.DIALOG_BTN_CANCEL,
-                        text:      Strings.KEEP_CHANGES_IN_EDITOR
+                        id: Dialogs.DIALOG_BTN_CANCEL,
+                        text: Strings.KEEP_CHANGES_IN_EDITOR
                     }
                 ];
 
@@ -333,13 +333,13 @@ define(function (require, exports, module) {
                 buttons = [
                     {
                         className: Dialogs.DIALOG_BTN_CLASS_LEFT,
-                        id:        Dialogs.DIALOG_BTN_DONTSAVE,
-                        text:      Strings.CLOSE_DONT_SAVE
+                        id: Dialogs.DIALOG_BTN_DONTSAVE,
+                        text: Strings.CLOSE_DONT_SAVE
                     },
                     {
                         className: Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                        id:        Dialogs.DIALOG_BTN_CANCEL,
-                        text:      Strings.KEEP_CHANGES_IN_EDITOR
+                        id: Dialogs.DIALOG_BTN_CANCEL,
+                        text: Strings.KEEP_CHANGES_IN_EDITOR
                     }
                 ];
             }

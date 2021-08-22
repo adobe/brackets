@@ -31,7 +31,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         BuildInfoUtils = require("utils/BuildInfoUtils");
@@ -309,15 +309,15 @@ define(function (require, exports, module) {
     UnitTestReporter.prototype._getCategory = function (spec) {
         if (spec.category) {
             return spec.category;
-        } else {
-            var suite = spec.suite;
-            while (suite) {
-                if (suite.category) {
-                    return suite.category;
-                }
-                suite = suite.parentSuite;
-            }
         }
+        var suite = spec.suite;
+        while (suite) {
+            if (suite.category) {
+                return suite.category;
+            }
+            suite = suite.parentSuite;
+        }
+
         return null;
     };
 

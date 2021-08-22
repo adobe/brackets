@@ -30,7 +30,7 @@
 
 define(function (require, exports, module) {
 
-    "use strict";
+
     var i = 0,
 
         TEXT = i++,
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         BEFORE_CDATA_4 = i++, // A
         BEFORE_CDATA_5 = i++, // T
         BEFORE_CDATA_6 = i++, // A
-        IN_CDATA = i++,// [
+        IN_CDATA = i++, // [
         AFTER_CDATA_1 = i++, // ]
         AFTER_CDATA_2 = i++, // ]
 

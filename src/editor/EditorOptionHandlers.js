@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AppInit             = require("utils/AppInit"),
         Editor              = require("editor/Editor").Editor,

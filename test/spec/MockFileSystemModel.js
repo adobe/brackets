@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileSystemStats = require("filesystem/FileSystemStats"),
         EventDispatcher = require("utils/EventDispatcher");
@@ -98,9 +98,9 @@ define(function (require, exports, module) {
                 size: entry.contents ? entry.contents.length : 0,
                 hash: entry.mtime.getTime()
             });
-        } else {
-            return null;
         }
+        return null;
+
     };
 
     MockFileSystemModel.prototype.exists = function (path) {

@@ -24,7 +24,7 @@
 /*global describe, it, expect, runs, spyOn */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var MainViewFactory = require("view/MainViewFactory");
 

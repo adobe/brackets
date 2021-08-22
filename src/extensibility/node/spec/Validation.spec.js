@@ -25,7 +25,7 @@
 /*jslint node: true */
 /*global expect, describe, it, afterEach */
 
-"use strict";
+
 
 var rewire           = require("rewire"),
     packageValidator = rewire("../package-validator"),

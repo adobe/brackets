@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, waitsForDone, runs, beforeFirst, afterLast, spyOn */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Strings         = require("strings");

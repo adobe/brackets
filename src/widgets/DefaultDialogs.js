@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     /**
      * List of constants for the default dialogs IDs.

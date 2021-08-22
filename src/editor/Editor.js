@@ -60,7 +60,7 @@
  *     `editorInstance.on("eventname", handler);`
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-  
+
     PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
         description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
@@ -394,9 +394,9 @@ define(function (require, exports, module) {
                     self.removeAllInlineWidgets();
                 }
             },
-            "Home":      "goLineLeftSmart",
-            "Cmd-Left":  "goLineLeftSmart",
-            "End":       "goLineRight",
+            "Home": "goLineLeftSmart",
+            "Cmd-Left": "goLineLeftSmart",
+            "End": "goLineRight",
             "Cmd-Right": "goLineRight"
         };
 
@@ -417,28 +417,28 @@ define(function (require, exports, module) {
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
-            autoCloseBrackets           : currentOptions[CLOSE_BRACKETS],
-            autoCloseTags               : currentOptions[CLOSE_TAGS],
-            coverGutterNextToScrollbar  : true,
-            cursorScrollMargin          : 3,
-            dragDrop                    : currentOptions[DRAG_DROP],
-            electricChars               : true,
-            extraKeys                   : codeMirrorKeyMap,
-            highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
-            indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
-            indentWithTabs              : currentOptions[USE_TAB_CHAR],
-            inputStyle                  : currentOptions[INPUT_STYLE],
-            lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
-            lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
-            lineWrapping                : currentOptions[WORD_WRAP],
-            matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
-            matchTags                   : { bothTags: true },
-            scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
-            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
-            smartIndent                 : currentOptions[SMART_INDENT],
-            styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
-            tabSize                     : currentOptions[TAB_SIZE],
-            readOnly                    : isReadOnly
+            autoCloseBrackets: currentOptions[CLOSE_BRACKETS],
+            autoCloseTags: currentOptions[CLOSE_TAGS],
+            coverGutterNextToScrollbar: true,
+            cursorScrollMargin: 3,
+            dragDrop: currentOptions[DRAG_DROP],
+            electricChars: true,
+            extraKeys: codeMirrorKeyMap,
+            highlightSelectionMatches: currentOptions[HIGHLIGHT_MATCHES],
+            indentUnit: currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
+            indentWithTabs: currentOptions[USE_TAB_CHAR],
+            inputStyle: currentOptions[INPUT_STYLE],
+            lineNumbers: currentOptions[SHOW_LINE_NUMBERS],
+            lineWiseCopyCut: currentOptions[LINEWISE_COPY_CUT],
+            lineWrapping: currentOptions[WORD_WRAP],
+            matchBrackets: { maxScanLineLength: 50000, maxScanLines: 1000 },
+            matchTags: { bothTags: true },
+            scrollPastEnd: !range && currentOptions[SCROLL_PAST_END],
+            showCursorWhenSelecting: currentOptions[SHOW_CURSOR_SELECT],
+            smartIndent: currentOptions[SMART_INDENT],
+            styleActiveLine: currentOptions[STYLE_ACTIVE_LINE],
+            tabSize: currentOptions[TAB_SIZE],
+            readOnly: isReadOnly
         });
 
         // Can't get CodeMirror's focused state without searching for
@@ -1042,7 +1042,7 @@ define(function (require, exports, module) {
         this._codeMirror.on("focus", function () {
             self._focused = true;
             self.trigger("focus", self);
-            
+
         });
 
         this._codeMirror.on("blur", function () {
@@ -1297,10 +1297,10 @@ define(function (require, exports, module) {
             if (endInclusive) {
                 return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
                     (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
-            } else {
-                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
-                    (end.line > pos.line   || end.ch > pos.ch);       // exclusive
             }
+            return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                    (end.line > pos.line   || end.ch > pos.ch);       // exclusive
+
 
         }
         return false;
@@ -1324,9 +1324,9 @@ define(function (require, exports, module) {
     function _normalizeRange(anchorPos, headPos) {
         if (headPos.line < anchorPos.line || (headPos.line === anchorPos.line && headPos.ch < anchorPos.ch)) {
             return {start: _copyPos(headPos), end: _copyPos(anchorPos), reversed: true};
-        } else {
-            return {start: _copyPos(anchorPos), end: _copyPos(headPos), reversed: false};
         }
+        return {start: _copyPos(anchorPos), end: _copyPos(headPos), reversed: false};
+
     }
 
     /**
@@ -1430,10 +1430,10 @@ define(function (require, exports, module) {
     Editor.prototype.getSelectedText = function (allSelections) {
         if (allSelections) {
             return this._codeMirror.getSelection();
-        } else {
-            var sel = this.getSelection();
-            return this.document.getRange(sel.start, sel.end);
         }
+        var sel = this.getSelection();
+        return this.document.getRange(sel.start, sel.end);
+
     };
 
     /**
@@ -1768,14 +1768,14 @@ define(function (require, exports, module) {
                     inlineWidget = self._inlineWidgets[allWidgetInfos.indexOf(info)];
                     if (inlineWidget) {
                         return self.removeInlineWidget(inlineWidget);
-                    } else {
-                        return new $.Deferred().resolve().promise();
                     }
+                    return new $.Deferred().resolve().promise();
+
                 }
             );
-        } else {
-            return new $.Deferred().resolve().promise();
         }
+        return new $.Deferred().resolve().promise();
+
     };
 
     /**
@@ -1906,10 +1906,10 @@ define(function (require, exports, module) {
         left = cursorCoord.left - (this._$messagePopover.width() / 2);
 
         popoverRect = {
-            top:    top,
-            left:   left,
+            top: top,
+            left: left,
             height: this._$messagePopover.height(),
-            width:  this._$messagePopover.width()
+            width: this._$messagePopover.width()
         };
 
         // See if popover is clipped on any side
@@ -2197,9 +2197,9 @@ define(function (require, exports, module) {
             return this._codeMirror.getOption("mode");
         } else if (!startMode || !endMode || startMode.name !== endMode.name) {
             return null;
-        } else {
-            return startMode;
         }
+        return startMode;
+
     };
 
     /**
@@ -2232,7 +2232,7 @@ define(function (require, exports, module) {
             if (outerMode.name === 'htmlmixed' && primarySel.start.line === primarySel.end.line && primarySel.start.ch === primarySel.end.ch) {
                 var tagInfo = HTMLUtils.getTagInfo(this, primarySel.start, true),
                     tokenType = tagInfo.position.tokenType;
- 
+
                 if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name.toLowerCase() === 'style') {
                     return 'css';
                 }
@@ -2261,10 +2261,10 @@ define(function (require, exports, module) {
             }
 
             return startMode.name;
-        } else {
-            // Mode does not vary: just use the editor-wide mode
-            return this._codeMirror.getOption("mode");
         }
+            // Mode does not vary: just use the editor-wide mode
+        return this._codeMirror.getOption("mode");
+
     };
 
     /*
@@ -2765,10 +2765,10 @@ define(function (require, exports, module) {
             $holder.toggleClass("show-line-padding", Boolean(showLinePadding));
         });
     };
-    
+
     Editor.LINE_NUMBER_GUTTER_PRIORITY = LINE_NUMBER_GUTTER_PRIORITY;
     Editor.CODE_FOLDING_GUTTER_PRIORITY = CODE_FOLDING_GUTTER_PRIORITY;
-    
+
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {
         PreferencesManager.on("change", prefName, function () {

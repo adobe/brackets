@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
 
     var AppInit              = brackets.getModule("utils/AppInit"),
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
 
     function _handleRefactor(functionName) {
         var eventName, eventType = "";
-        
+
         switch (functionName) {
         case REFACTOR_RENAME:
             eventName = REFACTOR_RENAME;
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
         }
         if (eventName) {
             var editor = EditorManager.getActiveEditor();
-        
+
             // Logging should be done only when the context is javascript
             if (!editor || editor.getModeForSelection() !== "javascript") {
                 return;

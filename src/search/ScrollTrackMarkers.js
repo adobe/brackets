@@ -27,7 +27,7 @@
  * It is assumed that markers are always clear()ed when switching editors.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * @type {?jQueryObject}
      */
     var $markedTickmark;
-    
+
     /**
      * Vertical space above and below the scrollbar
      * @type {number}
@@ -98,8 +98,8 @@ define(function (require, exports, module) {
     function setScrollbarTrackOffset(offset) {
         scrollbarTrackOffset = offset;
     }
-    
-    
+
+
     function _getScrollbar(editor) {
         // Be sure to select only the direct descendant, not also elements within nested inline editors
         return $(editor.getRootElement()).children(".CodeMirror-vscrollbar");
@@ -246,7 +246,7 @@ define(function (require, exports, module) {
     exports.setVisible      = setVisible;
     exports.addTickmarks    = addTickmarks;
     exports.markCurrent     = markCurrent;
-    
+
     exports.getScrollbarTrackOffset = getScrollbarTrackOffset;
     exports.setScrollbarTrackOffset = setScrollbarTrackOffset;
 });

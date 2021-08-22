@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     /*
      * Represents file or directory structure watched by the FileSystem. If the

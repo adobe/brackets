@@ -24,7 +24,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         CSSAtRuleCodeHints  = require("main");
@@ -35,7 +35,7 @@ define(function (require, exports, module) {
                              "} \n" +
                              " \n" +
                              "@m ";
-                             
+
 
         var testDocument, testEditor;
 
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
             expect(fixPos(selection.start)).toEqual(fixPos(selection.end));
             expect(fixPos(selection.start)).toEqual(fixPos(pos));
         }
-        
+
         function verifyFirstEntry(hintList, expectedFirstHint) {
             expect(hintList[0]).toBe(expectedFirstHint);
         }
@@ -111,12 +111,12 @@ define(function (require, exports, module) {
             expect(hintList.length).toBe(values.length);
             expect(hintList.sort().toString()).toBe(values.sort().toString());
         }
-        
-        
+
+
         var modesToTest = ['css', 'scss', 'less'],
             modeCounter;
-        
-        
+
+
         var selectMode = function () {
             return modesToTest[modeCounter];
         };
@@ -135,21 +135,21 @@ define(function (require, exports, module) {
                 testEditor = null;
                 testDocument = null;
             });
-            
+
             var testAllHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 1 });    // after @
                     var hintList = expectHints(CSSAtRuleCodeHints.restrictedBlockHints);
                     verifyFirstEntry(hintList, "@charset");  // filtered on "empty string"
                     verifyListsAreIdentical(hintList, ["@charset",
-                                                       "@counter-style",
-                                                       "@font-face",
-                                                       "@font-feature-values",
-                                                       "@import",
-                                                       "@keyframes",
-                                                       "@media",
-                                                       "@namespace",
-                                                       "@page",
-                                                       "@supports"]);
+                        "@counter-style",
+                        "@font-face",
+                        "@font-feature-values",
+                        "@import",
+                        "@keyframes",
+                        "@media",
+                        "@namespace",
+                        "@page",
+                        "@supports"]);
                 },
                 testFilteredHints = function () {
                     testEditor.setCursorPos({ line: 3, ch: 2 });    // after @m
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
                     testEditor.setCursorPos({ line: 0, ch: 0 });    // after {
                     expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, 'c')).toBe(false);
                 };
-            
+
             for (modeCounter in modesToTest) {
                 it("should list all rule hints right after @", testAllHints);
                 it("should list filtered rule hints right after @m", testFilteredHints);
@@ -173,7 +173,7 @@ define(function (require, exports, module) {
                 it("should not list rule hints if the cursor is before @", testNoHints);
             }
         });
-        
+
         describe("'@' rules in LESS mode (selection of correct restricted block based on input)", function () {
             defaultContent = "@ { \n" +
                              "} \n" +
@@ -196,12 +196,12 @@ define(function (require, exports, module) {
                 testEditor = null;
                 testDocument = null;
             });
-            
+
             it("should not list rule hints in less variable evaluation scope", function () {
                 testEditor.setCursorPos({ line: 3, ch: 3 });    // after {
                 expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, '')).toBe(false);
             });
-            
+
         });
 
         describe("'@' rule hint insertion", function () {

@@ -28,7 +28,7 @@
 // also inject other scripts via "evaluate" once this has connected back to Brackets.
 
 (function (global) {
-    "use strict";
+
 
     // This protocol handler assumes that there is also an injected transport script that
     // has the following methods:
@@ -155,7 +155,7 @@
      */
     var CSS = {
 
-        setStylesheetText : function (msg) {
+        setStylesheetText: function (msg) {
 
             if (!msg || !msg.params || !msg.params.text || !msg.params.url) {
                 return;
@@ -376,7 +376,7 @@
     window.addEventListener('load', function () {
         ProtocolManager.enable();
     });
-    
+
     /**
     * Sends the message containing tagID which is being clicked
     * to the editor in order to change the cursor position to

@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, jasmine, spyOn */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var Editor              = require("editor/Editor").Editor,
         LanguageManager     = require("language/LanguageManager"),
@@ -32,10 +32,10 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     var langNames = {
-        css:        {mode: "css",           langName: "CSS"},
+        css: {mode: "css",           langName: "CSS"},
         javascript: {mode: "javascript",    langName: "JavaScript"},
-        html:       {mode: "html",          langName: "HTML"},
-        unknown:    {mode: null,            langName: "Text"}
+        html: {mode: "html",          langName: "HTML"},
+        unknown: {mode: null,            langName: "Text"}
     };
 
     function compareMode(expected, actual) {
@@ -397,7 +397,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     expect(myEditor.hasSelection()).toBe(false);
                 });
 
@@ -405,7 +405,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                    ], 2);
                     expect(myEditor.hasSelection()).toBe(true);
                 });
 
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     expect(myEditor.hasSelection()).toBe(true);
                 });
             });
@@ -451,7 +451,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     expect(myEditor.getCursorPos().line).toEqual(2);
                     expect(myEditor.getCursorPos().ch).toEqual(1);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(2);
@@ -468,7 +468,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 1);
+                    ], 1);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(1);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(1);
@@ -485,7 +485,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                    ], 2);
                     expect(myEditor.getCursorPos().line).toEqual(2);
                     expect(myEditor.getCursorPos().ch).toEqual(4);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(2);
@@ -502,7 +502,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 1);
+                    ], 1);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(4);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(1);
@@ -535,7 +535,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(3);
@@ -545,7 +545,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                    ], 2);
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(3);
@@ -582,7 +582,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false});
                 });
 
@@ -590,7 +590,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 1);
+                    ], 1);
                     expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false});
                 });
 
@@ -598,7 +598,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                    ], 2);
                     expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false});
                 });
 
@@ -606,7 +606,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true});
                 });
 
@@ -614,7 +614,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 1);
+                    ], 1);
                     expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
                 });
 
@@ -622,7 +622,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 4}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 1);
+                    ], 1);
                     expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: true});
                 });
 
@@ -648,42 +648,42 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 1}, reversed: false, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false, primary: true}
-                                                       ]);
+                    ]);
                 });
 
                 it("should return a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                    ], 2);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false, primary: true}
-                                                       ]);
+                    ]);
                 });
 
                 it("should properly reverse selections whose heads are before their anchors in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 4}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: true, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true, primary: true}
-                                                       ]);
+                    ]);
                 });
 
                 it("should properly reverse multiline selections whose heads are before their anchors in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 1, ch: 3}, head: {line: 0, ch: 5}},
                                                         {anchor: {line: 4, ch: 4}, head: {line: 3, ch: 1}}
-                                                       ], 1);
+                    ], 1);
                     expectSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true, primary: false},
                                                         {start: {line: 3, ch: 1}, end: {line: 4, ch: 4}, reversed: true, primary: true}
-                                                       ]);
+                    ]);
                 });
             });
 
@@ -704,7 +704,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
                                                         {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
-                                                       ], 2);
+                    ], 2);
                     expect(myEditor.getSelectedText()).toEqual("line 2");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
@@ -713,7 +713,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
                                                         {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
-                                                       ], 1);
+                    ], 1);
                     expect(myEditor.getSelectedText()).toEqual("line 1");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
@@ -722,7 +722,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 14}, head: {line: 0, ch: 8}},
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
                                                         {anchor: {line: 2, ch: 14}, head: {line: 2, ch: 8}}
-                                                       ], 2);
+                    ], 2);
                     expect(myEditor.getSelectedText()).toEqual("line 2");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
@@ -750,7 +750,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
@@ -759,7 +759,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                    ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
@@ -788,7 +788,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                    ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
@@ -800,7 +800,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                    ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
@@ -1242,7 +1242,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
                                   {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
                                  -1, "moveH",
-                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}]);
                 });
@@ -1253,7 +1253,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
                                   {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
                                  1, "moveH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: false}]);
                 });
@@ -1264,7 +1264,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
                                   {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
                                  -1, "deleteH",
-                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
                                 "one\ntwo\nthree\n");
@@ -1276,7 +1276,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
                                   {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
                                  1, "deleteH",
-                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
                                 "one\ntwo\nthree\n");
@@ -1288,7 +1288,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "moveH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
                 });
@@ -1299,7 +1299,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
                                  1, "moveH",
-                                 [{start: {line: 0, ch: 8}, end: {line: 0, ch: 8}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 8}, end: {line: 0, ch: 8}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
                 });
@@ -1310,7 +1310,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "deleteH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
                                  "      one\n      two\n          three\n");
@@ -1322,7 +1322,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
                                  1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
                                  "     one\n     two\n         three\n"
@@ -1335,7 +1335,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "moveH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
                 });
@@ -1346,7 +1346,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  1, "moveH",
-                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 11}, end: {line: 2, ch: 11}, primary: true, reversed: false}]);
                 });
@@ -1357,7 +1357,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "deleteH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
                                  "       one\n       two\n           three\n");
@@ -1369,7 +1369,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}],
                                  1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
                                  "       one\n       two\n           three\n"
@@ -1382,7 +1382,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 9}, end: {line: 1, ch: 9}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "moveH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
                 });
@@ -1393,7 +1393,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}}],
                                  1, "moveH",
-                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}]);
                 });
@@ -1404,7 +1404,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "deleteH",
-                                 [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
                                  "        oe\n       two\n           three\n");
@@ -1416,7 +1416,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}}],
                                  1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}],
                                  "       one\n       two\n            thre\n"
@@ -1429,7 +1429,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 6}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "moveH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
                 });
@@ -1440,7 +1440,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
                                  1, "moveH",
-                                 [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
                 });
@@ -1451,7 +1451,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 8}, end: {line: 1, ch: 10}},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
                                  -1, "deleteH",
-                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}, primary: true, reversed: false}],
                                  "        one\n        o\n            three\n");
@@ -1463,7 +1463,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                   {start: {line: 2, ch: 14}, end: {line: 2, ch: 16}}],
                                  1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}, primary: true, reversed: false}],
                                  "        one\n        two\n            the\n"
@@ -2048,18 +2048,18 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Gutter APIs", function () {
             var leftGutter = "left",
                 rightGutter = "right",
                 lineNumberGutter = "CodeMirror-linenumbers";
-                
+
             beforeEach(function () {
                 createTestEditor(defaultContent, "javascript");
                 Editor.registerGutter(leftGutter, 1);
                 Editor.registerGutter(rightGutter, 101);
             });
-            
+
             afterEach(function () {
                 var nonLineNumberGutters = Editor.getRegisteredGutters().map(function (gutter) {
                     return gutter.name;
@@ -2070,7 +2070,7 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
+
             it("should register multiple gutters in the correct order", function () {
                 var expectedGutters = [leftGutter, lineNumberGutter, rightGutter];
                 var gutters  = myEditor._codeMirror.getOption("gutters");
@@ -2080,7 +2080,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedGutters);
             });
-            
+
             it("should return gutters registered with the same priority in insertion order", function () {
                 var secondRightGutter = "second-right";
                 Editor.registerGutter(secondRightGutter, 101);
@@ -2092,7 +2092,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedGutters);
             });
-            
+
             it("should have only gutters registered with the intended languageIds ", function () {
                 var lessOnlyGutter = "less-only-gutter";
                 Editor.registerGutter(lessOnlyGutter, 101, ["less"]);
@@ -2105,7 +2105,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedRegisteredGutters);
             });
-            
+
             it("should unregister gutters correctly", function () {
                 Editor.unregisterGutter(leftGutter);
                 Editor.unregisterGutter(rightGutter);
@@ -2118,7 +2118,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedGutters);
             });
-            
+
             it("should set gutter marker correctly", function () {
                 var marker = window.document.createElement("div");
                 myEditor.setGutterMarker(1, leftGutter, marker);

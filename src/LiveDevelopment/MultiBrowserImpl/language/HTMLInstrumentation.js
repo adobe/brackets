@@ -49,7 +49,7 @@
  * position in the document--this is used in live highlighting.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLDOMDiff     = require("language/HTMLDOMDiff"),
@@ -584,12 +584,12 @@ define(function (require, exports, module) {
             // TODO: should we consider ripping through the dom and fixing up other offsets?
             result.dom.fullBuild = false;
             return { edits: result.edits };
-        } else {
-            if (cachedValue) {
-                cachedValue.invalid = true;
-            }
-            return { errors: result.errors };
         }
+        if (cachedValue) {
+            cachedValue.invalid = true;
+        }
+        return { errors: result.errors };
+
     }
 
     /**
@@ -654,9 +654,9 @@ define(function (require, exports, module) {
         browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
 
         return {
-            diff    : HTMLDOMDiff.domdiff(editorRoot, browserRoot),
-            browser : browserRoot,
-            editor  : editorRoot
+            diff: HTMLDOMDiff.domdiff(editorRoot, browserRoot),
+            browser: browserRoot,
+            editor: editorRoot
         };
     }
 

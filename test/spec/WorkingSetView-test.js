@@ -24,7 +24,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var CommandManager,         // Load from brackets.test
         Commands,               // Load from brackets.test

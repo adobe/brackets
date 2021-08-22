@@ -4,7 +4,7 @@
 // Modified by Patrick Oladimeji for Brackets
 
 define(function (require, exports, module) {
-    "use strict";
+
     var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         prefs               = require("Prefs");
 

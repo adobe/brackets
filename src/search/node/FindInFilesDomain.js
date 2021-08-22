@@ -24,7 +24,7 @@
 /*eslint-env node */
 /*jslint node: true */
 /*global setImmediate */
-"use strict";
+
 
 var fs = require("fs"),
     projectCache = [],
@@ -85,12 +85,12 @@ function offsetToLineNum(textOrLines, offset) {
         // if offset is NOT over the total then offset is in the last line
         if (offset <= total) {
             return line - 1;
-        } else {
-            return undefined;
         }
-    } else {
-        return textOrLines.substr(0, offset).split("\n").length - 1;
+        return undefined;
+
     }
+    return textOrLines.substr(0, offset).split("\n").length - 1;
+
 }
 
 /**
@@ -142,8 +142,8 @@ function getSearchMatches(contents, queryExpr) {
         }
 
         matches.push({
-            start:       {line: lineNum, ch: ch},
-            end:         {line: lineNum + numMatchedLines - 1, ch: endCh},
+            start: {line: lineNum, ch: ch},
+            end: {line: lineNum + numMatchedLines - 1, ch: endCh},
 
             highlightOffset: highlightOffset,
 
@@ -154,11 +154,11 @@ function getSearchMatches(contents, queryExpr) {
             // doing everything in terms of line/ch offsets, though that will require re-splitting files when
             // doing a replace) or properly update them.
             startOffset: match.index,
-            endOffset:   match.index + totalMatchLength,
+            endOffset: match.index + totalMatchLength,
 
-            line:        line,
-            result:      match,
-            isChecked:   true
+            line: line,
+            result: match,
+            isChecked: true
         });
 
         // We have the max hits in just this 1 file. Stop searching this file.
@@ -282,13 +282,13 @@ function doSearchInFiles(fileList, queryExpr, startFileIndex, maxResultsToReturn
         console.log('no files found');
         return;
 
-    } else {
-        startFileIndex = startFileIndex || 0;
-        for (i = startFileIndex; i < fileList.length && !foundMaximum; i++) {
-            doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
-        }
-        lastSearchedIndex = i;
     }
+    startFileIndex = startFileIndex || 0;
+    for (i = startFileIndex; i < fileList.length && !foundMaximum; i++) {
+        doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
+    }
+    lastSearchedIndex = i;
+
 }
 
 // Copied from StringUtils.js
@@ -449,9 +449,9 @@ function doSearch(searchObject, nextPages) {
         numMatches = getNumMatches(files, queryObject.queryExpr);
     }
     var send_object = {
-        "results":  results,
-        "foundMaximum":  foundMaximum,
-        "exceedsMaximum":  exceedsMaximum
+        "results": results,
+        "foundMaximum": foundMaximum,
+        "exceedsMaximum": exceedsMaximum
     };
 
     if (!nextPages) {
@@ -525,10 +525,10 @@ function documentChanged(updateObject) {
  */
 function getNextPage() {
     var send_object = {
-        "results":  {},
+        "results": {},
         "numMatches": 0,
-        "foundMaximum":  foundMaximum,
-        "exceedsMaximum":  exceedsMaximum
+        "foundMaximum": foundMaximum,
+        "exceedsMaximum": exceedsMaximum
     };
     if (!savedSearchObject) {
         return send_object;
@@ -543,10 +543,10 @@ function getNextPage() {
  */
 function getAllResults() {
     var send_object = {
-        "results":  {},
+        "results": {},
         "numMatches": 0,
-        "foundMaximum":  foundMaximum,
-        "exceedsMaximum":  exceedsMaximum
+        "foundMaximum": foundMaximum,
+        "exceedsMaximum": exceedsMaximum
     };
     if (!savedSearchObject) {
         return send_object;

@@ -41,7 +41,7 @@
  * line is missing.
  */
 define(function JSDocumentModule(require, exports, module) {
-    "use strict";
+
 
     var EventDispatcher = require("utils/EventDispatcher"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),

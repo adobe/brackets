@@ -73,7 +73,7 @@
  *    `MainViewManager.on("eventname", handler);`
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _                   = require("thirdparty/lodash"),
         EventDispatcher     = require("utils/EventDispatcher"),
@@ -826,7 +826,7 @@ define(function (require, exports, module) {
 
         sourcePane.moveView(file, destinationPane, destinationIndex)
             .done(function () {
-                // remove existing entry from mrulist for the same document if present 
+                // remove existing entry from mrulist for the same document if present
                 _removeFileFromMRU(destinationPane.id, file);
                 // update the mru list
                 _mruList.every(function (record) {
@@ -850,8 +850,7 @@ define(function (require, exports, module) {
         var $firstPane = $('#first-pane'), $secondPane = $('#second-pane');
         if($firstPane.hasClass('active-pane')) {
             $secondPane.click();
-        }
-        else {
+        }        else {
             $firstPane.click();
         }
     }
@@ -1054,24 +1053,24 @@ define(function (require, exports, module) {
             if (pane.id === FIRST_PANE) {
                 if (_orientation === VERTICAL) {
                     pane.$el.css({height: "100%",
-                                  width: size + "%",
-                                  float: "left"
-                                 });
+                        width: size + "%",
+                        float: "left"
+                    });
                 } else {
                     pane.$el.css({ height: size + "%",
-                                   width: "100%"
-                                 });
+                        width: "100%"
+                    });
                 }
             } else {
                 if (_orientation === VERTICAL) {
                     pane.$el.css({  height: "100%",
-                                    width: "auto",
-                                    float: "none"
-                                 });
+                        width: "auto",
+                        float: "none"
+                    });
                 } else {
                     pane.$el.css({ width: "100%",
-                                   height: "50%"
-                                 });
+                        height: "50%"
+                    });
                 }
             }
 
@@ -1286,9 +1285,9 @@ define(function (require, exports, module) {
                 });
         }
 
-       result.done(function () {
-           _makeFileMostRecent(paneId, file);
-       });
+        result.done(function () {
+            _makeFileMostRecent(paneId, file);
+        });
 
         return result;
     }
@@ -1449,13 +1448,13 @@ define(function (require, exports, module) {
         // file root is appended for each project
         var panes,
             promises = [],
-            context = { location : { scope: "user",
-                                     layer: "project" } },
+            context = { location: { scope: "user",
+                layer: "project" } },
             state = PreferencesManager.getViewState(PREFS_NAME, context);
 
         function convertViewState() {
-            var context = { location : { scope: "user",
-                                         layer: "project" } },
+            var context = { location: { scope: "user",
+                    layer: "project" } },
                 files = PreferencesManager.getViewState(OLD_PREFS_NAME, context);
 
             if (!files) {
@@ -1573,23 +1572,23 @@ define(function (require, exports, module) {
                 // just short-circuit here and
                 //  return 100% to avoid any rounding issues
                 return 1;
-            } else {
-                if (_orientation === VERTICAL) {
-                    available = _$el.innerWidth();
-                    used = _panes[FIRST_PANE].$el.width();
-                } else {
-                    available = _$el.innerHeight();
-                    used = _panes[FIRST_PANE].$el.height();
-                }
-
-                return used / available;
             }
+            if (_orientation === VERTICAL) {
+                available = _$el.innerWidth();
+                used = _panes[FIRST_PANE].$el.width();
+            } else {
+                available = _$el.innerHeight();
+                used = _panes[FIRST_PANE].$el.height();
+            }
+
+            return used / available;
+
         }
 
         var projectRoot     = ProjectManager.getProjectRoot(),
-            context         = { location : { scope: "user",
-                                         layer: "project",
-                                         layerID: projectRoot.fullPath } },
+            context         = { location: { scope: "user",
+                layer: "project",
+                layerID: projectRoot.fullPath } },
 
             state = {
                 orientation: _orientation,
@@ -1678,8 +1677,8 @@ define(function (require, exports, module) {
 
         return result;
     }
-    
-    
+
+
     /**
      * Setup a ready event to initialize ourself
      */

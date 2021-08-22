@@ -6,7 +6,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var ProjectManager              = brackets.getModule("project/ProjectManager"),
         PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
@@ -84,9 +84,9 @@ define(function (require, exports, module) {
      */
     function getViewStateContext() {
         var projectRoot = ProjectManager.getProjectRoot();  // note: null during unit tests!
-        return { location : { scope: "user",
-                              layer: "project",
-                              layerID: projectRoot && projectRoot.fullPath } };
+        return { location: { scope: "user",
+            layer: "project",
+            layerID: projectRoot && projectRoot.fullPath } };
     }
 
     /**

@@ -24,7 +24,7 @@
 /*global describe, beforeEach, afterEach, it, expect */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils        = require("spec/SpecRunnerUtils"),
         JSONUtils            = require("language/JSONUtils");

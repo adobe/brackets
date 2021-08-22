@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
         ColorEditor          = require("ColorEditor").ColorEditor,
@@ -118,9 +118,9 @@ define(function (require, exports, module) {
         if (end.ch === undefined) {
             // We were unable to resync the marker.
             return null;
-        } else {
-            return {start: start, end: end};
         }
+        return {start: start, end: end};
+
     };
 
     /**
@@ -139,9 +139,9 @@ define(function (require, exports, module) {
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
                 var endPos = {
-                        line: range.start.line,
-                        ch: range.start.ch + colorString.length
-                    };
+                    line: range.start.line,
+                    ch: range.start.ch + colorString.length
+                };
                 this._isOwnChange = true;
                 this.hostEditor.document.batchOperation(function () {
                     // Replace old color in code with the picker's color, and select it

@@ -7,7 +7,7 @@
 /*global describe, beforeEach, afterEach, it, expect, runs, waitsForDone, waitsFor*/
 
 define(function (require, exports, module) {
-    "use strict";
+
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils = brackets.getModule("file/FileUtils");
 
@@ -399,7 +399,7 @@ define(function (require, exports, module) {
                             var marks = getEditorFoldMarks();
                             expect(marks.length).toEqual(0);
                         });
-                        
+
                         runs(function () {
                             var lineNumbers = foldableLines;
                             var marks = getGutterFoldMarks();

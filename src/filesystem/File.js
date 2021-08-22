@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileSystemEntry = require("filesystem/FileSystemEntry");
 
@@ -54,8 +54,8 @@ define(function (require, exports, module) {
      * @type {?string}
      */
     File.prototype._contents = null;
-    
-    
+
+
     /**
      * Encoding detected by brackets-shell
      * @private

@@ -24,7 +24,7 @@
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var _ = require("thirdparty/lodash");
 
@@ -304,9 +304,9 @@ define(function (require, exports, module) {
             .filter(function (entry) {
                 if (!isTheme) {
                     return entry.registryInfo && !entry.registryInfo.metadata.theme;
-                } else {
-                    return entry.registryInfo && entry.registryInfo.metadata.theme;
                 }
+                return entry.registryInfo && entry.registryInfo.metadata.theme;
+
             })
             .map(function (entry) {
                 return entry.registryInfo.metadata.name;

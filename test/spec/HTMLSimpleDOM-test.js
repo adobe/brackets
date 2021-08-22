@@ -25,7 +25,7 @@
 /*unittests: HTML SimpleDOM*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var HTMLSimpleDOM = require("language/HTMLSimpleDOM"),
         FileUtils     = require("file/FileUtils"),
@@ -88,16 +88,16 @@ define(function (require, exports, module) {
 
             it("should return null for an unclosed non-void/non-implied-close tag", function () {
                 var errors = [{
-                    token : {
-                        type : 'closetag',
-                        contents : 'p',
-                        start : 37,
-                        end : 38,
-                        startPos : { line : 0, ch : 37 },
-                        endPos : { line : 0, ch : 38 }
+                    token: {
+                        type: 'closetag',
+                        contents: 'p',
+                        start: 37,
+                        end: 38,
+                        startPos: { line: 0, ch: 37 },
+                        endPos: { line: 0, ch: 38 }
                     },
-                    startPos : { line : 0, ch : 37 },
-                    endPos : { line : 0, ch : 38 }
+                    startPos: { line: 0, ch: 37 },
+                    endPos: { line: 0, ch: 38 }
                 }];
 
                 build("<p>this has an <b>unclosed bold tag</p>", true, errors);
@@ -105,16 +105,16 @@ define(function (require, exports, module) {
 
             it("should adjust for offsets when logging errors", function () {
                 var errors = [{
-                    token : {
-                        type : 'closetag',
-                        contents : 'p',
-                        start : 38,
-                        end : 39,
-                        startPos : { line : 1, ch : 22 },
-                        endPos : { line : 1, ch : 23 }
+                    token: {
+                        type: 'closetag',
+                        contents: 'p',
+                        start: 38,
+                        end: 39,
+                        startPos: { line: 1, ch: 22 },
+                        endPos: { line: 1, ch: 23 }
                     },
-                    startPos : { line : 1, ch : 22 },
-                    endPos : { line : 1, ch : 23 }
+                    startPos: { line: 1, ch: 22 },
+                    endPos: { line: 1, ch: 23 }
                 }];
 
                 _build("<p>this has an \n<b>unclosed bold tag</p>", 16, {line: 1, ch: 0}, true, errors);
@@ -122,16 +122,16 @@ define(function (require, exports, module) {
 
             it("should return null for an extra close tag", function () {
                 var errors = [{
-                    token : {
-                        type : 'closetag',
-                        contents : 'b',
-                        start : 30,
-                        end : 31,
-                        startPos : { line : 0, ch : 30 },
-                        endPos : { line : 0, ch : 31 }
+                    token: {
+                        type: 'closetag',
+                        contents: 'b',
+                        start: 30,
+                        end: 31,
+                        startPos: { line: 0, ch: 30 },
+                        endPos: { line: 0, ch: 31 }
                     },
-                    startPos : { line : 0, ch : 30 },
-                    endPos : { line : 0, ch : 31 }
+                    startPos: { line: 0, ch: 30 },
+                    endPos: { line: 0, ch: 31 }
                 }];
 
                 build("<p>this has an unopened bold</b> tag</p>", true, errors);
@@ -139,9 +139,9 @@ define(function (require, exports, module) {
 
             it("should return null if there are unclosed tags at the end of the document", function () {
                 var errors = [{
-                    token : null,
-                    startPos : { line : 0, ch : 0 },
-                    endPos : { line : 0, ch : 0 }
+                    token: null,
+                    startPos: { line: 0, ch: 0 },
+                    endPos: { line: 0, ch: 0 }
                 }];
 
                 build("<div>this has <b>multiple unclosed tags", true, errors);
@@ -149,16 +149,16 @@ define(function (require, exports, module) {
 
             it("should return null if there is a tokenization failure", function () {
                 var errors = [{
-                    token : {
-                        type : 'error',
-                        contents : '',
-                        start : -1,
-                        end : 4,
-                        startPos : null,
-                        endPos : { line : 0, ch : 4 }
+                    token: {
+                        type: 'error',
+                        contents: '',
+                        start: -1,
+                        end: 4,
+                        startPos: null,
+                        endPos: { line: 0, ch: 4 }
                     },
-                    startPos : { line : 0, ch : 4 },
-                    endPos : { line : 0, ch : 4 }
+                    startPos: { line: 0, ch: 4 },
+                    endPos: { line: 0, ch: 4 }
                 }];
 
                 build("<div<badtag></div>", true, errors);

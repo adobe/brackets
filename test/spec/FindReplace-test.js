@@ -25,7 +25,7 @@
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var Commands        = require("command/Commands"),
         FindReplace     = require("search/FindReplace"),

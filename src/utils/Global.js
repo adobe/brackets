@@ -28,7 +28,7 @@
  * (b) the module receives a "appReady" callback from the utils/AppReady module.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var configJSON  = require("text!config.json"),
         UrlParams   = require("utils/UrlParams").UrlParams;

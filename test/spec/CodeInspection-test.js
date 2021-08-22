@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, beforeFirst, afterEach, afterLast, waits, runs, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         FileSystem       = require("filesystem/FileSystem"),

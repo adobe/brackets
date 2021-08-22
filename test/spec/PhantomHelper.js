@@ -24,7 +24,7 @@
 // Polyfill for Phantom.js
 
 (function () {
-    "use strict";
+
 
     // See https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/bind
     if (!Function.prototype.bind) {

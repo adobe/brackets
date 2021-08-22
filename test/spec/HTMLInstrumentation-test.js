@@ -26,7 +26,7 @@
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var HTMLInstrumentation = require("language/HTMLInstrumentation"),

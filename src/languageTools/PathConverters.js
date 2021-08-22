@@ -23,7 +23,7 @@
 
 /* eslint-disable indent */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var PathUtils = require("thirdparty/path-utils/path-utils"),
         FileUtils = require("file/FileUtils");

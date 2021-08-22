@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils		= brackets.getModule("file/FileUtils"),

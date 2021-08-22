@@ -27,7 +27,7 @@
  * Set of utilities for simple parsing of CSS text.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
         Async               = require("utils/Async"),
@@ -55,8 +55,8 @@ define(function (require, exports, module) {
      * @type {{string: string}}
      */
     var _bracketPairs = { "{": "}",
-                          "[": "]",
-                          "(": ")" },
+            "[": "]",
+            "(": ")" },
         _invertedBracketPairs = _.invert(_bracketPairs);
 
     /**
@@ -185,12 +185,12 @@ define(function (require, exports, module) {
      */
     function createInfo(context, offset, name, index, values, isNewItem, range) {
         var ruleInfo = { context: context || "",
-                         offset: offset || 0,
-                         name: name || "",
-                         index: -1,
-                         values: [],
-                         isNewItem: (isNewItem === true),
-                         range: range };
+            offset: offset || 0,
+            name: name || "",
+            index: -1,
+            values: [],
+            isNewItem: (isNewItem === true),
+            range: range };
 
         if (context === PROP_VALUE || context === SELECTOR || context === IMPORT_URL) {
             ruleInfo.index = index;
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
      */
     function _getRangeForPropValue(startCtx, endCtx) {
         var range = { "start": {},
-                      "end": {} };
+            "end": {} };
 
         // Skip the ":" and any leading whitespace
         while (TokenUtils.moveNextToken(startCtx)) {
@@ -514,7 +514,7 @@ define(function (require, exports, module) {
         } else {
             // No property value, so just return the cursor pos as range
             range = { "start": _.clone(ctx.pos),
-                      "end": _.clone(ctx.pos) };
+                "end": _.clone(ctx.pos) };
         }
 
         // If current index is more than the propValues size, then the cursor is
@@ -636,20 +636,20 @@ define(function (require, exports, module) {
              */
             var _contextCM = new CodeMirror(function () {}, {
                 value: "{" + tagInfo.attr.value.replace(/(^")|("$)/g, ""),
-                mode:  "css"
+                mode: "css"
             });
 
             ctx = TokenUtils.getInitialContext(_contextCM, {line: 0, ch: offset + 1});
         }
-        
+
         if (_isInPropName(ctx)) {
             return _getPropNameInfo(ctx);
         }
-        
+
         if (_isInPropValue(ctx)) {
             return _getRuleInfoStartingFromPropValue(ctx, ctx.editor);
         }
-        
+
         if (_isInAtRule(ctx)) {
             return _getImportUrlInfo(ctx, editor);
         }
@@ -981,11 +981,11 @@ define(function (require, exports, module) {
                         unicodeChar = unicodeChar.substr(1);
                         if (unicodeChar.length === 1) {
                             return unicodeChar;
-                        } else {
-                            if (parseInt(unicodeChar, 16) < 0x10FFFF) {
-                                return String.fromCharCode(parseInt(unicodeChar, 16));
-                            } else { return String.fromCharCode(0xFFFD); }
                         }
+                        if (parseInt(unicodeChar, 16) < 0x10FFFF) {
+                            return String.fromCharCode(parseInt(unicodeChar, 16));
+                        }  return String.fromCharCode(0xFFFD);
+
                     });
                 });
             }
@@ -1004,18 +1004,18 @@ define(function (require, exports, module) {
                 }
                 var parentSelectors = _getParentSelectors();
                 selectors.push({selector: currentSelector,
-                                ruleStartLine: ruleStartLine,
-                                ruleStartChar: ruleStartChar,
-                                selectorStartLine: selectorStartLine,
-                                selectorStartChar: selectorStart,
-                                declListEndLine: -1,
-                                selectorEndLine: line,
-                                selectorEndChar: selectorStart + currentSelector.length,
-                                selectorGroupStartLine: selectorGroupStartLine,
-                                selectorGroupStartChar: selectorGroupStartChar,
-                                level: currentLevel,
-                                parentSelectors: parentSelectors
-                               });
+                    ruleStartLine: ruleStartLine,
+                    ruleStartChar: ruleStartChar,
+                    selectorStartLine: selectorStartLine,
+                    selectorStartChar: selectorStart,
+                    declListEndLine: -1,
+                    selectorEndLine: line,
+                    selectorEndChar: selectorStart + currentSelector.length,
+                    selectorGroupStartLine: selectorGroupStartLine,
+                    selectorGroupStartChar: selectorGroupStartChar,
+                    level: currentLevel,
+                    parentSelectors: parentSelectors
+                });
                 currentSelector = "";
             }
             selectorStartChar = -1;

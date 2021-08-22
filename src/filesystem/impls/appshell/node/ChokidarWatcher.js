@@ -24,7 +24,7 @@
 /*eslint-env node */
 /*jslint node: true */
 
-"use strict";
+
 
 var fspath = require("path");
 var chokidar = require("chokidar");
