@@ -379,7 +379,7 @@ module.exports = function (grunt) {
             test: '<%= meta.test %>',
             options: {
                 quiet: true
-                //fix: true
+                //fix: true //uncomment this line to fix ESlint errors
             }
         },
         shell: {
