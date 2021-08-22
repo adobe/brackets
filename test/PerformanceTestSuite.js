@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     // Each suite or spec must have this.category === "performance" to be filtered properly
     require("perf/Performance-test");

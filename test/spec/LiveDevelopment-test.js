@@ -25,7 +25,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waitsForFail, runs, spyOn, jasmine, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         Async                   = require("utils/Async"),
@@ -291,7 +291,7 @@ define(function (require, exports, module) {
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
                 InspectorModule.CSS = {
-                    getStyleSheet   : jasmine.createSpy("getStyleSheet")
+                    getStyleSheet: jasmine.createSpy("getStyleSheet")
                 };
                 spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
                 spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});

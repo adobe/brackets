@@ -25,7 +25,7 @@
 /*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Commands        = require("command/Commands"),
         KeyEvent        = require("utils/KeyEvent"),
@@ -410,7 +410,7 @@ define(function (require, exports, module) {
                     expect(fileResults).toBeFalsy();
                 });
             });
-            
+
             it("should verify the contents of searchHistory array", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -426,7 +426,7 @@ define(function (require, exports, module) {
                     expect(searchHistory).toEqual(["foo5", "foo4", "foo3", "foo2", "foo1"]);
                 });
             });
-            
+
             it("should traverse through search history using arrow down key", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -447,7 +447,7 @@ define(function (require, exports, module) {
                     expect($("#find-what").val()).toBe("foo5");
                 });
             });
-            
+
             it("should traverse through search history using arrow up key", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -468,7 +468,7 @@ define(function (require, exports, module) {
                     expect($("#find-what").val()).toBe("foo1");
                 });
             });
-            
+
             it("should add element to search history if it is pre-filled in search bar", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -875,8 +875,8 @@ define(function (require, exports, module) {
 
                 openTestProjectCopy(defaultSourcePath);
                 doSearch({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14
+                    queryInfo: {query: "foo"},
+                    numMatches: 14
                 });
                 runs(function () {
                     oldResults = _.cloneDeep(FindInFiles.searchModel.results);
@@ -1247,9 +1247,9 @@ define(function (require, exports, module) {
                 it("should replace all instances of a simple string in a project on disk case-insensitively", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
-                        queryInfo:       {query: "foo"},
-                        numMatches:      14,
-                        replaceText:     "bar",
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
                         knownGoodFolder: "simple-case-insensitive"
                     });
                 });
@@ -1257,9 +1257,9 @@ define(function (require, exports, module) {
                 it("should replace all instances of a simple string in a project on disk case-sensitively", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
-                        queryInfo:       {query: "foo", isCaseSensitive: true},
-                        numMatches:      9,
-                        replaceText:     "bar",
+                        queryInfo: {query: "foo", isCaseSensitive: true},
+                        numMatches: 9,
+                        replaceText: "bar",
                         knownGoodFolder: "simple-case-sensitive"
                     });
                 });
@@ -1267,9 +1267,9 @@ define(function (require, exports, module) {
                 it("should replace all instances of a regexp in a project on disk case-insensitively with a simple replace string", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
-                        queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true},
-                        numMatches:      33,
-                        replaceText:     "CHANGED",
+                        queryInfo: {query: "\\b[a-z]{3}\\b", isRegexp: true},
+                        numMatches: 33,
+                        replaceText: "CHANGED",
                         knownGoodFolder: "regexp-case-insensitive"
                     });
                 });
@@ -1280,9 +1280,9 @@ define(function (require, exports, module) {
                     // This query should find each rule in the CSS file (but not in the JS file since there's more than one line
                     // between each pair of braces).
                     doBasicTest({
-                        queryInfo:       {query: "\\{\\n[^\\n]*\\n\\}", isRegexp: true},
-                        numMatches:      4,
-                        replaceText:     "CHANGED",
+                        queryInfo: {query: "\\{\\n[^\\n]*\\n\\}", isRegexp: true},
+                        numMatches: 4,
+                        replaceText: "CHANGED",
                         knownGoodFolder: "regexp-replace-multiline"
                     });
                 });
@@ -1293,12 +1293,12 @@ define(function (require, exports, module) {
                     // This query should find each rule in the CSS file (but not in the JS file since there's more than one line
                     // between each pair of braces).
                     doInMemoryTest({
-                        queryInfo:        {query: "\\{\\n[^\\n]*\\n\\}", isRegexp: true},
-                        numMatches:       4,
-                        replaceText:      "CHANGED",
-                        knownGoodFolder:  "unchanged",
-                        forceFilesOpen:   true,
-                        inMemoryFiles:    ["/css/foo.css"],
+                        queryInfo: {query: "\\{\\n[^\\n]*\\n\\}", isRegexp: true},
+                        numMatches: 4,
+                        replaceText: "CHANGED",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/css/foo.css"],
                         inMemoryKGFolder: "regexp-replace-multiline"
                     });
                 });
@@ -1309,9 +1309,9 @@ define(function (require, exports, module) {
                     // This query should match from the open brace through to (and including) the first colon of each rule in the
                     // CSS file.
                     doBasicTest({
-                        queryInfo:       {query: "\\{\\n[^:]+:", isRegexp: true},
-                        numMatches:      4,
-                        replaceText:     "CHANGED",
+                        queryInfo: {query: "\\{\\n[^:]+:", isRegexp: true},
+                        numMatches: 4,
+                        replaceText: "CHANGED",
                         knownGoodFolder: "regexp-replace-multiline-partial"
                     });
                 });
@@ -1322,12 +1322,12 @@ define(function (require, exports, module) {
                     // This query should match from the open brace through to (and including) the first colon of each rule in the
                     // CSS file.
                     doInMemoryTest({
-                        queryInfo:        {query: "\\{\\n[^:]+:", isRegexp: true},
-                        numMatches:       4,
-                        replaceText:      "CHANGED",
-                        knownGoodFolder:  "unchanged",
-                        forceFilesOpen:   true,
-                        inMemoryFiles:    ["/css/foo.css"],
+                        queryInfo: {query: "\\{\\n[^:]+:", isRegexp: true},
+                        numMatches: 4,
+                        replaceText: "CHANGED",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/css/foo.css"],
                         inMemoryKGFolder: "regexp-replace-multiline-partial"
                     });
                 });
@@ -1335,9 +1335,9 @@ define(function (require, exports, module) {
                 it("should replace all instances of a regexp in a project on disk case-sensitively with a simple replace string", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
-                        queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true, isCaseSensitive: true},
-                        numMatches:      25,
-                        replaceText:     "CHANGED",
+                        queryInfo: {query: "\\b[a-z]{3}\\b", isRegexp: true, isCaseSensitive: true},
+                        numMatches: 25,
+                        replaceText: "CHANGED",
                         knownGoodFolder: "regexp-case-sensitive"
                     });
                 });
@@ -1345,9 +1345,9 @@ define(function (require, exports, module) {
                 it("should replace instances of a regexp with a $-substitution on disk", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
-                        queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
-                        numMatches:      33,
-                        replaceText:     "[$1]",
+                        queryInfo: {query: "\\b([a-z]{3})\\b", isRegexp: true},
+                        numMatches: 33,
+                        replaceText: "[$1]",
                         knownGoodFolder: "regexp-dollar-replace"
                     });
                 });
@@ -1358,22 +1358,22 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     doInMemoryTest({
-                        queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
-                        numMatches:      33,
-                        replaceText:     "[$1]",
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder:  "regexp-dollar-replace"
+                        queryInfo: {query: "\\b([a-z]{3})\\b", isRegexp: true},
+                        numMatches: 33,
+                        replaceText: "[$1]",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "regexp-dollar-replace"
                     });
                 });
 
                 it("should replace instances of regexp with 0-length matches on disk", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
-                        queryInfo:       {query: "^", isRegexp: true},
-                        numMatches:      55,
-                        replaceText:     "CHANGED",
+                        queryInfo: {query: "^", isRegexp: true},
+                        numMatches: 55,
+                        replaceText: "CHANGED",
                         knownGoodFolder: "regexp-zero-length"
                     });
                 });
@@ -1381,12 +1381,12 @@ define(function (require, exports, module) {
                 it("should replace instances of regexp with 0-length matches in memory", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doInMemoryTest({
-                        queryInfo:       {query: "^", isRegexp: true},
-                        numMatches:      55,
-                        replaceText:     "CHANGED",
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        queryInfo: {query: "^", isRegexp: true},
+                        numMatches: 55,
+                        replaceText: "CHANGED",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
                         inMemoryKGFolder: "regexp-zero-length"
                     });
                 });
@@ -1394,22 +1394,22 @@ define(function (require, exports, module) {
                 it("should replace instances of a string in a project respecting CRLF line endings", function () {
                     openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
                     doBasicTest({
-                        queryInfo:       {query: "foo"},
-                        numMatches:      14,
-                        replaceText:     "bar",
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
                         knownGoodFolder: "simple-case-insensitive",
-                        lineEndings:     FileUtils.LINE_ENDINGS_CRLF
+                        lineEndings: FileUtils.LINE_ENDINGS_CRLF
                     });
                 });
 
                 it("should replace instances of a string in a project respecting LF line endings", function () {
                     openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_LF);
                     doBasicTest({
-                        queryInfo:       {query: "foo"},
-                        numMatches:      14,
-                        replaceText:     "bar",
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
                         knownGoodFolder: "simple-case-insensitive",
-                        lineEndings:     FileUtils.LINE_ENDINGS_LF
+                        lineEndings: FileUtils.LINE_ENDINGS_LF
                     });
                 });
 
@@ -1417,11 +1417,11 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     doBasicTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        uncheckMatches:    [{file: "/css/foo.css"}],
-                        replaceText:       "bar",
-                        knownGoodFolder:   "simple-case-insensitive-except-foo.css"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        uncheckMatches: [{file: "/css/foo.css"}],
+                        replaceText: "bar",
+                        knownGoodFolder: "simple-case-insensitive-except-foo.css"
                     });
                 });
 
@@ -1448,9 +1448,9 @@ define(function (require, exports, module) {
                     });
 
                     doSearch({
-                        queryInfo:       {query: "foo"},
-                        numMatches:      14,
-                        replaceText:     "bar"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar"
                     });
 
                     runs(function () {
@@ -1485,9 +1485,9 @@ define(function (require, exports, module) {
                 it("should return an error and not do the replacement in files that have changed on disk since the search", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doTestWithErrors({
-                        queryInfo:       {query: "foo"},
-                        numMatches:      14,
-                        replaceText:     "bar",
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
                         knownGoodFolder: "changed-file",
                         test: function () {
                             // Wait for one second to make sure that the changed file gets an updated timestamp.
@@ -1504,7 +1504,7 @@ define(function (require, exports, module) {
                                 waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), "modify file");
                             });
                         },
-                        errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
+                        errors: [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
                     });
                 });
 
@@ -1526,11 +1526,11 @@ define(function (require, exports, module) {
                     });
 
                     doTestWithErrors({
-                        queryInfo:       {query: "foo"},
-                        numMatches:      14,
-                        replaceText:     "bar",
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
                         knownGoodFolder: "simple-case-insensitive-except-foo.css",
-                        errors:          [{item: testPath + "/css/foo.css", error: FileSystemError.NOT_WRITABLE}]
+                        errors: [{item: testPath + "/css/foo.css", error: FileSystemError.NOT_WRITABLE}]
                     });
                 });
 
@@ -1542,9 +1542,9 @@ define(function (require, exports, module) {
                     });
 
                     doTestWithErrors({
-                        queryInfo:       {query: "foo"},
-                        numMatches:      14,
-                        replaceText:     "bar",
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
                         knownGoodFolder: "simple-case-insensitive-except-foo.css",
                         test: function () {
                             runs(function () {
@@ -1557,7 +1557,7 @@ define(function (require, exports, module) {
                                 searchResults[testPath + "/css/foo.css"].timestamp = new Date(oldTimestamp.getTime() - 5000);
                             });
                         },
-                        errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
+                        errors: [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
                     });
                 });
 
@@ -1569,11 +1569,11 @@ define(function (require, exports, module) {
                     });
 
                     doInMemoryTest({
-                        queryInfo:        {query: "foo"},
-                        numMatches:       14,
-                        replaceText:      "bar",
-                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                        inMemoryFiles:    ["/css/foo.css"],
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
+                        knownGoodFolder: "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles: ["/css/foo.css"],
                         inMemoryKGFolder: "simple-case-insensitive"
                     });
                 });
@@ -1582,10 +1582,10 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     var options = {
-                        queryInfo:        {query: "foo"},
-                        numMatches:       15,
-                        replaceText:      "bar",
-                        inMemoryFiles:    ["/css/foo.css"],
+                        queryInfo: {query: "foo"},
+                        numMatches: 15,
+                        replaceText: "bar",
+                        inMemoryFiles: ["/css/foo.css"],
                         inMemoryKGFolder: "simple-case-insensitive-modified"
                     };
 
@@ -1613,11 +1613,11 @@ define(function (require, exports, module) {
                     });
 
                     doInMemoryTest({
-                        queryInfo:        {query: "foo"},
-                        numMatches:       14,
-                        replaceText:      "bar",
-                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                        inMemoryFiles:    ["/css/foo.css"],
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
+                        knownGoodFolder: "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles: ["/css/foo.css"],
                         inMemoryKGFolder: "simple-case-insensitive"
                     });
                 });
@@ -1630,11 +1630,11 @@ define(function (require, exports, module) {
                     });
 
                     doInMemoryTest({
-                        queryInfo:        {query: "foo"},
-                        numMatches:       14,
-                        replaceText:      "bar",
-                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                        inMemoryFiles:    ["/css/foo.css"],
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
+                        knownGoodFolder: "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles: ["/css/foo.css"],
                         inMemoryKGFolder: "simple-case-insensitive"
                     });
                 });
@@ -1652,11 +1652,11 @@ define(function (require, exports, module) {
                     });
 
                     doInMemoryTest({
-                        queryInfo:        {query: "foo"},
-                        numMatches:       14,
-                        replaceText:      "bar",
-                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                        inMemoryFiles:    ["/css/foo.css"],
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
+                        knownGoodFolder: "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles: ["/css/foo.css"],
                         inMemoryKGFolder: "simple-case-insensitive"
                     });
 
@@ -1671,13 +1671,13 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     doInMemoryTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        replaceText:       "bar",
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder:  "simple-case-insensitive"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "simple-case-insensitive"
                     });
                 });
 
@@ -1685,14 +1685,14 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     doInMemoryTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        uncheckMatches:    [{file: "/css/foo.css", index: 1}, {file: "/foo.html", index: 3}],
-                        replaceText:       "bar",
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder:  "simple-case-insensitive-unchecked"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        uncheckMatches: [{file: "/css/foo.css", index: 1}, {file: "/foo.html", index: 3}],
+                        replaceText: "bar",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "simple-case-insensitive-unchecked"
                     });
                 });
 
@@ -1700,11 +1700,11 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     doBasicTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        uncheckMatches:    [{file: "/css/foo.css", index: 1}, {file: "/foo.html", index: 3}],
-                        replaceText:       "bar",
-                        knownGoodFolder:   "simple-case-insensitive-unchecked"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        uncheckMatches: [{file: "/css/foo.css", index: 1}, {file: "/foo.html", index: 3}],
+                        replaceText: "bar",
+                        knownGoodFolder: "simple-case-insensitive-unchecked"
                     });
                 });
 
@@ -1716,13 +1716,13 @@ define(function (require, exports, module) {
                     });
 
                     doInMemoryTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        replaceText:       "bar",
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder:  "simple-case-insensitive"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "simple-case-insensitive"
                     });
 
                     runs(function () {
@@ -1738,13 +1738,13 @@ define(function (require, exports, module) {
                     var testFiles = ["/css/foo.css", "/foo.html", "/foo.js"];
 
                     doInMemoryTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        replaceText:       "bar",
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     testFiles,
-                        inMemoryKGFolder:  "simple-case-insensitive"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        replaceText: "bar",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: testFiles,
+                        inMemoryKGFolder: "simple-case-insensitive"
                     });
 
 
@@ -1771,14 +1771,14 @@ define(function (require, exports, module) {
                     });
 
                     doInMemoryTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        uncheckMatches:    [{file: "/css/foo.css"}],
-                        replaceText:       "bar",
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     ["/foo.html", "/foo.js"],
-                        inMemoryKGFolder:  "simple-case-insensitive-except-foo.css"
+                        queryInfo: {query: "foo"},
+                        numMatches: 14,
+                        uncheckMatches: [{file: "/css/foo.css"}],
+                        replaceText: "bar",
+                        knownGoodFolder: "unchanged",
+                        forceFilesOpen: true,
+                        inMemoryFiles: ["/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "simple-case-insensitive-except-foo.css"
                     });
 
                     runs(function () {
@@ -2366,9 +2366,9 @@ define(function (require, exports, module) {
                         });
                     });
                 });
-                
+
                 describe("Disclosure Arrows", function () {
-               
+
                     it("should expand/collapse items when clicked", function () {
                         showSearchResults("foo", "bar");
                         runs(function () {

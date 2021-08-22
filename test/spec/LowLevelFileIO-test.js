@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     require("utils/Global");
 

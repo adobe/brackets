@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, ArrayBuffer, DataView, jasmine */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Windows sockets are slow to realize they've disconnected (or failed
     // to connect), so the unit tests that rely on checking disconnect/reconnect

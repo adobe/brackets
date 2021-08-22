@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, waitsForDone, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileSystem                 = require("filesystem/FileSystem"),
         FileUtils                  = require("file/FileUtils"),
@@ -174,8 +174,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expectRuleRanges(this, this.fileContent, "a", [
-                        {start:  0, end:  2}, {start:  3, end:  5}, {start:  7, end:  7},
-                        {start:  8, end:  8}, {start: 10, end: 10}, {start: 10, end: 10},
+                        {start: 0, end: 2}, {start: 3, end: 5}, {start: 7, end: 7},
+                        {start: 8, end: 8}, {start: 10, end: 10}, {start: 10, end: 10},
                         {start: 16, end: 19}, {start: 23, end: 25}, {start: 29, end: 32},
                         {start: 33, end: 35}, {start: 38, end: 41}
                     ]);
@@ -207,10 +207,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // https://github.com/adobe/brackets/issues/9008
-                    expectRuleRanges(this, this.fileContent, "h1", [{start:  0, end:  2}]);
+                    expectRuleRanges(this, this.fileContent, "h1", [{start: 0, end: 2}]);
 
                     // https://github.com/adobe/brackets/issues/8966
-                    expectRuleRanges(this, this.fileContent, ".alert", [{start:  4, end:  8}]);
+                    expectRuleRanges(this, this.fileContent, ".alert", [{start: 4, end: 8}]);
                 });
             });
 
@@ -744,11 +744,11 @@ define(function (require, exports, module) {
                     selector += "#" + tagInfo.id;
                 }
                 return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
-            } else {
-                // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
-                CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy", mode);
-                return null;
             }
+                // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
+            CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy", mode);
+            return null;
+
         }
 
         /**
@@ -2171,17 +2171,17 @@ define(function (require, exports, module) {
 
                 // Indexes of external UI are 1-based. Internal indexes are 0-based.
                 // Style block positions are where embedded style sheet starts/ends.
-                expect(styleBlocks[0].start).toEqual({ line:  5, ch: 23 });
-                expect(styleBlocks[0].end).toEqual({   line: 17, ch:  1 });
+                expect(styleBlocks[0].start).toEqual({ line: 5, ch: 23 });
+                expect(styleBlocks[0].end).toEqual({   line: 17, ch: 1 });
 
                 expect(styleBlocks[1].start).toEqual({ line: 19, ch: 27 });
-                expect(styleBlocks[1].end).toEqual({   line: 21, ch:  1 });    // trailing whitespace stripped
+                expect(styleBlocks[1].end).toEqual({   line: 21, ch: 1 });    // trailing whitespace stripped
 
-                expect(styleBlocks[2].start).toEqual({ line: 23, ch:  7 });
-                expect(styleBlocks[2].end).toEqual({   line: 30, ch:  0 });
+                expect(styleBlocks[2].start).toEqual({ line: 23, ch: 7 });
+                expect(styleBlocks[2].end).toEqual({   line: 30, ch: 0 });
 
                 expect(styleBlocks[3].start).toEqual({ line: 30, ch: 15 });
-                expect(styleBlocks[3].end).toEqual({   line: 34, ch:  0 });
+                expect(styleBlocks[3].end).toEqual({   line: 34, ch: 0 });
             });
         });
     });
@@ -2509,7 +2509,7 @@ define(function (require, exports, module) {
                         index: 0,
                         values: [],
                         range: {start: { line: lineArray[i - 70], ch: columnArray[i - 70] },
-                                end: { line: lineArray[i - 70], ch: columnArray[i - 70] }}
+                            end: { line: lineArray[i - 70], ch: columnArray[i - 70] }}
                     });
                 }
             });

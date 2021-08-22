@@ -24,7 +24,7 @@
 /*unittests: FileFilters*/
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var FileFilters        = require("search/FileFilters"),
         SpecRunnerUtils    = require("spec/SpecRunnerUtils"),

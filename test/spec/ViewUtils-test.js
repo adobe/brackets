@@ -25,7 +25,7 @@
 /*unittests: ViewUtils*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     // Load dependent modules
     var ViewUtils = require("utils/ViewUtils");

@@ -24,7 +24,7 @@
 /*global describe, beforeEach, it, runs, waitsFor, waitsForDone, waitsForFail, expect */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var Async = require("utils/Async"),
         PromiseQueue = Async.PromiseQueue;

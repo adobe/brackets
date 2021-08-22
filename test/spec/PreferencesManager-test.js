@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, runs, beforeFirst, afterLast, spyOn, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     // Load dependent modules
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),

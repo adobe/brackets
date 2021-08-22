@@ -26,7 +26,7 @@
  * not manipulate the user's preferences.
  */
 define(function (require, exports, module) {
-    "use strict";
+
 
     var PreferencesBase = require("./PreferencesBase"),
 

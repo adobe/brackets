@@ -25,7 +25,7 @@
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),

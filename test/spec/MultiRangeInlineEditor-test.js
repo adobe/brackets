@@ -24,7 +24,7 @@
 /*global describe, it, expect, beforeEach, afterEach, runs, HTMLElement, beforeFirst, afterLast, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         InlineTextEditor        = require("editor/InlineTextEditor").InlineTextEditor,

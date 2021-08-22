@@ -25,7 +25,7 @@
 /*unittests: FileTreeViewModel*/
 
 define(function (require, exports, module) {
-    "use strict";
+
     var FileTreeViewModel = require("project/FileTreeViewModel"),
         _ = require("thirdparty/lodash"),
         Immutable = require("thirdparty/immutable");
@@ -415,7 +415,7 @@ define(function (require, exports, module) {
                         children: {
                             subsubdir: {
                                 children: {
-                                  "subchildfile.js": {}
+                                    "subchildfile.js": {}
                                 }
                             },
                             "childfile.js": {}

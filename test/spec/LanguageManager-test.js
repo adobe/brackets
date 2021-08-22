@@ -25,7 +25,7 @@
 /*unittests: LanguageManager */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     // Load dependent modules
     var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),

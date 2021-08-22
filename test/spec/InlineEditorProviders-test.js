@@ -24,7 +24,7 @@
 /*global describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var CommandManager,     // loaded from brackets.test
         Commands,           // loaded from brackets.test
@@ -64,9 +64,9 @@ define(function (require, exports, module) {
         function rewriteProject() {
             var result = new $.Deferred(),
                 options = {
-                    parseOffsets    : true,
-                    infos           : infos,
-                    removePrefix    : true
+                    parseOffsets: true,
+                    infos: infos,
+                    removePrefix: true
                 };
 
             SpecRunnerUtils.copyPath(testPath, tempPath, options).done(function () {
@@ -172,9 +172,9 @@ define(function (require, exports, module) {
             var left = (useOffset ? object.offset().left : parseInt(object.css("left"), 10)),
                 top = (useOffset ? object.offset().top : parseInt(object.css("top"), 10));
             return {
-                left:   left,
-                top:    top,
-                right:  left + object.outerWidth(),
+                left: left,
+                top: top,
+                right: left + object.outerWidth(),
                 bottom: top + object.outerHeight()
             };
         }

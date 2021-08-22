@@ -23,7 +23,7 @@
 /*global jasmine, describe, it, expect, beforeEach, afterEach, runs, waitsFor */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var QuickSearchField    = require("search/QuickSearchField").QuickSearchField,
         KeyEvent            = require("utils/KeyEvent"),

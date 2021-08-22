@@ -24,7 +24,7 @@
 /*global describe, beforeEach, afterEach, it, expect */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),

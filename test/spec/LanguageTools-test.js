@@ -26,7 +26,7 @@
 /*eslint indent: 0*/
 /*eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
-    'use strict';
+
 
     // Load dependent modules
     var ExtensionLoader = require("utils/ExtensionLoader"),

@@ -25,7 +25,7 @@
 /*unittests: FileUtils*/
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileUtils = require("file/FileUtils");
 

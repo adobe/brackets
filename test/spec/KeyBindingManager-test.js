@@ -25,7 +25,7 @@
 /*unittests: KeyBindingManager */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     require("utils/Global");
 
@@ -71,9 +71,9 @@ define(function (require, exports, module) {
 
     function key(k, displayKey, explicitPlatform) {
         return {
-            key                 : k,
-            displayKey          : displayKey || k,
-            explicitPlatform    : explicitPlatform
+            key: k,
+            displayKey: displayKey || k,
+            explicitPlatform: explicitPlatform
         };
     }
 

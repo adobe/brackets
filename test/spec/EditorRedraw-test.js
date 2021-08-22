@@ -24,7 +24,7 @@
 /*global describe, it, spyOn, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var WorkspaceManager = require("view/WorkspaceManager"),
         MainViewManager  = require("view/MainViewManager"),

@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var FileSystemError     = require("filesystem/FileSystemError"),
         MockFileSystemModel = require("./MockFileSystemModel");

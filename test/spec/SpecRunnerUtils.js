@@ -24,7 +24,7 @@
 /*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn, KeyboardEvent */
 
 define(function (require, exports, module) {
-    'use strict';
+
 
     var Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
@@ -301,7 +301,7 @@ define(function (require, exports, module) {
         }).fail(function() {
             result.reject();
         });
-        
+
         return result.promise();
     }
 
@@ -731,9 +731,9 @@ define(function (require, exports, module) {
 
         if (Array.isArray(paths)) {
             return paths.map(prefixProjectPath);
-        } else {
-            return prefixProjectPath(paths);
         }
+        return prefixProjectPath(paths);
+
     }
 
     /**
@@ -756,9 +756,9 @@ define(function (require, exports, module) {
 
         if (Array.isArray(paths)) {
             return paths.map(removeProjectPath);
-        } else {
-            return removeProjectPath(paths);
         }
+        return removeProjectPath(paths);
+
     }
 
     function makeArray(arg) {
@@ -925,9 +925,9 @@ define(function (require, exports, module) {
                                     // save offset data for each file path
                                     promise.done(function (destinationEntry, offsets, text) {
                                         options.infos[childDestination] = {
-                                            offsets     : offsets,
-                                            fileEntry   : destinationEntry,
-                                            text        : text
+                                            offsets: offsets,
+                                            fileEntry: destinationEntry,
+                                            text: text
                                         };
                                     });
                                 }
@@ -1155,18 +1155,18 @@ define(function (require, exports, module) {
             return false;
         } else if (!asLink && root.nodeType === 3) { // text node
             return root.textContent.indexOf(content) !== -1;
-        } else {
-            if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+        }
+        if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+            return true;
+        }
+        var children = root.childNodes;
+        for (i = 0; i < children.length; i++) {
+            if (findDOMText(children[i], content, asLink)) {
                 return true;
             }
-            var children = root.childNodes;
-            for (i = 0; i < children.length; i++) {
-                if (findDOMText(children[i], content, asLink)) {
-                    return true;
-                }
-            }
-            return false;
         }
+        return false;
+
     }
 
 
@@ -1233,9 +1233,9 @@ define(function (require, exports, module) {
         var suiteId = (jasmine.getEnv().currentSuite || _rootSuite).id;
         if (!_testSuites[suiteId]) {
             _testSuites[suiteId] = {
-                beforeFirst : [],
-                afterLast   : [],
-                specCounter : null
+                beforeFirst: [],
+                afterLast: [],
+                specCounter: null
             };
         }
         _testSuites[suiteId][type].push(func);
@@ -1373,9 +1373,9 @@ define(function (require, exports, module) {
                 // selection and the position. We just check the position in that case.
                 if (this.isNot || ignoreSelection) {
                     return positionsMatch;
-                } else {
-                    return !selectionMoreThanOneCharacter && positionsMatch;
                 }
+                return !selectionMoreThanOneCharacter && positionsMatch;
+
             }
         });
     });

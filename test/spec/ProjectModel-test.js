@@ -25,7 +25,7 @@
 /*unittests: ProjectModel */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     var ProjectModel = require("project/ProjectModel"),
         Immutable = require("thirdparty/immutable");
@@ -79,15 +79,15 @@ define(function (require, exports, module) {
 
             it("can tell you if a file is in a project", function () {
                 var file = {
-                        fullPath: "/foo/bar/project/README.md"
-                    };
+                    fullPath: "/foo/bar/project/README.md"
+                };
                 expect(pm.isWithinProject(file)).toBe(true);
             });
 
             it("can tell you if a file is not in a project", function () {
                 var file = {
-                        fullPath: "/some/other/project/README.md"
-                    };
+                    fullPath: "/some/other/project/README.md"
+                };
                 expect(pm.isWithinProject(file)).toBe(false);
             });
 
@@ -341,7 +341,7 @@ define(function (require, exports, module) {
             it("returns true for filename that starts with a '\.\'", function () {
                 expect(ProjectModel.isValidFilename(".tmp")).toBe(true);
             });
-            
+
             it("returns false for filenames that has ends with a \'.\'", function () {
                 expect(ProjectModel.isValidFilename("dummy.")).toBe(false);
             });
@@ -349,7 +349,7 @@ define(function (require, exports, module) {
             it("returns false for filename that contains an invalid char \'?\'", function () {
                 expect(ProjectModel.isValidFilename("foo?txt")).toBe(false);
             });
-            
+
             it("returns false for filename that contains an invalid char \'*\'", function () {
                 expect(ProjectModel.isValidFilename("foo\*txt")).toBe(false);
             });
@@ -361,11 +361,11 @@ define(function (require, exports, module) {
             it("returns false for filename that contains an invalid char \'\:\'", function () {
                 expect(ProjectModel.isValidFilename("foo\:txt")).toBe(false);
             });
-            
+
             it("returns false for filename that contains an invalid char \'\<\'", function () {
                 expect(ProjectModel.isValidFilename("foo\<txt")).toBe(false);
             });
-            
+
             it("returns false for filename that contains an invalid char \'\>\'", function () {
                 expect(ProjectModel.isValidFilename("foo\>txt")).toBe(false);
             });
@@ -409,7 +409,7 @@ define(function (require, exports, module) {
             it("returns false for filenames that has invalid name \'con\'", function () {
                 expect(ProjectModel.isValidFilename("con")).toBe(false);
             });
-            
+
             it("returns false for filenames that has invalid name \'prn\'", function () {
                 expect(ProjectModel.isValidFilename("prn")).toBe(false);
             });
@@ -422,10 +422,10 @@ define(function (require, exports, module) {
 
         describe("setProjectRoot", function () {
             var subdir = {
-                fullPath: "/path/to/project/subdir/",
-                name: "subdir",
-                isFile: false
-            },
+                    fullPath: "/path/to/project/subdir/",
+                    name: "subdir",
+                    isFile: false
+                },
                 contents = [
                     {
                         fullPath: "/path/to/project/README.md",

@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    "use strict";
+
 
     require("spec/Async-test");
     require("spec/CodeHint-test");
