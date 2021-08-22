@@ -225,6 +225,7 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=)} callback
      */
     function stat(path, callback) {
+        console.log('stat: ', path);
         appshell.fs.stat(path, function (err, stats) {
             if (err) {
                 callback(_mapError(err));
@@ -255,6 +256,7 @@ define(function (require, exports, module) {
      * @param {function(?string, boolean)} callback
      */
     function exists(path, callback) {
+        console.log('exists: ', path);
         stat(path, function (err) {
             if (err) {
                 if (err === FileSystemError.NOT_FOUND) {
@@ -281,6 +283,7 @@ define(function (require, exports, module) {
      * @param {function(?string, Array.<FileSystemEntry>=, Array.<string|FileSystemStats>=)} callback
      */
     function readdir(path, callback) {
+        console.log('readdir: ', path);
         appshell.fs.readdir(path, function (err, contents) {
             if (err) {
                 callback(_mapError(err));
@@ -317,6 +320,7 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=)=} callback
      */
     function mkdir(path, mode, callback) {
+        console.log('mkdir: ', path);
         if (typeof mode === "function") {
             callback = mode;
             mode = parseInt("0755", 8);
@@ -341,6 +345,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function rename(oldPath, newPath, callback) {
+        console.log('rename: ', oldPath, ' to ', newPath);
         appshell.fs.rename(oldPath, newPath, _wrap(callback));
     }
 
@@ -529,6 +534,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function watchPath(path, ignored, callback) {
+        console.log('Watch path: ', path);
         if (_isRunningOnWindowsXP) {
             callback(FileSystemError.NOT_SUPPORTED);
             return;
@@ -558,6 +564,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, ignored, callback) {
+        console.log('unwatch path: ', path);
         _nodeDomain.exec("unwatchPath", path)
             .then(callback, callback);
     }
