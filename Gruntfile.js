@@ -132,7 +132,7 @@ module.exports = function (grunt) {
                     }
                 ]
             },
-            thirdpartys: {
+            thirdparty: {
                 files: [
                     {
                         expand: true,
