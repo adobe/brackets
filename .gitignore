@@ -14,11 +14,7 @@ Thumbs.db
 
 # ignore files copied from node_modules to src/thirdparty
 /src/thirdparty/preact
-/src/thirdparty/preact-compat
 /src/thirdparty/preact-test-utils
-/src/thirdparty/simulate-event
-/src/thirdparty/xtend
-/src/thirdparty/acorn
 
 # ignore compiled files
 /dist
