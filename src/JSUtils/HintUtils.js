@@ -26,7 +26,7 @@
 define(function (require, exports, module) {
 
 
-    var Acorn                       = require("node_modules/acorn/dist/acorn");
+    var Acorn                       = require("thirdparty/acorn/dist/acorn");
 
     var LANGUAGE_ID                 = "javascript",
         JSX_LANGUAGE_ID             = "jsx",
