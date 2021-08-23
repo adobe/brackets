@@ -13,8 +13,7 @@ Thumbs.db
 /src/JSUtils/node/node_modules
 
 # ignore files copied from node_modules to src/thirdparty
-/src/thirdparty/preact
-/src/thirdparty/preact-test-utils
+# https://github.com/aicore/phoenix/issues/10
 
 # ignore compiled files
 /dist
@@ -51,5 +50,3 @@ Thumbs.db
 # Files that can be automatically downloaded that we don't want to ship with our builds
 /src/extensibility/node/node_modules/request/tests/
 
-# Files build by scripts
-/src/thirdparty/semver.browser.js
