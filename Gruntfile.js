@@ -137,15 +137,6 @@ module.exports = function (grunt) {
                     {
                         expand: true,
                         flatten: true,
-                        dest: 'src/thirdparty',
-                        cwd: 'src/node_modules',
-                        src: [
-                            'less/dist/less.min.js'
-                        ]
-                    },
-                    {
-                        expand: true,
-                        flatten: true,
                         dest: 'src/thirdparty/preact-compat',
                         cwd: 'src/node_modules/preact-compat',
                         src: [
