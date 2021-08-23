@@ -13,7 +13,6 @@ Thumbs.db
 /src/JSUtils/node/node_modules
 
 # ignore files copied from node_modules to src/thirdparty
-/src/thirdparty/less.min.js
 /src/thirdparty/preact
 /src/thirdparty/preact-compat
 /src/thirdparty/preact-test-utils
