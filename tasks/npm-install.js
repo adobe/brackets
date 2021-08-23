@@ -72,7 +72,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask("npm-install-src", "Install node_modules to the src folder", function () {
         var _done = this.async(),
-            dirs = ["src", "src/JSUtils", "src/JSUtils/node", "src/languageTools/LanguageClient"],
+            dirs = ["src", "src/languageTools/LanguageClient"],
             done = _.after(dirs.length, _done);
         dirs.forEach(function (dir) {
             runNpmInstall(dir, function (err) {
