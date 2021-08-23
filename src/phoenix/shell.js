@@ -33,6 +33,8 @@
  * This module should be functionally as light weight as possible with minimal deps as it is a shell component.
  * **/
 import init from "./init_vfs.js";
+import ERR_NO from "./errno.js";
+
 let Phoenix = {};
 
 window.Phoenix = Phoenix;
@@ -44,7 +46,8 @@ Phoenix.app = {
     getNodeState: function (cbfn){
         cbfn(new Error('Node cannot be run in phoenix browser mode'));
     },
-    getApplicationSupportDirectory: Phoenix.VFS.getAppSupportDir
+    getApplicationSupportDirectory: Phoenix.VFS.getAppSupportDir,
+    ERR_NO: ERR_NO
 };
 
 if(!window.appshell){
