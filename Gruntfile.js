@@ -132,20 +132,8 @@ module.exports = function (grunt) {
                     }
                 ]
             },
-            thirdparty: {
+            thirdpartys: {
                 files: [
-                    {
-                        expand: true,
-                        dest: 'src/thirdparty/CodeMirror',
-                        cwd: 'src/node_modules/codemirror',
-                        src: [
-                            'addon/{,*/}*',
-                            'keymap/{,*/}*',
-                            'lib/{,*/}*',
-                            'mode/{,*/}*',
-                            'theme/{,*/}*'
-                        ]
-                    },
                     {
                         expand: true,
                         flatten: true,
