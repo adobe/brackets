@@ -148,6 +148,7 @@ define(function (require, exports, module) {
         }
 
         const FS_ERROR_CODES = window.Phoenix.app.ERR_CODES.FS_ERROR_CODES;
+        console.log('appshell fs error: ', err);
 
         switch (err.code) {
         case FS_ERROR_CODES.EINVAL:
@@ -331,7 +332,7 @@ define(function (require, exports, module) {
             callback = mode;
             mode = parseInt("0755", 8);
         }
-        appshell.fs.makedir(path, mode, function (err) {
+        appshell.fs.mkdir(path, mode, function (err) {
             if (err) {
                 callback(_mapError(err));
             } else {
@@ -541,22 +542,21 @@ define(function (require, exports, module) {
      */
     function watchPath(path, ignored, callback) {
         console.log('Watch path: ', path);
-        if (_isRunningOnWindowsXP) {
-            callback(FileSystemError.NOT_SUPPORTED);
-            return;
-        }
-        appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
-            if (err || isNetworkDrive) {
-                if (isNetworkDrive) {
-                    callback(FileSystemError.NETWORK_DRIVE_NOT_SUPPORTED);
-                } else {
-                    callback(FileSystemError.UNKNOWN);
-                }
-                return;
-            }
-            _nodeDomain.exec("watchPath", path, ignored)
-                .then(callback, callback);
-        });
+        callback(FileSystemError.NOT_SUPPORTED);
+        return;
+        // TODO: Phoenix. file watch fix.
+        // appshell.fs.watch(path, function (err, isNetworkDrive) {
+        //     if (err || isNetworkDrive) {
+        //         if (isNetworkDrive) {
+        //             callback(FileSystemError.NETWORK_DRIVE_NOT_SUPPORTED);
+        //         } else {
+        //             callback(FileSystemError.UNKNOWN);
+        //         }
+        //         return;
+        //     }
+        //     _nodeDomain.exec("watchPath", path, ignored)
+        //         .then(callback, callback);
+        // });
     }
     /**
      * Stop providing change notifications for the file or directory at the
