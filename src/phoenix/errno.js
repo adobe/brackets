@@ -35,306 +35,395 @@
  * This module should be functionally as light weight as possible with minimal deps as it is a shell component.
  * **/
 
+const ERROR_CODES ={
+    ENOENT: 'ENOENT',
+    UNKNOWN: 'UNKNOWN',
+    OK: 'OK',
+    EOF: 'EOF',
+    EADDRINFO: 'EADDRINFO',
+    EACCES: 'EACCES',
+    EAGAIN: 'EAGAIN',
+    EADDRINUSE: 'EADDRINUSE',
+    EADDRNOTAVAIL: 'EADDRNOTAVAIL',
+    EAFNOSUPPORT: 'EAFNOSUPPORT',
+    EALREADY: 'EALREADY',
+    EBADF: 'EBADF',
+    EBUSY: 'EBUSY',
+    ECONNABORTED: 'ECONNABORTED',
+    ECONNREFUSED: 'ECONNREFUSED',
+    ECONNRESET: 'ECONNRESET',
+    EDESTADDRREQ: 'EDESTADDRREQ',
+    EFAULT: 'EFAULT',
+    EHOSTUNREACH: 'EHOSTUNREACH',
+    EINTR: 'EINTR',
+    EINVAL: 'EINVAL',
+    EISCONN: 'EISCONN',
+    EMFILE: 'EMFILE',
+    EMSGSIZE: 'EMSGSIZE',
+    ENETDOWN: 'ENETDOWN',
+    ENETUNREACH: 'ENETUNREACH',
+    ENFILE: 'ENFILE',
+    ENOBUFS: 'ENOBUFS',
+    ENOMEM: 'ENOMEM',
+    ENOTDIR: 'ENOTDIR',
+    EISDIR: 'EISDIR',
+    ENONET: 'ENONET',
+    ENOTCONN: 'ENOTCONN',
+    ENOTSOCK: 'ENOTSOCK',
+    ENOTSUP: 'ENOTSUP',
+    ENOSYS: 'ENOSYS',
+    EPIPE: 'EPIPE',
+    EPROTO: 'EPROTO',
+    EPROTONOSUPPORT: 'EPROTONOSUPPORT',
+    EPROTOTYPE: 'EPROTOTYPE',
+    ETIMEDOUT: 'ETIMEDOUT',
+    ECHARSET: 'ECHARSET',
+    EAIFAMNOSUPPORT: 'EAIFAMNOSUPPORT',
+    EAISERVICE: 'EAISERVICE',
+    EAISOCKTYPE: 'EAISOCKTYPE',
+    ESHUTDOWN: 'ESHUTDOWN',
+    EEXIST: 'EEXIST',
+    ESRCH: 'ESRCH',
+    ENAMETOOLONG: 'ENAMETOOLONG',
+    EPERM: 'EPERM',
+    ELOOP: 'ELOOP',
+    EXDEV: 'EXDEV',
+    ENOTEMPTY: 'ENOTEMPTY',
+    ENOSPC: 'ENOSPC',
+    EIO: 'EIO',
+    EROFS: 'EROFS',
+    ENODEV: 'ENODEV',
+    ESPIPE: 'ESPIPE',
+    ECANCELED: 'ECANCELED'
+};
+
+const FS_ERROR_CODES = {
+    ENOENT: ERROR_CODES.ENOENT, //no such file or directory
+    EOF: ERROR_CODES.EOF, //end of file
+    EACCES: ERROR_CODES.EACCES, //permission denied
+    EAGAIN: ERROR_CODES.EAGAIN, //resource temporarily unavailable
+    EBADF: ERROR_CODES.EBADF, //bad file descriptor
+    EBUSY: ERROR_CODES.EBUSY, //resource busy or locked
+    EINVAL: ERROR_CODES.EINVAL, //invalid argument
+    EMFILE: ERROR_CODES.EMFILE, //too many open files,
+    ENFILE: ERROR_CODES.ENFILE, //file table overflow
+    ENOBUFS: ERROR_CODES.ENOBUFS, //no buffer space available
+    ENOTDIR: ERROR_CODES.ENOTDIR, //not a directory
+    EISDIR: ERROR_CODES.EISDIR, //illegal operation on a directory
+    ENOSYS: ERROR_CODES.ENOSYS, //function not implemented. Eg. creating linux sym links in win
+    ECHARSET: ERROR_CODES.ECHARSET, //invalid Unicode character
+    EEXIST: ERROR_CODES.EEXIST, //file already exists
+    ENAMETOOLONG: ERROR_CODES.ENAMETOOLONG, //name too long
+    EPERM: ERROR_CODES.EPERM, //operation not permitted
+    ELOOP: ERROR_CODES.ELOOP, //too many symbolic links encountered
+    EXDEV: ERROR_CODES.EXDEV, //cross-device link not permitted
+    ENOTEMPTY: ERROR_CODES.ENOTEMPTY, //directory not empty
+    ENOSPC: ERROR_CODES.ENOSPC, //no space left on device
+    EIO: ERROR_CODES.EIO, //i/o error
+    EROFS: ERROR_CODES.EROFS, //read-only file system
+    ESPIPE: ERROR_CODES.ESPIPE, //invalid seek
+    ECANCELED: ERROR_CODES.ECANCELED //operation canceled
+};
 
 const ALL_ERRORS = [
     {
         errno: -2,
-        code: 'ENOENT',
+        code: ERROR_CODES.ENOENT,
         description: 'no such file or directory'
     },
     {
         errno: -1,
-        code: 'UNKNOWN',
+        code: ERROR_CODES.UNKNOWN,
         description: 'unknown error'
     },
     {
         errno: 0,
-        code: 'OK',
+        code: ERROR_CODES.OK,
         description: 'success'
     },
     {
         errno: 1,
-        code: 'EOF',
+        code: ERROR_CODES.EOF,
         description: 'end of file'
     },
     {
         errno: 2,
-        code: 'EADDRINFO',
+        code: ERROR_CODES.EADDRINFO,
         description: 'getaddrinfo error'
     },
     {
         errno: 3,
-        code: 'EACCES',
+        code: ERROR_CODES.EACCES,
         description: 'permission denied'
     },
     {
         errno: 4,
-        code: 'EAGAIN',
+        code: ERROR_CODES.EAGAIN,
         description: 'resource temporarily unavailable'
     },
     {
         errno: 5,
-        code: 'EADDRINUSE',
+        code: ERROR_CODES.EADDRINUSE,
         description: 'address already in use'
     },
     {
         errno: 6,
-        code: 'EADDRNOTAVAIL',
+        code: ERROR_CODES.EADDRNOTAVAIL,
         description: 'address not available'
     },
     {
         errno: 7,
-        code: 'EAFNOSUPPORT',
+        code: ERROR_CODES.EAFNOSUPPORT,
         description: 'address family not supported'
     },
     {
         errno: 8,
-        code: 'EALREADY',
+        code: ERROR_CODES.EALREADY,
         description: 'connection already in progress'
     },
     {
         errno: 9,
-        code: 'EBADF',
+        code: ERROR_CODES.EBADF,
         description: 'bad file descriptor'
     },
     {
         errno: 10,
-        code: 'EBUSY',
+        code: ERROR_CODES.EBUSY,
         description: 'resource busy or locked'
     },
     {
         errno: 11,
-        code: 'ECONNABORTED',
+        code: ERROR_CODES.ECONNABORTED,
         description: 'software caused connection abort'
     },
     {
         errno: 12,
-        code: 'ECONNREFUSED',
+        code: ERROR_CODES.ECONNREFUSED,
         description: 'connection refused'
     },
     {
         errno: 13,
-        code: 'ECONNRESET',
+        code: ERROR_CODES.ECONNRESET,
         description: 'connection reset by peer'
     },
     {
         errno: 14,
-        code: 'EDESTADDRREQ',
+        code: ERROR_CODES.EDESTADDRREQ,
         description: 'destination address required'
     },
     {
         errno: 15,
-        code: 'EFAULT',
+        code: ERROR_CODES.EFAULT,
         description: 'bad address in system call argument'
     },
     {
         errno: 16,
-        code: 'EHOSTUNREACH',
+        code: ERROR_CODES.EHOSTUNREACH,
         description: 'host is unreachable'
     },
     {
         errno: 17,
-        code: 'EINTR',
+        code: ERROR_CODES.EINTR,
         description: 'interrupted system call'
     },
     {
         errno: 18,
-        code: 'EINVAL',
+        code: ERROR_CODES.EINVAL,
         description: 'invalid argument'
     },
     {
         errno: 19,
-        code: 'EISCONN',
+        code: ERROR_CODES.EISCONN,
         description: 'socket is already connected'
     },
     {
         errno: 20,
-        code: 'EMFILE',
+        code: ERROR_CODES.EMFILE,
         description: 'too many open files'
     },
     {
         errno: 21,
-        code: 'EMSGSIZE',
-        description: 'message too long'
+        code: ERROR_CODES.EMSGSIZE,
+        description: 'message/datagram too long'
     },
     {
         errno: 22,
-        code: 'ENETDOWN',
+        code: ERROR_CODES.ENETDOWN,
         description: 'network is down'
     },
     {
         errno: 23,
-        code: 'ENETUNREACH',
+        code: ERROR_CODES.ENETUNREACH,
         description: 'network is unreachable'
     },
     {
         errno: 24,
-        code: 'ENFILE',
+        code: ERROR_CODES.ENFILE,
         description: 'file table overflow'
     },
     {
         errno: 25,
-        code: 'ENOBUFS',
+        code: ERROR_CODES.ENOBUFS,
         description: 'no buffer space available'
     },
     {
         errno: 26,
-        code: 'ENOMEM',
-        description: 'not enough memory'
+        code: ERROR_CODES.ENOMEM,
+        description: 'not enough memory/ high virtual memory usage'
     },
     {
         errno: 27,
-        code: 'ENOTDIR',
+        code: ERROR_CODES.ENOTDIR,
         description: 'not a directory'
     },
     {
         errno: 28,
-        code: 'EISDIR',
+        code: ERROR_CODES.EISDIR,
         description: 'illegal operation on a directory'
     },
     {
         errno: 29,
-        code: 'ENONET',
+        code: ERROR_CODES.ENONET,
         description: 'machine is not on the network'
     },
     {
         errno: 31,
-        code: 'ENOTCONN',
+        code: ERROR_CODES.ENOTCONN,
         description: 'socket is not connected'
     },
     {
         errno: 32,
-        code: 'ENOTSOCK',
+        code: ERROR_CODES.ENOTSOCK,
         description: 'socket operation on non-socket'
     },
     {
         errno: 33,
-        code: 'ENOTSUP',
+        code: ERROR_CODES.ENOTSUP,
         description: 'operation not supported on socket'
     },
     {
         errno: 34,
-        code: 'ENOENT',
+        code: ERROR_CODES.ENOENT,
         description: 'no such file or directory'
     },
     {
         errno: 35,
-        code: 'ENOSYS',
+        code: ERROR_CODES.ENOSYS,
         description: 'function not implemented'
     },
     {
         errno: 36,
-        code: 'EPIPE',
+        code: ERROR_CODES.EPIPE,
         description: 'broken pipe'
     },
     {
         errno: 37,
-        code: 'EPROTO',
+        code: ERROR_CODES.EPROTO,
         description: 'protocol error'
     },
     {
         errno: 38,
-        code: 'EPROTONOSUPPORT',
+        code: ERROR_CODES.EPROTONOSUPPORT,
         description: 'protocol not supported'
     },
     {
         errno: 39,
-        code: 'EPROTOTYPE',
+        code: ERROR_CODES.EPROTOTYPE,
         description: 'protocol wrong type for socket'
     },
     {
         errno: 40,
-        code: 'ETIMEDOUT',
+        code: ERROR_CODES.ETIMEDOUT,
         description: 'connection timed out'
     },
     {
         errno: 41,
-        code: 'ECHARSET',
+        code: ERROR_CODES.ECHARSET,
         description: 'invalid Unicode character'
     },
     {
         errno: 42,
-        code: 'EAIFAMNOSUPPORT',
+        code: ERROR_CODES.EAIFAMNOSUPPORT,
         description: 'address family for hostname not supported'
     },
     {
         errno: 44,
-        code: 'EAISERVICE',
+        code: ERROR_CODES.EAISERVICE,
         description: 'servname not supported for ai_socktype'
     },
     {
         errno: 45,
-        code: 'EAISOCKTYPE',
+        code: ERROR_CODES.EAISOCKTYPE,
         description: 'ai_socktype not supported'
     },
     {
         errno: 46,
-        code: 'ESHUTDOWN',
+        code: ERROR_CODES.ESHUTDOWN,
         description: 'cannot send after transport endpoint shutdown'
     },
     {
         errno: 47,
-        code: 'EEXIST',
+        code: ERROR_CODES.EEXIST,
         description: 'file already exists'
     },
     {
         errno: 48,
-        code: 'ESRCH',
+        code: ERROR_CODES.ESRCH,
         description: 'no such process'
     },
     {
         errno: 49,
-        code: 'ENAMETOOLONG',
+        code: ERROR_CODES.ENAMETOOLONG,
         description: 'name too long'
     },
     {
         errno: 50,
-        code: 'EPERM',
+        code: ERROR_CODES.EPERM,
         description: 'operation not permitted'
     },
     {
         errno: 51,
-        code: 'ELOOP',
+        code: ERROR_CODES.ELOOP,
         description: 'too many symbolic links encountered'
     },
     {
         errno: 52,
-        code: 'EXDEV',
+        code: ERROR_CODES.EXDEV,
         description: 'cross-device link not permitted'
     },
     {
         errno: 53,
-        code: 'ENOTEMPTY',
+        code: ERROR_CODES.ENOTEMPTY,
         description: 'directory not empty'
     },
     {
         errno: 54,
-        code: 'ENOSPC',
+        code: ERROR_CODES.ENOSPC,
         description: 'no space left on device'
     },
     {
         errno: 55,
-        code: 'EIO',
+        code: ERROR_CODES.EIO,
         description: 'i/o error'
     },
     {
         errno: 56,
-        code: 'EROFS',
+        code: ERROR_CODES.EROFS,
         description: 'read-only file system'
     },
     {
         errno: 57,
-        code: 'ENODEV',
+        code: ERROR_CODES.ENODEV,
         description: 'no such device'
     },
     {
         errno: 58,
-        code: 'ESPIPE',
+        code: ERROR_CODES.ESPIPE,
         description: 'invalid seek'
     },
     {
         errno: 59,
-        code: 'ECANCELED',
+        code: ERROR_CODES.ECANCELED,
         description: 'operation canceled'
     }
 ];
