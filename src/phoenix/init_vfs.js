@@ -54,13 +54,41 @@ function _setupVFS(Phoenix, fsLib, pathLib){
             });
         },
         fs: fsLib,
-        path: pathLib
+        path: pathLib,
+        getFsEncoding: _getFsEncoding
     };
     Phoenix.fs = fsLib;
     Phoenix.path = pathLib;
 
     return Phoenix.VFS;
 }
+
+const _getFsEncoding = function (encoding){
+    const encodingStr = encoding.toLowerCase();
+    switch (encodingStr){
+    case "utf8":
+    case "utf-8":
+        return "utf8";
+    case "ascii":
+        return "ascii";
+    case "hex":
+        return "hex";
+    case "ucs2":
+    case "ucs-2":
+        return "ucs2";
+    case "utf16le":
+    case "utf-16le":
+        return "utf16le";
+    case "binary":
+        return "binary";
+    case "latin1":
+        return "latin1";
+    case "ISO8859-1":
+        return "ISO8859-1";
+    }
+    return undefined;
+};
+
 
 const _FS_ERROR_MESSAGE = 'Oops. Phoenix could not be started due to missing file system library.';
 
@@ -98,12 +126,11 @@ const _SAMPLE_HTML = `<!DOCTYPE html>
 const _createDefaultProject = function (vfs) {
     // Create phoenix app dirs
     // Create Phoenix default project if it doesnt exist
-    vfs.fs.stat(vfs.getDefaultProjectDir(), function (err){
+    vfs.ensureExistsDir(vfs.getDefaultProjectDir(), errorCb);
+    let projectDir = vfs.getDefaultProjectDir();
+    let indexFile = vfs.path.normalize(`${projectDir}/index.html`);
+    vfs.fs.stat(indexFile, function (err){
         if (err && err.code === 'ENOENT') {
-            let projectDir = vfs.getDefaultProjectDir();
-            let indexFile = vfs.path.normalize(`${projectDir}/index.html`);
-            vfs.ensureExistsDir(vfs.getDefaultProjectDir(), errorCb);
-
             fs.writeFile(indexFile, _SAMPLE_HTML, 'utf8', errorCb);
         }
     });

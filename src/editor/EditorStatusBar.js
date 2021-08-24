@@ -102,7 +102,7 @@ define(function (require, exports, module) {
 
         // Show the current encoding as button title
         if (!doc.file._encoding) {
-            doc.file._encoding = "UTF-8";
+            doc.file._encoding = "utf8";
         }
         encodingSelect.$button.text(doc.file._encoding);
     }
@@ -418,7 +418,7 @@ define(function (require, exports, module) {
             var html = _.escape(item);
 
             // Show indicators for currently selected & default languages for the current file
-            if (item === "UTF-8") {
+            if (item === "utf8") {
                 html += " <span class='default-language'>" + Strings.STATUSBAR_DEFAULT_LANG + "</span>";
             }
             if (item === document.file._encoding) {

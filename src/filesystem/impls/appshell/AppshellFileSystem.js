@@ -374,7 +374,7 @@ define(function (require, exports, module) {
      */
     function readFile(path, options, callback) {
         console.log('Reading file: ', path);
-        var encoding = options.encoding || "utf8";
+        var encoding = window.Phoenix.VFS.getFsEncoding(options.encoding) || "utf8";
 
         // callback to be executed when the call to stat completes
         //  or immediately if a stat object was passed as an argument
@@ -423,7 +423,7 @@ define(function (require, exports, module) {
      */
     function writeFile(path, data, options, callback) {
         console.log('Write file: ', path);
-        var encoding = options.encoding || "utf8",
+        var encoding = window.Phoenix.VFS.getFsEncoding(options.encoding) || "utf8",
             preserveBOM = options.preserveBOM;
 
         function _finishWrite(created) {
