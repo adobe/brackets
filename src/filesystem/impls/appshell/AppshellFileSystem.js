@@ -22,6 +22,8 @@
  */
 
 /*global appshell, window, define, console*/
+/*eslint-env es6*/
+// jshint ignore: start
 
 define(function (require, exports, module) {
 
@@ -145,28 +147,32 @@ define(function (require, exports, module) {
             return null;
         }
 
-        switch (err) {
-        case appshell.fs.ERR_INVALID_PARAMS:
+        const FS_ERROR_CODES = window.Phoenix.app.ERR_CODES.FS_ERROR_CODES;
+
+        switch (err.code) {
+        case FS_ERROR_CODES.EINVAL:
             return FileSystemError.INVALID_PARAMS;
-        case appshell.fs.ERR_NOT_FOUND:
+        case FS_ERROR_CODES.ENOENT:
             return FileSystemError.NOT_FOUND;
-        case appshell.fs.ERR_CANT_READ:
+        case FS_ERROR_CODES.EIO:
             return FileSystemError.NOT_READABLE;
-        case appshell.fs.ERR_CANT_WRITE:
+        case FS_ERROR_CODES.EROFS:
             return FileSystemError.NOT_WRITABLE;
-        case appshell.fs.ERR_UNSUPPORTED_ENCODING:
+        case FS_ERROR_CODES.ECHARSET:
             return FileSystemError.UNSUPPORTED_ENCODING;
-        case appshell.fs.ERR_OUT_OF_SPACE:
+        case FS_ERROR_CODES.ENOSPC:
             return FileSystemError.OUT_OF_SPACE;
-        case appshell.fs.ERR_FILE_EXISTS:
+        case FS_ERROR_CODES.EEXIST:
             return FileSystemError.ALREADY_EXISTS;
-        case appshell.fs.ERR_ENCODE_FILE_FAILED:
+        case FS_ERROR_CODES.ECHARSET:
             return FileSystemError.ENCODE_FILE_FAILED;
-        case appshell.fs.ERR_DECODE_FILE_FAILED:
+        case FS_ERROR_CODES.ECHARSET:
             return FileSystemError.DECODE_FILE_FAILED;
-        case appshell.fs.ERR_UNSUPPORTED_UTF16_ENCODING:
+        case FS_ERROR_CODES.ECHARSET:
             return FileSystemError.UNSUPPORTED_UTF16_ENCODING;
         }
+
+        console.error('unknown error: ', err);
         return FileSystemError.UNKNOWN;
     }
 

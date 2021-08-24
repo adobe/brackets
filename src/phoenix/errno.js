@@ -436,10 +436,12 @@ ALL_ERRORS.forEach(function (error) {
     CODE_TO_ERROR_MAP[error.code] = error;
 });
 
-const ERR_NO = {
+const ERR_CODES = {
+    ERROR_CODES: ERROR_CODES,
+    FS_ERROR_CODES: FS_ERROR_CODES,
     ALL_ERRORS: ALL_ERRORS,
     ERRNO_TO_ERROR_MAP: ERRNO_TO_ERROR_MAP,
     CODE_TO_ERROR_MAP: CODE_TO_ERROR_MAP
 };
 
-export default ERR_NO;
+export default ERR_CODES;
