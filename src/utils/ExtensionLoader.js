@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2021 - present core.ai . All rights reserved.
+ * Copyright (c) 2012 - 2021 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +30,11 @@
  *      "loadFailed" - when an extension load is unsuccessful. The second argument is the file path to the
  *          extension root.
  */
+// jshint ignore: start
+/*global fs, Phoenix*/
+/*eslint-env es6*/
+/*eslint no-console: 0*/
+/*eslint strict: ["error", "global"]*/
 
 define(function (require, exports, module) {
 
@@ -58,6 +64,8 @@ define(function (require, exports, module) {
      */
     var contexts    = {};
 
+    var pathLib =  Phoenix.VFS.path;
+
     // The native directory path ends with either "test" or "src". We need "src" to
     // load the text and i18n modules.
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
@@ -75,7 +83,14 @@ define(function (require, exports, module) {
      * Returns the full path to the default extensions directory.
      */
     function getDefaultExtensionPath() {
-        return FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default";
+        return pathLib.normalize(FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default");
+    }
+
+    /**
+     * Returns the full path to the development extensions directory.
+     */
+    function getDevExtensionPath() {
+        return pathLib.normalize(brackets.app.getApplicationSupportDirectory() + "/extensions/dev");
     }
 
     /**
@@ -86,7 +101,7 @@ define(function (require, exports, module) {
      */
     function getUserExtensionPath() {
         if (brackets.app.getApplicationSupportDirectory) {
-            return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
+            return pathLib.normalize(brackets.app.getApplicationSupportDirectory() + "/extensions/user");
         }
 
         return null;
@@ -410,12 +425,12 @@ define(function (require, exports, module) {
             params.parse();
 
             if (params.get("reloadWithoutUserExts") === "true") {
-                paths = ["default"];
+                paths = [getDefaultExtensionPath()];
             } else {
                 paths = [
                     getDefaultExtensionPath(),
-                    "dev",
-                    getUserExtensionPath()
+                    getUserExtensionPath(),
+                    getDevExtensionPath()
                 ];
             }
         }
@@ -431,20 +446,13 @@ define(function (require, exports, module) {
         // during extension loading.
         var extensionPath = getUserExtensionPath();
         FileSystem.getDirectoryForPath(extensionPath).create();
+        FileSystem.getDirectoryForPath(getDevExtensionPath()).create();
 
         // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
         FileSystem.getDirectoryForPath(disabledExtensionPath).create();
 
-        var promise = Async.doSequentially(paths, function (item) {
-            var extensionPath = item;
-
-            // If the item has "/" in it, assume it is a full path. Otherwise, load
-            // from our source path + "/extensions/".
-            if (item.indexOf("/") === -1) {
-                extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
-            }
-
+        var promise = Async.doSequentially(paths, function (extensionPath) {
             return loadAllExtensionsInNativeDirectory(extensionPath);
         }, false);
 
