@@ -308,8 +308,7 @@ define(function (require, exports, module) {
      */
     function getNativeBracketsDirectoryPath() {
         var pathname = decodeURI(window.location.pathname);
-        var directory = pathname.substr(0, pathname.lastIndexOf("/"));
-        return convertToNativePath(directory);
+        return pathname.substr(0, pathname.lastIndexOf("/")); // In the web, native path is the base url
     }
 
     /**
