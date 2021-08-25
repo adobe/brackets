@@ -270,6 +270,64 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     *
+     * @param file FileSystem.getFileForPath object
+     * @param options
+     * @private
+     */
+    function _loadThemeFromFile(file, options) {
+        var currentThemeName = prefs.get("theme");
+        var theme = new Theme(file, options);
+        loadedThemes[theme.name] = theme;
+        ThemeSettings._setThemes(loadedThemes);
+
+        // For themes that are loaded after ThemeManager has been loaded,
+        // we should check if it's the current theme.  If it is, then we just
+        // load it.
+        if (currentThemeName === theme.name) {
+            refresh(true);
+        }
+    }
+
+    /**
+     * Loads a theme from a url.
+     *
+     * @param {string} url is the full hhtp/https url of the theme file
+     * @param {Object} options is an optional parameter to specify metadata
+     *    for the theme.
+     * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
+     */
+    function _loadFileFromURL(url, options) {
+        var deferred         = new $.Deferred();
+
+        var themeName = options.name || options.theme.title;
+        var fileName = options.theme.file;
+        var themePath = path.normalize(brackets.app.getApplicationSupportDirectory() + "/extensions/user/" +
+            themeName + '_' + fileName);
+        var file = FileSystem.getFileForPath(themePath);
+
+        file.exists(function (err, exists) {
+            var theme;
+
+            if (exists) {
+                _loadThemeFromFile(file, options);
+                deferred.resolve(theme);
+                return;
+            }
+            $.get(url).done(function (themeContent) {
+                // Write theme to file
+                FileUtils.writeText(file, themeContent).then(function () {
+                    _loadThemeFromFile(file, options);
+                    deferred.resolve(theme);
+                }, deferred.reject);
+            }).fail(function (err) {
+                deferred.reject(err);
+            });
+        });
+
+        return deferred.promise();
+    }
 
     /**
      * Loads a theme from a file.
@@ -280,6 +338,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
      */
     function loadFile(fileName, options) {
+        if(fileName.startsWith("http://") || fileName.startsWith("https://")) {
+            return _loadFileFromURL(fileName, options);
+        }
+
         var deferred         = new $.Deferred(),
             file             = FileSystem.getFileForPath(fileName),
             currentThemeName = prefs.get("theme");
