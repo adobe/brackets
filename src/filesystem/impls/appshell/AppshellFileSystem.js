@@ -66,8 +66,6 @@ define(function (require, exports, module) {
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
 
-    var _isRunningOnWindowsXP = window.navigator.userAgent.indexOf("Windows NT 5.") >= 0;
-
 
     // If the connection closes, notify the FileSystem that watchers have gone offline.
     _nodeDomain.connection.on("close", function (event, promise) {
@@ -178,6 +176,17 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Normalises path.
+     *
+     * @param {string} path The path to normalise
+     * @return {string} Normalised path.
+     * @private
+     */
+    function _normalise_path(path) {
+        return window.Phoenix.VFS.path.normalize(path);
+    }
+
+    /**
      * Convert a callback to one that transforms its first parameter from an
      * appshell error code to a FileSystemError string.
      *
@@ -233,6 +242,7 @@ define(function (require, exports, module) {
      */
     function stat(path, callback) {
         console.log('stat: ', path);
+        path = _normalise_path(path);
         appshell.fs.stat(path, function (err, stats) {
             if (err) {
                 callback(_mapError(err));
@@ -264,6 +274,7 @@ define(function (require, exports, module) {
      */
     function exists(path, callback) {
         console.log('exists: ', path);
+        path = _normalise_path(path);
         stat(path, function (err) {
             if (err) {
                 if (err === FileSystemError.NOT_FOUND) {
@@ -291,6 +302,7 @@ define(function (require, exports, module) {
      */
     function readdir(path, callback) {
         console.log('readdir: ', path);
+        path = _normalise_path(path);
         appshell.fs.readdir(path, function (err, contents) {
             if (err) {
                 callback(_mapError(err));
@@ -305,7 +317,7 @@ define(function (require, exports, module) {
 
             var stats = [];
             contents.forEach(function (val, idx) {
-                stat(path + "/" + val, function (err, stat) {
+                stat(_normalise_path(path + "/" + val), function (err, stat) {
                     stats[idx] = err || stat;
                     count--;
                     if (count <= 0) {
@@ -328,11 +340,12 @@ define(function (require, exports, module) {
      */
     function mkdir(path, mode, callback) {
         console.log('mkdir: ', path);
+        path = _normalise_path(path);
         if (typeof mode === "function") {
             callback = mode;
             mode = parseInt("0755", 8);
         }
-        appshell.fs.mkdir(path, mode, function (err) {
+        appshell.fs.mkdirs(path, mode, true, function (err) {
             if (err) {
                 callback(_mapError(err));
             } else {
@@ -353,6 +366,8 @@ define(function (require, exports, module) {
      */
     function rename(oldPath, newPath, callback) {
         console.log('rename: ', oldPath, ' to ', newPath);
+        oldPath = _normalise_path(oldPath);
+        newPath = _normalise_path(newPath);
         appshell.fs.rename(oldPath, newPath, _wrap(callback));
     }
 
@@ -374,6 +389,7 @@ define(function (require, exports, module) {
      */
     function readFile(path, options, callback) {
         console.log('Reading file: ', path);
+        path = _normalise_path(path);
         var encoding = window.Phoenix.VFS.getFsEncoding(options.encoding) || "utf8";
 
         // callback to be executed when the call to stat completes
@@ -423,6 +439,7 @@ define(function (require, exports, module) {
      */
     function writeFile(path, data, options, callback) {
         console.log('Write file: ', path);
+        path = _normalise_path(path);
         var encoding = window.Phoenix.VFS.getFsEncoding(options.encoding) || "utf8",
             preserveBOM = options.preserveBOM;
 
@@ -483,6 +500,7 @@ define(function (require, exports, module) {
      */
     function unlink(path, callback) {
         console.log('delete file: ', path);
+        path = _normalise_path(path);
         appshell.fs.unlink(path, function (err) {
             callback(_mapError(err));
         });
@@ -498,6 +516,7 @@ define(function (require, exports, module) {
      */
     function moveToTrash(path, callback) {
         console.log('Trash file: ', path);
+        path = _normalise_path(path);
         appshell.fs.moveToTrash(path, function (err) {
             callback(_mapError(err));
         });
@@ -523,7 +542,7 @@ define(function (require, exports, module) {
         _changeCallback = changeCallback;
         _offlineCallback = offlineCallback;
 
-        if (_isRunningOnWindowsXP && _offlineCallback) {
+        if (_offlineCallback) {
             _offlineCallback();
         }
     }
@@ -542,6 +561,7 @@ define(function (require, exports, module) {
      */
     function watchPath(path, ignored, callback) {
         console.log('Watch path: ', path);
+        path = _normalise_path(path);
         callback(FileSystemError.NOT_SUPPORTED);
         return;
         // TODO: Phoenix. file watch fix.
@@ -571,6 +591,7 @@ define(function (require, exports, module) {
      */
     function unwatchPath(path, ignored, callback) {
         console.log('unwatch path: ', path);
+        path = _normalise_path(path);
         _nodeDomain.exec("unwatchPath", path)
             .then(callback, callback);
     }
