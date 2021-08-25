@@ -39,6 +39,7 @@ let Phoenix = {};
 
 window.Phoenix = Phoenix;
 window.fs = Filer.fs;
+window.path = Filer.path;
 
 init(Phoenix, Filer);
 
