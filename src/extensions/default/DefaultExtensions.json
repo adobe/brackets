@@ -27,5 +27,7 @@
   "RecentProjects",
   "RemoteFileAdapter",
   "SVGCodeHints",
-  "UrlCodeHints"
+  "UrlCodeHints",
+  "DarkTheme",
+  "LightTheme"
 ]
