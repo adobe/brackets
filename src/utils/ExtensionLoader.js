@@ -80,10 +80,10 @@ define(function (require, exports, module) {
     });
 
     /**
-     * Returns the full path to the default extensions directory.
+     * Returns the path to the default extensions directory relative to window.location.href
      */
     function getDefaultExtensionPath() {
-        return pathLib.normalize(FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default");
+        return pathLib.normalize("/extensions/default");
     }
 
     /**
@@ -142,7 +142,42 @@ define(function (require, exports, module) {
      * @param {Object} baseConfig
      * @return {$.Promise}
      */
+    function _mergeConfigFromURL(baseConfig) {
+        var deferred = new $.Deferred(),
+            extensionConfigFile = baseConfig.baseUrl + "/requirejs-config.json";
+
+        // Optional JSON config for require.js
+        $.get(extensionConfigFile).done(function (extensionConfig) {
+            try {
+                // baseConfig.paths properties will override any extension config paths
+                _.extend(extensionConfig.paths, baseConfig.paths);
+
+                // Overwrite baseUrl, context, locale (paths is already merged above)
+                _.extend(extensionConfig, _.omit(baseConfig, "paths"));
+
+                deferred.resolve(extensionConfig);
+            } catch (err) {
+                // Failed to parse requirejs-config.json
+                deferred.reject("failed to parse requirejs-config.json");
+            }
+        }).fail(function () {
+            // If requirejs-config.json isn't specified, resolve with the baseConfig only
+            deferred.resolve(baseConfig);
+        });
+
+        return deferred.promise();
+    }
+
+    /**
+     * @private
+     * Loads optional requirejs-config.json file for an extension
+     * @param {Object} baseConfig
+     * @return {$.Promise}
+     */
     function _mergeConfig(baseConfig) {
+        if(baseConfig.baseUrl.startsWith("http://") || baseConfig.baseUrl.startsWith("https://")) {
+            return _mergeConfigFromURL(baseConfig);
+        }
         var deferred = new $.Deferred(),
             extensionConfigFile = FileSystem.getFileForPath(baseConfig.baseUrl + "/requirejs-config.json");
 
@@ -264,7 +299,7 @@ define(function (require, exports, module) {
         var promise = new $.Deferred();
 
         // Try to load the package.json to figure out if we are loading a theme.
-        ExtensionUtils.loadMetadata(config.baseUrl).always(promise.resolve);
+        ExtensionUtils.loadMetadata(config.baseUrl, name).always(promise.resolve);
 
         return promise
             .then(function (metadata) {
@@ -374,6 +409,40 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Loads All brackets default extensions from brackets base https URL.
+     *
+     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     */
+    function loadAllDefaultExtensions() {
+        const extensionPath = getDefaultExtensionPath();
+        const href = window.location.href;
+        const baseUrl = href.substring(0, href.lastIndexOf("/"));
+        const extensionsToLoadURL = baseUrl + extensionPath + "/DefaultExtensions.json";
+        var result = new $.Deferred();
+
+        $.get(extensionsToLoadURL).done(function (extensionNames) {
+            Async.doInParallel(extensionNames, function (extensionName) {
+                console.log("loading default extension: ", extensionName);
+                var extConfig = {
+                    baseUrl: baseUrl + extensionPath + "/" + extensionName
+                };
+                return loadExtension(extensionName, extConfig, 'main');
+            }).always(function () {
+                // Always resolve the promise even if some extensions had errors
+                result.resolve();
+            });
+
+        })
+            .fail(function (err) {
+                console.error("[Extension] Error -- could not read default extension list from" + extensionsToLoadURL);
+                result.reject();
+            });
+
+        return result.promise();
+
+    }
+
+    /**
      * Loads the extension that lives at baseUrl into its own Require.js context
      *
      * @param {!string} directory, an absolute native path that contains a directory of extensions.
@@ -424,11 +493,8 @@ define(function (require, exports, module) {
         if (!paths) {
             params.parse();
 
-            if (params.get("reloadWithoutUserExts") === "true") {
-                paths = [getDefaultExtensionPath()];
-            } else {
+            if (params.get("reloadWithoutUserExts") !== "true") {
                 paths = [
-                    getDefaultExtensionPath(),
                     getUserExtensionPath(),
                     getDevExtensionPath()
                 ];
@@ -451,6 +517,8 @@ define(function (require, exports, module) {
         // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
         FileSystem.getDirectoryForPath(disabledExtensionPath).create();
+
+        loadAllDefaultExtensions();
 
         var promise = Async.doSequentially(paths, function (extensionPath) {
             return loadAllExtensionsInNativeDirectory(extensionPath);

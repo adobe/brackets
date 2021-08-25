@@ -151,17 +151,7 @@ define(function (require, exports, module) {
      * @return {!string} The URL to the module's folder
      **/
     function getModuleUrl(module, path) {
-        var url = encodeURI(getModulePath(module, path));
-
-        // On Windows, $.get() fails if the url is a full pathname. To work around this,
-        // prepend "file:///". On the Mac, $.get() works fine if the url is a full pathname,
-        // but *doesn't* work if it is prepended with "file://". Go figure.
-        // However, the prefix "file://localhost" does work.
-        if (brackets.platform === "win" && url.indexOf(":") !== -1) {
-            url = "file:///" + url;
-        }
-
-        return url;
+        return encodeURI(getModulePath(module, path));
     }
 
     /**
@@ -238,7 +228,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
      *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
      */
-    function loadMetadata(folder) {
+    function _loadLocalMetadata(folder) {
         var packageJSONFile = FileSystem.getFileForPath(folder + "/package.json"),
             disabledFile = FileSystem.getFileForPath(folder + "/.disabled"),
             baseName = FileUtils.getBaseName(folder),
@@ -287,6 +277,61 @@ define(function (require, exports, module) {
             });
         return result.promise();
     }
+    /**
+     * Loads the package.json file in the given extension folder as well as any additional
+     * metadata.
+     *
+     * @param {string} baseExtensionUrl The extension folder.
+     * @param {?string} extensionName optional extension name
+     * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
+     *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
+     */
+    function _loadDefaultExtensionMetadata(baseExtensionUrl, extensionName) {
+        var packageJSONFile = baseExtensionUrl + "/package.json";
+        var result = new $.Deferred();
+        var json = {
+            name: extensionName
+        };
+        $.get(packageJSONFile)
+            .then(function (result) {
+                json = result;
+            }).always(function () {
+            // if we don't have any metadata for the extension
+            // we should still create an empty one, so we can attach
+            // disabled property on it in case it's disabled
+            var disabled;
+            var defaultDisabled = PreferencesManager.get("extensions.default.disabled");
+            if (Array.isArray(defaultDisabled) && defaultDisabled.indexOf(extensionName) !== -1) {
+                console.warn("Default extension has been disabled on startup: " + baseExtensionUrl);
+                disabled = true;
+            }
+            json.disabled = disabled;
+            result.resolve(json);
+        });
+
+        return result.promise();
+    }
+
+    /**
+     * Loads the package.json file in the given extension folder as well as any additional
+     * metadata for default extensions in the source directory.
+     *
+     * If there's a .disabled file in the extension directory, then the content of package.json
+     * will be augmented with disabled property set to true. It will override whatever value of
+     * disabled might be set.
+     *
+     * @param {string} folder The extension folder/base url for default extensions.
+     * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
+     *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
+     */
+    function loadMetadata(folder, extensionName) {
+        if(folder.startsWith("http://") || folder.startsWith("https://")) {
+            return _loadDefaultExtensionMetadata(folder, extensionName);
+        }
+        return _loadLocalMetadata(folder);
+    }
+
+
 
     exports.addEmbeddedStyleSheet = addEmbeddedStyleSheet;
     exports.addLinkedStyleSheet   = addLinkedStyleSheet;
