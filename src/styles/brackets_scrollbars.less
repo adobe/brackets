@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *  Modified Work Copyright (c) 2021 - present core.ai . All rights reserved.
+ *  Original work Copyright (c) 2017 - 2021 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,7 +90,7 @@
 
 .platform-linux {
     // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
-    
+
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
@@ -120,13 +121,13 @@
 
 .platform-win {
     // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
-    
+
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
         background-color: @win-scrollbar-track;
     }
-    
+
     ::-webkit-scrollbar-thumb {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb inset;
     }
@@ -139,14 +140,14 @@
     ::-webkit-scrollbar-thumb:active {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb-active inset;
     }
-    
+
     ::-webkit-scrollbar-thumb:vertical {
         min-height: 20px;
     }
     ::-webkit-scrollbar-thumb:horizontal {
         min-width: 20px;
     }
-    
+
     ::-webkit-scrollbar-corner {
         background: none;
     }
