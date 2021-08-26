@@ -23,7 +23,7 @@
  */
 
 // jshint ignore: start
-/*global fs, Phoenix*/
+/*global fs, Phoenix, process*/
 /*eslint-env es6*/
 /*eslint no-console: 0*/
 /*eslint strict: ["error", "global"]*/
@@ -162,7 +162,7 @@ const _patchFSLib = function(fsLib, pathLib) {
                 mkdir_p(path, mode, callback, position + 1);
             } else {
                 fsLib.mkdir(directory, mode, function (err) {
-                    if (err && err.code != 'EEXIST') {
+                    if (err && err.code !== 'EEXIST') {
                         return callback(err);
                     } else {
                         mkdir_p(path, mode, callback, position + 1);
@@ -187,8 +187,8 @@ const _patchFSLib = function(fsLib, pathLib) {
         } else {
             mkdir_p(path, mode, callback);
         }
-    }
-}
+    };
+};
 
 
 export default function init(Phoenix, FilerLib) {
