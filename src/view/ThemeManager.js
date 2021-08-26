@@ -22,7 +22,7 @@
  */
 
 /*jslint regexp: true */
-/*global less */
+/*global less, path */
 
 define(function (require, exports, module) {
 
