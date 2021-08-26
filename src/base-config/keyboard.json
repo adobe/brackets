@@ -22,7 +22,7 @@
     ],
     "file.saveAs":  [
         "Ctrl-Shift-S"
-    ],    
+    ],
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
@@ -48,15 +48,6 @@
             "key": "Cmd-Shift-Z",
             "platform": "mac"
         }
-    ],
-    "edit.cut": [
-        "Ctrl-X"
-    ],
-    "edit.copy": [
-        "Ctrl-C"
-    ],
-    "edit.paste": [
-        "Ctrl-V"
     ],
     "edit.selectAll":  [
         "Ctrl-A"
@@ -221,7 +212,7 @@
         }
     ],
     "view.toggleSidebar":  [
-        {   
+        {
             "key" : "Ctrl-Alt-H"
         },
         {
