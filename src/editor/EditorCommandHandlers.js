@@ -1188,7 +1188,23 @@ define(function (require, exports, module) {
         _execCommand("copy");
     }
     function _execCommandPaste() {
-        _execCommand("paste");
+        if(window.navigator && window.navigator.clipboard){
+            window.navigator.clipboard.readText().then(function (text) {
+                var editor = EditorManager.getFocusedEditor();
+                if(editor){
+                    var doc = editor._codeMirror.getDoc();
+                    var selection = doc.getSelection();
+                    var cursor = doc.getCursor();
+                    if(selection){
+                        doc.replaceSelection(text);
+                    } else {
+                        doc.replaceRange(text, cursor);
+                    }
+                }
+            });
+        } else {
+            _execCommand("paste");
+        }
     }
 
     // Register commands
