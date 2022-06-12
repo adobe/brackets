@@ -897,5 +897,20 @@ define({
     "REFERENCES_NO_RESULTS"                          : "No References available for current cursor position",
 
     "CMD_FIND_DOCUMENT_SYMBOLS"                      : "Find Document Symbols",
-    "CMD_FIND_PROJECT_SYMBOLS"                       : "Find Project Symbols"
+    "CMD_FIND_PROJECT_SYMBOLS"                       : "Find Project Symbols",
+
+   // Remote debugging enabled
+    "REMOTE_DEBUGGING_ENABLED"                       : "Remote debugging enabled on localhost:",
+
+   // Remote debugging port argument is invalid
+    "REMOTE_DEBUGGING_PORT_INVALID"                  : "Cannot enable remote debugging on port {0}. Port numbers should be between {1} and {2}.",
+    
+    //Associate File Type to External App
+    "DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE"     : "Mappings for file extension to external applications. Syntax: \"<file_type>\": \"<default|applicationName|ApplicationPath>\", Use \"default\" to open files in system default application for the file type.",
+
+    "ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE"   : "Open Graphic Files in External Editors.",
+    "ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG"     : "Your current folder has graphic file types which are not supported by {APP_NAME}.<br/>You can now associate specific file types with external editors. Once associated, you can open graphic files like .xd, .psd, .jpg, .png, .ai, .svg in their default applications by double clicking on the files in File Tree.<br/><br/>Please click on ‘Ok’ button to associate the graphic file types with their respective default applications.",
+    "ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG" : "Following file types have been successfully associated with default applications.<br/>{0} You have the option to change your preference on whether you delete/add new file type associations in brackets.json by going to “Debug->Open Preferences File” menu."
+
+
 });

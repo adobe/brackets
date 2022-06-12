@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         LanguageManager   = require("language/LanguageManager"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
-        KeyEvent          = require("utils/KeyEvent");
+        KeyEvent          = require("utils/KeyEvent"),
+        PreferencesManager  = require("preferences/PreferencesManager");
 
     var DOM = Preact.DOM;
 
@@ -554,7 +555,16 @@ define(function (require, exports, module) {
                     });
                 }
             } else {
-                this.props.actions.setSelected(this.myPath());
+                var language = LanguageManager.getLanguageForPath(this.myPath()),
+                    doNotOpen = false;
+                if (language && language.isBinary() && "image" !== language.getId() &&
+                        FileUtils.shouldOpenInExternalApplication(
+                            FileUtils.getFileExtension(this.myPath()).toLowerCase()
+                        )
+                    ) {
+                    doNotOpen = true;
+                }
+                this.props.actions.setSelected(this.myPath(), doNotOpen);
             }
             e.stopPropagation();
             e.preventDefault();
@@ -568,6 +578,12 @@ define(function (require, exports, module) {
             if (!this.props.entry.get("rename")) {
                 if (this.state.clickTimer !== null) {
                     this.clearTimer();
+                }
+                if (FileUtils.shouldOpenInExternalApplication(
+                        FileUtils.getFileExtension(this.myPath()).toLowerCase()
+                      )) {
+                    this.props.actions.openWithExternalApplication(this.myPath());
+                    return;
                 }
                 this.props.actions.selectInWorkingSet(this.myPath());
             }

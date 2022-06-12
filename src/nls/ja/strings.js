@@ -897,5 +897,20 @@ define({
 	"REFERENCES_NO_RESULTS": "現在のカーソル位置で利用可能な参照はありません",
 
 	"CMD_FIND_DOCUMENT_SYMBOLS": "ドキュメント記号を検索",
-	"CMD_FIND_PROJECT_SYMBOLS": "プロジェクト記号を検索"
+	"CMD_FIND_PROJECT_SYMBOLS": "プロジェクト記号を検索",
+
+   // Remote debugging enabled
+	"REMOTE_DEBUGGING_ENABLED": "次のローカルホストでリモートデバッグが有効になりました。localhost:",
+
+   // Remote debugging port argument is invalid
+	"REMOTE_DEBUGGING_PORT_INVALID": "ポート {0} でリモートデバッグを有効にできません。ポート番号は、{1} から {2} の間で指定してください。",
+    
+    //Associate File Type to External App
+	"DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE": "ファイル拡張子の外部アプリケーションへのマッピング。構文: \"<file_type>\": \"<default|applicationName|ApplicationPath>\"。「default」を指定すると、そのファイルタイプに対してシステムでデフォルトに設定されているアプリケーションを使用してファイルが開きます。",
+
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE": "外部エディターでグラフィックファイルを開きます。",
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG": "現在のフォルダーには、{APP_NAME}でサポートされていないタイプのグラフィックファイルがあります。<br/>ここで、特定のファイルタイプを外部エディターに関連付けることができます。関連付けが完了すると、xd、.psd、.jpg、.png、.ai、.svgなどのグラフィックファイルをファイルツリーでダブルクリックすることで、デフォルトのアプリケーションで開くことができます。<br/><br/>「OK」ボタンをクリックして、グラフィックファイルタイプをそれぞれのデフォルトアプリケーションに関連付けてください。",
+	"ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG": "次のファイルタイプが、デフォルトのアプリケーションに関連付けられました。<br/>{0} この設定は、brackets.json でファイルタイプの関連付けを削除し、新しい関連付けを追加するか、デバッグ／環境設定ファイルを開くメニューにアクセスして変更できます。"
+
+
 });

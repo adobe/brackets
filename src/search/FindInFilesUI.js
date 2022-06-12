@@ -450,6 +450,15 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+    * @public
+    * Closes the search results panel
+    */
+    function closeResultsPanel() {
+        _resultsView.close();
+        _closeFindBar();
+	}
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
@@ -495,6 +504,7 @@ define(function (require, exports, module) {
     // Public exports
     exports.searchAndShowResults = searchAndShowResults;
     exports.searchAndReplaceResults = searchAndReplaceResults;
+    exports.closeResultsPanel = closeResultsPanel;
 
     // For unit testing
     exports._showFindBar  = _showFindBar;
